@@ -10,7 +10,7 @@ typedef struct {
 } ParserState;
 
 void expected_token_error(TokenType expected, TokenType got) {
-    set_error(PARSER, "Expected token of type %s but got token of type %s", get_type_str(expected), get_type_str(got));
+    set_error(ERR_PARSER, "Expected token of type %s but got token of type %s", get_type_str(expected), get_type_str(got));
 }
 
 bool accept(ParserState* s, TokenType expected) {

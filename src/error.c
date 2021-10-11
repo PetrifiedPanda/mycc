@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-static ErrorType g_type = NO_ERROR;
+static ErrorType g_type = ERR_NONE;
 enum {MSG_BUF_SIZE = 512};
 static char g_msg_buf[MSG_BUF_SIZE] = {0};
 
@@ -11,7 +11,7 @@ ErrorType get_last_error() {
 }
 
 void clear_last_error() {
-    g_type = NO_ERROR;
+    g_type = ERR_NONE;
 }
 
 const char* get_error_string() {

@@ -16,7 +16,7 @@ bool create_token(Token* t, TokenType type, const char* spelling, size_t line, s
 
         return true;
     } else {
-        set_error(ALLOC_FAIL, "Failed to allocate spelling for token");
+        set_error(ERR_ALLOC_FAIL, "Failed to allocate spelling for token");
         return false;
     }
 }

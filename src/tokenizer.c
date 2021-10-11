@@ -48,7 +48,7 @@ Token* tokenize(const char* str) {
 
     TokenArr res = {malloc(sizeof(Token) * NUM_START_TOKENS), NUM_START_TOKENS};
     if (!res.tokens) {
-        set_error(ALLOC_FAIL, "Failed to allocate token array");
+        set_error(ERR_ALLOC_FAIL, "Failed to allocate token array");
         goto fail;
     }
 
@@ -64,7 +64,7 @@ Token* tokenize(const char* str) {
             if (type == DIV) {
                 if (handle_comments(&s)) {
                     continue;
-                } else if (get_last_error() != NO_ERROR) {
+                } else if (get_last_error() != ERR_NONE) {
                     goto fail;
                 }
             }
@@ -91,7 +91,7 @@ Token* tokenize(const char* str) {
 
     Token* new_tokens = realloc(res.tokens, sizeof(Token) * (token_idx + 1));
     if (!new_tokens) {
-        set_error(ALLOC_FAIL, "Failed to resize token array");
+        set_error(ERR_ALLOC_FAIL, "Failed to resize token array");
         goto fail;
     }
     res.tokens = new_tokens;
@@ -394,7 +394,7 @@ static bool realloc_tokens_if_needed(size_t token_idx, TokenArr* res) {
         res->len *= 2;
         Token* new_tokens = realloc(res->tokens, sizeof(Token) * res->len);
         if (!new_tokens) {
-            set_error(ALLOC_FAIL, "Failed to reallocate Token Array");
+            set_error(ERR_ALLOC_FAIL, "Failed to reallocate Token Array");
             return false;
         }
         res->tokens = new_tokens;
@@ -441,7 +441,7 @@ static void unterminated_literal_err(char terminator, size_t line, size_t start_
     } else {
         literal_type_str = "Char";
     }
-    set_error(TOKENIZER, "%s literal at line %ul char %ul not properly terminated", literal_type_str, line, start_idx);
+    set_error(ERR_TOKENIZER, "%s literal at line %ul char %ul not properly terminated", literal_type_str, line, start_idx);
 }
 
 static bool handle_comments(TokenizerState* s) {
@@ -452,7 +452,7 @@ static bool handle_comments(TokenizerState* s) {
         }
 
         if (*s->it == '\0') {
-            set_error(TOKENIZER, "Comment was not properly terminated");
+            set_error(ERR_TOKENIZER, "Comment was not properly terminated");
             return false;
         } else {
             assert(*s->it == '*');
@@ -507,7 +507,7 @@ static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* t
         size_t dyn_buf_lim = dyn_buf_len - 1;
         char* dyn_buf = malloc(sizeof(char) * dyn_buf_len);
         if (!dyn_buf) {
-            set_error(ALLOC_FAIL, "Could not allocate buffer for long literal");
+            set_error(ERR_ALLOC_FAIL, "Could not allocate buffer for long literal");
             return false;
         }
         strcpy(dyn_buf, spell_buf);
@@ -517,7 +517,7 @@ static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* t
                 dyn_buf_len += dyn_buf_len / 2;
                 char* new_buf = realloc(dyn_buf, dyn_buf_len);
                 if (!new_buf) {
-                    set_error(ALLOC_FAIL, "Could not enlarge buffer for long string literal");
+                    set_error(ERR_ALLOC_FAIL, "Could not enlarge buffer for long string literal");
                     free(dyn_buf);
                     return false;
                 } else {
@@ -533,7 +533,7 @@ static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* t
         }
         char* new_buf = realloc(dyn_buf, buf_idx + 2);
         if (!new_buf) {
-            set_error(ALLOC_FAIL, "Could not resize buffer for long string literal");
+            set_error(ERR_ALLOC_FAIL, "Could not resize buffer for long string literal");
             free(dyn_buf);
             return false;
         }
@@ -547,7 +547,7 @@ static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* t
 
         if (type == INVALID || !add_token_move(token_idx, res, type, dyn_buf, s->line, start_idx)) {
             if (type == INVALID) {
-                set_error(TOKENIZER, "Terminated literal is of unknown type");
+                set_error(ERR_TOKENIZER, "Terminated literal is of unknown type");
             }
             free(dyn_buf);
             return false;
@@ -562,7 +562,7 @@ static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* t
 
         if (type == INVALID || !add_token(token_idx, res, type, spell_buf, s->line, start_idx)) {
             if (type == INVALID) {
-                set_error(TOKENIZER, "Terminated literal is of unknown type");
+                set_error(ERR_TOKENIZER, "Terminated literal is of unknown type");
             }
             return false;
         }
@@ -596,7 +596,7 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
         } else if (buf_idx <= MAX_IDENTIFIER_LEN && is_valid_identifier(spell_buf, buf_idx)) {
             type = IDENTIFIER;
         } else {
-            set_error(TOKENIZER, "Invalid identifier");
+            set_error(ERR_TOKENIZER, "Invalid identifier");
             return false;
         }
 
@@ -604,7 +604,7 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
             return false;
         }
     } else {
-        set_error(TOKENIZER, "Identifier too long");
+        set_error(ERR_TOKENIZER, "Identifier too long");
         return false; // TOKEN too long 
     }
 

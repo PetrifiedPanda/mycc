@@ -2,10 +2,10 @@
 #define ERROR_H
 
 typedef enum {
-    NO_ERROR,
-    ALLOC_FAIL,
-    TOKENIZER,
-    PARSER
+    ERR_NONE,
+    ERR_ALLOC_FAIL,
+    ERR_TOKENIZER,
+    ERR_PARSER
 } ErrorType;
 
 ErrorType get_last_error();
