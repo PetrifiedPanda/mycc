@@ -1,12 +1,11 @@
 #include "ast/type_qual.h"
 
 #include <stdlib.h>
+#include <assert.h>
 
-static void free_children(TypeQual* t) {
-
-}
-
-void free_type_qual(TypeQual* t) {
-    free_children(t);
-    free(t);
+TypeQual create_type_qual(TokenType type) {
+    assert(type == VOLATILE || type == CONST);
+    TypeQual res;
+    res.is_const = type == CONST;
+    return res;
 }

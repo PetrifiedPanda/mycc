@@ -7,8 +7,6 @@ static void free_children(SpecQualList* l) {
         TypeSpecOrQual* item = &l->specs_or_quals[i];
         if (item->is_type_spec) {
             free_type_spec(item->type_spec);
-        } else {
-            free_type_qual(item->type_qual);
         }
     }
 }

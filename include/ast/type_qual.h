@@ -1,10 +1,14 @@
 #ifndef TYPE_QUAL_H
 #define TYPE_QUAL_H
 
+#include <stdbool.h>
+
+#include "token.h"
+
 typedef struct TypeQual {
-    
+    bool is_const; // either volatile or const    
 } TypeQual;
 
-void free_type_qual(TypeQual* t);
+TypeQual create_type_qual(TokenType type);
 
 #endif

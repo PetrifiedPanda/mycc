@@ -4,14 +4,15 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "ast/type_qual.h"
+
 typedef struct TypeSpec TypeSpec;
-typedef struct TypeQual TypeQual;
 
 typedef struct {
     bool is_type_spec;
     union {
         TypeSpec* type_spec;
-        TypeQual* type_qual;
+        TypeQual type_qual;
     };
 } TypeSpecOrQual;
 
@@ -23,6 +24,5 @@ typedef struct SpecQualList {
 void free_spec_qual_list(SpecQualList* l);
 
 #include "ast/type_spec.h"
-#include "ast/type_qual.h"
 
 #endif

@@ -17,13 +17,8 @@ DeclarationSpecs* create_declaration_specs(DeclarationSpecsCont* contents, size_
 static void free_children(DeclarationSpecs* s) {
     for (size_t i = 0; i < s->len; ++i) {
         DeclarationSpecsCont* item = &s->contents[i];
-        switch (item->type) {
-            case DECLSPEC_TYPE_SPEC:
-                free_type_spec(item->type_spec);
-                break;
-            case DECLSPEC_TYPE_QUAL:
-                free_type_qual(item->type_qual);
-                break;
+        if (item->type == DECLSPEC_TYPE_SPEC) {
+            free_type_spec(item->type_spec);
         }
     }
     free(s->contents);
