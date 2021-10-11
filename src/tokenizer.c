@@ -78,7 +78,7 @@ Token* tokenize(const char* str) {
 
             size_t len = strlen(spelling);
             advance(&s, len);
-        } else if (*s.it == '\"' || *s.it == '\'' || (*s.it == 'L' && (s.it[1] == '\"' || s.it[1] == '\''))) { // TODO: literals starting with L
+        } else if (*s.it == '\"' || *s.it == '\'' || (*s.it == 'L' && (s.it[1] == '\"' || s.it[1] == '\''))) {
             if (!handle_character_literal(&s, &res, &token_idx)) {
                 goto fail;
             }
