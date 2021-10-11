@@ -22,7 +22,7 @@ ParamDeclaration* create_param_declaration_declarator(DeclarationSpecs* decl_spe
     return res;
 }
 
-ParamDeclaration* create_param_declaration_abstract(DeclarationSpecs* decl_specs, AbstractDecl* abstract_decl) {
+ParamDeclaration* create_param_declaration_abstract(DeclarationSpecs* decl_specs, AbstractDeclarator* abstract_decl) {
     ParamDeclaration* res = create_param_declaration(decl_specs);
     if (res) {
         res->type = PARAM_DECL_ABSTRACT_DECL;
@@ -38,7 +38,7 @@ void free_param_declaration_children(ParamDeclaration* d) {
         free_declarator(d->decl);
         break;
     case PARAM_DECL_ABSTRACT_DECL:
-        free_abstract_decl(d->abstract_decl);
+        free_abstract_declarator(d->abstract_decl);
         break;
     }
 }
