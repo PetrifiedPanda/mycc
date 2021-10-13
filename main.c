@@ -23,7 +23,7 @@ int main() {
         "int arr[1 ? 100 : 1000];\n";
     Token* tokens = tokenize(code);
     if (get_last_error() != ERR_NONE) {
-        printf("%s\n", get_error_string());
+        fprintf(stderr, "%s\n", get_error_string());
         clear_last_error();
     }
 
