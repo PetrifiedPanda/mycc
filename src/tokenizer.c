@@ -597,7 +597,7 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
     } else if (token_is_over(s)) {
         TokenType type = INVALID;
         if (is_hex_const(spell_buf, buf_idx) || is_oct_const(spell_buf, buf_idx) || is_dec_const(spell_buf, buf_idx) || is_float_const(spell_buf, buf_idx)) {
-            type = CONST;
+            type = CONSTANT;
         } else if (buf_idx <= MAX_IDENTIFIER_LEN && is_valid_identifier(spell_buf, buf_idx)) {
             type = IDENTIFIER;
         } else {
