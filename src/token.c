@@ -11,9 +11,8 @@ bool create_token(Token* t, TokenType type, const char* spelling, size_t line, s
     if (t->spelling) {
         strcpy(t->spelling, spelling);
         t->type = type;
-        t->source_line = line;
-        t->source_char = idx;
-
+        t->source_loc.line = line;
+        t->source_loc.index = idx;
         return true;
     } else {
         set_error(ERR_ALLOC_FAIL, "Failed to allocate spelling for token");
@@ -25,8 +24,8 @@ void create_token_move(Token* t, TokenType type, char* spelling, size_t line, si
     assert(t);
     t->spelling = spelling;
     t->type = type;
-    t->source_line = line;
-    t->source_char = idx;
+    t->source_loc.line = line;
+    t->source_loc.index = idx;
 }
 
 void free_token(Token* t) {

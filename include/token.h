@@ -91,11 +91,14 @@ typedef enum  {
     INVALID
 } TokenType;
 
+typedef struct {
+    size_t line, index;
+} SourceLocation;
 
 typedef struct {
     TokenType type;
     char* spelling;
-    size_t source_line, source_char;
+    SourceLocation source_loc;
 } Token;
 
 bool create_token(Token* t, TokenType type, const char* spelling, size_t line, size_t idx);

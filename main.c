@@ -15,7 +15,7 @@ int main() {
     }
 
     for (Token* it = tokens; it->type != INVALID; ++it) {
-        printf("Type: %s, Spelling: %s, line: %lu, idx: %lu\n", get_type_str(it->type), it->spelling, it->source_line, it->source_char);
+        printf("Type: %s, Spelling: %s, line: %lu, idx: %lu\n", get_type_str(it->type), it->spelling, it->source_loc.line, it->source_loc.index);
 
         free_token(it);
     }
