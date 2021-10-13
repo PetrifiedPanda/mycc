@@ -6,6 +6,12 @@
 DeclarationSpecs* create_declaration_specs(DeclarationSpecsCont* contents, size_t len) {
     assert(len > 0);
     assert(contents);
+    for (size_t i = 0; i < len; ++i) {
+        DeclarationSpecsCont* item = &contents[i];
+        if (item->type == DECLSPEC_STORAGE_CLASS_SPEC) {
+            assert(is_storage_class_spec(item->storage_class_spec));
+        }
+    }
     DeclarationSpecs* res = malloc(sizeof(DeclarationSpecs));
     if (res) {
         res->len = len;

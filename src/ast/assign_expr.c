@@ -5,10 +5,14 @@
 
 void create_assign_expr_inplace(AssignExpr* res, UnaryAndOp* assign_chain, size_t len, CondExpr* value) {
     assert(value);
-    if (len == 0) {
+    if (len > 0) {
+        assert(assign_chain);
+    } else {
         assert(assign_chain == NULL);
     }
-    assert(false); // TODO: assert ops
+    for (size_t i = 0; i < len; ++i) {
+        assert(is_assign_op(assign_chain[i].assign_op));
+    }
     if (res) {
         res->assign_chain = assign_chain;
         res->len = len;

@@ -99,6 +99,8 @@ const char* get_spelling(TokenType type) {
         return "int";
     case LONG:
         return "long";
+    case SIGNED:
+        return "signed";
     case UNSIGNED:
         return "unsigned";
     case FLOAT:
@@ -271,6 +273,8 @@ const char* get_type_str(TokenType type) {
         return "INT";
     case LONG:
         return "LONG";
+    case SIGNED:
+        return "SIGNED";
     case UNSIGNED:
         return "UNSIGNED";
     case FLOAT:
@@ -365,5 +369,68 @@ const char* get_type_str(TokenType type) {
         return "INVALID";
     default:
         return "no applicable token type";
+    }
+}
+
+bool is_unary_op(TokenType t) {
+    switch (t) {
+        case AND:
+        case ASTERISK:
+        case ADD:
+        case SUB:
+        case BNOT:
+        case NOT:
+           return true;
+        default:
+            return false; 
+    }
+}
+
+bool is_assign_op(TokenType t) {
+    switch (t) {
+        case ASSIGN:
+        case MUL_ASSIGN:
+        case DIV_ASSIGN:
+        case MOD_ASSIGN:
+        case ADD_ASSIGN:
+        case SUB_ASSIGN:
+        case LEFT_ASSIGN:
+        case RIGHT_ASSIGN:
+        case AND_ASSIGN:
+        case XOR_ASSIGN:
+        case OR_ASSIGN:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool is_storage_class_spec(TokenType t) {
+    switch (t) {
+        case TYPEDEF:
+        case EXTERN:
+        case STATIC:
+        case AUTO:
+        case REGISTER:
+            return true;
+        default:
+            return false; 
+    }
+}
+
+bool is_keyword_type_spec(TokenType t) {
+    switch (t) {
+        case VOID:
+        case CHAR:
+        case SHORT:
+        case INT:
+        case LONG:
+        case FLOAT:
+        case DOUBLE:
+        case SIGNED:
+        case UNSIGNED:
+            return true;
+        default:
+            return false;
     }
 }

@@ -107,66 +107,71 @@ fail:
     return res.tokens;
 }
 
-static TokenType multic_token_type(const char* spelling) {
-    if (strcmp(spelling, "sizeof") == 0) {
+static inline bool is_spelling(const char* spelling, TokenType type){
+    return strcmp(spelling, get_spelling(type)) == 0;
+} 
+static TokenType multic_token_type(const char* spell) {
+    if (is_spelling(spell, SIZEOF)) {
         return SIZEOF;
-    } else if (strcmp(spelling, "typedef") == 0) {
+    } else if (is_spelling(spell, TYPEDEF)) {
         return TYPEDEF;
-    } else if (strcmp(spelling, "extern") == 0) {
+    } else if (is_spelling(spell, EXTERN)) {
         return EXTERN;
-    } else if (strcmp(spelling, "static") == 0) {
+    } else if (is_spelling(spell, STATIC)) {
         return STATIC;
-    } else if (strcmp(spelling, "auto") == 0) {
+    } else if (is_spelling(spell, AUTO)) {
         return AUTO;
-    } else if (strcmp(spelling, "register") == 0) {
+    } else if (is_spelling(spell, REGISTER)) {
         return REGISTER;
-    } else if (strcmp(spelling, "char") == 0) {
+    } else if (is_spelling(spell, CHAR)) {
         return CHAR;
-    } else if (strcmp(spelling, "short") == 0) {
+    } else if (is_spelling(spell, SHORT)) {
         return SHORT;
-    } else if (strcmp(spelling, "int") == 0) {
+    } else if (is_spelling(spell, INT)) {
         return INT;
-    } else if (strcmp(spelling, "long") == 0) {
+    } else if (is_spelling(spell, LONG)) {
         return LONG;
-    } else if (strcmp(spelling, "unsigned") == 0) {
+    } else if (is_spelling(spell, SIGNED)) {
+        return SIGNED;
+    }else if (is_spelling(spell, UNSIGNED)) {
         return UNSIGNED;
-    } else if (strcmp(spelling, "float") == 0) {
+    } else if (is_spelling(spell, FLOAT)) {
         return FLOAT;
-    } else if (strcmp(spelling, "double") == 0) {
+    } else if (is_spelling(spell, DOUBLE)) {
         return DOUBLE;
-    } else if (strcmp(spelling, "const") == 0) {
+    } else if (is_spelling(spell, CONST)) {
         return CONST;
-    } else if (strcmp(spelling, "volatile") == 0) {
+    } else if (is_spelling(spell, VOLATILE)) {
         return VOLATILE;
-    } else if (strcmp(spelling, "void") == 0) {
+    } else if (is_spelling(spell, VOID)) {
         return VOID;
-    } else if (strcmp(spelling, "struct") == 0) {
+    } else if (is_spelling(spell, STRUCT)) {
         return STRUCT;
-    } else if (strcmp(spelling, "union") == 0) {
+    } else if (is_spelling(spell, UNION)) {
         return UNION;
-    } else if (strcmp(spelling, "case") == 0) {
+    } else if (is_spelling(spell, CASE)) {
         return CASE;
-    } else if (strcmp(spelling, "default") == 0) {
+    } else if (is_spelling(spell, DEFAULT)) {
         return DEFAULT;
-    } else if (strcmp(spelling, "if") == 0) {
+    } else if (is_spelling(spell, IF)) {
         return IF;
-    } else if (strcmp(spelling, "else") == 0) {
+    } else if (is_spelling(spell, ELSE)) {
         return ELSE;
-    } else if (strcmp(spelling, "switch") == 0) {
+    } else if (is_spelling(spell, SWITCH)) {
         return SWITCH;
-    } else if (strcmp(spelling, "while") == 0) {
+    } else if (is_spelling(spell, WHILE)) {
         return WHILE;
-    } else if (strcmp(spelling, "do") == 0) {
+    } else if (is_spelling(spell, DO)) {
         return DO;
-    } else if (strcmp(spelling, "for") == 0) {
+    } else if (is_spelling(spell, FOR)) {
         return FOR;
-    } else if (strcmp(spelling, "goto") == 0) {
+    } else if (is_spelling(spell, GOTO)) {
         return GOTO;
-    } else if (strcmp(spelling, "continue") == 0) {
+    } else if (is_spelling(spell, CONTINUE)) {
         return CONTINUE;
-    } else if (strcmp(spelling, "break") == 0) {
+    } else if (is_spelling(spell, BREAK)) {
         return BREAK;
-    } else if (strcmp(spelling, "return") == 0) {
+    } else if (is_spelling(spell, RETURN)) {
         return RETURN;
     } else {
         return INVALID;

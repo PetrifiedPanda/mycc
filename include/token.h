@@ -40,6 +40,7 @@ typedef enum  {
     SHORT,
     INT,
     LONG,
+    SIGNED,
     UNSIGNED,
     FLOAT,
     DOUBLE,
@@ -103,7 +104,12 @@ void create_token_move(Token* t, TokenType type, char* spelling, size_t line, si
 void free_token(Token* t);
 
 const char* get_spelling(TokenType type);
-
 const char* get_type_str(TokenType type);
+
+bool is_unary_op(TokenType t);
+bool is_assign_op(TokenType t);
+bool is_storage_class_spec(TokenType t);
+bool is_keyword_type_spec(TokenType t);
+
 
 #endif
