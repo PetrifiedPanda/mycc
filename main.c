@@ -8,17 +8,17 @@
 
 int main() {
     const char* code = 
-        "struct typedeftest /* This is a comment \n"
+        "typedef struct typedeftest /* This is a comment \n"
         "that goes over\n"
         "multiple lines\n"
         "*/\n"
         "{\n"
         "\tlong int* n;\n"
         "const long double *m;\n"
-        "}; // Line comment\n"
+        "} Typedeftest; // Line comment\n"
         "const char* lstr = \n"
         "L\"Long string literal to check if long strings work\";\n"
-        "int n = 0x123213;\n"
+        "int n = 0x123213 + 132 << 32 >> 0x123 - 0123 / 12;\n"
         "const char* str = \"Normal string literal\";\n"
         "int arr[1 ? 100 : 1000];\n";
     Token* tokens = tokenize(code);
