@@ -58,6 +58,9 @@ Token* tokenize(const char* str) {
         while (isspace(*s.it)) {
             advance_newline(&s);
         }
+        if (*s.it == '\0') {
+            break;
+        }
 
         TokenType type = singlec_token_type(*s.it);
         if (type != INVALID && is_valid_singlec_token(type, s.prev, s.prev_prev)) {

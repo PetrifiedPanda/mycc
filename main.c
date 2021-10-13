@@ -7,8 +7,21 @@
 #include "regex.h"
 
 int main() {
-    const char* test = "struct typedeftest /* this is a comment \n\n */ {long int* n; const long double *m;}; // Test Comment\n const char* name = \"Hello World\\n\"; int* nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn = L\"Super long string is this 30 characters yet please help\";\nint n = 0x13;";
-    Token* tokens = tokenize(test);
+    const char* code = 
+        "struct typedeftest /* This is a comment \n"
+        "that goes over\n"
+        "multiple lines\n"
+        "*/\n"
+        "{\n"
+        "\tlong int* n;\n"
+        "const long double *m;\n"
+        "}; // Line comment\n"
+        "const char* lstr = \n"
+        "L\"Long string literal to check if long strings work\";\n"
+        "int n = 0x123213;\n"
+        "const char* str = \"Normal string literal\";\n"
+        "int arr[1 ? 100 : 1000];\n";
+    Token* tokens = tokenize(code);
     if (get_last_error() != ERR_NONE) {
         printf("%s\n", get_error_string());
         clear_last_error();
