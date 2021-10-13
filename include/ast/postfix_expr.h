@@ -1,39 +1,42 @@
 #ifndef POSTFIX_EXPR_H
 #define POSTFIX_EXPR_H
 
+#include "token.h"
+
 #include "ast/primary_expr.h"
-#include "ast/arg_expr_lst.h"
+
+typedef struct ArgExprList ArgExprList;
+typedef struct Expr Expr;
 
 typedef enum {
-    POSTFIX_PRIMARY,
     POSTFIX_INDEX,
-    POSTFIX_FUN_CALL,
+    POSTFIX_BRACKET,
     POSTFIX_ACCESS,
     POSTFIX_PTR_ACCESS,
-    POSTFIX_INC,
-    POSTFIX_DEC
-} PostfixType;
+    POSTFIX_INC_DEC
+} PostfixSuffixType;
 
-typedef struct PostfixExpr {
-    PostfixType type;
-    union {
-        struct PostfixExpr* postfix;
-        PrimaryExpr* primary;
-    };
-
+typedef struct {
+    PostfixSuffixType type;
     union {
         Expr* index_expr;
-        ArgExprLst* expr_list;
+        ArgExprList* bracket_list;
         char* identifier;
+        TokenType inc_dec;
     };
+} PostfixSuffix;
+
+typedef struct PostfixExpr {
+    PrimaryExpr* primary;
+    size_t len;
+    PostfixSuffix* suffixes;
 } PostfixExpr;
 
-PostfixExpr* create_postfix_expr_primary(PrimaryExpr* primary);
-PostfixExpr* create_postfix_expr_index(PostfixExpr* postfix, Expr* index_expr);
-PostfixExpr* create_postfix_expr_fun_call(PostfixExpr* postfix, ArgExprLst* expr_list);
-PostfixExpr* create_postfix_expr_access(PostfixType type, PostfixExpr* postfix, char* identifier);
-PostfixExpr* create_postfix_expr_inc_dec(PostfixType type, PostfixExpr* postfix);
+PostfixExpr* create_postfix_expr(PrimaryExpr* primary, PostfixSuffix* suffixes, size_t len);
 
 void free_postfix_expr(PostfixExpr* p);
+
+#include "ast/arg_expr_list.h"
+#include "ast/expr.h"
 
 #endif

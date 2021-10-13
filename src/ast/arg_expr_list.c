@@ -1,4 +1,4 @@
-#include "ast/arg_expr_lst.h"
+#include "ast/arg_expr_list.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -14,14 +14,14 @@ ArgExprLst* create_arg_expr_lst(AssignExpr* assign_exprs, size_t len) {
     return res;
 }
 
-static void free_children(ArgExprLst* l) {
+static void free_children(ArgExprList* l) {
     for (size_t i = 0; i < l->len; ++i) {
         free_assign_expr_children(&l->assign_exprs[i]);
     }
     free(l->assign_exprs);
 }
 
-void free_arg_expr_lst(ArgExprLst* l) {
+void free_arg_expr_list(ArgExprList* l) {
     free_children(l);
     free(l);
 }
