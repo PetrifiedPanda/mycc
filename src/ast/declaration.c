@@ -3,21 +3,21 @@
 #include <stdlib.h>
 #include <assert.h>
 
-Declaration* create_declaration(Pointer* ptr, DirectDeclarator* direct_decl) {
-    assert(direct_decl);
+Declaration* create_declaration(DeclarationSpecs* decl_specs, InitDeclaratorList* init_decls) {
+    assert(decl_specs);
     Declaration* res = malloc(sizeof(Declaration));
     if (res) {
-        res->ptr = ptr;
-        res->direct_decl = direct_decl;
+        res->decl_specs = decl_specs;
+        res->init_decls = init_decls;
     }
     return res;
 }
 
 void free_declaration_children(Declaration* d) {
-    if (d->ptr) {
-        free_pointer(d->ptr);
+    free_declaration_specs(d->decl_specs);
+    if (d->init_decls) {
+        free_init_declarator_list(d->init_decls);
     }
-    free_direct_declarator(d->direct_decl);
 }
 
 void free_declaration(Declaration* d) {

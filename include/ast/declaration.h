@@ -1,20 +1,20 @@
 #ifndef DECLARATION_H
 #define DECLARATION_H
 
-typedef struct Pointer Pointer;
-typedef struct DirectDeclarator DirectDeclarator;
+typedef struct DeclarationSpecs DeclarationSpecs;
+typedef struct InitDeclaratorList InitDeclaratorList;
 
 typedef struct Declaration {
-    Pointer* ptr;
-    DirectDeclarator* direct_decl;
+    DeclarationSpecs* decl_specs;
+    InitDeclaratorList* init_decls;
 } Declaration;
 
-Declaration* create_declaration(Pointer* ptr, DirectDeclarator* direct_decl);
+Declaration* create_declaration(DeclarationSpecs* decl_specs, InitDeclaratorList* init_decls);
 
 void free_declaration_children(Declaration* d);
 void free_declaration(Declaration* d);
 
-#include "ast/pointer.h"
-#include "ast/direct_declarator.h"
+#include "ast/declaration_specs.h"
+#include "ast/init_declarator_list.h"
 
 #endif
