@@ -10,7 +10,7 @@ typedef struct StructDeclaratorList {
     StructDeclarator* decls;
 } StructDeclaratorList;
 
-StructDeclaratorList* create_struct_declarator_list(StructDeclarator* decls, size_t len);
+StructDeclaratorList create_struct_declarator_list(StructDeclarator* decls, size_t len);
 
 void free_struct_declarator_list(StructDeclaratorList* l);
 

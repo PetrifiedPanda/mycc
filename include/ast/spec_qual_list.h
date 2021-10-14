@@ -21,6 +21,8 @@ typedef struct SpecQualList {
     TypeSpecOrQual* specs_or_quals;
 } SpecQualList;
 
+SpecQualList create_spec_qual_list(TypeSpecOrQual* specs_or_quals, size_t len);
+
 void free_spec_qual_list(SpecQualList* l);
 
 #include "ast/type_spec.h"

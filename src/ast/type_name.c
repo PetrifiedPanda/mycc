@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
-TypeName* create_type_name(SpecQualList* spec_qual_list, AbstractDeclarator* abstract_decl) {
-    assert(spec_qual_list);
+TypeName* create_type_name(SpecQualList spec_qual_list, AbstractDeclarator* abstract_decl) {
+    assert(spec_qual_list.len > 0);
     TypeName* res = malloc(sizeof(TypeName));
     if (res) {
         res->spec_qual_list = spec_qual_list;
@@ -13,7 +13,7 @@ TypeName* create_type_name(SpecQualList* spec_qual_list, AbstractDeclarator* abs
 }
 
 void free_type_name_children(TypeName* n) {
-    free_spec_qual_list(n->spec_qual_list);
+    free_spec_qual_list(&n->spec_qual_list);
     if (n->abstract_decl) {
         free_abstract_declarator(n->abstract_decl);
     }
