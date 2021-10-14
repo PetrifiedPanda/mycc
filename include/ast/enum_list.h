@@ -10,7 +10,7 @@ typedef struct EnumList {
     Enumerator* enums;
 } EnumList;
 
-EnumList* create_enum_list(Enumerator* enums, size_t len);
+EnumList create_enum_list(Enumerator* enums, size_t len);
 
 void free_enum_list(EnumList* l);
 

@@ -3,18 +3,16 @@
 
 #include <stdbool.h>
 
-typedef struct StructDeclarationList StructDeclarationList;
+#include "ast/struct_declaration_list.h"
 
 typedef struct StructUnionSpec {
     bool is_struct;
     char* identifier;
-    StructDeclarationList* decl_list;
+    StructDeclarationList decl_list;
 } StructUnionSpec;
 
-StructUnionSpec* create_struct_union_spec(bool is_struct, char* identifier, StructDeclarationList* decl_list);
+StructUnionSpec* create_struct_union_spec(bool is_struct, char* identifier, StructDeclarationList decl_list);
 
 void free_struct_union_spec(StructUnionSpec* s);
-
-#include "ast/struct_declaration_list.h"
 
 #endif

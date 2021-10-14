@@ -13,8 +13,7 @@ Initializer* create_initializer_assign(AssignExpr* assign) {
     return res;
 }
 
-Initializer* create_initializer_init_list(InitList* init_list) {
-    assert(init_list);
+Initializer* create_initializer_init_list(InitList init_list) {
     Initializer* res = malloc(sizeof(Initializer));
     if (res) {
         res->is_assign = false;
@@ -27,7 +26,7 @@ void free_initializer_children(Initializer* i) {
     if (i->is_assign) {
         free_assign_expr(i->assign);
     } else {
-        free_init_list(i->init_list);
+        free_init_list_children(&i->init_list);
     }
 }
 

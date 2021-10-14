@@ -10,7 +10,7 @@ typedef struct StatementList {
     Statement* statements;
 } StatementList;
 
-StatementList* create_statement_list(Statement* statements, size_t len);
+StatementList create_statement_list(Statement* statements, size_t len);
 
 void free_statement_list(StatementList* l);
 

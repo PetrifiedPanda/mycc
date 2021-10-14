@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-FuncDef* create_func_def(DeclarationSpecs* specs, Declarator* decl, DeclarationList* decl_list, CompoundStatement* comp) {
+FuncDef* create_func_def(DeclarationSpecs* specs, Declarator* decl, DeclarationList decl_list, CompoundStatement* comp) {
     assert(decl);
     assert(comp);
     FuncDef* res = malloc(sizeof(FuncDef));
@@ -21,9 +21,7 @@ static void free_children(FuncDef* d) {
         free_declaration_specs(d->specs);
     }
     free_declarator(d->decl);
-    if (d->decl_list) {
-        free_declaration_list(d->decl_list);
-    }
+    free_declaration_list(&d->decl_list);
     free_compound_statement(d->comp);
 }
 

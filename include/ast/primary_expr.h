@@ -5,7 +5,7 @@
 
 typedef struct Expr Expr;
 
-typedef struct {
+typedef struct PrimaryExpr {
     bool is_bracket;
     union {
         struct {

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-Pointer* create_pointer(TypeQualList** quals_after_ptr, size_t num_indirs) {
+Pointer* create_pointer(TypeQualList* quals_after_ptr, size_t num_indirs) {
     assert(num_indirs > 0);
     Pointer* res = malloc(sizeof(Pointer));
     if (res) {
@@ -15,9 +15,7 @@ Pointer* create_pointer(TypeQualList** quals_after_ptr, size_t num_indirs) {
 
 static void free_children(Pointer* p) {
     for (size_t i = 0; i < p->num_indirs; ++i) {
-        if (p->quals_after_ptr[i]) {
-            free_type_qual_list(p->quals_after_ptr[i]);
-        }
+        free_type_qual_list(&p->quals_after_ptr[i]);
     }
     free(p->quals_after_ptr);
 }

@@ -7,10 +7,10 @@ typedef struct TypeQualList TypeQualList;
 
 typedef struct Pointer {
     size_t num_indirs;
-    TypeQualList** quals_after_ptr;
+    TypeQualList* quals_after_ptr;
 } Pointer;
 
-Pointer* create_pointer(TypeQualList** quals_after_ptr, size_t num_indirs);
+Pointer* create_pointer(TypeQualList* quals_after_ptr, size_t num_indirs);
 
 void free_pointer(Pointer* p);
 

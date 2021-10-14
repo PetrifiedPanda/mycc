@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
-EnumSpec* create_enum_spec(char* identifier, EnumList* enum_list) {
-    assert(identifier || enum_list); 
+EnumSpec* create_enum_spec(char* identifier, EnumList enum_list) {
+    assert(identifier || enum_list.len > 0); 
     EnumSpec* res = malloc(sizeof(EnumSpec));
     if (res) {
         res->identifier = identifier;
@@ -15,9 +15,7 @@ EnumSpec* create_enum_spec(char* identifier, EnumList* enum_list) {
 
 static void free_children(EnumSpec* s) {
     free(s->identifier);
-    if (s->enum_list) {
-        free_enum_list(s->enum_list);
-    }
+    free_enum_list(&s->enum_list);
 }
 
 void free_enum_spec(EnumSpec* s) {

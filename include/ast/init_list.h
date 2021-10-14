@@ -10,9 +10,9 @@ typedef struct InitList {
     Initializer* inits;
 } InitList;
 
-InitList* create_init_list(Initializer* inits, size_t len);
+InitList create_init_list(Initializer* inits, size_t len);
 
-void free_init_list(InitList* l);
+void free_init_list_children(InitList* l);
 
 #include "ast/initializer.h"
 

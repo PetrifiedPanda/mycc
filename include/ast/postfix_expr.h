@@ -3,10 +3,9 @@
 
 #include "token.h"
 
-#include "ast/primary_expr.h"
-
-typedef struct ArgExprList ArgExprList;
+typedef struct PrimaryExpr PrimaryExpr;
 typedef struct Expr Expr;
+typedef struct ArgExprList ArgExprList;
 
 typedef enum {
     POSTFIX_INDEX,
@@ -36,7 +35,8 @@ PostfixExpr* create_postfix_expr(PrimaryExpr* primary, PostfixSuffix* suffixes, 
 
 void free_postfix_expr(PostfixExpr* p);
 
-#include "ast/arg_expr_list.h"
+#include "ast/primary_expr.h"
 #include "ast/expr.h"
+#include "arg_expr_list.h"
 
 #endif
