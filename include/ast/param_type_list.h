@@ -10,7 +10,7 @@ typedef struct ParamTypeList {
     ParamList* param_list;
 } ParamTypeList;
 
-ParamTypeList* create_param_type_list(bool is_variadic, ParamList* param_list);
+ParamTypeList create_param_type_list(bool is_variadic, ParamList* param_list);
 
 void free_param_type_list(ParamTypeList* l);
 

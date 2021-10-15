@@ -10,7 +10,7 @@ typedef struct InitDeclaratorList {
     InitDeclarator* decls;
 } InitDeclaratorList;
 
-InitDeclaratorList* create_init_declarator_list(InitDeclarator* decls, size_t len);
+InitDeclaratorList create_init_declarator_list(InitDeclarator* decls, size_t len);
 
 void free_init_declarator_list(InitDeclaratorList* l);
 

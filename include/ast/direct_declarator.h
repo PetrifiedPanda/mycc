@@ -4,9 +4,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "ast/param_type_list.h"
+#include "ast/identifier_list.h"
+
 typedef struct ConstExpr ConstExpr;
-typedef struct ParamTypeList ParamTypeList;
-typedef struct IdentifierList IdentifierList;
 typedef struct Declarator Declarator;
 
 typedef enum {
@@ -19,8 +20,8 @@ typedef struct {
     ArrOrFuncSuffixType type;
     union {
         ConstExpr* arr_len;
-        ParamTypeList* fun_types;
-        IdentifierList* fun_params;
+        ParamTypeList fun_types;
+        IdentifierList fun_params;
     };
 } ArrOrFuncSuffix;
 
@@ -40,8 +41,6 @@ DirectDeclarator* create_direct_declarator_decl(Declarator* decl, ArrOrFuncSuffi
 void free_direct_declarator(DirectDeclarator* d);
 
 #include "ast/const_expr.h"
-#include "ast/param_type_list.h"
-#include "ast/identifier_list.h"
 #include "ast/declarator.h"
 
 #endif

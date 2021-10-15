@@ -49,10 +49,10 @@ static void free_children(DirectDeclarator* d) {
             free_const_expr(item->arr_len);
             break;
         case ARR_OR_FUNC_FUN_TYPES:
-            free_param_type_list(item->fun_types);
+            free_param_type_list(&item->fun_types);
             break;
         case ARR_OR_FUNC_FUN_PARAMS:
-            free_identifier_list(item->fun_params);
+            free_identifier_list(&item->fun_params);
             break;
         }
     }

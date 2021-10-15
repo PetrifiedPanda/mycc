@@ -14,14 +14,9 @@ IdentifierList* create_identifier_list(char** identifiers, size_t len) {
     return res;
 }
 
-static void free_children(IdentifierList* l) {
+void free_identifier_list(IdentifierList* l) {
     for (size_t i = 0; i < l->len; ++i) {
         free(l->identifiers[i]);
     }
     free(l->identifiers);
-}
-
-void free_identifier_list(IdentifierList* l) {
-    free_children(l);
-    free(l);
 }

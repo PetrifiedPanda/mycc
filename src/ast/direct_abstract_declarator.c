@@ -32,7 +32,7 @@ DirectAbstractDeclarator* create_direct_abstract_declarator_abs_decl(AbstractDec
     return res;
 }
 
-DirectAbstractDeclarator* create_direct_abstract_declarator_param_list(ParamTypeList* func_types, ArrayOrFuncSuffix* following_suffixes, size_t len) {
+DirectAbstractDeclarator* create_direct_abstract_declarator_param_list(ParamTypeList func_types, ArrayOrFuncSuffix* following_suffixes, size_t len) {
     DirectAbstractDeclarator* res = malloc(sizeof(DirectAbstractDeclarator));
     if (res) {
         res->type = DIRECT_ABSTRACT_DECL_PARAM_TYPE_LIST;
@@ -55,9 +55,7 @@ static void free_children(DirectAbstractDeclarator* d) {
             }
             break;
         case DIRECT_ABSTRACT_DECL_PARAM_TYPE_LIST:
-            if (d->func_types) {
-                free_param_type_list(d->func_types);
-            }
+            free_param_type_list(&d->func_types);
             break;
     }
 
@@ -68,9 +66,7 @@ static void free_children(DirectAbstractDeclarator* d) {
                 free_const_expr(item->array_size);
             }
         } else {
-            if (item->func_types) {
-                free_param_type_list(item->func_types);
-            }
+            free_param_type_list(&item->func_types);
         }
     }
     free(d->following_suffixes);

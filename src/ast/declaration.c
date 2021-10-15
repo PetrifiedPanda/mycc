@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-Declaration* create_declaration(DeclarationSpecs* decl_specs, InitDeclaratorList* init_decls) {
+Declaration* create_declaration(DeclarationSpecs* decl_specs, InitDeclaratorList init_decls) {
     assert(decl_specs);
     Declaration* res = malloc(sizeof(Declaration));
     if (res) {
@@ -15,9 +15,7 @@ Declaration* create_declaration(DeclarationSpecs* decl_specs, InitDeclaratorList
 
 void free_declaration_children(Declaration* d) {
     free_declaration_specs(d->decl_specs);
-    if (d->init_decls) {
-        free_init_declarator_list(d->init_decls);
-    }
+    free_init_declarator_list(&d->init_decls);
 }
 
 void free_declaration(Declaration* d) {

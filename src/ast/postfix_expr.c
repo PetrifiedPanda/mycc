@@ -28,9 +28,7 @@ static void free_children(PostfixExpr* p) {
                 free_expr(s->index_expr);
                 break;
             case POSTFIX_BRACKET:
-                if (s->bracket_list) {
-                    free_arg_expr_list(s->bracket_list);
-                }
+                free_arg_expr_list(&s->bracket_list);
                 break;
             case POSTFIX_ACCESS:
             case POSTFIX_PTR_ACCESS:
