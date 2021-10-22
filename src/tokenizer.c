@@ -112,7 +112,8 @@ fail:
 
 static inline bool is_spelling(const char* spelling, TokenType type){
     return strcmp(spelling, get_spelling(type)) == 0;
-} 
+}
+
 static TokenType multic_token_type(const char* spell) {
     if (is_spelling(spell, SIZEOF)) {
         return SIZEOF;
