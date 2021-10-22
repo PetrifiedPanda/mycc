@@ -1,6 +1,8 @@
 #ifndef ADDITIVE_EXPR_H
 #define ADDITIVE_EXPR_H
 
+#include <stddef.h>
+
 #include "token_type.h"
 
 typedef struct MulExpr MulExpr;

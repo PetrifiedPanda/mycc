@@ -1,6 +1,8 @@
 #ifndef UNARY_EXPR_H
 #define UNARY_EXPR_H
 
+#include <stddef.h>
+
 #include "token_type.h"
 
 typedef struct PostfixExpr PostfixExpr;
