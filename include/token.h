@@ -98,6 +98,7 @@ typedef struct {
 typedef struct {
     TokenType type;
     char* spelling;
+    char* file;
     SourceLocation source_loc;
 } Token;
 
