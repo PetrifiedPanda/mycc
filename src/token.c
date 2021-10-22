@@ -5,27 +5,25 @@
 
 #include "error.h"
 
-bool create_token(Token* t, TokenType type, const char* spelling, size_t line, size_t idx) {
+bool create_token(Token* t, TokenType type, const char* spelling, SourceLocation loc, const char* filename) {
     assert(t);
     t->spelling = malloc(sizeof(char) * (strlen(spelling) + 1));
     if (t->spelling) {
         strcpy(t->spelling, spelling);
         t->type = type;
-        t->source_loc.line = line;
-        t->source_loc.index = idx;
+        t->source_loc = loc;
         return true;
     } else {
-        set_error(ERR_ALLOC_FAIL, "Failed to allocate spelling for token");
+        set_error(ERR_ALLOC_FAIL, filename, loc, "Failed to allocate spelling for token");
         return false;
     }
 }
 
-void create_token_move(Token* t, TokenType type, char* spelling, size_t line, size_t idx) {
+void create_token_move(Token* t, TokenType type, char* spelling, SourceLocation loc) {
     assert(t);
     t->spelling = spelling;
     t->type = type;
-    t->source_loc.line = line;
-    t->source_loc.index = idx;
+    t->source_loc = loc;
 }
 
 void free_token(Token* t) {

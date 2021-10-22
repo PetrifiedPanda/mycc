@@ -12,6 +12,7 @@ PrimaryExpr* create_primary_expr(TokenType type, char* spelling) {
         res->type = type;
         res->spelling = spelling;
     }
+    return res;
 }
 
 PrimaryExpr* create_primary_expr_bracket(Expr* bracket_expr) {

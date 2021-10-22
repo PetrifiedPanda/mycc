@@ -18,8 +18,10 @@ const char* get_error_string() {
     return g_msg_buf;
 }
 
-void set_error(ErrorType type, const char* format, ...) {
+void set_error(ErrorType type, const char* filename, SourceLocation loc, const char* format, ...) {
     g_type = type;
+    sprintf(g_msg_buf, "%s(%zu,%zu):\n", filename, loc.line, loc.index);
     va_list(args);
     vsprintf(g_msg_buf, format, args);
+
 }

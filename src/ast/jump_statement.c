@@ -18,6 +18,7 @@ JumpStatement* create_goto_statement(char* identifier) {
     if (res) {
         res->identifier = identifier;
     }
+    return res;
 }
 
 JumpStatement* create_continue_statement() {

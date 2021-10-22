@@ -21,14 +21,14 @@ int main() {
         "int n = 0x123213 + 132 << 32 >> 0x123 - 0123 / 12;\n"
         "const char* str = \"Normal string literal\";\n"
         "int arr[1 ? 100 : 1000];\n";
-    Token* tokens = tokenize(code);
+    Token* tokens = tokenize(code, "this_is_not_an_actual_file.c");
     if (get_last_error() != ERR_NONE) {
         fprintf(stderr, "%s\n", get_error_string());
         clear_last_error();
     }
 
     for (Token* it = tokens; it->type != INVALID; ++it) {
-        printf("Type: %s, Spelling: %s, line: %z, idx: %z\n", get_type_str(it->type), it->spelling, it->source_loc.line, it->source_loc.index);
+        printf("Type: %s, Spelling: %s, line: %zu, idx: %zu\n", get_type_str(it->type), it->spelling, it->source_loc.line, it->source_loc.index);
 
         free_token(it);
     }

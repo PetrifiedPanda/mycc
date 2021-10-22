@@ -11,6 +11,7 @@ ParamList* create_param_list(ParamDeclaration* decls, size_t len) {
         res->len = len;
         res->decls = decls;
     }
+    return res;
 }
 
 static void free_children(ParamList* l) {

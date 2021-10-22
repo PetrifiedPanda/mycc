@@ -17,6 +17,7 @@ AddExpr* create_add_expr(MulExpr* lhs, size_t len, MulExprAndOp* add_chain) {
         res->len = len;
         res->add_chain = add_chain;
     }
+    return res;
 }
 
 static void free_children(AddExpr* e) {

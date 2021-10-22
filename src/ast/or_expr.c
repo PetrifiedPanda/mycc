@@ -11,6 +11,7 @@ OrExpr* create_or_expr(XorExpr* xor_exprs, size_t len) {
         res->xor_exprs = xor_exprs;
         res->len = len;
     }
+    return res;
 }
 
 void free_or_expr_children(OrExpr* e) {
