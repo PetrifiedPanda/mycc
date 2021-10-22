@@ -1,7 +1,7 @@
 #ifndef LABELED_STATEMENT_H
 #define LABELED_STATEMENT_H
 
-#include "token.h"
+#include "token_type.h"
 
 typedef struct ConstExpr ConstExpr;
 typedef struct Statement Statement;

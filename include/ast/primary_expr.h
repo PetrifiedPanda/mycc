@@ -1,7 +1,7 @@
 #ifndef PRIMARY_EXPR_H
 #define PRIMARY_EXPR_H
 
-#include "token.h"
+#include "token_type.h"
 
 typedef struct Expr Expr;
 

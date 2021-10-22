@@ -1,7 +1,7 @@
 #ifndef EQ_EXPR_H
 #define EQ_EXPR_H
 
-#include "token.h"
+#include "token_type.h"
 
 typedef struct RelExpr RelExpr;
 

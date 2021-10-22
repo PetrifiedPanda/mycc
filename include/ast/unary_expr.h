@@ -1,7 +1,7 @@
 #ifndef UNARY_EXPR_H
 #define UNARY_EXPR_H
 
-#include "token.h"
+#include "token_type.h"
 
 typedef struct PostfixExpr PostfixExpr;
 typedef struct CastExpr CastExpr;

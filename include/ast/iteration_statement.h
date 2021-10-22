@@ -1,7 +1,7 @@
 #ifndef ITERATION_STATEMENT_H
 #define ITERATION_STATEMENT_H
 
-#include "token.h"
+#include "token_type.h"
 
 typedef struct Statement Statement;
 typedef struct ExprStatement ExprStatement;

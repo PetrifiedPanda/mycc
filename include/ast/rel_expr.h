@@ -1,7 +1,7 @@
 #ifndef REL_EXPR_H
 #define REL_EXPR_H
 
-#include "token.h"
+#include "token_type.h"
 
 #include <stddef.h>
 

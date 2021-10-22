@@ -21,10 +21,13 @@ int main() {
         "int n = 0x123213 + 132 << 32 >> 0x123 - 0123 / 12;\n"
         "const char* str = \"Normal string literal\";\n"
         "int arr[1 ? 100 : 1000];\n";
+    printf("Tokenizing...\n");
     Token* tokens = tokenize(code, "this_is_not_an_actual_file.c");
     if (get_last_error() != ERR_NONE) {
         fprintf(stderr, "%s\n", get_error_string());
         clear_last_error();
+    } else {
+        printf("Tokenizer finished successfully\n");
     }
 
     for (Token* it = tokens; it->type != INVALID; ++it) {

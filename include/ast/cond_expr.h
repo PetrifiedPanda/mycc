@@ -1,7 +1,7 @@
 #ifndef COND_EXPR_H
 #define COND_EXPR_H
 
-#include <stdlib.h>
+#include <stddef.h>
 
 typedef struct LogOrExpr LogOrExpr;
 typedef struct Expr Expr;

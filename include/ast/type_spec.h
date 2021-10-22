@@ -1,7 +1,7 @@
 #ifndef TYPE_SPEC_H
 #define TYPE_SPEC_H
 
-#include "token.h"
+#include "token_type.h"
 
 typedef struct StructUnionSpec StructUnionSpec;
 typedef struct EnumSpec EnumSpec;

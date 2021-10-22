@@ -1,7 +1,9 @@
 #ifndef MUL_EXPR_H
 #define MUL_EXPR_H
 
-#include "token.h"
+#include <stddef.h>
+
+#include "token_type.h"
 
 typedef struct CastExpr CastExpr;
 

@@ -1,7 +1,7 @@
 #ifndef POSTFIX_EXPR_H
 #define POSTFIX_EXPR_H
 
-#include "token.h"
+#include "token_type.h"
 
 #include "ast/arg_expr_list.h"
 

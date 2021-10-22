@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include "token.h"
+#include "token_type.h"
 
 typedef struct TypeQual {
     bool is_const; // either volatile or const    

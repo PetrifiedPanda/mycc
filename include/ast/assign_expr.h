@@ -1,7 +1,7 @@
 #ifndef ASSIGN_EXPR_H
 #define ASSIGN_EXPR_H
 
-#include "token.h"
+#include "token_type.h"
 
 typedef struct UnaryExpr UnaryExpr;
 typedef struct CondExpr CondExpr;

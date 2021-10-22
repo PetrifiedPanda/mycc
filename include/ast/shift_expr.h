@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#include "token.h"
+#include "token_type.h"
 
 typedef struct AddExpr AddExpr;
 

@@ -1,7 +1,7 @@
 #ifndef JUMP_STATEMENT_H
 #define JUMP_STATEMENT_H
 
-#include "token.h"
+#include "token_type.h"
 
 typedef struct Expr Expr;
 
