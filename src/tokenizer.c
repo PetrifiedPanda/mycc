@@ -427,7 +427,9 @@ static inline bool add_token_move(size_t* token_idx, TokenArr* res, TokenType ty
     if (!realloc_tokens_if_needed(*token_idx, res, filename)) {
         return false;
     }
-    create_token_move(&res->tokens[*token_idx], type, spell, loc);
+    if (!create_token_move(&res->tokens[*token_idx], type, spell, loc, filename)) {
+        return false;
+    }
     ++*token_idx;
     return true;
 }
