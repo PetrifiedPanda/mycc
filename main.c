@@ -4,8 +4,6 @@
 #include "error.h"
 #include "ast/translation_unit.h"
 
-#include "regex.h"
-
 int main() {
     const char* code = 
         "typedef struct typedeftest /* This is a comment \n"
