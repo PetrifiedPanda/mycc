@@ -34,9 +34,6 @@ static inline void advance_newline(TokenizerState* s);
 static inline bool add_token(size_t* token_idx, TokenArr* res, TokenType type, const char* spell, SourceLocation loc, const char* filename);
 static inline bool add_token_move(size_t* token_idx, TokenArr* res, TokenType type, char* spell, SourceLocation loc, const char* filename);
 
-static TokenType get_lit_type(const char* buf, size_t len, char terminator);
-static void unterminated_literal_err(char terminator, SourceLocation start_loc, const char* filename);
-
 static bool handle_comments(TokenizerState* s);
 
 static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* token_idx);
@@ -434,26 +431,6 @@ static inline bool add_token_move(size_t* token_idx, TokenArr* res, TokenType ty
     return true;
 }
 
-static TokenType get_lit_type(const char* buf, size_t len, char terminator) {
-    if (terminator == '\"' && is_string_literal(buf, len)) {
-        return STRING_LITERAL;
-    } else if (terminator == '\'' && is_char_const(buf, len)) {
-        return CONSTANT;
-    } else {
-        return INVALID;
-    }
-}
-
-static void unterminated_literal_err(char terminator, SourceLocation start_loc, const char* filename) {
-    const char* literal_type_str;
-    if (terminator == '\"') {
-        literal_type_str = "String";
-    } else {
-        literal_type_str = "Char";
-    }
-    set_error(ERR_TOKENIZER, filename, start_loc, "%s literal not properly terminated", literal_type_str);
-}
-
 static bool handle_comments(TokenizerState* s) {
     if (s->it[1] == '*') {
         advance(s, 2);
@@ -478,6 +455,26 @@ static bool handle_comments(TokenizerState* s) {
     } else {
         return false;
     }
+}
+
+static TokenType get_lit_type(const char* buf, size_t len, char terminator) {
+    if (terminator == '\"' && is_string_literal(buf, len)) {
+        return STRING_LITERAL;
+    } else if (terminator == '\'' && is_char_const(buf, len)) {
+        return CONSTANT;
+    } else {
+        return INVALID;
+    }
+}
+
+static void unterminated_literal_err(char terminator, SourceLocation start_loc, const char* filename) {
+    const char* literal_type_str;
+    if (terminator == '\"') {
+        literal_type_str = "String";
+    } else {
+        literal_type_str = "Char";
+    }
+    set_error(ERR_TOKENIZER, filename, start_loc, "%s literal not properly terminated", literal_type_str);
 }
 
 static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* token_idx) {
