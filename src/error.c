@@ -24,38 +24,29 @@ const char* get_error_string() {
     return g_msg_buf;
 }
 
-static bool check_chars_printed(size_t num_printed, size_t can_print) {
-    if (num_printed >= MSG_BUF_SIZE) {
-        fprintf(stderr, "Error message was too large for message buffer\n");     
-        return false;
-    } else {
-        return true;
-    }
-}
-
 void set_error(ErrorType type, const char* format, ...) {
     assert(g_type == ERR_NONE);
+
     g_type = type;
     va_list(args);
     va_start(args, format);
     size_t num_printed = vsnprintf(g_msg_buf, MSG_BUF_SIZE, format, args);
     va_end(args);
-    check_chars_printed(num_printed, MSG_BUF_SIZE);
+    assert(num_printed < MSG_BUF_SIZE);
 }
 
 void set_error_file(ErrorType type, const char* filename, SourceLocation loc, const char* format, ...) {
     assert(g_type == ERR_NONE);
+
     g_type = type;
     size_t num_printed = snprintf(g_msg_buf, MSG_BUF_SIZE, "%s(%zu,%zu):\n", filename, loc.line, loc.index);
-    if (!check_chars_printed(num_printed, MSG_BUF_SIZE)) {
-        return;
-    }
+    assert(num_printed < MSG_BUF_SIZE);
 
     va_list(args);
-    va_start(args, format);
+    va_start(args, format); 
     size_t can_print = MSG_BUF_SIZE - num_printed;
-    num_printed = vsnprintf(&g_msg_buf[num_printed], can_print, format, args);
+    num_printed = vsnprintf(&g_msg_buf[num_printed], can_print, format, args); 
     va_end(args);
 
-    check_chars_printed(num_printed, can_print);
+    assert(num_printed < can_print);
 }
