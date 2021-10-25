@@ -52,6 +52,8 @@ bool create_token_move(Token* t, TokenType type, char* spelling, SourceLocation 
     }
     t->type = type;
     t->source_loc = loc;
+
+    return true;
 }
 
 void free_token(Token* t) {
