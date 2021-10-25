@@ -16,7 +16,7 @@ static char* alloc_string_copy(const char* str) {
 }
 
 static void set_alloc_error(const char* filename, SourceLocation loc) {
-    set_error(ERR_ALLOC_FAIL, filename, loc, "Failed to allocate token contents");
+    set_error(ERR_ALLOC_FAIL, "Failed to allocate token contents");
 }
 
 bool create_token(Token* t, TokenType type, const char* spelling, SourceLocation loc, const char* filename) {
