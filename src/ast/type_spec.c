@@ -40,6 +40,8 @@ TypeSpec* create_type_spec_typename(char* type_name) {
 
 static void free_children(TypeSpec* t) {
     switch (t->type) {
+    case TYPESPEC_PREDEF:
+        break;
     case TYPESPEC_STRUCT:
         free_struct_union_spec(t->struct_union_spec);
         break;

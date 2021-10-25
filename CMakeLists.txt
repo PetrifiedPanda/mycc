@@ -11,3 +11,7 @@ file(GLOB ASTSources src/ast/*.c)
 
 add_executable(${This} main.c ${Sources} ${ASTSources})
 target_include_directories(${This} PRIVATE ./include)
+target_compile_options(${This} PRIVATE 
+    $<$<CXX_COMPILER_ID:MSVC>: /W4 /WX>
+    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>: -Wall -Wextra -Wpedantic>
+)

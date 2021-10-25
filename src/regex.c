@@ -10,7 +10,7 @@ static bool is_id_char(char c) {
 }
 
 static bool is_hex_digit(char c) {
-    return isdigit(c) || tolower(c) >= 'a' && tolower(c) <= 'f';
+    return isdigit(c) || (tolower(c) >= 'a' && tolower(c) <= 'f');
 }
 
 static bool is_exp_suffix(const char* str, size_t num) {

@@ -34,6 +34,8 @@ static void free_children(PostfixExpr* p) {
             case POSTFIX_PTR_ACCESS:
                 free(s->identifier);
                 break;
+            case POSTFIX_INC_DEC:
+                break;
         }
     }
     free(p->suffixes);

@@ -46,6 +46,8 @@ static void free_children(LabeledStatement* s) {
         case CASE:
             free_const_expr(s->case_expr);
             break;
+        default:
+            assert(false);
     }
     free_statement(s->stat);
 }

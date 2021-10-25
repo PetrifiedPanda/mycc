@@ -57,6 +57,8 @@ static void free_children(IterationStatement* s) {
                 free_expr(s->incr_expr);
             }
             break;
+        default:
+            assert(false);
     }
     free_statement(s->loop_body);
 }

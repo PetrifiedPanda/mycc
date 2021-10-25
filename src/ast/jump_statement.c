@@ -47,6 +47,8 @@ static void free_children(JumpStatement* s) {
                 free_expr(s->ret_val);
             }
             break;
+        default:
+            assert(false);
     }
 }
 

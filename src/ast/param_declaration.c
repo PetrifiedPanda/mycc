@@ -40,6 +40,8 @@ void free_param_declaration_children(ParamDeclaration* d) {
     case PARAM_DECL_ABSTRACT_DECL:
         free_abstract_declarator(d->abstract_decl);
         break;
+    case PARAM_DECL_NONE:
+        break;
     }
 }
 

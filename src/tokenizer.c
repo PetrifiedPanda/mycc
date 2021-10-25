@@ -245,103 +245,104 @@ static bool check_type(TokenType type, const char* next_chars) {
 static TokenType check_next(TokenType type, const char* next) {
     assert(next[0] != '\0');
     switch (type) {
-    case ADD: {
-        if (check_type(ADD_ASSIGN, next)) {
-            return ADD_ASSIGN;
-        } else if (check_type(INC_OP, next)) {
-            return INC_OP;
-        } else {
+        case ADD:
+            if (check_type(ADD_ASSIGN, next)) {
+                return ADD_ASSIGN;
+            } else if (check_type(INC_OP, next)) {
+                return INC_OP;
+            } else {
+                break;
+            }
+        case SUB:
+            if (check_type(PTR_OP, next)) {
+                return PTR_OP;
+            } else if (check_type(DEC_OP, next)) {
+                return DEC_OP;
+            } else if (check_type(SUB_ASSIGN, next)) {
+                return SUB_ASSIGN;
+            } else {
+                break;
+            }
+        case ASTERISK:
+            if (check_type(MUL_ASSIGN, next)) {
+                return MUL_ASSIGN;
+            } else {
+                break;
+            }
+        case DIV:
+            if (check_type(DIV_ASSIGN, next)) {
+                return DIV_ASSIGN;
+            } else {
+                break;
+            }
+        case LT:
+            if (check_type(LEFT_ASSIGN, next)) {
+                return LEFT_ASSIGN;
+            } else if (check_type(LEFT_OP, next)) {
+                return LEFT_OP;
+            } else if (check_type(LE_OP, next)) {
+                return LE_OP;
+            } else {
+                break;
+            }
+        case GT:
+            if (check_type(RIGHT_ASSIGN, next)) {
+                return RIGHT_ASSIGN;
+            } else if (check_type(RIGHT_OP, next)) {
+                return RIGHT_OP;
+            } else if (check_type(GE_OP, next)) {
+                return GE_OP;
+            } else {
+                break;
+            }
+        case AND:
+            if (check_type(AND_OP, next)) {
+                return AND_OP;
+            } else if (check_type(AND_ASSIGN, next)) {
+                return AND_ASSIGN;
+            } else {
+                break;
+            }
+        case OR:
+            if (check_type(OR_OP, next)) {
+                return OR_OP;
+            } else if (check_type(OR_ASSIGN, next)) {
+                return OR_ASSIGN;
+            } else {
+                break;
+            }   
+        case XOR:
+            if (check_type(XOR_ASSIGN, next)) {
+                return XOR_ASSIGN;
+            } else {
+                break;
+            }
+        case MOD:
+            if (check_type(MOD_ASSIGN, next)) {
+                return MOD_ASSIGN;
+            } else {
+                break;
+            }
+        case DOT:
+            if (check_type(ELLIPSIS, next)) {
+                return ELLIPSIS;
+            } else {
+                break;
+            }
+        case ASSIGN:
+            if (check_type(EQ_OP, next)) {
+                return EQ_OP;
+            } else {
+                break;
+            }
+        case NOT:
+            if (check_type(NE_OP, next)) {
+                return NE_OP;
+            } else {
+                break;
+            }
+        default:
             break;
-        }
-    }
-    case SUB:
-        if (check_type(PTR_OP, next)) {
-            return PTR_OP;
-        } else if (check_type(DEC_OP, next)) {
-            return DEC_OP;
-        } else if (check_type(SUB_ASSIGN, next)) {
-            return SUB_ASSIGN;
-        } else {
-            break;
-        }
-    case ASTERISK:
-        if (check_type(MUL_ASSIGN, next)) {
-            return MUL_ASSIGN;
-        } else {
-            break;
-        }
-    case DIV:
-        if (check_type(DIV_ASSIGN, next)) {
-            return DIV_ASSIGN;
-        } else {
-            break;
-        }
-    case LT:
-        if (check_type(LEFT_ASSIGN, next)) {
-            return LEFT_ASSIGN;
-        } else if (check_type(LEFT_OP, next)) {
-            return LEFT_OP;
-        } else if (check_type(LE_OP, next)) {
-            return LE_OP;
-        } else {
-            break;
-        }
-    case GT:
-        if (check_type(RIGHT_ASSIGN, next)) {
-            return RIGHT_ASSIGN;
-        } else if (check_type(RIGHT_OP, next)) {
-            return RIGHT_OP;
-        } else if (check_type(GE_OP, next)) {
-            return GE_OP;
-        } else {
-            break;
-        }
-    case AND:
-        if (check_type(AND_OP, next)) {
-            return AND_OP;
-        } else if (check_type(AND_ASSIGN, next)) {
-            return AND_ASSIGN;
-        } else {
-            break;
-        }
-    case OR:
-        if (check_type(OR_OP, next)) {
-            return OR_OP;
-        } else if (check_type(OR_ASSIGN, next)) {
-            return OR_ASSIGN;
-        } else {
-            break;
-        }
-    case XOR:
-        if (check_type(XOR_ASSIGN, next)) {
-            return XOR_ASSIGN;
-        } else {
-            break;
-        }
-    case MOD:
-        if (check_type(MOD_ASSIGN, next)) {
-            return MOD_ASSIGN;
-        } else {
-            break;
-        }
-    case DOT:
-        if (check_type(ELLIPSIS, next)) {
-            return ELLIPSIS;
-        } else {
-            break;
-        }
-    case ASSIGN:
-        if (check_type(EQ_OP, next)) {
-            return EQ_OP;
-        } else {
-            break;
-        }
-    case NOT:
-        if (check_type(NE_OP, next)) {
-            return NE_OP;
-        } else {
-            break;
-        }
     }
 
     return type;
@@ -394,7 +395,7 @@ static inline void advance_newline(TokenizerState* s) {
     ++s->it;
 }
 
-static bool realloc_tokens_if_needed(size_t token_idx, TokenArr* res, const char* filename) {
+static bool realloc_tokens_if_needed(size_t token_idx, TokenArr* res) {
     if (token_idx == res->len) {
         res->len *= 2;
         Token* new_tokens = realloc(res->tokens, sizeof(Token) * res->len);
@@ -409,7 +410,7 @@ static bool realloc_tokens_if_needed(size_t token_idx, TokenArr* res, const char
 }
 
 static inline bool add_token(size_t* token_idx, TokenArr* res, TokenType type, const char* spell, SourceLocation loc, const char* filename) {
-    if (!realloc_tokens_if_needed(*token_idx, res, filename)) {
+    if (!realloc_tokens_if_needed(*token_idx, res)) {
         return false;
     }
     if (!create_token(&res->tokens[*token_idx], type, spell, loc, filename)) {
@@ -421,7 +422,7 @@ static inline bool add_token(size_t* token_idx, TokenArr* res, TokenType type, c
 }
 
 static inline bool add_token_move(size_t* token_idx, TokenArr* res, TokenType type, char* spell, SourceLocation loc, const char* filename) {
-    if (!realloc_tokens_if_needed(*token_idx, res, filename)) {
+    if (!realloc_tokens_if_needed(*token_idx, res)) {
         return false;
     }
     if (!create_token_move(&res->tokens[*token_idx], type, spell, loc, filename)) {
