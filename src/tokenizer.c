@@ -41,7 +41,7 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx);
 
 Token* tokenize(const char* str, const char* filename) {
     enum {NUM_START_TOKENS = 1};
-    TokenizerState s = {str, '\0', '\0', (SourceLocation){0, 0}, filename};
+    TokenizerState s = {str, '\0', '\0', (SourceLocation){1, 1}, filename};
 
     TokenArr res = {malloc(sizeof(Token) * NUM_START_TOKENS), NUM_START_TOKENS};
     if (!res.tokens) {
@@ -150,6 +150,8 @@ static TokenType multic_token_type(const char* spell) {
         return STRUCT;
     } else if (is_spelling(spell, UNION)) {
         return UNION;
+    } else if (is_spelling(spell, ENUM)) {
+        return ENUM;
     } else if (is_spelling(spell, CASE)) {
         return CASE;
     } else if (is_spelling(spell, DEFAULT)) {
@@ -385,7 +387,7 @@ static inline void advance_one(TokenizerState* s) {
 static inline void advance_newline(TokenizerState* s) {
     if (*s->it == '\n') {
         s->source_loc.line += 1;
-        s->source_loc.index = 0;
+        s->source_loc.index = 1;
     } else {
         ++s->source_loc.index;
     }
@@ -542,7 +544,7 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
         ++buf_idx;
 
         advance_one(s);
-        type = multic_token_type(spell_buf);
+        type = multic_token_type(spell_buf); // TYPE IS NOT USED IN THE LOOP
     }
 
     if (type != INVALID && token_is_over(s)) {

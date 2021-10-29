@@ -6,7 +6,7 @@
 #include <assert.h>
 
 static bool is_id_char(char c) {
-    return isalpha(c) || c == '_';
+    return isalpha(c) || isdigit(c) || c == '_';
 }
 
 static bool is_hex_digit(char c) {
