@@ -480,7 +480,7 @@ static void unterminated_literal_err(char terminator, SourceLocation start_loc, 
 
 static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* token_idx) {
     assert(*s->it == '\'' || *s->it == '\"' || *s->it == 'L');
-    enum {BUF_STRLEN = 1024};
+    enum {BUF_STRLEN = 2048};
     char spell_buf[BUF_STRLEN + 1] = {0};
     size_t buf_idx = 0;
     SourceLocation start_loc = s->source_loc;
@@ -510,55 +510,8 @@ static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* t
         unterminated_literal_err(terminator, start_loc, s->current_file);
         return false;
     } else if (buf_idx == BUF_STRLEN) {
-        size_t dyn_buf_len = BUF_STRLEN + BUF_STRLEN / 2;
-        size_t dyn_buf_lim = dyn_buf_len - 1;
-        char* dyn_buf = malloc(sizeof(char) * dyn_buf_len);
-        if (!dyn_buf) {
-            set_error(ERR_ALLOC_FAIL, "Could not allocate buffer for long literal");
-            return false;
-        }
-        strcpy(dyn_buf, spell_buf);
-
-        while (*s->it != '\0' && *s->it != terminator) {
-            if (buf_idx == dyn_buf_lim) {
-                dyn_buf_len += dyn_buf_len / 2;
-                char* new_buf = realloc(dyn_buf, dyn_buf_len);
-                if (!new_buf) {
-                    set_error(ERR_ALLOC_FAIL, "Could not enlarge buffer for long string literal");
-                    free(dyn_buf);
-                    return false;
-                } else {
-                    dyn_buf = new_buf;
-                    dyn_buf_lim = dyn_buf_len - 1;
-                }
-            }
-            dyn_buf[buf_idx] = *s->it;
-            dyn_buf[buf_idx + 1] = '\0';
-            ++buf_idx;
-
-            advance_newline(s);
-        }
-        char* new_buf = realloc(dyn_buf, buf_idx + 2);
-        if (!new_buf) {
-            set_error(ERR_ALLOC_FAIL, "Could not resize buffer for long string literal");
-            free(dyn_buf);
-            return false;
-        }
-        dyn_buf = new_buf;
-        dyn_buf[buf_idx] = *s->it;
-        dyn_buf[buf_idx + 1] = '\0';
-        ++buf_idx;
-        advance_one(s);
-
-        TokenType type = get_lit_type(dyn_buf, buf_idx, terminator);
-
-        if (type == INVALID || !add_token_move(token_idx, res, type, dyn_buf, start_loc, s->current_file)) {
-            if (type == INVALID) {
-                set_error_file(ERR_TOKENIZER, s->current_file, start_loc, "Terminated literal is of unknown type");
-            }
-            free(dyn_buf);
-            return false;
-        }
+        set_error_file(ERR_TOKENIZER, s->current_file, start_loc, "Character Literal too long");
+        return false;
     } else {
         spell_buf[buf_idx] = *s->it;
         ++buf_idx;
