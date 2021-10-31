@@ -2,16 +2,23 @@ cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_C_STANDARD 11)
 
-set(This compiler)
+set(This mycc)
 
 project(${This} LANGUAGES C)
+
+if (MSVC)
+    add_compile_options(/W4)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
 file(GLOB Sources src/*.c)
 file(GLOB ASTSources src/ast/*.c)
 
-add_executable(${This} main.c ${Sources} ${ASTSources})
-target_include_directories(${This} PRIVATE ./include)
-target_compile_options(${This} PRIVATE 
-    $<$<C_COMPILER_ID:MSVC>: /W4>
-    $<$<NOT:$<C_COMPILER_ID:MSVC>>: -Wall -Wextra -Wpedantic>
-)
+set(Lib mycclib)
+
+add_library(${Lib} OBJECT ${Sources} ${ASTSources})
+target_include_directories(${Lib} PUBLIC ./include)
+
+add_executable(${This} main.c)
+target_link_libraries(${This} ${Lib})
