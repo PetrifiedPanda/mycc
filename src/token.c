@@ -20,12 +20,16 @@ static void set_alloc_error() {
 }
 
 bool create_token(Token* t, TokenType type, const char* spelling, SourceLocation loc, const char* filename) {
-    assert(t);
-    assert(spelling);
+    assert(t); 
     assert(filename);
-    t->spelling = alloc_string_copy(spelling);
-    if (!t->spelling) {
-        goto fail;
+    if (get_spelling(type) == NULL) {
+        assert(spelling);
+        t->spelling = alloc_string_copy(spelling);
+        if (!t->spelling) {
+            goto fail;
+        }
+    } else {
+        t->spelling = NULL;
     }
     t->file = alloc_string_copy(filename);
     if (!t->file) {

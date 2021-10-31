@@ -23,7 +23,6 @@ static void check_size(const Token* tokens, size_t expected) {
         ++it;
         ++size;
     }
-    printf("%zu\n", size);
     assert(size == expected);
 }
 
@@ -34,14 +33,24 @@ static void check_file(const Token* tokens, const char* file) {
 }
 
 static Token create(TokenType type, const char* spelling, size_t line, size_t index) {
-    return (Token){type, spelling == NULL ? (char*)get_spelling(type) : (char*)spelling, NULL, (SourceLocation){line, index}};
+    return (Token){type, (char*)spelling, NULL, (SourceLocation){line, index}};
 }
 
 static void check_token(Token t, Token expected) {
     assert(t.type == expected.type);
-    assert(strcmp(t.spelling, expected.spelling) == 0);
+    if (t.spelling == NULL || expected.spelling == NULL) {
+        assert(t.spelling == expected.spelling);
+    } else {
+        assert(strcmp(t.spelling, expected.spelling) == 0);
+    }
     assert(t.source_loc.line == expected.source_loc.line);
     assert(t.source_loc.index == expected.source_loc.index);
+}
+
+static void compare_tokens(Token* got, Token* expected, size_t len) {
+    for (size_t i = 0; i < len; ++i) {
+        check_token(got[i], expected[i]);
+    }
 }
 
 static void simple_test() {
@@ -128,10 +137,8 @@ static void simple_test() {
         create(RINDEX, NULL, 13, 23),
         create(SEMICOLON, NULL, 13, 24)
     };
-
-    for (size_t i = 0; i < EXPECTED_SIZE; ++i) {
-        check_token(tokens[i], expected[i]);
-    }
+    
+    compare_tokens(tokens, expected, EXPECTED_SIZE);
 
     free_tokenizer_result(tokens);
 }
@@ -163,6 +170,7 @@ static void file_test() {
     assert(tokens);
 
     check_size(tokens, 473); // No idea if this is correct
+    check_file(tokens, filename);
 
     free(code);
     free_tokenizer_result(tokens);

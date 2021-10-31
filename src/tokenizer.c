@@ -71,12 +71,12 @@ Token* tokenize(const char* str, const char* filename) {
             if (s.it[1] != '\0') {
                 type = check_next(type, s.it + 1);
             }
-            const char* spelling = get_spelling(type);
-            if (!add_token(&token_idx, &res, type, spelling, s.source_loc, s.current_file)) {
+            
+            if (!add_token(&token_idx, &res, type, NULL, s.source_loc, s.current_file)) {
                 goto fail;
             }
 
-            size_t len = strlen(spelling);
+            size_t len = strlen(get_spelling(type));
             advance(&s, len);
         } else if (*s.it == '\"' || *s.it == '\'' || (*s.it == 'L' && (s.it[1] == '\"' || s.it[1] == '\''))) {
             if (!handle_character_literal(&s, &res, &token_idx)) {
@@ -557,7 +557,7 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
     
     TokenType type = multic_token_type(spell_buf);
     if (type != INVALID && token_is_over(s)) {
-        if (!add_token(token_idx, res, type, spell_buf, start_loc, s->current_file)) {
+        if (!add_token(token_idx, res, type, NULL, start_loc, s->current_file)) {
             return false;
         }
     } else if (token_is_over(s)) {
