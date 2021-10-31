@@ -1,5 +1,7 @@
 #include "token_type.h"
 
+#include <stddef.h>
+
 const char* get_spelling(TokenType type) {
     switch (type) {    
         case SIZEOF:
@@ -160,7 +162,7 @@ const char* get_spelling(TokenType type) {
             return ",";
 
         default:
-            return "";
+            return NULL;
 
     }
 }
