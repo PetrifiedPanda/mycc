@@ -28,4 +28,4 @@ set(Test mycctest)
 file(GLOB TestSources test/*.c)
 
 add_executable(${Test} ${TestSources})
-target_link_libraries(${This} ${Lib})
+target_link_libraries(${Test} ${Lib})
