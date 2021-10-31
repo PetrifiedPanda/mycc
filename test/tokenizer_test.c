@@ -27,7 +27,7 @@ static Token create(TokenType type, const char* spelling, size_t line, size_t in
     return (Token){type, spelling == NULL ? (char*)get_spelling(type) : (char*)spelling, NULL, (SourceLocation){line, index}};
 }
 
-void check_token(Token t, Token expected) {
+static void check_token(Token t, Token expected) {
     assert(t.type == expected.type);
     assert(strcmp(t.spelling, expected.spelling) == 0);
     assert(t.source_loc.line == expected.source_loc.line);
