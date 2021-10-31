@@ -1,14 +1,17 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "tokenizer.h"
 #include "error.h"
 
 static void simple_test();
+static void file_test();
 
 void tokenizer_test() {
     simple_test();
+    file_test();
     printf("Tokenizer test successful\n");;
 }
 
@@ -20,7 +23,14 @@ static void check_size(const Token* tokens, size_t expected) {
         ++it;
         ++size;
     }
+    printf("%zu\n", size);
     assert(size == expected);
+}
+
+static void check_file(const Token* tokens, const char* file) {
+    for (const Token* it = tokens; it->type != INVALID; ++it) {
+        assert(strcmp(it->file, file) == 0);
+    }
 }
 
 static Token create(TokenType type, const char* spelling, size_t line, size_t index) {
@@ -53,9 +63,11 @@ static void simple_test() {
     const char* filename = "not_a_file.c";
     Token* tokens = tokenize(code, filename);
     assert(get_last_error() == ERR_NONE);
+    assert(tokens);
     
     enum { EXPECTED_SIZE = 57 };
     check_size(tokens, EXPECTED_SIZE);
+    check_file(tokens, filename);
 
     Token expected[EXPECTED_SIZE] = {
         create(TYPEDEF, NULL, 1, 1),
@@ -121,5 +133,37 @@ static void simple_test() {
         check_token(tokens[i], expected[i]);
     }
 
+    free_tokenizer_result(tokens);
+}
+
+static char* read_file(const char* filename) {
+    FILE* f = fopen(filename, "rb");
+    assert(f);
+    fseek(f, 0, SEEK_END);
+    long fsize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    char* res = malloc(sizeof(char) * (fsize + 1));
+    assert(res);
+
+    fread(res, 1, fsize, f);
+    res[fsize] = '\0';
+
+    fclose(f);
+    return res;
+}
+
+static void file_test() {
+    const char* filename = "../test/files/no_preproc.c";
+    char* code = read_file(filename); 
+    assert(code);
+    
+    Token* tokens = tokenize(code, filename);
+    assert(get_last_error() == ERR_NONE);
+    assert(tokens);
+
+    check_size(tokens, 473); // No idea if this is correct
+
+    free(code);
     free_tokenizer_result(tokens);
 }
