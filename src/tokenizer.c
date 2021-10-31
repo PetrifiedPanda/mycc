@@ -107,6 +107,13 @@ fail:
     return res.tokens;
 }
 
+void free_tokenizer_result(Token* tokens) {
+    for (Token* it = tokens; it->type != INVALID; ++it) {
+        free_token(it);
+    }
+    free(tokens);
+}
+
 static inline bool is_spelling(const char* spelling, TokenType type){
     return strcmp(spelling, get_spelling(type)) == 0;
 }
@@ -538,21 +545,20 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
     char spell_buf[BUF_STRLEN + 1] = {0};
     size_t buf_idx = 0;
     SourceLocation start_loc = s->source_loc;
-    TokenType type = INVALID;
     while (!token_is_over(s) && buf_idx != BUF_STRLEN) {
         spell_buf[buf_idx] = *s->it;
         ++buf_idx;
 
         advance_one(s);
-        type = multic_token_type(spell_buf); // TYPE IS NOT USED IN THE LOOP
     }
-
+    
+    TokenType type = multic_token_type(spell_buf);
     if (type != INVALID && token_is_over(s)) {
         if (!add_token(token_idx, res, type, spell_buf, start_loc, s->current_file)) {
             return false;
         }
     } else if (token_is_over(s)) {
-        TokenType type = INVALID;
+        assert(type == INVALID);
         if (is_hex_const(spell_buf, buf_idx) || is_oct_const(spell_buf, buf_idx) || is_dec_const(spell_buf, buf_idx) || is_float_const(spell_buf, buf_idx)) {
             type = CONSTANT;
         } else if (buf_idx <= MAX_IDENTIFIER_LEN && is_valid_identifier(spell_buf, buf_idx)) {
@@ -567,7 +573,7 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
         }
     } else {
         set_error_file(ERR_TOKENIZER, s->current_file, start_loc, "Identifier too long");
-        return false; // TOKEN too long 
+        return false;
     }
 
     return true;
