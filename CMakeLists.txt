@@ -22,3 +22,10 @@ target_include_directories(${Lib} PUBLIC ./include)
 
 add_executable(${This} main.c)
 target_link_libraries(${This} ${Lib})
+
+set(Test mycctest)
+
+file(GLOB TestSources test/*.c)
+
+add_executable(${Test} ${TestSources})
+target_link_libraries(${This} ${Lib})
