@@ -29,7 +29,7 @@ int main() {
     }
 
     for (Token* it = tokens; it->type != INVALID; ++it) {
-        printf("create(%s, %s, %zu, %zu),\n", get_type_str(it->type), get_spelling(it->type) == NULL ? it->spelling : "NULL", it->source_loc.line, it->source_loc.index);
+        printf("Type: %s, Spelling: %s, line: %zu, idx: %zu\n", get_type_str(it->type), it->spelling, it->source_loc.line, it->source_loc.index);
     }
 
     free_tokenizer_result(tokens);
