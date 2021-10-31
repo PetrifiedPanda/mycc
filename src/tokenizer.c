@@ -101,6 +101,9 @@ Token* tokenize(const char* str, const char* filename) {
     return res.tokens;
 
 fail:
+    for (size_t i = 0; i < token_idx; ++i) {
+        free_token(&res.tokens[i]);
+    }
     free(res.tokens);
     res.tokens = NULL;
     res.len = 0;
