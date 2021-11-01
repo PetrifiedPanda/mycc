@@ -28,7 +28,7 @@ int main() {
         printf("Tokenizer finished successfully\n");
     }
 
-    for (Token* it = tokens; it->type != INVALID; ++it) {
+    for (const Token* it = tokens; it->type != INVALID; ++it) {
         printf("Type: %s, Spelling: %s, line: %zu, idx: %zu\n", get_type_str(it->type), it->spelling, it->source_loc.line, it->source_loc.index);
     }
 

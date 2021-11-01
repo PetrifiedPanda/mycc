@@ -36,20 +36,20 @@ static Token create(TokenType type, const char* spelling, size_t line, size_t in
     return (Token){type, (char*)spelling, NULL, (SourceLocation){line, index}};
 }
 
-static void check_token(Token t, Token expected) {
-    assert(t.type == expected.type);
-    if (t.spelling == NULL || expected.spelling == NULL) {
-        assert(t.spelling == expected.spelling);
+static void check_token(const Token* t, const Token* expected) {
+    assert(t->type == expected->type);
+    if (t->spelling == NULL || expected->spelling == NULL) {
+        assert(t->spelling == expected->spelling);
     } else {
-        assert(strcmp(t.spelling, expected.spelling) == 0);
+        assert(strcmp(t->spelling, expected->spelling) == 0);
     }
-    assert(t.source_loc.line == expected.source_loc.line);
-    assert(t.source_loc.index == expected.source_loc.index);
+    assert(t->source_loc.line == expected->source_loc.line);
+    assert(t->source_loc.index == expected->source_loc.index);
 }
 
-static void compare_tokens(Token* got, Token* expected, size_t len) {
+static void compare_tokens(const Token* got, const Token* expected, size_t len) {
     for (size_t i = 0; i < len; ++i) {
-        check_token(got[i], expected[i]);
+        check_token(&got[i], &expected[i]);
     }
 }
 
