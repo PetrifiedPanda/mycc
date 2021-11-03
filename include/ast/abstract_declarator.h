@@ -9,6 +9,8 @@ typedef struct AbstractDeclarator {
     DirectAbstractDeclarator* direct_abs_decl;
 } AbstractDeclarator;
 
+AbstractDeclarator* create_abstract_declarator(Pointer* ptr, DirectAbstractDeclarator* direct_abs_decl);
+
 void free_abstract_declarator(AbstractDeclarator* d);
 
 #include "ast/pointer.h"

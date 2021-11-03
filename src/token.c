@@ -19,7 +19,7 @@ static void set_alloc_error() {
     set_error(ERR_ALLOC_FAIL, "Failed to allocate token contents");
 }
 
-bool create_token(Token* t, TokenType type, const char* spelling, SourceLocation loc, const char* filename) {
+bool init_token(Token* t, TokenType type, const char* spelling, SourceLocation loc, const char* filename) {
     assert(t); 
     assert(filename);
     if (get_spelling(type) == NULL) {
@@ -46,7 +46,7 @@ fail:
     return false;
 }
 
-bool create_token_move(Token* t, TokenType type, char* spelling, SourceLocation loc, const char* filename) {
+bool init_token_move(Token* t, TokenType type, char* spelling, SourceLocation loc, const char* filename) {
     assert(t);
     t->spelling = spelling;
     t->file = alloc_string_copy(filename);
