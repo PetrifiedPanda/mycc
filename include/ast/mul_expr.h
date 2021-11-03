@@ -9,15 +9,16 @@ typedef struct CastExpr CastExpr;
 
 typedef struct {
     TokenType mul_op;
-    CastExpr* cast_expr;
+    CastExpr* rhs;
 } CastExprAndOp;
 
 typedef struct MulExpr {
+    CastExpr* lhs;
     size_t len;
     CastExprAndOp* mul_chain;
 } MulExpr;
 
-MulExpr* create_mul_expr(CastExprAndOp* mul_chain, size_t len);
+MulExpr* create_mul_expr(CastExpr* lhs, CastExprAndOp* mul_chain, size_t len);
 
 void free_mul_expr(MulExpr* e);
 

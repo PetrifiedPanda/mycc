@@ -4,17 +4,19 @@
 #include <assert.h>
 
 AddExpr* create_add_expr(MulExpr* lhs, size_t len, MulExprAndOp* add_chain) {
-    for (size_t i = 0; i < len; ++i) { 
-        assert(add_chain[i].rhs);
-        TokenType op = add_chain[i].add_op;
-        assert(op == ADD || op == SUB);
-    }
-    assert(lhs);
+    assert(lhs); 
     if (len != 0) {
         assert(add_chain);
     } else {
         assert(add_chain == NULL);
     }
+
+    for (size_t i = 0; i < len; ++i) { 
+        assert(add_chain[i].rhs);
+        TokenType op = add_chain[i].add_op;
+        assert(op == ADD || op == SUB);
+    }
+     
     AddExpr* res = malloc(sizeof(AddExpr));
     if (res) {
         res->lhs = lhs;
