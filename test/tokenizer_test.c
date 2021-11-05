@@ -173,7 +173,7 @@ static void file_test() {
     check_size(tokens, EXPECTED_SIZE); // No idea if this is correct
     check_file(tokens, filename);
     
-    enum { TMP_SIZE = 60 };
+    enum { TMP_SIZE = 284 - 178 };
     Token expected[TMP_SIZE] = {
         create(TYPEDEF, NULL, 3, 1),
         create(STRUCT, NULL, 3, 9),
@@ -234,7 +234,53 @@ static void file_test() {
         create(IDENTIFIER, "some_func", 24, 12),
         create(LBRACKET, NULL, 24, 21),
         create(RBRACKET, NULL, 24, 22),
-        create(SEMICOLON, NULL, 24, 23)
+        create(SEMICOLON, NULL, 24, 23),
+        create(INT, NULL, 26, 1),
+        create(IDENTIFIER, "main", 26, 5),
+        create(LBRACKET, NULL, 26, 9),
+        create(RBRACKET, NULL, 26, 10),
+        create(LBRACE, NULL, 26, 12),
+        create(REGISTER, NULL, 27, 5),
+        create(ENUM, NULL, 27, 14),
+        create(IDENTIFIER, "my_enum", 27, 19),
+        create(IDENTIFIER, "type", 27, 27),
+        create(ASSIGN, NULL, 27, 32),
+        create(IDENTIFIER, "VAL_1", 27, 34),
+        create(SEMICOLON, NULL, 27, 39),
+        create(AUTO, NULL, 29, 5),
+        create(LONG, NULL, 29, 10),
+        create(SIGNED, NULL, 29, 15),
+        create(INT, NULL, 29, 22),
+        create(IDENTIFIER, "value", 29, 26),
+        create(SEMICOLON, NULL, 29, 31),
+        create(SWITCH, NULL, 30, 5),
+        create(LBRACKET, NULL, 30, 12),
+        create(IDENTIFIER, "type", 30, 13),
+        create(RBRACKET, NULL, 30, 17),
+        create(LBRACE, NULL, 30, 19),
+        create(CASE, NULL, 31, 9),
+        create(IDENTIFIER, "VAL_1", 31, 14),
+        create(COLON, NULL, 31, 19),
+        create(CASE, NULL, 32, 9),
+        create(IDENTIFIER, "VAL_2", 32, 14),
+        create(COLON, NULL, 32, 19),
+        create(IDENTIFIER, "value", 33, 13),
+        create(ASSIGN, NULL, 33, 19),
+        create(CONSTANT, "1000l", 33, 21),
+        create(MOD, NULL, 33, 27),
+        create(CONSTANT, "5", 33, 29),
+        create(SEMICOLON, NULL, 33, 30),
+        create(BREAK, NULL, 34, 13),
+        create(SEMICOLON, NULL, 34, 18),
+        create(DEFAULT, NULL, 36, 9),
+        create(COLON, NULL, 36, 16),
+        create(IDENTIFIER, "value", 37, 13),
+        create(ASSIGN, NULL, 37, 19),
+        create(CONSTANT, "30l", 37, 21),
+        create(SEMICOLON, NULL, 37, 24),
+        create(BREAK, NULL, 38, 13),
+        create(SEMICOLON, NULL, 38, 18),
+        create(RBRACE, NULL, 39, 5)
     };
 
     printf("Warning: Only %d of %d elements are being compared\n", TMP_SIZE, EXPECTED_SIZE);
