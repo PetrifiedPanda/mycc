@@ -168,9 +168,78 @@ static void file_test() {
     Token* tokens = tokenize(code, filename);
     assert(get_last_error() == ERR_NONE);
     assert(tokens);
-
-    check_size(tokens, 473); // No idea if this is correct
+    
+    enum { EXPECTED_SIZE = 473 };
+    check_size(tokens, EXPECTED_SIZE); // No idea if this is correct
     check_file(tokens, filename);
+    
+    enum { TMP_SIZE = 60 };
+    Token expected[TMP_SIZE] = {
+        create(TYPEDEF, NULL, 3, 1),
+        create(STRUCT, NULL, 3, 9),
+        create(LBRACE, NULL, 3, 16),
+        create(VOLATILE, NULL, 4, 5),
+        create(INT, NULL, 4, 14),
+        create(ASTERISK, NULL, 4, 17),
+        create(IDENTIFIER, "ptr", 4, 19),
+        create(SEMICOLON, NULL, 4, 22),
+        create(CONST, NULL, 5, 5),
+        create(CHAR, NULL, 5, 11),
+        create(ASTERISK, NULL, 5, 16),
+        create(IDENTIFIER, "str", 5, 18),
+        create(SEMICOLON, NULL, 5, 21),
+        create(RBRACE, NULL, 6, 1),
+        create(IDENTIFIER, "MyStruct", 6, 3),
+        create(SEMICOLON, NULL, 6, 11),
+        create(UNION, NULL, 8, 1),
+        create(IDENTIFIER, "my_union", 8, 7),
+        create(LBRACE, NULL, 8, 16),
+        create(SHORT, NULL, 9, 5),
+        create(INT, NULL, 9, 11),
+        create(IDENTIFIER, "i", 9, 15),
+        create(SEMICOLON, NULL, 9, 16),
+        create(FLOAT, NULL, 10, 5),
+        create(IDENTIFIER, "f", 10, 11),
+        create(SEMICOLON, NULL, 10, 12),
+        create(RBRACE, NULL, 11, 1),
+        create(SEMICOLON, NULL, 11, 2),
+        create(ENUM, NULL, 14, 1),
+        create(IDENTIFIER, "my_enum", 14, 6),
+        create(LBRACE, NULL, 14, 14),
+        create(IDENTIFIER, "VAL_1", 15, 5),
+        create(COMMA, NULL, 15, 10),
+        create(IDENTIFIER, "VAL_2", 16, 5),
+        create(COMMA, NULL, 16, 10),
+        create(IDENTIFIER, "VAL_3", 17, 5),
+        create(RBRACE, NULL, 18, 1),
+        create(SEMICOLON, NULL, 18, 2),
+        create(STATIC, NULL, 20, 1),
+        create(INT, NULL, 20, 8),
+        create(IDENTIFIER, "do_shit", 20, 12),
+        create(LBRACKET, NULL, 20, 19),
+        create(RBRACKET, NULL, 20, 20),
+        create(SEMICOLON, NULL, 20, 21),
+        create(STATIC, NULL, 22, 1),
+        create(VOID, NULL, 22, 8),
+        create(IDENTIFIER, "variadic", 22, 13),
+        create(LBRACKET, NULL, 22, 21),
+        create(INT, NULL, 22, 22),
+        create(IDENTIFIER, "m", 22, 26),
+        create(COMMA, NULL, 22, 27),
+        create(ELLIPSIS, NULL, 22, 29),
+        create(RBRACKET, NULL, 22, 32),
+        create(SEMICOLON, NULL, 22, 33),
+        create(EXTERN, NULL, 24, 1),
+        create(INT, NULL, 24, 8),
+        create(IDENTIFIER, "some_func", 24, 12),
+        create(LBRACKET, NULL, 24, 21),
+        create(RBRACKET, NULL, 24, 22),
+        create(SEMICOLON, NULL, 24, 23)
+    };
+
+    printf("Warning: Only %d of %d elements are being compared\n", TMP_SIZE, EXPECTED_SIZE);
+
+    compare_tokens(tokens, expected, TMP_SIZE);
 
     free(code);
     free_tokenizer_result(tokens);
