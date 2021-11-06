@@ -16,7 +16,7 @@ FuncDef* create_func_def(DeclarationSpecs* specs, Declarator* decl, DeclarationL
     return res;
 }
 
-static void free_children(FuncDef* d) {
+void free_func_def_children(FuncDef* d) {
     if (d->specs) {
         free_declaration_specs(d->specs);
     }
@@ -26,7 +26,7 @@ static void free_children(FuncDef* d) {
 }
 
 void free_func_def(FuncDef* d) {
-    free_children(d);
+    free_func_def_children(d);
     free(d);
 }
 

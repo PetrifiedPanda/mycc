@@ -16,6 +16,7 @@ typedef struct FuncDef {
 
 FuncDef* create_func_def(DeclarationSpecs* specs, Declarator* decl, DeclarationList decl_list, CompoundStatement* comp);
 
+void free_func_def_children(FuncDef* d);
 void free_func_def(FuncDef* d);
 
 #include "ast/declaration_specs.h"

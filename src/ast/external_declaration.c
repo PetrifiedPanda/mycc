@@ -3,8 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-ExternalDeclaration* create_external_declaration(Declaration* decl) {
-    assert(decl);
+ExternalDeclaration* create_external_declaration(Declaration decl) {
     ExternalDeclaration* res = malloc(sizeof(ExternalDeclaration));
     if (res) {
         res->is_func_def = false;
@@ -13,8 +12,7 @@ ExternalDeclaration* create_external_declaration(Declaration* decl) {
     return res;
 }
 
-ExternalDeclaration* create_external_declaration_func(FuncDef* func_def) {
-    assert(func_def);
+ExternalDeclaration* create_external_declaration_func(FuncDef func_def) {
     ExternalDeclaration* res = malloc(sizeof(ExternalDeclaration));
     if (res) {
         res->is_func_def = true;
@@ -25,9 +23,9 @@ ExternalDeclaration* create_external_declaration_func(FuncDef* func_def) {
 
 void free_external_declaration_children(ExternalDeclaration* d) {
     if (d->is_func_def) {
-        free_func_def(d->func_def);
+        free_func_def_children(&d->func_def);
     } else {
-        free_declaration(d->decl);
+        free_declaration_children(&d->decl);
     }
 }
 
