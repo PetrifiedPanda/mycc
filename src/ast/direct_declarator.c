@@ -63,3 +63,4 @@ void free_direct_declarator(DirectDeclarator* d) {
     free_children(d);
     free(d);
 }
+

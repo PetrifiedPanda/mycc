@@ -39,3 +39,4 @@ void free_assign_expr(AssignExpr* e) {
     free_assign_expr_children(e);
     free(e);
 }
+

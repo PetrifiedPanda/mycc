@@ -29,3 +29,4 @@ void free_eq_expr(EqExpr* e);
 #include "ast/rel_expr.h"
 
 #endif
+

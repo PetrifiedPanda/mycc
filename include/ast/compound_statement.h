@@ -14,3 +14,4 @@ CompoundStatement* create_compound_statement(DeclarationList decl_list, Statemen
 void free_compound_statement(CompoundStatement* s);
 
 #endif
+

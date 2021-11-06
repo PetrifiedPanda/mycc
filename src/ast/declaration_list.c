@@ -23,3 +23,4 @@ void free_declaration_list(DeclarationList* l) {
     }
     free(l->decls);
 }
+

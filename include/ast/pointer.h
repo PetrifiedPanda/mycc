@@ -17,3 +17,4 @@ void free_pointer(Pointer* p);
 #include "ast/type_qual_list.h"
 
 #endif
+

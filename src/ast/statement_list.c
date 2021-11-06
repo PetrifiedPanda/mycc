@@ -23,3 +23,4 @@ void free_statement_list(StatementList* l) {
     }
     free(l->statements);
 }
+

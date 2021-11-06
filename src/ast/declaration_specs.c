@@ -34,3 +34,4 @@ void free_declaration_specs(DeclarationSpecs* s) {
     free_children(s);
     free(s);
 }
+

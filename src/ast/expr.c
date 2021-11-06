@@ -25,3 +25,4 @@ void free_expr(Expr* e) {
     free_children(e);
     free(e);  
 }
+

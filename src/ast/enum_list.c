@@ -23,3 +23,4 @@ void free_enum_list(EnumList* l) {
     }
     free(l->enums);
 }
+

@@ -25,3 +25,4 @@ void free_external_declaration_children(ExternalDeclaration* d);
 #include "ast/declaration.h"
 
 #endif
+

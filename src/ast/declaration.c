@@ -22,3 +22,4 @@ void free_declaration(Declaration* d) {
     free_declaration_children(d);
     free(d);
 }
+

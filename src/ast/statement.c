@@ -80,3 +80,4 @@ void free_statement(Statement* s) {
     free_statement_children(s);
     free(s);
 }
+

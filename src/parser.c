@@ -26,3 +26,4 @@ static bool accept(ParserState* s, TokenType expected) {
 static void accept_it(ParserState* s) {
     ++s->it;
 }
+

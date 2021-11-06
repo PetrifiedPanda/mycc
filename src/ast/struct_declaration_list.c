@@ -23,3 +23,4 @@ void free_struct_declaration_list(StructDeclarationList* l) {
     }
     free(l->decls);
 }
+

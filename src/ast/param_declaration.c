@@ -49,3 +49,4 @@ void free_param_declaration(ParamDeclaration* d) {
     free_param_declaration_children(d);
     free(d);
 }
+

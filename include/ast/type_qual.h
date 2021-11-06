@@ -12,3 +12,4 @@ typedef struct TypeQual {
 TypeQual create_type_qual(TokenType type);
 
 #endif
+

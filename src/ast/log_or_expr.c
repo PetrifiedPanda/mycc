@@ -24,3 +24,4 @@ void free_log_or_expr(LogOrExpr* e) {
     free_children(e);
     free(e);
 }
+

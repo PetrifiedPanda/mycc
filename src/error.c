@@ -50,3 +50,4 @@ void set_error_file(ErrorType type, const char* filename, SourceLocation loc, co
 
     assert(num_printed < can_print);
 }
+

@@ -17,3 +17,4 @@ void free_init_declarator_children(InitDeclarator* d) {
     free_declarator(d->decl);
     free_initializer(d->init);
 }
+

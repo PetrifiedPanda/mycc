@@ -19,3 +19,4 @@ void free_init_list_children(InitList* l) {
     }
     free(l->inits);
 }
+

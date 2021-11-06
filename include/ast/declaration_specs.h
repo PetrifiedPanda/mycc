@@ -35,3 +35,4 @@ void free_declaration_specs(DeclarationSpecs* s);
 #include "ast/type_spec.h"
 
 #endif
+

@@ -17,3 +17,4 @@ void free_enum_list(EnumList* l);
 #include "ast/enumerator.h"
 
 #endif
+

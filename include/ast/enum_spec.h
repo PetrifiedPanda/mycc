@@ -13,3 +13,4 @@ EnumSpec* create_enum_spec(char* identifier, EnumList enum_list);
 void free_enum_spec(EnumSpec* s);
 
 #endif
+

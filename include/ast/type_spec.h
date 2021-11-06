@@ -34,3 +34,4 @@ void free_type_spec(TypeSpec* t);
 #include "ast/enum_spec.h"
 
 #endif
+

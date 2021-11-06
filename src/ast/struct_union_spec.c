@@ -21,3 +21,4 @@ void free_struct_union_spec(StructUnionSpec* s) {
     free_children(s);
     free(s);
 }
+

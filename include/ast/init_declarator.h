@@ -17,3 +17,4 @@ void free_init_declarator_children(InitDeclarator* d);
 #include "ast/initializer.h"
 
 #endif
+

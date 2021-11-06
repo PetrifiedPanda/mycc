@@ -37,3 +37,4 @@ void free_eq_expr(EqExpr* e) {
     free_eq_expr_children(e);
     free(e);
 }
+

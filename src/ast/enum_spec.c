@@ -22,3 +22,4 @@ void free_enum_spec(EnumSpec* s) {
     free_children(s);
     free(s);
 }
+

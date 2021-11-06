@@ -29,3 +29,4 @@ void free_func_def(FuncDef* d) {
     free_children(d);
     free(d);
 }
+

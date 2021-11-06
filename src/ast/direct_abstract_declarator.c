@@ -76,3 +76,4 @@ void free_direct_abstract_declarator(DirectAbstractDeclarator* d) {
     free_children(d);
     free(d);
 }
+

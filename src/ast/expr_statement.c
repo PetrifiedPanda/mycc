@@ -20,3 +20,4 @@ void free_expr_statement(ExprStatement* s) {
     free_children(s);
     free(s);
 }
+

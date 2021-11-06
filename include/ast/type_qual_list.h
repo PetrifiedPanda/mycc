@@ -17,3 +17,4 @@ void free_type_qual_list(TypeQualList* l);
 #include "ast/type_qual.h"
 
 #endif
+

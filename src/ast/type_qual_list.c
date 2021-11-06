@@ -20,3 +20,4 @@ TypeQualList create_type_qual_list(TypeQual* type_quals, size_t len) {
 void free_type_qual_list(TypeQualList* l) {
     free(l->type_quals);
 }
+

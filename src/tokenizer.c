@@ -32,7 +32,6 @@ static inline void advance_one(TokenizerState* s);
 static inline void advance_newline(TokenizerState* s);
 
 static inline bool add_token(size_t* token_idx, TokenArr* res, TokenType type, const char* spell, SourceLocation loc, const char* filename);
-static inline bool add_token_move(size_t* token_idx, TokenArr* res, TokenType type, char* spell, SourceLocation loc, const char* filename);
 
 static bool handle_comments(TokenizerState* s);
 
@@ -42,14 +41,14 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx);
 Token* tokenize(const char* str, const char* filename) {
     enum {NUM_START_TOKENS = 1};
     TokenizerState s = {str, '\0', '\0', (SourceLocation){1, 1}, filename};
+    
+    size_t token_idx = 0;
 
     TokenArr res = {malloc(sizeof(Token) * NUM_START_TOKENS), NUM_START_TOKENS};
     if (!res.tokens) {
         set_error(ERR_ALLOC_FAIL, "Failed to allocate token array at the start");
         goto fail;
-    }
-
-    size_t token_idx = 0;
+    } 
 
     while (*s.it != '\0') {
         while (isspace(*s.it)) {
@@ -433,17 +432,6 @@ static inline bool add_token(size_t* token_idx, TokenArr* res, TokenType type, c
     return true;
 }
 
-static inline bool add_token_move(size_t* token_idx, TokenArr* res, TokenType type, char* spell, SourceLocation loc, const char* filename) {
-    if (!realloc_tokens_if_needed(*token_idx, res)) {
-        return false;
-    }
-    if (!init_token_move(&res->tokens[*token_idx], type, spell, loc, filename)) {
-        return false;
-    }
-    ++*token_idx;
-    return true;
-}
-
 static bool handle_comments(TokenizerState* s) {
     if (s->it[1] == '*') {
         advance(s, 2);
@@ -581,3 +569,4 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
 
     return true;
 }
+

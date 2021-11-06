@@ -17,3 +17,4 @@ void free_abstract_declarator(AbstractDeclarator* d);
 #include "ast/direct_abstract_declarator.h"
 
 #endif
+

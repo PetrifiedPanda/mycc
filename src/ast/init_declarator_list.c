@@ -23,3 +23,4 @@ void free_init_declarator_list(InitDeclaratorList* l) {
     }
     free(l->decls);
 }
+

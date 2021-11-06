@@ -18,3 +18,4 @@ void free_declaration(Declaration* d);
 #include "ast/declaration_specs.h"
 
 #endif
+

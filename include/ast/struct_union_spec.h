@@ -16,3 +16,4 @@ StructUnionSpec* create_struct_union_spec(bool is_struct, char* identifier, Stru
 void free_struct_union_spec(StructUnionSpec* s);
 
 #endif
+

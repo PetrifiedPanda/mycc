@@ -25,3 +25,4 @@ void free_xor_expr(XorExpr* e) {
     free_xor_expr_children(e);
     free(e);
 }
+

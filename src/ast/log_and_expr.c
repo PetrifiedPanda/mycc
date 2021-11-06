@@ -25,3 +25,4 @@ void free_log_and_expr(LogAndExpr* e) {
     free_children(e);
     free(e);
 }
+

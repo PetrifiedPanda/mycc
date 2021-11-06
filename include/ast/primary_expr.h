@@ -25,3 +25,4 @@ void free_primary_expr(PrimaryExpr* bracket_expr);
 #include "ast/expr.h"
 
 #endif
+

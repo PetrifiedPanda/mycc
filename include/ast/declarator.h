@@ -17,3 +17,4 @@ void free_declarator(Declarator* d);
 #include "ast/direct_declarator.h"
 
 #endif
+

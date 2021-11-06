@@ -24,3 +24,4 @@ void free_type_name(TypeName* n) {
     free_type_name_children(n);
     free(n);
 }
+

@@ -47,3 +47,4 @@ void free_selection_statement(SelectionStatement* s) {
     free_children(s);
     free(s);
 }
+

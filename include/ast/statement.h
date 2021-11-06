@@ -47,3 +47,4 @@ void free_statement(Statement* s);
 #include "ast/jump_statement.h"
 
 #endif
+

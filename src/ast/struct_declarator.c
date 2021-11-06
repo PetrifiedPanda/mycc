@@ -26,3 +26,4 @@ void free_struct_declarator(StructDeclarator* d) {
     free_struct_declarator_children(d);
     free(d);
 }
+

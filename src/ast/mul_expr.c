@@ -38,3 +38,4 @@ void free_mul_expr(MulExpr* e) {
     free_children(e);
     free(e);
 }
+

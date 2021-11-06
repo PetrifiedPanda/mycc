@@ -248,3 +248,4 @@ bool is_valid_identifier(const char* str, size_t num) {
 
     return true;
 }
+

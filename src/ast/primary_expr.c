@@ -36,3 +36,4 @@ void free_primary_expr(PrimaryExpr* e) {
     free_children(e);
     free(e);
 }
+

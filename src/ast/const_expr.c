@@ -20,3 +20,4 @@ void free_const_expr(ConstExpr* e) {
     free_children(e);
     free(e);
 }
+

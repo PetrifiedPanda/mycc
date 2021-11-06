@@ -17,3 +17,4 @@ void free_init_declarator_list(InitDeclaratorList* l);
 #include "ast/init_declarator.h"
 
 #endif
+

@@ -26,3 +26,4 @@ void free_shift_expr(ShiftExpr* e) {
     free_children(e);
     free(e);
 }
+

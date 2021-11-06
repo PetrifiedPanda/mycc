@@ -17,3 +17,4 @@ void free_declaration_list(DeclarationList* l);
 #include "ast/declaration.h"
 
 #endif
+

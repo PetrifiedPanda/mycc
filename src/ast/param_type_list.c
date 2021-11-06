@@ -15,3 +15,4 @@ ParamTypeList create_param_type_list(bool is_variadic, ParamList* param_list) {
 void free_param_type_list(ParamTypeList* l) {
     free_param_list(l->param_list);
 }
+

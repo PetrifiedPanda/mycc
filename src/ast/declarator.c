@@ -24,3 +24,4 @@ void free_declarator(Declarator* d) {
     free_children(d);
     free(d);
 }
+

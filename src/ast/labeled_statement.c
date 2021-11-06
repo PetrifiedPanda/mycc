@@ -56,3 +56,4 @@ void free_labeled_statement(LabeledStatement* s) {
     free_children(s);
     free(s);
 }
+

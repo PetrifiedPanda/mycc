@@ -18,3 +18,4 @@ void set_error(ErrorType type, const char* format, ...);
 void set_error_file(ErrorType type, const char* filename, SourceLocation loc, const char* format, ...); 
 
 #endif
+

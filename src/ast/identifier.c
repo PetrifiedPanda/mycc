@@ -5,3 +5,4 @@
 void free_identifier(Identifier* i) {
     free(i->spelling);
 }
+

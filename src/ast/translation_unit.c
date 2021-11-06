@@ -25,3 +25,4 @@ void free_translation_unit(TranslationUnit* u) {
     free_children(u);
     free(u);
 }
+

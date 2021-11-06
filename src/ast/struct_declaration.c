@@ -23,3 +23,4 @@ void free_struct_declaration(StructDeclaration* d) {
     free_struct_declaration_children(d);
     free(d);
 }
+

@@ -34,3 +34,4 @@ void free_initializer(Initializer* i) {
     free_initializer_children(i);
     free(i);
 }
+

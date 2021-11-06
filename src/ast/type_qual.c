@@ -9,3 +9,4 @@ TypeQual create_type_qual(TokenType type) {
     res.is_const = type == CONST;
     return res;
 }
+

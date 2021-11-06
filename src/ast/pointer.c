@@ -24,3 +24,4 @@ void free_pointer(Pointer* p) {
     free_children(p);
     free(p);
 }
+

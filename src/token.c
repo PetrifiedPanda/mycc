@@ -46,22 +46,9 @@ fail:
     return false;
 }
 
-bool init_token_move(Token* t, TokenType type, char* spelling, SourceLocation loc, const char* filename) {
-    assert(t);
-    t->spelling = spelling;
-    t->file = alloc_string_copy(filename);
-    if (!t->file) {
-       set_alloc_error();
-       return false;
-    }
-    t->type = type;
-    t->source_loc = loc;
-
-    return true;
-}
-
 void free_token(Token* t) {
     assert(t);
     free(t->spelling);
     free(t->file);
 }
+

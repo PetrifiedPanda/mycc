@@ -15,3 +15,4 @@ void free_struct_declaration_children(StructDeclaration* d);
 void free_struct_declaration(StructDeclaration* d);
 
 #endif
+

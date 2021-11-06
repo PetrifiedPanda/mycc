@@ -58,3 +58,4 @@ void free_type_spec(TypeSpec* t) {
     free_children(t);
     free(t);
 }
+

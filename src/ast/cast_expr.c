@@ -31,3 +31,4 @@ void free_cast_expr(CastExpr* e) {
     free_children(e);
     free(e);
 }
+

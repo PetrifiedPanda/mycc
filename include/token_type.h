@@ -99,3 +99,4 @@ bool is_storage_class_spec(TokenType t);
 bool is_keyword_type_spec(TokenType t);
 
 #endif
+

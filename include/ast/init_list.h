@@ -17,3 +17,4 @@ void free_init_list_children(InitList* l);
 #include "ast/initializer.h"
 
 #endif
+

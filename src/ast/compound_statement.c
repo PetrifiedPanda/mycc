@@ -21,3 +21,4 @@ void free_compound_statement(CompoundStatement* s) {
     free_children(s);
     free(s);
 }
+

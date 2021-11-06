@@ -18,8 +18,8 @@ typedef struct {
 } Token;
 
 bool init_token(Token* t, TokenType type, const char* spelling, SourceLocation loc, const char* filename);
-bool init_token_move(Token* t, TokenType type, char* spelling, SourceLocation loc, const char* filename);
 
 void free_token(Token* t);
 
 #endif
+

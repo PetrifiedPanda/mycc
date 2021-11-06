@@ -20,3 +20,4 @@ void free_identifier_list(IdentifierList* l) {
     }
     free(l->identifiers);
 }
+

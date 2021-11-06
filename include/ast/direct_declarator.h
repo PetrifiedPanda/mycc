@@ -44,3 +44,4 @@ void free_direct_declarator(DirectDeclarator* d);
 #include "ast/declarator.h"
 
 #endif
+

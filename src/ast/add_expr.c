@@ -37,3 +37,4 @@ void free_add_expr(AddExpr* e) {
     free_children(e);
     free(e);
 }
+

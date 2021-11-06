@@ -26,3 +26,4 @@ void free_abstract_declarator(AbstractDeclarator* d) {
     free_children(d);
     free(d);
 }
+

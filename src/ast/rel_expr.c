@@ -29,3 +29,4 @@ void free_rel_expr(RelExpr* e) {
     free_rel_expr_children(e);
     free(e);
 }
+

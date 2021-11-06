@@ -19,3 +19,4 @@ void free_enumerator_children(Enumerator* e) {
         free_const_expr(e->enum_val);
     }
 }
+

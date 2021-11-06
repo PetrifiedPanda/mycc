@@ -17,3 +17,4 @@ void free_struct_declaration_list(StructDeclarationList* l);
 #include "ast/struct_declaration.h"
 
 #endif
+
