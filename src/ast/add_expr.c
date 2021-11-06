@@ -11,10 +11,10 @@ AddExpr* create_add_expr(MulExpr* lhs, size_t len, MulExprAndOp* add_chain) {
         assert(add_chain == NULL);
     }
 
-    for (size_t i = 0; i < len; ++i) { 
-        assert(add_chain[i].rhs);
-        TokenType op = add_chain[i].add_op;
-        assert(op == ADD || op == SUB);
+    for (size_t i = 0; i < len; ++i) {
+        MulExprAndOp* item = &add_chain[i];
+        assert(item->rhs);
+        assert(is_add_op(item->add_op));
     }
      
     AddExpr* res = malloc(sizeof(AddExpr));
@@ -27,6 +27,7 @@ AddExpr* create_add_expr(MulExpr* lhs, size_t len, MulExprAndOp* add_chain) {
 }
 
 static void free_children(AddExpr* e) {
+    free_mul_expr(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         free_mul_expr(e->add_chain[i].rhs);
     }

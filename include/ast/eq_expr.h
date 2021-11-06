@@ -7,20 +7,20 @@
 
 typedef struct RelExpr RelExpr;
 
-typedef struct {
-    RelExpr* rel_expr;
-    TokenType eq_neq_op;
+typedef struct { 
+    TokenType eq_op;
+    RelExpr* rhs;
 } RelExprAndOp;
 
 typedef struct EqExpr {
+    RelExpr* lhs;
     size_t len;
-    RelExprAndOp* eq_neq_chain;
-    RelExpr* last_item;
+    RelExprAndOp* eq_chain; 
 } EqExpr;
 
-void create_eq_expr_inplace(EqExpr* res, RelExprAndOp* eq_neq_chain, size_t len, RelExpr* last_item);
+void init_eq_expr(EqExpr* res, RelExpr* lhs, RelExprAndOp* eq_chain, size_t len);
 
-EqExpr* create_eq_expr(RelExprAndOp* eq_neq_chain, size_t len, RelExpr* last_item);
+EqExpr* create_eq_expr(RelExpr* lhs, RelExprAndOp* eq_chain, size_t len);
 
 void free_eq_expr_children(EqExpr* e);
 

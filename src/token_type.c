@@ -401,3 +401,56 @@ bool is_keyword_type_spec(TokenType t) {
     }
 }
 
+bool is_shift_op(TokenType t) {
+    switch (t) {
+        case LEFT_OP:
+        case RIGHT_OP:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool is_rel_op(TokenType t) {
+    switch (t) {
+        case LE_OP:
+        case GE_OP:
+        case LT:
+        case GT:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool is_mul_op(TokenType t) {
+    switch (t) {
+        case ASTERISK:
+        case DIV:
+        case MOD:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool is_add_op(TokenType t) {
+    switch (t) {
+        case ADD:
+        case SUB:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool is_eq_op(TokenType t) {
+    switch (t) {
+        case EQ_OP:
+        case NE_OP:
+            return true;
+        default:
+            return false;
+    }
+}
+

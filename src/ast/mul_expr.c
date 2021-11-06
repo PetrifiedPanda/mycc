@@ -12,9 +12,9 @@ MulExpr* create_mul_expr(CastExpr* lhs, CastExprAndOp* mul_chain, size_t len) {
     }
     
     for (size_t i = 0; i < len; ++i) {
-       assert(mul_chain[i].rhs);
-       TokenType op = mul_chain[i].mul_op;
-       assert(op == ASTERISK || op == DIV || op == MOD);
+        CastExprAndOp* item = &mul_chain[i];
+        assert(item->rhs);
+        assert(is_mul_op(item->mul_op));
     }
 
     MulExpr* res = malloc(sizeof(MulExpr));

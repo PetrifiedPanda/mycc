@@ -9,15 +9,16 @@ typedef struct AddExpr AddExpr;
 
 typedef struct {
     TokenType shift_op;
-    AddExpr* add_expr;
+    AddExpr* rhs;
 } AddExprAndOp;
 
 typedef struct ShiftExpr {
+    AddExpr* lhs;
     size_t len;
     AddExprAndOp* shift_chain;
 } ShiftExpr;
 
-ShiftExpr* create_shift_expr(AddExprAndOp* shift_chain, size_t len);
+ShiftExpr* create_shift_expr(AddExpr* lhs, AddExprAndOp* shift_chain, size_t len);
 
 void free_shift_expr(ShiftExpr* e);
 

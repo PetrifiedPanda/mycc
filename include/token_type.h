@@ -98,5 +98,11 @@ bool is_assign_op(TokenType t);
 bool is_storage_class_spec(TokenType t);
 bool is_keyword_type_spec(TokenType t);
 
+bool is_shift_op(TokenType t);
+bool is_rel_op(TokenType t);
+bool is_mul_op(TokenType t);
+bool is_add_op(TokenType t);
+bool is_eq_op(TokenType t);
+
 #endif
 

@@ -3,13 +3,20 @@
 #include <stdlib.h>
 #include <assert.h>
 
-RelExpr* create_rel_expr(ShiftExprAndOp* rel_chain, size_t len) {
-    assert(len > 0);
-    assert(rel_chain);
-    if (len == 1) {
-        assert(rel_chain->rel_op == INVALID);
+RelExpr* create_rel_expr(ShiftExpr* lhs, ShiftExprAndOp* rel_chain, size_t len) {
+    assert(lhs);
+    if (len > 0) {
+        assert(rel_chain);
+    } else {
+        assert(rel_chain == NULL);
     }
-    assert(false); // TODO: assert ops
+    
+    for (size_t i = 0; i < len; ++i) {
+        ShiftExprAndOp* item = &rel_chain[i];
+        assert(item->rhs);
+        assert(is_rel_op(item->rel_op));
+    }
+
     RelExpr* res = malloc(sizeof(RelExpr));
     if (res) {
         res->len = len;
@@ -19,8 +26,9 @@ RelExpr* create_rel_expr(ShiftExprAndOp* rel_chain, size_t len) {
 }
 
 void free_rel_expr_children(RelExpr* e) {
+    free_shift_expr(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
-        free_shift_expr(e->rel_chain[i].shift_expr);
+        free_shift_expr(e->rel_chain[i].rhs);
     }
     free(e->rel_chain);
 } 
