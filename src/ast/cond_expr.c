@@ -19,7 +19,7 @@ CondExpr* create_cond_expr(LogOrAndExpr* conditionals, size_t len, LogOrExpr* la
     return res;
 }
 
-static void free_children(CondExpr* e) {
+void free_cond_expr_children(CondExpr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         LogOrAndExpr* item = &e->conditionals[i];
         free_log_or_expr(item->log_or);
@@ -31,7 +31,7 @@ static void free_children(CondExpr* e) {
 }
 
 void free_cond_expr(CondExpr* e) {
-    free_children(e);
+    free_cond_expr_children(e);
     free(e);
 }
 

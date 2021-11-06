@@ -19,6 +19,7 @@ typedef struct CondExpr {
 
 CondExpr* create_cond_expr(LogOrAndExpr* conditionals, size_t len, LogOrExpr* last_else);
 
+void free_cond_expr_children(CondExpr* e);
 void free_cond_expr(CondExpr* e);
 
 #include "ast/expr.h"
