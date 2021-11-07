@@ -7,6 +7,7 @@
 
 #include "regex.h"
 #include "error.h"
+#include "util.h"
 
 typedef struct {
     Token* tokens;
@@ -408,13 +409,10 @@ static inline void advance_newline(TokenizerState* s) {
 
 static bool realloc_tokens_if_needed(size_t token_idx, TokenArr* res) {
     if (token_idx == res->len) {
-        res->len += res->len / 2 + 1;
-        Token* new_tokens = realloc(res->tokens, sizeof(Token) * res->len);
-        if (!new_tokens) {
+        if (!grow_alloc((void**)&res->tokens, &res->len, sizeof(Token))) {
             set_error(ERR_ALLOC_FAIL, "Failed to reallocate Token Array");
             return false;
         }
-        res->tokens = new_tokens;
     }
 
     return true;
