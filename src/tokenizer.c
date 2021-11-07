@@ -408,7 +408,7 @@ static inline void advance_newline(TokenizerState* s) {
 
 static bool realloc_tokens_if_needed(size_t token_idx, TokenArr* res) {
     if (token_idx == res->len) {
-        res->len *= 2;
+        res->len += res->len / 2 + 1;
         Token* new_tokens = realloc(res->tokens, sizeof(Token) * res->len);
         if (!new_tokens) {
             set_error(ERR_ALLOC_FAIL, "Failed to reallocate Token Array");
