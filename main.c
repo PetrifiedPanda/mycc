@@ -1,8 +1,8 @@
 #include <stdio.h>
 
 #include "tokenizer.h"
+#include "parser.h"
 #include "error.h"
-#include "ast/translation_unit.h"
 
 int main() {
     const char* code = 

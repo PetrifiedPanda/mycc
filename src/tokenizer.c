@@ -410,7 +410,6 @@ static inline void advance_newline(TokenizerState* s) {
 static bool realloc_tokens_if_needed(size_t token_idx, TokenArr* res) {
     if (token_idx == res->len) {
         if (!grow_alloc((void**)&res->tokens, &res->len, sizeof(Token))) {
-            set_error(ERR_ALLOC_FAIL, "Failed to reallocate Token Array");
             return false;
         }
     }

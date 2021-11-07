@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "error.h"
+#include "util.h"
 
 typedef struct {
     const Token* it;
@@ -25,5 +26,63 @@ static bool accept(ParserState* s, TokenType expected) {
 
 static void accept_it(ParserState* s) {
     ++s->it;
+}
+
+static bool parse_external_declaration(ParserState* s, ExternalDeclaration* res) {
+    // TODO:
+    return false;
+}
+
+static TranslationUnit* parse_translation_unit(ParserState* s) {
+    TranslationUnit* res = malloc(sizeof(TranslationUnit));
+    if (!res) {
+        set_error(ERR_ALLOC_FAIL, "Failed to allocate space for Translation Unit");
+        goto fail;
+    }
+    size_t alloc_num = 1;
+    res->len = 0;
+    res->external_decls = malloc(sizeof(ExternalDeclaration) * alloc_num); 
+    if (!res->external_decls) {
+        set_error(ERR_ALLOC_FAIL, "Failed to allocate space for Translation Unit contents");
+        goto fail;
+    }
+
+    while (s->it->type != INVALID) {
+        if (res->len == alloc_num) {
+            if (!grow_alloc((void**)res->external_decls, &alloc_num, sizeof(ExternalDeclaration))) {
+                goto fail;
+            }
+        }
+        
+        if (!parse_external_declaration(s, &res->external_decls[res->len])) {
+            goto fail;
+        }
+
+        ++res->len;
+    }
+    
+    if (res->len != alloc_num) {
+        ExternalDeclaration* tmp = realloc(res->external_decls, res->len * sizeof(ExternalDeclaration));
+        if (!tmp) {
+            set_error(ERR_ALLOC_FAIL, "Failed to resize translation unit contents");
+            goto fail;
+        }
+        res->external_decls = tmp;
+    }
+
+    return res;
+
+fail:
+    if (res) {
+        free_translation_unit(res);
+    }
+    return NULL;
+}
+
+TranslationUnit* parse_tokens(const Token* tokens) {
+    ParserState state = {tokens};
+    TranslationUnit* res = parse_translation_unit(&state);
+    assert(state.it->type == INVALID);
+    return res;
 }
 
