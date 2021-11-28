@@ -88,7 +88,7 @@ static ArgExprList parse_arg_expr_list(ParserState* s) {
     while (s->it->type == COMMA) {
         accept_it(s);
         if (res.len == alloc_size) {
-            grow_alloc(&res.assign_exprs, &alloc_size, sizeof(AssignExpr));
+            grow_alloc((void**)&res.assign_exprs, &alloc_size, sizeof(AssignExpr));
         }
 
         if (!parse_assign_expr(&res.assign_exprs[res.len], s)) {
@@ -192,7 +192,7 @@ static PostfixExpr* parse_postfix_expr(ParserState* s) {
     res->suffixes = xmalloc(sizeof(PostfixSuffix) * alloc_size);
     while (is_posfix_expr(s->it->type)) {
         if (res->len == alloc_size) {
-            grow_alloc(&res->suffixes, &alloc_size, sizeof(PostfixSuffix));
+            grow_alloc((void**)&res->suffixes, &alloc_size, sizeof(PostfixSuffix));
         }
 
         switch (s->it->type) {
