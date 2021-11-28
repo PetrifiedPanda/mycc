@@ -10,6 +10,15 @@ typedef struct {
     const Token* it;
 } ParserState;
 
+static TranslationUnit* parse_translation_unit(ParserState* s);
+
+TranslationUnit* parse_tokens(const Token* tokens) {
+    ParserState state = {tokens};
+    TranslationUnit* res = parse_translation_unit(&state);
+    assert(state.it->type == INVALID);
+    return res;
+}
+
 static void expected_token_error(TokenType expected, const Token* got) {
     set_error_file(ERR_PARSER, got->file, got->source_loc, "Expected token of type %s but got token of type %s", get_type_str(expected), get_type_str(got->type));
 }
@@ -79,10 +88,34 @@ fail:
     return NULL;
 }
 
-TranslationUnit* parse_tokens(const Token* tokens) {
-    ParserState state = {tokens};
-    TranslationUnit* res = parse_translation_unit(&state);
-    assert(state.it->type == INVALID);
-    return res;
+static Expr* parse_expr(ParserState* s) {
+    return NULL;
 }
 
+static PrimaryExpr* parse_primary_expr(ParserState* s) {
+    switch (s->it->type) {
+        case IDENTIFIER:
+        case CONSTANT:
+        case STRING_LITERAL:
+            return create_primary_expr(s->it->type, s->it->spelling);
+            break;
+    
+        default:
+            if (accept(s, LBRACKET)) {
+                Expr* bracket_expr = parse_expr(s);
+                if (!bracket_expr) {
+                    return NULL;
+                }
+                if (accept(s, RBRACKET)) {
+                    return create_primary_expr_bracket(bracket_expr);
+                } else {
+                    free_expr(bracket_expr);
+                    return NULL;
+                }
+            }
+            break;
+    }
+
+    // Unreachable
+    return NULL;
+}
