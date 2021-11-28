@@ -15,3 +15,14 @@ bool grow_alloc(void** alloc, size_t* num_elems, size_t elem_size) {
     *num_elems = new_num;
     return true;
 }
+
+bool resize_alloc(void** alloc, size_t new_size, size_t elem_size) {
+    size_t new_bytes = new_size * elem_size;
+    void* tmp = realloc(*alloc, new_bytes);
+    if (tmp == NULL) {
+        set_error(ERR_ALLOC_FAIL, "Failed to resize allocation to %zu bytes", new_bytes);
+        return false;
+    }
+    *alloc = tmp;
+    return true;
+}

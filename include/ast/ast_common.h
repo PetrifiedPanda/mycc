@@ -3,8 +3,6 @@
 
 #include "error.h"
 
-inline void ast_alloc_fail() {
-    set_error(ERR_ALLOC_FAIL, "Failed to allocate Node contents");
-}
+void ast_alloc_fail();
 
 #endif

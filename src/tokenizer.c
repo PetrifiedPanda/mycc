@@ -89,12 +89,9 @@ Token* tokenize(const char* str, const char* filename) {
         }
     }
 
-    Token* new_tokens = realloc(res.tokens, sizeof(Token) * (token_idx + 1));
-    if (!new_tokens) {
-        set_error(ERR_ALLOC_FAIL, "Failed to resize token array");
+    if (!resize_alloc((void**)&res.tokens, token_idx + 1, sizeof(Token))) {
         goto fail;
     }
-    res.tokens = new_tokens;
     res.tokens[token_idx] = (Token){INVALID, NULL, NULL, (SourceLocation){(size_t) -1, (size_t) -1}};
     res.len = token_idx;
 

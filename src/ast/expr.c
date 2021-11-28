@@ -3,16 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-Expr* create_expr(AssignExpr* assign_exprs, size_t len) {
-    assert(len > 0);
-    assert(assign_exprs);
-    Expr* res = malloc(sizeof(Expr));
-    if (res) {
-        res->len = len;
-        res->assign_exprs = assign_exprs;
-    }
-    return res;
-}
+#include "ast/ast_common.h"
 
 static void free_children(Expr* e) {
     for (size_t i = 0; i < e->len; ++i) {

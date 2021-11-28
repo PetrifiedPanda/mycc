@@ -1,9 +1,9 @@
 #include "ast/primary_expr.h"
 
-#include "ast/ast_common.h"
-
 #include <stdlib.h>
 #include <assert.h>
+
+#include "ast/ast_common.h"
 
 PrimaryExpr* create_primary_expr(TokenType type, char* spelling) {
     assert(spelling);

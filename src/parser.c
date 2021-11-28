@@ -19,6 +19,10 @@ TranslationUnit* parse_tokens(const Token* tokens) {
     return res;
 }
 
+static inline void alloc_err() {
+    set_error(ERR_ALLOC_FAIL, "Failed to allocate storage while parsing");
+}
+
 static void expected_token_error(TokenType expected, const Token* got) {
     set_error_file(ERR_PARSER, got->file, got->source_loc, "Expected token of type %s but got token of type %s", get_type_str(expected), get_type_str(got->type));
 }
@@ -45,14 +49,14 @@ static bool parse_external_declaration(ParserState* s, ExternalDeclaration* res)
 static TranslationUnit* parse_translation_unit(ParserState* s) {
     TranslationUnit* res = malloc(sizeof(TranslationUnit));
     if (!res) {
-        set_error(ERR_ALLOC_FAIL, "Failed to allocate space for Translation Unit");
+        alloc_err();
         goto fail;
     }
     size_t alloc_num = 1;
     res->len = 0;
     res->external_decls = malloc(sizeof(ExternalDeclaration) * alloc_num); 
     if (!res->external_decls) {
-        set_error(ERR_ALLOC_FAIL, "Failed to allocate space for Translation Unit contents");
+        alloc_err();
         goto fail;
     }
 
@@ -71,12 +75,9 @@ static TranslationUnit* parse_translation_unit(ParserState* s) {
     }
     
     if (res->len != alloc_num) {
-        ExternalDeclaration* tmp = realloc(res->external_decls, res->len * sizeof(ExternalDeclaration));
-        if (!tmp) {
-            set_error(ERR_ALLOC_FAIL, "Failed to resize translation unit contents");
+        if (!resize_alloc((void*)&res->external_decls, res->len, sizeof(ExternalDeclaration))) {
             goto fail;
         }
-        res->external_decls = tmp;
     }
 
     return res;
@@ -88,7 +89,54 @@ fail:
     return NULL;
 }
 
+static bool parse_assign_expr(AssignExpr* res, ParserState* s) {
+    return false;
+}
+
 static Expr* parse_expr(ParserState* s) {
+    size_t num_elems = 1;
+    Expr* res = malloc(sizeof(Expr));
+    if (!res) {
+        alloc_err();
+        return NULL;
+    }
+
+    res->assign_exprs = malloc(num_elems * sizeof(AssignExpr));
+    if (!res->assign_exprs) {
+        alloc_err();
+        return NULL;
+    }
+
+    if (parse_assign_expr(&res->assign_exprs[0], s)) {
+        res->len = 0;
+        goto fail;
+    }
+
+    res->len = 1;
+    while (s->it->type == COMMA) {
+        accept_it(s);
+        if (num_elems == res->len) {
+            if (!grow_alloc((void**)&res->assign_exprs, &num_elems, sizeof(AssignExpr))) {
+                goto fail;
+            }
+        }
+
+        if (!parse_assign_expr(&res->assign_exprs[res->len], s)) {
+            goto fail;
+        }
+
+        ++res->len;
+    }
+
+    if (num_elems != res->len) {
+        if (!resize_alloc((void**)&res->assign_exprs, res->len, sizeof(AssignExpr))) {
+            goto fail;
+        }
+    }
+
+    return res;
+fail:
+    free_expr(res);
     return NULL;
 }
 
@@ -98,7 +146,6 @@ static PrimaryExpr* parse_primary_expr(ParserState* s) {
         case CONSTANT:
         case STRING_LITERAL:
             return create_primary_expr(s->it->type, s->it->spelling);
-            break;
     
         default:
             if (accept(s, LBRACKET)) {
