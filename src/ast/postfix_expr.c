@@ -2,6 +2,8 @@
 
 #include <assert.h>
 
+#include "util.h"
+
 PostfixExpr* create_postfix_expr(PrimaryExpr* primary, PostfixSuffix* suffixes, size_t len) {
     assert(primary);
     if (len > 0) {
@@ -9,12 +11,10 @@ PostfixExpr* create_postfix_expr(PrimaryExpr* primary, PostfixSuffix* suffixes, 
     } else {
         assert(suffixes == NULL);
     }
-    PostfixExpr* res = malloc(sizeof(PostfixExpr));
-    if (res) {
-        res->primary = primary;
-        res->len = len;
-        res->suffixes = suffixes;
-    }
+    PostfixExpr* res = xmalloc(sizeof(PostfixExpr));
+    res->primary = primary;
+    res->len = len;
+    res->suffixes = suffixes;
 
     return res;
 }

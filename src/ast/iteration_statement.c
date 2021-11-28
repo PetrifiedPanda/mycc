@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 static inline void assign_do_or_while(IterationStatement* res, Expr* while_cond, Statement* loop_body) {
     assert(res);
     assert(while_cond);
@@ -12,20 +14,18 @@ static inline void assign_do_or_while(IterationStatement* res, Expr* while_cond,
 }
 
 IterationStatement* create_while_loop(Expr* while_cond, Statement* loop_body) {
-    IterationStatement* res = malloc(sizeof(IterationStatement));
-    if (res) {
-        res->type = WHILE;
-        assign_do_or_while(res, while_cond, loop_body);
-    }
+    IterationStatement* res = xmalloc(sizeof(IterationStatement));
+    res->type = WHILE;
+    assign_do_or_while(res, while_cond, loop_body);
+    
     return res;
 }
 
 IterationStatement* create_do_loop(Expr* while_cond, Statement* loop_body) {
-    IterationStatement* res = malloc(sizeof(IterationStatement));
-    if (res) {
-        res->type = DO;
-        assign_do_or_while(res, while_cond, loop_body);
-    }
+    IterationStatement* res = xmalloc(sizeof(IterationStatement));
+    res->type = DO;
+    assign_do_or_while(res, while_cond, loop_body);
+    
     return res;
 }
 
@@ -33,14 +33,13 @@ IterationStatement* create_for_loop(ExprStatement* init_expr, ExprStatement* for
     assert(init_expr);
     assert(for_cond);
     assert(loop_body);
-    IterationStatement* res = malloc(sizeof(IterationStatement));
-    if (res) {
-        res->type = FOR;
-        res->loop_body = loop_body;
-        res->init_expr = init_expr;
-        res->for_cond = for_cond;
-        res->incr_expr = incr_expr;
-    }
+    IterationStatement* res = xmalloc(sizeof(IterationStatement));
+    res->type = FOR;
+    res->loop_body = loop_body;
+    res->init_expr = init_expr;
+    res->for_cond = for_cond;
+    res->incr_expr = incr_expr;
+    
     return res;
 }
 

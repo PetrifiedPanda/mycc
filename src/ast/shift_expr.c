@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 ShiftExpr* create_shift_expr(AddExpr* lhs, AddExprAndOp* shift_chain, size_t len) {
     assert(lhs);
     if (len > 0) {
@@ -17,11 +19,10 @@ ShiftExpr* create_shift_expr(AddExpr* lhs, AddExprAndOp* shift_chain, size_t len
         assert(is_shift_op(item->shift_op));
     }
     
-    ShiftExpr* res = malloc(sizeof(ShiftExpr));
-    if (res) {
-        res->len = len;
-        res->shift_chain = shift_chain;
-    }
+    ShiftExpr* res = xmalloc(sizeof(ShiftExpr));
+    res->len = len;
+    res->shift_chain = shift_chain;
+    
     return res;
 }
 

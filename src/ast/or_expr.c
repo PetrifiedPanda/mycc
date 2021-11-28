@@ -3,14 +3,15 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 OrExpr* create_or_expr(XorExpr* xor_exprs, size_t len) {
     assert(len > 0);
     assert(xor_exprs);
-    OrExpr* res = malloc(sizeof(OrExpr));
-    if (res) {
-        res->xor_exprs = xor_exprs;
-        res->len = len;
-    }
+    OrExpr* res = xmalloc(sizeof(OrExpr));
+    res->xor_exprs = xor_exprs;
+    res->len = len;
+    
     return res;
 }
 

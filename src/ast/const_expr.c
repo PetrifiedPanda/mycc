@@ -3,11 +3,11 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 ConstExpr* create_const_expr(CondExpr expr) {
-    ConstExpr* res = malloc(sizeof(ConstExpr));
-    if (res) {
-        res->expr = expr;
-    }
+    ConstExpr* res = xmalloc(sizeof(ConstExpr));
+    res->expr = expr;
     return res;
 }
 

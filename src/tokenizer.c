@@ -32,7 +32,7 @@ static inline void advance(TokenizerState* s, size_t num);
 static inline void advance_one(TokenizerState* s);
 static inline void advance_newline(TokenizerState* s);
 
-static inline bool add_token(size_t* token_idx, TokenArr* res, TokenType type, const char* spell, SourceLocation loc, const char* filename);
+static inline void add_token(size_t* token_idx, TokenArr* res, TokenType type, const char* spell, SourceLocation loc, const char* filename);
 
 static bool handle_comments(TokenizerState* s);
 
@@ -45,11 +45,7 @@ Token* tokenize(const char* str, const char* filename) {
     
     size_t token_idx = 0;
 
-    TokenArr res = {malloc(sizeof(Token) * NUM_START_TOKENS), NUM_START_TOKENS};
-    if (!res.tokens) {
-        set_error(ERR_ALLOC_FAIL, "Failed to allocate token array at the start");
-        goto fail;
-    } 
+    TokenArr res = {xmalloc(sizeof(Token) * NUM_START_TOKENS), NUM_START_TOKENS};
 
     while (*s.it != '\0') {
         while (isspace(*s.it)) {
@@ -72,9 +68,7 @@ Token* tokenize(const char* str, const char* filename) {
                 type = check_next(type, s.it + 1);
             }
             
-            if (!add_token(&token_idx, &res, type, NULL, s.source_loc, s.current_file)) {
-                goto fail;
-            }
+            add_token(&token_idx, &res, type, NULL, s.source_loc, s.current_file);
 
             size_t len = strlen(get_spelling(type));
             advance(&s, len);
@@ -89,9 +83,7 @@ Token* tokenize(const char* str, const char* filename) {
         }
     }
 
-    if (!resize_alloc((void**)&res.tokens, token_idx + 1, sizeof(Token))) {
-        goto fail;
-    }
+    res.tokens = xrealloc(res.tokens, sizeof(Token) * (token_idx + 1));
     res.tokens[token_idx] = (Token){INVALID, NULL, NULL, (SourceLocation){(size_t) -1, (size_t) -1}};
     res.len = token_idx;
 
@@ -404,26 +396,16 @@ static inline void advance_newline(TokenizerState* s) {
     ++s->it;
 }
 
-static bool realloc_tokens_if_needed(size_t token_idx, TokenArr* res) {
+static void realloc_tokens_if_needed(size_t token_idx, TokenArr* res) {
     if (token_idx == res->len) {
-        if (!grow_alloc((void**)&res->tokens, &res->len, sizeof(Token))) {
-            return false;
-        }
+        grow_alloc((void**)&res->tokens, &res->len, sizeof(Token));
     }
-
-    return true;
 }
 
-static inline bool add_token(size_t* token_idx, TokenArr* res, TokenType type, const char* spell, SourceLocation loc, const char* filename) {
-    if (!realloc_tokens_if_needed(*token_idx, res)) {
-        return false;
-    }
-    if (!init_token(&res->tokens[*token_idx], type, spell, loc, filename)) {
-        return false;
-    }
+static inline void add_token(size_t* token_idx, TokenArr* res, TokenType type, const char* spell, SourceLocation loc, const char* filename) {
+    realloc_tokens_if_needed(*token_idx, res);
+    init_token(&res->tokens[*token_idx], type, spell, loc, filename);
     ++*token_idx;
-
-    return true;
 }
 
 static bool handle_comments(TokenizerState* s) {
@@ -514,12 +496,12 @@ static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* t
                     
         TokenType type = get_lit_type(spell_buf, buf_idx, terminator);
 
-        if (type == INVALID || !add_token(token_idx, res, type, spell_buf, start_loc, s->current_file)) {
-            if (type == INVALID) {
-                set_error_file(ERR_TOKENIZER, s->current_file, start_loc, "Terminated literal is of unknown type");
-            }
+        if (type == INVALID) {
+            set_error_file(ERR_TOKENIZER, s->current_file, start_loc, "Terminated literal is of unknown type");
             return false;
         }
+
+        add_token(token_idx, res, type, spell_buf, start_loc, s->current_file);
     }
 
     return true;
@@ -539,9 +521,7 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
     
     TokenType type = multic_token_type(spell_buf);
     if (type != INVALID && token_is_over(s)) {
-        if (!add_token(token_idx, res, type, NULL, start_loc, s->current_file)) {
-            return false;
-        }
+        add_token(token_idx, res, type, NULL, start_loc, s->current_file);
     } else if (token_is_over(s)) {
         assert(type == INVALID);
         if (is_hex_const(spell_buf, buf_idx) || is_oct_const(spell_buf, buf_idx) || is_dec_const(spell_buf, buf_idx) || is_float_const(spell_buf, buf_idx)) {
@@ -553,9 +533,7 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
             return false;
         }
 
-        if (!add_token(token_idx, res, type, spell_buf, start_loc, s->current_file)) {
-            return false;
-        }
+        add_token(token_idx, res, type, spell_buf, start_loc, s->current_file);
     } else {
         set_error_file(ERR_TOKENIZER, s->current_file, start_loc, "Identifier too long");
         return false;

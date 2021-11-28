@@ -5,7 +5,6 @@
 
 typedef enum {
     ERR_NONE,
-    ERR_ALLOC_FAIL,
     ERR_TOKENIZER,
     ERR_PARSER
 } ErrorType;

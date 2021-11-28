@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 RelExpr* create_rel_expr(ShiftExpr* lhs, ShiftExprAndOp* rel_chain, size_t len) {
     assert(lhs);
     if (len > 0) {
@@ -17,11 +19,10 @@ RelExpr* create_rel_expr(ShiftExpr* lhs, ShiftExprAndOp* rel_chain, size_t len) 
         assert(is_rel_op(item->rel_op));
     }
 
-    RelExpr* res = malloc(sizeof(RelExpr));
-    if (res) {
-        res->len = len;
-        res->rel_chain = rel_chain;
-    }
+    RelExpr* res = xmalloc(sizeof(RelExpr));
+    res->len = len;
+    res->rel_chain = rel_chain;
+    
     return res;
 }
 

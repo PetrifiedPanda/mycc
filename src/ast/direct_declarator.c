@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 static inline void add_suffixes(DirectDeclarator* d, ArrOrFuncSuffix* suffixes, size_t len) {
     if (len > 0) {
         assert(suffixes);
@@ -13,25 +15,21 @@ static inline void add_suffixes(DirectDeclarator* d, ArrOrFuncSuffix* suffixes, 
 
 DirectDeclarator* create_direct_declarator(char* id, ArrOrFuncSuffix* suffixes, size_t len) {
     assert(id);
-    DirectDeclarator* res = malloc(sizeof(DirectDeclarator));
-    if (res) {
-        res->is_id = true;
-        res->id = id;
-        add_suffixes(res, suffixes, len);
-    }
+    DirectDeclarator* res = xmalloc(sizeof(DirectDeclarator));
+    res->is_id = true;
+    res->id = id;
+    add_suffixes(res, suffixes, len);
 
     return res;
 }
 
 DirectDeclarator* create_direct_declarator_decl(Declarator* decl, ArrOrFuncSuffix* suffixes, size_t len) {
     assert(decl);
-    DirectDeclarator* res = malloc(sizeof(DirectDeclarator));
-    if (res) {
-        res->is_id = false;
-        res->decl = decl;
-        add_suffixes(res, suffixes, len);
-    }
-
+    DirectDeclarator* res = xmalloc(sizeof(DirectDeclarator));
+    res->is_id = false;
+    res->decl = decl;
+    add_suffixes(res, suffixes, len);
+    
     return res;
 }
 

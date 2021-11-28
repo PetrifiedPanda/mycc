@@ -3,22 +3,22 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 Initializer* create_initializer_assign(AssignExpr* assign) {
     assert(assign);
-    Initializer* res = malloc(sizeof(Initializer));
-    if (res) {
-        res->is_assign = true;
-        res->assign = assign;
-    }
+    Initializer* res = xmalloc(sizeof(Initializer));
+    res->is_assign = true;
+    res->assign = assign;
+    
     return res;
 }
 
 Initializer* create_initializer_init_list(InitList init_list) {
-    Initializer* res = malloc(sizeof(Initializer));
-    if (res) {
-        res->is_assign = false;
-        res->init_list = init_list;
-    }
+    Initializer* res = xmalloc(sizeof(Initializer));
+    res->is_assign = false;
+    res->init_list = init_list;
+    
     return res;
 }
 

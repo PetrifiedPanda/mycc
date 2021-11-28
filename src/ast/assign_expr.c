@@ -3,7 +3,9 @@
 #include <assert.h>
 #include <stdlib.h>
 
-void create_assign_expr_inplace(AssignExpr* res, UnaryAndOp* assign_chain, size_t len, CondExpr* value) {
+#include "util.h"
+
+void init_assign_expr(AssignExpr* res, UnaryAndOp* assign_chain, size_t len, CondExpr* value) {
     assert(value);
     if (len > 0) {
         assert(assign_chain);
@@ -13,16 +15,15 @@ void create_assign_expr_inplace(AssignExpr* res, UnaryAndOp* assign_chain, size_
     for (size_t i = 0; i < len; ++i) {
         assert(is_assign_op(assign_chain[i].assign_op));
     }
-    if (res) {
-        res->assign_chain = assign_chain;
-        res->len = len;
-        res->value = value;
-    }
+
+    res->assign_chain = assign_chain;
+    res->len = len;
+    res->value = value;
 }
 
 AssignExpr* create_assign_expr(UnaryAndOp* assign_chain, size_t len, CondExpr* value) {
-    AssignExpr* res = malloc(sizeof(AssignExpr));
-    create_assign_expr_inplace(res, assign_chain, len, value);
+    AssignExpr* res = xmalloc(sizeof(AssignExpr));
+    init_assign_expr(res, assign_chain, len, value);
     return res;
 }
 

@@ -3,31 +3,25 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "ast/ast_common.h"
+#include "util.h"
 
 PrimaryExpr* create_primary_expr(TokenType type, char* spelling) {
     assert(spelling);
     assert(type == IDENTIFIER || type == CONSTANT || type == STRING_LITERAL);
-    PrimaryExpr* res = malloc(sizeof(PrimaryExpr));
-    if (res) {
-        res->is_bracket = false;
-        res->type = type;
-        res->spelling = spelling;
-    } else {
-        ast_alloc_fail();
-    }
+    PrimaryExpr* res = xmalloc(sizeof(PrimaryExpr));
+    res->is_bracket = false;
+    res->type = type;
+    res->spelling = spelling;
+    
     return res;
 }
 
 PrimaryExpr* create_primary_expr_bracket(Expr* bracket_expr) {
     assert(bracket_expr);
-    PrimaryExpr* res = malloc(sizeof(PrimaryExpr));
-    if (res) {
-        res->is_bracket = true;
-        res->bracket_expr = bracket_expr;
-    } else {
-        ast_alloc_fail();
-    }
+    PrimaryExpr* res = xmalloc(sizeof(PrimaryExpr));
+    res->is_bracket = true;
+    res->bracket_expr = bracket_expr;
+    
     return res;
 }
 

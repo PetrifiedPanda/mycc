@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 void init_eq_expr(EqExpr* res, RelExpr* lhs, RelExprAndOp* eq_chain, size_t len) {
     assert(lhs);
     if (len > 0) {
@@ -17,15 +19,13 @@ void init_eq_expr(EqExpr* res, RelExpr* lhs, RelExprAndOp* eq_chain, size_t len)
         assert(is_eq_op(item->eq_op));
     }
 
-    if (res) {
-        res->lhs = lhs;
-        res->len = len;
-        res->eq_chain = eq_chain;
-    }
+    res->lhs = lhs;
+    res->len = len;
+    res->eq_chain = eq_chain;
 }
 
 EqExpr* create_eq_expr(RelExpr* lhs, RelExprAndOp* eq_chain, size_t len) { 
-    EqExpr* res = malloc(sizeof(EqExpr));
+    EqExpr* res = xmalloc(sizeof(EqExpr));
     init_eq_expr(res, lhs, eq_chain, len);
     return res;
 }

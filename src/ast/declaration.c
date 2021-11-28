@@ -3,13 +3,14 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 Declaration* create_declaration(DeclarationSpecs* decl_specs, InitDeclaratorList init_decls) {
     assert(decl_specs);
-    Declaration* res = malloc(sizeof(Declaration));
-    if (res) {
-        res->decl_specs = decl_specs;
-        res->init_decls = init_decls;
-    }
+    Declaration* res = xmalloc(sizeof(Declaration));
+    res->decl_specs = decl_specs;
+    res->init_decls = init_decls;
+    
     return res;
 }
 

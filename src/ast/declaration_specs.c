@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 DeclarationSpecs* create_declaration_specs(DeclarationSpecsCont* contents, size_t len) {
     assert(len > 0);
     assert(contents);
@@ -12,11 +14,10 @@ DeclarationSpecs* create_declaration_specs(DeclarationSpecsCont* contents, size_
             assert(is_storage_class_spec(item->storage_class_spec));
         }
     }
-    DeclarationSpecs* res = malloc(sizeof(DeclarationSpecs));
-    if (res) {
-        res->len = len;
-        res->contents = contents;
-    }
+    DeclarationSpecs* res = xmalloc(sizeof(DeclarationSpecs));
+    res->len = len;
+    res->contents = contents;
+    
     return res;
 }
 

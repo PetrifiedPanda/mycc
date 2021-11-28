@@ -3,13 +3,14 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 StructDeclarator* create_struct_declarator(Declarator* decl, ConstExpr* bit_field) {
     assert(decl || bit_field);
-    StructDeclarator* res = malloc(sizeof(StructDeclarator));
-    if (res) {
-        res->decl = decl;
-        res->bit_field = bit_field;
-    }
+    StructDeclarator* res = xmalloc(sizeof(StructDeclarator));
+    res->decl = decl;
+    res->bit_field = bit_field;
+    
     return res;
 }
 

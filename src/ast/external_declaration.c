@@ -3,21 +3,21 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 ExternalDeclaration* create_external_declaration(Declaration decl) {
-    ExternalDeclaration* res = malloc(sizeof(ExternalDeclaration));
-    if (res) {
-        res->is_func_def = false;
-        res->decl = decl;
-    }
+    ExternalDeclaration* res = xmalloc(sizeof(ExternalDeclaration));
+    res->is_func_def = false;
+    res->decl = decl;
+    
     return res;
 }
 
 ExternalDeclaration* create_external_declaration_func(FuncDef func_def) {
-    ExternalDeclaration* res = malloc(sizeof(ExternalDeclaration));
-    if (res) {
-        res->is_func_def = true;
-        res->func_def = func_def;
-    }
+    ExternalDeclaration* res = xmalloc(sizeof(ExternalDeclaration));
+    res->is_func_def = true;
+    res->func_def = func_def;
+    
     return res;
 }
 

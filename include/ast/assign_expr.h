@@ -19,7 +19,7 @@ typedef struct AssignExpr {
     CondExpr* value;
 } AssignExpr;
 
-void create_assign_expr_inplace(AssignExpr* res, UnaryAndOp* assign_chain, size_t len, CondExpr* value);
+void init_assign_expr(AssignExpr* res, UnaryAndOp* assign_chain, size_t len, CondExpr* value);
 AssignExpr* create_assign_expr(UnaryAndOp* assign_chain, size_t len, CondExpr* value);
 
 void free_assign_expr_children(AssignExpr* e);

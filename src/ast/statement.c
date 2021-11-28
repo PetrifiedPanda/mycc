@@ -3,53 +3,50 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 Statement* create_statement_labeled(LabeledStatement* labeled) {
     assert(labeled);
-    Statement* res = malloc(sizeof(Statement));
-    if (res) {
-        res->type = STATEMENT_LABELED;
-        res->labeled = labeled;
-    }
+    Statement* res = xmalloc(sizeof(Statement));
+    res->type = STATEMENT_LABELED;
+    res->labeled = labeled;
+    
     return res;
 }
 
 Statement* create_statement_compound(CompoundStatement* comp) {
     assert(comp);
-    Statement* res = malloc(sizeof(Statement));
-    if (res) {
-        res->type = STATEMENT_COMPOUND;
-        res->comp = comp;
-    }
+    Statement* res = xmalloc(sizeof(Statement));
+    res->type = STATEMENT_COMPOUND;
+    res->comp = comp;
+    
     return res;
 }
 
 Statement* create_statement_select(SelectionStatement* sel) {
     assert(sel);
-    Statement* res = malloc(sizeof(Statement));
-    if (res) {
-        res->type = STATEMENT_SELECTION;
-        res->sel = sel;
-    }
+    Statement* res = xmalloc(sizeof(Statement));
+    res->type = STATEMENT_SELECTION;
+    res->sel = sel;
+    
     return res;
 }
 
 Statement* create_statement_iter(IterationStatement* it) {
     assert(it);
-    Statement* res = malloc(sizeof(Statement));
-    if (res) {
-        res->type = STATEMENT_ITERATION;
-        res->it = it;
-    }
+    Statement* res = xmalloc(sizeof(Statement));
+    res->type = STATEMENT_ITERATION;
+    res->it = it;
+    
     return res;
 }
 
 Statement* create_statement_jump(JumpStatement* jmp) {
     assert(jmp);
-    Statement* res = malloc(sizeof(Statement));
-    if (res) {
-        res->type = STATEMENT_JUMP;
-        res->jmp = jmp;
-    }
+    Statement* res = xmalloc(sizeof(Statement));
+    res->type = STATEMENT_JUMP;
+    res->jmp = jmp;
+    
     return res;
 }
 

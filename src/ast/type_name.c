@@ -3,13 +3,14 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 TypeName* create_type_name(SpecQualList spec_qual_list, AbstractDeclarator* abstract_decl) {
     assert(spec_qual_list.len > 0);
-    TypeName* res = malloc(sizeof(TypeName));
-    if (res) {
-        res->spec_qual_list = spec_qual_list;
-        res->abstract_decl = abstract_decl;
-    }
+    TypeName* res = xmalloc(sizeof(TypeName));
+    res->spec_qual_list = spec_qual_list;
+    res->abstract_decl = abstract_decl;
+    
     return res;
 }
 

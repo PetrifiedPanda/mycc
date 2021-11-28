@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 static inline void assign_operators_before(UnaryExpr* res, TokenType* operators_before, size_t len) {
     assert(res);
     if (len > 0) {
@@ -20,36 +22,33 @@ static inline void assign_operators_before(UnaryExpr* res, TokenType* operators_
 
 UnaryExpr* create_unary_expr_postfix(TokenType* operators_before, size_t len, PostfixExpr* postfix) {
     assert(postfix);
-    UnaryExpr* res = malloc(sizeof(UnaryExpr));
-    if (res) {
-        assign_operators_before(res, operators_before, len);
-        res->type = UNARY_POSTFIX;
-        res->postfix = postfix;
-    }
+    UnaryExpr* res = xmalloc(sizeof(UnaryExpr));
+    assign_operators_before(res, operators_before, len);
+    res->type = UNARY_POSTFIX;
+    res->postfix = postfix;
+    
     return res;
 }
 
 UnaryExpr* create_unary_expr_unary_op(TokenType* operators_before, size_t len, TokenType unary_op, CastExpr* cast_expr) {
     assert(is_unary_op(unary_op));
     assert(cast_expr);
-    UnaryExpr* res = malloc(sizeof(UnaryExpr));
-    if (res) {
-        assign_operators_before(res, operators_before, len);
-        res->type = UNARY_UNARY_OP;
-        res->unary_op = unary_op;
-        res->cast_expr = cast_expr;
-    }
+    UnaryExpr* res = xmalloc(sizeof(UnaryExpr));
+    assign_operators_before(res, operators_before, len);
+    res->type = UNARY_UNARY_OP;
+    res->unary_op = unary_op;
+    res->cast_expr = cast_expr;
+    
     return res;
 }
 
 UnaryExpr* create_unary_expr_sizeof_type(TokenType* operators_before, size_t len, TypeName* type_name) {
     assert(type_name);
-    UnaryExpr* res = malloc(sizeof(UnaryExpr));
-    if (res) {
-        assign_operators_before(res, operators_before, len);
-        res->type = UNARY_SIZEOF_TYPE;
-        res->type_name = type_name;
-    }
+    UnaryExpr* res = xmalloc(sizeof(UnaryExpr));
+    assign_operators_before(res, operators_before, len);
+    res->type = UNARY_SIZEOF_TYPE;
+    res->type_name = type_name;
+    
     return res;
 }
 

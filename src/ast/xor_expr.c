@@ -3,14 +3,15 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 XorExpr* create_xor_expr(AndExpr* and_exprs, size_t len) {
     assert(len > 0);
     assert(and_exprs);
-    XorExpr* res = malloc(sizeof(XorExpr));
-    if (res) {
-        res->len = len;
-        res->and_exprs = and_exprs;
-    }
+    XorExpr* res = xmalloc(sizeof(XorExpr));
+    res->len = len;
+    res->and_exprs = and_exprs;
+    
     return res;
 }
 

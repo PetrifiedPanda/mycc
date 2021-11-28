@@ -3,14 +3,15 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 TranslationUnit* create_translation_unit(ExternalDeclaration* external_decls, size_t len) {
     assert(len > 0);
     assert(external_decls);
-    TranslationUnit* res = malloc(sizeof(TranslationUnit));
-    if (res) {
-        res->len = len;
-        res->external_decls = external_decls;
-    }
+    TranslationUnit* res = xmalloc(sizeof(TranslationUnit));
+    res->len = len;
+    res->external_decls = external_decls;
+    
     return res;
 }
 

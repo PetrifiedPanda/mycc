@@ -17,7 +17,7 @@ typedef struct {
     SourceLocation source_loc;
 } Token;
 
-bool init_token(Token* t, TokenType type, const char* spelling, SourceLocation loc, const char* filename);
+void init_token(Token* t, TokenType type, const char* spelling, SourceLocation loc, const char* filename);
 
 void free_token(Token* t);
 

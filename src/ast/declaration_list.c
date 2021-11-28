@@ -3,17 +3,18 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 DeclarationList* create_declaration_list(Declaration* decls, size_t len) {
     if (len > 0) {
         assert(decls);
     } else {
         assert(decls == NULL);
     }
-    DeclarationList* res = malloc(sizeof(DeclarationList));
-    if (res) {
-        res->len = len;
-        res->decls = decls;
-    }
+    DeclarationList* res = xmalloc(sizeof(DeclarationList));
+    res->len = len;
+    res->decls = decls;
+
     return res;
 }
 
@@ -23,4 +24,3 @@ void free_declaration_list(DeclarationList* l) {
     }
     free(l->decls);
 }
-

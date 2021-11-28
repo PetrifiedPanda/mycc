@@ -2,11 +2,12 @@
 
 #include <stdlib.h>
 
+#include "util.h"
+
 ExprStatement* create_expr_statement(Expr* expr) {
-    ExprStatement* res = malloc(sizeof(ExprStatement));
-    if (res) {
-        res->expr = expr;
-    }
+    ExprStatement* res = xmalloc(sizeof(ExprStatement));
+    res->expr = expr;
+
     return res;
 }
 

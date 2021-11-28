@@ -3,14 +3,15 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 IdentifierList* create_identifier_list(char** identifiers, size_t len) {
     assert(len > 0);
     assert(identifiers);
-    IdentifierList* res = malloc(sizeof(IdentifierList));
-    if (res) {
-        res->len = len;
-        res->identifiers = identifiers;
-    }
+    IdentifierList* res = xmalloc(sizeof(IdentifierList));
+    res->len = len;
+    res->identifiers = identifiers;
+
     return res;
 }
 

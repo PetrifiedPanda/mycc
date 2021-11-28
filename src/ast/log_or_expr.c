@@ -3,13 +3,14 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 LogOrExpr* create_log_or_expr(LogOrExpr* log_or, LogAndExpr* log_and) {
     assert(log_and);
-    LogOrExpr* res = malloc(sizeof(LogOrExpr));
-    if (res) {
-        res->log_or = log_or;
-        res->log_and = log_and;
-    }
+    LogOrExpr* res = xmalloc(sizeof(LogOrExpr));
+    res->log_or = log_or;
+    res->log_and = log_and;
+    
     return res;
 }
 

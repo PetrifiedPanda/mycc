@@ -3,21 +3,21 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 static JumpStatement* create(TokenType type) {
     assert(type == GOTO || type == CONTINUE || type == BREAK || type == RETURN);
-    JumpStatement* res = malloc(sizeof(JumpStatement));
-    if (res) {
-        res->type = type;
-    }
+    JumpStatement* res = xmalloc(sizeof(JumpStatement));
+    res->type = type;
+    
     return res;
 } 
 
 JumpStatement* create_goto_statement(char* identifier) {
     assert(identifier);
     JumpStatement* res = create(GOTO);
-    if (res) {
-        res->identifier = identifier;
-    }
+    res->identifier = identifier;
+
     return res;
 }
 
@@ -31,9 +31,7 @@ JumpStatement* create_break_statement() {
 
 JumpStatement* create_return_statement(Expr* ret_val) {
     JumpStatement* res = create(RETURN);
-    if (res) {
-        res->ret_val = ret_val;
-    }
+    res->ret_val = ret_val;
     return res;
 }
 

@@ -3,16 +3,17 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 FuncDef* create_func_def(DeclarationSpecs* specs, Declarator* decl, DeclarationList decl_list, CompoundStatement* comp) {
     assert(decl);
     assert(comp);
-    FuncDef* res = malloc(sizeof(FuncDef));
-    if (res) {
-        res->specs = specs;
-        res->decl = decl;
-        res->decl_list = decl_list;
-        res->comp = comp;
-    }
+    FuncDef* res = xmalloc(sizeof(FuncDef));
+    res->specs = specs;
+    res->decl = decl;
+    res->decl_list = decl_list;
+    res->comp = comp;
+    
     return res;
 }
 

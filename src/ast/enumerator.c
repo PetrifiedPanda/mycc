@@ -3,13 +3,14 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 Enumerator* create_enumerator(char* identifier, ConstExpr* enum_val) {
     assert(identifier);
-    Enumerator* res = malloc(sizeof(Enumerator));
-    if (res) {
-        res->identifier = identifier;
-        res->enum_val = enum_val;
-    }
+    Enumerator* res = xmalloc(sizeof(Enumerator));
+    res->identifier = identifier;
+    res->enum_val = enum_val;
+    
     return res;
 }
 

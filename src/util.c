@@ -1,28 +1,30 @@
 #include "util.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "error.h"
 
-bool grow_alloc(void** alloc, size_t* num_elems, size_t elem_size) {
-    size_t new_num = *num_elems == 1 ? 2 : *num_elems + *num_elems / 2;
-    void* tmp = realloc(*alloc, elem_size * new_num);
-    if (tmp == NULL) {
-        set_error(ERR_ALLOC_FAIL, "Failed to resize allocation from %zu to %zu elements of size %zu bytes", *num_elems, new_num, elem_size);
-        return false;
+void* xmalloc(size_t bytes) {
+    void* res = malloc(bytes);
+    if (!res) {
+        fprintf(stderr, "xmalloc():\n\tFailed to allocate %zu bytes\n", bytes);
+        exit(EXIT_FAILURE);
     }
-    *alloc = tmp;
-    *num_elems = new_num;
-    return true;
+    return res;
 }
 
-bool resize_alloc(void** alloc, size_t new_size, size_t elem_size) {
-    size_t new_bytes = new_size * elem_size;
-    void* tmp = realloc(*alloc, new_bytes);
-    if (tmp == NULL) {
-        set_error(ERR_ALLOC_FAIL, "Failed to resize allocation to %zu bytes", new_bytes);
-        return false;
+void* xrealloc(void* alloc, size_t bytes) {
+    void* res = realloc(alloc, bytes);
+    if (!res) {
+        fprintf(stderr, "xrealloc():\n\tFailed to realloc %zu bytes\n", bytes);
+        exit(EXIT_FAILURE);
     }
-    *alloc = tmp;
-    return true;
+    return res;
+}
+
+void grow_alloc(void** alloc, size_t* num_elems, size_t elem_size) {
+    size_t new_num = *num_elems == 1 ? 2 : *num_elems + *num_elems / 2;
+    *alloc = xrealloc(*alloc, elem_size * new_num);
+    *num_elems = new_num;
 }

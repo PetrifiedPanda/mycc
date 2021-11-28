@@ -3,15 +3,16 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 static SelectionStatement* create(Expr* sel_expr, Statement* sel_stat, Statement* else_stat) {
     assert(sel_expr);
     assert(sel_stat);
-    SelectionStatement* res = malloc(sizeof(SelectionStatement));
-    if (res) {
-        res->sel_expr = sel_expr;
-        res->sel_stat = sel_stat;
-        res->else_stat = else_stat;
-    }
+    SelectionStatement* res = xmalloc(sizeof(SelectionStatement));
+    res->sel_expr = sel_expr;
+    res->sel_stat = sel_stat;
+    res->else_stat = else_stat;
+    
     return res;
 }
 
@@ -19,9 +20,8 @@ SelectionStatement* create_if_else_statement(Expr* sel_expr, Statement* sel_stat
     assert(sel_expr);
     assert(sel_stat);
     SelectionStatement* res = create(sel_expr, sel_stat, else_stat);
-    if (res) {
-        res->is_if = true;
-    }
+    res->is_if = true;
+    
     return res;
 }
 
@@ -29,9 +29,8 @@ SelectionStatement* create_switch_statement(Expr* sel_expr, Statement* sel_stat)
     assert(sel_expr);
     assert(sel_stat);
     SelectionStatement* res = create(sel_expr, sel_stat, NULL);
-    if (res) {
-        res->is_if = false;
-    }
+    res->is_if = false;
+    
     return res;
 }
 

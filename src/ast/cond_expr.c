@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "util.h"
+
 CondExpr* create_cond_expr(LogOrAndExpr* conditionals, size_t len, LogOrExpr* last_else) {
     assert(last_else);
     if (len > 0) {
@@ -10,12 +12,11 @@ CondExpr* create_cond_expr(LogOrAndExpr* conditionals, size_t len, LogOrExpr* la
     } else {
         assert(conditionals == NULL);
     }
-    CondExpr* res = malloc(sizeof(CondExpr));
-    if (res) {
-        res->conditionals = conditionals;
-        res->len = len;
-        res->last_else = last_else;
-    }
+    CondExpr* res = xmalloc(sizeof(CondExpr));
+    res->conditionals = conditionals;
+    res->len = len;
+    res->last_else = last_else;
+    
     return res;
 }
 

@@ -3,13 +3,14 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 EnumSpec* create_enum_spec(char* identifier, EnumList enum_list) {
     assert(identifier || enum_list.len > 0); 
-    EnumSpec* res = malloc(sizeof(EnumSpec));
-    if (res) {
-        res->identifier = identifier;
-        res->enum_list = enum_list;
-    }
+    EnumSpec* res = xmalloc(sizeof(EnumSpec));
+    res->identifier = identifier;
+    res->enum_list = enum_list;
+    
     return res;
 }
 

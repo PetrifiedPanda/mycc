@@ -3,13 +3,14 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 Declarator* create_declarator(Pointer* ptr, DirectDeclarator* direct_decl) {
     assert(direct_decl);
-    Declarator* res = malloc(sizeof(Declarator));
-    if (res) {
-        res->ptr = ptr;
-        res->direct_decl = direct_decl;
-    }
+    Declarator* res = xmalloc(sizeof(Declarator));
+    res->ptr = ptr;
+    res->direct_decl = direct_decl;
+    
     return res;
 }
 

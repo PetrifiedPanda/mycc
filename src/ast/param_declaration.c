@@ -3,31 +3,30 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 ParamDeclaration* create_param_declaration(DeclarationSpecs* decl_specs) {
     assert(decl_specs);
-    ParamDeclaration* res = malloc(sizeof(ParamDeclaration));
-    if (res) {
-        res->type = PARAM_DECL_NONE;
-        res->decl_specs = decl_specs;
-    }
+    ParamDeclaration* res = xmalloc(sizeof(ParamDeclaration));
+    res->type = PARAM_DECL_NONE;
+    res->decl_specs = decl_specs;
+    
     return res;
 }
 
 ParamDeclaration* create_param_declaration_declarator(DeclarationSpecs* decl_specs, Declarator* decl) {
     ParamDeclaration* res = create_param_declaration(decl_specs);
-    if (res) {
-        res->type = PARAM_DECL_DECL;
-        res->decl = decl;
-    }
+    res->type = PARAM_DECL_DECL;
+    res->decl = decl;
+    
     return res;
 }
 
 ParamDeclaration* create_param_declaration_abstract(DeclarationSpecs* decl_specs, AbstractDeclarator* abstract_decl) {
     ParamDeclaration* res = create_param_declaration(decl_specs);
-    if (res) {
-        res->type = PARAM_DECL_ABSTRACT_DECL;
-        res->abstract_decl = abstract_decl;
-    }
+    res->type = PARAM_DECL_ABSTRACT_DECL;
+    res->abstract_decl = abstract_decl;
+    
     return res;
 }
 

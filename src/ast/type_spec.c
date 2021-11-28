@@ -2,39 +2,37 @@
 
 #include <stdlib.h>
 
+#include "util.h"
+
 TypeSpec* create_type_spec_predef(TokenType type_spec) {
-    TypeSpec* res = malloc(sizeof(TypeSpec));
-    if (res) {
-        res->type = TYPESPEC_PREDEF;
-        res->type_spec = type_spec;
-    }
+    TypeSpec* res = xmalloc(sizeof(TypeSpec));
+    res->type = TYPESPEC_PREDEF;
+    res->type_spec = type_spec;
+    
     return res;
 }
 
 TypeSpec* create_type_spec_struct(StructUnionSpec* struct_union_spec) {
-    TypeSpec* res = malloc(sizeof(TypeSpec));
-    if (res) {
-        res->type = TYPESPEC_STRUCT;
-        res->struct_union_spec = struct_union_spec;
-    }
+    TypeSpec* res = xmalloc(sizeof(TypeSpec));
+    res->type = TYPESPEC_STRUCT;
+    res->struct_union_spec = struct_union_spec;
+    
     return res;
 }
 
 TypeSpec* create_type_spec_enum(EnumSpec* enum_spec) {
-    TypeSpec* res = malloc(sizeof(TypeSpec));
-    if (res) {
-        res->type = TYPESPEC_ENUM;
-        res->enum_spec = enum_spec;
-    }
+    TypeSpec* res = xmalloc(sizeof(TypeSpec));
+    res->type = TYPESPEC_ENUM;
+    res->enum_spec = enum_spec;
+    
     return res;
 }
 
 TypeSpec* create_type_spec_typename(char* type_name) {
-    TypeSpec* res = malloc(sizeof(TypeSpec));
-    if (res) {
-        res->type = TYPESPEC_TYPENAME;
-        res->type_name = type_name;
-    }
+    TypeSpec* res = xmalloc(sizeof(TypeSpec));
+    res->type = TYPESPEC_TYPENAME;
+    res->type_name = type_name;
+    
     return res;
 }
 

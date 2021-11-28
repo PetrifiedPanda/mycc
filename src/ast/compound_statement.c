@@ -3,12 +3,13 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 CompoundStatement* create_compound_statement(DeclarationList decl_list, StatementList stat_list) {
-    CompoundStatement* res = malloc(sizeof(CompoundStatement));
-    if (res) {
-        res->decl_list = decl_list;
-        res->stat_list = stat_list;
-    }
+    CompoundStatement* res = xmalloc(sizeof(CompoundStatement));
+    res->decl_list = decl_list;
+    res->stat_list = stat_list;
+
     return res;
 }
 

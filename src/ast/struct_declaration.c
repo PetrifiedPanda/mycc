@@ -3,14 +3,15 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 StructDeclaration* create_struct_declaration(SpecQualList spec_qual_list, StructDeclaratorList decls) {
     assert(spec_qual_list.len > 0);
     assert(decls.len > 0);
-    StructDeclaration* res = malloc(sizeof(StructDeclaration));
-    if (res) {
-        res->spec_qual_list = spec_qual_list;
-        res->decls = decls;
-    }
+    StructDeclaration* res = xmalloc(sizeof(StructDeclaration));
+    res->spec_qual_list = spec_qual_list;
+    res->decls = decls;
+    
     return res;
 }
 

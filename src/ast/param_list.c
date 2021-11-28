@@ -3,14 +3,15 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 ParamList* create_param_list(ParamDeclaration* decls, size_t len) {
     assert(len > 0);
     assert(decls);
-    ParamList* res = malloc(sizeof(ParamList));
-    if (res) {
-        res->len = len;
-        res->decls = decls;
-    }
+    ParamList* res = xmalloc(sizeof(ParamList));
+    res->len = len;
+    res->decls = decls;
+    
     return res;
 }
 

@@ -3,13 +3,13 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 AbstractDeclarator* create_abstract_declarator(Pointer* ptr, DirectAbstractDeclarator* direct_abs_decl) {
     assert(ptr || direct_abs_decl); 
-    AbstractDeclarator* res = malloc(sizeof(AbstractDeclarator));
-    if (res) {
-        res->ptr = ptr;
-        res->direct_abs_decl = direct_abs_decl;
-    }
+    AbstractDeclarator* res = xmalloc(sizeof(AbstractDeclarator));
+    res->ptr = ptr;
+    res->direct_abs_decl = direct_abs_decl;
     return res;
 }
 

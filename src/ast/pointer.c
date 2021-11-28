@@ -3,13 +3,13 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 Pointer* create_pointer(TypeQualList* quals_after_ptr, size_t num_indirs) {
     assert(num_indirs > 0);
-    Pointer* res = malloc(sizeof(Pointer));
-    if (res) {
-        res->num_indirs = num_indirs;
-        res->quals_after_ptr = quals_after_ptr;
-    }
+    Pointer* res = xmalloc(sizeof(Pointer));
+    res->num_indirs = num_indirs;
+    res->quals_after_ptr = quals_after_ptr;
     return res;
 }
 

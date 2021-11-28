@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 MulExpr* create_mul_expr(CastExpr* lhs, CastExprAndOp* mul_chain, size_t len) {
     assert(lhs);
     if (len != 0) {
@@ -17,12 +19,11 @@ MulExpr* create_mul_expr(CastExpr* lhs, CastExprAndOp* mul_chain, size_t len) {
         assert(is_mul_op(item->mul_op));
     }
 
-    MulExpr* res = malloc(sizeof(MulExpr));
-    if (res) {
-        res->lhs = lhs;
-        res->len = len;
-        res->mul_chain = mul_chain;
-    }
+    MulExpr* res = xmalloc(sizeof(MulExpr));
+    res->lhs = lhs;
+    res->len = len;
+    res->mul_chain = mul_chain;
+    
     return res;
 }
 

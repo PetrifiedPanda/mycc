@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 AddExpr* create_add_expr(MulExpr* lhs, size_t len, MulExprAndOp* add_chain) {
     assert(lhs); 
     if (len != 0) {
@@ -17,12 +19,10 @@ AddExpr* create_add_expr(MulExpr* lhs, size_t len, MulExprAndOp* add_chain) {
         assert(is_add_op(item->add_op));
     }
      
-    AddExpr* res = malloc(sizeof(AddExpr));
-    if (res) {
-        res->lhs = lhs;
-        res->len = len;
-        res->add_chain = add_chain;
-    }
+    AddExpr* res = xmalloc(sizeof(AddExpr));
+    res->lhs = lhs;
+    res->len = len;
+    res->add_chain = add_chain;
     return res;
 }
 

@@ -2,13 +2,14 @@
 
 #include <stdlib.h>
 
+#include "util.h"
+
 StructUnionSpec* create_struct_union_spec(bool is_struct, char* identifier, StructDeclarationList decl_list) {
-    StructUnionSpec* res = malloc(sizeof(StructUnionSpec));
-    if (res) {
-        res->is_struct = is_struct;
-        res->identifier = identifier;
-        res->decl_list = decl_list;
-    }
+    StructUnionSpec* res = xmalloc(sizeof(StructUnionSpec));
+    res->is_struct = is_struct;
+    res->identifier = identifier;
+    res->decl_list = decl_list;
+    
     return res;
 }
 

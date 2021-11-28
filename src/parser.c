@@ -19,10 +19,6 @@ TranslationUnit* parse_tokens(const Token* tokens) {
     return res;
 }
 
-static inline void alloc_err() {
-    set_error(ERR_ALLOC_FAIL, "Failed to allocate storage while parsing");
-}
-
 static void expected_token_error(TokenType expected, const Token* got) {
     set_error_file(ERR_PARSER, got->file, got->source_loc, "Expected token of type %s but got token of type %s", get_type_str(expected), get_type_str(got->type));
 }
@@ -47,24 +43,14 @@ static bool parse_external_declaration(ParserState* s, ExternalDeclaration* res)
 }
 
 static TranslationUnit* parse_translation_unit(ParserState* s) {
-    TranslationUnit* res = malloc(sizeof(TranslationUnit));
-    if (!res) {
-        alloc_err();
-        goto fail;
-    }
+    TranslationUnit* res = xmalloc(sizeof(TranslationUnit));
     size_t alloc_num = 1;
     res->len = 0;
-    res->external_decls = malloc(sizeof(ExternalDeclaration) * alloc_num); 
-    if (!res->external_decls) {
-        alloc_err();
-        goto fail;
-    }
+    res->external_decls = xmalloc(sizeof(ExternalDeclaration) * alloc_num);
 
     while (s->it->type != INVALID) {
         if (res->len == alloc_num) {
-            if (!grow_alloc((void**)res->external_decls, &alloc_num, sizeof(ExternalDeclaration))) {
-                goto fail;
-            }
+            grow_alloc((void**)res->external_decls, &alloc_num, sizeof(ExternalDeclaration));
         }
         
         if (!parse_external_declaration(s, &res->external_decls[res->len])) {
@@ -75,9 +61,7 @@ static TranslationUnit* parse_translation_unit(ParserState* s) {
     }
     
     if (res->len != alloc_num) {
-        if (!resize_alloc((void*)&res->external_decls, res->len, sizeof(ExternalDeclaration))) {
-            goto fail;
-        }
+        res->external_decls = xrealloc(res->external_decls, res->len * sizeof(ExternalDeclaration));
     }
 
     return res;
@@ -95,17 +79,8 @@ static bool parse_assign_expr(AssignExpr* res, ParserState* s) {
 
 static Expr* parse_expr(ParserState* s) {
     size_t num_elems = 1;
-    Expr* res = malloc(sizeof(Expr));
-    if (!res) {
-        alloc_err();
-        return NULL;
-    }
-
-    res->assign_exprs = malloc(num_elems * sizeof(AssignExpr));
-    if (!res->assign_exprs) {
-        alloc_err();
-        return NULL;
-    }
+    Expr* res = xmalloc(sizeof(Expr));
+    res->assign_exprs = xmalloc(num_elems * sizeof(AssignExpr));
 
     if (parse_assign_expr(&res->assign_exprs[0], s)) {
         res->len = 0;
@@ -116,9 +91,7 @@ static Expr* parse_expr(ParserState* s) {
     while (s->it->type == COMMA) {
         accept_it(s);
         if (num_elems == res->len) {
-            if (!grow_alloc((void**)&res->assign_exprs, &num_elems, sizeof(AssignExpr))) {
-                goto fail;
-            }
+            grow_alloc((void**)&res->assign_exprs, &num_elems, sizeof(AssignExpr));
         }
 
         if (!parse_assign_expr(&res->assign_exprs[res->len], s)) {
@@ -129,9 +102,7 @@ static Expr* parse_expr(ParserState* s) {
     }
 
     if (num_elems != res->len) {
-        if (!resize_alloc((void**)&res->assign_exprs, res->len, sizeof(AssignExpr))) {
-            goto fail;
-        }
+        res->assign_exprs = xrealloc(res->assign_exprs, sizeof(AssignExpr) * res->len);
     }
 
     return res;

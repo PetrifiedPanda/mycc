@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 CastExpr* create_cast_expr(TypeName* type_names, size_t len, UnaryExpr* rhs) {
     assert(rhs);
     if (len > 0) {
@@ -10,12 +12,10 @@ CastExpr* create_cast_expr(TypeName* type_names, size_t len, UnaryExpr* rhs) {
     } else {
         assert(type_names == NULL);
     }
-    CastExpr* res = malloc(sizeof(CastExpr));
-    if (res) {
-        res->type_names = type_names;
-        res->len = len;
-        res->rhs = rhs;
-    }
+    CastExpr* res = xmalloc(sizeof(CastExpr));
+    res->type_names = type_names;
+    res->len = len;
+    res->rhs = rhs;
     return res;
 }
 

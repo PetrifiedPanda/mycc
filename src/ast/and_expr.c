@@ -3,14 +3,14 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 AndExpr* create_and_expr(EqExpr* eq_exprs, size_t len) {
     assert(eq_exprs);
     assert(len > 0);
-    AndExpr* res = malloc(sizeof(AndExpr));
-    if (res) {
-        res->eq_exprs = eq_exprs;
-        res->len = len;
-    }
+    AndExpr* res = xmalloc(sizeof(AndExpr));
+    res->eq_exprs = eq_exprs;
+    res->len = len;
     return res;
 }
 

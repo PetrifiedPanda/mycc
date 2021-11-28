@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "util.h"
+
 static void add_following_suffixes(DirectAbstractDeclarator* res, ArrayOrFuncSuffix* following_suffixes, size_t len) {
     assert(res);
     if (len == 0) {
@@ -13,32 +15,29 @@ static void add_following_suffixes(DirectAbstractDeclarator* res, ArrayOrFuncSuf
 }
 
 DirectAbstractDeclarator* create_direct_abstract_declarator_arr(ConstExpr* array_size, ArrayOrFuncSuffix* following_suffixes, size_t len) {
-    DirectAbstractDeclarator* res = malloc(sizeof(DirectAbstractDeclarator));
-    if (res) {
-        res->type = DIRECT_ABSTRACT_DECL_ARRAY;
-        res->array_size = array_size; 
-        add_following_suffixes(res, following_suffixes, len);
-    }
+    DirectAbstractDeclarator* res = xmalloc(sizeof(DirectAbstractDeclarator));
+    res->type = DIRECT_ABSTRACT_DECL_ARRAY;
+    res->array_size = array_size; 
+    add_following_suffixes(res, following_suffixes, len);
+    
     return res;
 }
 
 DirectAbstractDeclarator* create_direct_abstract_declarator_abs_decl(AbstractDeclarator* bracket_decl, ArrayOrFuncSuffix* following_suffixes, size_t len) {
-    DirectAbstractDeclarator* res = malloc(sizeof(DirectAbstractDeclarator));
-    if (res) {
-        res->type = DIRECT_ABSTRACT_DECL_ABSTRACT_DECL;
-        res->bracket_decl = bracket_decl;    
-        add_following_suffixes(res, following_suffixes, len);
-    }
+    DirectAbstractDeclarator* res = xmalloc(sizeof(DirectAbstractDeclarator));
+    res->type = DIRECT_ABSTRACT_DECL_ABSTRACT_DECL;
+    res->bracket_decl = bracket_decl;    
+    add_following_suffixes(res, following_suffixes, len);
+
     return res;
 }
 
 DirectAbstractDeclarator* create_direct_abstract_declarator_param_list(ParamTypeList func_types, ArrayOrFuncSuffix* following_suffixes, size_t len) {
-    DirectAbstractDeclarator* res = malloc(sizeof(DirectAbstractDeclarator));
-    if (res) {
-        res->type = DIRECT_ABSTRACT_DECL_PARAM_TYPE_LIST;
-        res->func_types = func_types;    
-        add_following_suffixes(res, following_suffixes, len);
-    }
+    DirectAbstractDeclarator* res = xmalloc(sizeof(DirectAbstractDeclarator));
+    res->type = DIRECT_ABSTRACT_DECL_PARAM_TYPE_LIST;
+    res->func_types = func_types;    
+    add_following_suffixes(res, following_suffixes, len);
+    
     return res;
 }
 
