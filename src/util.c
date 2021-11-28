@@ -26,7 +26,7 @@ void* xrealloc(void* alloc, size_t bytes) {
 }
 
 void grow_alloc(void** alloc, size_t* num_elems, size_t elem_size) {
-    size_t new_num = *num_elems == 1 ? 2 : *num_elems + *num_elems / 2;
+    size_t new_num = *num_elems + *num_elems / 2 + 1;
     *alloc = xrealloc(*alloc, elem_size * new_num);
     *num_elems = new_num;
 }

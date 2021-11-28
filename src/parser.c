@@ -253,6 +253,9 @@ static PostfixExpr* parse_postfix_expr(ParserState* s) {
                     .inc_dec = inc_dec};
                 break;
             }
+
+            default:
+                assert(false); // Unreachable
         }
 
         ++res->len;
