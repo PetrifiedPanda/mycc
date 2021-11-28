@@ -74,7 +74,61 @@ fail:
 }
 
 static bool parse_assign_expr(AssignExpr* res, ParserState* s) {
+    // TODO:
     return false;
+}
+
+static ArgExprList parse_arg_expr_list(ParserState* s) {
+    size_t alloc_size = 1;
+    ArgExprList res = {.len = 0, .assign_exprs = xmalloc(sizeof(AssignExpr) * alloc_size)};
+    if (!parse_assign_expr(&res.assign_exprs[0], s)) {
+        goto fail;
+    }
+    res.len = 1;
+    while (s->it->type == COMMA) {
+        accept_it(s);
+        if (res.len == alloc_size) {
+            grow_alloc(&res.assign_exprs, &alloc_size, sizeof(AssignExpr));
+        }
+
+        if (!parse_assign_expr(&res.assign_exprs[res.len], s)) {
+            goto fail;
+        }
+
+        ++res.len;
+    }
+
+fail:
+    free_arg_expr_list(&res);
+    return (ArgExprList){.assign_exprs = NULL, .len = 0};
+}
+
+static Expr* parse_expr(ParserState* s);
+
+static PrimaryExpr* parse_primary_expr(ParserState* s) {
+    switch (s->it->type) {
+        case IDENTIFIER:
+        case CONSTANT:
+        case STRING_LITERAL:
+            return create_primary_expr(s->it->type, s->it->spelling);
+    
+        default:
+            if (accept(s, LBRACKET)) {
+                Expr* bracket_expr = parse_expr(s);
+                if (!bracket_expr) {
+                    return NULL;
+                }
+                if (accept(s, RBRACKET)) {
+                    return create_primary_expr_bracket(bracket_expr);
+                } else {
+                    free_expr(bracket_expr);
+                    return NULL;
+                }
+            }
+            break;
+    }
+
+    return NULL;
 }
 
 static Expr* parse_expr(ParserState* s) {
@@ -111,29 +165,105 @@ fail:
     return NULL;
 }
 
-static PrimaryExpr* parse_primary_expr(ParserState* s) {
-    switch (s->it->type) {
-        case IDENTIFIER:
-        case CONSTANT:
-        case STRING_LITERAL:
-            return create_primary_expr(s->it->type, s->it->spelling);
+static bool is_posfix_expr(TokenType t) {
+    switch (t) {
+        case LINDEX:
+        case LBRACKET:
+        case DOT:
+        case PTR_OP:
+        case INC_OP:
+        case DEC_OP:
+            return true;
     
         default:
-            if (accept(s, LBRACKET)) {
-                Expr* bracket_expr = parse_expr(s);
-                if (!bracket_expr) {
-                    return NULL;
-                }
-                if (accept(s, RBRACKET)) {
-                    return create_primary_expr_bracket(bracket_expr);
-                } else {
-                    free_expr(bracket_expr);
-                    return NULL;
-                }
-            }
-            break;
+            return false;
+    }
+}
+
+static PostfixExpr* parse_postfix_expr(ParserState* s) {
+    PostfixExpr* res = xmalloc(sizeof(PostfixExpr));
+    res->primary = parse_primary_expr(s);
+    if (!res->primary) {
+        return NULL;
     }
 
-    // Unreachable
+    size_t alloc_size = 1;
+    res->len = 0;
+    res->suffixes = xmalloc(sizeof(PostfixSuffix) * alloc_size);
+    while (is_posfix_expr(s->it->type)) {
+        if (res->len == alloc_size) {
+            grow_alloc(&res->suffixes, &alloc_size, sizeof(PostfixSuffix));
+        }
+
+        switch (s->it->type) {
+            case LINDEX: {
+                accept_it(s);
+                Expr* expr = parse_expr(s);
+                if (!expr) {
+                    goto fail;
+                }
+                if (!accept(s, RINDEX)) {
+                    free_expr(expr);
+                    goto fail;
+                }
+                res->suffixes[res->len] = (PostfixSuffix){
+                    .type = POSTFIX_INDEX, 
+                    .index_expr = expr};
+                break;
+            }
+            
+            case LBRACKET: {
+                accept_it(s);
+                ArgExprList arg_expr_list = {.assign_exprs = NULL, .len = 0};
+                if (s->it->type != RBRACKET) {
+                    arg_expr_list = parse_arg_expr_list(s);
+                    if (get_last_error() != ERR_NONE) {
+                        goto fail;
+                    }
+                }
+                accept(s, RBRACKET);
+                res->suffixes[res->len] = (PostfixSuffix){
+                    .type = POSTFIX_BRACKET, 
+                    .bracket_list = arg_expr_list
+                    };
+                break;
+            }
+
+            case DOT:
+            case PTR_OP: {
+                PostfixSuffixType type = s->it->type == PTR_OP 
+                    	? POSTFIX_PTR_ACCESS : POSTFIX_ACCESS; 
+                accept_it(s);
+                if (s->it->type != IDENTIFIER) {
+                    goto fail;                        
+                }
+                char* identifier = alloc_string_copy(s->it->spelling); // Copy may not be necessary
+                res->suffixes[res->len] = (PostfixSuffix){
+                    .type = type, 
+                    .identifier = identifier};
+                break;
+            }
+
+            case INC_OP:
+            case DEC_OP: {
+                TokenType inc_dec = s->it->type;
+                accept_it(s);
+                res->suffixes[res->len] = (PostfixSuffix){
+                    .type = POSTFIX_INC_DEC, 
+                    .inc_dec = inc_dec};
+                break;
+            }
+        }
+
+        ++res->len;
+    }
+
+    if (alloc_size != res->len) {
+        res->suffixes = xrealloc(res->suffixes, res->len * sizeof(PostfixSuffix));
+    }
+
+    return res;
+fail:
+    free_postfix_expr(res);
     return NULL;
 }

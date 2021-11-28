@@ -6,13 +6,6 @@
 
 #include "util.h"
 
-static char* alloc_string_copy(const char* str) {
-    assert(str);
-    char* res = xmalloc(sizeof(char) * (strlen(str) + 1));
-    strcpy(res, str);
-    return res;
-}
-
 void init_token(Token* t, TokenType type, const char* spelling, SourceLocation loc, const char* filename) {
     assert(t); 
     assert(filename);

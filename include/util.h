@@ -10,4 +10,6 @@ void* xrealloc(void* alloc, size_t bytes);
 
 void grow_alloc(void** alloc, size_t* num_elems, size_t elem_size);
 
+char* alloc_string_copy(const char* str);
+
 #endif

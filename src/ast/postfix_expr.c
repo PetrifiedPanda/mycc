@@ -1,24 +1,5 @@
 #include "ast/postfix_expr.h"
 
-#include <assert.h>
-
-#include "util.h"
-
-PostfixExpr* create_postfix_expr(PrimaryExpr* primary, PostfixSuffix* suffixes, size_t len) {
-    assert(primary);
-    if (len > 0) {
-        assert(suffixes);
-    } else {
-        assert(suffixes == NULL);
-    }
-    PostfixExpr* res = xmalloc(sizeof(PostfixExpr));
-    res->primary = primary;
-    res->len = len;
-    res->suffixes = suffixes;
-
-    return res;
-}
-
 static void free_children(PostfixExpr* p) {
     free_primary_expr(p->primary);
     for (size_t i = 0; i < p->len; ++i) {

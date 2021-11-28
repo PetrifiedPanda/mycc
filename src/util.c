@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 
 #include "error.h"
 
@@ -27,4 +29,11 @@ void grow_alloc(void** alloc, size_t* num_elems, size_t elem_size) {
     size_t new_num = *num_elems == 1 ? 2 : *num_elems + *num_elems / 2;
     *alloc = xrealloc(*alloc, elem_size * new_num);
     *num_elems = new_num;
+}
+
+char* alloc_string_copy(const char* str) {
+    assert(str);
+    char* res = xmalloc(sizeof(char) * (strlen(str) + 1));
+    strcpy(res, str);
+    return res;
 }

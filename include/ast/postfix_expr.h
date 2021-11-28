@@ -32,8 +32,6 @@ typedef struct PostfixExpr {
     PostfixSuffix* suffixes;
 } PostfixExpr;
 
-PostfixExpr* create_postfix_expr(PrimaryExpr* primary, PostfixSuffix* suffixes, size_t len);
-
 void free_postfix_expr(PostfixExpr* p);
 
 #include "ast/primary_expr.h"
