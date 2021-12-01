@@ -22,10 +22,11 @@ void* xmalloc(size_t bytes);
 void* xrealloc(void* alloc, size_t bytes);
 
 /**
- * @brief Grows an existing allocation
+ * @brief Grows an existing allocation, writing the new allocation and its size in the given pointers
  * 
- * @param alloc Pointer to existing allocation
- * @param num_elems Pointer to number of allocated elements
+ * @param alloc Pointer to existing allocation, to which the resulting allocation will be written
+ * @param num_elems Pointer to number of allocated elements, to which the new number of elements 
+ *                  will be written
  * @param elem_size Size of one element in bytes
  */
 void grow_alloc(void** alloc, size_t* num_elems, size_t elem_size);
