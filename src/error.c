@@ -33,7 +33,7 @@ static inline void append_error_msg_va_list(const char* format, va_list args) {
     size_t can_print = MSG_BUF_SIZE - g_msg_len;
     g_msg_len += vsnprintf(&g_msg_buf[g_msg_len], can_print, format, args);
 
-    assert(g_msg_len <= MSG_BUF_SIZE);
+    assert(g_msg_len < MSG_BUF_SIZE);
 }
 
 void set_error(ErrorType type, const char* format, ...) {

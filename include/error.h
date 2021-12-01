@@ -23,7 +23,7 @@ ErrorType get_last_error();
 void clear_last_error();
 
 /**
- * @brief Get the message set by the last error
+ * @brief Get the message set by the last error. An error must have been set
  * 
  * @return const char* The error set by the last call to set_error() or set_error_file()
  */
