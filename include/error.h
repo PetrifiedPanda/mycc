@@ -47,7 +47,15 @@ void set_error(ErrorType type, const char* format, ...);
  * @param format A format string, analogous to printf()
  * @param ... The strings format arguments
  */
-void set_error_file(ErrorType type, const char* filename, SourceLocation loc, const char* format, ...); 
+void set_error_file(ErrorType type, const char* filename, SourceLocation loc, const char* format, ...);
+
+/**
+ * @brief Appends to the already existing error message. The error must have already been set
+ * 
+ * @param format A format string, analogous to printf()
+ * @param ... The strings format arguments
+ */
+void append_error_msg(const char* format, ...);
 
 #endif
 
