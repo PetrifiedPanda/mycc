@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-typedef enum  {
+typedef enum {
     IDENTIFIER,
     CONSTANT,
     STRING_LITERAL,
@@ -90,7 +90,20 @@ typedef enum  {
     INVALID
 } TokenType;
 
+/**
+ * @brief Gets a spelling for the given TokenType
+ * 
+ * @param type Type to get the spelling for
+ * @return const char* The spelling of the given token type, if it is unambiguous, otherwise NULL
+ */
 const char* get_spelling(TokenType type);
+
+/**
+ * @brief Gets a string to identify the TokenType
+ * 
+ * @param type TokenType value
+ * @return const char* A string that is identical to the spelling of the enum value
+ */
 const char* get_type_str(TokenType type);
 
 bool is_unary_op(TokenType t);

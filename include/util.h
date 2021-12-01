@@ -4,12 +4,38 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+/**
+ * @brief Calls malloc(), exiting when malloc() fails
+ * 
+ * @param bytes Size of allocation
+ * @return void* Pointer to allocated storage
+ */
 void* xmalloc(size_t bytes);
 
+/**
+ * @brief Calls realloc(), exiting when realloc() fails
+ * 
+ * @param alloc Existing allocation, or NULL
+ * @param bytes New size for the allocation
+ * @return void* Resized allocation
+ */
 void* xrealloc(void* alloc, size_t bytes);
 
+/**
+ * @brief Grows an existing allocation
+ * 
+ * @param alloc Pointer to existing allocation
+ * @param num_elems Pointer to number of allocated elements
+ * @param elem_size Size of one element in bytes
+ */
 void grow_alloc(void** alloc, size_t* num_elems, size_t elem_size);
 
+/**
+ * @brief Allocates a copy of the given string
+ * 
+ * @param str A zero-terminated string that must not be NULL
+ * @return char* A heap allocated copy of str
+ */
 char* alloc_string_copy(const char* str);
 
 #endif
