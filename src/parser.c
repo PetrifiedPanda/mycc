@@ -119,11 +119,11 @@ static PrimaryExpr* parse_primary_expr(ParserState* s) {
         }
         case CONSTANT: {
             char* spelling = take_spelling(s->it);
-            return create_primary_expr_constant(spelling);
+            return create_primary_expr_constant(create_constant(spelling));
         }
         case STRING_LITERAL: {
             char* spelling = take_spelling(s->it);
-            return create_primary_expr_string(spelling);
+            return create_primary_expr_string(create_string_literal(spelling));
         }
     
         default:

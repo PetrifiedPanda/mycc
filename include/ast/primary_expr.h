@@ -3,6 +3,9 @@
 
 #include "token_type.h"
 
+#include "ast/constant.h"
+#include "ast/string_literal.h"
+
 typedef struct Expr Expr;
 typedef struct Identifier Identifier;
 
@@ -16,15 +19,16 @@ typedef enum {
 typedef struct PrimaryExpr {
     PrimaryExprType type;
     union {
-        char* literal;
+        Constant constant;
+        StringLiteral literal;
         Identifier* identifier;
         Expr* bracket_expr;
     };
 } PrimaryExpr;
 
-PrimaryExpr* create_primary_expr_constant(char* literal);
+PrimaryExpr* create_primary_expr_constant(Constant constant);
 
-PrimaryExpr* create_primary_expr_string(char* literal);
+PrimaryExpr* create_primary_expr_string(StringLiteral literal);
 
 PrimaryExpr* create_primary_expr_identifier(Identifier* identifier);
 

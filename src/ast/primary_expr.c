@@ -5,18 +5,18 @@
 
 #include "util.h"
 
-PrimaryExpr* create_primary_expr_constant(char* literal) {
-    assert(literal);
+PrimaryExpr* create_primary_expr_constant(Constant constant) {
+    assert(constant.spelling);
 
     PrimaryExpr* res = xmalloc(sizeof(PrimaryExpr));
     res->type = PRIMARY_EXPR_CONSTANT;
-    res->literal = literal;
+    res->constant = constant;
     
     return res;
 }
 
-PrimaryExpr* create_primary_expr_string(char* literal) {
-    assert(literal);
+PrimaryExpr* create_primary_expr_string(StringLiteral literal) {
+    assert(literal.spelling);
 
     PrimaryExpr* res = xmalloc(sizeof(PrimaryExpr));
     res->type = PRIMARY_EXPR_STRING_LITERAL;
@@ -51,8 +51,11 @@ static void free_children(PrimaryExpr* e) {
             break;
 
         case PRIMARY_EXPR_CONSTANT:
+            free_constant(&e->constant);
+            break;
+
         case PRIMARY_EXPR_STRING_LITERAL:
-            free(e->literal);
+            free_string_literal(&e->literal);
             break;
 
         case PRIMARY_EXPR_BRACKET:
