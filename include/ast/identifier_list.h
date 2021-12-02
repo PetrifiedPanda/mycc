@@ -3,14 +3,18 @@
 
 #include <stddef.h>
 
+typedef struct Identifier Identifier;
+
 typedef struct IdentifierList {
     size_t len;
-    char** identifiers;
+    Identifier* identifiers;
 } IdentifierList;
 
-IdentifierList* create_identifier_list(char** identifiers, size_t len);
+IdentifierList* create_identifier_list(Identifier* identifiers, size_t len);
 
 void free_identifier_list(IdentifierList* l);
+
+#include "ast/identifier.h"
 
 #endif
 

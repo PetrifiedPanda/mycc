@@ -13,7 +13,7 @@ static inline void add_suffixes(DirectDeclarator* d, ArrOrFuncSuffix* suffixes, 
     d->suffixes = suffixes;
 }
 
-DirectDeclarator* create_direct_declarator(char* id, ArrOrFuncSuffix* suffixes, size_t len) {
+DirectDeclarator* create_direct_declarator(Identifier* id, ArrOrFuncSuffix* suffixes, size_t len) {
     assert(id);
     DirectDeclarator* res = xmalloc(sizeof(DirectDeclarator));
     res->is_id = true;
@@ -35,7 +35,7 @@ DirectDeclarator* create_direct_declarator_decl(Declarator* decl, ArrOrFuncSuffi
 
 static void free_children(DirectDeclarator* d) {
     if (d->is_id) {
-        free(d->id);
+        free_identifier(d->id);
     } else {
         free_declarator(d->decl);
     }

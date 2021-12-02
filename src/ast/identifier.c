@@ -10,7 +10,12 @@ Identifier* create_identifier(char* spelling) {
     return res;
 }
 
-void free_identifier(Identifier* i) {
+void free_identifier_children(Identifier* i) {
     free(i->spelling);
+}
+
+void free_identifier(Identifier* i) {
+    free_identifier_children(i);
+    free(i);
 }
 

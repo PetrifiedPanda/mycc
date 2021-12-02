@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-IdentifierList* create_identifier_list(char** identifiers, size_t len) {
+IdentifierList* create_identifier_list(Identifier* identifiers, size_t len) {
     assert(len > 0);
     assert(identifiers);
     IdentifierList* res = xmalloc(sizeof(IdentifierList));
@@ -17,7 +17,7 @@ IdentifierList* create_identifier_list(char** identifiers, size_t len) {
 
 void free_identifier_list(IdentifierList* l) {
     for (size_t i = 0; i < l->len; ++i) {
-        free(l->identifiers[i]);
+        free_identifier_children(&l->identifiers[i]);
     }
     free(l->identifiers);
 }

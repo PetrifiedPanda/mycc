@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-Enumerator* create_enumerator(char* identifier, ConstExpr* enum_val) {
+Enumerator* create_enumerator(Identifier* identifier, ConstExpr* enum_val) {
     assert(identifier);
     Enumerator* res = xmalloc(sizeof(Enumerator));
     res->identifier = identifier;
@@ -15,7 +15,7 @@ Enumerator* create_enumerator(char* identifier, ConstExpr* enum_val) {
 }
 
 void free_enumerator_children(Enumerator* e) {
-    free(e->identifier);
+    free_identifier(e->identifier);
     if (e->enum_val) {
         free_const_expr(e->enum_val);
     }

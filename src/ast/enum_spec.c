@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-EnumSpec* create_enum_spec(char* identifier, EnumList enum_list) {
+EnumSpec* create_enum_spec(Identifier* identifier, EnumList enum_list) {
     assert(identifier || enum_list.len > 0); 
     EnumSpec* res = xmalloc(sizeof(EnumSpec));
     res->identifier = identifier;
@@ -15,7 +15,7 @@ EnumSpec* create_enum_spec(char* identifier, EnumList enum_list) {
 }
 
 static void free_children(EnumSpec* s) {
-    free(s->identifier);
+    free_identifier(s->identifier);
     free_enum_list(&s->enum_list);
 }
 

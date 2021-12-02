@@ -7,6 +7,8 @@ typedef struct Identifier {
 
 Identifier* create_identifier(char* spelling);
 
+void free_identifier_children(Identifier* i);
+
 void free_identifier(Identifier* i);
 
 #endif

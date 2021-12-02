@@ -3,14 +3,18 @@
 
 #include "ast/const_expr.h"
 
+typedef struct Identifier Identifier;
+
 typedef struct Enumerator {
-    char* identifier;
+    Identifier* identifier;
     ConstExpr* enum_val;
 } Enumerator;
 
-Enumerator* create_enumerator(char* identifier, ConstExpr* enum_val);
+Enumerator* create_enumerator(Identifier* identifier, ConstExpr* enum_val);
 
 void free_enumerator_children(Enumerator* e);
+
+#include "ast/identifier.h"
 
 #endif
 

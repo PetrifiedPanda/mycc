@@ -4,7 +4,7 @@
 
 #include "util.h"
 
-StructUnionSpec* create_struct_union_spec(bool is_struct, char* identifier, StructDeclarationList decl_list) {
+StructUnionSpec* create_struct_union_spec(bool is_struct, Identifier* identifier, StructDeclarationList decl_list) {
     StructUnionSpec* res = xmalloc(sizeof(StructUnionSpec));
     res->is_struct = is_struct;
     res->identifier = identifier;
@@ -14,7 +14,7 @@ StructUnionSpec* create_struct_union_spec(bool is_struct, char* identifier, Stru
 }
 
 static void free_children(StructUnionSpec* s) {
-    free(s->identifier);
+    free_identifier(s->identifier);
     free_struct_declaration_list(&s->decl_list);
 }
 

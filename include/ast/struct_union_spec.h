@@ -5,15 +5,19 @@
 
 #include "ast/struct_declaration_list.h"
 
+typedef struct Identifier Identifier;
+
 typedef struct StructUnionSpec {
     bool is_struct;
-    char* identifier;
+    Identifier* identifier;
     StructDeclarationList decl_list;
 } StructUnionSpec;
 
-StructUnionSpec* create_struct_union_spec(bool is_struct, char* identifier, StructDeclarationList decl_list);
+StructUnionSpec* create_struct_union_spec(bool is_struct, Identifier* identifier, StructDeclarationList decl_list);
 
 void free_struct_union_spec(StructUnionSpec* s);
+
+#include "ast/identifier.h"
 
 #endif
 

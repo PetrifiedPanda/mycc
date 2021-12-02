@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-LabeledStatement* create_labeled_statement_goto(char* identifier, Statement* stat) {
+LabeledStatement* create_labeled_statement_goto(Identifier* identifier, Statement* stat) {
     assert(identifier);
     assert(stat);
     LabeledStatement* res = xmalloc(sizeof(LabeledStatement));
@@ -40,7 +40,7 @@ LabeledStatement* craete_labeled_statement_default(Statement* stat) {
 static void free_children(LabeledStatement* s) {
     switch (s->type) {
         case IDENTIFIER:
-            free(s->identifier);
+            free_identifier(s->identifier);
             break;
         case CASE:
             free_const_expr(s->case_expr);

@@ -13,7 +13,7 @@ static JumpStatement* create(TokenType type) {
     return res;
 } 
 
-JumpStatement* create_goto_statement(char* identifier) {
+JumpStatement* create_goto_statement(Identifier* identifier) {
     assert(identifier);
     JumpStatement* res = create(GOTO);
     res->identifier = identifier;
@@ -38,7 +38,7 @@ JumpStatement* create_return_statement(Expr* ret_val) {
 static void free_children(JumpStatement* s) {
     switch (s->type) {
         case GOTO:
-            free(s->identifier);
+            free_identifier(s->identifier);
             break;
         case RETURN:
             if (s->ret_val) {

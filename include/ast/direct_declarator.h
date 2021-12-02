@@ -9,6 +9,7 @@
 
 typedef struct ConstExpr ConstExpr;
 typedef struct Declarator Declarator;
+typedef struct Identifier Identifier;
 
 typedef enum {
     ARR_OR_FUNC_ARRAY,
@@ -28,20 +29,21 @@ typedef struct {
 typedef struct DirectDeclarator {
     bool is_id;
     union {
-        char* id;
+        Identifier* id;
         Declarator* decl;
     };
     size_t len;
     ArrOrFuncSuffix* suffixes;
 } DirectDeclarator;
 
-DirectDeclarator* create_direct_declarator(char* id, ArrOrFuncSuffix* suffixes, size_t len);
+DirectDeclarator* create_direct_declarator(Identifier* id, ArrOrFuncSuffix* suffixes, size_t len);
 DirectDeclarator* create_direct_declarator_decl(Declarator* decl, ArrOrFuncSuffix* suffixes, size_t len);
 
 void free_direct_declarator(DirectDeclarator* d);
 
 #include "ast/const_expr.h"
 #include "ast/declarator.h"
+#include "ast/identifier.h"
 
 #endif
 
