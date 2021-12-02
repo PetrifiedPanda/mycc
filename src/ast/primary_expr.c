@@ -5,31 +5,59 @@
 
 #include "util.h"
 
-PrimaryExpr* create_primary_expr(TokenType type, char* spelling) {
-    assert(spelling);
-    assert(type == IDENTIFIER || type == CONSTANT || type == STRING_LITERAL);
+PrimaryExpr* create_primary_expr_constant(char* literal) {
+    assert(literal);
+
     PrimaryExpr* res = xmalloc(sizeof(PrimaryExpr));
-    res->is_bracket = false;
-    res->type = type;
-    res->spelling = spelling;
+    res->type = PRIMARY_EXPR_CONSTANT;
+    res->literal = literal;
     
+    return res;
+}
+
+PrimaryExpr* create_primary_expr_string(char* literal) {
+    assert(literal);
+
+    PrimaryExpr* res = xmalloc(sizeof(PrimaryExpr));
+    res->type = PRIMARY_EXPR_STRING_LITERAL;
+    res->literal = literal;
+    
+    return res;
+}
+
+PrimaryExpr* create_primary_expr_identifier(Identifier* identifier) {
+    assert(identifier);
+
+    PrimaryExpr* res = xmalloc(sizeof(PrimaryExpr));
+    res->type = PRIMARY_EXPR_IDENTIFIER;
+    res->identifier = identifier;
+
     return res;
 }
 
 PrimaryExpr* create_primary_expr_bracket(Expr* bracket_expr) {
     assert(bracket_expr);
     PrimaryExpr* res = xmalloc(sizeof(PrimaryExpr));
-    res->is_bracket = true;
+    res->type = PRIMARY_EXPR_BRACKET;
     res->bracket_expr = bracket_expr;
     
     return res;
 }
 
 static void free_children(PrimaryExpr* e) {
-    if (e->is_bracket) {
-        free_expr(e->bracket_expr);
-    } else {
-        free(e->spelling);
+    switch (e->type) {
+        case PRIMARY_EXPR_IDENTIFIER:
+            free_identifier(e->identifier);
+            break;
+
+        case PRIMARY_EXPR_CONSTANT:
+        case PRIMARY_EXPR_STRING_LITERAL:
+            free(e->literal);
+            break;
+
+        case PRIMARY_EXPR_BRACKET:
+            free_expr(e->bracket_expr);
+            break;
     }
 }
 

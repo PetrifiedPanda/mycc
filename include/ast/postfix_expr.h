@@ -7,6 +7,7 @@
 
 typedef struct PrimaryExpr PrimaryExpr;
 typedef struct Expr Expr;
+typedef struct Identifier Identifier;
 
 typedef enum {
     POSTFIX_INDEX,
@@ -21,7 +22,7 @@ typedef struct {
     union {
         Expr* index_expr;
         ArgExprList bracket_list;
-        char* identifier;
+        Identifier* identifier;
         TokenType inc_dec;
     };
 } PostfixSuffix;
@@ -36,6 +37,7 @@ void free_postfix_expr(PostfixExpr* p);
 
 #include "ast/primary_expr.h"
 #include "ast/expr.h"
+#include "ast/identifier.h"
 
 #endif
 

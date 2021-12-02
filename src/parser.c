@@ -7,12 +7,12 @@
 #include "util.h"
 
 typedef struct {
-    const Token* it;
+    Token* it;
 } ParserState;
 
 static TranslationUnit* parse_translation_unit(ParserState* s);
 
-TranslationUnit* parse_tokens(const Token* tokens) {
+TranslationUnit* parse_tokens(Token* tokens) {
     ParserState state = {tokens};
     TranslationUnit* res = parse_translation_unit(&state);
     assert(state.it->type == INVALID);
@@ -105,12 +105,26 @@ fail:
 
 static Expr* parse_expr(ParserState* s);
 
+static char* take_spelling(Token* t) {
+    char* spelling = t->spelling;
+    t->spelling = NULL;
+    return spelling;
+}
+
 static PrimaryExpr* parse_primary_expr(ParserState* s) {
     switch (s->it->type) {
-        case IDENTIFIER:
-        case CONSTANT:
-        case STRING_LITERAL:
-            return create_primary_expr(s->it->type, s->it->spelling);
+        case IDENTIFIER: {
+            char* spelling = take_spelling(s->it);
+            return create_primary_expr_identifier(create_identifier(spelling));
+        }
+        case CONSTANT: {
+            char* spelling = take_spelling(s->it);
+            return create_primary_expr_constant(spelling);
+        }
+        case STRING_LITERAL: {
+            char* spelling = take_spelling(s->it);
+            return create_primary_expr_string(spelling);
+        }
     
         default:
             if (accept(s, LBRACKET)) {
@@ -237,7 +251,8 @@ static PostfixExpr* parse_postfix_expr(ParserState* s) {
                 if (s->it->type != IDENTIFIER) {
                     goto fail;                        
                 }
-                char* identifier = alloc_string_copy(s->it->spelling); // Copy may not be necessary
+                char* spelling = take_spelling(s->it);
+                Identifier* identifier = create_identifier(spelling); // Copy may not be necessary
                 res->suffixes[res->len] = (PostfixSuffix){
                     .type = type, 
                     .identifier = identifier};
