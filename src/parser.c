@@ -29,7 +29,7 @@ static inline void expected_tokens_error(const TokenType* expected, size_t num_e
     assert(expected);
     assert(got);
 
-    set_error_file(ERR_PARSER, got->file, got->source_loc, "Expedted token of type %s", get_type_str(expected[0]));
+    set_error_file(ERR_PARSER, got->file, got->source_loc, "Expected token of type %s", get_type_str(expected[0]));
 
     for (size_t i = 1; i < num_expected; ++i) {
         append_error_msg(", %s", get_type_str(expected[i]));
