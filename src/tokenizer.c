@@ -508,7 +508,7 @@ static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* t
 }
 
 static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
-    enum {BUF_STRLEN = 100, MAX_IDENTIFIER_LEN = 31};
+    enum {BUF_STRLEN = 2048};
     char spell_buf[BUF_STRLEN + 1] = {0};
     size_t buf_idx = 0;
     SourceLocation start_loc = s->source_loc;
@@ -526,7 +526,7 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
         assert(type == INVALID);
         if (is_hex_const(spell_buf, buf_idx) || is_oct_const(spell_buf, buf_idx) || is_dec_const(spell_buf, buf_idx) || is_float_const(spell_buf, buf_idx)) {
             type = CONSTANT;
-        } else if (buf_idx <= MAX_IDENTIFIER_LEN && is_valid_identifier(spell_buf, buf_idx)) {
+        } else if (is_valid_identifier(spell_buf, buf_idx)) {
             type = IDENTIFIER;
         } else {
             set_error_file(ERR_TOKENIZER, s->current_file, start_loc, "Invalid identifier");
