@@ -277,7 +277,7 @@ static PostfixExpr* parse_postfix_expr(ParserState* s) {
                     goto fail;                        
                 }
                 char* spelling = take_spelling(s->it);
-                Identifier* identifier = create_identifier(spelling); // Copy may not be necessary
+                Identifier* identifier = create_identifier(spelling);
                 res->suffixes[res->len] = (PostfixSuffix){
                     .type = type, 
                     .identifier = identifier};
