@@ -1,8 +1,6 @@
 #ifndef EXPR_STATEMENT_H
 #define EXPR_STATEMENT_H
 
-// TODO: By value?
-
 #include "ast/expr.h"
 
 typedef struct ExprStatement {
