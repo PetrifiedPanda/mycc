@@ -19,8 +19,23 @@ TranslationUnit* parse_tokens(Token* tokens) {
     return res;
 }
 
-static void expected_token_error(TokenType expected, const Token* got) {
+static inline void expected_token_error(TokenType expected, const Token* got) {
+    assert(got);
+
     set_error_file(ERR_PARSER, got->file, got->source_loc, "Expected token of type %s but got token of type %s", get_type_str(expected), get_type_str(got->type));
+}
+
+static inline void expected_tokens_error(const TokenType* expected, size_t num_expected, const Token* got) {
+    assert(expected);
+    assert(got);
+
+    set_error_file(ERR_PARSER, got->file, got->source_loc, "Expedted token of type %s", get_type_str(expected[0]));
+
+    for (size_t i = 1; i < num_expected; ++i) {
+        append_error_msg(", %s", get_type_str(expected[i]));
+    }
+
+    append_error_msg(" but got token of type %s", get_type_str(got->type));
 }
 
 static bool accept(ParserState* s, TokenType expected) {
@@ -136,10 +151,20 @@ static PrimaryExpr* parse_primary_expr(ParserState* s) {
                     return create_primary_expr_bracket(bracket_expr);
                 } else {
                     free_expr(bracket_expr);
+                    expected_token_error(RBRACKET, s->it);
                     return NULL;
                 }
+            } else {
+                TokenType expected[] = {
+                    IDENTIFIER,
+                    CONSTANT,
+                    STRING_LITERAL,
+                    LBRACKET
+                };
+                size_t size = sizeof expected / sizeof(TokenType);
+                expected_tokens_error(expected, size, s->it);
+                return NULL;
             }
-            break;
     }
 
     return NULL;
