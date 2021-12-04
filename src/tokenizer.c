@@ -549,7 +549,7 @@ static bool token_is_over(const TokenizerState* s) {
 }
 
 static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
-    enum {BUF_STRLEN = 2048};
+    enum {BUF_STRLEN = 512};
     char spell_buf[BUF_STRLEN + 1] = {0};
     size_t buf_idx = 0;
     SourceLocation start_loc = s->source_loc;
@@ -564,6 +564,7 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
     if (!token_is_over(s)) {
         size_t buf_len = BUF_STRLEN + BUF_STRLEN / 2;
         dyn_buf = xmalloc(buf_len * sizeof(char));
+        strcpy(dyn_buf, spell_buf);
 
         while (!token_is_over(s)) {
             if (buf_idx == buf_len - 1) {
