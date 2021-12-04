@@ -350,11 +350,6 @@ static TokenType check_next(TokenType type, const char* next) {
     return type;
 }
 
-static bool token_is_over(const TokenizerState* s) {
-    TokenType type = singlec_token_type(*s->it);
-    return *s->it == '\0' || isspace(*s->it) || (type != INVALID && is_valid_singlec_token(type, s->prev, s->prev_prev));
-}
-
 static bool is_valid_singlec_token(TokenType type, char prev, char prev_prev) {
     assert(type != INVALID);
     if (type == DOT && isdigit(prev)) {
@@ -548,6 +543,11 @@ static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* t
     return true;
 }
 
+static bool token_is_over(const TokenizerState* s) {
+    TokenType type = singlec_token_type(*s->it);
+    return *s->it == '\0' || isspace(*s->it) || (type != INVALID && is_valid_singlec_token(type, s->prev, s->prev_prev));
+}
+
 static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
     enum {BUF_STRLEN = 2048};
     char spell_buf[BUF_STRLEN + 1] = {0};
@@ -560,24 +560,48 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
         advance_one(s);
     }
     
-    TokenType type = multic_token_type(spell_buf);
-    if (type != INVALID && token_is_over(s)) {
+    char* dyn_buf = NULL;
+    if (!token_is_over(s)) {
+        size_t buf_len = BUF_STRLEN + BUF_STRLEN / 2;
+        dyn_buf = xmalloc(buf_len * sizeof(char));
+
+        while (!token_is_over(s)) {
+            if (buf_idx == buf_len - 1) {
+                grow_alloc((void**)&dyn_buf, &buf_len, sizeof(char));
+            }
+
+            dyn_buf[buf_idx] = *s->it;
+            ++buf_idx;
+
+            advance_one(s);
+        }
+
+        dyn_buf = xrealloc(dyn_buf, (buf_idx + 1) * sizeof(char));
+        dyn_buf[buf_idx] = '\0';
+    }
+
+    char* buf_to_check = dyn_buf != NULL ? dyn_buf : spell_buf;
+    TokenType type = multic_token_type(buf_to_check);
+    if (type != INVALID) {
         add_token(token_idx, res, type, NULL, start_loc, s->current_file);
-    } else if (token_is_over(s)) {
-        assert(type == INVALID);
-        if (is_hex_const(spell_buf, buf_idx) || is_oct_const(spell_buf, buf_idx) || is_dec_const(spell_buf, buf_idx) || is_float_const(spell_buf, buf_idx)) {
+    } else {
+        if (is_hex_const(buf_to_check, buf_idx) || is_oct_const(buf_to_check, buf_idx) || is_dec_const(buf_to_check, buf_idx) || is_float_const(buf_to_check, buf_idx)) {
             type = CONSTANT;
-        } else if (is_valid_identifier(spell_buf, buf_idx)) {
+        } else if (is_valid_identifier(buf_to_check, buf_idx)) {
             type = IDENTIFIER;
         } else {
+            if (buf_to_check == dyn_buf) {
+                free(dyn_buf);
+            }
             set_error_file(ERR_TOKENIZER, s->current_file, start_loc, "Invalid identifier");
             return false;
         }
 
-        add_token_copy(token_idx, res, type, spell_buf, start_loc, s->current_file);
-    } else {
-        set_error_file(ERR_TOKENIZER, s->current_file, start_loc, "Identifier too long");
-        return false;
+        if (buf_to_check == dyn_buf) {
+            add_token(token_idx, res, type, dyn_buf, start_loc, s->current_file);
+        } else {
+            add_token_copy(token_idx, res, type, spell_buf, start_loc, s->current_file);
+        }
     }
 
     return true;
