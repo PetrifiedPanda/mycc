@@ -32,7 +32,8 @@ static inline void advance(TokenizerState* s, size_t num);
 static inline void advance_one(TokenizerState* s);
 static inline void advance_newline(TokenizerState* s);
 
-static inline void add_token(size_t* token_idx, TokenArr* res, TokenType type, const char* spell, SourceLocation loc, const char* filename);
+static inline void add_token_copy(size_t* token_idx, TokenArr* res, TokenType type, const char* spell, SourceLocation loc, const char* filename);
+static inline void add_token(size_t* token_idx, TokenArr* res, TokenType type, char* spell, SourceLocation loc, const char* filename);
 
 static bool handle_comments(TokenizerState* s);
 
@@ -402,7 +403,13 @@ static void realloc_tokens_if_needed(size_t token_idx, TokenArr* res) {
     }
 }
 
-static inline void add_token(size_t* token_idx, TokenArr* res, TokenType type, const char* spell, SourceLocation loc, const char* filename) {
+static inline void add_token_copy(size_t* token_idx, TokenArr* res, TokenType type, const char* spell, SourceLocation loc, const char* filename) {
+    realloc_tokens_if_needed(*token_idx, res);
+    init_token_copy(&res->tokens[*token_idx], type, spell, loc, filename);
+    ++*token_idx;
+}
+
+static inline void add_token(size_t* token_idx, TokenArr* res, TokenType type, char* spell, SourceLocation loc, const char* filename) {
     realloc_tokens_if_needed(*token_idx, res);
     init_token(&res->tokens[*token_idx], type, spell, loc, filename);
     ++*token_idx;
@@ -434,7 +441,7 @@ static bool handle_comments(TokenizerState* s) {
     }
 }
 
-static TokenType get_lit_type(const char* buf, size_t len, char terminator) {
+static TokenType get_char_lit_type(const char* buf, size_t len, char terminator) {
     if (terminator == '\"' && is_string_literal(buf, len)) {
         return STRING_LITERAL;
     } else if (terminator == '\'' && is_char_const(buf, len)) {
@@ -456,7 +463,7 @@ static void unterminated_literal_err(char terminator, SourceLocation start_loc, 
 
 static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* token_idx) {
     assert(*s->it == '\'' || *s->it == '\"' || *s->it == 'L');
-    enum {BUF_STRLEN = 2048};
+    enum {BUF_STRLEN = 512};
     char spell_buf[BUF_STRLEN + 1] = {0};
     size_t buf_idx = 0;
     SourceLocation start_loc = s->source_loc;
@@ -482,26 +489,60 @@ static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* t
 
         advance_newline(s);
     }
+    
+    char* dyn_buf = NULL;
+    if (buf_idx == BUF_STRLEN) {
+        size_t buf_len = BUF_STRLEN + BUF_STRLEN / 2;
+        dyn_buf = xmalloc(buf_len * sizeof(char));
+        strcpy(dyn_buf, spell_buf);
+
+        while (*s->it != '\0' && *s->it != terminator) {
+            if (buf_idx == buf_len - 1) {
+                grow_alloc((void**)&dyn_buf, &buf_len, sizeof(char));
+            }
+
+            dyn_buf[buf_idx] = *s->it;
+            ++buf_idx;
+
+            advance_newline(s);
+        }
+
+        dyn_buf = xrealloc(dyn_buf, (buf_idx + 2) * sizeof(char));
+    }
+
     if (*s->it == '\0') {
+        if (dyn_buf != NULL) {
+            free(dyn_buf);
+        }
         unterminated_literal_err(terminator, start_loc, s->current_file);
         return false;
-    } else if (buf_idx == BUF_STRLEN) {
-        set_error_file(ERR_TOKENIZER, s->current_file, start_loc, "Character Literal too long");
-        return false;
     } else {
-        spell_buf[buf_idx] = *s->it;
+        bool is_dyn = dyn_buf != NULL;
+        if (is_dyn) {
+            dyn_buf[buf_idx] = *s->it;
+            dyn_buf[buf_idx + 1] = '\0';
+        } else {
+            spell_buf[buf_idx] = *s->it;
+        }
         ++buf_idx;
 
         advance_one(s);
                     
-        TokenType type = get_lit_type(spell_buf, buf_idx, terminator);
+        TokenType type = get_char_lit_type(is_dyn ? dyn_buf : spell_buf, buf_idx, terminator);
 
         if (type == INVALID) {
+            if (is_dyn) {
+                free(dyn_buf);
+            }
             set_error_file(ERR_TOKENIZER, s->current_file, start_loc, "Terminated literal is of unknown type");
             return false;
         }
-
-        add_token(token_idx, res, type, spell_buf, start_loc, s->current_file);
+        
+        if (is_dyn) {
+            add_token(token_idx, res, type, dyn_buf, start_loc, s->current_file);
+        } else {
+            add_token_copy(token_idx, res, type, spell_buf, start_loc, s->current_file);
+        }
     }
 
     return true;
@@ -533,7 +574,7 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
             return false;
         }
 
-        add_token(token_idx, res, type, spell_buf, start_loc, s->current_file);
+        add_token_copy(token_idx, res, type, spell_buf, start_loc, s->current_file);
     } else {
         set_error_file(ERR_TOKENIZER, s->current_file, start_loc, "Identifier too long");
         return false;

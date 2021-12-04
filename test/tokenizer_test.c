@@ -169,8 +169,8 @@ static void file_test() {
     assert(get_last_error() == ERR_NONE);
     assert(tokens);
     
-    enum { EXPECTED_SIZE = 473 };
-    check_size(tokens, EXPECTED_SIZE); // No idea if this is correct
+    enum { EXPECTED_SIZE = 478 };
+    check_size(tokens, EXPECTED_SIZE);
     check_file(tokens, filename);
     
     Token expected[EXPECTED_SIZE] = {
@@ -286,9 +286,9 @@ static void file_test() {
         create(LBRACE, NULL, 46, 18),
         create(CONSTANT, "0", 46, 19),
         create(COMMA, NULL, 46, 20),
-        create(STRING_LITERAL, "L\"Hello there\"", 46, 22),
-        create(RBRACE, NULL, 46, 36),
-        create(SEMICOLON, NULL, 46, 37),
+        create(STRING_LITERAL, "L\"Hello there, this string literal needs to be longer than 512 characters oh no I don't know what to write here aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", 46, 22),
+        create(RBRACE, NULL, 46, 1204),
+        create(SEMICOLON, NULL, 46, 1205),
         create(INT, NULL, 47, 5),
         create(IDENTIFIER, "integer", 47, 9),
         create(ASSIGN, NULL, 47, 17),
@@ -644,9 +644,14 @@ static void file_test() {
         create(ELLIPSIS, NULL, 110, 29),
         create(RBRACKET, NULL, 110, 32),
         create(LBRACE, NULL, 110, 34),
-        create(RETURN, NULL, 111, 5),
-        create(SEMICOLON, NULL, 111, 11),
-        create(RBRACE, NULL, 112, 1)
+        create(CHAR, NULL, 111, 5),
+        create(IDENTIFIER, "c", 111, 10),
+        create(ASSIGN, NULL, 111, 12),
+        create(CONSTANT, "\'\\n\'", 111, 14),
+        create(SEMICOLON, NULL, 111, 18),
+        create(RETURN, NULL, 112, 5),
+        create(SEMICOLON, NULL, 112, 11),
+        create(RBRACE, NULL, 113, 1)
     };
 
     compare_tokens(tokens, expected, EXPECTED_SIZE);
