@@ -1,6 +1,8 @@
 #ifndef TOKEN_TYPE_H
 #define TOKEN_TYPE_H
 
+// TODO: update with new grammar
+
 #include <stdbool.h>
 
 typedef enum {

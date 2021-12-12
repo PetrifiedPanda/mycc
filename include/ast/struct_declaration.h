@@ -1,6 +1,8 @@
 #ifndef STRUCT_DECLARATION_H
 #define STRUCT_DECLARATION_H
 
+// TODO: update with new grammar
+
 #include "ast/spec_qual_list.h"
 #include "ast/struct_declarator_list.h"
 

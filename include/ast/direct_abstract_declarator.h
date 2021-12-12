@@ -1,6 +1,8 @@
 #ifndef DIRECT_ABSTRACT_DECL_H
 #define DIRECT_ABSTRACT_DECL_H
 
+// TODO: update with new grammar
+
 #include <stdbool.h>
 #include <stddef.h>
 

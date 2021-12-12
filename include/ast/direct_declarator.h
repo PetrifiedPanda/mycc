@@ -1,6 +1,8 @@
 #ifndef DIRECT_DECLARATOR_H
 #define DIRECT_DECLARATOR_H
 
+// TODO: update with new grammar
+
 #include <stdbool.h>
 #include <stddef.h>
 

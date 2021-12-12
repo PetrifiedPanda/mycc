@@ -1,6 +1,8 @@
 #ifndef INIT_LIST_H
 #define INIT_LIST_H
 
+// TODO: update with new grammar
+
 #include <stddef.h>
 
 typedef struct Initializer Initializer;

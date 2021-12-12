@@ -3,6 +3,8 @@
 
 #include "token_type.h"
 
+// TODO: update with new grammar
+
 typedef struct StructUnionSpec StructUnionSpec;
 typedef struct EnumSpec EnumSpec;
 

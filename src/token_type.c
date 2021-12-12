@@ -371,6 +371,7 @@ bool is_assign_op(TokenType t) {
     }
 }
 
+// TODO: update with new grammar
 bool is_storage_class_spec(TokenType t) {
     switch (t) {
         case TYPEDEF:

@@ -1,6 +1,8 @@
 #ifndef DECLARATION_SPECS_H
 #define DECLARATION_SPECS_H
 
+// TODO: update with new grammar
+
 #include <stddef.h>
 
 #include "token.h"

@@ -1,6 +1,8 @@
 #ifndef DECLARATION_H
 #define DECLARATION_H
 
+// TODO: update with new grammar
+
 #include "ast/init_declarator_list.h"
 
 typedef struct DeclarationSpecs DeclarationSpecs;
