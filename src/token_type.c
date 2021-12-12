@@ -171,8 +171,10 @@ const char* get_type_str(TokenType type) {
     switch (type) {
         case IDENTIFIER:
             return "IDENTIFIER";
-        case CONSTANT:
-            return "CONSTANT";
+        case I_CONSTANT:
+            return "I_CONSTANT";
+        case F_CONSTANT:
+            return "F_CONSTANT";
         case STRING_LITERAL:
             return "STRING_LITERAL";
         case SIZEOF:

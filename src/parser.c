@@ -132,9 +132,13 @@ static PrimaryExpr* parse_primary_expr(ParserState* s) {
             char* spelling = take_spelling(s->it);
             return create_primary_expr_identifier(create_identifier(spelling));
         }
-        case CONSTANT: {
+        case I_CONSTANT: {
             char* spelling = take_spelling(s->it);
-            return create_primary_expr_constant(create_constant(spelling));
+            return create_primary_expr_constant(create_constant(false, spelling));
+        }
+        case F_CONSTANT: {
+            char* spelling = take_spelling(s->it);
+            return create_primary_expr_constant(create_constant(true, spelling));
         }
         case STRING_LITERAL: {
             char* spelling = take_spelling(s->it);
@@ -157,7 +161,8 @@ static PrimaryExpr* parse_primary_expr(ParserState* s) {
             } else {
                 TokenType expected[] = {
                     IDENTIFIER,
-                    CONSTANT,
+                    I_CONSTANT,
+                    F_CONSTANT,
                     STRING_LITERAL,
                     LBRACKET
                 };

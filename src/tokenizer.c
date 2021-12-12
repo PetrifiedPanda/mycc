@@ -440,7 +440,7 @@ static TokenType get_char_lit_type(const char* buf, size_t len, char terminator)
     if (terminator == '\"' && is_string_literal(buf, len)) {
         return STRING_LITERAL;
     } else if (terminator == '\'' && is_char_const(buf, len)) {
-        return CONSTANT;
+        return I_CONSTANT;
     } else {
         return INVALID;
     }
@@ -586,8 +586,10 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
     if (type != INVALID) {
         add_token(token_idx, res, type, NULL, start_loc, s->current_file);
     } else {
-        if (is_hex_const(buf_to_check, buf_idx) || is_oct_const(buf_to_check, buf_idx) || is_dec_const(buf_to_check, buf_idx) || is_float_const(buf_to_check, buf_idx)) {
-            type = CONSTANT;
+        if (is_hex_const(buf_to_check, buf_idx) || is_oct_const(buf_to_check, buf_idx) || is_dec_const(buf_to_check, buf_idx)) {
+            type = I_CONSTANT;
+        } else if (is_float_const(buf_to_check, buf_idx)) {
+            type = F_CONSTANT;
         } else if (is_valid_identifier(buf_to_check, buf_idx)) {
             type = IDENTIFIER;
         } else {

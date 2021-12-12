@@ -2,8 +2,8 @@
 
 #include <stdlib.h>
 
-Constant create_constant(char* spelling) {
-    return (Constant){spelling};
+Constant create_constant(bool is_float, char* spelling) {
+    return (Constant){is_float, spelling};
 }
 
 void free_constant(Constant* c) {

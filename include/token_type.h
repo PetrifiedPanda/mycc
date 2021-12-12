@@ -7,7 +7,8 @@
 
 typedef enum {
     IDENTIFIER,
-    CONSTANT,
+    I_CONSTANT,
+    F_CONSTANT,
     STRING_LITERAL,
     SIZEOF,
     PTR_OP, // ->
