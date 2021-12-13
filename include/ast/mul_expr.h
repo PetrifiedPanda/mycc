@@ -5,22 +5,22 @@
 
 #include "token_type.h"
 
-typedef struct CastExpr CastExpr;
+struct cast_expr;
 
-typedef struct {
-    TokenType mul_op;
-    CastExpr* rhs;
-} CastExprAndOp;
+struct cast_expr_and_op {
+    enum token_type mul_op;
+    struct cast_expr* rhs;
+};
 
-typedef struct MulExpr {
-    CastExpr* lhs;
+struct mul_expr {
+    struct cast_expr* lhs;
     size_t len;
-    CastExprAndOp* mul_chain;
-} MulExpr;
+    struct cast_expr_and_op* mul_chain;
+};
 
-MulExpr* create_mul_expr(CastExpr* lhs, CastExprAndOp* mul_chain, size_t len);
+struct mul_expr* create_mul_expr(struct cast_expr* lhs, struct cast_expr_and_op* mul_chain, size_t len);
 
-void free_mul_expr(MulExpr* e);
+void free_mul_expr(struct mul_expr* e);
 
 #include "ast/cast_expr.h"
 

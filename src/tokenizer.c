@@ -9,44 +9,44 @@
 #include "error.h"
 #include "util.h"
 
-typedef struct {
-    Token* tokens;
+struct token_arr {
+    struct token* tokens;
     size_t len;
-} TokenArr;
+};
 
-typedef struct {
+struct tokenizer_state {
     const char* it;
     char prev;
     char prev_prev;
-    SourceLocation source_loc;
+    struct source_location source_loc;
     const char* current_file;
-} TokenizerState;
+};
 
-static TokenType multic_token_type(const char* spelling);
-static TokenType singlec_token_type(char c);
-static TokenType check_next(TokenType type, const char* next);
-static bool token_is_over(const TokenizerState* s);
-static bool is_valid_singlec_token(TokenType type, char prev, char prev_prev);
+static enum token_type multic_token_type(const char* spelling);
+static enum token_type singlec_token_type(char c);
+static enum token_type check_next(enum token_type type, const char* next);
+static bool token_is_over(const struct tokenizer_state* s);
+static bool is_valid_singlec_token(enum token_type type, char prev, char prev_prev);
 
-static inline void advance(TokenizerState* s, size_t num);
-static inline void advance_one(TokenizerState* s);
-static inline void advance_newline(TokenizerState* s);
+static inline void advance(struct tokenizer_state* s, size_t num);
+static inline void advance_one(struct tokenizer_state* s);
+static inline void advance_newline(struct tokenizer_state* s);
 
-static inline void add_token_copy(size_t* token_idx, TokenArr* res, TokenType type, const char* spell, SourceLocation loc, const char* filename);
-static inline void add_token(size_t* token_idx, TokenArr* res, TokenType type, char* spell, SourceLocation loc, const char* filename);
+static inline void add_token_copy(size_t* token_idx, struct token_arr* res, enum token_type type, const char* spell, struct source_location loc, const char* filename);
+static inline void add_token(size_t* token_idx, struct token_arr* res, enum token_type type, char* spell, struct source_location loc, const char* filename);
 
-static bool handle_comments(TokenizerState* s);
+static bool handle_comments(struct tokenizer_state* s);
 
-static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* token_idx);
-static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx);
+static bool handle_character_literal(struct tokenizer_state* s, struct token_arr* res, size_t* token_idx);
+static bool handle_other(struct tokenizer_state* s, struct token_arr* res, size_t* token_idx);
 
-Token* tokenize(const char* str, const char* filename) {
+struct token* tokenize(const char* str, const char* filename) {
     enum {NUM_START_TOKENS = 1};
-    TokenizerState s = {str, '\0', '\0', (SourceLocation){1, 1}, filename};
+    struct tokenizer_state s = {str, '\0', '\0', (struct source_location){1, 1}, filename};
     
     size_t token_idx = 0;
 
-    TokenArr res = {xmalloc(sizeof(Token) * NUM_START_TOKENS), NUM_START_TOKENS};
+    struct token_arr res = {xmalloc(sizeof(struct token) * NUM_START_TOKENS), NUM_START_TOKENS};
 
     while (*s.it != '\0') {
         while (isspace(*s.it)) {
@@ -56,7 +56,7 @@ Token* tokenize(const char* str, const char* filename) {
             break;
         }
 
-        TokenType type = singlec_token_type(*s.it);
+        enum token_type type = singlec_token_type(*s.it);
         if (type != INVALID && is_valid_singlec_token(type, s.prev, s.prev_prev)) {
             if (type == DIV) {
                 if (handle_comments(&s)) {
@@ -84,8 +84,8 @@ Token* tokenize(const char* str, const char* filename) {
         }
     }
 
-    res.tokens = xrealloc(res.tokens, sizeof(Token) * (token_idx + 1));
-    res.tokens[token_idx] = (Token){INVALID, NULL, NULL, (SourceLocation){(size_t) -1, (size_t) -1}};
+    res.tokens = xrealloc(res.tokens, sizeof(struct token) * (token_idx + 1));
+    res.tokens[token_idx] = (struct token){INVALID, NULL, NULL, (struct source_location){(size_t) -1, (size_t) -1}};
     res.len = token_idx;
 
     return res.tokens;
@@ -100,18 +100,18 @@ fail:
     return res.tokens;
 }
 
-void free_tokenizer_result(Token* tokens) {
-    for (Token* it = tokens; it->type != INVALID; ++it) {
+void free_tokenizer_result(struct token* tokens) {
+    for (struct token* it = tokens; it->type != INVALID; ++it) {
         free_token(it);
     }
     free(tokens);
 }
 
-static inline bool is_spelling(const char* spelling, TokenType type){
+static inline bool is_spelling(const char* spelling, enum token_type type){
     return strcmp(spelling, get_spelling(type)) == 0;
 }
 
-static TokenType multic_token_type(const char* spell) {
+static enum token_type multic_token_type(const char* spell) {
     if (is_spelling(spell, SIZEOF)) {
         return SIZEOF;
     } else if (is_spelling(spell, TYPEDEF)) {
@@ -181,7 +181,7 @@ static TokenType multic_token_type(const char* spell) {
     }
 }
 
-static TokenType singlec_token_type(char c) {
+static enum token_type singlec_token_type(char c) {
     switch (c) {
         case ';':
             return SEMICOLON;
@@ -236,7 +236,7 @@ static TokenType singlec_token_type(char c) {
     }
 }
 
-static bool check_type(TokenType type, const char* next_chars) {
+static bool check_type(enum token_type type, const char* next_chars) {
     const char* spelling = get_spelling(type);
     size_t len = strlen(spelling);
     assert(len != 0);
@@ -244,7 +244,7 @@ static bool check_type(TokenType type, const char* next_chars) {
     return strncmp(spelling + 1, next_chars, len - 1) == 0;
 }
 
-static TokenType check_next(TokenType type, const char* next) {
+static enum token_type check_next(enum token_type type, const char* next) {
     assert(next[0] != '\0');
     switch (type) {
         case ADD:
@@ -350,7 +350,7 @@ static TokenType check_next(TokenType type, const char* next) {
     return type;
 }
 
-static bool is_valid_singlec_token(TokenType type, char prev, char prev_prev) {
+static bool is_valid_singlec_token(enum token_type type, char prev, char prev_prev) {
     assert(type != INVALID);
     if (type == DOT && isdigit(prev)) {
         return false;
@@ -361,7 +361,7 @@ static bool is_valid_singlec_token(TokenType type, char prev, char prev_prev) {
     }
 }
 
-static inline void advance(TokenizerState* s, size_t num) {
+static inline void advance(struct tokenizer_state* s, size_t num) {
     assert(num > 0);
     s->it += num;
     s->source_loc.index += num;
@@ -372,14 +372,14 @@ static inline void advance(TokenizerState* s, size_t num) {
     }
 }
 
-static inline void advance_one(TokenizerState* s) {
+static inline void advance_one(struct tokenizer_state* s) {
     ++s->source_loc.index;
     s->prev_prev = s->prev;
     s->prev = *s->it;
     ++s->it;
 }
 
-static inline void advance_newline(TokenizerState* s) {
+static inline void advance_newline(struct tokenizer_state* s) {
     if (*s->it == '\n') {
         s->source_loc.line += 1;
         s->source_loc.index = 1;
@@ -392,25 +392,25 @@ static inline void advance_newline(TokenizerState* s) {
     ++s->it;
 }
 
-static void realloc_tokens_if_needed(size_t token_idx, TokenArr* res) {
+static void realloc_tokens_if_needed(size_t token_idx, struct token_arr* res) {
     if (token_idx == res->len) {
-        grow_alloc((void**)&res->tokens, &res->len, sizeof(Token));
+        grow_alloc((void**)&res->tokens, &res->len, sizeof(struct token));
     }
 }
 
-static inline void add_token_copy(size_t* token_idx, TokenArr* res, TokenType type, const char* spell, SourceLocation loc, const char* filename) {
+static inline void add_token_copy(size_t* token_idx, struct token_arr* res, enum token_type type, const char* spell, struct source_location loc, const char* filename) {
     realloc_tokens_if_needed(*token_idx, res);
     init_token_copy(&res->tokens[*token_idx], type, spell, loc, filename);
     ++*token_idx;
 }
 
-static inline void add_token(size_t* token_idx, TokenArr* res, TokenType type, char* spell, SourceLocation loc, const char* filename) {
+static inline void add_token(size_t* token_idx, struct token_arr* res, enum token_type type, char* spell, struct source_location loc, const char* filename) {
     realloc_tokens_if_needed(*token_idx, res);
     init_token(&res->tokens[*token_idx], type, spell, loc, filename);
     ++*token_idx;
 }
 
-static bool handle_comments(TokenizerState* s) {
+static bool handle_comments(struct tokenizer_state* s) {
     if (s->it[1] == '*') {
         advance(s, 2);
         while (*s->it != '\0' && *s->it != '*' && s->it[1] != '/') {
@@ -436,7 +436,7 @@ static bool handle_comments(TokenizerState* s) {
     }
 }
 
-static TokenType get_char_lit_type(const char* buf, size_t len, char terminator) {
+static enum token_type get_char_lit_type(const char* buf, size_t len, char terminator) {
     if (terminator == '\"' && is_string_literal(buf, len)) {
         return STRING_LITERAL;
     } else if (terminator == '\'' && is_char_const(buf, len)) {
@@ -446,7 +446,7 @@ static TokenType get_char_lit_type(const char* buf, size_t len, char terminator)
     }
 }
 
-static void unterminated_literal_err(char terminator, SourceLocation start_loc, const char* filename) {
+static void unterminated_literal_err(char terminator, struct source_location start_loc, const char* filename) {
     const char* literal_type_str;
     if (terminator == '\"') {
         literal_type_str = "String";
@@ -456,12 +456,12 @@ static void unterminated_literal_err(char terminator, SourceLocation start_loc, 
     set_error_file(ERR_TOKENIZER, filename, start_loc, "%s literal not properly terminated", literal_type_str);
 }
 
-static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* token_idx) {
+static bool handle_character_literal(struct tokenizer_state* s, struct token_arr* res, size_t* token_idx) {
     assert(*s->it == '\'' || *s->it == '\"' || *s->it == 'L');
     enum {BUF_STRLEN = 512};
     char spell_buf[BUF_STRLEN + 1] = {0};
     size_t buf_idx = 0;
-    SourceLocation start_loc = s->source_loc;
+    struct source_location start_loc = s->source_loc;
 
     char terminator;
     if (*s->it == 'L') {
@@ -523,7 +523,7 @@ static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* t
 
         advance_one(s);
                     
-        TokenType type = get_char_lit_type(is_dyn ? dyn_buf : spell_buf, buf_idx, terminator);
+        enum token_type type = get_char_lit_type(is_dyn ? dyn_buf : spell_buf, buf_idx, terminator);
 
         if (type == INVALID) {
             if (is_dyn) {
@@ -543,16 +543,16 @@ static bool handle_character_literal(TokenizerState* s, TokenArr* res, size_t* t
     return true;
 }
 
-static bool token_is_over(const TokenizerState* s) {
-    TokenType type = singlec_token_type(*s->it);
+static bool token_is_over(const struct tokenizer_state* s) {
+    enum token_type type = singlec_token_type(*s->it);
     return *s->it == '\0' || isspace(*s->it) || (type != INVALID && is_valid_singlec_token(type, s->prev, s->prev_prev));
 }
 
-static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
+static bool handle_other(struct tokenizer_state* s, struct token_arr* res, size_t* token_idx) {
     enum {BUF_STRLEN = 512};
     char spell_buf[BUF_STRLEN + 1] = {0};
     size_t buf_idx = 0;
-    SourceLocation start_loc = s->source_loc;
+    struct source_location start_loc = s->source_loc;
     while (!token_is_over(s) && buf_idx != BUF_STRLEN) {
         spell_buf[buf_idx] = *s->it;
         ++buf_idx;
@@ -582,7 +582,7 @@ static bool handle_other(TokenizerState* s, TokenArr* res, size_t* token_idx) {
     }
 
     char* buf_to_check = dyn_buf != NULL ? dyn_buf : spell_buf;
-    TokenType type = multic_token_type(buf_to_check);
+    enum token_type type = multic_token_type(buf_to_check);
     if (type != INVALID) {
         add_token(token_idx, res, type, NULL, start_loc, s->current_file);
     } else {

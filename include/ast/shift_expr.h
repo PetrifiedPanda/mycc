@@ -5,22 +5,22 @@
 
 #include "token_type.h"
 
-typedef struct AddExpr AddExpr;
+struct add_expr;
 
-typedef struct {
-    TokenType shift_op;
-    AddExpr* rhs;
-} AddExprAndOp;
+struct add_expr_and_op {
+    enum token_type shift_op;
+    struct add_expr* rhs;
+};
 
-typedef struct ShiftExpr {
-    AddExpr* lhs;
+struct shift_expr {
+    struct add_expr* lhs;
     size_t len;
-    AddExprAndOp* shift_chain;
-} ShiftExpr;
+    struct add_expr_and_op* shift_chain;
+};
 
-ShiftExpr* create_shift_expr(AddExpr* lhs, AddExprAndOp* shift_chain, size_t len);
+struct shift_expr* create_shift_expr(struct add_expr* lhs, struct add_expr_and_op* shift_chain, size_t len);
 
-void free_shift_expr(ShiftExpr* e);
+void free_shift_expr(struct shift_expr* e);
 
 #include "ast/add_expr.h"
 

@@ -6,35 +6,35 @@
 #include "ast/constant.h"
 #include "ast/string_literal.h"
 
-typedef struct Expr Expr;
-typedef struct Identifier Identifier;
+struct expr;
+struct identifier;
 
-typedef enum {
+enum primary_expr_type {
     PRIMARY_EXPR_IDENTIFIER,
     PRIMARY_EXPR_CONSTANT,
     PRIMARY_EXPR_STRING_LITERAL,
     PRIMARY_EXPR_BRACKET
-} PrimaryExprType;
+};
 
-typedef struct PrimaryExpr {
-    PrimaryExprType type;
+struct primary_expr {
+    enum primary_expr_type type;
     union {
-        Constant constant;
-        StringLiteral literal;
-        Identifier* identifier;
-        Expr* bracket_expr;
+        struct constant constant;
+        struct string_literal literal;
+        struct identifier* identifier;
+        struct expr* bracket_expr;
     };
-} PrimaryExpr;
+};
 
-PrimaryExpr* create_primary_expr_constant(Constant constant);
+struct primary_expr* create_primary_expr_constant(struct constant constant);
 
-PrimaryExpr* create_primary_expr_string(StringLiteral literal);
+struct primary_expr* create_primary_expr_string(struct string_literal literal);
 
-PrimaryExpr* create_primary_expr_identifier(Identifier* identifier);
+struct primary_expr* create_primary_expr_identifier(struct identifier* identifier);
 
-PrimaryExpr* create_primary_expr_bracket(Expr* bracket_expr);
+struct primary_expr* create_primary_expr_bracket(struct expr* bracket_expr);
 
-void free_primary_expr(PrimaryExpr* bracket_expr);
+void free_primary_expr(struct primary_expr* bracket_expr);
 
 #include "ast/expr.h"
 #include "ast/identifier.h"

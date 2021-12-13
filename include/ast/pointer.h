@@ -3,16 +3,16 @@
 
 #include <stddef.h>
 
-typedef struct TypeQualList TypeQualList;
+struct type_qual_list;
 
-typedef struct Pointer {
+struct pointer {
     size_t num_indirs;
-    TypeQualList* quals_after_ptr;
-} Pointer;
+    struct type_qual_list* quals_after_ptr;
+};
 
-Pointer* create_pointer(TypeQualList* quals_after_ptr, size_t num_indirs);
+struct pointer* create_pointer(struct type_qual_list* quals_after_ptr, size_t num_indirs);
 
-void free_pointer(Pointer* p);
+void free_pointer(struct pointer* p);
 
 #include "ast/type_qual_list.h"
 

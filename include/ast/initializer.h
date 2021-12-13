@@ -5,21 +5,21 @@
 
 #include "ast/init_list.h"
 
-typedef struct AssignExpr AssignExpr;
+struct assign_expr;
 
-typedef struct Initializer {
+struct initializer {
     bool is_assign;
     union {
-        AssignExpr* assign;
-        InitList init_list;
+        struct assign_expr* assign;
+        struct init_list init_list;
     };
-} Initializer;
+};
 
-Initializer* create_initializer_assign(AssignExpr* assign);
-Initializer* create_initializer_init_list(InitList init_list);
+struct initializer* create_initializer_assign(struct assign_expr* assign);
+struct initializer* create_initializer_init_list(struct init_list init_list);
 
-void free_initializer_children(Initializer* i);
-void free_initializer(Initializer* i);
+void free_initializer_children(struct initializer* i);
+void free_initializer(struct initializer* i);
 
 #include "ast/assign_expr.h"
 

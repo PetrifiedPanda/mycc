@@ -3,18 +3,18 @@
 
 #include <stddef.h>
 
-typedef struct EqExpr EqExpr;
+struct eq_expr;
 
-typedef struct AndExpr {
-    EqExpr* eq_exprs;
+struct and_expr {
+    struct eq_expr* eq_exprs;
     size_t len;
-} AndExpr;
+};
 
-AndExpr* create_and_expr(EqExpr* eq_exprs, size_t len);
+struct and_expr* create_and_expr(struct eq_expr* eq_exprs, size_t len);
 
-void free_and_expr_children(AndExpr* e);
+void free_and_expr_children(struct and_expr* e);
 
-void free_and_expr(AndExpr* e);
+void free_and_expr(struct and_expr* e);
 
 #include "ast/eq_expr.h"
 

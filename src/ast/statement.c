@@ -5,52 +5,52 @@
 
 #include "util.h"
 
-Statement* create_statement_labeled(LabeledStatement* labeled) {
+struct statement* create_statement_labeled(struct labeled_statement* labeled) {
     assert(labeled);
-    Statement* res = xmalloc(sizeof(Statement));
+    struct statement* res = xmalloc(sizeof(struct statement));
     res->type = STATEMENT_LABELED;
     res->labeled = labeled;
     
     return res;
 }
 
-Statement* create_statement_compound(CompoundStatement* comp) {
+struct statement* create_statement_compound(struct compound_statement* comp) {
     assert(comp);
-    Statement* res = xmalloc(sizeof(Statement));
+    struct statement* res = xmalloc(sizeof(struct statement));
     res->type = STATEMENT_COMPOUND;
     res->comp = comp;
     
     return res;
 }
 
-Statement* create_statement_select(SelectionStatement* sel) {
+struct statement* create_statement_select(struct selection_statement* sel) {
     assert(sel);
-    Statement* res = xmalloc(sizeof(Statement));
+    struct statement* res = xmalloc(sizeof(struct statement));
     res->type = STATEMENT_SELECTION;
     res->sel = sel;
     
     return res;
 }
 
-Statement* create_statement_iter(IterationStatement* it) {
+struct statement* create_statement_iter(struct iteration_statement* it) {
     assert(it);
-    Statement* res = xmalloc(sizeof(Statement));
+    struct statement* res = xmalloc(sizeof(struct statement));
     res->type = STATEMENT_ITERATION;
     res->it = it;
     
     return res;
 }
 
-Statement* create_statement_jump(JumpStatement* jmp) {
+struct statement* create_statement_jump(struct jump_statement* jmp) {
     assert(jmp);
-    Statement* res = xmalloc(sizeof(Statement));
+    struct statement* res = xmalloc(sizeof(struct statement));
     res->type = STATEMENT_JUMP;
     res->jmp = jmp;
     
     return res;
 }
 
-void free_statement_children(Statement* s) {
+void free_statement_children(struct statement* s) {
     switch (s->type) {
         case STATEMENT_LABELED:
             free_labeled_statement(s->labeled);
@@ -73,7 +73,7 @@ void free_statement_children(Statement* s) {
     }
 }
 
-void free_statement(Statement* s) {
+void free_statement(struct statement* s) {
     free_statement_children(s);
     free(s);
 }

@@ -3,13 +3,13 @@
 
 #include "ast/cond_expr.h"
 
-typedef struct ConstExpr {
-    CondExpr expr;
-} ConstExpr;
+struct const_expr {
+    struct cond_expr expr;
+};
 
-ConstExpr* create_const_expr(CondExpr expr);
+struct const_expr* create_const_expr(struct cond_expr expr);
 
-void free_const_expr(ConstExpr* e);
+void free_const_expr(struct const_expr* e);
 
 #endif
 

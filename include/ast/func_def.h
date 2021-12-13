@@ -3,21 +3,21 @@
 
 #include "ast/declaration_list.h"
 
-typedef struct DeclarationSpecs DeclarationSpecs;
-typedef struct Declarator Declarator;
-typedef struct CompoundStatement CompoundStatement;
+struct declaration_specs;
+struct declarator;
+struct compound_statement;
 
-typedef struct FuncDef {
-    DeclarationSpecs* specs;
-    Declarator* decl;
-    DeclarationList decl_list;
-    CompoundStatement* comp;
-} FuncDef;
+struct func_def {
+    struct declaration_specs* specs;
+    struct declarator* decl;
+    struct declaration_list decl_list;
+    struct compound_statement* comp;
+};
 
-FuncDef* create_func_def(DeclarationSpecs* specs, Declarator* decl, DeclarationList decl_list, CompoundStatement* comp);
+struct func_def* create_func_def(struct declaration_specs* specs, struct declarator* decl, struct declaration_list decl_list, struct compound_statement* comp);
 
-void free_func_def_children(FuncDef* d);
-void free_func_def(FuncDef* d);
+void free_func_def_children(struct func_def* d);
+void free_func_def(struct func_def* d);
 
 #include "ast/declaration_specs.h"
 #include "ast/declarator.h"

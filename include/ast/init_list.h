@@ -5,16 +5,16 @@
 
 #include <stddef.h>
 
-typedef struct Initializer Initializer;
+struct initializer;
 
-typedef struct InitList {
+struct init_list {
     size_t len;
-    Initializer* inits;
-} InitList;
+    struct initializer* inits;
+};
 
-InitList create_init_list(Initializer* inits, size_t len);
+struct init_list create_init_list(struct initializer* inits, size_t len);
 
-void free_init_list_children(InitList* l);
+void free_init_list_children(struct init_list* l);
 
 #include "ast/initializer.h"
 

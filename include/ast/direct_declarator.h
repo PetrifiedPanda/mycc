@@ -9,39 +9,39 @@
 #include "ast/param_type_list.h"
 #include "ast/identifier_list.h"
 
-typedef struct ConstExpr ConstExpr;
-typedef struct Declarator Declarator;
-typedef struct Identifier Identifier;
+struct const_expr;
+struct declarator;
+struct identifier;
 
-typedef enum {
+enum arr_or_func_suffix_type {
     ARR_OR_FUNC_ARRAY,
     ARR_OR_FUNC_FUN_TYPES,
     ARR_OR_FUNC_FUN_PARAMS
-} ArrOrFuncSuffixType;
+};
 
-typedef struct {
-    ArrOrFuncSuffixType type;
+struct arr_or_func_suffix_direct_decl {
+    enum arr_or_func_suffix_type type;
     union {
-        ConstExpr* arr_len;
-        ParamTypeList fun_types;
-        IdentifierList fun_params;
+        struct const_expr* arr_len;
+        struct param_type_list fun_types;
+        struct identifier_list fun_params;
     };
-} ArrOrFuncSuffix;
+};
 
-typedef struct DirectDeclarator {
+struct direct_declarator {
     bool is_id;
     union {
-        Identifier* id;
-        Declarator* decl;
+        struct identifier* id;
+        struct declarator* decl;
     };
     size_t len;
-    ArrOrFuncSuffix* suffixes;
-} DirectDeclarator;
+    struct arr_or_func_suffix_direct_decl* suffixes;
+};
 
-DirectDeclarator* create_direct_declarator(Identifier* id, ArrOrFuncSuffix* suffixes, size_t len);
-DirectDeclarator* create_direct_declarator_decl(Declarator* decl, ArrOrFuncSuffix* suffixes, size_t len);
+struct direct_declarator* create_direct_declarator(struct identifier* id, struct arr_or_func_suffix_direct_decl* suffixes, size_t len);
+struct direct_declarator* create_direct_declarator_decl(struct declarator* decl, struct arr_or_func_suffix_direct_decl* suffixes, size_t len);
 
-void free_direct_declarator(DirectDeclarator* d);
+void free_direct_declarator(struct direct_declarator* d);
 
 #include "ast/const_expr.h"
 #include "ast/declarator.h"

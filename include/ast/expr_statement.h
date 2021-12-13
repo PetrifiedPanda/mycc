@@ -3,12 +3,12 @@
 
 #include "ast/expr.h"
 
-typedef struct ExprStatement {
-    Expr expr;
-} ExprStatement;
+struct expr_statement {
+    struct expr expr;
+};
 
-ExprStatement* create_expr_statement(Expr expr);
+struct expr_statement* create_expr_statement(struct expr expr);
 
-void free_expr_statement(ExprStatement* s);
+void free_expr_statement(struct expr_statement* s);
 
 #endif

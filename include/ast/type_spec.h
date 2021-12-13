@@ -5,32 +5,32 @@
 
 // TODO: update with new grammar
 
-typedef struct StructUnionSpec StructUnionSpec;
-typedef struct EnumSpec EnumSpec;
+struct struct_union_spec;
+struct enum_spec;
 
-typedef enum {
+enum type_spec_type {
     TYPESPEC_PREDEF,
     TYPESPEC_STRUCT,
     TYPESPEC_ENUM,
     TYPESPEC_TYPENAME
-} TypeSpecType;
+};
 
-typedef struct TypeSpec {
-    TypeSpecType type;
+struct type_spec {
+    enum type_spec_type type;
     union {
-        TokenType type_spec;
-        StructUnionSpec* struct_union_spec;
-        EnumSpec* enum_spec;
+        enum token_type type_spec;
+        struct struct_union_spec* struct_union_spec;
+        struct enum_spec* enum_spec;
         char* type_name;
     };
-} TypeSpec;
+};
 
-TypeSpec* create_type_spec_predef(TokenType type_spec);
-TypeSpec* create_type_spec_struct(StructUnionSpec* struct_union_spec);
-TypeSpec* create_type_spec_enum(EnumSpec* enum_spec);
-TypeSpec* create_type_spec_typename(char* type_name);
+struct type_spec* create_type_spec_predef(enum token_type type_spec);
+struct type_spec* create_type_spec_struct(struct struct_union_spec* struct_union_spec);
+struct type_spec* create_type_spec_enum(struct enum_spec* enum_spec);
+struct type_spec* create_type_spec_typename(char* type_name);
 
-void free_type_spec(TypeSpec* t);
+void free_type_spec(struct type_spec* t);
 
 #include "ast/struct_union_spec.h"
 #include "ast/enum_spec.h"

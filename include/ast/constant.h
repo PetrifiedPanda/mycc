@@ -3,13 +3,13 @@
 
 #include <stdbool.h>
 
-typedef struct {
+struct constant {
     bool is_float;
     char* spelling;
-} Constant;
+};
 
-Constant create_constant(bool is_float, char* spelling);
+struct constant create_constant(bool is_float, char* spelling);
 
-void free_constant(Constant* c);
+void free_constant(struct constant* c);
 
 #endif

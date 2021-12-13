@@ -3,16 +3,16 @@
 
 #include <stdbool.h>
 
-typedef struct ParamList ParamList;
+struct param_list;
 
-typedef struct ParamTypeList {
+struct param_type_list {
     bool is_variadic;
-    ParamList* param_list;
-} ParamTypeList;
+    struct param_list* param_list;
+};
 
-ParamTypeList create_param_type_list(bool is_variadic, ParamList* param_list);
+struct param_type_list create_param_type_list(bool is_variadic, struct param_list* param_list);
 
-void free_param_type_list(ParamTypeList* l);
+void free_param_type_list(struct param_type_list* l);
 
 #include "ast/param_list.h"
 

@@ -2,10 +2,10 @@
 
 #include <stdlib.h>
 
-Constant create_constant(bool is_float, char* spelling) {
-    return (Constant){is_float, spelling};
+struct constant create_constant(bool is_float, char* spelling) {
+    return (struct constant){is_float, spelling};
 }
 
-void free_constant(Constant* c) {
+void free_constant(struct constant* c) {
     free(c->spelling);
 }

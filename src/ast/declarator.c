@@ -5,23 +5,23 @@
 
 #include "util.h"
 
-Declarator* create_declarator(Pointer* ptr, DirectDeclarator* direct_decl) {
+struct declarator* create_declarator(struct pointer* ptr, struct direct_declarator* direct_decl) {
     assert(direct_decl);
-    Declarator* res = xmalloc(sizeof(Declarator));
+    struct declarator* res = xmalloc(sizeof(struct declarator));
     res->ptr = ptr;
     res->direct_decl = direct_decl;
     
     return res;
 }
 
-static void free_children(Declarator* d) {
+static void free_children(struct declarator* d) {
     if (d->ptr) {
         free_pointer(d->ptr);
     }
     free_direct_declarator(d->direct_decl);
 }
 
-void free_declarator(Declarator* d) {
+void free_declarator(struct declarator* d) {
     free_children(d);
     free(d);
 }

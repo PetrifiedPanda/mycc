@@ -3,16 +3,16 @@
 
 #include <stddef.h>
 
-typedef struct AssignExpr AssignExpr;
+struct assign_expr;
 
-typedef struct Expr {
+struct expr {
     size_t len;
-    AssignExpr* assign_exprs;
-} Expr;
+    struct assign_expr* assign_exprs;
+};
 
-void free_expr_children(Expr* expr);
+void free_expr_children(struct expr* expr);
 
-void free_expr(Expr* expr);
+void free_expr(struct expr* expr);
 
 #include "ast/assign_expr.h"
 

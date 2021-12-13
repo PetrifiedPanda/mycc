@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
-TypeQual create_type_qual(TokenType type) {
+struct type_qual create_type_qual(enum token_type type) {
     assert(type == VOLATILE || type == CONST);
-    TypeQual res;
+    struct type_qual res;
     res.is_const = type == CONST;
     return res;
 }

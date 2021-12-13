@@ -8,40 +8,40 @@
 
 #include "ast/param_type_list.h"
 
-typedef struct AbstractDeclarator AbstractDeclarator;
-typedef struct ConstExpr ConstExpr;
+struct abstract_declarator;
+struct const_expr;
 
-typedef enum {
+enum direct_abstract_decl_type {
     DIRECT_ABSTRACT_DECL_ARRAY,
     DIRECT_ABSTRACT_DECL_ABSTRACT_DECL,
     DIRECT_ABSTRACT_DECL_PARAM_TYPE_LIST
-} DirectAbstractDeclType;
+};
 
-typedef struct {
+struct arr_or_func_suffix_direct_abs_decl {
     bool is_array_decl;
     union {
-        ConstExpr* array_size;
-        ParamTypeList func_types;
+        struct const_expr* array_size;
+        struct param_type_list func_types;
     };
-} ArrayOrFuncSuffix;
+};
 
-typedef struct DirectAbstractDeclarator {
-    DirectAbstractDeclType type;
+struct direct_abstract_declarator {
+    enum direct_abstract_decl_type type;
     union {
-        ConstExpr* array_size;
-        AbstractDeclarator* bracket_decl;
-        ParamTypeList func_types;
+        struct const_expr* array_size;
+        struct abstract_declarator* bracket_decl;
+        struct param_type_list func_types;
     };
     
     size_t len;
-    ArrayOrFuncSuffix* following_suffixes;
-} DirectAbstractDeclarator;
+    struct arr_or_func_suffix_direct_abs_decl* following_suffixes;
+};
 
-DirectAbstractDeclarator* create_direct_abstract_declarator_arr(ConstExpr* array_size, ArrayOrFuncSuffix* following_suffixes, size_t len);
-DirectAbstractDeclarator* create_direct_abstract_declarator_abs_decl(AbstractDeclarator* bracket_decl, ArrayOrFuncSuffix* following_suffixes, size_t len);
-DirectAbstractDeclarator* create_direct_abstract_declarator_param_list(ParamTypeList func_types, ArrayOrFuncSuffix* following_suffixes, size_t len);
+struct direct_abstract_declarator* create_direct_abstract_declarator_arr(struct const_expr* array_size, struct arr_or_func_suffix_direct_abs_decl* following_suffixes, size_t len);
+struct direct_abstract_declarator* create_direct_abstract_declarator_abs_decl(struct abstract_declarator* bracket_decl, struct arr_or_func_suffix_direct_abs_decl* following_suffixes, size_t len);
+struct direct_abstract_declarator* create_direct_abstract_declarator_param_list(struct param_type_list func_types, struct arr_or_func_suffix_direct_abs_decl* following_suffixes, size_t len);
 
-void free_direct_abstract_declarator(DirectAbstractDeclarator* d);
+void free_direct_abstract_declarator(struct direct_abstract_declarator* d);
 
 #include "ast/abstract_declarator.h"
 #include "ast/const_expr.h"

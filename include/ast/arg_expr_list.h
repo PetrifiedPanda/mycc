@@ -3,16 +3,16 @@
 
 #include <stddef.h>
 
-typedef struct AssignExpr AssignExpr;
+struct assign_expr;
 
-typedef struct ArgExprList {
+struct arg_expr_list {
     size_t len;
-    AssignExpr* assign_exprs;
-} ArgExprList;
+    struct assign_expr* assign_exprs;
+};
 
-ArgExprList create_arg_expr_list(AssignExpr* assign_exprs, size_t len);
+struct arg_expr_list create_arg_expr_list(struct assign_expr* assign_exprs, size_t len);
 
-void free_arg_expr_list(ArgExprList* l);
+void free_arg_expr_list(struct arg_expr_list* l);
 
 #include "ast/assign_expr.h"
 

@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-static inline void assign_do_or_while(IterationStatement* res, Expr* while_cond, Statement* loop_body) {
+static inline void assign_do_or_while(struct iteration_statement* res, struct expr* while_cond, struct statement* loop_body) {
     assert(res);
     assert(while_cond);
     assert(loop_body);
@@ -13,27 +13,27 @@ static inline void assign_do_or_while(IterationStatement* res, Expr* while_cond,
     res->loop_body = loop_body;
 }
 
-IterationStatement* create_while_loop(Expr* while_cond, Statement* loop_body) {
-    IterationStatement* res = xmalloc(sizeof(IterationStatement));
+struct iteration_statement* create_while_loop(struct expr* while_cond, struct statement* loop_body) {
+    struct iteration_statement* res = xmalloc(sizeof(struct iteration_statement));
     res->type = WHILE;
     assign_do_or_while(res, while_cond, loop_body);
     
     return res;
 }
 
-IterationStatement* create_do_loop(Expr* while_cond, Statement* loop_body) {
-    IterationStatement* res = xmalloc(sizeof(IterationStatement));
+struct iteration_statement* create_do_loop(struct expr* while_cond, struct statement* loop_body) {
+    struct iteration_statement* res = xmalloc(sizeof(struct iteration_statement));
     res->type = DO;
     assign_do_or_while(res, while_cond, loop_body);
     
     return res;
 }
 
-IterationStatement* create_for_loop(ExprStatement* init_expr, ExprStatement* for_cond, Expr* incr_expr, Statement* loop_body) {
+struct iteration_statement* create_for_loop(struct expr_statement* init_expr, struct expr_statement* for_cond, struct expr* incr_expr, struct statement* loop_body) {
     assert(init_expr);
     assert(for_cond);
     assert(loop_body);
-    IterationStatement* res = xmalloc(sizeof(IterationStatement));
+    struct iteration_statement* res = xmalloc(sizeof(struct iteration_statement));
     res->type = FOR;
     res->loop_body = loop_body;
     res->init_expr = init_expr;
@@ -43,7 +43,7 @@ IterationStatement* create_for_loop(ExprStatement* init_expr, ExprStatement* for
     return res;
 }
 
-static void free_children(IterationStatement* s) {
+static void free_children(struct iteration_statement* s) {
     switch (s->type) {
         case WHILE:
         case DO:
@@ -62,7 +62,7 @@ static void free_children(IterationStatement* s) {
     free_statement(s->loop_body);
 }
 
-void free_iteration_statement(IterationStatement* s) {
+void free_iteration_statement(struct iteration_statement* s) {
     free_children(s);
     free(s);
 }

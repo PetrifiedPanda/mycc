@@ -3,16 +3,16 @@
 
 #include <stddef.h>
 
-typedef struct TypeQual TypeQual;
+struct type_qual;
 
-typedef struct TypeQualList {
+struct type_qual_list {
     size_t len;
-    TypeQual* type_quals;
-} TypeQualList;
+    struct type_qual* type_quals;
+};
 
-TypeQualList create_type_qual_list(TypeQual* type_quals, size_t len);
+struct type_qual_list create_type_qual_list(struct type_qual* type_quals, size_t len);
 
-void free_type_qual_list(TypeQualList* l);
+void free_type_qual_list(struct type_qual_list* l);
 
 #include "ast/type_qual.h"
 

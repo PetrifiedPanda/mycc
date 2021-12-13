@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-ShiftExpr* create_shift_expr(AddExpr* lhs, AddExprAndOp* shift_chain, size_t len) {
+struct shift_expr* create_shift_expr(struct add_expr* lhs, struct add_expr_and_op* shift_chain, size_t len) {
     assert(lhs);
     if (len > 0) {
         assert(shift_chain);
@@ -14,19 +14,19 @@ ShiftExpr* create_shift_expr(AddExpr* lhs, AddExprAndOp* shift_chain, size_t len
     }
 
     for (size_t i = 0; i < len; ++i) {
-        AddExprAndOp* item = &shift_chain[i];
+        struct add_expr_and_op* item = &shift_chain[i];
         assert(item->rhs);
         assert(is_shift_op(item->shift_op));
     }
     
-    ShiftExpr* res = xmalloc(sizeof(ShiftExpr));
+    struct shift_expr* res = xmalloc(sizeof(struct shift_expr));
     res->len = len;
     res->shift_chain = shift_chain;
     
     return res;
 }
 
-static void free_children(ShiftExpr* e) {
+static void free_children(struct shift_expr* e) {
     free_add_expr(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         free_add_expr(e->shift_chain[i].rhs);
@@ -34,7 +34,7 @@ static void free_children(ShiftExpr* e) {
     free(e->shift_chain);
 }
 
-void free_shift_expr(ShiftExpr* e) {
+void free_shift_expr(struct shift_expr* e) {
     free_children(e);
     free(e);
 }

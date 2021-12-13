@@ -5,35 +5,35 @@
 
 #include "ast/arg_expr_list.h"
 
-typedef struct PrimaryExpr PrimaryExpr;
-typedef struct Expr Expr;
-typedef struct Identifier Identifier;
+struct primary_expr;
+struct expr;
+struct identifier;
 
-typedef enum {
+enum postfix_suffix_type {
     POSTFIX_INDEX,
     POSTFIX_BRACKET,
     POSTFIX_ACCESS,
     POSTFIX_PTR_ACCESS,
     POSTFIX_INC_DEC
-} PostfixSuffixType;
+};
 
-typedef struct {
-    PostfixSuffixType type;
+struct postfix_suffix {
+    enum postfix_suffix_type type;
     union {
-        Expr* index_expr;
-        ArgExprList bracket_list;
-        Identifier* identifier;
-        TokenType inc_dec;
+        struct expr* index_expr;
+        struct arg_expr_list bracket_list;
+        struct identifier* identifier;
+        enum token_type inc_dec;
     };
-} PostfixSuffix;
+};
 
-typedef struct PostfixExpr {
-    PrimaryExpr* primary;
+struct postfix_expr {
+    struct primary_expr* primary;
     size_t len;
-    PostfixSuffix* suffixes;
-} PostfixExpr;
+    struct postfix_suffix* suffixes;
+};
 
-void free_postfix_expr(PostfixExpr* p);
+void free_postfix_expr(struct postfix_expr* p);
 
 #include "ast/primary_expr.h"
 #include "ast/expr.h"

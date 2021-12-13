@@ -5,23 +5,24 @@
 
 #include "util.h"
 
-LogOrExpr* create_log_or_expr(LogOrExpr* log_or, LogAndExpr* log_and) {
+struct log_or_expr* create_log_or_expr(size_t len, struct log_and_expr* log_and) {
+    assert(len > 0);
     assert(log_and);
-    LogOrExpr* res = xmalloc(sizeof(LogOrExpr));
-    res->log_or = log_or;
-    res->log_and = log_and;
+    struct log_or_expr* res = xmalloc(sizeof(struct log_or_expr));
+    res->len = len;
+    res->log_ands = log_and;
     
     return res;
 }
 
-static void free_children(LogOrExpr* e) {
-    if (e->log_or != NULL) {
-        free_log_or_expr(e->log_or);
+static void free_children(struct log_or_expr* e) {
+    for (size_t i = 0; i < e->len; ++i) {
+        free_log_and_expr_children(&e->log_ands[i]);
     }
-    free_log_and_expr(e->log_and);
+    free(e->log_ands);
 }
 
-void free_log_or_expr(LogOrExpr* e) {
+void free_log_or_expr(struct log_or_expr* e) {
     free_children(e);
     free(e);
 }

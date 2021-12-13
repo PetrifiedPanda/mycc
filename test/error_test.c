@@ -65,7 +65,7 @@ static void test_set_error_file() {
     {
         const char* format = "Hello %s %f %d";
         const char* filename = "test.c";
-        SourceLocation loc = {1000, 67};
+        struct source_location loc = {1000, 67};
 
         int num = 34234;
         double d = 2.17;
@@ -82,7 +82,7 @@ static void test_set_error_file() {
 
     {
         const char* filename = "abcdefghij.c";
-        SourceLocation loc = {10000, 123456789};
+        struct source_location loc = {10000, 123456789};
         int last = sprintf(test_buf, "%s(%zu,%zu):\n", filename, loc.line, loc.index);
 
         char print_buf[TEST_BUF_SIZE];

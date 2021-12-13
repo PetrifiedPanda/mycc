@@ -3,24 +3,24 @@
 
 #include "token_type.h"
 
-typedef struct ConstExpr ConstExpr;
-typedef struct Statement Statement;
-typedef struct Identifier Identifier;
+struct const_expr;
+struct statement;
+struct identifier;
 
-typedef struct LabeledStatement {
-    TokenType type;
+struct labeled_statement {
+    enum token_type type;
     union {
-        Identifier* identifier;
-        ConstExpr* case_expr;
+        struct identifier* identifier;
+        struct const_expr* case_expr;
     };
-    Statement* stat;
-} LabeledStatement;
+    struct statement* stat;
+};
 
-LabeledStatement* create_labeled_statement_goto(Identifier* identifier, Statement* stat);
-LabeledStatement* create_labeled_statement_case(ConstExpr* case_expr, Statement* stat);
-LabeledStatement* craete_labeled_statement_default(Statement* stat);
+struct labeled_statement* create_labeled_statement_goto(struct identifier* identifier, struct statement* stat);
+struct labeled_statement* create_labeled_statement_case(struct const_expr* case_expr, struct statement* stat);
+struct labeled_statement* craete_labeled_statement_default(struct statement* stat);
 
-void free_labeled_statement(LabeledStatement* s);
+void free_labeled_statement(struct labeled_statement* s);
 
 #include "ast/const_expr.h"
 #include "ast/statement.h"

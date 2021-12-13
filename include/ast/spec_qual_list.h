@@ -6,24 +6,24 @@
 
 #include "ast/type_qual.h"
 
-typedef struct TypeSpec TypeSpec;
+struct type_spec;
 
-typedef struct {
+struct type_spec_or_qual {
     bool is_type_spec;
     union {
-        TypeSpec* type_spec;
-        TypeQual type_qual;
+        struct type_spec* type_spec;
+        struct type_qual type_qual;
     };
-} TypeSpecOrQual;
+};
 
-typedef struct SpecQualList {
+struct spec_qual_list {
     size_t len;
-    TypeSpecOrQual* specs_or_quals;
-} SpecQualList;
+    struct type_spec_or_qual* specs_or_quals;
+};
 
-SpecQualList create_spec_qual_list(TypeSpecOrQual* specs_or_quals, size_t len);
+struct spec_qual_list create_spec_qual_list(struct type_spec_or_qual* specs_or_quals, size_t len);
 
-void free_spec_qual_list(SpecQualList* l);
+void free_spec_qual_list(struct spec_qual_list* l);
 
 #include "ast/type_spec.h"
 

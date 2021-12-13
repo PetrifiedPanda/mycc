@@ -5,24 +5,24 @@
 
 #include "util.h"
 
-Initializer* create_initializer_assign(AssignExpr* assign) {
+struct initializer* create_initializer_assign(struct assign_expr* assign) {
     assert(assign);
-    Initializer* res = xmalloc(sizeof(Initializer));
+    struct initializer* res = xmalloc(sizeof(struct initializer));
     res->is_assign = true;
     res->assign = assign;
     
     return res;
 }
 
-Initializer* create_initializer_init_list(InitList init_list) {
-    Initializer* res = xmalloc(sizeof(Initializer));
+struct initializer* create_initializer_init_list(struct init_list init_list) {
+    struct initializer* res = xmalloc(sizeof(struct initializer));
     res->is_assign = false;
     res->init_list = init_list;
     
     return res;
 }
 
-void free_initializer_children(Initializer* i) {
+void free_initializer_children(struct initializer* i) {
     if (i->is_assign) {
         free_assign_expr(i->assign);
     } else {
@@ -30,7 +30,7 @@ void free_initializer_children(Initializer* i) {
     }
 }
 
-void free_initializer(Initializer* i) {
+void free_initializer(struct initializer* i) {
     free_initializer_children(i);
     free(i);
 }

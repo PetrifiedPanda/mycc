@@ -5,10 +5,10 @@
 
 #include "util.h"
 
-LabeledStatement* create_labeled_statement_goto(Identifier* identifier, Statement* stat) {
+struct labeled_statement* create_labeled_statement_goto(struct identifier* identifier, struct statement* stat) {
     assert(identifier);
     assert(stat);
-    LabeledStatement* res = xmalloc(sizeof(LabeledStatement));
+    struct labeled_statement* res = xmalloc(sizeof(struct labeled_statement));
     res->type = IDENTIFIER;
     res->identifier = identifier;
     res->stat = stat;
@@ -16,10 +16,10 @@ LabeledStatement* create_labeled_statement_goto(Identifier* identifier, Statemen
     return res;
 }
 
-LabeledStatement* create_labeled_statement_case(ConstExpr* case_expr, Statement* stat) { 
+struct labeled_statement* create_labeled_statement_case(struct const_expr* case_expr, struct statement* stat) { 
     assert(case_expr);
     assert(stat);
-    LabeledStatement* res = xmalloc(sizeof(LabeledStatement));
+    struct labeled_statement* res = xmalloc(sizeof(struct labeled_statement));
     res->type = CASE;
     res->case_expr = case_expr;
     res->stat = stat;
@@ -27,9 +27,9 @@ LabeledStatement* create_labeled_statement_case(ConstExpr* case_expr, Statement*
     return res;
 }
 
-LabeledStatement* craete_labeled_statement_default(Statement* stat) {
+struct labeled_statement* craete_labeled_statement_default(struct statement* stat) {
     assert(stat); 
-    LabeledStatement* res = xmalloc(sizeof(LabeledStatement));
+    struct labeled_statement* res = xmalloc(sizeof(struct labeled_statement));
     res->type = DEFAULT;
     res->stat = stat;
     res->identifier = NULL;
@@ -37,7 +37,7 @@ LabeledStatement* craete_labeled_statement_default(Statement* stat) {
     return res;
 }
 
-static void free_children(LabeledStatement* s) {
+static void free_children(struct labeled_statement* s) {
     switch (s->type) {
         case IDENTIFIER:
             free_identifier(s->identifier);
@@ -51,7 +51,7 @@ static void free_children(LabeledStatement* s) {
     free_statement(s->stat);
 }
 
-void free_labeled_statement(LabeledStatement* s) {
+void free_labeled_statement(struct labeled_statement* s) {
     free_children(s);
     free(s);
 }

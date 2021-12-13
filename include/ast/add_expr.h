@@ -5,22 +5,22 @@
 
 #include "token_type.h"
 
-typedef struct MulExpr MulExpr;
+struct mul_expr;
 
-typedef struct {
-    TokenType add_op;
-    MulExpr* rhs;
-} MulExprAndOp;
+struct mul_expr_and_op {
+    enum token_type add_op;
+    struct mul_expr* rhs;
+};
 
-typedef struct AddExpr {
-    MulExpr* lhs;
+struct add_expr {
+    struct mul_expr* lhs;
     size_t len;
-    MulExprAndOp* add_chain;
-} AddExpr;
+    struct mul_expr_and_op* add_chain;
+};
 
-AddExpr* create_add_expr(MulExpr* lhs, size_t len, MulExprAndOp* add_chain);
+struct add_expr* create_add_expr(struct mul_expr* lhs, size_t len, struct mul_expr_and_op* add_chain);
 
-void free_add_expr(AddExpr* e);
+void free_add_expr(struct add_expr* e);
 
 #include "ast/mul_expr.h"
 

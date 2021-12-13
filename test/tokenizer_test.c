@@ -15,9 +15,9 @@ void tokenizer_test() {
     printf("Tokenizer test successful\n");;
 }
 
-static void check_size(const Token* tokens, size_t expected) {
+static void check_size(const struct token* tokens, size_t expected) {
     size_t size = 0;
-    const Token* it = tokens;
+    const struct token* it = tokens;
     
     while (it->type != INVALID) {
         ++it;
@@ -26,17 +26,17 @@ static void check_size(const Token* tokens, size_t expected) {
     assert(size == expected);
 }
 
-static void check_file(const Token* tokens, const char* file) {
-    for (const Token* it = tokens; it->type != INVALID; ++it) {
+static void check_file(const struct token* tokens, const char* file) {
+    for (const struct token* it = tokens; it->type != INVALID; ++it) {
         assert(strcmp(it->file, file) == 0);
     }
 }
 
-static Token create(TokenType type, const char* spelling, size_t line, size_t index) {
-    return (Token){type, (char*)spelling, NULL, (SourceLocation){line, index}};
+static struct token create(enum token_type type, const char* spelling, size_t line, size_t index) {
+    return (struct token){type, (char*)spelling, NULL, (struct source_location){line, index}};
 }
 
-static void check_token(const Token* t, const Token* expected) {
+static void check_token(const struct token* t, const struct token* expected) {
     assert(t->type == expected->type);
     if (t->spelling == NULL || expected->spelling == NULL) {
         assert(t->spelling == expected->spelling);
@@ -47,7 +47,7 @@ static void check_token(const Token* t, const Token* expected) {
     assert(t->source_loc.index == expected->source_loc.index);
 }
 
-static void compare_tokens(const Token* got, const Token* expected, size_t len) {
+static void compare_tokens(const struct token* got, const struct token* expected, size_t len) {
     for (size_t i = 0; i < len; ++i) {
         check_token(&got[i], &expected[i]);
     }
@@ -70,7 +70,7 @@ static void simple_test() {
         "int arr[1 ? 100 : 1000];\n";
     
     const char* filename = "not_a_file.c";
-    Token* tokens = tokenize(code, filename);
+    struct token* tokens = tokenize(code, filename);
     assert(get_last_error() == ERR_NONE);
     assert(tokens);
     
@@ -78,7 +78,7 @@ static void simple_test() {
     check_size(tokens, EXPECTED_SIZE);
     check_file(tokens, filename);
 
-    Token expected[EXPECTED_SIZE] = {
+    struct token expected[EXPECTED_SIZE] = {
         create(TYPEDEF, NULL, 1, 1),
         create(STRUCT, NULL, 1, 9),
         create(IDENTIFIER, "typedeftest", 1, 16),
@@ -165,7 +165,7 @@ static void file_test() {
     char* code = read_file(filename); 
     assert(code);
     
-    Token* tokens = tokenize(code, filename);
+    struct token* tokens = tokenize(code, filename);
     assert(get_last_error() == ERR_NONE);
     assert(tokens);
     
@@ -173,7 +173,7 @@ static void file_test() {
     check_size(tokens, EXPECTED_SIZE);
     check_file(tokens, filename);
     
-    Token expected[EXPECTED_SIZE] = {
+    struct token expected[EXPECTED_SIZE] = {
         create(TYPEDEF, NULL, 3, 1),
         create(STRUCT, NULL, 3, 9),
         create(LBRACE, NULL, 3, 16),

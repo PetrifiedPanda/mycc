@@ -20,7 +20,7 @@ int main() {
         "const char* str = \"Normal string literal\";\n"
         "int arr[1 ? 100 : 1000];\n";
     printf("Tokenizing...\n");
-    Token* tokens = tokenize(code, "this_is_not_an_actual_file.c");
+    struct token* tokens = tokenize(code, "this_is_not_an_actual_file.c");
     if (get_last_error() != ERR_NONE) {
         fprintf(stderr, "%s\n", get_error_string());
         clear_last_error();
@@ -28,7 +28,7 @@ int main() {
         printf("Tokenizer finished successfully\n");
     }
 
-    for (const Token* it = tokens; it->type != INVALID; ++it) {
+    for (const struct token* it = tokens; it->type != INVALID; ++it) {
         printf("Type: %s, Spelling: %s, line: %zu, idx: %zu\n", get_type_str(it->type), it->spelling, it->source_loc.line, it->source_loc.index);
     }
 

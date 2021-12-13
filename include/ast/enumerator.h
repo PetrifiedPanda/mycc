@@ -5,16 +5,16 @@
 
 #include "ast/const_expr.h"
 
-typedef struct Identifier Identifier;
+struct identifier;
 
-typedef struct Enumerator {
-    Identifier* identifier;
-    ConstExpr* enum_val;
-} Enumerator;
+struct enumerator {
+    struct identifier* identifier;
+    struct const_expr* enum_val;
+};
 
-Enumerator* create_enumerator(Identifier* identifier, ConstExpr* enum_val);
+struct enumerator* create_enumerator(struct identifier* identifier, struct const_expr* enum_val);
 
-void free_enumerator_children(Enumerator* e);
+void free_enumerator_children(struct enumerator* e);
 
 #include "ast/identifier.h"
 

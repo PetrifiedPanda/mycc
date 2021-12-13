@@ -5,12 +5,12 @@
 #include <stdbool.h>
 #include <assert.h>
 
-static ErrorType g_type = ERR_NONE;
+static enum error_type g_type = ERR_NONE;
 enum {MSG_BUF_SIZE = 512};
 static char g_msg_buf[MSG_BUF_SIZE] = {0};
 static size_t g_msg_len = 0;
 
-ErrorType get_last_error() {
+enum error_type get_last_error() {
     return g_type;
 }
 
@@ -36,7 +36,7 @@ static inline void append_error_msg_va_list(const char* format, va_list args) {
     assert(g_msg_len < MSG_BUF_SIZE);
 }
 
-void set_error(ErrorType type, const char* format, ...) {
+void set_error(enum error_type type, const char* format, ...) {
     assert(g_type == ERR_NONE);
 
     g_type = type;
@@ -46,7 +46,7 @@ void set_error(ErrorType type, const char* format, ...) {
     va_end(args);
 }
 
-void set_error_file(ErrorType type, const char* filename, SourceLocation loc, const char* format, ...) {
+void set_error_file(enum error_type type, const char* filename, struct source_location loc, const char* format, ...) {
     assert(g_type == ERR_NONE);
 
     g_type = type;

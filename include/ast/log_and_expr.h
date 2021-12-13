@@ -3,16 +3,17 @@
 
 #include <stddef.h>
 
-typedef struct OrExpr OrExpr;
+struct or_expr;
 
-typedef struct LogAndExpr {
+struct log_and_expr {
     size_t len;
-    OrExpr* or_exprs;
-} LogAndExpr;
+    struct or_expr* or_exprs;
+};
 
-LogAndExpr* create_log_and_expr(OrExpr* or_exprs, size_t len);
+struct log_and_expr* create_log_and_expr(struct or_expr* or_exprs, size_t len);
 
-void free_log_and_expr(LogAndExpr* e);
+void free_log_and_expr_children(struct log_and_expr* e);
+void free_log_and_expr(struct log_and_expr* e);
 
 #include "ast/or_expr.h"
 

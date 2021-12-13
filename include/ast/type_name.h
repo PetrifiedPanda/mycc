@@ -3,17 +3,17 @@
 
 #include "ast/spec_qual_list.h"
 
-typedef struct AbstractDeclarator AbstractDeclarator;
+struct abstract_declarator;
 
-typedef struct TypeName {
-    SpecQualList spec_qual_list;
-    AbstractDeclarator* abstract_decl;
-} TypeName;
+struct type_name {
+    struct spec_qual_list spec_qual_list;
+    struct abstract_declarator* abstract_decl;
+};
 
-TypeName* create_type_name(SpecQualList spec_qual_list, AbstractDeclarator* abstract_decl);
+struct type_name* create_type_name(struct spec_qual_list spec_qual_list, struct abstract_declarator* abstract_decl);
 
-void free_type_name_children(TypeName* n);
-void free_type_name(TypeName* n);
+void free_type_name_children(struct type_name* n);
+void free_type_name(struct type_name* n);
 
 #include "ast/abstract_declarator.h"
 

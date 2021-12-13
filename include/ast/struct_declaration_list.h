@@ -3,18 +3,17 @@
 
 #include <stddef.h>
 
-typedef struct StructDeclaration StructDeclaration;
+struct struct_declaration;
 
-typedef struct StructDeclarationList {
+struct struct_declaration_list {
     size_t len;
-    StructDeclaration* decls;
-} StructDeclarationList;
+    struct struct_declaration* decls;
+};
 
-StructDeclarationList create_struct_declaration_list(StructDeclaration* decls, size_t len);
+struct struct_declaration_list create_struct_declaration_list(struct struct_declaration* decls, size_t len);
 
-void free_struct_declaration_list(StructDeclarationList* l);
+void free_struct_declaration_list(struct struct_declaration_list* l);
 
 #include "ast/struct_declaration.h"
 
 #endif
-

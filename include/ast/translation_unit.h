@@ -3,16 +3,16 @@
 
 #include <stddef.h>
 
-typedef struct ExternalDeclaration ExternalDeclaration;
+struct external_declaration;
 
-typedef struct TranslationUnit {
+struct translation_unit {
     size_t len;
-    ExternalDeclaration* external_decls;
-} TranslationUnit;
+    struct external_declaration* external_decls;
+};
 
-TranslationUnit* create_translation_unit(ExternalDeclaration* external_decls, size_t len);
+struct translation_unit* create_translation_unit(struct external_declaration* external_decls, size_t len);
 
-void free_translation_unit(TranslationUnit* u);
+void free_translation_unit(struct translation_unit* u);
 
 #include "ast/external_declaration.h"
 

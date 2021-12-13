@@ -1,17 +1,17 @@
 #ifndef DECLARATOR_H
 #define DECLARATOR_H
 
-typedef struct Pointer Pointer;
-typedef struct DirectDeclarator DirectDeclarator;
+struct pointer;
+struct direct_declarator;
 
-typedef struct Declarator {
-    Pointer* ptr;
-    DirectDeclarator* direct_decl;
-} Declarator;
+struct declarator {
+    struct pointer* ptr;
+    struct direct_declarator* direct_decl;
+};
 
-Declarator* create_declarator(Pointer* ptr, DirectDeclarator* direct_decl);
+struct declarator* create_declarator(struct pointer* ptr, struct direct_declarator* direct_decl);
 
-void free_declarator(Declarator* d);
+void free_declarator(struct declarator* d);
 
 #include "ast/pointer.h"
 #include "ast/direct_declarator.h"

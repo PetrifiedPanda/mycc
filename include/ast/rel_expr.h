@@ -5,24 +5,24 @@
 
 #include <stddef.h>
 
-typedef struct ShiftExpr ShiftExpr;
+struct shift_expr;
 
-typedef struct {
-    TokenType rel_op;
-    ShiftExpr* rhs;
-} ShiftExprAndOp;
+struct shift_expr_and_op {
+    enum token_type rel_op;
+    struct shift_expr* rhs;
+};
 
-typedef struct RelExpr {
-    ShiftExpr* lhs;
+struct rel_expr {
+    struct shift_expr* lhs;
     size_t len;
-    ShiftExprAndOp* rel_chain;
-} RelExpr;
+    struct shift_expr_and_op* rel_chain;
+};
 
-RelExpr* create_rel_expr(ShiftExpr* lhs, ShiftExprAndOp* rel_chain, size_t len);
+struct rel_expr* create_rel_expr(struct shift_expr* lhs, struct shift_expr_and_op* rel_chain, size_t len);
 
-void free_rel_expr_children(RelExpr* e);
+void free_rel_expr_children(struct rel_expr* e);
 
-void free_rel_expr(RelExpr* e);
+void free_rel_expr(struct rel_expr* e);
 
 #include "ast/shift_expr.h"
 

@@ -5,16 +5,16 @@
 
 #include "util.h"
 
-StructDeclarator* create_struct_declarator(Declarator* decl, ConstExpr* bit_field) {
+struct struct_declarator* create_struct_declarator(struct declarator* decl, struct const_expr* bit_field) {
     assert(decl || bit_field);
-    StructDeclarator* res = xmalloc(sizeof(StructDeclarator));
+    struct struct_declarator* res = xmalloc(sizeof(struct struct_declarator));
     res->decl = decl;
     res->bit_field = bit_field;
     
     return res;
 }
 
-void free_struct_declarator_children(StructDeclarator* d) {
+void free_struct_declarator_children(struct struct_declarator* d) {
     if (d->decl) {
         free_declarator(d->decl);
     }
@@ -23,7 +23,7 @@ void free_struct_declarator_children(StructDeclarator* d) {
     }
 }
 
-void free_struct_declarator(StructDeclarator* d) {
+void free_struct_declarator(struct struct_declarator* d) {
     free_struct_declarator_children(d);
     free(d);
 }

@@ -3,18 +3,18 @@
 
 #include <stddef.h>
 
-typedef struct XorExpr XorExpr;
+struct xor_expr;
 
-typedef struct OrExpr {
+struct or_expr {
     size_t len;
-    XorExpr* xor_exprs;
-} OrExpr;
+    struct xor_expr* xor_exprs;
+};
 
-OrExpr* create_or_expr(XorExpr* xor_exprs, size_t len);
+struct or_expr* create_or_expr(struct xor_expr* xor_exprs, size_t len);
 
-void free_or_expr_children(OrExpr* e);
+void free_or_expr_children(struct or_expr* e);
 
-void free_or_expr(OrExpr* e);
+void free_or_expr(struct or_expr* e);
 
 #include "ast/xor_expr.h"
 

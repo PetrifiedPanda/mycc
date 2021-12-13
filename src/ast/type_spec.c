@@ -4,39 +4,39 @@
 
 #include "util.h"
 
-TypeSpec* create_type_spec_predef(TokenType type_spec) {
-    TypeSpec* res = xmalloc(sizeof(TypeSpec));
+struct type_spec* create_type_spec_predef(enum token_type type_spec) {
+    struct type_spec* res = xmalloc(sizeof(struct type_spec));
     res->type = TYPESPEC_PREDEF;
     res->type_spec = type_spec;
     
     return res;
 }
 
-TypeSpec* create_type_spec_struct(StructUnionSpec* struct_union_spec) {
-    TypeSpec* res = xmalloc(sizeof(TypeSpec));
+struct type_spec* create_type_spec_struct(struct struct_union_spec* struct_union_spec) {
+    struct type_spec* res = xmalloc(sizeof(struct type_spec));
     res->type = TYPESPEC_STRUCT;
     res->struct_union_spec = struct_union_spec;
     
     return res;
 }
 
-TypeSpec* create_type_spec_enum(EnumSpec* enum_spec) {
-    TypeSpec* res = xmalloc(sizeof(TypeSpec));
+struct type_spec* create_type_spec_enum(struct enum_spec* enum_spec) {
+    struct type_spec* res = xmalloc(sizeof(struct type_spec));
     res->type = TYPESPEC_ENUM;
     res->enum_spec = enum_spec;
     
     return res;
 }
 
-TypeSpec* create_type_spec_typename(char* type_name) {
-    TypeSpec* res = xmalloc(sizeof(TypeSpec));
+struct type_spec* create_type_spec_typename(char* type_name) {
+    struct type_spec* res = xmalloc(sizeof(struct type_spec));
     res->type = TYPESPEC_TYPENAME;
     res->type_name = type_name;
     
     return res;
 }
 
-static void free_children(TypeSpec* t) {
+static void free_children(struct type_spec* t) {
     switch (t->type) {
     case TYPESPEC_PREDEF:
         break;
@@ -52,7 +52,7 @@ static void free_children(TypeSpec* t) {
     }
 }
 
-void free_type_spec(TypeSpec* t) {
+void free_type_spec(struct type_spec* t) {
     free_children(t);
     free(t);
 }

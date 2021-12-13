@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-void init_eq_expr(EqExpr* res, RelExpr* lhs, RelExprAndOp* eq_chain, size_t len) {
+void init_eq_expr(struct eq_expr* res, struct rel_expr* lhs, struct rel_expr_and_op* eq_chain, size_t len) {
     assert(lhs);
     if (len > 0) {
         assert(eq_chain);
@@ -14,7 +14,7 @@ void init_eq_expr(EqExpr* res, RelExpr* lhs, RelExprAndOp* eq_chain, size_t len)
     }
 
     for (size_t i = 0; i < len; ++i) {
-        RelExprAndOp* item = &eq_chain[i];
+        struct rel_expr_and_op* item = &eq_chain[i];
         assert(item->rhs);
         assert(is_eq_op(item->eq_op));
     }
@@ -24,13 +24,13 @@ void init_eq_expr(EqExpr* res, RelExpr* lhs, RelExprAndOp* eq_chain, size_t len)
     res->eq_chain = eq_chain;
 }
 
-EqExpr* create_eq_expr(RelExpr* lhs, RelExprAndOp* eq_chain, size_t len) { 
-    EqExpr* res = xmalloc(sizeof(EqExpr));
+struct eq_expr* create_eq_expr(struct rel_expr* lhs, struct rel_expr_and_op* eq_chain, size_t len) { 
+    struct eq_expr* res = xmalloc(sizeof(struct eq_expr));
     init_eq_expr(res, lhs, eq_chain, len);
     return res;
 }
 
-void free_eq_expr_children(EqExpr* e) {
+void free_eq_expr_children(struct eq_expr* e) {
     free_rel_expr(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         free_rel_expr_children(e->eq_chain[i].rhs);
@@ -38,7 +38,7 @@ void free_eq_expr_children(EqExpr* e) {
     free(e->eq_chain);
 }
 
-void free_eq_expr(EqExpr* e) {
+void free_eq_expr(struct eq_expr* e) {
     free_eq_expr_children(e);
     free(e);
 }

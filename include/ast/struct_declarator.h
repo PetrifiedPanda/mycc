@@ -1,18 +1,18 @@
 #ifndef STRUCT_DECLARATOR_H
 #define STRUCT_DECLARATOR_H
 
-typedef struct Declarator Declarator;
-typedef struct ConstExpr ConstExpr;
+struct declarator;
+struct const_expr;
 
-typedef struct StructDeclarator {
-    Declarator* decl;
-    ConstExpr* bit_field;
-} StructDeclarator;
+struct struct_declarator {
+    struct declarator* decl;
+    struct const_expr* bit_field;
+};
 
-StructDeclarator* create_struct_declarator(Declarator* decl, ConstExpr* bit_field);
+struct struct_declarator* create_struct_declarator(struct declarator* decl, struct const_expr* bit_field);
 
-void free_struct_declarator_children(StructDeclarator* d);
-void free_struct_declarator(StructDeclarator* d);
+void free_struct_declarator_children(struct struct_declarator* d);
+void free_struct_declarator(struct struct_declarator* d);
 
 #include "ast/declarator.h"
 #include "ast/const_expr.h"

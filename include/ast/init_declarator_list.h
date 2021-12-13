@@ -3,16 +3,16 @@
 
 #include <stddef.h>
 
-typedef struct InitDeclarator InitDeclarator;
+struct init_declarator;
 
-typedef struct InitDeclaratorList {
+struct init_declarator_list {
     size_t len;
-    InitDeclarator* decls;
-} InitDeclaratorList;
+    struct init_declarator* decls;
+};
 
-InitDeclaratorList create_init_declarator_list(InitDeclarator* decls, size_t len);
+struct init_declarator_list create_init_declarator_list(struct init_declarator* decls, size_t len);
 
-void free_init_declarator_list(InitDeclaratorList* l);
+void free_init_declarator_list(struct init_declarator_list* l);
 
 #include "ast/init_declarator.h"
 

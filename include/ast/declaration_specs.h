@@ -8,31 +8,31 @@
 #include "token.h"
 #include "ast/type_qual.h"
 
-typedef struct TypeSpec TypeSpec;
+struct type_spec;
 
-typedef enum {
+enum declaration_specs_type {
     DECLSPEC_STORAGE_CLASS_SPEC,
     DECLSPEC_TYPE_SPEC,
     DECLSPEC_TYPE_QUAL
-} DeclarationSpecsType;
+};
 
-typedef struct {
-    DeclarationSpecsType type;
+struct declaration_specs_cont {
+    enum declaration_specs_type type;
     union {
-        TokenType storage_class_spec;
-        TypeSpec* type_spec;
-        TypeQual type_qual;    
+        enum token_type storage_class_spec;
+        struct type_spec* type_spec;
+        struct type_qual type_qual;    
     };
-} DeclarationSpecsCont;
+};
 
-typedef struct DeclarationSpecs {
+struct declaration_specs {
     size_t len;
-    DeclarationSpecsCont* contents;
-} DeclarationSpecs;
+    struct declaration_specs_cont* contents;
+};
 
-DeclarationSpecs* create_declaration_specs(DeclarationSpecsCont* contents, size_t len);
+struct declaration_specs* create_declaration_specs(struct declaration_specs_cont* contents, size_t len);
 
-void free_declaration_specs(DeclarationSpecs* s);
+void free_declaration_specs(struct declaration_specs* s);
 
 #include "ast/type_spec.h"
 

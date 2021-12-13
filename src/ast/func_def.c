@@ -5,10 +5,10 @@
 
 #include "util.h"
 
-FuncDef* create_func_def(DeclarationSpecs* specs, Declarator* decl, DeclarationList decl_list, CompoundStatement* comp) {
+struct func_def* create_func_def(struct declaration_specs* specs, struct declarator* decl, struct declaration_list decl_list, struct compound_statement* comp) {
     assert(decl);
     assert(comp);
-    FuncDef* res = xmalloc(sizeof(FuncDef));
+    struct func_def* res = xmalloc(sizeof(struct func_def));
     res->specs = specs;
     res->decl = decl;
     res->decl_list = decl_list;
@@ -17,7 +17,7 @@ FuncDef* create_func_def(DeclarationSpecs* specs, Declarator* decl, DeclarationL
     return res;
 }
 
-void free_func_def_children(FuncDef* d) {
+void free_func_def_children(struct func_def* d) {
     if (d->specs) {
         free_declaration_specs(d->specs);
     }
@@ -26,7 +26,7 @@ void free_func_def_children(FuncDef* d) {
     free_compound_statement(d->comp);
 }
 
-void free_func_def(FuncDef* d) {
+void free_func_def(struct func_def* d) {
     free_func_def_children(d);
     free(d);
 }

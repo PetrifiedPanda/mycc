@@ -3,28 +3,28 @@
 
 #include "token_type.h"
 
-typedef struct Statement Statement;
-typedef struct ExprStatement ExprStatement;
-typedef struct Expr Expr;
+struct statement;
+struct expr_statement;
+struct expr;
 
-typedef struct IterationStatement {
-    TokenType type;
-    Statement* loop_body;
+struct iteration_statement {
+    enum token_type type;
+    struct statement* loop_body;
     union {
-        Expr* while_cond;
+        struct expr* while_cond;
         struct {
-            ExprStatement* init_expr;
-            ExprStatement* for_cond;
-            Expr* incr_expr;
+            struct expr_statement* init_expr;
+            struct expr_statement* for_cond;
+            struct expr* incr_expr;
         };
     };
-} IterationStatement;
+};
 
-IterationStatement* create_while_loop(Expr* while_cond, Statement* loop_body);
-IterationStatement* create_do_loop(Expr* while_cond, Statement* loop_body);
-IterationStatement* create_for_loop(ExprStatement* init_expr, ExprStatement* for_cond, Expr* incr_expr, Statement* loop_body);
+struct iteration_statement* create_while_loop(struct expr* while_cond, struct statement* loop_body);
+struct iteration_statement* create_do_loop(struct expr* while_cond, struct statement* loop_body);
+struct iteration_statement* create_for_loop(struct expr_statement* init_expr, struct expr_statement* for_cond, struct expr* incr_expr, struct statement* loop_body);
 
-void free_iteration_statement(IterationStatement* s);
+void free_iteration_statement(struct iteration_statement* s);
 
 #include "ast/statement.h"
 #include "ast/expr_statement.h"

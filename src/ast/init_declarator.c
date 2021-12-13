@@ -5,16 +5,16 @@
 
 #include "util.h"
 
-InitDeclarator* create_init_declarator(Declarator* decl, Initializer* init) {
+struct init_declarator* create_init_declarator(struct declarator* decl, struct initializer* init) {
     assert(decl);
-    InitDeclarator* res = xmalloc(sizeof(InitDeclarator));
+    struct init_declarator* res = xmalloc(sizeof(struct init_declarator));
     res->decl = decl;
     res->init = init;
     
     return res;
 }
 
-void free_init_declarator_children(InitDeclarator* d) {
+void free_init_declarator_children(struct init_declarator* d) {
     free_declarator(d->decl);
     free_initializer(d->init);
 }

@@ -6,26 +6,26 @@
 #include "error.h"
 #include "util.h"
 
-typedef struct {
-    Token* it;
-} ParserState;
+struct parser_state {
+    struct token* it;
+};
 
-static TranslationUnit* parse_translation_unit(ParserState* s);
+static struct translation_unit* parse_translation_unit(struct parser_state* s);
 
-TranslationUnit* parse_tokens(Token* tokens) {
-    ParserState state = {tokens};
-    TranslationUnit* res = parse_translation_unit(&state);
+struct translation_unit* parse_tokens(struct token* tokens) {
+    struct parser_state state = {tokens};
+    struct translation_unit* res = parse_translation_unit(&state);
     assert(state.it->type == INVALID);
     return res;
 }
 
-static inline void expected_token_error(TokenType expected, const Token* got) {
+static inline void expected_token_error(enum token_type expected, const struct token* got) {
     assert(got);
 
     set_error_file(ERR_PARSER, got->file, got->source_loc, "Expected token of type %s but got token of type %s", get_type_str(expected), get_type_str(got->type));
 }
 
-static inline void expected_tokens_error(const TokenType* expected, size_t num_expected, const Token* got) {
+static inline void expected_tokens_error(const enum token_type* expected, size_t num_expected, const struct token* got) {
     assert(expected);
     assert(got);
 
@@ -38,7 +38,7 @@ static inline void expected_tokens_error(const TokenType* expected, size_t num_e
     append_error_msg(" but got token of type %s", get_type_str(got->type));
 }
 
-static bool accept(ParserState* s, TokenType expected) {
+static bool accept(struct parser_state* s, enum token_type expected) {
     if (s->it->type != expected) {
         expected_token_error(expected, s->it);
         return false;
@@ -48,24 +48,24 @@ static bool accept(ParserState* s, TokenType expected) {
     }
 }
 
-static void accept_it(ParserState* s) {
+static void accept_it(struct parser_state* s) {
     ++s->it;
 }
 
-static bool parse_external_declaration(ParserState* s, ExternalDeclaration* res) {
+static bool parse_external_declaration(struct parser_state* s, struct external_declaration* res) {
     // TODO:
     return false;
 }
 
-static TranslationUnit* parse_translation_unit(ParserState* s) {
-    TranslationUnit* res = xmalloc(sizeof(TranslationUnit));
+static struct translation_unit* parse_translation_unit(struct parser_state* s) {
+    struct translation_unit* res = xmalloc(sizeof(struct translation_unit));
     size_t alloc_num = 1;
     res->len = 0;
-    res->external_decls = xmalloc(sizeof(ExternalDeclaration) * alloc_num);
+    res->external_decls = xmalloc(sizeof(struct external_declaration) * alloc_num);
 
     while (s->it->type != INVALID) {
         if (res->len == alloc_num) {
-            grow_alloc((void**)res->external_decls, &alloc_num, sizeof(ExternalDeclaration));
+            grow_alloc((void**)res->external_decls, &alloc_num, sizeof(struct external_declaration));
         }
         
         if (!parse_external_declaration(s, &res->external_decls[res->len])) {
@@ -76,7 +76,7 @@ static TranslationUnit* parse_translation_unit(ParserState* s) {
     }
     
     if (res->len != alloc_num) {
-        res->external_decls = xrealloc(res->external_decls, res->len * sizeof(ExternalDeclaration));
+        res->external_decls = xrealloc(res->external_decls, res->len * sizeof(struct external_declaration));
     }
 
     return res;
@@ -88,14 +88,14 @@ fail:
     return NULL;
 }
 
-static bool parse_assign_expr(AssignExpr* res, ParserState* s) {
+static bool parse_assign_expr(struct assign_expr* res, struct parser_state* s) {
     // TODO:
     return false;
 }
 
-static ArgExprList parse_arg_expr_list(ParserState* s) {
+static struct arg_expr_list parse_arg_expr_list(struct parser_state* s) {
     size_t alloc_size = 1;
-    ArgExprList res = {.len = 0, .assign_exprs = xmalloc(sizeof(AssignExpr) * alloc_size)};
+    struct arg_expr_list res = {.len = 0, .assign_exprs = xmalloc(sizeof(struct assign_expr) * alloc_size)};
     if (!parse_assign_expr(&res.assign_exprs[0], s)) {
         goto fail;
     }
@@ -103,7 +103,7 @@ static ArgExprList parse_arg_expr_list(ParserState* s) {
     while (s->it->type == COMMA) {
         accept_it(s);
         if (res.len == alloc_size) {
-            grow_alloc((void**)&res.assign_exprs, &alloc_size, sizeof(AssignExpr));
+            grow_alloc((void**)&res.assign_exprs, &alloc_size, sizeof(struct assign_expr));
         }
 
         if (!parse_assign_expr(&res.assign_exprs[res.len], s)) {
@@ -115,18 +115,18 @@ static ArgExprList parse_arg_expr_list(ParserState* s) {
 
 fail:
     free_arg_expr_list(&res);
-    return (ArgExprList){.assign_exprs = NULL, .len = 0};
+    return (struct arg_expr_list){.assign_exprs = NULL, .len = 0};
 }
 
-static Expr* parse_expr(ParserState* s);
+static struct expr* parse_expr(struct parser_state* s);
 
-static char* take_spelling(Token* t) {
+static char* take_spelling(struct token* t) {
     char* spelling = t->spelling;
     t->spelling = NULL;
     return spelling;
 }
 
-static PrimaryExpr* parse_primary_expr(ParserState* s) {
+static struct primary_expr* parse_primary_expr(struct parser_state* s) {
     switch (s->it->type) {
         case IDENTIFIER: {
             char* spelling = take_spelling(s->it);
@@ -147,7 +147,7 @@ static PrimaryExpr* parse_primary_expr(ParserState* s) {
     
         default:
             if (accept(s, LBRACKET)) {
-                Expr* bracket_expr = parse_expr(s);
+                struct expr* bracket_expr = parse_expr(s);
                 if (!bracket_expr) {
                     return NULL;
                 }
@@ -159,14 +159,14 @@ static PrimaryExpr* parse_primary_expr(ParserState* s) {
                     return NULL;
                 }
             } else {
-                TokenType expected[] = {
+                enum token_type expected[] = {
                     IDENTIFIER,
                     I_CONSTANT,
                     F_CONSTANT,
                     STRING_LITERAL,
                     LBRACKET
                 };
-                size_t size = sizeof expected / sizeof(TokenType);
+                size_t size = sizeof expected / sizeof(enum token_type);
                 expected_tokens_error(expected, size, s->it);
                 return NULL;
             }
@@ -175,10 +175,10 @@ static PrimaryExpr* parse_primary_expr(ParserState* s) {
     return NULL;
 }
 
-static Expr* parse_expr(ParserState* s) {
+static struct expr* parse_expr(struct parser_state* s) {
     size_t num_elems = 1;
-    Expr* res = xmalloc(sizeof(Expr));
-    res->assign_exprs = xmalloc(num_elems * sizeof(AssignExpr));
+    struct expr* res = xmalloc(sizeof(struct expr));
+    res->assign_exprs = xmalloc(num_elems * sizeof(struct assign_expr));
 
     if (parse_assign_expr(&res->assign_exprs[0], s)) {
         res->len = 0;
@@ -189,7 +189,7 @@ static Expr* parse_expr(ParserState* s) {
     while (s->it->type == COMMA) {
         accept_it(s);
         if (num_elems == res->len) {
-            grow_alloc((void**)&res->assign_exprs, &num_elems, sizeof(AssignExpr));
+            grow_alloc((void**)&res->assign_exprs, &num_elems, sizeof(struct assign_expr));
         }
 
         if (!parse_assign_expr(&res->assign_exprs[res->len], s)) {
@@ -200,7 +200,7 @@ static Expr* parse_expr(ParserState* s) {
     }
 
     if (num_elems != res->len) {
-        res->assign_exprs = xrealloc(res->assign_exprs, sizeof(AssignExpr) * res->len);
+        res->assign_exprs = xrealloc(res->assign_exprs, sizeof(struct assign_expr) * res->len);
     }
 
     return res;
@@ -209,7 +209,7 @@ fail:
     return NULL;
 }
 
-static bool is_posfix_expr(TokenType t) {
+static bool is_posfix_expr(enum token_type t) {
     switch (t) {
         case LINDEX:
         case LBRACKET:
@@ -224,8 +224,8 @@ static bool is_posfix_expr(TokenType t) {
     }
 }
 
-static PostfixExpr* parse_postfix_expr(ParserState* s) {
-    PostfixExpr* res = xmalloc(sizeof(PostfixExpr));
+static struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
+    struct postfix_expr* res = xmalloc(sizeof(struct postfix_expr));
     res->primary = parse_primary_expr(s);
     if (!res->primary) {
         return NULL;
@@ -233,16 +233,16 @@ static PostfixExpr* parse_postfix_expr(ParserState* s) {
 
     size_t alloc_size = 1;
     res->len = 0;
-    res->suffixes = xmalloc(sizeof(PostfixSuffix) * alloc_size);
+    res->suffixes = xmalloc(sizeof(struct postfix_suffix) * alloc_size);
     while (is_posfix_expr(s->it->type)) {
         if (res->len == alloc_size) {
-            grow_alloc((void**)&res->suffixes, &alloc_size, sizeof(PostfixSuffix));
+            grow_alloc((void**)&res->suffixes, &alloc_size, sizeof(struct postfix_suffix));
         }
 
         switch (s->it->type) {
             case LINDEX: {
                 accept_it(s);
-                Expr* expr = parse_expr(s);
+                struct expr* expr = parse_expr(s);
                 if (!expr) {
                     goto fail;
                 }
@@ -250,7 +250,7 @@ static PostfixExpr* parse_postfix_expr(ParserState* s) {
                     free_expr(expr);
                     goto fail;
                 }
-                res->suffixes[res->len] = (PostfixSuffix){
+                res->suffixes[res->len] = (struct postfix_suffix){
                     .type = POSTFIX_INDEX, 
                     .index_expr = expr};
                 break;
@@ -258,7 +258,7 @@ static PostfixExpr* parse_postfix_expr(ParserState* s) {
             
             case LBRACKET: {
                 accept_it(s);
-                ArgExprList arg_expr_list = {.assign_exprs = NULL, .len = 0};
+                struct arg_expr_list arg_expr_list = {.assign_exprs = NULL, .len = 0};
                 if (s->it->type != RBRACKET) {
                     arg_expr_list = parse_arg_expr_list(s);
                     if (get_last_error() != ERR_NONE) {
@@ -266,7 +266,7 @@ static PostfixExpr* parse_postfix_expr(ParserState* s) {
                     }
                 }
                 accept(s, RBRACKET);
-                res->suffixes[res->len] = (PostfixSuffix){
+                res->suffixes[res->len] = (struct postfix_suffix){
                     .type = POSTFIX_BRACKET, 
                     .bracket_list = arg_expr_list
                     };
@@ -275,15 +275,15 @@ static PostfixExpr* parse_postfix_expr(ParserState* s) {
 
             case DOT:
             case PTR_OP: {
-                PostfixSuffixType type = s->it->type == PTR_OP 
+                enum postfix_suffix_type type = s->it->type == PTR_OP 
                     	? POSTFIX_PTR_ACCESS : POSTFIX_ACCESS; 
                 accept_it(s);
                 if (s->it->type != IDENTIFIER) {
                     goto fail;                        
                 }
                 char* spelling = take_spelling(s->it);
-                Identifier* identifier = create_identifier(spelling);
-                res->suffixes[res->len] = (PostfixSuffix){
+                struct identifier* identifier = create_identifier(spelling);
+                res->suffixes[res->len] = (struct postfix_suffix){
                     .type = type, 
                     .identifier = identifier};
                 break;
@@ -291,9 +291,9 @@ static PostfixExpr* parse_postfix_expr(ParserState* s) {
 
             case INC_OP:
             case DEC_OP: {
-                TokenType inc_dec = s->it->type;
+                enum token_type inc_dec = s->it->type;
                 accept_it(s);
-                res->suffixes[res->len] = (PostfixSuffix){
+                res->suffixes[res->len] = (struct postfix_suffix){
                     .type = POSTFIX_INC_DEC, 
                     .inc_dec = inc_dec};
                 break;
@@ -307,7 +307,7 @@ static PostfixExpr* parse_postfix_expr(ParserState* s) {
     }
 
     if (alloc_size != res->len) {
-        res->suffixes = xrealloc(res->suffixes, res->len * sizeof(PostfixSuffix));
+        res->suffixes = xrealloc(res->suffixes, res->len * sizeof(struct postfix_suffix));
     }
 
     return res;

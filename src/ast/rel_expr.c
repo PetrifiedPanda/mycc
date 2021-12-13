@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-RelExpr* create_rel_expr(ShiftExpr* lhs, ShiftExprAndOp* rel_chain, size_t len) {
+struct rel_expr* create_rel_expr(struct shift_expr* lhs, struct shift_expr_and_op* rel_chain, size_t len) {
     assert(lhs);
     if (len > 0) {
         assert(rel_chain);
@@ -14,19 +14,19 @@ RelExpr* create_rel_expr(ShiftExpr* lhs, ShiftExprAndOp* rel_chain, size_t len) 
     }
     
     for (size_t i = 0; i < len; ++i) {
-        ShiftExprAndOp* item = &rel_chain[i];
+        struct shift_expr_and_op* item = &rel_chain[i];
         assert(item->rhs);
         assert(is_rel_op(item->rel_op));
     }
 
-    RelExpr* res = xmalloc(sizeof(RelExpr));
+    struct rel_expr* res = xmalloc(sizeof(struct rel_expr));
     res->len = len;
     res->rel_chain = rel_chain;
     
     return res;
 }
 
-void free_rel_expr_children(RelExpr* e) {
+void free_rel_expr_children(struct rel_expr* e) {
     free_shift_expr(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         free_shift_expr(e->rel_chain[i].rhs);
@@ -34,7 +34,7 @@ void free_rel_expr_children(RelExpr* e) {
     free(e->rel_chain);
 } 
 
-void free_rel_expr(RelExpr* e) {
+void free_rel_expr(struct rel_expr* e) {
     free_rel_expr_children(e);
     free(e);
 }

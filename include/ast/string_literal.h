@@ -1,12 +1,12 @@
 #ifndef AST_STRING_LITERAL_H
 #define AST_STRING_LITERAL_H
 
-typedef struct {
+struct string_literal {
     char* spelling;
-} StringLiteral;
+};
 
-StringLiteral create_string_literal(char* spelling);
+struct string_literal create_string_literal(char* spelling);
 
-void free_string_literal(StringLiteral* l);
+void free_string_literal(struct string_literal* l);
 
 #endif

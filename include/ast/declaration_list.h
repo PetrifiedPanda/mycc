@@ -3,16 +3,16 @@
 
 #include <stddef.h>
 
-typedef struct Declaration Declaration;
+struct declaration;
 
-typedef struct DeclarationList {
+struct declaration_list {
     size_t len;
-    Declaration* decls;
-} DeclarationList;
+    struct declaration* decls;
+};
 
-DeclarationList* create_declaration_list(Declaration* decls, size_t len);
+struct declaration_list* create_declaration_list(struct declaration* decls, size_t len);
 
-void free_declaration_list(DeclarationList* l);
+void free_declaration_list(struct declaration_list* l);
 
 #include "ast/declaration.h"
 

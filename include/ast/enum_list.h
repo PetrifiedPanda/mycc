@@ -3,16 +3,16 @@
 
 #include <stddef.h>
 
-typedef struct Enumerator Enumerator;
+struct enumerator;
 
-typedef struct EnumList {
+struct enum_list {
     size_t len;
-    Enumerator* enums;
-} EnumList;
+    struct enumerator* enums;
+};
 
-EnumList create_enum_list(Enumerator* enums, size_t len);
+struct enum_list create_enum_list(struct enumerator* enums, size_t len);
 
-void free_enum_list(EnumList* l);
+void free_enum_list(struct enum_list* l);
 
 #include "ast/enumerator.h"
 

@@ -3,16 +3,16 @@
 
 #include <stddef.h>
 
-typedef struct ParamDeclaration ParamDeclaration;
+struct param_declaration;
 
-typedef struct ParamList {
+struct param_list {
     size_t len;
-    ParamDeclaration* decls;
-} ParamList;
+    struct param_declaration* decls;
+};
 
-ParamList* create_param_list(ParamDeclaration* decls, size_t len);
+struct param_list* create_param_list(struct param_declaration* decls, size_t len);
 
-void free_param_list(ParamList* l);
+void free_param_list(struct param_list* l);
 
 #include "ast/param_declaration.h"
 

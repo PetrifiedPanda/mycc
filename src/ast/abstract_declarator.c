@@ -5,15 +5,15 @@
 
 #include "util.h"
 
-AbstractDeclarator* create_abstract_declarator(Pointer* ptr, DirectAbstractDeclarator* direct_abs_decl) {
+struct abstract_declarator* create_abstract_declarator(struct pointer* ptr, struct direct_abstract_declarator* direct_abs_decl) {
     assert(ptr || direct_abs_decl); 
-    AbstractDeclarator* res = xmalloc(sizeof(AbstractDeclarator));
+    struct abstract_declarator* res = xmalloc(sizeof(struct abstract_declarator));
     res->ptr = ptr;
     res->direct_abs_decl = direct_abs_decl;
     return res;
 }
 
-static void free_children(AbstractDeclarator* d) {
+static void free_children(struct abstract_declarator* d) {
     if (d->ptr) {
         free_pointer(d->ptr);
     }
@@ -22,7 +22,7 @@ static void free_children(AbstractDeclarator* d) {
     }
 }
 
-void free_abstract_declarator(AbstractDeclarator* d) {
+void free_abstract_declarator(struct abstract_declarator* d) {
     free_children(d);
     free(d);
 }

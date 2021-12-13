@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 
-const char* get_spelling(TokenType type) {
+const char* get_spelling(enum token_type type) {
     switch (type) {    
         case SIZEOF:
             return "sizeof";
@@ -167,7 +167,7 @@ const char* get_spelling(TokenType type) {
     }
 }
 
-const char* get_type_str(TokenType type) {
+const char* get_type_str(enum token_type type) {
     switch (type) {
         case IDENTIFIER:
             return "IDENTIFIER";
@@ -340,7 +340,7 @@ const char* get_type_str(TokenType type) {
     }
 }
 
-bool is_unary_op(TokenType t) {
+bool is_unary_op(enum token_type t) {
     switch (t) {
         case AND:
         case ASTERISK:
@@ -354,7 +354,7 @@ bool is_unary_op(TokenType t) {
     }
 }
 
-bool is_assign_op(TokenType t) {
+bool is_assign_op(enum token_type t) {
     switch (t) {
         case ASSIGN:
         case MUL_ASSIGN:
@@ -374,7 +374,7 @@ bool is_assign_op(TokenType t) {
 }
 
 // TODO: update with new grammar
-bool is_storage_class_spec(TokenType t) {
+bool is_storage_class_spec(enum token_type t) {
     switch (t) {
         case TYPEDEF:
         case EXTERN:
@@ -387,7 +387,7 @@ bool is_storage_class_spec(TokenType t) {
     }
 }
 
-bool is_keyword_type_spec(TokenType t) {
+bool is_keyword_type_spec(enum token_type t) {
     switch (t) {
         case VOID:
         case CHAR:
@@ -404,7 +404,7 @@ bool is_keyword_type_spec(TokenType t) {
     }
 }
 
-bool is_shift_op(TokenType t) {
+bool is_shift_op(enum token_type t) {
     switch (t) {
         case LEFT_OP:
         case RIGHT_OP:
@@ -414,7 +414,7 @@ bool is_shift_op(TokenType t) {
     }
 }
 
-bool is_rel_op(TokenType t) {
+bool is_rel_op(enum token_type t) {
     switch (t) {
         case LE_OP:
         case GE_OP:
@@ -426,7 +426,7 @@ bool is_rel_op(TokenType t) {
     }
 }
 
-bool is_mul_op(TokenType t) {
+bool is_mul_op(enum token_type t) {
     switch (t) {
         case ASTERISK:
         case DIV:
@@ -437,7 +437,7 @@ bool is_mul_op(TokenType t) {
     }
 }
 
-bool is_add_op(TokenType t) {
+bool is_add_op(enum token_type t) {
     switch (t) {
         case ADD:
         case SUB:
@@ -447,7 +447,7 @@ bool is_add_op(TokenType t) {
     }
 }
 
-bool is_eq_op(TokenType t) {
+bool is_eq_op(enum token_type t) {
     switch (t) {
         case EQ_OP:
         case NE_OP:

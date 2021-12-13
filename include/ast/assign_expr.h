@@ -5,25 +5,25 @@
 
 #include "token_type.h"
 
-typedef struct UnaryExpr UnaryExpr;
-typedef struct CondExpr CondExpr;
+struct unary_expr;
+struct cond_expr;
 
-typedef struct {
-    UnaryExpr* unary;
-    TokenType assign_op;
-} UnaryAndOp;
+struct unary_and_op {
+    struct unary_expr* unary;
+    enum token_type assign_op;
+};
 
-typedef struct AssignExpr {
+struct assign_expr {
     size_t len;
-    UnaryAndOp* assign_chain;
-    CondExpr* value;
-} AssignExpr;
+    struct unary_and_op* assign_chain;
+    struct cond_expr* value;
+};
 
-void init_assign_expr(AssignExpr* res, UnaryAndOp* assign_chain, size_t len, CondExpr* value);
-AssignExpr* create_assign_expr(UnaryAndOp* assign_chain, size_t len, CondExpr* value);
+void init_assign_expr(struct assign_expr* res, struct unary_and_op* assign_chain, size_t len, struct cond_expr* value);
+struct assign_expr* create_assign_expr(struct unary_and_op* assign_chain, size_t len, struct cond_expr* value);
 
-void free_assign_expr_children(AssignExpr* e);
-void free_assign_expr(AssignExpr* e);
+void free_assign_expr_children(struct assign_expr* e);
+void free_assign_expr(struct assign_expr* e);
 
 #include "ast/cond_expr.h"
 #include "ast/unary_expr.h"

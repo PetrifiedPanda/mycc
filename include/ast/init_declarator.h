@@ -1,17 +1,17 @@
 #ifndef INIT_DECLARATOR_H
 #define INIT_DECLARATOR_H
 
-typedef struct Declarator Declarator;
-typedef struct Initializer Initializer;
+struct declarator;
+struct initializer;
 
-typedef struct InitDeclarator {
-    Declarator* decl;
-    Initializer* init;
-} InitDeclarator;
+struct init_declarator {
+    struct declarator* decl;
+    struct initializer* init;
+};
 
-InitDeclarator* create_init_declarator(Declarator* decl, Initializer* init);
+struct init_declarator* create_init_declarator(struct declarator* decl, struct initializer* init);
 
-void free_init_declarator_children(InitDeclarator* d);
+void free_init_declarator_children(struct init_declarator* d);
 
 #include "ast/declarator.h"
 #include "ast/initializer.h"

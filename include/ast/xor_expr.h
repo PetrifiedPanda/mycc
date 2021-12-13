@@ -3,18 +3,18 @@
 
 #include <stddef.h>
 
-typedef struct AndExpr AndExpr;
+struct and_expr;
 
-typedef struct XorExpr {
+struct xor_expr {
     size_t len;
-    AndExpr* and_exprs;
-} XorExpr;
+    struct and_expr* and_exprs;
+};
 
-XorExpr* create_xor_expr(AndExpr* and_exprs, size_t len);
+struct xor_expr* create_xor_expr(struct and_expr* and_exprs, size_t len);
 
-void free_xor_expr_children(XorExpr* e);
+void free_xor_expr_children(struct xor_expr* e);
 
-void free_xor_expr(XorExpr* e);
+void free_xor_expr(struct xor_expr* e);
 
 #include "ast/and_expr.h"
 

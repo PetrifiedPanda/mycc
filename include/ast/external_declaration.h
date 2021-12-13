@@ -6,18 +6,18 @@
 #include "ast/func_def.h"
 #include "ast/declaration.h"
 
-typedef struct ExternalDeclaration {
+struct external_declaration {
     bool is_func_def;
     union {
-        FuncDef func_def;
-        Declaration decl;
+        struct func_def func_def;
+        struct declaration decl;
     };
-} ExternalDeclaration;
+};
 
-ExternalDeclaration* create_external_declaration(Declaration decl);
-ExternalDeclaration* create_external_declaration_func(FuncDef func_def);
+struct external_declaration* create_external_declaration(struct declaration decl);
+struct external_declaration* create_external_declaration_func(struct func_def func_def);
 
-void free_external_declaration_children(ExternalDeclaration* d);
+void free_external_declaration_children(struct external_declaration* d);
 
 #endif
 

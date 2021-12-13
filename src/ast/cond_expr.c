@@ -5,14 +5,14 @@
 
 #include "util.h"
 
-CondExpr* create_cond_expr(LogOrAndExpr* conditionals, size_t len, LogOrExpr* last_else) {
+struct cond_expr* create_cond_expr(struct log_or_and_expr* conditionals, size_t len, struct log_or_expr* last_else) {
     assert(last_else);
     if (len > 0) {
         assert(conditionals);
     } else {
         assert(conditionals == NULL);
     }
-    CondExpr* res = xmalloc(sizeof(CondExpr));
+    struct cond_expr* res = xmalloc(sizeof(struct cond_expr));
     res->conditionals = conditionals;
     res->len = len;
     res->last_else = last_else;
@@ -20,9 +20,9 @@ CondExpr* create_cond_expr(LogOrAndExpr* conditionals, size_t len, LogOrExpr* la
     return res;
 }
 
-void free_cond_expr_children(CondExpr* e) {
+void free_cond_expr_children(struct cond_expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
-        LogOrAndExpr* item = &e->conditionals[i];
+        struct log_or_and_expr* item = &e->conditionals[i];
         free_log_or_expr(item->log_or);
         free_expr(item->expr);
     }
@@ -31,7 +31,7 @@ void free_cond_expr_children(CondExpr* e) {
     free_log_or_expr(e->last_else);
 }
 
-void free_cond_expr(CondExpr* e) {
+void free_cond_expr(struct cond_expr* e) {
     free_cond_expr_children(e);
     free(e);
 }

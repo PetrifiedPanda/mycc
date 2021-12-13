@@ -3,16 +3,16 @@
 
 #include <stddef.h>
 
-typedef struct Statement Statement;
+struct statement;
 
-typedef struct StatementList {
+struct statement_list {
     size_t len;
-    Statement* statements;
-} StatementList;
+    struct statement* statements;
+};
 
-StatementList create_statement_list(Statement* statements, size_t len);
+struct statement_list create_statement_list(struct statement* statements, size_t len);
 
-void free_statement_list(StatementList* l);
+void free_statement_list(struct statement_list* l);
 
 #include "ast/statement.h"
 

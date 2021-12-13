@@ -3,23 +3,23 @@
 
 #include "token_type.h"
 
-typedef struct Expr Expr;
-typedef struct Identifier Identifier;
+struct expr;
+struct identifier;
 
-typedef struct JumpStatement {
-    TokenType type;
+struct jump_statement {
+    enum token_type type;
     union {
-        Identifier* identifier;
-        Expr* ret_val;
+        struct identifier* identifier;
+        struct expr* ret_val;
     };
-} JumpStatement;
+};
 
-JumpStatement* create_goto_statement(Identifier* identifier);
-JumpStatement* create_continue_statement();
-JumpStatement* create_break_statement();
-JumpStatement* create_return_statement(Expr* ret_val);
+struct jump_statement* create_goto_statement(struct identifier* identifier);
+struct jump_statement* create_continue_statement();
+struct jump_statement* create_break_statement();
+struct jump_statement* create_return_statement(struct expr* ret_val);
 
-void free_jump_statement(JumpStatement* s);
+void free_jump_statement(struct jump_statement* s);
 
 #include "ast/expr.h"
 #include "ast/identifier.h"

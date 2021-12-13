@@ -3,24 +3,24 @@
 
 #include <stddef.h>
 
-typedef struct LogOrExpr LogOrExpr;
-typedef struct Expr Expr;
+struct log_or_expr;
+struct expr;
 
-typedef struct {
-    LogOrExpr* log_or;
-    Expr* expr;
-} LogOrAndExpr;
+struct log_or_and_expr {
+    struct log_or_expr* log_or;
+    struct expr* expr;
+};
 
-typedef struct CondExpr {
+struct cond_expr {
     size_t len;
-    LogOrAndExpr* conditionals;
-    LogOrExpr* last_else;
-} CondExpr;
+    struct log_or_and_expr* conditionals;
+    struct log_or_expr* last_else;
+};
 
-CondExpr* create_cond_expr(LogOrAndExpr* conditionals, size_t len, LogOrExpr* last_else);
+struct cond_expr* create_cond_expr(struct log_or_and_expr* conditionals, size_t len, struct log_or_expr* last_else);
 
-void free_cond_expr_children(CondExpr* e);
-void free_cond_expr(CondExpr* e);
+void free_cond_expr_children(struct cond_expr* e);
+void free_cond_expr(struct cond_expr* e);
 
 #include "ast/expr.h"
 #include "ast/log_or_expr.h"

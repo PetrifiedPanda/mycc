@@ -1,16 +1,18 @@
 #ifndef LOG_OR_EXPR_H
 #define LOG_OR_EXPR_H
 
-typedef struct LogAndExpr LogAndExpr;
+#include <stddef.h>
 
-typedef struct LogOrExpr {
-    struct LogOrExpr* log_or;
-    LogAndExpr* log_and;
-} LogOrExpr;
+struct log_and_expr;
 
-LogOrExpr* create_log_or_expr(LogOrExpr* log_or, LogAndExpr* log_and);
+struct log_or_expr {
+    size_t len;
+    struct log_and_expr* log_ands;
+};
 
-void free_log_or_expr(LogOrExpr* e);
+struct log_or_expr* create_log_or_expr(size_t len, struct log_and_expr* log_ands);
+
+void free_log_or_expr(struct log_or_expr* e);
 
 #include "ast/log_and_expr.h"
 

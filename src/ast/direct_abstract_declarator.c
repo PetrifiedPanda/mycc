@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-static void add_following_suffixes(DirectAbstractDeclarator* res, ArrayOrFuncSuffix* following_suffixes, size_t len) {
+static void add_following_suffixes(struct direct_abstract_declarator* res, struct arr_or_func_suffix_direct_abs_decl* following_suffixes, size_t len) {
     assert(res);
     if (len == 0) {
         assert(following_suffixes == NULL);
@@ -14,8 +14,8 @@ static void add_following_suffixes(DirectAbstractDeclarator* res, ArrayOrFuncSuf
     res->following_suffixes = following_suffixes;
 }
 
-DirectAbstractDeclarator* create_direct_abstract_declarator_arr(ConstExpr* array_size, ArrayOrFuncSuffix* following_suffixes, size_t len) {
-    DirectAbstractDeclarator* res = xmalloc(sizeof(DirectAbstractDeclarator));
+struct direct_abstract_declarator* create_direct_abstract_declarator_arr(struct const_expr* array_size, struct arr_or_func_suffix_direct_abs_decl* following_suffixes, size_t len) {
+    struct direct_abstract_declarator* res = xmalloc(sizeof(struct direct_abstract_declarator));
     res->type = DIRECT_ABSTRACT_DECL_ARRAY;
     res->array_size = array_size; 
     add_following_suffixes(res, following_suffixes, len);
@@ -23,8 +23,8 @@ DirectAbstractDeclarator* create_direct_abstract_declarator_arr(ConstExpr* array
     return res;
 }
 
-DirectAbstractDeclarator* create_direct_abstract_declarator_abs_decl(AbstractDeclarator* bracket_decl, ArrayOrFuncSuffix* following_suffixes, size_t len) {
-    DirectAbstractDeclarator* res = xmalloc(sizeof(DirectAbstractDeclarator));
+struct direct_abstract_declarator* create_direct_abstract_declarator_abs_decl(struct abstract_declarator* bracket_decl, struct arr_or_func_suffix_direct_abs_decl* following_suffixes, size_t len) {
+    struct direct_abstract_declarator* res = xmalloc(sizeof(struct direct_abstract_declarator));
     res->type = DIRECT_ABSTRACT_DECL_ABSTRACT_DECL;
     res->bracket_decl = bracket_decl;    
     add_following_suffixes(res, following_suffixes, len);
@@ -32,8 +32,8 @@ DirectAbstractDeclarator* create_direct_abstract_declarator_abs_decl(AbstractDec
     return res;
 }
 
-DirectAbstractDeclarator* create_direct_abstract_declarator_param_list(ParamTypeList func_types, ArrayOrFuncSuffix* following_suffixes, size_t len) {
-    DirectAbstractDeclarator* res = xmalloc(sizeof(DirectAbstractDeclarator));
+struct direct_abstract_declarator* create_direct_abstract_declarator_param_list(struct param_type_list func_types, struct arr_or_func_suffix_direct_abs_decl* following_suffixes, size_t len) {
+    struct direct_abstract_declarator* res = xmalloc(sizeof(struct direct_abstract_declarator));
     res->type = DIRECT_ABSTRACT_DECL_PARAM_TYPE_LIST;
     res->func_types = func_types;    
     add_following_suffixes(res, following_suffixes, len);
@@ -41,7 +41,7 @@ DirectAbstractDeclarator* create_direct_abstract_declarator_param_list(ParamType
     return res;
 }
 
-static void free_children(DirectAbstractDeclarator* d) {
+static void free_children(struct direct_abstract_declarator* d) {
     switch (d->type) {
         case DIRECT_ABSTRACT_DECL_ARRAY:
             if (d->array_size) {
@@ -59,7 +59,7 @@ static void free_children(DirectAbstractDeclarator* d) {
     }
 
     for (size_t i = 0; i < d->len; ++i) {
-        ArrayOrFuncSuffix* item = &d->following_suffixes[i];
+        struct arr_or_func_suffix_direct_abs_decl* item = &d->following_suffixes[i];
         if (item->is_array_decl) {
             if (item->array_size) {
                 free_const_expr(item->array_size);
@@ -71,7 +71,7 @@ static void free_children(DirectAbstractDeclarator* d) {
     free(d->following_suffixes);
 }
 
-void free_direct_abstract_declarator(DirectAbstractDeclarator* d) {
+void free_direct_abstract_declarator(struct direct_abstract_declarator* d) {
     free_children(d);
     free(d);
 }

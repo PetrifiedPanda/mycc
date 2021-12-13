@@ -3,18 +3,18 @@
 
 #include "token.h"
 
-typedef enum {
+enum error_type {
     ERR_NONE,
     ERR_TOKENIZER,
     ERR_PARSER
-} ErrorType;
+};
 
 /**
  * @brief Get the last error that was set
  * 
- * @return ErrorType The last error that was set using set_error() or set_error_file()
+ * @return enum error_type The last error that was set using set_error() or set_error_file()
  */
-ErrorType get_last_error();
+enum error_type get_last_error();
 
 /**
  * @brief Clears the global error state, so get_last_error() returns ERR_NONE
@@ -36,7 +36,7 @@ const char* get_error_string();
  * @param format A format string, analogous to printf()
  * @param ... The strings format arguments
  */
-void set_error(ErrorType type, const char* format, ...);
+void set_error(enum error_type type, const char* format, ...);
 
 /**
  * @brief Sets the global error state, specifying the location of the error in the file
@@ -47,7 +47,7 @@ void set_error(ErrorType type, const char* format, ...);
  * @param format A format string, analogous to printf()
  * @param ... The strings format arguments
  */
-void set_error_file(ErrorType type, const char* filename, SourceLocation loc, const char* format, ...);
+void set_error_file(enum error_type type, const char* filename, struct source_location loc, const char* format, ...);
 
 /**
  * @brief Appends to the already existing error message. The error must have already been set

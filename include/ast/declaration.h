@@ -5,17 +5,17 @@
 
 #include "ast/init_declarator_list.h"
 
-typedef struct DeclarationSpecs DeclarationSpecs;
+struct declaration_specs;
 
-typedef struct Declaration {
-    DeclarationSpecs* decl_specs;
-    InitDeclaratorList init_decls;
-} Declaration;
+struct declaration {
+    struct declaration_specs* decl_specs;
+    struct init_declarator_list init_decls;
+};
 
-Declaration* create_declaration(DeclarationSpecs* decl_specs, InitDeclaratorList init_decls);
+struct declaration* create_declaration(struct declaration_specs* decl_specs, struct init_declarator_list init_decls);
 
-void free_declaration_children(Declaration* d);
-void free_declaration(Declaration* d);
+void free_declaration_children(struct declaration* d);
+void free_declaration(struct declaration* d);
 
 #include "ast/declaration_specs.h"
 

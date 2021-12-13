@@ -3,16 +3,16 @@
 
 #include "ast/enum_list.h"
 
-typedef struct Identifier Identifier;
+struct identifier;
 
-typedef struct EnumSpec {
-    Identifier* identifier;
-    EnumList enum_list;
-} EnumSpec;
+struct enum_spec {
+    struct identifier* identifier;
+    struct enum_list enum_list;
+};
 
-EnumSpec* create_enum_spec(Identifier* identifier, EnumList enum_list);
+struct enum_spec* create_enum_spec(struct identifier* identifier, struct enum_list enum_list);
 
-void free_enum_spec(EnumSpec* s);
+void free_enum_spec(struct enum_spec* s);
 
 #include "ast/identifier.h"
 

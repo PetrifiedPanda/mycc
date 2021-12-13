@@ -3,20 +3,20 @@
 
 #include <stdbool.h>
 
-typedef struct Expr Expr;
-typedef struct Statement Statement;
+struct expr;
+struct statement;
 
-typedef struct SelectionStatement {
+struct selection_statement {
     bool is_if;
-    Expr* sel_expr;
-    Statement* sel_stat;
-    Statement* else_stat;
-} SelectionStatement;
+    struct expr* sel_expr;
+    struct statement* sel_stat;
+    struct statement* else_stat;
+};
 
-SelectionStatement* create_if_else_statement(Expr* sel_expr, Statement* sel_stat, Statement* else_stat);
-SelectionStatement* create_switch_statement(Expr* sel_expr, Statement* sel_stat);
+struct selection_statement* create_if_else_statement(struct expr* sel_expr, struct statement* sel_stat, struct statement* else_stat);
+struct selection_statement* create_switch_statement(struct expr* sel_expr, struct statement* sel_stat);
 
-void free_selection_statement(SelectionStatement* s);
+void free_selection_statement(struct selection_statement* s);
 
 #include "ast/expr.h"
 #include "ast/statement.h"

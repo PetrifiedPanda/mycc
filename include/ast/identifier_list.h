@@ -3,16 +3,16 @@
 
 #include <stddef.h>
 
-typedef struct Identifier Identifier;
+struct identifier;
 
-typedef struct IdentifierList {
+struct identifier_list {
     size_t len;
-    Identifier* identifiers;
-} IdentifierList;
+    struct identifier* identifiers;
+};
 
-IdentifierList* create_identifier_list(Identifier* identifiers, size_t len);
+struct identifier_list* create_identifier_list(struct identifier* identifiers, size_t len);
 
-void free_identifier_list(IdentifierList* l);
+void free_identifier_list(struct identifier_list* l);
 
 #include "ast/identifier.h"
 

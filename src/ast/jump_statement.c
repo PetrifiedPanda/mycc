@@ -5,37 +5,37 @@
 
 #include "util.h"
 
-static JumpStatement* create(TokenType type) {
+static struct jump_statement* create(enum token_type type) {
     assert(type == GOTO || type == CONTINUE || type == BREAK || type == RETURN);
-    JumpStatement* res = xmalloc(sizeof(JumpStatement));
+    struct jump_statement* res = xmalloc(sizeof(struct jump_statement));
     res->type = type;
     
     return res;
 } 
 
-JumpStatement* create_goto_statement(Identifier* identifier) {
+struct jump_statement* create_goto_statement(struct identifier* identifier) {
     assert(identifier);
-    JumpStatement* res = create(GOTO);
+    struct jump_statement* res = create(GOTO);
     res->identifier = identifier;
 
     return res;
 }
 
-JumpStatement* create_continue_statement() {
+struct jump_statement* create_continue_statement() {
     return create(CONTINUE);
 }
 
-JumpStatement* create_break_statement() {
+struct jump_statement* create_break_statement() {
     return create(BREAK);
 }
 
-JumpStatement* create_return_statement(Expr* ret_val) {
-    JumpStatement* res = create(RETURN);
+struct jump_statement* create_return_statement(struct expr* ret_val) {
+    struct jump_statement* res = create(RETURN);
     res->ret_val = ret_val;
     return res;
 }
 
-static void free_children(JumpStatement* s) {
+static void free_children(struct jump_statement* s) {
     switch (s->type) {
         case GOTO:
             free_identifier(s->identifier);
@@ -50,7 +50,7 @@ static void free_children(JumpStatement* s) {
     }
 }
 
-void free_jump_statement(JumpStatement* s) {
+void free_jump_statement(struct jump_statement* s) {
     free_children(s);
     free(s);
 }

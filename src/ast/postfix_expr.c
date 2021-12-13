@@ -1,9 +1,9 @@
 #include "ast/postfix_expr.h"
 
-static void free_children(PostfixExpr* p) {
+static void free_children(struct postfix_expr* p) {
     free_primary_expr(p->primary);
     for (size_t i = 0; i < p->len; ++i) {
-        PostfixSuffix* s = &p->suffixes[i];
+        struct postfix_suffix* s = &p->suffixes[i];
         switch (s->type) {
             case POSTFIX_INDEX:
                 free_expr(s->index_expr);
@@ -22,7 +22,7 @@ static void free_children(PostfixExpr* p) {
     free(p->suffixes);
 }
 
-void free_postfix_expr(PostfixExpr* p) {
+void free_postfix_expr(struct postfix_expr* p) {
     free_children(p);
     free(p);
 }

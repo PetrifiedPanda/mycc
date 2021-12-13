@@ -5,17 +5,17 @@
 
 #include "util.h"
 
-IdentifierList* create_identifier_list(Identifier* identifiers, size_t len) {
+struct identifier_list* create_identifier_list(struct identifier* identifiers, size_t len) {
     assert(len > 0);
     assert(identifiers);
-    IdentifierList* res = xmalloc(sizeof(IdentifierList));
+    struct identifier_list* res = xmalloc(sizeof(struct identifier_list));
     res->len = len;
     res->identifiers = identifiers;
 
     return res;
 }
 
-void free_identifier_list(IdentifierList* l) {
+void free_identifier_list(struct identifier_list* l) {
     for (size_t i = 0; i < l->len; ++i) {
         free_identifier_children(&l->identifiers[i]);
     }

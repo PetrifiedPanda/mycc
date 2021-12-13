@@ -1,14 +1,14 @@
 #ifndef IDENTIFIER_H
 #define IDENTIFIER_H
 
-typedef struct Identifier {
+struct identifier {
     char* spelling;
-} Identifier;
+};
 
-Identifier* create_identifier(char* spelling);
+struct identifier* create_identifier(char* spelling);
 
-void free_identifier_children(Identifier* i);
+void free_identifier_children(struct identifier* i);
 
-void free_identifier(Identifier* i);
+void free_identifier(struct identifier* i);
 
 #endif

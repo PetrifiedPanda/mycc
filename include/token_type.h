@@ -5,7 +5,7 @@
 
 #include <stdbool.h>
 
-typedef enum {
+enum token_type {
     IDENTIFIER,
     I_CONSTANT,
     F_CONSTANT,
@@ -91,34 +91,34 @@ typedef enum {
     ASSIGN, // =
     COMMA,
     INVALID
-} TokenType;
+};
 
 /**
- * @brief Gets a spelling for the given TokenType
+ * @brief Gets a spelling for the given token_type
  * 
  * @param type Type to get the spelling for
  * @return const char* The spelling of the given token type, if it is unambiguous, otherwise NULL
  */
-const char* get_spelling(TokenType type);
+const char* get_spelling(enum token_type type);
 
 /**
- * @brief Gets a string to identify the TokenType
+ * @brief Gets a string to identify the token_type
  * 
- * @param type TokenType value
+ * @param type enum token_type value
  * @return const char* A string that is identical to the spelling of the enum value
  */
-const char* get_type_str(TokenType type);
+const char* get_type_str(enum token_type type);
 
-bool is_unary_op(TokenType t);
-bool is_assign_op(TokenType t);
-bool is_storage_class_spec(TokenType t);
-bool is_keyword_type_spec(TokenType t);
+bool is_unary_op(enum token_type t);
+bool is_assign_op(enum token_type t);
+bool is_storage_class_spec(enum token_type t);
+bool is_keyword_type_spec(enum token_type t);
 
-bool is_shift_op(TokenType t);
-bool is_rel_op(TokenType t);
-bool is_mul_op(TokenType t);
-bool is_add_op(TokenType t);
-bool is_eq_op(TokenType t);
+bool is_shift_op(enum token_type t);
+bool is_rel_op(enum token_type t);
+bool is_mul_op(enum token_type t);
+bool is_add_op(enum token_type t);
+bool is_eq_op(enum token_type t);
 
 #endif
 

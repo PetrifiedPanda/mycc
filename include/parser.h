@@ -4,7 +4,7 @@
 #include "ast/translation_unit.h"
 #include "token.h"
 
-TranslationUnit* parse_tokens(Token* tokens);
+struct translation_unit* parse_tokens(struct token* tokens);
 
 #endif
 
