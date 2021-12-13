@@ -1,6 +1,8 @@
 #ifndef ITERATION_STATEMENT_H
 #define ITERATION_STATEMENT_H
 
+// TODO: adapt to new grammar
+
 #include "token_type.h"
 
 struct statement;
