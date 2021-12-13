@@ -144,6 +144,10 @@ static enum token_type multic_token_type(const char* spell) {
         return CONST;
     } else if (is_spelling(spell, VOLATILE)) {
         return VOLATILE;
+    } else if (is_spelling(spell, RESTRICT)) {
+        return RESTRICT;
+    } else if (is_spelling(spell, ATOMIC)) {
+        return ATOMIC;
     } else if (is_spelling(spell, VOID)) {
         return VOID;
     } else if (is_spelling(spell, STRUCT)) {

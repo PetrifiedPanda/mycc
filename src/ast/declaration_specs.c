@@ -24,8 +24,15 @@ struct declaration_specs* create_declaration_specs(struct declaration_specs_cont
 static void free_children(struct declaration_specs* s) {
     for (size_t i = 0; i < s->len; ++i) {
         struct declaration_specs_cont* item = &s->contents[i];
-        if (item->type == DECLSPEC_TYPE_SPEC) {
-            free_type_spec(item->type_spec);
+        switch (item->type) {
+            case DECLSPEC_TYPE_SPEC:
+                free_type_spec(item->type_spec);
+                break;
+            case DECLSPEC_ALIGN_SPEC:
+                free_align_spec(item->align_spec);
+                break;
+            default:
+                break;
         }
     }
     free(s->contents);

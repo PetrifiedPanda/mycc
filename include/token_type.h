@@ -46,8 +46,12 @@ enum token_type {
     UNSIGNED,
     FLOAT,
     DOUBLE,
+
     CONST,
     VOLATILE,
+    RESTRICT,
+    ATOMIC,
+    
     VOID,
     STRUCT,
     UNION,

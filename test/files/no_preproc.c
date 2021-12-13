@@ -1,12 +1,12 @@
 
 
 typedef struct {
-    volatile int* ptr;
+    volatile int* restrict ptr;
     const char * str;
 } MyStruct;
 
 union my_union {
-    short int i;
+    _Atomic short int i;
     float f;
 };
 

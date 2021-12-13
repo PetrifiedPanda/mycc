@@ -169,7 +169,7 @@ static void file_test() {
     assert(get_last_error() == ERR_NONE);
     assert(tokens);
     
-    enum { EXPECTED_SIZE = 478 };
+    enum { EXPECTED_SIZE = 480 };
     check_size(tokens, EXPECTED_SIZE);
     check_file(tokens, filename);
     
@@ -180,8 +180,9 @@ static void file_test() {
         create(VOLATILE, NULL, 4, 5),
         create(INT, NULL, 4, 14),
         create(ASTERISK, NULL, 4, 17),
-        create(IDENTIFIER, "ptr", 4, 19),
-        create(SEMICOLON, NULL, 4, 22),
+        create(RESTRICT, NULL, 4, 19),
+        create(IDENTIFIER, "ptr", 4, 28),
+        create(SEMICOLON, NULL, 4, 31),
         create(CONST, NULL, 5, 5),
         create(CHAR, NULL, 5, 11),
         create(ASTERISK, NULL, 5, 16),
@@ -193,10 +194,11 @@ static void file_test() {
         create(UNION, NULL, 8, 1),
         create(IDENTIFIER, "my_union", 8, 7),
         create(LBRACE, NULL, 8, 16),
-        create(SHORT, NULL, 9, 5),
-        create(INT, NULL, 9, 11),
-        create(IDENTIFIER, "i", 9, 15),
-        create(SEMICOLON, NULL, 9, 16),
+        create(ATOMIC, NULL, 9, 5),
+        create(SHORT, NULL, 9, 13),
+        create(INT, NULL, 9, 19),
+        create(IDENTIFIER, "i", 9, 23),
+        create(SEMICOLON, NULL, 9, 24),
         create(FLOAT, NULL, 10, 5),
         create(IDENTIFIER, "f", 10, 11),
         create(SEMICOLON, NULL, 10, 12),

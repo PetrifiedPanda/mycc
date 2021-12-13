@@ -1,7 +1,6 @@
 #include "ast/const_expr.h"
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "util.h"
 

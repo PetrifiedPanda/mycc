@@ -78,6 +78,10 @@ const char* get_spelling(enum token_type type) {
             return "const";
         case VOLATILE:
             return "volatile";
+        case RESTRICT:
+            return "restrict";
+        case ATOMIC:
+            return "_Atomic";
         case VOID:
             return "void";
         case STRUCT:
@@ -253,6 +257,10 @@ const char* get_type_str(enum token_type type) {
             return "CONST";
         case VOLATILE:
             return "VOLATILE";
+        case RESTRICT:
+            return "RESTRICT";
+        case ATOMIC:
+            return "ATOMIC";
         case VOID:
             return "VOID";
         case STRUCT:
