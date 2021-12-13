@@ -22,7 +22,7 @@ struct param_declaration* create_param_declaration_declarator(struct declaration
     return res;
 }
 
-struct param_declaration* create_param_declaration_abstract(struct declaration_specs* decl_specs, struct abstract_declarator* abstract_decl) {
+struct param_declaration* create_param_declaration_abstract(struct declaration_specs* decl_specs, struct abs_declarator* abstract_decl) {
     struct param_declaration* res = create_param_declaration(decl_specs);
     res->type = PARAM_DECL_ABSTRACT_DECL;
     res->abstract_decl = abstract_decl;
@@ -37,7 +37,7 @@ void free_param_declaration_children(struct param_declaration* d) {
         free_declarator(d->decl);
         break;
     case PARAM_DECL_ABSTRACT_DECL:
-        free_abstract_declarator(d->abstract_decl);
+        free_abs_declarator(d->abstract_decl);
         break;
     case PARAM_DECL_NONE:
         break;
