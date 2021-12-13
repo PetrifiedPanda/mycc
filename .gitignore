@@ -1,4 +1,6 @@
 .vscode/
 build/
+cmake-build-*/
+.idea/
 grammar.txt
 lex_spec.txt
