@@ -578,7 +578,9 @@ static struct cast_expr* parse_cast_expression(struct parser_state* s) {
         }
         ++len;
     }
-    // TODO: typename of primary expression
+    if (s->it->type == LBRACE) {
+        // TODO: typename of primary expression
+    }
     type_names = realloc(type_names, len);
 
     struct unary_expr* rhs = parse_unary_expr(s);
