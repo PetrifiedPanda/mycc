@@ -52,6 +52,16 @@ struct unary_expr* create_unary_expr_sizeof_type(enum token_type* operators_befo
     return res;
 }
 
+struct unary_expr* create_unary_expr_alignof(enum token_type* operators_before, size_t len, struct type_name* type_name) {
+    assert(type_name);
+    struct unary_expr* res = xmalloc(sizeof(struct unary_expr));
+    assign_operators_before(res, operators_before, len);
+    res->type = UNARY_ALIGNOF_TYPE;
+    res->type_name = type_name;
+
+    return res;
+}
+
 void free_unary_expr_children(struct unary_expr* u) {
     free(u->operators_before);
     switch (u->type) {
@@ -62,6 +72,7 @@ void free_unary_expr_children(struct unary_expr* u) {
             free_cast_expr(u->cast_expr);
             break;
         case UNARY_SIZEOF_TYPE:
+        case UNARY_ALIGNOF_TYPE:
             free_type_name(u->type_name);
             break;
     }

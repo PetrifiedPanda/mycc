@@ -1,7 +1,11 @@
 #include "ast/postfix_expr.h"
 
 static void free_children(struct postfix_expr* p) {
-    free_primary_expr(p->primary);
+    if (p->is_primary) {
+        free_primary_expr(p->primary);
+    } else {
+        free_init_list_children(&p->init_list);
+    }
     for (size_t i = 0; i < p->len; ++i) {
         struct postfix_suffix* s = &p->suffixes[i];
         switch (s->type) {

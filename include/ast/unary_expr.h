@@ -12,7 +12,8 @@ struct type_name;
 enum unary_expr_type {
     UNARY_POSTFIX,
     UNARY_UNARY_OP,
-    UNARY_SIZEOF_TYPE
+    UNARY_SIZEOF_TYPE,
+    UNARY_ALIGNOF_TYPE
 };
 
 struct unary_expr {
@@ -32,6 +33,7 @@ struct unary_expr {
 struct unary_expr* create_unary_expr_postfix(enum token_type* operators_before, size_t len, struct postfix_expr* postfix);
 struct unary_expr* create_unary_expr_unary_op(enum token_type* operators_before, size_t len, enum token_type unary_op, struct cast_expr* cast_expr);
 struct unary_expr* create_unary_expr_sizeof_type(enum token_type* operators_before, size_t len, struct type_name* type_name);
+struct unary_expr* create_unary_expr_alignof(enum token_type* operators_before, size_t len, struct type_name* type_name);
 
 void free_unary_expr_children(struct unary_expr* u);
 void free_unary_expr(struct unary_expr* u);

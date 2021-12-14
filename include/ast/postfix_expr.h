@@ -4,6 +4,7 @@
 #include "token_type.h"
 
 #include "ast/arg_expr_list.h"
+#include "ast/init_list.h"
 
 struct primary_expr;
 struct expr;
@@ -28,7 +29,14 @@ struct postfix_suffix {
 };
 
 struct postfix_expr {
-    struct primary_expr* primary;
+    bool is_primary;
+    union {
+        struct primary_expr* primary;
+        struct {
+            struct type_name* type_name;
+            struct init_list init_list;
+        };
+    };
     size_t len;
     struct postfix_suffix* suffixes;
 };

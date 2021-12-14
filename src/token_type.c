@@ -450,6 +450,13 @@ bool is_keyword_type_spec(enum token_type t) {
         case DOUBLE:
         case SIGNED:
         case UNSIGNED:
+        case BOOL:
+        case COMPLEX:
+        case IMAGINARY:
+        case ATOMIC:
+        case STRUCT:
+        case UNION:
+        case ENUM:
             return true;
         default:
             return false;

@@ -49,6 +49,7 @@ static bool accept(struct parser_state* s, enum token_type expected) {
 }
 
 static void accept_it(struct parser_state* s) {
+    assert(s->it->type != INVALID);
     ++s->it;
 }
 
@@ -209,7 +210,7 @@ fail:
     return NULL;
 }
 
-static bool is_posfix_expr(enum token_type t) {
+static bool is_posfix_op(enum token_type t) {
     switch (t) {
         case LINDEX:
         case LBRACKET:
@@ -224,17 +225,63 @@ static bool is_posfix_expr(enum token_type t) {
     }
 }
 
-static struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
-    struct postfix_expr* res = xmalloc(sizeof(struct postfix_expr));
-    res->primary = parse_primary_expr(s);
-    if (!res->primary) {
+static struct cast_expr* parse_cast_expr(struct parser_state* s) {
+    // TODO:
+    return NULL;
+}
+
+static bool is_type_qual(enum token_type t) {
+    switch (t) {
+        case CONST:
+        case RESTRICT:
+        case VOLATILE:
+        case ATOMIC:
+            return true;
+        default:
+            return false;
+    }
+}
+
+static bool is_typedef_name(const struct parser_state* s, const char* spell) {
+    // TODO:
+    return false;
+}
+
+/**
+ *
+ * @param s current state
+ * @return bool whether the next token could be the start of a type name
+ * Disregards identifiers that may be type names
+ */
+static bool next_is_type_name(const struct parser_state* s) {
+    assert(s->it->type != INVALID);
+    struct token* next = s->it + 1;
+    return is_keyword_type_spec(next->type) || is_type_qual(next->type) || next->type == IDENTIFIER && is_typedef_name(s, next->spelling);
+}
+
+static bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
+    assert(res);
+    // TODO:
+    return NULL;
+}
+
+static struct type_name* parse_type_name(struct parser_state* s) {
+    struct type_name* res = xmalloc(sizeof(struct type_name));
+    if (!parse_type_name_inplace(s, res)) {
+        free(res);
         return NULL;
     }
+    return res;
+}
 
-    size_t alloc_size = 1;
-    res->len = 0;
-    res->suffixes = xmalloc(sizeof(struct postfix_suffix) * alloc_size);
-    while (is_posfix_expr(s->it->type)) {
+static struct init_list parse_init_list(struct parser_state* s) {
+    // TODO:
+    return (struct init_list){NULL, 0};
+}
+
+static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* res) {
+    size_t alloc_size = 0;
+    while (is_posfix_op(s->it->type)) {
         if (res->len == alloc_size) {
             grow_alloc((void**)&res->suffixes, &alloc_size, sizeof(struct postfix_suffix));
         }
@@ -244,48 +291,48 @@ static struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
                 accept_it(s);
                 struct expr* expr = parse_expr(s);
                 if (!expr) {
-                    goto fail;
+                    return false;
                 }
                 if (!accept(s, RINDEX)) {
                     free_expr(expr);
-                    goto fail;
+                    return false;
                 }
                 res->suffixes[res->len] = (struct postfix_suffix){
-                    .type = POSTFIX_INDEX, 
-                    .index_expr = expr};
+                        .type = POSTFIX_INDEX,
+                        .index_expr = expr};
                 break;
             }
-            
+
             case LBRACKET: {
                 accept_it(s);
                 struct arg_expr_list arg_expr_list = {.assign_exprs = NULL, .len = 0};
                 if (s->it->type != RBRACKET) {
                     arg_expr_list = parse_arg_expr_list(s);
                     if (get_last_error() != ERR_NONE) {
-                        goto fail;
+                        return false;
                     }
                 }
                 accept(s, RBRACKET);
                 res->suffixes[res->len] = (struct postfix_suffix){
-                    .type = POSTFIX_BRACKET, 
-                    .bracket_list = arg_expr_list
-                    };
+                        .type = POSTFIX_BRACKET,
+                        .bracket_list = arg_expr_list
+                };
                 break;
             }
 
             case DOT:
             case PTR_OP: {
-                enum postfix_suffix_type type = s->it->type == PTR_OP 
-                    	? POSTFIX_PTR_ACCESS : POSTFIX_ACCESS; 
+                enum postfix_suffix_type type = s->it->type == PTR_OP
+                                                ? POSTFIX_PTR_ACCESS : POSTFIX_ACCESS;
                 accept_it(s);
                 if (s->it->type != IDENTIFIER) {
-                    goto fail;                        
+                    return false;
                 }
                 char* spelling = take_spelling(s->it);
                 struct identifier* identifier = create_identifier(spelling);
                 res->suffixes[res->len] = (struct postfix_suffix){
-                    .type = type, 
-                    .identifier = identifier};
+                        .type = type,
+                        .identifier = identifier};
                 break;
             }
 
@@ -294,8 +341,8 @@ static struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
                 enum token_type inc_dec = s->it->type;
                 accept_it(s);
                 res->suffixes[res->len] = (struct postfix_suffix){
-                    .type = POSTFIX_INC_DEC, 
-                    .inc_dec = inc_dec};
+                        .type = POSTFIX_INC_DEC,
+                        .inc_dec = inc_dec};
                 break;
             }
 
@@ -309,9 +356,242 @@ static struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
     if (alloc_size != res->len) {
         res->suffixes = xrealloc(res->suffixes, res->len * sizeof(struct postfix_suffix));
     }
+}
+
+static struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
+    struct postfix_expr* res = xmalloc(sizeof(struct postfix_expr));
+    res->suffixes = NULL;
+    res->len = 0;
+
+    if (s->it->type == LBRACKET && next_is_type_name(s)) {
+        accept_it(s);
+
+        res->is_primary = false;
+
+        res->type_name = parse_type_name(s);
+        if (!res->type_name) {
+            free(res);
+            return NULL;
+        }
+
+        if (!accept(s, LBRACE)) {
+            goto fail;
+        }
+
+        res->init_list = parse_init_list(s);
+        if (get_last_error() != ERR_NONE) {
+            goto fail;
+        }
+
+        if (!accept(s, RBRACE)) {
+            goto fail;
+        }
+    } else {
+        res->is_primary = true;
+        res->primary = parse_primary_expr(s);
+        if (!res->primary) {
+            free(res);
+            return NULL;
+        }
+    }
+
+    if (!parse_postfix_suffixes(s, res)) {
+        goto fail;
+    }
 
     return res;
 fail:
     free_postfix_expr(res);
+    return NULL;
+}
+
+/**
+ *
+ * @param s current state
+ * @param type_name A type name that was already parsed by parse_unary_expr
+ * @return A postfix_expr that uses the given type_name
+ */
+static struct postfix_expr* parse_postfix_expr_type_name(struct parser_state* s, struct type_name* type_name) {
+    assert(s->it->type == LBRACE);
+
+    struct postfix_expr* res = xmalloc(sizeof(struct postfix_expr));
+    res->len = 0;
+    res->suffixes = NULL;
+    res->is_primary = false;
+    res->type_name = type_name;
+
+    res->init_list.len = 0;
+    res->init_list.inits = NULL;
+
+    accept_it(s);
+
+    res->init_list = parse_init_list(s);
+    if (get_last_error() != ERR_NONE) {
+        goto fail;
+    }
+
+    if (!accept(s, RBRACE)) {
+        return NULL;
+    }
+
+    if (!parse_postfix_suffixes(s, res)) {
+        goto fail;
+    }
+    return res;
+fail:
+    free_postfix_expr(res);
+}
+
+static struct unary_expr* parse_unary_expr(struct parser_state* s) {
+    size_t alloc_size = 0;
+    enum token_type* ops_before = NULL;
+
+    size_t len = 0;
+    while (s->it->type == INC_OP || s->it->type == DEC_OP || (s->it->type == SIZEOF && (s->it + 1)->type != LBRACKET)) {
+        if (len == alloc_size) {
+            grow_alloc((void**)&ops_before, &alloc_size, sizeof(enum token_type));
+        }
+
+        ops_before[len] = s->it->type;
+
+        ++len;
+        accept_it(s);
+    }
+    ops_before = realloc(ops_before, len);
+
+    if (is_unary_op(s->it->type)) {
+        enum token_type unary_op = s->it->type;
+        accept_it(s);
+        struct cast_expr* cast = parse_cast_expr(s);
+        if (!cast) {
+            goto fail;
+        }
+        return create_unary_expr_unary_op(ops_before, len, unary_op, cast);
+    } else {
+        switch (s->it->type) {
+            case SIZEOF: {
+                accept_it(s);
+                assert(s->it->type == LBRACKET);
+                if (next_is_type_name(s)) {
+                    accept_it(s);
+
+                    struct type_name* type_name = parse_type_name(s);
+                    if (!type_name) {
+                        goto fail;
+                    }
+
+                    if (!accept(s, RBRACKET)) {
+                        goto fail;
+                    }
+                    if (s->it->type == LBRACE) {
+                        ++len;
+                        ops_before = realloc(ops_before, len);
+                        ops_before[len - 1] = SIZEOF;
+
+                        struct postfix_expr* postfix = parse_postfix_expr_type_name(s, type_name);
+                        if (!postfix) {
+                            free_type_name(type_name);
+                            goto fail;
+                        }
+
+                        return create_unary_expr_postfix(ops_before, len, postfix);
+                    } else {
+                        return create_unary_expr_sizeof_type(ops_before, len, type_name);
+                    }
+                } else {
+                    ++len;
+                    ops_before = realloc(ops_before, len);
+                    ops_before[len - 1] = SIZEOF;
+
+                    struct postfix_expr* postfix = parse_postfix_expr(s);
+                    if (!postfix) {
+                        goto fail;
+                    }
+                    return create_unary_expr_postfix(ops_before, len, postfix);
+                }
+            }
+            case ALIGNOF: {
+                accept_it(s);
+                if (!accept(s, LBRACKET)) {
+                    goto fail;
+                }
+
+                struct type_name* type_name = parse_type_name(s);
+                if (!type_name) {
+                    goto fail;
+                }
+
+                if (!accept(s, RBRACKET)) {
+                    goto fail;
+                }
+                return create_unary_expr_alignof(ops_before, len, type_name);
+            }
+            default: {
+                struct postfix_expr* postfix = parse_postfix_expr(s);
+                if (!postfix) {
+                    goto fail;
+                }
+                return create_unary_expr_postfix(ops_before, len, postfix);
+            }
+        }
+    }
+
+    return NULL; // unreachable
+fail:
+    free(ops_before);
+    return NULL;
+}
+
+static bool is_primary_expr(const struct parser_state* s) {
+    switch (s->it->type) {
+        case IDENTIFIER:
+        case F_CONSTANT:
+        case I_CONSTANT:
+        case STRING_LITERAL:
+        case FUNC_NAME:
+        case GENERIC:
+        case LBRACKET: // not 100 % accurate
+            return true;
+        default:
+            return false;
+    }
+}
+
+static struct cast_expr* parse_cast_expression(struct parser_state* s) {
+    struct type_name* type_names = NULL;
+    size_t len = 0;
+
+    size_t alloc_size = 0;
+    while (s->it->type == LBRACKET && next_is_type_name(s)) {
+        accept_it(s);
+
+        if (len == alloc_size) {
+            grow_alloc((void**)&type_names, &alloc_size, sizeof(struct type_name));
+        }
+
+        if (!parse_type_name_inplace(s, &type_names[len])) {
+            goto fail;
+        }
+
+        if (!accept(s, LBRACKET)) {
+            goto fail;
+        }
+        ++len;
+    }
+    // TODO: typename of primary expression
+    type_names = realloc(type_names, len);
+
+    struct unary_expr* rhs = parse_unary_expr(s);
+    if (!rhs) {
+        goto fail;
+    }
+
+    return create_cast_expr(type_names, len, rhs);
+
+fail:
+    for (size_t i = 0; i < len; ++i) {
+        free_type_name_children(&type_names[i]);
+    }
+    free(type_names);
     return NULL;
 }
