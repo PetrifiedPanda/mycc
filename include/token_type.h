@@ -10,6 +10,8 @@ enum token_type {
     I_CONSTANT,
     F_CONSTANT,
     STRING_LITERAL,
+    FUNC_NAME, // __func__
+
     SIZEOF,
     PTR_OP, // ->
     INC_OP,
@@ -38,6 +40,9 @@ enum token_type {
     STATIC,
     AUTO,
     REGISTER,
+    INLINE,
+
+    BOOL, // _Bool
     CHAR,
     SHORT,
     INT,
@@ -46,13 +51,16 @@ enum token_type {
     UNSIGNED,
     FLOAT,
     DOUBLE,
+    VOID,
+
+    COMPLEX, // _Complex
+    IMAGINARY, // _Imaginary
 
     CONST,
     VOLATILE,
     RESTRICT,
     ATOMIC,
-    
-    VOID,
+
     STRUCT,
     UNION,
     ENUM,
@@ -69,6 +77,13 @@ enum token_type {
     CONTINUE,
     BREAK,
     RETURN,
+
+    ALIGNAS, // _Alignas
+    ALIGNOF, // _Alignof
+    GENERIC, // _Generic
+    NORETURN, // _Noreturn
+    STATIC_ASSERT, // _Static_assert
+    THREAD_LOCAL, // _Thread_local
 
     SEMICOLON,
     LBRACKET, // (

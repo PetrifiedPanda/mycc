@@ -2,7 +2,7 @@
 
 typedef struct {
     volatile int* restrict ptr;
-    const char * str;
+    _Alignas(16) const char * str;
 } MyStruct;
 
 union my_union {
@@ -17,7 +17,7 @@ enum my_enum {
     VAL_3
 };
 
-static int do_shit();
+static inline int do_shit();
 
 static void variadic(int m, ...);
 
@@ -56,7 +56,7 @@ int main() {
     int super_long_identifier_that_needs_to_be_over_512_characters_long_what_the_hell_am_i_supposed_to_write_here_a_b_c_d_e_f_g_h_i_j_k_l_m_n_o_p_q_r_s_t_u_v_w_x_y_z_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccooooooooooooooooooooooooooooooooooooooooooooosoooooooooooooooooooooooooooodfsoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo_ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss;
     goto my_cool_label;
      
-    return 69;
+    return _Alignof(long);
 
 my_cool_label:
     super_long_identifier_that_needs_to_be_over_512_characters_long_what_the_hell_am_i_supposed_to_write_here_a_b_c_d_e_f_g_h_i_j_k_l_m_n_o_p_q_r_s_t_u_v_w_x_y_z_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccooooooooooooooooooooooooooooooooooooooooooooosoooooooooooooooooooooooooooodfsoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo_ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss = (int)soviet_union.f;
@@ -69,7 +69,7 @@ static int do_shit() {
 
     char c = '\n';
 
-    int true_bool = !(c != c) && (c <= size || c >= size || c < size || c > size || c == size || c != size);
+    _Bool true_bool = !(c != c) && (c <= size || c >= size || c < size || c > size || c == size || c != size);
     
     enum { LIMIT = 50000 };
     char arr[LIMIT] = {0};
@@ -107,7 +107,14 @@ static int do_shit() {
     return (arr[0] == 37 ? size : (arr[1] == 37 ? type_size : -123123));
 }
 
-static void variadic(int m, ...) {
+_Noreturn static void variadic(int m, ...) {
     char c = '\n';
+
+    const char* func_name = __func__;
+    double _Complex comp_d = 0;
+    double _Imaginary im_d = _Generic(1.0, float: 10, double: 12.0);
+    _Static_assert(1, "Something is wrong");
     return;
 }
+
+_Thread_local int g_thread;

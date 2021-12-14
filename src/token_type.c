@@ -3,7 +3,9 @@
 #include <stddef.h>
 
 const char* get_spelling(enum token_type type) {
-    switch (type) {    
+    switch (type) {
+        case FUNC_NAME:
+            return "__func__";
         case SIZEOF:
             return "sizeof";
         case PTR_OP:
@@ -58,6 +60,10 @@ const char* get_spelling(enum token_type type) {
             return "auto";
         case REGISTER:
             return "register";
+        case INLINE:
+            return "inline";
+        case BOOL:
+            return "_Bool";
         case CHAR:
             return "char";
         case SHORT:
@@ -74,6 +80,12 @@ const char* get_spelling(enum token_type type) {
             return "float";
         case DOUBLE:
             return "double";
+        case VOID:
+            return "void";
+        case COMPLEX:
+            return "_Complex";
+        case IMAGINARY:
+            return "_Imaginary";
         case CONST:
             return "const";
         case VOLATILE:
@@ -82,8 +94,6 @@ const char* get_spelling(enum token_type type) {
             return "restrict";
         case ATOMIC:
             return "_Atomic";
-        case VOID:
-            return "void";
         case STRUCT:
             return "struct";
         case UNION:
@@ -116,6 +126,18 @@ const char* get_spelling(enum token_type type) {
             return "break";
         case RETURN:
             return "return";
+        case ALIGNAS:
+            return "_Alignas";
+        case ALIGNOF:
+            return "_Alignof";
+        case GENERIC:
+            return "_Generic";
+        case NORETURN:
+            return "_Noreturn";
+        case STATIC_ASSERT:
+            return "_Static_assert";
+        case THREAD_LOCAL:
+            return "_Thread_local";
         case SEMICOLON:
             return ";";
         case LBRACKET:
@@ -181,6 +203,8 @@ const char* get_type_str(enum token_type type) {
             return "F_CONSTANT";
         case STRING_LITERAL:
             return "STRING_LITERAL";
+        case FUNC_NAME:
+            return "FUNC_NAME";
         case SIZEOF:
             return "SIZEOF";
         case PTR_OP:
@@ -237,6 +261,10 @@ const char* get_type_str(enum token_type type) {
             return "AUTO";
         case REGISTER:
             return "REGISTER";
+        case INLINE:
+            return "INLINE";
+        case BOOL:
+            return "BOOL";
         case CHAR:
             return "CHAR";
         case SHORT:
@@ -253,6 +281,12 @@ const char* get_type_str(enum token_type type) {
             return "FLOAT";
         case DOUBLE:
             return "DOUBLE";
+        case VOID:
+            return "VOID";
+        case COMPLEX:
+            return "COMPLEX";
+        case IMAGINARY:
+            return "IMAGINARY";
         case CONST:
             return "CONST";
         case VOLATILE:
@@ -261,8 +295,6 @@ const char* get_type_str(enum token_type type) {
             return "RESTRICT";
         case ATOMIC:
             return "ATOMIC";
-        case VOID:
-            return "VOID";
         case STRUCT:
             return "STRUCT";
         case UNION:
@@ -295,6 +327,18 @@ const char* get_type_str(enum token_type type) {
             return "BREAK";
         case RETURN:
             return "RETURN";
+        case ALIGNAS:
+            return "ALIGNAS";
+        case ALIGNOF:
+            return "ALIGNOF";
+        case GENERIC:
+            return "GENERIC";
+        case NORETURN:
+            return "NORETURN";
+        case STATIC_ASSERT:
+            return "STATIC_ASSERT";
+        case THREAD_LOCAL:
+            return "THREAD_LOCAL";
         case SEMICOLON:
             return "SEMICOLON";
         case LBRACKET:

@@ -112,7 +112,9 @@ static inline bool is_spelling(const char* spelling, enum token_type type){
 }
 
 static enum token_type multic_token_type(const char* spell) {
-    if (is_spelling(spell, SIZEOF)) {
+    if (is_spelling(spell, FUNC_NAME)) {
+        return FUNC_NAME;
+    } else if (is_spelling(spell, SIZEOF)) {
         return SIZEOF;
     } else if (is_spelling(spell, TYPEDEF)) {
         return TYPEDEF;
@@ -124,6 +126,10 @@ static enum token_type multic_token_type(const char* spell) {
         return AUTO;
     } else if (is_spelling(spell, REGISTER)) {
         return REGISTER;
+    } else if (is_spelling(spell, INLINE)) {
+        return INLINE;
+    } else if (is_spelling(spell, BOOL)) {
+        return BOOL;
     } else if (is_spelling(spell, CHAR)) {
         return CHAR;
     } else if (is_spelling(spell, SHORT)) {
@@ -140,6 +146,12 @@ static enum token_type multic_token_type(const char* spell) {
         return FLOAT;
     } else if (is_spelling(spell, DOUBLE)) {
         return DOUBLE;
+    } else if (is_spelling(spell, VOID)) {
+        return VOID;
+    } else if (is_spelling(spell, COMPLEX)) {
+        return COMPLEX;
+    } else if (is_spelling(spell, IMAGINARY)) {
+        return IMAGINARY;
     } else if (is_spelling(spell, CONST)) {
         return CONST;
     } else if (is_spelling(spell, VOLATILE)) {
@@ -148,8 +160,6 @@ static enum token_type multic_token_type(const char* spell) {
         return RESTRICT;
     } else if (is_spelling(spell, ATOMIC)) {
         return ATOMIC;
-    } else if (is_spelling(spell, VOID)) {
-        return VOID;
     } else if (is_spelling(spell, STRUCT)) {
         return STRUCT;
     } else if (is_spelling(spell, UNION)) {
@@ -180,6 +190,18 @@ static enum token_type multic_token_type(const char* spell) {
         return BREAK;
     } else if (is_spelling(spell, RETURN)) {
         return RETURN;
+    } else if (is_spelling(spell, ALIGNAS)) {
+        return ALIGNAS;
+    } else if (is_spelling(spell, ALIGNOF)) {
+        return ALIGNOF;
+    } else if (is_spelling(spell, GENERIC)) {
+        return GENERIC;
+    } else if (is_spelling(spell, NORETURN)) {
+        return NORETURN;
+    } else if (is_spelling(spell, STATIC_ASSERT)) {
+        return STATIC_ASSERT;
+    } else if (is_spelling(spell, THREAD_LOCAL)) {
+        return THREAD_LOCAL;
     } else {
         return INVALID;
     }
