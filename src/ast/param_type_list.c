@@ -5,11 +5,7 @@
 
 struct param_type_list create_param_type_list(bool is_variadic, struct param_list* param_list) {
     assert(param_list);
-    struct param_type_list res;
-
-    res.is_variadic = is_variadic;
-    res.param_list = param_list;
-    return res;
+    return (struct param_type_list){.is_variadic = is_variadic, .param_list = param_list};
 }
 
 void free_param_type_list(struct param_type_list* l) {

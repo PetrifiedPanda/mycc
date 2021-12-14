@@ -10,8 +10,6 @@ struct translation_unit {
     struct external_declaration* external_decls;
 };
 
-struct translation_unit* create_translation_unit(struct external_declaration* external_decls, size_t len);
-
 void free_translation_unit(struct translation_unit* u);
 
 #include "ast/external_declaration.h"

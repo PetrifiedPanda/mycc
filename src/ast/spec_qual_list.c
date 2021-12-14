@@ -9,11 +9,7 @@ struct spec_qual_list create_spec_qual_list(struct type_spec_or_qual* specs_or_q
     } else {
         assert(specs_or_quals == NULL);
     }
-
-    struct spec_qual_list res;
-    res.len = len;
-    res.specs_or_quals = specs_or_quals;
-    return res;
+    return (struct spec_qual_list){.len = len, .specs_or_quals = specs_or_quals};
 }
 
 void free_spec_qual_list(struct spec_qual_list* l) {

@@ -9,12 +9,7 @@ struct type_qual_list create_type_qual_list(struct type_qual* type_quals, size_t
     } else {
         assert(type_quals == NULL);
     }
-
-    struct type_qual_list res;
-
-    res.len = len;
-    res.type_quals = type_quals;
-    return res;
+    return (struct type_qual_list){.len = len, .type_quals = type_quals};
 }
 
 void free_type_qual_list(struct type_qual_list* l) {

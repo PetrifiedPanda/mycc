@@ -5,12 +5,7 @@
 struct init_list create_init_list(struct initializer* inits, size_t len) {
     assert(len > 0);
     assert(inits);
-    
-    struct init_list res;
-    
-    res.len = len;
-    res.inits = inits; 
-    return res;
+    return (struct init_list){.len = len, .inits = inits};
 }
 
 void free_init_list_children(struct init_list* l) {

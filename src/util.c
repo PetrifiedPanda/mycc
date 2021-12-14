@@ -5,8 +5,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "error.h"
-
 void* xmalloc(size_t bytes) {
     void* res = malloc(bytes);
     if (!res) {

@@ -5,14 +5,10 @@
 
 #include "util.h"
 
-struct identifier_list* create_identifier_list(struct identifier* identifiers, size_t len) {
+struct identifier_list create_identifier_list(struct identifier* identifiers, size_t len) {
     assert(len > 0);
     assert(identifiers);
-    struct identifier_list* res = xmalloc(sizeof(struct identifier_list));
-    res->len = len;
-    res->identifiers = identifiers;
-
-    return res;
+    return (struct identifier_list){.len = len, .identifiers = identifiers};
 }
 
 void free_identifier_list(struct identifier_list* l) {

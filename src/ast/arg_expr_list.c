@@ -9,12 +9,7 @@ struct arg_expr_list create_arg_expr_lst(struct assign_expr* assign_exprs, size_
     } else {
         assert(assign_exprs == NULL);
     }
-
-    struct arg_expr_list res;
-
-    res.assign_exprs = assign_exprs;
-    res.len = len;
-    return res;
+    return (struct arg_expr_list){.len = len, .assign_exprs = assign_exprs};
 }
 
 void free_arg_expr_list(struct arg_expr_list* l) {

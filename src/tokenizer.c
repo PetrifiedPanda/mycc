@@ -42,11 +42,18 @@ static bool handle_other(struct tokenizer_state* s, struct token_arr* res, size_
 
 struct token* tokenize(const char* str, const char* filename) {
     enum {NUM_START_TOKENS = 1};
-    struct tokenizer_state s = {str, '\0', '\0', (struct source_location){1, 1}, filename};
+    struct tokenizer_state s = {
+            .it = str,
+            .prev = '\0',
+            .prev_prev = '\0',
+            .source_loc = (struct source_location){1, 1},
+            .current_file = filename};
     
     size_t token_idx = 0;
 
-    struct token_arr res = {xmalloc(sizeof(struct token) * NUM_START_TOKENS), NUM_START_TOKENS};
+    struct token_arr res = {
+            .tokens = xmalloc(sizeof(struct token) * NUM_START_TOKENS),
+            .len = NUM_START_TOKENS};
 
     while (*s.it != '\0') {
         while (isspace(*s.it)) {
@@ -85,7 +92,12 @@ struct token* tokenize(const char* str, const char* filename) {
     }
 
     res.tokens = xrealloc(res.tokens, sizeof(struct token) * (token_idx + 1));
-    res.tokens[token_idx] = (struct token){INVALID, NULL, NULL, (struct source_location){(size_t) -1, (size_t) -1}};
+    res.tokens[token_idx] = (struct token){
+            .type = INVALID,
+            .spelling = NULL,
+            .file = NULL,
+            .source_loc = {(size_t) -1, (size_t) -1}};
+
     res.len = token_idx;
 
     return res.tokens;
@@ -107,7 +119,7 @@ void free_tokenizer_result(struct token* tokens) {
     free(tokens);
 }
 
-static inline bool is_spelling(const char* spelling, enum token_type type){
+static inline bool is_spelling(const char* spelling, enum token_type type) {
     return strcmp(spelling, get_spelling(type)) == 0;
 }
 

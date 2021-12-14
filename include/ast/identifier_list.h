@@ -10,7 +10,7 @@ struct identifier_list {
     struct identifier* identifiers;
 };
 
-struct identifier_list* create_identifier_list(struct identifier* identifiers, size_t len);
+struct identifier_list create_identifier_list(struct identifier* identifiers, size_t len);
 
 void free_identifier_list(struct identifier_list* l);
 

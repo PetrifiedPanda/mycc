@@ -9,12 +9,7 @@ struct struct_declaration_list create_struct_declaration_list(struct struct_decl
     } else {
         assert(decls == NULL);
     }
-
-    struct struct_declaration_list res;
-
-    res.len = len;
-    res.decls = decls;
-    return res;
+    return (struct struct_declaration_list){.len = len, .decls = decls};
 }
 
 void free_struct_declaration_list(struct struct_declaration_list* l) {

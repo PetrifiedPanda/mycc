@@ -9,12 +9,7 @@ struct statement_list create_statement_list(struct statement* statements, size_t
     } else {
         assert(statements == NULL);
     }
-
-    struct statement_list res;
-
-    res.len = len;
-    res.statements = statements;
-    return res;
+    return (struct statement_list){.len = len, .statements = statements};
 }
 
 void free_statement_list(struct statement_list* l) {
