@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-static inline void add_suffixes(struct direct_declarator* d, struct arr_or_func_suffix_direct_decl* suffixes, size_t len) {
+static inline void add_suffixes(struct direct_declarator* d, struct arr_or_func_suffix* suffixes, size_t len) {
     if (len > 0) {
         assert(suffixes);
     }
@@ -13,7 +13,7 @@ static inline void add_suffixes(struct direct_declarator* d, struct arr_or_func_
     d->suffixes = suffixes;
 }
 
-struct direct_declarator* create_direct_declarator(struct identifier* id, struct arr_or_func_suffix_direct_decl* suffixes, size_t len) {
+struct direct_declarator* create_direct_declarator(struct identifier* id, struct arr_or_func_suffix* suffixes, size_t len) {
     assert(id);
     struct direct_declarator* res = xmalloc(sizeof(struct direct_declarator));
     res->is_id = true;
@@ -23,7 +23,7 @@ struct direct_declarator* create_direct_declarator(struct identifier* id, struct
     return res;
 }
 
-struct direct_declarator* create_direct_declarator_decl(struct declarator* decl, struct arr_or_func_suffix_direct_decl* suffixes, size_t len) {
+struct direct_declarator* create_direct_declarator_decl(struct declarator* decl, struct arr_or_func_suffix* suffixes, size_t len) {
     assert(decl);
     struct direct_declarator* res = xmalloc(sizeof(struct direct_declarator));
     res->is_id = false;
@@ -41,10 +41,13 @@ static void free_children(struct direct_declarator* d) {
     }
 
     for (size_t i = 0; i < d->len; ++i) {
-        struct arr_or_func_suffix_direct_decl* item = &d->suffixes[i];
+        struct arr_or_func_suffix* item = &d->suffixes[i];
         switch (item->type) {
         case ARR_OR_FUNC_ARRAY:
-            free_const_expr(item->arr_len);
+            free_type_qual_list(&item->arr_suffix.type_quals);
+            if (!item->arr_suffix.is_asterisk) {
+                free_assign_expr(item->arr_suffix.arr_len);
+            }
             break;
         case ARR_OR_FUNC_FUN_TYPES:
             free_param_type_list(&item->fun_types);
