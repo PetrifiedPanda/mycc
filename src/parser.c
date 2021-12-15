@@ -556,6 +556,7 @@ static struct postfix_expr* parse_postfix_expr_type_name(struct parser_state* s,
     return res;
 fail:
     free_postfix_expr(res);
+    return NULL;
 }
 
 static struct unary_expr* parse_unary_expr(struct parser_state* s) {
