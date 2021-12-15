@@ -356,11 +356,6 @@ static bool is_posfix_op(enum token_type t) {
     }
 }
 
-static struct cast_expr* parse_cast_expr(struct parser_state* s) {
-    // TODO:
-    return NULL;
-}
-
 static bool is_type_qual(enum token_type t) {
     switch (t) {
         case CONST:
@@ -559,6 +554,26 @@ fail:
     return NULL;
 }
 
+/**
+ *
+ * @param s current state
+ * @param ops_before array of len tokens
+ * @param len length of ops_before
+ * @param type_name the already parsed type_name, with which this starts
+ * @return struct unary_expr* unary expression created with the given parameters NULL on fail
+ * This does not free any of the parameters
+ */
+static struct unary_expr* parse_unary_expr_type_name(struct parser_state* s, enum token_type* ops_before, size_t len, struct type_name* type_name) {
+    struct postfix_expr* postfix = parse_postfix_expr_type_name(s, type_name);
+    if (!postfix) {
+        return NULL;
+    }
+
+    return create_unary_expr_postfix(ops_before, len, postfix);
+}
+
+static struct cast_expr* parse_cast_expr(struct parser_state* s);
+
 static struct unary_expr* parse_unary_expr(struct parser_state* s) {
     size_t alloc_size = 0;
     enum token_type* ops_before = NULL;
@@ -605,13 +620,11 @@ static struct unary_expr* parse_unary_expr(struct parser_state* s) {
                         ops_before = xrealloc(ops_before, len * sizeof(enum token_type));
                         ops_before[len - 1] = SIZEOF;
 
-                        struct postfix_expr* postfix = parse_postfix_expr_type_name(s, type_name);
-                        if (!postfix) {
+                        struct unary_expr* res =  parse_unary_expr_type_name(s, ops_before, len, type_name);
+                        if (!res) {
                             free_type_name(type_name);
                             goto fail;
                         }
-
-                        return create_unary_expr_postfix(ops_before, len, postfix);
                     } else {
                         return create_unary_expr_sizeof_type(ops_before, len, type_name);
                     }
@@ -659,22 +672,7 @@ fail:
     return NULL;
 }
 
-static bool is_primary_expr(const struct parser_state* s) {
-    switch (s->it->type) {
-        case IDENTIFIER:
-        case F_CONSTANT:
-        case I_CONSTANT:
-        case STRING_LITERAL:
-        case FUNC_NAME:
-        case GENERIC:
-        case LBRACKET: // not 100 % accurate
-            return true;
-        default:
-            return false;
-    }
-}
-
-static struct cast_expr* parse_cast_expression(struct parser_state* s) {
+static struct cast_expr* parse_cast_expr(struct parser_state* s) {
     struct type_name* type_names = NULL;
     size_t len = 0;
 
@@ -695,12 +693,21 @@ static struct cast_expr* parse_cast_expression(struct parser_state* s) {
         }
         ++len;
     }
-    if (s->it->type == LBRACE) {
-        // TODO: typename of primary expression
-    }
-    type_names = xrealloc(type_names, len * sizeof(struct type_name));
 
-    struct unary_expr* rhs = parse_unary_expr(s);
+    struct unary_expr* rhs;
+    if (s->it->type == LBRACE) {
+        struct type_name* type_name = xmalloc(sizeof(struct type_name));
+
+        --len;
+        *type_name = type_names[len];
+
+        type_names = xrealloc(type_names, len * sizeof(struct type_name));
+
+        rhs = parse_unary_expr_type_name(s, NULL, 0, type_name);
+    } else {
+        type_names = xrealloc(type_names, len * sizeof(struct type_name));
+        rhs = parse_unary_expr(s);
+    }
     if (!rhs) {
         goto fail;
     }
