@@ -15,12 +15,10 @@ struct primary_expr* create_primary_expr_constant(struct constant constant) {
     return res;
 }
 
-struct primary_expr* create_primary_expr_string(struct string_literal literal) {
-    assert(literal.spelling);
-
+struct primary_expr* create_primary_expr_string(struct string_constant string) {
     struct primary_expr* res = xmalloc(sizeof(struct primary_expr));
     res->type = PRIMARY_EXPR_STRING_LITERAL;
-    res->literal = literal;
+    res->string = string;
     
     return res;
 }
@@ -55,7 +53,7 @@ static void free_children(struct primary_expr* e) {
             break;
 
         case PRIMARY_EXPR_STRING_LITERAL:
-            free_string_literal(&e->literal);
+            free_string_constant(&e->string);
             break;
 
         case PRIMARY_EXPR_BRACKET:

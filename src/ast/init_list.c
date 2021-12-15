@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-struct init_list create_init_list(struct initializer* inits, size_t len) {
+struct init_list create_init_list(struct designation_init* inits, size_t len) {
     assert(len > 0);
     assert(inits);
     return (struct init_list){.len = len, .inits = inits};

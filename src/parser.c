@@ -263,7 +263,7 @@ static struct primary_expr* parse_primary_expr(struct parser_state* s) {
         case STRING_LITERAL: {
             char* spelling = take_spelling(s->it);
             accept_it(s);
-            return create_primary_expr_string(create_string_literal(spelling));
+            return create_primary_expr_string(create_string_constant(spelling));
         }
         case FUNC_NAME: {
             accept_it(s);

@@ -4,7 +4,7 @@
 #include "token_type.h"
 
 #include "ast/constant.h"
-#include "ast/string_literal.h"
+#include "ast/string_constant.h"
 
 struct expr;
 struct identifier;
@@ -22,7 +22,7 @@ struct primary_expr {
     enum primary_expr_type type;
     union {
         struct constant constant;
-        struct string_literal literal;
+        struct string_constant string;
         struct identifier* identifier;
         struct expr* bracket_expr;
         struct generic_sel* generic;
@@ -31,7 +31,7 @@ struct primary_expr {
 
 struct primary_expr* create_primary_expr_constant(struct constant constant);
 
-struct primary_expr* create_primary_expr_string(struct string_literal literal);
+struct primary_expr* create_primary_expr_string(struct string_constant string);
 
 struct primary_expr* create_primary_expr_identifier(struct identifier* identifier);
 

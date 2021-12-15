@@ -5,11 +5,7 @@
 
 struct string_literal create_string_literal(char* spelling) {
     assert(spelling);
-    return (struct string_literal){.is_func = false, .spelling = spelling};
-}
-
-struct string_literal create_func_name() {
-    return (struct string_literal){.is_func = true, .spelling = NULL};
+    return (struct string_literal){.spelling = spelling};
 }
 
 void free_string_literal(struct string_literal* l) {
