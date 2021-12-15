@@ -36,10 +36,26 @@ struct iteration_statement* create_for_loop(struct expr_statement* init_expr, st
     struct iteration_statement* res = xmalloc(sizeof(struct iteration_statement));
     res->type = FOR;
     res->loop_body = loop_body;
-    res->init_expr = init_expr;
-    res->for_cond = for_cond;
-    res->incr_expr = incr_expr;
+    res->for_loop.is_decl = false;
+    res->for_loop.init_expr = init_expr;
+    res->for_loop.cond = for_cond;
+    res->for_loop.incr_expr = incr_expr;
     
+    return res;
+}
+
+struct iteration_statement* create_for_loop_decl(struct declaration* decl, struct expr_statement* for_cond, struct expr* incr_expr, struct statement* loop_body) {
+    assert(decl);
+    assert(for_cond);
+    assert(loop_body);
+    struct iteration_statement* res = xmalloc(sizeof(struct iteration_statement));
+    res->type = FOR;
+    res->loop_body = loop_body;
+    res->for_loop.is_decl = true;
+    res->for_loop.init_decl = decl;
+    res->for_loop.cond = for_cond;
+    res->for_loop.incr_expr = incr_expr;
+
     return res;
 }
 
@@ -49,13 +65,18 @@ static void free_children(struct iteration_statement* s) {
         case DO:
             free_expr(s->while_cond);
             break;
-        case FOR:
-            free_expr_statement(s->init_expr);
-            free_expr_statement(s->for_cond);
-            if (s->incr_expr) {
-                free_expr(s->incr_expr);
+        case FOR: {
+            if (s->for_loop.is_decl) {
+                free_declaration(s->for_loop.init_decl);
+            } else {
+                free_expr_statement(s->for_loop.init_expr);
+            }
+            free_expr_statement(s->for_loop.cond);
+            if (s->for_loop.incr_expr) {
+                free_expr(s->for_loop.incr_expr);
             }
             break;
+        }
         default:
             assert(false);
     }
