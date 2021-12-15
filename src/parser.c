@@ -87,15 +87,24 @@ fail:
     return (struct translation_unit){.len = 0, .external_decls = NULL};
 }
 
-static bool parse_assign_expr(struct assign_expr* res, struct parser_state* s) {
+static bool parse_assign_expr_inplace(struct parser_state* s, struct assign_expr* res) {
     // TODO:
     return false;
+}
+
+static struct assign_expr* parse_assign_expr(struct parser_state* s) {
+    struct assign_expr* res = xmalloc(sizeof(struct assign_expr));
+    if (!parse_assign_expr_inplace(s, res)) {
+        free(res);
+        return NULL;
+    }
+    return res;
 }
 
 static struct arg_expr_list parse_arg_expr_list(struct parser_state* s) {
     size_t alloc_size = 1;
     struct arg_expr_list res = {.len = 0, .assign_exprs = xmalloc(sizeof(struct assign_expr) * alloc_size)};
-    if (!parse_assign_expr(&res.assign_exprs[0], s)) {
+    if (!parse_assign_expr_inplace(s, &res.assign_exprs[0])) {
         goto fail;
     }
     res.len = 1;
@@ -105,7 +114,7 @@ static struct arg_expr_list parse_arg_expr_list(struct parser_state* s) {
             grow_alloc((void**)&res.assign_exprs, &alloc_size, sizeof(struct assign_expr));
         }
 
-        if (!parse_assign_expr(&res.assign_exprs[res.len], s)) {
+        if (!parse_assign_expr_inplace(s, &res.assign_exprs[res.len])) {
             goto fail;
         }
 
@@ -125,23 +134,147 @@ static char* take_spelling(struct token* t) {
     return spelling;
 }
 
+static bool is_enum_constant(const char* spell) {
+    // TODO:
+    return false;
+}
+
+static bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
+    assert(res);
+    // TODO:
+    return NULL;
+}
+
+static struct type_name* parse_type_name(struct parser_state* s) {
+    struct type_name* res = xmalloc(sizeof(struct type_name));
+    if (!parse_type_name_inplace(s, res)) {
+        free(res);
+        return NULL;
+    }
+    return res;
+}
+
+static bool parse_generic_assoc_inplace(struct parser_state* s, struct generic_assoc* res) {
+    if (s->it->type == DEFAULT) {
+        res->type_name = NULL;
+    } else {
+        res->type_name = parse_type_name(s);
+        if (!res->assign) {
+            return false;
+        }
+    }
+
+    if (!accept(s, COLON)) {
+        goto fail;
+    }
+
+    res->assign = parse_assign_expr(s);
+    if (!res->assign) {
+        goto fail;
+    }
+
+    return true;
+fail:
+    if (res->type_name) {
+        free_type_name(res->type_name);
+    }
+    return false;
+}
+
+static struct generic_assoc_list parse_generic_assoc_list(struct parser_state* s) {
+    size_t alloc_size = 1;
+    struct generic_assoc_list res = {
+            .len = 1,
+            .assocs = xmalloc(sizeof(struct generic_assoc) * alloc_size)};
+
+    if (!parse_generic_assoc_inplace(s, &res.assocs[0])) {
+        free(res.assocs);
+        return (struct generic_assoc_list){.len = 0, .assocs = NULL};
+    }
+
+    while (s->it->type == COMMA) {
+        accept_it(s);
+
+        if (res.len == alloc_size) {
+            grow_alloc((void**)&res.assocs, &alloc_size, sizeof(struct generic_assoc));
+        }
+
+        if (!parse_generic_assoc_inplace(s, &res.assocs[res.len])) {
+            goto fail;
+        }
+
+        ++res.len;
+    }
+    res.assocs = xrealloc(res.assocs, res.len * sizeof(struct generic_assoc));
+
+    return res;
+
+fail:
+    free_generic_assoc_list(&res);
+    return (struct generic_assoc_list){.len = 0, .assocs = NULL};
+}
+
+struct generic_sel* parse_generic_sel(struct parser_state* s) {
+    assert(s->it->type == GENERIC);
+    accept_it(s);
+
+    if (!accept(s, LBRACKET)) {
+        return NULL;
+    }
+
+    struct assign_expr* assign = parse_assign_expr(s);
+    if (!assign) {
+        return NULL;
+    }
+
+    if (!accept(s, COMMA)) {
+        goto fail;
+    }
+
+    struct generic_assoc_list assocs = parse_generic_assoc_list(s);
+    if (assocs.len == 0) {
+        goto fail;
+    }
+
+    return create_generic_sel(assign, assocs);
+
+fail:
+    free_assign_expr(assign);
+    return NULL;
+}
+
 static struct primary_expr* parse_primary_expr(struct parser_state* s) {
     switch (s->it->type) {
         case IDENTIFIER: {
             char* spelling = take_spelling(s->it);
+            accept_it(s);
+            if (is_enum_constant(spelling)) {
+                return create_primary_expr_constant(create_constant(ENUM, spelling));
+            }
             return create_primary_expr_identifier(create_identifier(spelling));
         }
+        case F_CONSTANT:
         case I_CONSTANT: {
+            enum token_type type = s->it->type;
             char* spelling = take_spelling(s->it);
-            return create_primary_expr_constant(create_constant(false, spelling));
-        }
-        case F_CONSTANT: {
-            char* spelling = take_spelling(s->it);
-            return create_primary_expr_constant(create_constant(true, spelling));
+            accept_it(s);
+            return create_primary_expr_constant(create_constant(type, spelling));
         }
         case STRING_LITERAL: {
             char* spelling = take_spelling(s->it);
+            accept_it(s);
             return create_primary_expr_string(create_string_literal(spelling));
+        }
+        case FUNC_NAME: {
+            accept_it(s);
+            return create_primary_expr_string(create_func_name());
+        }
+        case GENERIC: {
+            struct generic_sel* generic = parse_generic_sel(s);
+            if (!generic) {
+                return NULL;
+            }
+            return create_primary_expr_generic(generic);
         }
     
         default:
@@ -179,7 +312,7 @@ static struct expr* parse_expr(struct parser_state* s) {
     struct expr* res = xmalloc(sizeof(struct expr));
     res->assign_exprs = xmalloc(num_elems * sizeof(struct assign_expr));
 
-    if (parse_assign_expr(&res->assign_exprs[0], s)) {
+    if (parse_assign_expr_inplace(s, &res->assign_exprs[0])) {
         res->len = 0;
         goto fail;
     }
@@ -191,7 +324,7 @@ static struct expr* parse_expr(struct parser_state* s) {
             grow_alloc((void**)&res->assign_exprs, &num_elems, sizeof(struct assign_expr));
         }
 
-        if (!parse_assign_expr(&res->assign_exprs[res->len], s)) {
+        if (!parse_assign_expr_inplace(&res->assign_exprs[res->len], s)) {
             goto fail;
         }
 
@@ -255,21 +388,6 @@ static bool next_is_type_name(const struct parser_state* s) {
     assert(s->it->type != INVALID);
     struct token* next = s->it + 1;
     return is_keyword_type_spec(next->type) || is_type_qual(next->type) || next->type == IDENTIFIER && is_typedef_name(s, next->spelling);
-}
-
-static bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
-    assert(res);
-    // TODO:
-    return NULL;
-}
-
-static struct type_name* parse_type_name(struct parser_state* s) {
-    struct type_name* res = xmalloc(sizeof(struct type_name));
-    if (!parse_type_name_inplace(s, res)) {
-        free(res);
-        return NULL;
-    }
-    return res;
 }
 
 static struct init_list parse_init_list(struct parser_state* s) {
@@ -455,7 +573,7 @@ static struct unary_expr* parse_unary_expr(struct parser_state* s) {
         ++len;
         accept_it(s);
     }
-    ops_before = realloc(ops_before, len);
+    ops_before = xrealloc(ops_before, len * sizeof(enum token_type));
 
     if (is_unary_op(s->it->type)) {
         enum token_type unary_op = s->it->type;
@@ -483,7 +601,7 @@ static struct unary_expr* parse_unary_expr(struct parser_state* s) {
                     }
                     if (s->it->type == LBRACE) {
                         ++len;
-                        ops_before = realloc(ops_before, len);
+                        ops_before = xrealloc(ops_before, len * sizeof(enum token_type));
                         ops_before[len - 1] = SIZEOF;
 
                         struct postfix_expr* postfix = parse_postfix_expr_type_name(s, type_name);
@@ -498,7 +616,7 @@ static struct unary_expr* parse_unary_expr(struct parser_state* s) {
                     }
                 } else {
                     ++len;
-                    ops_before = realloc(ops_before, len);
+                    ops_before = xrealloc(ops_before, len * sizeof(enum token_type));
                     ops_before[len - 1] = SIZEOF;
 
                     struct postfix_expr* postfix = parse_postfix_expr(s);
@@ -579,7 +697,7 @@ static struct cast_expr* parse_cast_expression(struct parser_state* s) {
     if (s->it->type == LBRACE) {
         // TODO: typename of primary expression
     }
-    type_names = realloc(type_names, len);
+    type_names = xrealloc(type_names, len * sizeof(struct type_name));
 
     struct unary_expr* rhs = parse_unary_expr(s);
     if (!rhs) {

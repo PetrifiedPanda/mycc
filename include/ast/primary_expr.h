@@ -8,12 +8,14 @@
 
 struct expr;
 struct identifier;
+struct generic_sel;
 
 enum primary_expr_type {
     PRIMARY_EXPR_IDENTIFIER,
     PRIMARY_EXPR_CONSTANT,
     PRIMARY_EXPR_STRING_LITERAL,
-    PRIMARY_EXPR_BRACKET
+    PRIMARY_EXPR_BRACKET,
+    PRIMARY_EXPR_GENERIC
 };
 
 struct primary_expr {
@@ -23,6 +25,7 @@ struct primary_expr {
         struct string_literal literal;
         struct identifier* identifier;
         struct expr* bracket_expr;
+        struct generic_sel* generic;
     };
 };
 
@@ -34,10 +37,13 @@ struct primary_expr* create_primary_expr_identifier(struct identifier* identifie
 
 struct primary_expr* create_primary_expr_bracket(struct expr* bracket_expr);
 
+struct primary_expr* create_primary_expr_generic(struct generic_sel* generic);
+
 void free_primary_expr(struct primary_expr* bracket_expr);
 
 #include "ast/expr.h"
 #include "ast/identifier.h"
+#include "ast/generic_sel.h"
 
 #endif
 
