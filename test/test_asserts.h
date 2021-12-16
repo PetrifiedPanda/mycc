@@ -19,6 +19,7 @@ do {                                                        \
     }                                                       \
 } while (0)
 
+
 #define assert_str(got, expected)                                                           \
 do {                                                                                        \
     if (((expected) == NULL && (got) != NULL) || ((got) == NULL && (expected) != NULL)) {   \
@@ -34,6 +35,7 @@ do {                                                                            
     }                                                                                       \
 } while (0)
 
+
 #define assert_token_type(got, expected)                                                \
 do {                                                                                    \
     if ((got) != (expected)) {                                                          \
@@ -42,6 +44,7 @@ do {                                                                            
         exit(EXIT_FAILURE);                                                             \
     }                                                                                   \
 } while (0)
+
 
 #define assert_not_null(got)                    \
 do {                                            \
@@ -52,6 +55,7 @@ do {                                            \
     }                                           \
 } while (0)
 
+
 #define assert_error(got, expected)                                                                 \
 do {                                                                                                \
     if ((got) != (expected)) {                                                                      \
@@ -60,4 +64,5 @@ do {                                                                            
         exit(EXIT_FAILURE);                                                                         \
     }                                                                                               \
 } while (0)
+
 #endif
