@@ -23,11 +23,7 @@ do {                                                        \
 do {                                                                                        \
     if (((expected) == NULL && (got) != NULL) || ((got) == NULL && (expected) != NULL)) {   \
         PRINT_ASSERT_ERR();                                                                 \
-        if ((expected) == NULL) {                                                           \
-            printf("Expected NULL but got %s", got);                                        \
-        } else {                                                                            \
-            printf("Expected %s but got NULL", expected);                                   \
-        }                                                                                   \
+        printf("Expected %s but got %s", expected, got);                                    \
         exit(EXIT_FAILURE);                                                                 \
     } else if ((got) != NULL && (expected) != NULL) {                                       \
         if (strcmp(got, expected) != 0) {                                                   \
