@@ -30,6 +30,13 @@ void clear_last_error();
 const char* get_error_string();
 
 /**
+ *
+ * @param t The error type to be converted to a string
+ * @return The enum constant as a string
+ */
+const char* get_error_type_str(enum error_type t);
+
+/**
  * @brief Set the global error state
  * 
  * @param type The error type to set

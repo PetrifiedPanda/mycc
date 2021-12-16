@@ -27,6 +27,20 @@ const char* get_error_string() {
     return g_msg_buf;
 }
 
+const char* get_error_type_str(enum error_type t) {
+    switch (t) {
+        case ERR_NONE:
+            return "ERR_NONE";
+        case ERR_TOKENIZER:
+            return "ERR_TOKENIZER";
+        case ERR_PARSER:
+            return "ERR_PARSER";
+        default:
+            return "INVALID ERROR TYPE";
+
+    }
+}
+
 static inline void append_error_msg_va_list(const char* format, va_list args) {
     assert(format);
 

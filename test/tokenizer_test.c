@@ -1,10 +1,11 @@
 #include <stdio.h>
-#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "tokenizer.h"
 #include "error.h"
+
+#include "test_asserts.h"
 
 static void simple_test();
 static void file_test();
@@ -23,12 +24,12 @@ static void check_size(const struct token* tokens, size_t expected) {
         ++it;
         ++size;
     }
-    assert(size == expected);
+    assert_size_t(size, expected);
 }
 
 static void check_file(const struct token* tokens, const char* file) {
     for (const struct token* it = tokens; it->type != INVALID; ++it) {
-        assert(strcmp(it->file, file) == 0);
+        assert_str(it->file, file);
     }
 }
 
@@ -37,14 +38,12 @@ static struct token create(enum token_type type, const char* spelling, size_t li
 }
 
 static void check_token(const struct token* t, const struct token* expected) {
-    assert(t->type == expected->type);
-    if (t->spelling == NULL || expected->spelling == NULL) {
-        assert(t->spelling == expected->spelling);
-    } else {
-        assert(strcmp(t->spelling, expected->spelling) == 0);
-    }
-    assert(t->source_loc.line == expected->source_loc.line);
-    assert(t->source_loc.index == expected->source_loc.index);
+    assert_token_type(t->type, expected->type);
+
+    assert_str(t->spelling, expected->spelling);
+
+    assert_size_t(t->source_loc.line, expected->source_loc.line);
+    assert_size_t(t->source_loc.index, expected->source_loc.index);
 }
 
 static void compare_tokens(const struct token* got, const struct token* expected, size_t len) {
@@ -71,8 +70,8 @@ static void simple_test() {
     
     const char* filename = "not_a_file.c";
     struct token* tokens = tokenize(code, filename);
-    assert(get_last_error() == ERR_NONE);
-    assert(tokens);
+    assert_error(get_last_error(), ERR_NONE);
+    assert_not_null(tokens);
     
     enum { EXPECTED_SIZE = 57 };
     check_size(tokens, EXPECTED_SIZE);
@@ -145,13 +144,13 @@ static void simple_test() {
 
 static char* read_file(const char* filename) {
     FILE* f = fopen(filename, "rb");
-    assert(f);
+    assert_not_null(f);
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);
     fseek(f, 0, SEEK_SET);
 
     char* res = malloc(sizeof(char) * (fsize + 1));
-    assert(res);
+    assert_not_null(res);
 
     fread(res, 1, fsize, f);
     res[fsize] = '\0';
@@ -163,11 +162,11 @@ static char* read_file(const char* filename) {
 static void file_test() {
     const char* filename = "../test/files/no_preproc.c";
     char* code = read_file(filename); 
-    assert(code);
+    assert_not_null(code);
     
     struct token* tokens = tokenize(code, filename);
-    assert(get_last_error() == ERR_NONE);
-    assert(tokens);
+    assert_error(get_last_error(), ERR_NONE);
+    assert_not_null(tokens);
     
     enum {EXPECTED_SIZE = 530};
     check_size(tokens, EXPECTED_SIZE);
