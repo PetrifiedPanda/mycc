@@ -42,7 +42,7 @@ struct primary_expr* create_primary_expr_bracket(struct expr* bracket_expr) {
     return res;
 }
 
-struct primary_expr* create_primay_expr_generic(struct generic_sel* generic) {
+struct primary_expr* create_primary_expr_generic(struct generic_sel* generic) {
     assert(generic);
     struct primary_expr* res = xmalloc(sizeof(struct primary_expr));
     res->type = PRIMARY_EXPR_GENERIC;
