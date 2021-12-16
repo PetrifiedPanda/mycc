@@ -19,23 +19,23 @@ do {                                                        \
     }                                                       \
 } while (0)
 
-#define assert_str(got, expected)                                                   \
-do {                                                                                \
-    if ((expected == NULL && got != NULL) || (got == NULL && expected != NULL)) {   \
-        PRINT_ASSERT_ERR();                                                         \
-        if (expected == NULL) {                                                     \
-            printf("Expected NULL but got %s", got);                                \
-        } else {                                                                    \
-            printf("Expected %s but got NULL", expected);                           \
-        }                                                                           \
-        exit(EXIT_FAILURE);                                                         \
-    } else if (got != NULL && expected != NULL) {                                   \
-        if (strcmp(got, expected) != 0) {                                           \
-            PRINT_ASSERT_ERR();                                                     \
-            printf("Expected %s but got %s", expected, got);                        \
-            exit(EXIT_FAILURE);                                                     \
-        }                                                                           \
-    }                                                                               \
+#define assert_str(got, expected)                                                           \
+do {                                                                                        \
+    if (((expected) == NULL && (got) != NULL) || ((got) == NULL && (expected) != NULL)) {   \
+        PRINT_ASSERT_ERR();                                                                 \
+        if ((expected) == NULL) {                                                           \
+            printf("Expected NULL but got %s", got);                                        \
+        } else {                                                                            \
+            printf("Expected %s but got NULL", expected);                                   \
+        }                                                                                   \
+        exit(EXIT_FAILURE);                                                                 \
+    } else if ((got) != NULL && (expected) != NULL) {                                       \
+        if (strcmp(got, expected) != 0) {                                                   \
+            PRINT_ASSERT_ERR();                                                             \
+            printf("Expected %s but got %s", expected, got);                                \
+            exit(EXIT_FAILURE);                                                             \
+        }                                                                                   \
+    }                                                                                       \
 } while (0)
 
 #define assert_token_type(got, expected)                                                \
