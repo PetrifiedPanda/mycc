@@ -42,6 +42,15 @@ struct primary_expr* create_primary_expr_bracket(struct expr* bracket_expr) {
     return res;
 }
 
+struct primary_expr* create_primay_expr_generic(struct generic_sel* generic) {
+    assert(generic);
+    struct primary_expr* res = xmalloc(sizeof(struct primary_expr));
+    res->type = PRIMARY_EXPR_GENERIC;
+    res->generic = generic;
+
+    return res;
+}
+
 static void free_children(struct primary_expr* e) {
     switch (e->type) {
         case PRIMARY_EXPR_IDENTIFIER:
@@ -58,6 +67,10 @@ static void free_children(struct primary_expr* e) {
 
         case PRIMARY_EXPR_BRACKET:
             free_expr(e->bracket_expr);
+            break;
+
+        case PRIMARY_EXPR_GENERIC:
+            free_generic_sel(e->generic);
             break;
     }
 }

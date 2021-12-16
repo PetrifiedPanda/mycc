@@ -382,7 +382,7 @@ static bool is_typedef_name(const struct parser_state* s, const char* spell) {
 static bool next_is_type_name(const struct parser_state* s) {
     assert(s->it->type != INVALID);
     struct token* next = s->it + 1;
-    return is_keyword_type_spec(next->type) || is_type_qual(next->type) || next->type == IDENTIFIER && is_typedef_name(s, next->spelling);
+    return is_keyword_type_spec(next->type) || is_type_qual(next->type) || (next->type == IDENTIFIER && is_typedef_name(s, next->spelling));
 }
 
 static struct init_list parse_init_list(struct parser_state* s) {
@@ -639,6 +639,7 @@ static struct unary_expr* parse_unary_expr(struct parser_state* s) {
                     }
                     return create_unary_expr_postfix(ops_before, len, postfix);
                 }
+                break; // unreachable
             }
             case ALIGNOF: {
                 accept_it(s);

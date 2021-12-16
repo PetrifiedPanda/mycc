@@ -10,7 +10,11 @@ struct init_list create_init_list(struct designation_init* inits, size_t len) {
 
 void free_init_list_children(struct init_list* l) {
     for (size_t i = 0; i < l->len; ++i) {
-        free_initializer_children(&l->inits[i]);
+        struct designation_init* item = &l->inits[i];
+        if (item->designation) {
+            free_designation(item->designation);
+        }
+        free_initializer(item->init);
     }
     free(l->inits);
 }

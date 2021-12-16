@@ -1,5 +1,6 @@
 #include "ast/string_constant.h"
 
+#include <stdlib.h>
 #include <assert.h>
 
 struct string_constant create_string_constant(char* spelling) {
