@@ -43,7 +43,7 @@ static struct token create(enum token_type type, const char* spelling, size_t li
 }
 
 static void check_token(const struct token* t, const struct token* expected) {
-    assert_token_type(t->type, expected->type);
+    ASSERT_TOKEN_TYPE(t->type, expected->type);
 
     ASSERT_STR(t->spelling, expected->spelling);
 

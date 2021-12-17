@@ -41,7 +41,7 @@
     } while (0)
 
 
-#define assert_token_type(got, expected)                                                            \
+#define ASSERT_TOKEN_TYPE(got, expected)                                                            \
     do {                                                                                            \
         if ((got) != (expected)) {                                                                  \
             PRINT_ASSERT_ERR("Expected %s but got %s", get_type_str(expected), get_type_str(got));  \
