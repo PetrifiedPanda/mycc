@@ -49,11 +49,11 @@ do {                                                                            
 } while (0)
 
 
-#define assert_not_null(got)                                                \
-do {                                                                        \
-    if ((got) == NULL) {                                                    \
-        PRINT_ASSERT_ERR("Expected non null pointer, but got %p", got);     \
-    }                                                                       \
+#define assert_not_null(got)                                                    \
+do {                                                                            \
+    if ((got) == NULL) {                                                        \
+        PRINT_ASSERT_ERR("Expected non null pointer, but got %p", (void*)got);  \
+    }                                                                           \
 } while (0)
 
 
