@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-static bool is_standalone_type_spec(enum token_type t) {
+static inline bool is_standalone_type_spec(enum token_type t) {
     switch (t) {
         case VOID:
         case CHAR:

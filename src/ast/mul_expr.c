@@ -14,9 +14,8 @@ struct mul_expr* create_mul_expr(struct cast_expr* lhs, struct cast_expr_and_op*
     }
     
     for (size_t i = 0; i < len; ++i) {
-        struct cast_expr_and_op* item = &mul_chain[i];
-        assert(item->rhs);
-        assert(is_mul_op(item->mul_op));
+        assert(mul_chain[i].rhs);
+        assert(is_mul_op(mul_chain[i].mul_op));
     }
 
     struct mul_expr* res = xmalloc(sizeof(struct mul_expr));

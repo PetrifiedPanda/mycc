@@ -14,12 +14,12 @@ struct rel_expr* create_rel_expr(struct shift_expr* lhs, struct shift_expr_and_o
     }
     
     for (size_t i = 0; i < len; ++i) {
-        struct shift_expr_and_op* item = &rel_chain[i];
-        assert(item->rhs);
-        assert(is_rel_op(item->rel_op));
+        assert(rel_chain[i].rhs);
+        assert(is_rel_op(rel_chain[i].rel_op));
     }
 
     struct rel_expr* res = xmalloc(sizeof(struct rel_expr));
+    res->lhs = lhs;
     res->len = len;
     res->rel_chain = rel_chain;
     

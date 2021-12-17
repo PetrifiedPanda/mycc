@@ -14,12 +14,12 @@ struct shift_expr* create_shift_expr(struct add_expr* lhs, struct add_expr_and_o
     }
 
     for (size_t i = 0; i < len; ++i) {
-        struct add_expr_and_op* item = &shift_chain[i];
-        assert(item->rhs);
-        assert(is_shift_op(item->shift_op));
+        assert(shift_chain[i].rhs);
+        assert(is_shift_op(shift_chain[i].shift_op));
     }
     
     struct shift_expr* res = xmalloc(sizeof(struct shift_expr));
+    res->lhs = lhs;
     res->len = len;
     res->shift_chain = shift_chain;
     

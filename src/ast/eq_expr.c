@@ -14,9 +14,8 @@ void init_eq_expr(struct eq_expr* res, struct rel_expr* lhs, struct rel_expr_and
     }
 
     for (size_t i = 0; i < len; ++i) {
-        struct rel_expr_and_op* item = &eq_chain[i];
-        assert(item->rhs);
-        assert(is_eq_op(item->eq_op));
+        assert(eq_chain[i].rhs);
+        assert(is_eq_op(eq_chain[i].eq_op));
     }
 
     res->lhs = lhs;

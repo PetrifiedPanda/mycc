@@ -5,19 +5,18 @@
 
 #include "util.h"
 
-static inline void assign_operators_before(struct unary_expr* res, enum token_type* operators_before, size_t len) {
+static inline void assign_operators_before(struct unary_expr* res, enum token_type* ops_before, size_t len) {
     assert(res);
     if (len > 0) {
-        assert(operators_before);
+        assert(ops_before);
     } else {
-        assert(operators_before == NULL);
+        assert(ops_before == NULL);
     }
     for (size_t i = 0; i < len; ++i) {
-        enum token_type op = operators_before[i];
-        assert(op == SIZEOF || op == INC_OP || op == DEC_OP);
+        assert(ops_before[i] == SIZEOF || ops_before[i] == INC_OP || ops_before[i] == DEC_OP);
     }
     res->len = len;
-    res->operators_before = operators_before;
+    res->operators_before = ops_before;
 }
 
 struct unary_expr* create_unary_expr_postfix(enum token_type* operators_before, size_t len, struct postfix_expr* postfix) {

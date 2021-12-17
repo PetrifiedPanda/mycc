@@ -14,9 +14,8 @@ struct add_expr* create_add_expr(struct mul_expr* lhs, size_t len, struct mul_ex
     }
 
     for (size_t i = 0; i < len; ++i) {
-        struct mul_expr_and_op* item = &add_chain[i];
-        assert(item->rhs);
-        assert(is_add_op(item->add_op));
+        assert(add_chain[i].rhs);
+        assert(is_add_op(add_chain[i].add_op));
     }
      
     struct add_expr* res = xmalloc(sizeof(struct add_expr));

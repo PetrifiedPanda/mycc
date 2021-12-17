@@ -54,6 +54,8 @@ static void accept_it(struct parser_state* s) {
 }
 
 static bool parse_external_declaration(struct parser_state* s, struct external_declaration* res) {
+    (void)s;
+    (void)res;
     // TODO:
     return false;
 }
@@ -88,6 +90,8 @@ fail:
 }
 
 static bool parse_assign_expr_inplace(struct parser_state* s, struct assign_expr* res) {
+    (void)s;
+    (void)res;
     // TODO:
     return false;
 }
@@ -136,11 +140,14 @@ static char* take_spelling(struct token* t) {
 
 static bool is_enum_constant(const char* spell) {
     // TODO:
+    (void)spell;
     return false;
 }
 
 static bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
     assert(res);
+    (void)s;
+    (void)res;
     // TODO:
     return NULL;
 }
@@ -324,7 +331,7 @@ static struct expr* parse_expr(struct parser_state* s) {
             grow_alloc((void**)&res->assign_exprs, &num_elems, sizeof(struct assign_expr));
         }
 
-        if (!parse_assign_expr_inplace(&res->assign_exprs[res->len], s)) {
+        if (!parse_assign_expr_inplace(s, &res->assign_exprs[res->len])) {
             goto fail;
         }
 
@@ -369,6 +376,8 @@ static bool is_type_qual(enum token_type t) {
 }
 
 static bool is_typedef_name(const struct parser_state* s, const char* spell) {
+    (void)s;
+    (void)spell;
     // TODO:
     return false;
 }
@@ -386,6 +395,7 @@ static bool next_is_type_name(const struct parser_state* s) {
 }
 
 static struct init_list parse_init_list(struct parser_state* s) {
+    (void)s;
     // TODO:
     return (struct init_list){.len = 0, .inits = NULL};
 }
@@ -467,6 +477,8 @@ static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* 
     if (alloc_size != res->len) {
         res->suffixes = xrealloc(res->suffixes, res->len * sizeof(struct postfix_suffix));
     }
+
+    return true;
 }
 
 static struct postfix_expr* parse_postfix_expr(struct parser_state* s) {

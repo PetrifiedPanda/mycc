@@ -145,14 +145,21 @@ static void simple_test() {
 static char* read_file(const char* filename) {
     FILE* f = fopen(filename, "rb");
     assert_not_null(f);
-    fseek(f, 0, SEEK_END);
-    long fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
+
+    int result;
+
+    result = fseek(f, 0, SEEK_END);
+    assert_int(result, 0);
+
+    size_t fsize = ftell(f);
+    result = fseek(f, 0, SEEK_SET);
+    assert_int(result, 0);
 
     char* res = malloc(sizeof(char) * (fsize + 1));
     assert_not_null(res);
 
-    fread(res, 1, fsize, f);
+    size_t chars_read = fread(res, 1, fsize, f);
+    assert_size_t(chars_read, fsize);
     res[fsize] = '\0';
 
     fclose(f);

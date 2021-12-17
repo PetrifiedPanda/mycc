@@ -11,6 +11,16 @@
     fprintf(stderr, "Assertion failure in %s, %d\n\t", __FILE__, __LINE__)
 
 
+#define assert_int(got, expected)                                   \
+do {                                                                \
+    if ((got) != (expected)) {                                      \
+        PRINT_ASSERT_ERR();                                         \
+        fprintf(stderr, "Expected %d but got %d", expected, got);   \
+        exit(EXIT_FAILURE);                                         \
+    }                                                               \
+} while (0)
+
+
 #define assert_size_t(got, expected)                                    \
 do {                                                                    \
     if ((got) != (expected)) {                                          \
