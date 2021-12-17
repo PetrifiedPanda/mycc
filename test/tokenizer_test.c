@@ -34,7 +34,12 @@ static void check_file(const struct token* tokens, const char* file) {
 }
 
 static struct token create(enum token_type type, const char* spelling, size_t line, size_t index) {
-    return (struct token){type, (char*)spelling, NULL, (struct source_location){line, index}};
+    return (struct token){
+        .type = type,
+        .spelling =(char*)spelling,
+        .file = NULL,
+        .source_loc = {line, index}
+    };
 }
 
 static void check_token(const struct token* t, const struct token* expected) {
