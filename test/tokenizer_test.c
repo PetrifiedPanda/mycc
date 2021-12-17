@@ -24,12 +24,12 @@ static void check_size(const struct token* tokens, size_t expected) {
         ++it;
         ++size;
     }
-    assert_size_t(size, expected);
+    ASSERT_SIZE_T(size, expected);
 }
 
 static void check_file(const struct token* tokens, const char* file) {
     for (const struct token* it = tokens; it->type != INVALID; ++it) {
-        assert_str(it->file, file);
+        ASSERT_STR(it->file, file);
     }
 }
 
@@ -45,10 +45,10 @@ static struct token create(enum token_type type, const char* spelling, size_t li
 static void check_token(const struct token* t, const struct token* expected) {
     assert_token_type(t->type, expected->type);
 
-    assert_str(t->spelling, expected->spelling);
+    ASSERT_STR(t->spelling, expected->spelling);
 
-    assert_size_t(t->source_loc.line, expected->source_loc.line);
-    assert_size_t(t->source_loc.index, expected->source_loc.index);
+    ASSERT_SIZE_T(t->source_loc.line, expected->source_loc.line);
+    ASSERT_SIZE_T(t->source_loc.index, expected->source_loc.index);
 }
 
 static void compare_tokens(const struct token* got, const struct token* expected, size_t len) {
@@ -75,8 +75,8 @@ static void simple_test() {
     
     const char* filename = "not_a_file.c";
     struct token* tokens = tokenize(code, filename);
-    assert_error(get_last_error(), ERR_NONE);
-    assert_not_null(tokens);
+    ASSERT_ERROR(get_last_error(), ERR_NONE);
+    ASSERT_NOT_NULL(tokens);
     
     enum { EXPECTED_SIZE = 57 };
     check_size(tokens, EXPECTED_SIZE);
@@ -149,22 +149,22 @@ static void simple_test() {
 
 static char* read_file(const char* filename) {
     FILE* f = fopen(filename, "rb");
-    assert_not_null(f);
+    ASSERT_NOT_NULL(f);
 
     int result;
 
     result = fseek(f, 0, SEEK_END);
-    assert_int(result, 0);
+    ASSERT_INT(result, 0);
 
     size_t fsize = ftell(f);
     result = fseek(f, 0, SEEK_SET);
-    assert_int(result, 0);
+    ASSERT_INT(result, 0);
 
     char* res = malloc(sizeof(char) * (fsize + 1));
-    assert_not_null(res);
+    ASSERT_NOT_NULL(res);
 
     size_t chars_read = fread(res, 1, fsize, f);
-    assert_size_t(chars_read, fsize);
+    ASSERT_SIZE_T(chars_read, fsize);
     res[fsize] = '\0';
 
     fclose(f);
@@ -174,11 +174,11 @@ static char* read_file(const char* filename) {
 static void file_test() {
     const char* filename = "../test/files/no_preproc.c";
     char* code = read_file(filename); 
-    assert_not_null(code);
+    ASSERT_NOT_NULL(code);
     
     struct token* tokens = tokenize(code, filename);
-    assert_error(get_last_error(), ERR_NONE);
-    assert_not_null(tokens);
+    ASSERT_ERROR(get_last_error(), ERR_NONE);
+    ASSERT_NOT_NULL(tokens);
     
     enum {EXPECTED_SIZE = 530};
     check_size(tokens, EXPECTED_SIZE);

@@ -18,12 +18,12 @@ void error_test() {
 
 static void clear_err_assert() {
     clear_last_error();
-    assert_error(get_last_error(), ERR_NONE);
+    ASSERT_ERROR(get_last_error(), ERR_NONE);
 }
 
 static void compare_buffers(const char* got, const char* expected) {
-    assert_size_t(strlen(got), strlen(expected));
-    assert_str(got, expected);
+    ASSERT_SIZE_T(strlen(got), strlen(expected));
+    ASSERT_STR(got, expected);
 }
 
 static void test_set_error() {
@@ -38,7 +38,7 @@ static void test_set_error() {
 
         set_error(ERR_TOKENIZER, format, num, d, str);
 
-        assert_error(get_last_error(), ERR_TOKENIZER);
+        ASSERT_ERROR(get_last_error(), ERR_TOKENIZER);
         compare_buffers(get_error_string(), test_buf);
 
         clear_err_assert();
@@ -52,7 +52,7 @@ static void test_set_error() {
 
         set_error(ERR_PARSER, test_buf);
 
-        assert_error(get_last_error(), ERR_PARSER);
+        ASSERT_ERROR(get_last_error(), ERR_PARSER);
         compare_buffers(get_error_string(), test_buf);
 
         clear_err_assert();
@@ -75,7 +75,7 @@ static void test_set_error_file() {
 
         set_error_file(ERR_TOKENIZER, filename, loc, format, str, d, num);
 
-        assert_error(get_last_error(), ERR_TOKENIZER);
+        ASSERT_ERROR(get_last_error(), ERR_TOKENIZER);
         compare_buffers(get_error_string(), test_buf);
 
         clear_err_assert();
@@ -99,7 +99,7 @@ static void test_set_error_file() {
 
         set_error_file(ERR_PARSER, filename, loc, print_buf);
 
-        assert_error(get_last_error(), ERR_PARSER);
+        ASSERT_ERROR(get_last_error(), ERR_PARSER);
         compare_buffers(get_error_string(), test_buf);
 
         clear_err_assert();
@@ -126,12 +126,12 @@ static void test_append_error() {
     };
 
     set_error(ERR_TOKENIZER, split_string[0]);
-    assert_error(get_last_error(), ERR_TOKENIZER);
+    ASSERT_ERROR(get_last_error(), ERR_TOKENIZER);
     compare_buffers(get_error_string(), split_string[0]);
 
     for (int i = 1; i < ARR_SIZE; ++i) {
         append_error_msg(split_string[i]);
-        assert_error(get_last_error(), ERR_TOKENIZER);
+        ASSERT_ERROR(get_last_error(), ERR_TOKENIZER);
         compare_buffers(get_error_string(), expected_steps[i - 1]);
     }
 

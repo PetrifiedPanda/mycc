@@ -13,7 +13,7 @@
     exit(EXIT_FAILURE)
 
 
-#define assert_int(got, expected)                                   \
+#define ASSERT_INT(got, expected)                                   \
 do {                                                                \
     if ((got) != (expected)) {                                      \
         PRINT_ASSERT_ERR("Expected %d but got %d", expected, got);  \
@@ -21,7 +21,7 @@ do {                                                                \
 } while (0)
 
 
-#define assert_size_t(got, expected)                                    \
+#define ASSERT_SIZE_T(got, expected)                                    \
 do {                                                                    \
     if ((got) != (expected)) {                                          \
         PRINT_ASSERT_ERR("Expected %zu but got %zu", expected, got);    \
@@ -29,7 +29,7 @@ do {                                                                    \
 } while (0)
 
 
-#define assert_str(got, expected)                                                           \
+#define ASSERT_STR(got, expected)                                                           \
 do {                                                                                        \
     if (((expected) == NULL && (got) != NULL) || ((got) == NULL && (expected) != NULL)) {   \
         PRINT_ASSERT_ERR("Expected %s but got %s", expected, got);                          \
@@ -49,7 +49,7 @@ do {                                                                            
 } while (0)
 
 
-#define assert_not_null(got)                                                    \
+#define ASSERT_NOT_NULL(got)                                                    \
 do {                                                                            \
     if ((got) == NULL) {                                                        \
         PRINT_ASSERT_ERR("Expected non null pointer, but got %p", (void*)got);  \
@@ -57,7 +57,7 @@ do {                                                                            
 } while (0)
 
 
-#define assert_error(got, expected)                                                                         \
+#define ASSERT_ERROR(got, expected)                                                                         \
 do {                                                                                                        \
     if ((got) != (expected)) {                                                                              \
         PRINT_ASSERT_ERR("Expected %s but got %s", get_error_type_str(expected), get_error_type_str(got));  \
