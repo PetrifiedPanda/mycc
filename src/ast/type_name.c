@@ -19,7 +19,7 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
     (void)s;
     (void)res;
     // TODO:
-    return NULL;
+    return false;
 }
 
 struct type_name* parse_type_name(struct parser_state* s) {
