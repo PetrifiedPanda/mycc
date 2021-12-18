@@ -5,6 +5,8 @@
 
 #include "token_type.h"
 
+#include "parser/parser_state.h"
+
 struct cast_expr;
 
 struct cast_expr_and_op {
@@ -18,7 +20,7 @@ struct mul_expr {
     struct cast_expr_and_op* mul_chain;
 };
 
-struct mul_expr* create_mul_expr(struct cast_expr* lhs, struct cast_expr_and_op* mul_chain, size_t len);
+struct mul_expr* parse_mul_expr(struct parser_state* s);
 
 void free_mul_expr(struct mul_expr* e);
 

@@ -5,6 +5,8 @@
 
 #include "token_type.h"
 
+#include "parser/parser_state.h"
+
 struct rel_expr;
 
 struct rel_expr_and_op { 
@@ -18,9 +20,7 @@ struct eq_expr {
     struct rel_expr_and_op* eq_chain; 
 };
 
-void init_eq_expr(struct eq_expr* res, struct rel_expr* lhs, struct rel_expr_and_op* eq_chain, size_t len);
-
-struct eq_expr* create_eq_expr(struct rel_expr* lhs, struct rel_expr_and_op* eq_chain, size_t len);
+bool parse_eq_expr_inplace(struct parser_state* s, struct eq_expr* res);
 
 void free_eq_expr_children(struct eq_expr* e);
 

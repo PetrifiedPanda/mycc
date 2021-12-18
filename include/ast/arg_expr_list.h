@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "parser/parser_state.h"
+
 struct assign_expr;
 
 struct arg_expr_list {
@@ -10,7 +12,7 @@ struct arg_expr_list {
     struct assign_expr* assign_exprs;
 };
 
-struct arg_expr_list create_arg_expr_list(struct assign_expr* assign_exprs, size_t len);
+struct arg_expr_list parse_arg_expr_list(struct parser_state* s);
 
 void free_arg_expr_list(struct arg_expr_list* l);
 

@@ -5,25 +5,63 @@
 
 #include "util.h"
 
-void init_assign_expr(struct assign_expr* res, struct unary_and_op* assign_chain, size_t len, struct cond_expr* value) {
-    assert(value);
-    if (len > 0) {
-        assert(assign_chain);
-    } else {
-        assert(assign_chain == NULL);
-    }
-    for (size_t i = 0; i < len; ++i) {
-        assert(is_assign_op(assign_chain[i].assign_op));
+#include "parser/parser_util.h"
+
+bool parse_assign_expr_inplace(struct parser_state* s, struct assign_expr* res) {
+    struct unary_expr* last_unary = parse_unary_expr(s);
+    if (!last_unary) {
+        return false;
     }
 
-    res->assign_chain = assign_chain;
-    res->len = len;
-    res->value = value;
+    size_t alloc_len = res->len = 0;
+    res->assign_chain = NULL;
+    res->value = NULL;
+
+    while (is_assign_op(s->it->type)) {
+        enum token_type op = s->it->type;
+        accept_it(s);
+
+        struct unary_expr* new_last = parse_unary_expr(s);
+        if (!last_unary) {
+            free_unary_expr(last_unary);
+            goto fail;
+        }
+
+        if (res->len == alloc_len) {
+            grow_alloc((void**)&res->assign_chain, &alloc_len, sizeof(struct unary_and_op));
+        }
+
+        res->assign_chain[res->len] = (struct unary_and_op){
+                .assign_op = op,
+                .unary = last_unary
+        };
+        last_unary = new_last;
+
+        ++res->len;
+    }
+
+    res->assign_chain = xrealloc(res->assign_chain, sizeof(struct unary_and_op) * res->len);
+
+    res->value = parse_cond_expr_unary(s, last_unary);
+    if (!res->value) {
+        goto fail;
+    }
+
+    return true;
+    fail:
+    for (size_t i = 0; i < res->len; ++i) {
+        free_unary_expr(res->assign_chain[i].unary);
+    }
+
+    return false;
 }
 
-struct assign_expr* create_assign_expr(struct unary_and_op* assign_chain, size_t len, struct cond_expr* value) {
+struct assign_expr* parse_assign_expr(struct parser_state* s) {
     struct assign_expr* res = xmalloc(sizeof(struct assign_expr));
-    init_assign_expr(res, assign_chain, len, value);
+    if (!parse_assign_expr_inplace(s, res)) {
+        free(res);
+        return NULL;
+    }
     return res;
 }
 

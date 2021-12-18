@@ -1,29 +1,49 @@
 #include "ast/mul_expr.h"
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "util.h"
 
-struct mul_expr* create_mul_expr(struct cast_expr* lhs, struct cast_expr_and_op* mul_chain, size_t len) {
-    assert(lhs);
-    if (len != 0) {
-        assert(mul_chain);
-    } else {
-        assert(mul_chain == NULL);
-    }
-    
-    for (size_t i = 0; i < len; ++i) {
-        assert(mul_chain[i].rhs);
-        assert(is_mul_op(mul_chain[i].mul_op));
+#include "parser/parser_util.h"
+
+struct mul_expr* parse_mul_expr(struct parser_state* s) {
+    struct cast_expr* lhs = parse_cast_expr(s);
+    if (!lhs) {
+        return NULL;
     }
 
     struct mul_expr* res = xmalloc(sizeof(struct mul_expr));
+
     res->lhs = lhs;
-    res->len = len;
-    res->mul_chain = mul_chain;
-    
+
+    size_t alloc_size = res->len = 0;
+    res->mul_chain = NULL;
+
+    while (is_mul_op(s->it->type)) {
+        enum token_type op = s->it->type;
+        accept_it(s);
+
+        if (res->len == alloc_size) {
+            grow_alloc((void**)&res->mul_chain, &alloc_size, sizeof(struct cast_expr_and_op));
+        }
+
+        struct cast_expr_and_op* curr = &res->mul_chain[res->len];
+        curr->rhs = parse_cast_expr(s);
+        if (!curr->rhs) {
+            goto fail;
+        }
+        curr->mul_op = op;
+
+        ++res->len;
+    }
+
+    res->mul_chain = xrealloc(res->mul_chain, sizeof(struct mul_expr_and_op) * res->len);
+
     return res;
+
+fail:
+    free_mul_expr(res);
+    return NULL;
 }
 
 static void free_children(struct mul_expr* e) {

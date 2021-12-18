@@ -41,6 +41,10 @@ struct postfix_expr {
     struct postfix_suffix* suffixes;
 };
 
+struct postfix_expr* parse_postfix_expr(struct parser_state* s);
+
+struct postfix_expr* parse_postfix_expr_type_name(struct parser_state* s, struct type_name* type_name);
+
 void free_postfix_expr(struct postfix_expr* p);
 
 #include "ast/primary_expr.h"

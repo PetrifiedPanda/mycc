@@ -1,5 +1,34 @@
 #include "ast/generic_assoc.h"
 
+#include "parser/parser_util.h"
+
+bool parse_generic_assoc_inplace(struct parser_state* s, struct generic_assoc* res) {
+    if (s->it->type == DEFAULT) {
+        res->type_name = NULL;
+    } else {
+        res->type_name = parse_type_name(s);
+        if (!res->assign) {
+            return false;
+        }
+    }
+
+    if (!accept(s, COLON)) {
+        goto fail;
+    }
+
+    res->assign = parse_assign_expr(s);
+    if (!res->assign) {
+        goto fail;
+    }
+
+    return true;
+fail:
+    if (res->type_name) {
+        free_type_name(res->type_name);
+    }
+    return false;
+}
+
 void free_generic_assoc_children(struct generic_assoc* a) {
     if (a->type_name) {
         free_type_name(a->type_name);

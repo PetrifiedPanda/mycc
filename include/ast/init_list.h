@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "parser/parser_state.h"
+
 struct initializer;
 struct designation;
 
@@ -16,7 +18,7 @@ struct init_list {
     struct designation_init* inits;
 };
 
-struct init_list create_init_list(struct designation_init* inits, size_t len);
+struct init_list parse_init_list(struct parser_state* s);
 
 void free_init_list_children(struct init_list* l);
 

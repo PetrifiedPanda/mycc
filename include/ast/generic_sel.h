@@ -10,7 +10,7 @@ struct generic_sel {
     struct generic_assoc_list assocs;
 };
 
-struct generic_sel* create_generic_sel(struct assign_expr* assign, struct generic_assoc_list assocs);
+struct generic_sel* parse_generic_sel(struct parser_state* s);
 
 void free_generic_sel(struct generic_sel* s);
 

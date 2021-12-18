@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "parser/parser_state.h"
+
 struct log_or_expr;
 struct expr;
 
@@ -17,13 +19,18 @@ struct cond_expr {
     struct log_or_expr* last_else;
 };
 
-struct cond_expr* create_cond_expr(struct log_or_and_expr* conditionals, size_t len, struct log_or_expr* last_else);
+struct cond_expr* parse_cond_expr(struct parser_state* s);
+
+struct unary_expr;
+
+struct cond_expr* parse_cond_expr_unary(struct parser_state* s, struct unary_expr* start);
 
 void free_cond_expr_children(struct cond_expr* e);
 void free_cond_expr(struct cond_expr* e);
 
 #include "ast/expr.h"
 #include "ast/log_or_expr.h"
+#include "ast/unary_expr.h"
 
 #endif
 
