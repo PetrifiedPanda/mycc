@@ -3,13 +3,18 @@
 #include <stdlib.h>
 #include <assert.h>
 
-struct struct_declaration_list create_struct_declaration_list(struct struct_declaration* decls, size_t len) {
+static struct struct_declaration_list create_struct_declaration_list(struct struct_declaration* decls, size_t len) {
     if (len > 0) {
         assert(decls);
     } else {
         assert(decls == NULL);
     }
     return (struct struct_declaration_list){.len = len, .decls = decls};
+}
+
+struct struct_declaration_list parse_struct_declaration_list(struct parser_state* s) {
+    (void)s;
+    return (struct struct_declaration_list){.len = 0, .decls = NULL};
 }
 
 void free_struct_declaration_list(struct struct_declaration_list* l) {

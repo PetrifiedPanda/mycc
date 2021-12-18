@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "parser/parser_state.h"
+
 struct enumerator;
 
 struct enum_list {
@@ -10,7 +12,7 @@ struct enum_list {
     struct enumerator* enums;
 };
 
-struct enum_list create_enum_list(struct enumerator* enums, size_t len);
+struct enum_list parse_enum_list(struct parser_state* s);
 
 void free_enum_list(struct enum_list* l);
 

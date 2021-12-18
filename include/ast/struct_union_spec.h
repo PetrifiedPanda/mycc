@@ -5,6 +5,8 @@
 
 #include "ast/struct_declaration_list.h"
 
+#include "parser/parser_state.h"
+
 struct identifier;
 
 struct struct_union_spec {
@@ -13,7 +15,7 @@ struct struct_union_spec {
     struct struct_declaration_list decl_list;
 };
 
-struct struct_union_spec* create_struct_union_spec(bool is_struct, struct identifier* identifier, struct struct_declaration_list decl_list);
+struct struct_union_spec* parse_struct_union_spec(struct parser_state* s);
 
 void free_struct_union_spec(struct struct_union_spec* s);
 

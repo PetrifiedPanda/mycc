@@ -10,7 +10,7 @@ struct enum_spec {
     struct enum_list enum_list;
 };
 
-struct enum_spec* create_enum_spec(struct identifier* identifier, struct enum_list enum_list);
+struct enum_spec* parse_enum_spec(struct parser_state* s);
 
 void free_enum_spec(struct enum_spec* s);
 

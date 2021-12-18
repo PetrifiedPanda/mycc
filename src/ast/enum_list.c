@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-struct enum_list create_enum_list(struct enumerator* enums, size_t len) {
+static struct enum_list create_enum_list(struct enumerator* enums, size_t len) {
     if (len > 0) {
         assert(enums);
     } else {
@@ -15,6 +15,12 @@ struct enum_list create_enum_list(struct enumerator* enums, size_t len) {
     res.len = len;
     res.enums = enums;
     return res;
+}
+
+struct enum_list parse_enum_list(struct parser_state* s) {
+    (void)s;
+    // TODO:
+    return (struct enum_list){.len = 0, .enums = NULL};
 }
 
 void free_enum_list(struct enum_list* l) {

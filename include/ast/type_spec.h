@@ -3,6 +3,8 @@
 
 #include "token_type.h"
 
+#include "parser/parser_state.h"
+
 struct atomic_type_spec;
 struct struct_union_spec;
 struct enum_spec;
@@ -27,11 +29,7 @@ struct type_spec {
     };
 };
 
-struct type_spec* create_type_spec_predef(enum token_type type_spec);
-struct type_spec* create_type_spec_atomic(struct atomic_type_spec* atomic_spec);
-struct type_spec* create_type_spec_struct(struct struct_union_spec* struct_union_spec);
-struct type_spec* create_type_spec_enum(struct enum_spec* enum_spec);
-struct type_spec* create_type_spec_typename(struct identifier* type_name);
+struct type_spec* parse_type_spec(struct parser_state* s);
 
 void free_type_spec(struct type_spec* t);
 
