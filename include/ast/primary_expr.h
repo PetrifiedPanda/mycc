@@ -6,6 +6,8 @@
 #include "ast/constant.h"
 #include "ast/string_constant.h"
 
+#include "parser/parser_state.h"
+
 struct expr;
 struct identifier;
 struct generic_sel;
@@ -29,15 +31,7 @@ struct primary_expr {
     };
 };
 
-struct primary_expr* create_primary_expr_constant(struct constant constant);
-
-struct primary_expr* create_primary_expr_string(struct string_constant string);
-
-struct primary_expr* create_primary_expr_identifier(struct identifier* identifier);
-
-struct primary_expr* create_primary_expr_bracket(struct expr* bracket_expr);
-
-struct primary_expr* create_primary_expr_generic(struct generic_sel* generic);
+struct primary_expr* parse_primary_expr(struct parser_state* s);
 
 void free_primary_expr(struct primary_expr* bracket_expr);
 

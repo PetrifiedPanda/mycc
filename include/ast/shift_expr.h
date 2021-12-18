@@ -5,6 +5,8 @@
 
 #include "token_type.h"
 
+#include "parser/parser_state.h"
+
 struct add_expr;
 
 struct add_expr_and_op {
@@ -18,7 +20,7 @@ struct shift_expr {
     struct add_expr_and_op* shift_chain;
 };
 
-struct shift_expr* create_shift_expr(struct add_expr* lhs, struct add_expr_and_op* shift_chain, size_t len);
+struct shift_expr* parse_shift_expr(struct parser_state* s);
 
 void free_shift_expr(struct shift_expr* e);
 

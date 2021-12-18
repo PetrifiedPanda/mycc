@@ -5,25 +5,45 @@
 
 #include "util.h"
 
-struct shift_expr* create_shift_expr(struct add_expr* lhs, struct add_expr_and_op* shift_chain, size_t len) {
-    assert(lhs);
-    if (len > 0) {
-        assert(shift_chain);
-    } else {
-        assert(shift_chain == NULL);
+#include "parser/parser_util.h"
+
+struct shift_expr* parse_shift_expr(struct parser_state* s) {
+    struct add_expr* lhs = parse_add_expr(s);
+    if (!lhs) {
+        return NULL;
     }
 
-    for (size_t i = 0; i < len; ++i) {
-        assert(shift_chain[i].rhs);
-        assert(is_shift_op(shift_chain[i].shift_op));
-    }
-    
     struct shift_expr* res = xmalloc(sizeof(struct shift_expr));
     res->lhs = lhs;
-    res->len = len;
-    res->shift_chain = shift_chain;
-    
+
+    size_t alloc_size = res->len = 0;
+    res->shift_chain = NULL;
+
+    while (is_shift_op(s->it->type)) {
+        enum token_type op = s->it->type;
+        accept_it(s);
+
+        if (res->len == alloc_size) {
+            grow_alloc((void**)&res->shift_chain, &alloc_size, sizeof(struct add_expr_and_op));
+        }
+
+        struct add_expr_and_op* curr = &res->shift_chain[res->len];
+        curr->rhs = parse_add_expr(s);
+        if (!curr->rhs) {
+            goto fail;
+        }
+        curr->shift_op = op;
+
+        ++res->len;
+    }
+
+    res->shift_chain = xrealloc(res->shift_chain, sizeof(struct add_expr_and_op) * res->len);
+
     return res;
+
+fail:
+    free_shift_expr(res);
+    return NULL;
 }
 
 static void free_children(struct shift_expr* e) {

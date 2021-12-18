@@ -5,6 +5,8 @@
 
 #include "token_type.h"
 
+#include "parser/parser_state.h"
+
 struct postfix_expr;
 struct cast_expr;
 struct type_name;
@@ -30,10 +32,18 @@ struct unary_expr {
     };
 };
 
-struct unary_expr* create_unary_expr_postfix(enum token_type* operators_before, size_t len, struct postfix_expr* postfix);
-struct unary_expr* create_unary_expr_unary_op(enum token_type* operators_before, size_t len, enum token_type unary_op, struct cast_expr* cast_expr);
-struct unary_expr* create_unary_expr_sizeof_type(enum token_type* operators_before, size_t len, struct type_name* type_name);
-struct unary_expr* create_unary_expr_alignof(enum token_type* operators_before, size_t len, struct type_name* type_name);
+struct unary_expr* parse_unary_expr(struct parser_state* s);
+
+/**
+ *
+ * @param s current state
+ * @param ops_before array of len tokens
+ * @param len length of ops_before
+ * @param type_name the already parsed type_name, with which this starts
+ * @return struct unary_expr* unary expression created with the given parameters NULL on fail
+ * This does not free any of the parameters
+ */
+struct unary_expr* parse_unary_expr_type_name(struct parser_state* s, enum token_type* ops_before, size_t len, struct type_name* type_name);
 
 void free_unary_expr_children(struct unary_expr* u);
 void free_unary_expr(struct unary_expr* u);

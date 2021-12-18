@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "parser/parser_state.h"
+
 struct xor_expr;
 
 struct or_expr {
@@ -10,7 +12,7 @@ struct or_expr {
     struct xor_expr* xor_exprs;
 };
 
-struct or_expr* create_or_expr(struct xor_expr* xor_exprs, size_t len);
+bool parse_or_expr_inplace(struct parser_state* s, struct or_expr* res);
 
 void free_or_expr_children(struct or_expr* e);
 

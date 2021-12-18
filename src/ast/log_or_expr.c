@@ -5,14 +5,39 @@
 
 #include "util.h"
 
-struct log_or_expr* create_log_or_expr(size_t len, struct log_and_expr* log_and) {
-    assert(len > 0);
-    assert(log_and);
+#include "parser/parser_util.h"
+
+struct log_or_expr* parse_log_or_expr(struct parser_state* s) {
+    struct log_and_expr* and_exprs = xmalloc(sizeof(struct log_and_expr));
+    if (!parse_log_and_expr_inplace(s, and_exprs)) {
+        free(and_exprs);
+        return NULL;
+    }
+
     struct log_or_expr* res = xmalloc(sizeof(struct log_or_expr));
-    res->len = len;
-    res->log_ands = log_and;
-    
+    res->log_ands = and_exprs;
+    size_t alloc_len = res->len = 1;
+
+    while (s->it->type == OR_OP) {
+        accept_it(s);
+
+        if (res->len == alloc_len) {
+            grow_alloc((void**)res->log_ands, &alloc_len, sizeof(struct log_and_expr));
+        }
+
+        if (!parse_log_and_expr_inplace(s, &res->log_ands[res->len])) {
+            goto fail;
+        }
+
+        ++res->len;
+    }
+
+    res->log_ands = xrealloc(res->log_ands, sizeof(struct log_and_expr) * res->len);
+
     return res;
+fail:
+    free_log_or_expr(res);
+    return NULL;
 }
 
 static void free_children(struct log_or_expr* e) {

@@ -14,10 +14,11 @@ endif()
 
 file(GLOB Sources src/*.c)
 file(GLOB ASTSources src/ast/*.c)
+file(GLOB ParserSources src/parser/*.c)
 
 set(Lib mycclib)
 
-add_library(${Lib} OBJECT ${Sources} ${ASTSources})
+add_library(${Lib} OBJECT ${Sources} ${ASTSources} ${ParserSources})
 target_include_directories(${Lib} PUBLIC ./include)
 
 add_executable(${This} main.c)

@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 
+#include "parser/parser_state.h"
+
 struct unary_expr;
 struct type_name;
 
@@ -12,7 +14,7 @@ struct cast_expr {
     struct unary_expr* rhs;
 };
 
-struct cast_expr* create_cast_expr(struct type_name* type_names, size_t len, struct unary_expr* rhs);
+struct cast_expr* parse_cast_expr(struct parser_state* s);
 
 void free_cast_expr(struct cast_expr* e);
 

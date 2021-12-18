@@ -5,24 +5,46 @@
 
 #include "util.h"
 
-struct add_expr* create_add_expr(struct mul_expr* lhs, size_t len, struct mul_expr_and_op* add_chain) {
-    assert(lhs); 
-    if (len != 0) {
-        assert(add_chain);
-    } else {
-        assert(add_chain == NULL);
+#include "parser/parser_util.h"
+
+struct add_expr* parse_add_expr(struct parser_state* s) {
+    struct mul_expr* lhs = parse_mul_expr(s);
+    if (!lhs) {
+        return NULL;
     }
 
-    for (size_t i = 0; i < len; ++i) {
-        assert(add_chain[i].rhs);
-        assert(is_add_op(add_chain[i].add_op));
-    }
-     
     struct add_expr* res = xmalloc(sizeof(struct add_expr));
     res->lhs = lhs;
-    res->len = len;
-    res->add_chain = add_chain;
+
+    size_t alloc_size = res->len = 0;
+    res->add_chain = NULL;
+
+    while (is_add_op(s->it->type)) {
+        enum token_type op = s->it->type;
+        accept_it(s);
+
+        if (res->len == alloc_size) {
+            grow_alloc((void**)&res->add_chain, &alloc_size, sizeof(struct mul_expr_and_op));
+        }
+
+        struct mul_expr_and_op* curr = &res->add_chain[res->len];
+        curr->rhs = parse_mul_expr(s);
+        if (!curr->rhs) {
+            goto fail;
+        }
+
+        curr->add_op = op;
+
+        ++res->len;
+    }
+
+    res->add_chain = xrealloc(res->add_chain, sizeof(struct mul_expr_and_op) * res->len);
+
     return res;
+
+fail:
+    free_add_expr(res);
+    return NULL;
 }
 
 static void free_children(struct add_expr* e) {

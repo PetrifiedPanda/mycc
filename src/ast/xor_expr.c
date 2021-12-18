@@ -5,14 +5,38 @@
 
 #include "util.h"
 
-struct xor_expr* create_xor_expr(struct and_expr* and_exprs, size_t len) {
-    assert(len > 0);
-    assert(and_exprs);
-    struct xor_expr* res = xmalloc(sizeof(struct xor_expr));
-    res->len = len;
-    res->and_exprs = and_exprs;
-    
-    return res;
+#include "parser/parser_util.h"
+
+bool parse_xor_expr_inplace(struct parser_state* s, struct xor_expr* res) {
+    res->and_exprs = xmalloc(sizeof(struct and_expr));
+    if (!parse_and_expr_inplace(s, res->and_exprs)) {
+        free(res->and_exprs);
+        return false;
+    }
+
+    size_t alloc_size = res->len = 1;
+
+    while (s->it->type == XOR) {
+        accept_it(s);
+
+        if (res->len == alloc_size) {
+            grow_alloc((void**)&res->and_exprs, &alloc_size, sizeof(struct and_expr));
+        }
+
+        if (!parse_and_expr_inplace(s, &res->and_exprs[res->len])) {
+            goto fail;
+        }
+
+        ++res->len;
+    }
+
+    res->and_exprs = xrealloc(res->and_exprs, sizeof(struct and_expr) * res->len);
+
+    return true;
+
+fail:
+    free_xor_expr_children(res);
+    return false;
 }
 
 void free_xor_expr_children(struct xor_expr* e) {

@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#include "parser/parser_state.h"
+
 #include "ast/func_def.h"
 #include "ast/declaration.h"
 
@@ -14,8 +16,7 @@ struct external_declaration {
     };
 };
 
-struct external_declaration* create_external_declaration(struct declaration decl);
-struct external_declaration* create_external_declaration_func(struct func_def func_def);
+bool parse_external_declaration(struct parser_state* s, struct external_declaration* res);
 
 void free_external_declaration_children(struct external_declaration* d);
 

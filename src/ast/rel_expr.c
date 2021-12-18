@@ -5,25 +5,44 @@
 
 #include "util.h"
 
-struct rel_expr* create_rel_expr(struct shift_expr* lhs, struct shift_expr_and_op* rel_chain, size_t len) {
-    assert(lhs);
-    if (len > 0) {
-        assert(rel_chain);
-    } else {
-        assert(rel_chain == NULL);
-    }
-    
-    for (size_t i = 0; i < len; ++i) {
-        assert(rel_chain[i].rhs);
-        assert(is_rel_op(rel_chain[i].rel_op));
+#include "parser/parser_util.h"
+
+struct rel_expr* parse_rel_expr(struct parser_state* s) {
+    struct shift_expr* lhs = parse_shift_expr(s);
+    if (!lhs) {
+        return NULL;
     }
 
     struct rel_expr* res = xmalloc(sizeof(struct rel_expr));
     res->lhs = lhs;
-    res->len = len;
-    res->rel_chain = rel_chain;
-    
+
+    size_t alloc_size = res->len = 0;
+    res->rel_chain = NULL;
+
+    while (is_rel_op(s->it->type)) {
+        enum token_type op = s->it->type;
+        accept_it(s);
+
+        if (res->len == alloc_size) {
+            grow_alloc((void**)&res->rel_chain, &alloc_size, sizeof(struct shift_expr_and_op));
+        }
+
+        struct shift_expr_and_op* curr = &res->rel_chain[res->len];
+        curr->rhs = parse_shift_expr(s);
+        if (!curr->rhs) {
+            goto fail;
+        }
+        curr->rel_op = op;
+
+        ++res->len;
+    }
+
+    res->rel_chain = xrealloc(res->rel_chain, sizeof(struct shift_expr_and_op) * res->len);
+
     return res;
+fail:
+    free_rel_expr(res);
+    return NULL;
 }
 
 void free_rel_expr_children(struct rel_expr* e) {
