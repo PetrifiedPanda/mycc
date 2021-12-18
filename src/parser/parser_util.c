@@ -38,18 +38,6 @@ void expected_tokens_error(const enum token_type* expected, size_t num_expected,
     append_error_msg(" but got token of type %s", get_type_str(got->type));
 }
 
-static bool is_type_qual(enum token_type t) {
-    switch (t) {
-        case CONST:
-        case RESTRICT:
-        case VOLATILE:
-        case ATOMIC:
-            return true;
-        default:
-            return false;
-    }
-}
-
 bool next_is_type_name(const struct parser_state* s) {
     assert(s->it->type != INVALID);
     struct token* next = s->it + 1;
