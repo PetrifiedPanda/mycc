@@ -463,6 +463,19 @@ bool is_keyword_type_spec(enum token_type t) {
     }
 }
 
+bool is_type_qual(enum token_type t) {
+    switch (t) {
+        case CONST:
+        case RESTRICT:
+        case VOLATILE:
+        case ATOMIC:
+            return true;
+
+        default:
+            return false;
+    }
+}
+
 bool is_shift_op(enum token_type t) {
     switch (t) {
         case LEFT_OP:

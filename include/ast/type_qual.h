@@ -5,11 +5,13 @@
 
 #include "token_type.h"
 
+#include "parser/parser_state.h"
+
 struct type_qual {
     enum token_type type;
 };
 
-struct type_qual create_type_qual(enum token_type type);
+struct type_qual parse_type_qual(struct parser_state* s);
 
 #endif
 
