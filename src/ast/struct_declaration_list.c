@@ -14,6 +14,7 @@ static struct struct_declaration_list create_struct_declaration_list(struct stru
 
 struct struct_declaration_list parse_struct_declaration_list(struct parser_state* s) {
     (void)s;
+    // TODO:
     return (struct struct_declaration_list){.len = 0, .decls = NULL};
 }
 
