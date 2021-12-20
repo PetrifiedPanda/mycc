@@ -91,4 +91,6 @@ static void primary_expr_test() {
     test_primary_expr_string("\"Test string it does not matter whether this is an actual string literal but hey\"");
     test_primary_expr_string("\"Multi\\\nline\\\nstring\\\nbaybee\"");
     test_primary_expr_func_name();
+
+    // TODO: '(' expr ')' and generic selection
 }
