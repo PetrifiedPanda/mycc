@@ -69,10 +69,26 @@ static void test_primary_expr_string(const char* spell) {
     free_tokenizer_result(tokens);
 }
 
+static void test_primary_expr_func_name() {
+    struct token *tokens = tokenize("__func__", "not a file so go away");
+    struct parser_state s = {.it = tokens};
+    struct primary_expr *res = parse_primary_expr(&s);
+    ASSERT_NOT_NULL(res);
+    ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+
+    ASSERT(res->string.is_func == true);
+    ASSERT_NULL(res->string.lit.spelling);
+
+    free_tokenizer_result(tokens);
+    free_primary_expr(res);
+}
+
 static void primary_expr_test() {
-    test_primary_expr_constant(F_CONSTANT, "3.13234324");
-    test_primary_expr_constant(I_CONSTANT, "32575");
+    test_primary_expr_constant(F_CONSTANT, "3.1e-5f");
+    test_primary_expr_constant(I_CONSTANT, "0xdeadbeefl");
     test_primary_expr_identifier("super_cool_identifier");
     test_primary_expr_identifier("another_cool_identifier");
     test_primary_expr_string("\"Test string it does not matter whether this is an actual string literal but hey\"");
+    test_primary_expr_string("\"Multi\\\nline\\\nstring\\\nbaybee\"");
+    test_primary_expr_func_name();
 }
