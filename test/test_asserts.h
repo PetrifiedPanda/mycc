@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "token_type.h"
 #include "error.h"
@@ -11,6 +12,14 @@
     fprintf(stderr, "Assertion failure in %s, %d\n\t", __FILE__, __LINE__); \
     fprintf(stderr, format, __VA_ARGS__);                                   \
     exit(EXIT_FAILURE)
+
+
+#define ASSERT(expr)                                            \
+    do {                                                        \
+        if (!(expr)) {                                          \
+            PRINT_ASSERT_ERR("Assertion failure: %s", #expr);   \
+        }                                                       \
+    } while (0)
 
 
 #define ASSERT_INT(got, expected)                                       \
@@ -48,6 +57,13 @@
         }                                                                                           \
     } while (0)
 
+
+#define ASSERT_NULL(got)                                                \
+    do {                                                                \
+        if ((got) != NULL) {                                            \
+            PRINT_ASSERT_ERR("Expected NULL, but got %p", (void*)got);  \
+        }                                                               \
+    } while (0)
 
 #define ASSERT_NOT_NULL(got)                                                        \
     do {                                                                            \
