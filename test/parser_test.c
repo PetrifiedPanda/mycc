@@ -14,6 +14,7 @@ static void enum_list_test();
 static void enum_spec_test();
 static void designation_test();
 static void unary_expr_test();
+static void postfix_expr_test();
 
 void parser_test() {
     primary_expr_test();
@@ -22,6 +23,7 @@ void parser_test() {
     enum_spec_test();
     designation_test();
     unary_expr_test();
+    postfix_expr_test();
     printf("Parser test successful\n");
 }
 
@@ -410,7 +412,45 @@ static void unary_expr_test() {
 
         ASSERT(res->postfix->is_primary);
         test_primary_expr_id_or_const(res->postfix->primary, "100", I_CONSTANT);
+
+        free_unary_expr(res);
+        free_tokenizer_result(tokens);
     }
 
     // TODO: test other cases
+}
+
+static void postfix_expr_test() {
+    struct token* tokens = tokenize("test.ident->other++--++", "sjfkds");
+
+    struct parser_state s = {.it = tokens};
+    struct postfix_expr* res = parse_postfix_expr(&s);
+    ASSERT_NOT_NULL(res);
+    ASSERT_NO_ERROR();
+
+    ASSERT(res->is_primary);
+
+    ASSERT_SIZE_T(res->len, (size_t)5);
+
+    test_primary_expr_id_or_const(res->primary, "test", IDENTIFIER);
+
+    ASSERT(res->suffixes[0].type == POSTFIX_ACCESS);
+    ASSERT_STR(res->suffixes[0].identifier->spelling, "ident");
+
+    ASSERT(res->suffixes[1].type == POSTFIX_PTR_ACCESS);
+    ASSERT_STR(res->suffixes[1].identifier->spelling, "other");
+
+    ASSERT(res->suffixes[2].type == POSTFIX_INC_DEC);
+    ASSERT_TOKEN_TYPE(res->suffixes[2].inc_dec, INC_OP);
+
+    ASSERT(res->suffixes[3].type == POSTFIX_INC_DEC);
+    ASSERT_TOKEN_TYPE(res->suffixes[3].inc_dec, DEC_OP);
+
+    ASSERT(res->suffixes[4].type == POSTFIX_INC_DEC);
+    ASSERT_TOKEN_TYPE(res->suffixes[4].inc_dec, INC_OP);
+
+    free_postfix_expr(res);
+    free_tokenizer_result(tokens);
+
+    // TODO: add more cases
 }

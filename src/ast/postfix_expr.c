@@ -42,7 +42,8 @@ static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* 
                 }
                 res->suffixes[res->len] = (struct postfix_suffix){
                         .type = POSTFIX_INDEX,
-                        .index_expr = expr};
+                        .index_expr = expr
+                };
                 break;
             }
 
@@ -72,10 +73,12 @@ static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* 
                     return false;
                 }
                 char* spelling = take_spelling(s->it);
+                accept_it(s);
                 struct identifier* identifier = create_identifier(spelling);
                 res->suffixes[res->len] = (struct postfix_suffix){
                         .type = type,
-                        .identifier = identifier};
+                        .identifier = identifier
+                };
                 break;
             }
 
@@ -85,7 +88,8 @@ static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* 
                 accept_it(s);
                 res->suffixes[res->len] = (struct postfix_suffix){
                         .type = POSTFIX_INC_DEC,
-                        .inc_dec = inc_dec};
+                        .inc_dec = inc_dec
+                };
                 break;
             }
 
@@ -205,7 +209,7 @@ static void free_children(struct postfix_expr* p) {
                 break;
             case POSTFIX_ACCESS:
             case POSTFIX_PTR_ACCESS:
-                free(s->identifier);
+                free_identifier(s->identifier);
                 break;
             case POSTFIX_INC_DEC:
                 break;
