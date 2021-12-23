@@ -4,10 +4,16 @@
 
 #include "util.h"
 
-struct const_expr* create_const_expr(struct cond_expr expr) {
+static struct const_expr* create_const_expr(struct cond_expr expr) {
     struct const_expr* res = xmalloc(sizeof(struct const_expr));
     res->expr = expr;
     return res;
+}
+
+struct const_expr* parse_const_expr(struct parser_state* s) {
+    (void)s;
+    // TODO:
+    return NULL;
 }
 
 static void free_children(struct const_expr* e) {

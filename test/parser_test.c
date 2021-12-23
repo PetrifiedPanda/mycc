@@ -10,10 +10,12 @@
 
 static void primary_expr_test();
 static void jump_statement_test();
+static void enum_list_test();
 
 void parser_test() {
     primary_expr_test();
     jump_statement_test();
+    enum_list_test();
     printf("Parser test successful\n");
 }
 
@@ -167,4 +169,34 @@ static void jump_statement_test() {
     }
 
     // TODO: test with return value
+}
+
+
+static void enum_list_test() {
+    struct token* tokens = tokenize("ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, baz, BAD", "saffds");
+
+    enum {EXPECTED_LEN = 8};
+    struct parser_state s = {.it = tokens};
+    struct enum_list res = parse_enum_list(&s);
+    ASSERT_SIZE_T(res.len, (size_t)EXPECTED_LEN);
+    ASSERT_NOT_NULL(res.enums);
+
+    for (size_t i = 0; i < EXPECTED_LEN; ++i) {
+        ASSERT_NOT_NULL(res.enums[i].identifier);
+        ASSERT_NULL(res.enums[i].enum_val);
+    }
+
+    ASSERT_STR(res.enums[0].identifier->spelling, "ENUM_VAL1");
+    ASSERT_STR(res.enums[1].identifier->spelling, "enum_VAl2");
+    ASSERT_STR(res.enums[2].identifier->spelling, "enum_val_3");
+    ASSERT_STR(res.enums[3].identifier->spelling, "enum_val_4");
+    ASSERT_STR(res.enums[4].identifier->spelling, "foo");
+    ASSERT_STR(res.enums[5].identifier->spelling, "bar");
+    ASSERT_STR(res.enums[6].identifier->spelling, "baz");
+    ASSERT_STR(res.enums[7].identifier->spelling, "BAD");
+
+    free_enum_list(&res);
+    free_tokenizer_result(tokens);
+
+    // TODO: test with initializers
 }

@@ -1,5 +1,11 @@
 #include "parser/parser_state.h"
 
+void register_enum_constant(struct parser_state* s, const char* spell) {
+    (void)s;
+    (void)spell;
+    // TODO:
+}
+
 bool is_enum_constant(const struct parser_state* s, const char* spell) {
     (void)s;
     (void)spell;
