@@ -3,9 +3,13 @@
 
 #include "ast/designator_list.h"
 
+#include "parser/parser_state.h"
+
 struct designation {
     struct designator_list designators;
 };
+
+struct designation* parse_designation(struct parser_state* s);
 
 void free_designation(struct designation* d);
 

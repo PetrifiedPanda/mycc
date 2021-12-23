@@ -12,14 +12,14 @@ static void primary_expr_test();
 static void jump_statement_test();
 static void enum_list_test();
 static void enum_spec_test();
-static void designator_list_test();
+static void designation_test();
 
 void parser_test() {
     primary_expr_test();
     jump_statement_test();
     enum_list_test();
     enum_spec_test();
-    designator_list_test();
+    designation_test();
     printf("Parser test successful\n");
 }
 
@@ -286,62 +286,68 @@ static void test_cond_expr_constant(struct cond_expr* expr, const char* spell, e
     ASSERT_STR(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs->postfix->primary->constant.spelling, spell);
 }
 
-static void designator_list_test() {
+static void designation_test() {
     {
-        struct token *tokens = tokenize(".test[19].what_is_this.another_one", "jsalkf");
+        struct token *tokens = tokenize(".test[19].what_is_this.another_one = ", "jsalkf");
 
         struct parser_state s = {.it = tokens};
-        struct designator_list res = parse_designator_list(&s);
-        ASSERT_NOT_NULL(res.designators);
+        struct designation* res = parse_designation(&s);
+        ASSERT_NOT_NULL(res);
+        ASSERT_NOT_NULL(res->designators.designators);
         ASSERT_NO_ERROR();
 
-        ASSERT_SIZE_T(res.len, (size_t)4);
+        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
-        ASSERT(res.designators[0].is_index == false);
-        test_identifier(res.designators[0].identifier, "test");
+        ASSERT_SIZE_T(res->designators.len, (size_t)4);
 
-        ASSERT(res.designators[1].is_index == true);
-        test_cond_expr_constant(&res.designators[1].arr_index->expr, "19", I_CONSTANT);
+        struct designator* designators = res->designators.designators;
+        ASSERT(designators[0].is_index == false);
+        test_identifier(designators[0].identifier, "test");
 
-        ASSERT(res.designators[2].is_index == false);
-        test_identifier(res.designators[2].identifier, "what_is_this");
+        ASSERT(designators[1].is_index == true);
+        test_cond_expr_constant(&designators[1].arr_index->expr, "19", I_CONSTANT);
 
-        ASSERT(res.designators[3].is_index == false);
-        test_identifier(res.designators[3].identifier, "another_one");
+        ASSERT(designators[2].is_index == false);
+        test_identifier(designators[2].identifier, "what_is_this");
 
-        free_designator_list(&res);
+        ASSERT(designators[3].is_index == false);
+        test_identifier(designators[3].identifier, "another_one");
+
+        free_designation(res);
         free_tokenizer_result(tokens);
     }
 
     {
-        struct token* tokens = tokenize("[0.5].blah[420].oof[2][10]", "stetsd");
+        struct token* tokens = tokenize("[0.5].blah[420].oof[2][10] =", "stetsd");
 
         struct parser_state s = {.it = tokens};
-        struct designator_list res = parse_designator_list(&s);
+        struct designation* res = parse_designation(&s);
         ASSERT_NO_ERROR();
-        ASSERT_NOT_NULL(res.designators);
+        ASSERT_NOT_NULL(res);
+        ASSERT_NOT_NULL(res->designators.designators);
 
-        ASSERT_SIZE_T(res.len, (size_t)6);
+        ASSERT_SIZE_T(res->designators.len, (size_t)6);
 
-        ASSERT(res.designators[0].is_index == true);
-        test_cond_expr_constant(&res.designators[0].arr_index->expr, "0.5", F_CONSTANT);
+        struct designator* designators = res->designators.designators;
+        ASSERT(designators[0].is_index == true);
+        test_cond_expr_constant(&designators[0].arr_index->expr, "0.5", F_CONSTANT);
 
-        ASSERT(res.designators[1].is_index == false);
-        test_identifier(res.designators[1].identifier, "blah");
+        ASSERT(designators[1].is_index == false);
+        test_identifier(designators[1].identifier, "blah");
 
-        ASSERT(res.designators[2].is_index == true);
-        test_cond_expr_constant(&res.designators[2].arr_index->expr, "420", I_CONSTANT);
+        ASSERT(designators[2].is_index == true);
+        test_cond_expr_constant(&designators[2].arr_index->expr, "420", I_CONSTANT);
 
-        ASSERT(res.designators[3].is_index == false);
-        test_identifier(res.designators[3].identifier, "oof");
+        ASSERT(designators[3].is_index == false);
+        test_identifier(designators[3].identifier, "oof");
 
-        ASSERT(res.designators[4].is_index == true);
-        test_cond_expr_constant(&res.designators[4].arr_index->expr, "2", I_CONSTANT);
+        ASSERT(designators[4].is_index == true);
+        test_cond_expr_constant(&designators[4].arr_index->expr, "2", I_CONSTANT);
 
-        ASSERT(res.designators[5].is_index == true);
-        test_cond_expr_constant(&res.designators[5].arr_index->expr, "10", I_CONSTANT);
+        ASSERT(designators[5].is_index == true);
+        test_cond_expr_constant(&designators[5].arr_index->expr, "10", I_CONSTANT);
 
-        free_designator_list(&res);
+        free_designation(res);
         free_tokenizer_result(tokens);
     }
 }
