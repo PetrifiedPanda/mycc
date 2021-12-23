@@ -22,7 +22,11 @@ void accept_it(struct parser_state* s) {
 void expected_token_error(enum token_type expected, const struct token* got) {
     assert(got);
 
-    set_error_file(ERR_PARSER, got->file, got->source_loc, "Expected token of type %s but got token of type %s", get_type_str(expected), get_type_str(got->type));
+    if (got->type != INVALID) {
+        set_error_file(ERR_PARSER, got->file, got->source_loc, "Expected token of type %s but got token of type %s", get_type_str(expected), get_type_str(got->type));
+    } else {
+        set_error(ERR_PARSER, "Expected token of type %s but got to end of file", get_type_str(expected));
+    }
 }
 
 void expected_tokens_error(const enum token_type* expected, size_t num_expected, const struct token* got) {
@@ -35,7 +39,11 @@ void expected_tokens_error(const enum token_type* expected, size_t num_expected,
         append_error_msg(", %s", get_type_str(expected[i]));
     }
 
-    append_error_msg(" but got token of type %s", get_type_str(got->type));
+    if (got->type != INVALID) {
+        append_error_msg(" but got token of type %s", get_type_str(got->type));
+    } else {
+        append_error_msg(" but got to end of file");
+    }
 }
 
 bool next_is_type_name(const struct parser_state* s) {

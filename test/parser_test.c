@@ -25,6 +25,7 @@ static void test_primary_expr_identifier(const char* spell) {
     struct primary_expr* res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+    ASSERT_ERROR(get_last_error(), ERR_NONE);
 
     ASSERT(res->type == PRIMARY_EXPR_IDENTIFIER);
     ASSERT_STR(res->identifier->spelling, spell);
@@ -111,6 +112,21 @@ static void test_jump_statement(const char* spell, enum token_type t) {
     free_tokenizer_result(tokens);
 }
 
+static void test_expected_semicolon_jump_statement(const char* spell) {
+    struct token* tokens = tokenize(spell, "file.c");
+
+    struct parser_state s = {.it = tokens};
+
+    struct jump_statement* res = parse_jump_statement(&s);
+    ASSERT_NULL(res);
+
+    ASSERT_ERROR(get_last_error(), ERR_PARSER);
+    ASSERT_STR(get_error_string(), "Expected token of type SEMICOLON but got to end of file");
+
+    clear_last_error();
+    free_tokenizer_result(tokens);
+}
+
 static void jump_statement_test() {
     {
         struct token* tokens = tokenize("goto my_cool_label;", "file");
@@ -132,6 +148,23 @@ static void jump_statement_test() {
     test_jump_statement("continue;", CONTINUE);
     test_jump_statement("break;", BREAK);
     test_jump_statement("return;", RETURN);
+
+    test_expected_semicolon_jump_statement("continue");
+    test_expected_semicolon_jump_statement("break");
+
+    {
+        struct token* tokens = tokenize("not_what_was_expected;", "a_file.c");
+
+        struct parser_state s = {.it = tokens};
+
+        struct jump_statement* res = parse_jump_statement(&s);
+        ASSERT_NULL(res);
+        ASSERT_ERROR(get_last_error(), ERR_PARSER);
+
+        ASSERT_STR(get_error_string(), "a_file.c(1,1):\nExpected token of type GOTO, CONTINUE, BREAK, RETURN but got token of type IDENTIFIER");
+
+        free_tokenizer_result(tokens);
+    }
 
     // TODO: test with return value
 }

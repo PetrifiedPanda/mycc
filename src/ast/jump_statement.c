@@ -84,6 +84,7 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
 
     if (!accept(s, SEMICOLON)) {
         free_jump_statement(res);
+        return NULL;
     }
 
     return res;
