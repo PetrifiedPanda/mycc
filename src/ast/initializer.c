@@ -5,7 +5,9 @@
 
 #include "util.h"
 
-struct initializer* create_initializer_assign(struct assign_expr* assign) {
+#include "parser/parser_util.h"
+
+static struct initializer* create_initializer_assign(struct assign_expr* assign) {
     assert(assign);
     struct initializer* res = xmalloc(sizeof(struct initializer));
     res->is_assign = true;
@@ -14,12 +16,38 @@ struct initializer* create_initializer_assign(struct assign_expr* assign) {
     return res;
 }
 
-struct initializer* create_initializer_init_list(struct init_list init_list) {
+static struct initializer* create_initializer_init_list(struct init_list init_list) {
     struct initializer* res = xmalloc(sizeof(struct initializer));
     res->is_assign = false;
     res->init_list = init_list;
     
     return res;
+}
+
+struct initializer* parse_initializer(struct parser_state* s) {
+    (void)s;
+    if (s->it->type == LBRACE) {
+        accept_it(s);
+        struct init_list init_list = parse_init_list(s);
+        if (init_list.len == 0) {
+            return NULL;
+        }
+
+        if (s->it->type == COMMA) {
+            accept_it(s);
+        }
+
+        if (!accept(s, RBRACE)) {
+            free_init_list_children(&init_list);
+        }
+        return create_initializer_init_list(init_list);
+    } else {
+        struct assign_expr* assign = parse_assign_expr(s);
+        if (!assign) {
+            return NULL;
+        }
+        return create_initializer_assign(assign);
+    }
 }
 
 void free_initializer_children(struct initializer* i) {

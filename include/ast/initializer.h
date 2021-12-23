@@ -5,6 +5,8 @@
 
 #include "ast/init_list.h"
 
+#include "parser/parser_state.h"
+
 struct assign_expr;
 
 struct initializer {
@@ -15,8 +17,7 @@ struct initializer {
     };
 };
 
-struct initializer* create_initializer_assign(struct assign_expr* assign);
-struct initializer* create_initializer_init_list(struct init_list init_list);
+struct initializer* parse_initializer(struct parser_state* s);
 
 void free_initializer_children(struct initializer* i);
 void free_initializer(struct initializer* i);
