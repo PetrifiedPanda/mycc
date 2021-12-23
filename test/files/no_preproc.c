@@ -108,7 +108,7 @@ static int do_shit() {
 }
 
 _Noreturn static void variadic(int m, ...) {
-    char c = '\n';
+    unsigned char c = '\n';
 
     const char* func_name = __func__;
     double _Complex comp_d = 0;
