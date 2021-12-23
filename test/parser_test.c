@@ -13,6 +13,7 @@ static void jump_statement_test();
 static void enum_list_test();
 static void enum_spec_test();
 static void designation_test();
+static void unary_expr_test();
 
 void parser_test() {
     primary_expr_test();
@@ -20,6 +21,7 @@ void parser_test() {
     enum_list_test();
     enum_spec_test();
     designation_test();
+    unary_expr_test();
     printf("Parser test successful\n");
 }
 
@@ -263,7 +265,27 @@ static void enum_spec_test() {
     }
 }
 
-static void test_cond_expr_constant(struct cond_expr* expr, const char* spell, enum token_type type) {
+static void test_primary_expr_id_or_const(struct primary_expr* e, const char* spell, enum token_type type) {
+    enum primary_expr_type expected_type = type == IDENTIFIER ? PRIMARY_EXPR_IDENTIFIER : PRIMARY_EXPR_CONSTANT;
+    ASSERT(e->type == expected_type);
+    if (type == IDENTIFIER) {
+        ASSERT_NOT_NULL(e->identifier);
+        ASSERT_STR(e->identifier->spelling, spell);
+    } else {
+        ASSERT_TOKEN_TYPE(e->constant.type, type);
+        ASSERT_STR(e->constant.spelling, spell);
+    }
+}
+
+static void test_cast_expr_id_or_const(struct cast_expr* expr, const char* spell, enum token_type type) {
+    ASSERT_SIZE_T(expr->len, (size_t)0);
+    ASSERT(expr->rhs->type == UNARY_POSTFIX);
+    ASSERT_SIZE_T(expr->rhs->len, (size_t)0);
+    ASSERT(expr->rhs->postfix->is_primary == true);
+    test_primary_expr_id_or_const(expr->rhs->postfix->primary, spell, type);
+}
+
+static void test_cond_expr_id_or_const(struct cond_expr* expr, const char* spell, enum token_type type) {
     const size_t one = (size_t)1;
     const size_t zero = (size_t)0;
     ASSERT_SIZE_T(expr->len, zero);
@@ -277,13 +299,7 @@ static void test_cond_expr_constant(struct cond_expr* expr, const char* spell, e
     ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->len, zero);
     ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->len, zero);
     ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->len, zero);
-    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->len, zero);
-    ASSERT(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs->type == UNARY_POSTFIX);
-    ASSERT(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs->postfix->is_primary == true);
-    ASSERT(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs->postfix->primary->type == PRIMARY_EXPR_CONSTANT);
-    ASSERT_TOKEN_TYPE(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs->postfix->primary->constant.type, type);
-    ASSERT_NOT_NULL(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs->postfix->primary->constant.spelling);
-    ASSERT_STR(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs->postfix->primary->constant.spelling, spell);
+    test_cast_expr_id_or_const(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs, spell, type);
 }
 
 static void designation_test() {
@@ -305,7 +321,7 @@ static void designation_test() {
         test_identifier(designators[0].identifier, "test");
 
         ASSERT(designators[1].is_index == true);
-        test_cond_expr_constant(&designators[1].arr_index->expr, "19", I_CONSTANT);
+        test_cond_expr_id_or_const(&designators[1].arr_index->expr, "19", I_CONSTANT);
 
         ASSERT(designators[2].is_index == false);
         test_identifier(designators[2].identifier, "what_is_this");
@@ -330,24 +346,71 @@ static void designation_test() {
 
         struct designator* designators = res->designators.designators;
         ASSERT(designators[0].is_index == true);
-        test_cond_expr_constant(&designators[0].arr_index->expr, "0.5", F_CONSTANT);
+        test_cond_expr_id_or_const(&designators[0].arr_index->expr, "0.5", F_CONSTANT);
 
         ASSERT(designators[1].is_index == false);
         test_identifier(designators[1].identifier, "blah");
 
         ASSERT(designators[2].is_index == true);
-        test_cond_expr_constant(&designators[2].arr_index->expr, "420", I_CONSTANT);
+        test_cond_expr_id_or_const(&designators[2].arr_index->expr, "420", I_CONSTANT);
 
         ASSERT(designators[3].is_index == false);
         test_identifier(designators[3].identifier, "oof");
 
         ASSERT(designators[4].is_index == true);
-        test_cond_expr_constant(&designators[4].arr_index->expr, "2", I_CONSTANT);
+        test_cond_expr_id_or_const(&designators[4].arr_index->expr, "2", I_CONSTANT);
 
         ASSERT(designators[5].is_index == true);
-        test_cond_expr_constant(&designators[5].arr_index->expr, "10", I_CONSTANT);
+        test_cond_expr_id_or_const(&designators[5].arr_index->expr, "10", I_CONSTANT);
 
         free_designation(res);
         free_tokenizer_result(tokens);
     }
+}
+
+static void unary_expr_test() {
+    {
+        struct token *tokens = tokenize("++-- sizeof *name", "skfjdlfs");
+
+        struct parser_state s = {.it = tokens};
+        struct unary_expr *res = parse_unary_expr(&s);
+        ASSERT_NOT_NULL(res);
+        ASSERT_NO_ERROR();
+
+        ASSERT(res->type == UNARY_UNARY_OP);
+
+        ASSERT_SIZE_T(res->len, (size_t) 3);
+
+        ASSERT_TOKEN_TYPE(res->operators_before[0], INC_OP);
+        ASSERT_TOKEN_TYPE(res->operators_before[1], DEC_OP);
+        ASSERT_TOKEN_TYPE(res->operators_before[2], SIZEOF);
+
+        ASSERT_TOKEN_TYPE(res->unary_op, ASTERISK);
+        test_cast_expr_id_or_const(res->cast_expr, "name", IDENTIFIER);
+
+        free_unary_expr(res);
+        free_tokenizer_result(tokens);
+    }
+    {
+        struct token* tokens = tokenize("++++--++--100", "ksjflkdsjf");
+
+        struct parser_state s = {.it = tokens};
+        struct unary_expr* res = parse_unary_expr(&s);
+        ASSERT_NO_ERROR();
+        ASSERT_NOT_NULL(res);
+
+        ASSERT_SIZE_T(res->len, (size_t)5);
+        ASSERT(res->type == UNARY_POSTFIX);
+
+        ASSERT_TOKEN_TYPE(res->operators_before[0], INC_OP);
+        ASSERT_TOKEN_TYPE(res->operators_before[1], INC_OP);
+        ASSERT_TOKEN_TYPE(res->operators_before[2], DEC_OP);
+        ASSERT_TOKEN_TYPE(res->operators_before[3], INC_OP);
+        ASSERT_TOKEN_TYPE(res->operators_before[4], DEC_OP);
+
+        ASSERT(res->postfix->is_primary);
+        test_primary_expr_id_or_const(res->postfix->primary, "100", I_CONSTANT);
+    }
+
+    // TODO: test other cases
 }
