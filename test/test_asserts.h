@@ -80,4 +80,14 @@
         }                                                                                                       \
     } while (0)
 
+
+#define ASSERT_NO_ERROR()                                                                                                                           \
+    do {                                                                                                                                            \
+        enum error_type assert_no_error_type = get_last_error();                                                                                    \
+        if (assert_no_error_type != ERR_NONE) {                                                                                                     \
+            PRINT_ASSERT_ERR("Expected no error but got %s with message:\n\t%s", get_error_type_str(assert_no_error_type), get_error_string());     \
+        }                                                                                                                                           \
+    } while(0)
+
+
 #endif

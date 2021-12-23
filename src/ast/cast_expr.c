@@ -50,11 +50,15 @@ struct cast_expr* parse_cast_expr(struct parser_state* s) {
         --len;
         *type_name = type_names[len];
 
-        type_names = xrealloc(type_names, len * sizeof(struct type_name));
+        if (type_names) {
+            type_names = xrealloc(type_names, len * sizeof(struct type_name));
+        }
 
         rhs = parse_unary_expr_type_name(s, NULL, 0, type_name);
     } else {
-        type_names = xrealloc(type_names, len * sizeof(struct type_name));
+        if (type_names) {
+            type_names = xrealloc(type_names, len * sizeof(struct type_name));
+        }
         rhs = parse_unary_expr(s);
     }
     if (!rhs) {

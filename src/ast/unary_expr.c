@@ -87,7 +87,10 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
         ++len;
         accept_it(s);
     }
-    ops_before = xrealloc(ops_before, len * sizeof(enum token_type));
+
+    if (ops_before) {
+        ops_before = xrealloc(ops_before, len * sizeof(enum token_type));
+    }
 
     if (is_unary_op(s->it->type)) {
         enum token_type unary_op = s->it->type;

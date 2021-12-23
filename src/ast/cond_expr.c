@@ -7,11 +7,10 @@
 
 #include "parser/parser_util.h"
 
-struct cond_expr* parse_cond_expr(struct parser_state* s) {
-    struct cond_expr* res = xmalloc(sizeof(struct cond_expr));
+bool parse_cond_expr_inplace(struct parser_state* s, struct cond_expr* res) {
     res->last_else = parse_log_or_expr(s);
     if (!res->last_else) {
-        return NULL;
+        return false;
     }
 
     size_t alloc_len = res->len = 0;
@@ -49,11 +48,21 @@ struct cond_expr* parse_cond_expr(struct parser_state* s) {
     }
 
     res->conditionals = xrealloc(res->conditionals, sizeof(struct log_or_and_expr) * res->len);
-    return res;
+    return true;
 
 fail:
-    free_cond_expr(res);
-    return NULL;
+    free_cond_expr_children(res);
+    return false;
+}
+
+struct cond_expr* parse_cond_expr(struct parser_state* s) {
+    struct cond_expr* res = xmalloc(sizeof(struct cond_expr));
+    if (!parse_cond_expr_inplace(s, res)) {
+        free(res);
+        return NULL;
+    }
+
+    return res;
 }
 
 struct cond_expr* parse_cond_expr_unary(struct parser_state* s, struct unary_expr* start) {

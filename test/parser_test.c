@@ -12,12 +12,14 @@ static void primary_expr_test();
 static void jump_statement_test();
 static void enum_list_test();
 static void enum_spec_test();
+static void designator_list_test();
 
 void parser_test() {
     primary_expr_test();
     jump_statement_test();
     enum_list_test();
     enum_spec_test();
+    designator_list_test();
     printf("Parser test successful\n");
 }
 
@@ -131,6 +133,11 @@ static void test_expected_semicolon_jump_statement(const char* spell) {
     free_tokenizer_result(tokens);
 }
 
+static void test_identifier(struct identifier* i, const char* spell) {
+    ASSERT_NOT_NULL(i);
+    ASSERT_STR(i->spelling, spell);
+}
+
 static void jump_statement_test() {
     {
         struct token* tokens = tokenize("goto my_cool_label;", "file");
@@ -142,8 +149,7 @@ static void jump_statement_test() {
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
         ASSERT_TOKEN_TYPE(res->type, GOTO);
 
-        ASSERT_NOT_NULL(res->identifier);
-        ASSERT_STR(res->identifier->spelling, "my_cool_label");
+        test_identifier(res->identifier, "my_cool_label");
 
         free_jump_statement(res);
         free_tokenizer_result(tokens);
@@ -167,6 +173,7 @@ static void jump_statement_test() {
 
         ASSERT_STR(get_error_string(), "a_file.c(1,1):\nExpected token of type GOTO, CONTINUE, BREAK, RETURN but got token of type IDENTIFIER");
 
+        clear_last_error();
         free_tokenizer_result(tokens);
     }
 
@@ -187,6 +194,7 @@ static void enum_list_test() {
     enum {EXPECTED_LEN = 8};
     struct parser_state s = {.it = tokens};
     struct enum_list res = parse_enum_list(&s);
+    ASSERT_NO_ERROR();
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
     ASSERT_SIZE_T(res.len, (size_t)EXPECTED_LEN);
     ASSERT_NOT_NULL(res.enums);
@@ -242,6 +250,7 @@ static void enum_spec_test() {
 
         struct parser_state s = {.it = tokens};
         struct enum_spec* res = parse_enum_spec(&s);
+        ASSERT_NO_ERROR();
         ASSERT_NOT_NULL(res);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
@@ -251,5 +260,85 @@ static void enum_spec_test() {
 
         free_tokenizer_result(tokens);
         free_enum_spec(res);
+    }
+}
+
+static void test_cond_expr_constant(struct cond_expr* expr, const char* spell, enum token_type type) {
+    const size_t one = (size_t)1;
+    const size_t zero = (size_t)0;
+    ASSERT_SIZE_T(expr->len, zero);
+    ASSERT_SIZE_T(expr->last_else->len, one);
+    ASSERT_SIZE_T(expr->last_else->log_ands->len, one);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->len, one);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->len, one);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->len, one);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->len, zero);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->len, zero);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->len, zero);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->len, zero);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->len, zero);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->len, zero);
+    ASSERT(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs->type == UNARY_POSTFIX);
+    ASSERT(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs->postfix->is_primary == true);
+    ASSERT(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs->postfix->primary->type == PRIMARY_EXPR_CONSTANT);
+    ASSERT_TOKEN_TYPE(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs->postfix->primary->constant.type, type);
+    ASSERT_NOT_NULL(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs->postfix->primary->constant.spelling);
+    ASSERT_STR(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs->postfix->primary->constant.spelling, spell);
+}
+
+static void designator_list_test() {
+    {
+        struct token *tokens = tokenize(".test[19].what_is_this.another_one", "jsalkf");
+
+        struct parser_state s = {.it = tokens};
+        struct designator_list res = parse_designator_list(&s);
+        ASSERT_NOT_NULL(res.designators);
+        ASSERT_NO_ERROR();
+
+        ASSERT_SIZE_T(res.len, (size_t)4);
+
+        ASSERT(res.designators[0].is_index == false);
+        test_identifier(res.designators[0].identifier, "test");
+
+        ASSERT(res.designators[1].is_index == true);
+        test_cond_expr_constant(&res.designators[1].arr_index->expr, "19", I_CONSTANT);
+
+        ASSERT(res.designators[2].is_index == false);
+        test_identifier(res.designators[2].identifier, "what_is_this");
+
+        ASSERT(res.designators[3].is_index == false);
+        test_identifier(res.designators[3].identifier, "another_one");
+
+        free_designator_list(&res);
+        free_tokenizer_result(tokens);
+    }
+
+    {
+        struct token* tokens = tokenize("[0.5].blah[420].oof[2][10]", "stetsd");
+
+        struct parser_state s = {.it = tokens};
+        struct designator_list res = parse_designator_list(&s);
+        ASSERT_NO_ERROR();
+        ASSERT_NOT_NULL(res.designators);
+
+        ASSERT_SIZE_T(res.len, (size_t)6);
+
+        ASSERT(res.designators[0].is_index == true);
+        test_cond_expr_constant(&res.designators[0].arr_index->expr, "0.5", F_CONSTANT);
+
+        ASSERT(res.designators[1].is_index == false);
+        test_identifier(res.designators[1].identifier, "blah");
+
+        ASSERT(res.designators[2].is_index == true);
+        test_cond_expr_constant(&res.designators[2].arr_index->expr, "420", I_CONSTANT);
+
+        ASSERT(res.designators[3].is_index == false);
+        test_identifier(res.designators[3].identifier, "oof");
+
+        ASSERT(res.designators[4].is_index == true);
+        test_cond_expr_constant(&res.designators[4].arr_index->expr, "2", I_CONSTANT);
+
+        ASSERT(res.designators[5].is_index == true);
+        test_cond_expr_constant(&res.designators[5].arr_index->expr, "10", I_CONSTANT);
     }
 }

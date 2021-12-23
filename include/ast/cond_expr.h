@@ -19,6 +19,8 @@ struct cond_expr {
     struct log_or_expr* last_else;
 };
 
+bool parse_cond_expr_inplace(struct parser_state* s, struct cond_expr* res);
+
 struct cond_expr* parse_cond_expr(struct parser_state* s);
 
 struct unary_expr;
