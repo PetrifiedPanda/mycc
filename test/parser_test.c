@@ -11,11 +11,13 @@
 static void primary_expr_test();
 static void jump_statement_test();
 static void enum_list_test();
+static void enum_spec_test();
 
 void parser_test() {
     primary_expr_test();
     jump_statement_test();
     enum_list_test();
+    enum_spec_test();
     printf("Parser test successful\n");
 }
 
@@ -171,6 +173,13 @@ static void jump_statement_test() {
     // TODO: test with return value
 }
 
+static void test_enum_list_ids(struct enum_list* l, const char** enum_constants, size_t len) {
+    ASSERT_SIZE_T(l->len, len);
+    for (size_t i = 0; i < len; ++i) {
+        ASSERT_NOT_NULL(l->enums[i].identifier);
+        ASSERT_STR(l->enums[i].identifier->spelling, enum_constants[i]);
+    }
+}
 
 static void enum_list_test() {
     struct token* tokens = tokenize("ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, baz, BAD", "saffds");
@@ -178,6 +187,7 @@ static void enum_list_test() {
     enum {EXPECTED_LEN = 8};
     struct parser_state s = {.it = tokens};
     struct enum_list res = parse_enum_list(&s);
+    ASSERT_TOKEN_TYPE(s.it->type, INVALID);
     ASSERT_SIZE_T(res.len, (size_t)EXPECTED_LEN);
     ASSERT_NOT_NULL(res.enums);
 
@@ -185,18 +195,61 @@ static void enum_list_test() {
         ASSERT_NOT_NULL(res.enums[i].identifier);
         ASSERT_NULL(res.enums[i].enum_val);
     }
-
-    ASSERT_STR(res.enums[0].identifier->spelling, "ENUM_VAL1");
-    ASSERT_STR(res.enums[1].identifier->spelling, "enum_VAl2");
-    ASSERT_STR(res.enums[2].identifier->spelling, "enum_val_3");
-    ASSERT_STR(res.enums[3].identifier->spelling, "enum_val_4");
-    ASSERT_STR(res.enums[4].identifier->spelling, "foo");
-    ASSERT_STR(res.enums[5].identifier->spelling, "bar");
-    ASSERT_STR(res.enums[6].identifier->spelling, "baz");
-    ASSERT_STR(res.enums[7].identifier->spelling, "BAD");
+    const char* enum_constants[] = {
+            "ENUM_VAL1",
+            "enum_VAl2",
+            "enum_val_3",
+            "enum_val_4",
+            "foo",
+            "bar",
+            "baz",
+            "BAD"
+    };
+    test_enum_list_ids(&res, enum_constants, sizeof enum_constants / sizeof(char*));
 
     free_enum_list(&res);
     free_tokenizer_result(tokens);
 
     // TODO: test with initializers
+}
+
+static void enum_spec_test() {
+    const char *enum_constants[] = {
+            "TEST1",
+            "TEST2",
+            "TEST3",
+            "TEST4"
+    };
+    {
+        struct token *tokens = tokenize("enum my_enum { TEST1, TEST2, TEST3, TEST4 }", "sfjlfjk");
+
+        struct parser_state s = {.it = tokens};
+        struct enum_spec* res = parse_enum_spec(&s);
+        ASSERT_NOT_NULL(res);
+        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+
+        ASSERT_NOT_NULL(res->identifier);
+        ASSERT_STR(res->identifier->spelling, "my_enum");
+
+        test_enum_list_ids(&res->enum_list, enum_constants, sizeof enum_constants / sizeof(char *));
+
+        free_tokenizer_result(tokens);
+        free_enum_spec(res);
+    }
+
+    {
+        struct token* tokens = tokenize("enum {TEST1, TEST2, TEST3, TEST4, }", "jsfjsf");
+
+        struct parser_state s = {.it = tokens};
+        struct enum_spec* res = parse_enum_spec(&s);
+        ASSERT_NOT_NULL(res);
+        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+
+        ASSERT_NULL(res->identifier);
+
+        test_enum_list_ids(&res->enum_list, enum_constants, sizeof enum_constants / sizeof(char *));
+
+        free_tokenizer_result(tokens);
+        free_enum_spec(res);
+    }
 }

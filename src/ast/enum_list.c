@@ -17,7 +17,7 @@ struct enum_list parse_enum_list(struct parser_state* s) {
     }
 
     size_t alloc_len = 1;
-    while (s->it->type == COMMA) {
+    while (s->it->type == COMMA && s->it[1].type == IDENTIFIER) {
         accept_it(s);
 
         if (res.len == alloc_len) {

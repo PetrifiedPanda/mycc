@@ -56,7 +56,9 @@ fail:
 }
 
 static void free_children(struct enum_spec* s) {
-    free_identifier(s->identifier);
+    if (s->identifier) {
+        free_identifier(s->identifier);
+    }
     free_enum_list(&s->enum_list);
 }
 
