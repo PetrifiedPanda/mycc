@@ -75,7 +75,7 @@ static void simple_test() {
     
     const char* filename = "not_a_file.c";
     struct token* tokens = tokenize(code, filename);
-    ASSERT_ERROR(get_last_error(), ERR_NONE);
+    ASSERT_NO_ERROR();
     ASSERT_NOT_NULL(tokens);
 
     struct token expected[] = {
@@ -177,7 +177,7 @@ static void file_test() {
     ASSERT_NOT_NULL(code);
     
     struct token* tokens = tokenize(code, filename);
-    ASSERT_ERROR(get_last_error(), ERR_NONE);
+    ASSERT_NO_ERROR();
     ASSERT_NOT_NULL(tokens);
     
     struct token expected[] = {
