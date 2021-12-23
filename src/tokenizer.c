@@ -47,13 +47,15 @@ struct token* tokenize(const char* str, const char* filename) {
             .prev = '\0',
             .prev_prev = '\0',
             .source_loc = (struct source_location){1, 1},
-            .current_file = filename};
+            .current_file = filename
+    };
     
     size_t token_idx = 0;
 
     struct token_arr res = {
             .tokens = xmalloc(sizeof(struct token) * NUM_START_TOKENS),
-            .len = NUM_START_TOKENS};
+            .len = NUM_START_TOKENS
+    };
 
     while (*s.it != '\0') {
         while (isspace(*s.it)) {
@@ -96,7 +98,8 @@ struct token* tokenize(const char* str, const char* filename) {
             .type = INVALID,
             .spelling = NULL,
             .file = NULL,
-            .source_loc = {(size_t) -1, (size_t) -1}};
+            .source_loc = {(size_t) -1, (size_t) -1}
+    };
 
     res.len = token_idx;
 
