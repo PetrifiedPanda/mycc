@@ -28,7 +28,7 @@ struct struct_union_spec* parse_struct_union_spec(struct parser_state* s) {
             STRUCT,
             UNION
         };
-        expected_tokens_error(expected, sizeof(expected) / sizeof(enum token_type), s->it);
+        expected_tokens_error(expected, sizeof expected / sizeof(enum token_type), s->it);
         return NULL;
     }
 
