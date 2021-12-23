@@ -3,6 +3,8 @@
 
 #include "token_type.h"
 
+#include "parser/parser_state.h"
+
 struct expr;
 struct identifier;
 
@@ -14,10 +16,7 @@ struct jump_statement {
     };
 };
 
-struct jump_statement* create_goto_statement(struct identifier* identifier);
-struct jump_statement* create_continue_statement();
-struct jump_statement* create_break_statement();
-struct jump_statement* create_return_statement(struct expr* ret_val);
+struct jump_statement* parse_jump_statement(struct parser_state* s);
 
 void free_jump_statement(struct jump_statement* s);
 

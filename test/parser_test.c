@@ -9,9 +9,11 @@
 #include "test_asserts.h"
 
 static void primary_expr_test();
+static void jump_statement_test();
 
 void parser_test() {
     primary_expr_test();
+    jump_statement_test();
     printf("Parser test successful\n");
 }
 
@@ -93,4 +95,43 @@ static void primary_expr_test() {
     test_primary_expr_func_name();
 
     // TODO: '(' expr ')' and generic selection
+}
+
+static void test_jump_statement(const char* spell, enum token_type t) {
+    struct token* tokens = tokenize(spell, "skfjlskf");
+
+    struct parser_state s = {.it = tokens};
+    struct jump_statement* res = parse_jump_statement(&s);
+    ASSERT_NOT_NULL(res);
+
+    ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+    ASSERT_TOKEN_TYPE(res->type, t);
+
+    free_jump_statement(res);
+    free_tokenizer_result(tokens);
+}
+
+static void jump_statement_test() {
+    {
+        struct token* tokens = tokenize("goto my_cool_label;", "file");
+
+        struct parser_state s = {.it = tokens};
+        struct jump_statement* res = parse_jump_statement(&s);
+        ASSERT_NOT_NULL(res);
+
+        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+        ASSERT_TOKEN_TYPE(res->type, GOTO);
+
+        ASSERT_NOT_NULL(res->identifier);
+        ASSERT_STR(res->identifier->spelling, "my_cool_label");
+
+        free_jump_statement(res);
+        free_tokenizer_result(tokens);
+    }
+
+    test_jump_statement("continue;", CONTINUE);
+    test_jump_statement("break;", BREAK);
+    test_jump_statement("return;", RETURN);
+
+    // TODO: test with return value
 }

@@ -77,12 +77,8 @@ static void simple_test() {
     struct token* tokens = tokenize(code, filename);
     ASSERT_ERROR(get_last_error(), ERR_NONE);
     ASSERT_NOT_NULL(tokens);
-    
-    enum { EXPECTED_SIZE = 57 };
-    check_size(tokens, EXPECTED_SIZE);
-    check_file(tokens, filename);
 
-    struct token expected[EXPECTED_SIZE] = {
+    struct token expected[] = {
         create(TYPEDEF, NULL, 1, 1),
         create(STRUCT, NULL, 1, 9),
         create(IDENTIFIER, "typedeftest", 1, 16),
@@ -141,6 +137,10 @@ static void simple_test() {
         create(RINDEX, NULL, 13, 23),
         create(SEMICOLON, NULL, 13, 24)
     };
+    enum { EXPECTED_SIZE = sizeof expected / sizeof(struct token) };
+
+    check_size(tokens, EXPECTED_SIZE);
+    check_file(tokens, filename);
     
     compare_tokens(tokens, expected, EXPECTED_SIZE);
 
@@ -180,11 +180,7 @@ static void file_test() {
     ASSERT_ERROR(get_last_error(), ERR_NONE);
     ASSERT_NOT_NULL(tokens);
     
-    enum {EXPECTED_SIZE = 530};
-    check_size(tokens, EXPECTED_SIZE);
-    check_file(tokens, filename);
-    
-    struct token expected[EXPECTED_SIZE] = {
+    struct token expected[] = {
         create(TYPEDEF, NULL, 3, 1),
         create(STRUCT, NULL, 3, 9),
         create(LBRACE, NULL, 3, 16),
@@ -716,6 +712,10 @@ static void file_test() {
         create(IDENTIFIER, "g_thread", 120, 19),
         create(SEMICOLON, NULL, 120, 27)
     };
+
+    enum { EXPECTED_SIZE = sizeof expected / sizeof(struct token) };
+    check_size(tokens, EXPECTED_SIZE);
+    check_file(tokens, filename);
 
     compare_tokens(tokens, expected, EXPECTED_SIZE);
 
