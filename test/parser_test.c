@@ -340,5 +340,8 @@ static void designator_list_test() {
 
         ASSERT(res.designators[5].is_index == true);
         test_cond_expr_constant(&res.designators[5].arr_index->expr, "10", I_CONSTANT);
+
+        free_designator_list(&res);
+        free_tokenizer_result(tokens);
     }
 }
