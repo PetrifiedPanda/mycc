@@ -390,9 +390,7 @@ static enum token_type check_next(enum token_type type, const char* next) {
 
 static bool is_valid_singlec_token(enum token_type type, char prev, char prev_prev) {
     assert(type != INVALID);
-    if (type == DOT && isdigit(prev)) {
-        return false;
-    } else if ((type == SUB || type == ADD) && tolower(prev) == 'e' && isdigit(prev_prev)) {
+    if ((type == DOT && isdigit(prev)) || ((type == SUB || type == ADD) && tolower(prev) == 'e' && isdigit(prev_prev))) {
         return false;
     } else {
         return true;
