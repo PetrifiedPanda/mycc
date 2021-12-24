@@ -1,22 +1,19 @@
 #include "ast/log_or_expr.h"
 
 #include <stdlib.h>
+#include <assert.h>
 
 #include "util.h"
 
 #include "parser/parser_util.h"
 
-struct log_or_expr* parse_log_or_expr(struct parser_state* s) {
-    struct log_and_expr* and_exprs = xmalloc(sizeof(struct log_and_expr));
-    if (!parse_log_and_expr_inplace(s, and_exprs)) {
-        free(and_exprs);
-        return NULL;
-    }
+static void free_children(struct log_or_expr* e);
 
-    struct log_or_expr* res = xmalloc(sizeof(struct log_or_expr));
-    res->log_ands = and_exprs;
-    size_t alloc_len = res->len = 1;
+static bool parse_log_or_expr_ops(struct parser_state* s, struct log_or_expr* res) {
+    assert(res);
+    assert(res->len == 1);
 
+    size_t alloc_len = res->len;
     while (s->it->type == OR_OP) {
         accept_it(s);
 
@@ -33,17 +30,47 @@ struct log_or_expr* parse_log_or_expr(struct parser_state* s) {
 
     res->log_ands = xrealloc(res->log_ands, sizeof(struct log_and_expr) * res->len);
 
-    return res;
+    return true;
 fail:
-    free_log_or_expr(res);
-    return NULL;
+    free_children(res);
+    return false;
+}
+
+struct log_or_expr* parse_log_or_expr(struct parser_state* s) {
+    struct log_and_expr* and_exprs = xmalloc(sizeof(struct log_and_expr));
+    if (!parse_log_and_expr_inplace(s, and_exprs)) {
+        free(and_exprs);
+        return NULL;
+    }
+
+    struct log_or_expr* res = xmalloc(sizeof(struct log_or_expr));
+    res->log_ands = and_exprs;
+    res->len = 1;
+
+    if (!parse_log_or_expr_ops(s, res)) {
+        free(res);
+        return NULL;
+    }
+
+    return res;
 }
 
 struct log_or_expr* parse_log_or_expr_unary(struct parser_state* s, struct unary_expr* start) {
-    (void)s;
-    (void)start;
-    // TODO:
-    return NULL;
+    struct log_and_expr* and_exprs = parse_log_and_expr_unary(s, start);
+    if (!and_exprs) {
+        return NULL;
+    }
+
+    struct log_or_expr* res = xmalloc(sizeof(struct log_or_expr));
+    res->log_ands = and_exprs;
+    res->len = 1;
+
+    if (!parse_log_or_expr_ops(s, res)) {
+        free(res);
+        return NULL;
+    }
+
+    return res;
 }
 
 static void free_children(struct log_or_expr* e) {

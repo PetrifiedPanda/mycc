@@ -37,6 +37,13 @@ fail:
     return false;
 }
 
+struct log_and_expr* parse_log_and_expr_unary(struct parser_state* s, struct unary_expr* start) {
+    (void)s;
+    (void)start;
+    // TODO:
+    return NULL;
+}
+
 void free_log_and_expr_children(struct log_and_expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         free_or_expr_children(&e->or_exprs[i]);
