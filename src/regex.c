@@ -3,26 +3,24 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdbool.h>
-#include <assert.h>
 
 static bool is_id_char(char c) {
     return isalpha(c) || isdigit(c) || c == '_';
 }
 
 static bool is_hex_digit(char c) {
-    return isdigit(c) || (tolower(c) >= 'a' && tolower(c) <= 'f');
+    unsigned char uc = (unsigned char)c;
+    return isdigit(c) || (tolower(uc) >= 'a' && tolower(uc) <= 'f');
 }
 
 static bool is_exp_suffix(const char* str, size_t num) {
     size_t i = 0;
-    if (num < 2 || tolower(str[0]) != 'e') {
+    if (num < 2 || tolower((unsigned char)str[0]) != 'e') {
         return false;
     }
     ++i;
 
-    if (str[i] != '+' && str[i] != '-' && !isdigit(str[i])) {
-        return false;
-    } else if (!isdigit(str[i]) && i + 1 == num) {
+    if ((str[i] != '+' && str[i] != '-' && !isdigit(str[i])) || (!isdigit(str[i]) && i + 1 == num)) {
         return false;
     }
 
@@ -37,12 +35,14 @@ static bool is_exp_suffix(const char* str, size_t num) {
 }
 
 static bool is_float_suffix(char c) {
-    return tolower(c) == 'l' || tolower(c) == 'f';
+    unsigned char uc = (unsigned char)c;
+    return tolower(uc) == 'l' || tolower(uc) == 'f';
 }
 
 static bool is_int_suffix(const char* str, size_t num) {
     for (size_t i = 0; i != num; ++i) {
-        if (tolower(str[i]) != 'u' && tolower(str[i]) != 'l') {
+        unsigned char uc = (unsigned char)str[i];
+        if (tolower(uc) != 'u' && tolower(uc) != 'l') {
             return false;
         }
     }
@@ -55,7 +55,7 @@ bool is_hex_const(const char* str, size_t num) {
         return false;
     }
     ++i;
-    if (tolower(str[i]) != 'x') {
+    if (tolower((unsigned char)str[i]) != 'x') {
         return false;
     }
     ++i;

@@ -1,7 +1,6 @@
 #include "token.h"
 
 #include <stdlib.h>
-#include <string.h>
 #include <assert.h>
 
 #include "util.h"

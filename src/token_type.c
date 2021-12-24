@@ -425,7 +425,6 @@ bool is_assign_op(enum token_type t) {
     }
 }
 
-// TODO: update with new grammar
 bool is_storage_class_spec(enum token_type t) {
     switch (t) {
         case TYPEDEF:
