@@ -21,6 +21,7 @@ struct log_or_expr* parse_log_or_expr_unary(struct parser_state* s, struct unary
 void free_log_or_expr(struct log_or_expr* e);
 
 #include "ast/log_and_expr.h"
+#include "ast/unary_expr.h"
 
 #endif
 
