@@ -5,10 +5,11 @@
 #include "parser/parser_util.h"
 
 struct generic_assoc_list parse_generic_assoc_list(struct parser_state* s) {
-    size_t alloc_size = 1;
+    size_t alloc_len = 1;
     struct generic_assoc_list res = {
             .len = 1,
-            .assocs = xmalloc(sizeof(struct generic_assoc) * alloc_size)};
+            .assocs = xmalloc(sizeof(struct generic_assoc) * alloc_len)
+    };
 
     if (!parse_generic_assoc_inplace(s, &res.assocs[0])) {
         free(res.assocs);
@@ -18,8 +19,8 @@ struct generic_assoc_list parse_generic_assoc_list(struct parser_state* s) {
     while (s->it->type == COMMA) {
         accept_it(s);
 
-        if (res.len == alloc_size) {
-            grow_alloc((void**)&res.assocs, &alloc_size, sizeof(struct generic_assoc));
+        if (res.len == alloc_len) {
+            grow_alloc((void**)&res.assocs, &alloc_len, sizeof(struct generic_assoc));
         }
 
         if (!parse_generic_assoc_inplace(s, &res.assocs[res.len])) {

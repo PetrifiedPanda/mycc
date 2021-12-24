@@ -73,13 +73,13 @@ struct unary_expr* parse_unary_expr_type_name(struct parser_state* s, enum token
 }
 
 struct unary_expr* parse_unary_expr(struct parser_state* s) {
-    size_t alloc_size = 0;
+    size_t alloc_len = 0;
     enum token_type* ops_before = NULL;
 
     size_t len = 0;
     while (s->it->type == INC_OP || s->it->type == DEC_OP || (s->it->type == SIZEOF && (s->it + 1)->type != LBRACKET)) {
-        if (len == alloc_size) {
-            grow_alloc((void**)&ops_before, &alloc_size, sizeof(enum token_type));
+        if (len == alloc_len) {
+            grow_alloc((void**)&ops_before, &alloc_len, sizeof(enum token_type));
         }
 
         ops_before[len] = s->it->type;

@@ -14,13 +14,13 @@ bool parse_xor_expr_inplace(struct parser_state* s, struct xor_expr* res) {
         return false;
     }
 
-    size_t alloc_size = res->len = 1;
+    size_t alloc_len = res->len = 1;
 
     while (s->it->type == XOR) {
         accept_it(s);
 
-        if (res->len == alloc_size) {
-            grow_alloc((void**)&res->and_exprs, &alloc_size, sizeof(struct and_expr));
+        if (res->len == alloc_len) {
+            grow_alloc((void**)&res->and_exprs, &alloc_len, sizeof(struct and_expr));
         }
 
         if (!parse_and_expr_inplace(s, &res->and_exprs[res->len])) {

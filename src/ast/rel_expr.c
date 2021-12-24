@@ -16,15 +16,15 @@ struct rel_expr* parse_rel_expr(struct parser_state* s) {
     struct rel_expr* res = xmalloc(sizeof(struct rel_expr));
     res->lhs = lhs;
 
-    size_t alloc_size = res->len = 0;
+    size_t alloc_len = res->len = 0;
     res->rel_chain = NULL;
 
     while (is_rel_op(s->it->type)) {
         enum token_type op = s->it->type;
         accept_it(s);
 
-        if (res->len == alloc_size) {
-            grow_alloc((void**)&res->rel_chain, &alloc_size, sizeof(struct shift_expr_and_op));
+        if (res->len == alloc_len) {
+            grow_alloc((void**)&res->rel_chain, &alloc_len, sizeof(struct shift_expr_and_op));
         }
 
         struct shift_expr_and_op* curr = &res->rel_chain[res->len];

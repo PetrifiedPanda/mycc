@@ -25,12 +25,12 @@ struct cast_expr* parse_cast_expr(struct parser_state* s) {
     struct type_name* type_names = NULL;
     size_t len = 0;
 
-    size_t alloc_size = 0;
+    size_t alloc_len = 0;
     while (s->it->type == LBRACKET && next_is_type_name(s)) {
         accept_it(s);
 
-        if (len == alloc_size) {
-            grow_alloc((void**)&type_names, &alloc_size, sizeof(struct type_name));
+        if (len == alloc_len) {
+            grow_alloc((void**)&type_names, &alloc_len, sizeof(struct type_name));
         }
 
         if (!parse_type_name_inplace(s, &type_names[len])) {

@@ -13,15 +13,15 @@ bool parse_eq_expr_inplace(struct parser_state* s, struct eq_expr* res) {
         return false;
     }
 
-    size_t alloc_size = res->len = 0;
+    size_t alloc_len = res->len = 0;
     res->eq_chain = NULL;
 
     while (is_eq_op(s->it->type)) {
         enum token_type op = s->it->type;
         accept_it(s);
 
-        if (res->len == alloc_size) {
-            grow_alloc((void**)&res->eq_chain, &alloc_size, sizeof(struct rel_expr_and_op));
+        if (res->len == alloc_len) {
+            grow_alloc((void**)&res->eq_chain, &alloc_len, sizeof(struct rel_expr_and_op));
         }
 
         struct rel_expr_and_op* curr = &res->eq_chain[res->len];

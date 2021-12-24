@@ -16,15 +16,15 @@ struct mul_expr* parse_mul_expr(struct parser_state* s) {
 
     res->lhs = lhs;
 
-    size_t alloc_size = res->len = 0;
+    size_t alloc_len = res->len = 0;
     res->mul_chain = NULL;
 
     while (is_mul_op(s->it->type)) {
         enum token_type op = s->it->type;
         accept_it(s);
 
-        if (res->len == alloc_size) {
-            grow_alloc((void**)&res->mul_chain, &alloc_size, sizeof(struct cast_expr_and_op));
+        if (res->len == alloc_len) {
+            grow_alloc((void**)&res->mul_chain, &alloc_len, sizeof(struct cast_expr_and_op));
         }
 
         struct cast_expr_and_op* curr = &res->mul_chain[res->len];

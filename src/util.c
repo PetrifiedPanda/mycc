@@ -23,10 +23,10 @@ void* xrealloc(void* alloc, size_t bytes) {
     return res;
 }
 
-void grow_alloc(void** alloc, size_t* num_elems, size_t elem_size) {
-    size_t new_num = *num_elems + *num_elems / 2 + 1;
+void grow_alloc(void** alloc, size_t* alloc_len, size_t elem_size) {
+    size_t new_num = *alloc_len + *alloc_len / 2 + 1;
     *alloc = xrealloc(*alloc, elem_size * new_num);
-    *num_elems = new_num;
+    *alloc_len = new_num;
 }
 
 char* alloc_string_copy(const char* str) {

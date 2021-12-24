@@ -23,10 +23,10 @@ static bool is_posfix_op(enum token_type t) {
 }
 
 static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* res) {
-    size_t alloc_size = 0;
+    size_t alloc_len = 0;
     while (is_posfix_op(s->it->type)) {
-        if (res->len == alloc_size) {
-            grow_alloc((void**)&res->suffixes, &alloc_size, sizeof(struct postfix_suffix));
+        if (res->len == alloc_len) {
+            grow_alloc((void**)&res->suffixes, &alloc_len, sizeof(struct postfix_suffix));
         }
 
         switch (s->it->type) {
@@ -100,7 +100,7 @@ static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* 
         ++res->len;
     }
 
-    if (alloc_size != res->len) {
+    if (alloc_len != res->len) {
         res->suffixes = xrealloc(res->suffixes, res->len * sizeof(struct postfix_suffix));
     }
 
