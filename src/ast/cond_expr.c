@@ -1,18 +1,12 @@
 #include "ast/cond_expr.h"
 
-#include <assert.h>
 #include <stdlib.h>
 
 #include "util.h"
 
 #include "parser/parser_util.h"
 
-bool parse_cond_expr_inplace(struct parser_state* s, struct cond_expr* res) {
-    res->last_else = parse_log_or_expr(s);
-    if (!res->last_else) {
-        return false;
-    }
-
+static bool parse_cond_expr_conditionals(struct parser_state* s, struct cond_expr* res) {
     size_t alloc_len = res->len = 0;
     res->conditionals = NULL;
 
@@ -55,6 +49,19 @@ fail:
     return false;
 }
 
+bool parse_cond_expr_inplace(struct parser_state* s, struct cond_expr* res) {
+    res->last_else = parse_log_or_expr(s);
+    if (!res->last_else) {
+        return false;
+    }
+
+    if (!parse_cond_expr_conditionals(s, res)) {
+        return false;
+    }
+
+    return true;
+}
+
 struct cond_expr* parse_cond_expr(struct parser_state* s) {
     struct cond_expr* res = xmalloc(sizeof(struct cond_expr));
     if (!parse_cond_expr_inplace(s, res)) {
@@ -66,12 +73,18 @@ struct cond_expr* parse_cond_expr(struct parser_state* s) {
 }
 
 struct cond_expr* parse_cond_expr_unary(struct parser_state* s, struct unary_expr* start) {
-    (void)s;
-    (void)start;
+    struct cond_expr* res = xmalloc(sizeof(struct cond_expr));
+    res->last_else = parse_log_or_expr_unary(s, start);
+    if (!res->last_else) {
+        free(res);
+        return NULL;
+    }
 
-    // TODO:
-
-    return NULL;
+    if (!parse_cond_expr_conditionals(s, res)) {
+        free(res);
+        return NULL;
+    }
+    return res;
 }
 
 void free_cond_expr_children(struct cond_expr* e) {

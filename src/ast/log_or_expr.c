@@ -1,7 +1,6 @@
 #include "ast/log_or_expr.h"
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "util.h"
 
@@ -37,6 +36,13 @@ struct log_or_expr* parse_log_or_expr(struct parser_state* s) {
     return res;
 fail:
     free_log_or_expr(res);
+    return NULL;
+}
+
+struct log_or_expr* parse_log_or_expr_unary(struct parser_state* s, struct unary_expr* start) {
+    (void)s;
+    (void)start;
+    // TODO:
     return NULL;
 }
 
