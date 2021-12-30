@@ -39,6 +39,13 @@ fail:
     return false;
 }
 
+struct or_expr* parse_or_expr_unary(struct parser_state* s, struct unary_expr* start) {
+    (void)s;
+    (void)start;
+    // TODO:
+    return NULL;
+}
+
 void free_or_expr_children(struct or_expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         free_xor_expr_children(&e->xor_exprs[i]);

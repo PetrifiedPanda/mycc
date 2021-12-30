@@ -7,13 +7,8 @@
 
 #include "parser/parser_util.h"
 
-bool parse_log_and_expr_inplace(struct parser_state* s, struct log_and_expr* res) {
-    res->or_exprs = xmalloc(sizeof(struct or_expr));
-    if (!parse_or_expr_inplace(s, res->or_exprs)) {
-        free(res->or_exprs);
-        return false;
-    }
-
+static bool parse_log_and_expr_rest(struct parser_state* s, struct log_and_expr* res) {
+    assert(res);
     size_t alloc_len = res->len = 1;
     while (s->it->type == AND_OP) {
         accept_it(s);
@@ -31,17 +26,40 @@ bool parse_log_and_expr_inplace(struct parser_state* s, struct log_and_expr* res
 
     res->or_exprs = xrealloc(res->or_exprs, sizeof(struct or_expr) * res->len);
     return true;
-
 fail:
     free_log_and_expr_children(res);
     return false;
 }
 
+bool parse_log_and_expr_inplace(struct parser_state* s, struct log_and_expr* res) {
+    res->or_exprs = xmalloc(sizeof(struct or_expr));
+    if (!parse_or_expr_inplace(s, res->or_exprs)) {
+        free(res->or_exprs);
+        return false;
+    }
+
+    if (!parse_log_and_expr_rest(s, res)) {
+        return false;
+    }
+
+    return true;
+}
+
 struct log_and_expr* parse_log_and_expr_unary(struct parser_state* s, struct unary_expr* start) {
-    (void)s;
-    (void)start;
-    // TODO:
-    return NULL;
+    struct or_expr* or_exprs = parse_or_expr_unary(s, start);
+    if (!or_exprs) {
+        return NULL;
+    }
+
+    struct log_and_expr* res = xmalloc(sizeof(struct log_and_expr));
+    res->or_exprs = or_exprs;
+
+    if (!parse_log_and_expr_rest(s, res)) {
+        free(res);
+        return NULL;
+    }
+
+    return res;
 }
 
 void free_log_and_expr_children(struct log_and_expr* e) {
