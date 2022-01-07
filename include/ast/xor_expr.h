@@ -14,6 +14,10 @@ struct xor_expr {
 
 bool parse_xor_expr_inplace(struct parser_state* s, struct xor_expr* res);
 
+struct unary_expr;
+
+struct xor_expr* parse_xor_expr_unary(struct parser_state* s, struct unary_expr* start);
+
 void free_xor_expr_children(struct xor_expr* e);
 
 void free_xor_expr(struct xor_expr* e);

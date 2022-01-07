@@ -7,13 +7,7 @@
 
 #include "parser/parser_util.h"
 
-bool parse_or_expr_inplace(struct parser_state* s, struct or_expr* res) {
-    res->xor_exprs = xmalloc(sizeof(struct xor_expr));
-    if (!parse_xor_expr_inplace(s, res->xor_exprs)) {
-        free(res->xor_exprs);
-        return false;
-    }
-
+static bool parse_or_expr_rest(struct parser_state* s, struct or_expr* res) {
     size_t alloc_len = res->len = 1;
 
     while (s->it->type == OR) {
@@ -39,11 +33,34 @@ fail:
     return false;
 }
 
+bool parse_or_expr_inplace(struct parser_state* s, struct or_expr* res) {
+    res->xor_exprs = xmalloc(sizeof(struct xor_expr));
+    if (!parse_xor_expr_inplace(s, res->xor_exprs)) {
+        free(res->xor_exprs);
+        return false;
+    }
+
+    if (!parse_or_expr_rest(s, res)) {
+        return false;
+    }
+
+    return true;
+}
+
 struct or_expr* parse_or_expr_unary(struct parser_state* s, struct unary_expr* start) {
-    (void)s;
-    (void)start;
-    // TODO:
-    return NULL;
+    struct xor_expr* xor_exprs = parse_xor_expr_unary(s, start);
+    if (!xor_exprs) {
+        return NULL;
+    }
+
+    struct or_expr* res = xmalloc(sizeof(struct or_expr));
+    res->xor_exprs = xor_exprs;
+
+    if (!parse_or_expr_rest(s, res)) {
+        return NULL;
+    }
+
+    return res;
 }
 
 void free_or_expr_children(struct or_expr* e) {
