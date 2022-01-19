@@ -1,21 +1,13 @@
 #include "ast/mul_expr.h"
 
 #include <stdlib.h>
+#include <assert.h>
 
 #include "util.h"
 
 #include "parser/parser_util.h"
 
-struct mul_expr* parse_mul_expr(struct parser_state* s) {
-    struct cast_expr* lhs = parse_cast_expr(s);
-    if (!lhs) {
-        return NULL;
-    }
-
-    struct mul_expr* res = xmalloc(sizeof(struct mul_expr));
-
-    res->lhs = lhs;
-
+static bool parse_mul_expr_mul_chain(struct parser_state* s, struct mul_expr* res) {
     size_t alloc_len = res->len = 0;
     res->mul_chain = NULL;
 
@@ -39,11 +31,46 @@ struct mul_expr* parse_mul_expr(struct parser_state* s) {
 
     res->mul_chain = xrealloc(res->mul_chain, sizeof(struct mul_expr_and_op) * res->len);
 
-    return res;
+    return true;
 
 fail:
     free_mul_expr(res);
-    return NULL;
+    return false;
+}
+
+struct mul_expr* parse_mul_expr(struct parser_state* s) {
+    struct cast_expr* lhs = parse_cast_expr(s);
+    if (!lhs) {
+        return NULL;
+    }
+
+    struct mul_expr* res = xmalloc(sizeof(struct mul_expr));
+
+    res->lhs = lhs;
+
+    if (!parse_mul_expr_mul_chain(s, res)) {
+        return NULL;
+    }
+
+    return res;
+}
+
+struct mul_expr* parse_mul_expr_unary(struct parser_state* s, struct unary_expr* start) {
+    assert(start);
+
+    struct cast_expr* lhs = parse_cast_expr_unary(s, start);
+    if (!lhs) {
+        return NULL;
+    }
+
+    struct mul_expr* res = xmalloc(sizeof(struct mul_expr));
+    res->lhs = lhs;
+
+    if (!parse_mul_expr_mul_chain(s, res)) {
+        return NULL;
+    }
+
+    return res;
 }
 
 static void free_children(struct mul_expr* e) {

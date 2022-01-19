@@ -67,12 +67,18 @@ struct cast_expr* parse_cast_expr(struct parser_state* s) {
 
     return create_cast_expr(type_names, len, rhs);
 
-    fail:
+fail:
     for (size_t i = 0; i < len; ++i) {
         free_type_name_children(&type_names[i]);
     }
     free(type_names);
     return NULL;
+}
+
+struct cast_expr* parse_cast_expr_unary(struct parser_state* s, struct unary_expr* start) {
+    assert(start);
+
+    return create_cast_expr(NULL, 0, start);
 }
 
 static void free_children(struct cast_expr* e) {

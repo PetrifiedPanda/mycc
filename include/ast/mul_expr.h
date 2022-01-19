@@ -22,6 +22,10 @@ struct mul_expr {
 
 struct mul_expr* parse_mul_expr(struct parser_state* s);
 
+struct unary_expr;
+
+struct mul_expr* parse_mul_expr_unary(struct parser_state* s, struct unary_expr* start);
+
 void free_mul_expr(struct mul_expr* e);
 
 #include "ast/cast_expr.h"

@@ -15,6 +15,7 @@ struct cast_expr {
 };
 
 struct cast_expr* parse_cast_expr(struct parser_state* s);
+struct cast_expr* parse_cast_expr_unary(struct parser_state* s, struct unary_expr* start);
 
 void free_cast_expr(struct cast_expr* e);
 
