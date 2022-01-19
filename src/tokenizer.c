@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include "regex.h"
 #include "error.h"
