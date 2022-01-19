@@ -7,14 +7,8 @@
 
 #include "parser/parser_util.h"
 
-struct rel_expr* parse_rel_expr(struct parser_state* s) {
-    struct shift_expr* lhs = parse_shift_expr(s);
-    if (!lhs) {
-        return NULL;
-    }
-
-    struct rel_expr* res = xmalloc(sizeof(struct rel_expr));
-    res->lhs = lhs;
+static bool parse_rel_expr_rel_chain(struct parser_state* s, struct rel_expr* res) {
+    assert(res->lhs);
 
     size_t alloc_len = res->len = 0;
     res->rel_chain = NULL;
@@ -39,10 +33,44 @@ struct rel_expr* parse_rel_expr(struct parser_state* s) {
 
     res->rel_chain = xrealloc(res->rel_chain, sizeof(struct shift_expr_and_op) * res->len);
 
-    return res;
+    return true;
 fail:
     free_rel_expr(res);
-    return NULL;
+    return false;
+}
+
+struct rel_expr* parse_rel_expr(struct parser_state* s) {
+    struct shift_expr* lhs = parse_shift_expr(s);
+    if (!lhs) {
+        return NULL;
+    }
+
+    struct rel_expr* res = xmalloc(sizeof(struct rel_expr));
+    res->lhs = lhs;
+
+    if (!parse_rel_expr_rel_chain(s, res)) {
+        return NULL;
+    }
+
+    return res;
+}
+
+struct rel_expr* parse_rel_expr_unary(struct parser_state* s, struct unary_expr* start) {
+    assert(start);
+
+    struct shift_expr* lhs = parse_shift_expr_unary(s, start);
+    if (!lhs) {
+        return NULL;
+    }
+
+    struct rel_expr* res = xmalloc(sizeof(struct rel_expr));
+    res->lhs = lhs;
+
+    if (!parse_rel_expr_rel_chain(s, res)) {
+        return NULL;
+    }
+
+    return res;
 }
 
 void free_rel_expr_children(struct rel_expr* e) {

@@ -7,15 +7,7 @@
 
 #include "parser/parser_util.h"
 
-struct shift_expr* parse_shift_expr(struct parser_state* s) {
-    struct add_expr* lhs = parse_add_expr(s);
-    if (!lhs) {
-        return NULL;
-    }
-
-    struct shift_expr* res = xmalloc(sizeof(struct shift_expr));
-    res->lhs = lhs;
-
+static bool parse_shift_expr_shift_chain(struct parser_state* s, struct shift_expr* res) {
     size_t alloc_len = res->len = 0;
     res->shift_chain = NULL;
 
@@ -39,11 +31,44 @@ struct shift_expr* parse_shift_expr(struct parser_state* s) {
 
     res->shift_chain = xrealloc(res->shift_chain, sizeof(struct add_expr_and_op) * res->len);
 
-    return res;
+    return true;
 
 fail:
     free_shift_expr(res);
-    return NULL;
+    return false;
+}
+struct shift_expr* parse_shift_expr(struct parser_state* s) {
+    struct add_expr* lhs = parse_add_expr(s);
+    if (!lhs) {
+        return NULL;
+    }
+
+    struct shift_expr* res = xmalloc(sizeof(struct shift_expr));
+    res->lhs = lhs;
+
+    if (!parse_shift_expr_shift_chain(s, res)) {
+        return NULL;
+    }
+
+    return res;
+}
+
+struct shift_expr* parse_shift_expr_unary(struct parser_state* s, struct unary_expr* start) {
+    assert(start);
+
+    struct add_expr* lhs = parse_add_expr_unary(s, start);
+    if (!lhs) {
+        return NULL;
+    }
+
+    struct shift_expr* res = xmalloc(sizeof(struct shift_expr));
+    res->lhs = lhs;
+
+    if (!parse_shift_expr_shift_chain(s, res)) {
+        return NULL;
+    }
+
+    return res;
 }
 
 static void free_children(struct shift_expr* e) {

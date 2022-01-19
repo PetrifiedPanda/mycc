@@ -22,6 +22,10 @@ struct rel_expr {
 
 struct rel_expr* parse_rel_expr(struct parser_state* s);
 
+struct unary_expr;
+
+struct rel_expr* parse_rel_expr_unary(struct parser_state* s, struct unary_expr* start);
+
 void free_rel_expr_children(struct rel_expr* e);
 void free_rel_expr(struct rel_expr* e);
 

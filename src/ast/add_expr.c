@@ -47,6 +47,13 @@ fail:
     return NULL;
 }
 
+struct add_expr* parse_add_expr_unary(struct parser_state* s, struct unary_expr* start) {
+    (void)s;
+    (void)start;
+    // TODO:
+    return NULL;
+}
+
 static void free_children(struct add_expr* e) {
     free_mul_expr(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {

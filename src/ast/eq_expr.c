@@ -7,11 +7,8 @@
 
 #include "parser/parser_util.h"
 
-bool parse_eq_expr_inplace(struct parser_state* s, struct eq_expr* res) {
-    res->lhs = parse_rel_expr(s);
-    if (!res->lhs) {
-        return false;
-    }
+static bool parse_eq_expr_eq_chain(struct parser_state* s, struct eq_expr* res) {
+    assert(res->lhs);
 
     size_t alloc_len = res->len = 0;
     res->eq_chain = NULL;
@@ -42,11 +39,35 @@ fail:
     return false;
 }
 
+bool parse_eq_expr_inplace(struct parser_state* s, struct eq_expr* res) {
+    assert(res);
+
+    res->lhs = parse_rel_expr(s);
+    if (!res->lhs) {
+        return false;
+    }
+
+    if (!parse_eq_expr_eq_chain(s, res)) {
+        return false;
+    }
+
+    return true;
+}
+
 struct eq_expr* parse_eq_expr_unary(struct parser_state* s, struct unary_expr* start) {
-    (void)s;
-    (void)start;
-    // TODO:
-    return NULL;
+    struct rel_expr* lhs = parse_rel_expr_unary(s, start);
+    if (!lhs) {
+        return NULL;
+    }
+
+    struct eq_expr* res = xmalloc(sizeof(struct eq_expr));
+    res->lhs = lhs;
+
+    if (!parse_eq_expr_eq_chain(s, res)) {
+        return NULL;
+    }
+
+    return res;
 }
 
 void free_eq_expr_children(struct eq_expr* e) {

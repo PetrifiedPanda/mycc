@@ -22,6 +22,10 @@ struct shift_expr {
 
 struct shift_expr* parse_shift_expr(struct parser_state* s);
 
+struct unary_expr;
+
+struct shift_expr* parse_shift_expr_unary(struct parser_state* s, struct unary_expr* start);
+
 void free_shift_expr(struct shift_expr* e);
 
 #include "ast/add_expr.h"

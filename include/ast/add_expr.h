@@ -22,6 +22,10 @@ struct add_expr {
 
 struct add_expr* parse_add_expr(struct parser_state* s);
 
+struct unary_expr;
+
+struct add_expr* parse_add_expr_unary(struct parser_state* s, struct unary_expr* start);
+
 void free_add_expr(struct add_expr* e);
 
 #include "ast/mul_expr.h"
