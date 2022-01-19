@@ -50,7 +50,7 @@ bool parse_assign_expr_inplace(struct parser_state* s, struct assign_expr* res) 
     }
 
     return true;
-    fail:
+fail:
     for (size_t i = 0; i < res->len; ++i) {
         free_unary_expr(res->assign_chain[i].unary);
     }

@@ -65,16 +65,6 @@ bool parse_cond_expr_inplace(struct parser_state* s, struct cond_expr* res) {
     return true;
 }
 
-struct cond_expr* parse_cond_expr(struct parser_state* s) {
-    struct cond_expr* res = xmalloc(sizeof(struct cond_expr));
-    if (!parse_cond_expr_inplace(s, res)) {
-        free(res);
-        return NULL;
-    }
-
-    return res;
-}
-
 struct cond_expr* parse_cond_expr_unary(struct parser_state* s, struct unary_expr* start) {
     assert(start);
 

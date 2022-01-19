@@ -58,7 +58,7 @@ struct mul_expr* parse_mul_expr(struct parser_state* s) {
 struct mul_expr* parse_mul_expr_unary(struct parser_state* s, struct unary_expr* start) {
     assert(start);
 
-    struct cast_expr* lhs = parse_cast_expr_unary(s, start);
+    struct cast_expr* lhs = create_cast_expr_unary(start);
     if (!lhs) {
         return NULL;
     }

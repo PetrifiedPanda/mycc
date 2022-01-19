@@ -21,8 +21,6 @@ struct cond_expr {
 
 bool parse_cond_expr_inplace(struct parser_state* s, struct cond_expr* res);
 
-struct cond_expr* parse_cond_expr(struct parser_state* s);
-
 struct unary_expr;
 
 struct cond_expr* parse_cond_expr_unary(struct parser_state* s, struct unary_expr* start);

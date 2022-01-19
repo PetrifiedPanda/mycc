@@ -1,16 +1,8 @@
 #include "ast/init_list.h"
 
-#include <assert.h>
-
 #include "util.h"
 
 #include "parser/parser_util.h"
-
-static struct init_list create_init_list(struct designation_init* inits, size_t len) {
-    assert(len > 0);
-    assert(inits);
-    return (struct init_list){.len = len, .inits = inits};
-}
 
 static bool parse_designation_init(struct parser_state* s, struct designation_init* res) {
     if (s->it->type == LINDEX || s->it->type == DOT) {

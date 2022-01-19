@@ -75,7 +75,7 @@ fail:
     return NULL;
 }
 
-struct cast_expr* parse_cast_expr_unary(struct parser_state* s, struct unary_expr* start) {
+struct cast_expr* create_cast_expr_unary(struct unary_expr* start) {
     assert(start);
 
     return create_cast_expr(NULL, 0, start);

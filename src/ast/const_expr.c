@@ -4,12 +4,6 @@
 
 #include "util.h"
 
-static struct const_expr* create_const_expr(struct cond_expr expr) {
-    struct const_expr* res = xmalloc(sizeof(struct const_expr));
-    res->expr = expr;
-    return res;
-}
-
 struct const_expr* parse_const_expr(struct parser_state* s) {
     struct const_expr* res = xmalloc(sizeof(struct const_expr));
     if (!parse_cond_expr_inplace(s, &res->expr)) {
