@@ -7,12 +7,8 @@
 
 #include "parser/parser_util.h"
 
-bool parse_and_expr_inplace(struct parser_state* s, struct and_expr* res) {
-    res->eq_exprs = xmalloc(sizeof(struct eq_expr));
-    if (!parse_eq_expr_inplace(s, res->eq_exprs)) {
-        free(res->eq_exprs);
-        return false;
-    }
+static bool parse_and_expr_rest(struct parser_state* s, struct and_expr* res) {
+    assert(res->eq_exprs);
 
     size_t alloc_len = res->len = 1;
 
@@ -34,6 +30,37 @@ bool parse_and_expr_inplace(struct parser_state* s, struct and_expr* res) {
 fail:
     free_and_expr_children(res);
     return false;
+}
+
+bool parse_and_expr_inplace(struct parser_state* s, struct and_expr* res) {
+    res->eq_exprs = xmalloc(sizeof(struct eq_expr));
+    if (!parse_eq_expr_inplace(s, res->eq_exprs)) {
+        free(res->eq_exprs);
+        return false;
+    }
+
+    if (!parse_and_expr_rest(s, res)) {
+        return false;
+    }
+    return true;
+}
+
+struct and_expr* parse_and_expr_unary(struct parser_state* s, struct unary_expr* start) {
+    assert(start);
+
+    struct eq_expr* eq_exprs = parse_eq_expr_unary(s, start);
+    if (!eq_exprs) {
+        return NULL;
+    }
+
+    struct and_expr* res = xmalloc(sizeof(struct and_expr));
+    res->eq_exprs = eq_exprs;
+
+    if (!parse_and_expr_rest(s, res)) {
+        return NULL;
+    }
+
+    return res;
 }
 
 void free_and_expr_children(struct and_expr* e) {

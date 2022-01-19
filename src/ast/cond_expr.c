@@ -1,5 +1,6 @@
 #include "ast/cond_expr.h"
 
+#include <assert.h>
 #include <stdlib.h>
 
 #include "util.h"
@@ -50,6 +51,8 @@ fail:
 }
 
 bool parse_cond_expr_inplace(struct parser_state* s, struct cond_expr* res) {
+    assert(res);
+
     res->last_else = parse_log_or_expr(s);
     if (!res->last_else) {
         return false;
@@ -73,6 +76,8 @@ struct cond_expr* parse_cond_expr(struct parser_state* s) {
 }
 
 struct cond_expr* parse_cond_expr_unary(struct parser_state* s, struct unary_expr* start) {
+    assert(start);
+
     struct cond_expr* res = xmalloc(sizeof(struct cond_expr));
     res->last_else = parse_log_or_expr_unary(s, start);
     if (!res->last_else) {

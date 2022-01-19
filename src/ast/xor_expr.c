@@ -7,12 +7,8 @@
 
 #include "parser/parser_util.h"
 
-bool parse_xor_expr_inplace(struct parser_state* s, struct xor_expr* res) {
-    res->and_exprs = xmalloc(sizeof(struct and_expr));
-    if (!parse_and_expr_inplace(s, res->and_exprs)) {
-        free(res->and_exprs);
-        return false;
-    }
+static bool parse_xor_expr_rest(struct parser_state* s, struct xor_expr* res) {
+    assert(res->and_exprs);
 
     size_t alloc_len = res->len = 1;
 
@@ -31,7 +27,6 @@ bool parse_xor_expr_inplace(struct parser_state* s, struct xor_expr* res) {
     }
 
     res->and_exprs = xrealloc(res->and_exprs, sizeof(struct and_expr) * res->len);
-
     return true;
 
 fail:
@@ -39,11 +34,38 @@ fail:
     return false;
 }
 
+bool parse_xor_expr_inplace(struct parser_state* s, struct xor_expr* res) {
+    assert(res);
+
+    res->and_exprs = xmalloc(sizeof(struct and_expr));
+    if (!parse_and_expr_inplace(s, res->and_exprs)) {
+        free(res->and_exprs);
+        return false;
+    }
+
+    if (!parse_xor_expr_rest(s, res)) {
+        return false;
+    }
+
+    return true;
+}
+
 struct xor_expr* parse_xor_expr_unary(struct parser_state* s, struct unary_expr* start) {
-    (void)s;
-    (void)start;
-    // TODO:
-    return NULL;
+    assert(start);
+
+    struct and_expr* and_exprs = parse_and_expr_unary(s, start);
+    if (!and_exprs) {
+        return NULL;
+    }
+
+    struct xor_expr* res = xmalloc(sizeof(struct xor_expr));
+    res->and_exprs = and_exprs;
+
+    if (!parse_xor_expr_rest(s, res)) {
+        return NULL;
+    }
+
+    return res;
 }
 
 void free_xor_expr_children(struct xor_expr* e) {

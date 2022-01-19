@@ -8,6 +8,8 @@
 #include "parser/parser_util.h"
 
 bool parse_assign_expr_inplace(struct parser_state* s, struct assign_expr* res) {
+    assert(res);
+
     struct unary_expr* last_unary = parse_unary_expr(s);
     if (!last_unary) {
         return false;

@@ -42,6 +42,13 @@ fail:
     return false;
 }
 
+struct eq_expr* parse_eq_expr_unary(struct parser_state* s, struct unary_expr* start) {
+    (void)s;
+    (void)start;
+    // TODO:
+    return NULL;
+}
+
 void free_eq_expr_children(struct eq_expr* e) {
     free_rel_expr(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {

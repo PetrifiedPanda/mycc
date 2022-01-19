@@ -56,6 +56,8 @@ struct log_or_expr* parse_log_or_expr(struct parser_state* s) {
 }
 
 struct log_or_expr* parse_log_or_expr_unary(struct parser_state* s, struct unary_expr* start) {
+    assert(start);
+
     struct log_and_expr* and_exprs = parse_log_and_expr_unary(s, start);
     if (!and_exprs) {
         return NULL;

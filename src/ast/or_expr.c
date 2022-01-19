@@ -34,6 +34,8 @@ fail:
 }
 
 bool parse_or_expr_inplace(struct parser_state* s, struct or_expr* res) {
+    assert(res);
+
     res->xor_exprs = xmalloc(sizeof(struct xor_expr));
     if (!parse_xor_expr_inplace(s, res->xor_exprs)) {
         free(res->xor_exprs);
@@ -48,6 +50,8 @@ bool parse_or_expr_inplace(struct parser_state* s, struct or_expr* res) {
 }
 
 struct or_expr* parse_or_expr_unary(struct parser_state* s, struct unary_expr* start) {
+    assert(start);
+
     struct xor_expr* xor_exprs = parse_xor_expr_unary(s, start);
     if (!xor_exprs) {
         return NULL;
