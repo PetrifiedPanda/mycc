@@ -1,7 +1,6 @@
 #include "ast/arg_expr_list.h"
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "util.h"
 

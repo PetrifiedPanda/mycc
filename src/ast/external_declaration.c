@@ -1,6 +1,5 @@
 #include "ast/external_declaration.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util.h"
@@ -21,7 +20,9 @@ static struct external_declaration* create_external_declaration_func(struct func
     return res;
 }
 
-bool parse_external_declaration(struct parser_state* s, struct external_declaration* res) {
+bool parse_external_declaration_inplace(struct parser_state* s, struct external_declaration* res) {
+    assert(res);
+
     (void)s;
     (void)res;
     // TODO:

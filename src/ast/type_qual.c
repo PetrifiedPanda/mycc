@@ -1,8 +1,5 @@
 #include "ast/type_qual.h"
 
-#include <stdlib.h>
-#include <assert.h>
-
 #include "parser/parser_util.h"
 
 struct type_qual parse_type_qual(struct parser_state* s) {

@@ -64,6 +64,8 @@ static struct unary_expr* create_unary_expr_alignof(enum token_type* operators_b
 }
 
 struct unary_expr* parse_unary_expr_type_name(struct parser_state* s, enum token_type* ops_before, size_t len, struct type_name* type_name) {
+    assert(type_name);
+
     struct postfix_expr* postfix = parse_postfix_expr_type_name(s, type_name);
     if (!postfix) {
         return NULL;

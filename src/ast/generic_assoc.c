@@ -1,8 +1,12 @@
 #include "ast/generic_assoc.h"
 
+#include <assert.h>
+
 #include "parser/parser_util.h"
 
 bool parse_generic_assoc_inplace(struct parser_state* s, struct generic_assoc* res) {
+    assert(res);
+
     if (s->it->type == DEFAULT) {
         res->type_name = NULL;
     } else {

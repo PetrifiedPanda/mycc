@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "util.h"
-
 struct identifier_list create_identifier_list(struct identifier* identifiers, size_t len) {
     assert(len > 0);
     assert(identifiers);

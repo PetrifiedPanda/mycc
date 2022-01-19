@@ -1,6 +1,5 @@
 #include "ast/init_declarator.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util.h"

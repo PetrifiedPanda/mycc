@@ -16,7 +16,7 @@ struct translation_unit parse_translation_unit(struct parser_state* s) {
             grow_alloc((void**)res.external_decls, &alloc_num, sizeof(struct external_declaration));
         }
 
-        if (!parse_external_declaration(s, &res.external_decls[res.len])) {
+        if (!parse_external_declaration_inplace(s, &res.external_decls[res.len])) {
             goto fail;
         }
 

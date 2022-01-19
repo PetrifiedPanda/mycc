@@ -161,6 +161,7 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
  * @return A postfix_expr that uses the given type_name
  */
 struct postfix_expr* parse_postfix_expr_type_name(struct parser_state* s, struct type_name* type_name) {
+    assert(type_name);
     assert(s->it->type == LBRACE);
 
     struct postfix_expr* res = xmalloc(sizeof(struct postfix_expr));

@@ -1,6 +1,5 @@
 #include "ast/param_type_list.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 struct param_type_list create_param_type_list(bool is_variadic, struct param_list* param_list) {

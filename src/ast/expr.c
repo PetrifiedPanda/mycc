@@ -8,6 +8,8 @@
 #include "parser/parser_util.h"
 
 bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
+    assert(res);
+
     res->assign_exprs = xmalloc(sizeof(struct assign_expr));
 
     if (!parse_assign_expr_inplace(s, &res->assign_exprs[0])) {

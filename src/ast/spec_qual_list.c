@@ -1,7 +1,5 @@
 #include "ast/spec_qual_list.h"
 
-#include <assert.h>
-
 #include "util.h"
 
 static bool parse_spec_or_qual(struct parser_state* s, struct type_spec_or_qual* res) {

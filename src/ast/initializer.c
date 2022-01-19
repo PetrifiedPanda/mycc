@@ -25,7 +25,6 @@ static struct initializer* create_initializer_init_list(struct init_list init_li
 }
 
 struct initializer* parse_initializer(struct parser_state* s) {
-    (void)s;
     if (s->it->type == LBRACE) {
         accept_it(s);
         struct init_list init_list = parse_init_list(s);
