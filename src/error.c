@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <stdarg.h>
-#include <stdbool.h>
 #include <assert.h>
 
 static enum error_type g_type = ERR_NONE;

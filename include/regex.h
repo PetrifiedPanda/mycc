@@ -2,7 +2,7 @@
 #define REGEX_H
 
 #include <stdbool.h>
-#include <stdlib.h>
+#include <stddef.h>
 
 bool is_hex_const(const char* str, size_t num);
 bool is_oct_const(const char* str, size_t num);
