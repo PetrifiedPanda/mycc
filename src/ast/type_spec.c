@@ -21,7 +21,6 @@ static inline bool is_standalone_type_spec(enum token_type t) {
         case BOOL:
         case COMPLEX:
         case IMAGINARY:
-        case ATOMIC:
             return true;
         default:
             return false;
