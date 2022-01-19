@@ -7,10 +7,6 @@
 #include "token.h"
 #include "parser/parser_state.h"
 
-bool accept(struct parser_state* s, enum token_type expected);
-
-void accept_it(struct parser_state* s);
-
 void expected_token_error(enum token_type expected, const struct token* got);
 
 void expected_tokens_error(const enum token_type* expected, size_t num_expected, const struct token* got);

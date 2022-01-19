@@ -4,42 +4,28 @@
 
 #include "error.h"
 
-bool accept(struct parser_state* s, enum token_type expected) {
-    if (s->it->type != expected) {
-        expected_token_error(expected, s->it);
-        return false;
-    } else {
-        ++s->it;
-        return true;
-    }
-}
-
-void accept_it(struct parser_state* s) {
-    assert(s->it->type != INVALID);
-    ++s->it;
-}
-
 void expected_token_error(enum token_type expected, const struct token* got) {
     assert(got);
-
-    if (got->type != INVALID) {
-        set_error_file(ERR_PARSER, got->file, got->source_loc, "Expected token of type %s but got token of type %s", get_type_str(expected), get_type_str(got->type));
-    } else {
-        set_error(ERR_PARSER, "Expected token of type %s but got to end of file", get_type_str(expected));
-    }
+    expected_tokens_error(&expected, 1, got);
 }
 
 void expected_tokens_error(const enum token_type* expected, size_t num_expected, const struct token* got) {
     assert(expected);
     assert(got);
 
-    set_error_file(ERR_PARSER, got->file, got->source_loc, "Expected token of type %s", get_type_str(expected[0]));
+    bool not_eof = got->type != INVALID;
+
+    if (not_eof) {
+        set_error_file(ERR_PARSER, got->file, got->source_loc, "Expected token of type %s", get_type_str(expected[0]));
+    } else {
+        set_error(ERR_PARSER, "Expected token of type %s", get_type_str(expected[0]));
+    }
 
     for (size_t i = 1; i < num_expected; ++i) {
         append_error_msg(", %s", get_type_str(expected[i]));
     }
 
-    if (got->type != INVALID) {
+    if (not_eof) {
         append_error_msg(" but got token of type %s", get_type_str(got->type));
     } else {
         append_error_msg(" but got to end of file");
