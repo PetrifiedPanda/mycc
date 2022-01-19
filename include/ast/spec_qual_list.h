@@ -21,7 +21,7 @@ struct spec_qual_list {
     struct type_spec_or_qual* specs_or_quals;
 };
 
-struct spec_qual_list create_spec_qual_list(struct type_spec_or_qual* specs_or_quals, size_t len);
+struct spec_qual_list parse_spec_qual_list(struct parser_state* s);
 
 void free_spec_qual_list(struct spec_qual_list* l);
 
