@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "parser/parser_state.h"
+
 struct type_qual;
 
 struct type_qual_list {
@@ -10,7 +12,7 @@ struct type_qual_list {
     struct type_qual* type_quals;
 };
 
-struct type_qual_list create_type_qual_list(struct type_qual* type_quals, size_t len);
+struct type_qual_list parse_type_qual_list(struct parser_state* s);
 
 void free_type_qual_list(struct type_qual_list* l);
 
