@@ -15,6 +15,7 @@ static void enum_spec_test();
 static void designation_test();
 static void unary_expr_test();
 static void postfix_expr_test();
+static void assign_expr_test();
 
 void parser_test() {
     primary_expr_test();
@@ -24,6 +25,7 @@ void parser_test() {
     designation_test();
     unary_expr_test();
     postfix_expr_test();
+    assign_expr_test();
     printf("Parser test successful\n");
 }
 
@@ -279,12 +281,24 @@ static void test_primary_expr_id_or_const(struct primary_expr* e, const char* sp
     }
 }
 
+static void test_postfix_expr_id_or_const(struct postfix_expr* e, const char* spell, enum token_type type) {
+    ASSERT(e->is_primary);
+    test_primary_expr_id_or_const(e->primary, spell, type);
+}
+
+static void test_unary_expr_id_or_const(struct unary_expr* unary, const char* spell, enum token_type type) {
+    ASSERT_SIZE_T(unary->len, (size_t)0);
+    ASSERT_NULL(unary->operators_before);
+
+    ASSERT(unary->type == UNARY_POSTFIX);
+    test_postfix_expr_id_or_const(unary->postfix, spell, type);
+}
+
 static void test_cast_expr_id_or_const(struct cast_expr* expr, const char* spell, enum token_type type) {
     ASSERT_SIZE_T(expr->len, (size_t)0);
-    ASSERT(expr->rhs->type == UNARY_POSTFIX);
-    ASSERT_SIZE_T(expr->rhs->len, (size_t)0);
-    ASSERT(expr->rhs->postfix->is_primary == true);
-    test_primary_expr_id_or_const(expr->rhs->postfix->primary, spell, type);
+    ASSERT_NULL(expr->type_names);
+
+    test_unary_expr_id_or_const(expr->rhs, spell, type);
 }
 
 static void test_cond_expr_id_or_const(struct cond_expr* expr, const char* spell, enum token_type type) {
@@ -453,4 +467,53 @@ static void postfix_expr_test() {
     free_tokenizer_result(tokens);
 
     // TODO: add more cases
+}
+
+static void assign_expr_test() {
+    struct token* tokens = tokenize("x = 100 += y *= 100.0 /= 2", "not a file");
+
+    struct parser_state s = {.it = tokens};
+    struct assign_expr* res = parse_assign_expr(&s);
+    ASSERT_NOT_NULL(res);
+    ASSERT_SIZE_T(res->len, (size_t)4);
+
+    enum token_type expected_ops[] = {
+            ASSIGN,
+            ADD_ASSIGN,
+            MUL_ASSIGN,
+            DIV_ASSIGN
+    };
+
+    enum token_type expected_types[] = {
+            IDENTIFIER,
+            I_CONSTANT,
+            IDENTIFIER,
+            F_CONSTANT
+    };
+
+    const char* expected_spellings[] = {
+            "x",
+            "100",
+            "y",
+            "100.0"
+    };
+
+    enum {SIZE = sizeof expected_ops / sizeof(enum token_type)};
+
+    for (size_t i = 0; i < SIZE; ++i) {
+        ASSERT_TOKEN_TYPE(res->assign_chain[i].assign_op, expected_ops[i]);
+
+        test_unary_expr_id_or_const(res->assign_chain[i].unary, expected_spellings[i], expected_types[i]);
+    }
+
+    ASSERT_TOKEN_TYPE(res->assign_chain[0].assign_op, ASSIGN);
+
+    test_unary_expr_id_or_const(res->assign_chain[0].unary, "x", IDENTIFIER);
+
+    test_cond_expr_id_or_const(res->value, "2", I_CONSTANT);
+
+    free_tokenizer_result(tokens);
+    free_assign_expr(res);
+
+    // TODO: add more testcases
 }
