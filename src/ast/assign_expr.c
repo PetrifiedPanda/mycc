@@ -69,7 +69,7 @@ struct assign_expr* parse_assign_expr(struct parser_state* s) {
 
 void free_assign_expr_children(struct assign_expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
-        free_unary_expr_children(e->assign_chain[i].unary);
+        free_unary_expr(e->assign_chain[i].unary);
     }
     free(e->assign_chain);
     
