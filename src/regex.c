@@ -81,6 +81,7 @@ bool is_oct_const(const char* str, size_t num) {
     if (num < 2 || str[i] != '0') {
         return false;
     }
+    ++i;
 
     while (i != num && isdigit(str[i])) {
         ++i;
@@ -99,6 +100,7 @@ bool is_dec_const(const char* str, size_t num) {
     if (num < 1 || !isdigit(str[i])) {
         return false;
     }
+    ++i;
 
     while (i != num && isdigit(str[i])) {
         ++i;
