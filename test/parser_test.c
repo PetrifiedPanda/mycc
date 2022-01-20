@@ -470,50 +470,70 @@ static void postfix_expr_test() {
 }
 
 static void assign_expr_test() {
-    struct token* tokens = tokenize("x = 100 += y *= 100.0 /= 2", "not a file");
+    {
+        struct token* tokens = tokenize("10", "blah");
 
-    struct parser_state s = {.it = tokens};
-    struct assign_expr* res = parse_assign_expr(&s);
-    ASSERT_NOT_NULL(res);
-    ASSERT_SIZE_T(res->len, (size_t)4);
+        struct parser_state s = {.it = tokens};
+        struct assign_expr* res = parse_assign_expr(&s);
+        ASSERT_NOT_NULL(res);
 
-    enum token_type expected_ops[] = {
-            ASSIGN,
-            ADD_ASSIGN,
-            MUL_ASSIGN,
-            DIV_ASSIGN
-    };
+        ASSERT_SIZE_T(res->len, (size_t)0);
+        ASSERT_NULL(res->assign_chain);
+        test_cond_expr_id_or_const(res->value, "10", I_CONSTANT);
 
-    enum token_type expected_types[] = {
-            IDENTIFIER,
-            I_CONSTANT,
-            IDENTIFIER,
-            F_CONSTANT
-    };
 
-    const char* expected_spellings[] = {
-            "x",
-            "100",
-            "y",
-            "100.0"
-    };
-
-    enum {SIZE = sizeof expected_ops / sizeof(enum token_type)};
-
-    for (size_t i = 0; i < SIZE; ++i) {
-        ASSERT_TOKEN_TYPE(res->assign_chain[i].assign_op, expected_ops[i]);
-
-        test_unary_expr_id_or_const(res->assign_chain[i].unary, expected_spellings[i], expected_types[i]);
+        free_tokenizer_result(tokens);
+        free_assign_expr(res);
     }
 
-    ASSERT_TOKEN_TYPE(res->assign_chain[0].assign_op, ASSIGN);
+    {
+        struct token* tokens = tokenize("x = 100 += y *= 100.0 /= 2", "not a file");
 
-    test_unary_expr_id_or_const(res->assign_chain[0].unary, "x", IDENTIFIER);
+        struct parser_state s = {.it = tokens};
+        struct assign_expr* res = parse_assign_expr(&s);
+        ASSERT_NOT_NULL(res);
+        ASSERT_SIZE_T(res->len, (size_t) 4);
 
-    test_cond_expr_id_or_const(res->value, "2", I_CONSTANT);
+        enum token_type expected_ops[] = {
+                ASSIGN,
+                ADD_ASSIGN,
+                MUL_ASSIGN,
+                DIV_ASSIGN
+        };
 
-    free_tokenizer_result(tokens);
-    free_assign_expr(res);
+        enum token_type expected_types[] = {
+                IDENTIFIER,
+                I_CONSTANT,
+                IDENTIFIER,
+                F_CONSTANT
+        };
+
+        const char *expected_spellings[] = {
+                "x",
+                "100",
+                "y",
+                "100.0"
+        };
+
+        enum {
+            SIZE = sizeof expected_ops / sizeof(enum token_type)
+        };
+
+        for (size_t i = 0; i < SIZE; ++i) {
+            ASSERT_TOKEN_TYPE(res->assign_chain[i].assign_op, expected_ops[i]);
+
+            test_unary_expr_id_or_const(res->assign_chain[i].unary, expected_spellings[i], expected_types[i]);
+        }
+
+        ASSERT_TOKEN_TYPE(res->assign_chain[0].assign_op, ASSIGN);
+
+        test_unary_expr_id_or_const(res->assign_chain[0].unary, "x", IDENTIFIER);
+
+        test_cond_expr_id_or_const(res->value, "2", I_CONSTANT);
+
+        free_tokenizer_result(tokens);
+        free_assign_expr(res);
+    }
 
     // TODO: add more testcases
 }
