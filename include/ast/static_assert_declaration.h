@@ -3,12 +3,16 @@
 
 #include "ast/string_literal.h"
 
+#include "parser/parser_state.h"
+
 struct const_expr;
 
 struct static_assert_declaration {
     struct const_expr* const_expr;
     struct string_literal err_msg;
 };
+
+struct static_assert_declaration* parse_static_assert_declaration(struct parser_state* s);
 
 void free_static_assert_declaration(struct static_assert_declaration* d);
 
