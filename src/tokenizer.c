@@ -497,7 +497,7 @@ static bool handle_character_literal(struct tokenizer_state* s, struct token_arr
     enum {BUF_STRLEN = 512};
     char spell_buf[BUF_STRLEN + 1] = {0};
     size_t buf_idx = 0;
-    struct source_location start_loc = s->source_loc;
+    const struct source_location start_loc = s->source_loc;
 
     char terminator;
     if (*s->it == 'L') {
