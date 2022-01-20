@@ -475,6 +475,10 @@ bool is_type_qual(enum token_type t) {
     }
 }
 
+bool is_func_spec(enum token_type t) {
+    return t == INLINE || t == NORETURN;
+}
+
 bool is_shift_op(enum token_type t) {
     switch (t) {
         case LEFT_OP:

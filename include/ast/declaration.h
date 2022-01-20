@@ -3,6 +3,8 @@
 
 #include "ast/init_declarator_list.h"
 
+#include "parser/parser_state.h"
+
 struct declaration_specs;
 struct static_assert_declaration;
 
@@ -17,9 +19,7 @@ struct declaration {
     };
 };
 
-struct declaration* create_declaration(struct declaration_specs* decl_specs, struct init_declarator_list init_decls);
-
-struct declaration* create_declaration_assert(struct static_assert_declaration* static_assert_decl);
+struct declaration* parse_declaration(struct parser_state* s);
 
 void free_declaration_children(struct declaration* d);
 void free_declaration(struct declaration* d);

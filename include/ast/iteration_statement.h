@@ -3,6 +3,8 @@
 
 #include "token_type.h"
 
+#include "parser/parser_state.h"
+
 struct declaration;
 struct expr_statement;
 struct expr;
@@ -27,10 +29,7 @@ struct iteration_statement {
     };
 };
 
-struct iteration_statement* create_while_loop(struct expr* while_cond, struct statement* loop_body);
-struct iteration_statement* create_do_loop(struct expr* while_cond, struct statement* loop_body);
-struct iteration_statement* create_for_loop(struct expr_statement* init_expr, struct expr_statement* for_cond, struct expr* incr_expr, struct statement* loop_body);
-struct iteration_statement* create_for_loop_decl(struct declaration* decl, struct expr_statement* for_cond, struct expr* incr_expr, struct statement* loop_body);
+struct iteration_statement* parse_iteration_statement(struct parser_state* s);
 
 void free_iteration_statement(struct iteration_statement* s);
 

@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-struct declaration* create_declaration(struct declaration_specs* decl_specs, struct init_declarator_list init_decls) {
+static struct declaration* create_declaration(struct declaration_specs* decl_specs, struct init_declarator_list init_decls) {
     assert(decl_specs);
     struct declaration* res = xmalloc(sizeof(struct declaration));
     res->is_normal_decl = true;
@@ -15,13 +15,19 @@ struct declaration* create_declaration(struct declaration_specs* decl_specs, str
     return res;
 }
 
-struct declaration* create_declaration_assert(struct static_assert_declaration* static_assert_decl) {
+static struct declaration* create_declaration_assert(struct static_assert_declaration* static_assert_decl) {
     assert(static_assert_decl);
     struct declaration* res = xmalloc(sizeof(struct declaration));
     res->is_normal_decl = false;
     res->static_assert_decl = static_assert_decl;
 
     return res;
+}
+
+struct declaration* parse_declaration(struct parser_state* s) {
+    (void)s;
+    // TODO:
+    return NULL;
 }
 
 void free_declaration_children(struct declaration* d) {

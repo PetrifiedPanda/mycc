@@ -131,6 +131,7 @@ bool is_assign_op(enum token_type t);
 bool is_storage_class_spec(enum token_type t);
 bool is_keyword_type_spec(enum token_type t);
 bool is_type_qual(enum token_type t);
+bool is_func_spec(enum token_type t);
 
 bool is_shift_op(enum token_type t);
 bool is_rel_op(enum token_type t);

@@ -31,7 +31,7 @@ static bool parse_declaration_spec_cont(struct parser_state* s, struct declarati
         if (!res->type_spec) {
             return 0;
         }
-    } else if (s->it->type == INLINE || s->it->type == NORETURN) {
+    } else if (is_func_spec(s->it->type)) {
         res->type = DECLSPEC_FUNC_SPEC;
         res->func_spec.is_inline = s->it->type == INLINE;
         accept_it(s);
