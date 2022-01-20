@@ -6,6 +6,8 @@
 #include <assert.h>
 
 void* xmalloc(size_t bytes) {
+    assert(bytes != 0);
+
     void* res = malloc(bytes);
     if (!res) {
         fprintf(stderr, "xmalloc():\n\tFailed to allocate %zu bytes\n", bytes);
@@ -15,6 +17,11 @@ void* xmalloc(size_t bytes) {
 }
 
 void* xrealloc(void* alloc, size_t bytes) {
+    if (bytes == 0) {
+        free(alloc);
+        return NULL;
+    }
+    
     void* res = realloc(alloc, bytes);
     if (!res) {
         fprintf(stderr, "xrealloc():\n\tFailed to realloc %zu bytes\n", bytes);

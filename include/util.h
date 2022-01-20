@@ -14,6 +14,7 @@ void* xmalloc(size_t bytes);
 
 /**
  * @brief Calls realloc(), exiting when realloc() fails
+ * If bytes is zero, the given buffer is freed and NULL is returned
  * 
  * @param alloc Existing allocation, or NULL
  * @param bytes New size for the allocation
