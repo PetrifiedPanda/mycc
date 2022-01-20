@@ -29,12 +29,12 @@ static enum token_type check_next(enum token_type type, const char* next);
 static bool token_is_over(const struct tokenizer_state* s);
 static bool is_valid_singlec_token(enum token_type type, char prev, char prev_prev);
 
-static inline void advance(struct tokenizer_state* s, size_t num);
-static inline void advance_one(struct tokenizer_state* s);
-static inline void advance_newline(struct tokenizer_state* s);
+static void advance(struct tokenizer_state* s, size_t num);
+static void advance_one(struct tokenizer_state* s);
+static void advance_newline(struct tokenizer_state* s);
 
-static inline void add_token_copy(size_t* token_idx, struct token_arr* res, enum token_type type, const char* spell, struct source_location loc, const char* filename);
-static inline void add_token(size_t* token_idx, struct token_arr* res, enum token_type type, char* spell, struct source_location loc, const char* filename);
+static void add_token_copy(size_t* token_idx, struct token_arr* res, enum token_type type, const char* spell, struct source_location loc, const char* filename);
+static void add_token(size_t* token_idx, struct token_arr* res, enum token_type type, char* spell, struct source_location loc, const char* filename);
 
 static bool handle_comments(struct tokenizer_state* s);
 
@@ -401,7 +401,7 @@ static bool is_valid_singlec_token(enum token_type type, char prev, char prev_pr
     }
 }
 
-static inline void advance(struct tokenizer_state* s, size_t num) {
+static void advance(struct tokenizer_state* s, size_t num) {
     assert(num > 0);
     s->it += num;
     s->source_loc.index += num;
@@ -412,14 +412,14 @@ static inline void advance(struct tokenizer_state* s, size_t num) {
     }
 }
 
-static inline void advance_one(struct tokenizer_state* s) {
+static void advance_one(struct tokenizer_state* s) {
     ++s->source_loc.index;
     s->prev_prev = s->prev;
     s->prev = *s->it;
     ++s->it;
 }
 
-static inline void advance_newline(struct tokenizer_state* s) {
+static void advance_newline(struct tokenizer_state* s) {
     if (*s->it == '\n') {
         s->source_loc.line += 1;
         s->source_loc.index = 1;
@@ -438,13 +438,13 @@ static void realloc_tokens_if_needed(size_t token_idx, struct token_arr* res) {
     }
 }
 
-static inline void add_token_copy(size_t* token_idx, struct token_arr* res, enum token_type type, const char* spell, struct source_location loc, const char* filename) {
+static void add_token_copy(size_t* token_idx, struct token_arr* res, enum token_type type, const char* spell, struct source_location loc, const char* filename) {
     realloc_tokens_if_needed(*token_idx, res);
     init_token_copy(&res->tokens[*token_idx], type, spell, loc, filename);
     ++*token_idx;
 }
 
-static inline void add_token(size_t* token_idx, struct token_arr* res, enum token_type type, char* spell, struct source_location loc, const char* filename) {
+static void add_token(size_t* token_idx, struct token_arr* res, enum token_type type, char* spell, struct source_location loc, const char* filename) {
     realloc_tokens_if_needed(*token_idx, res);
     init_token(&res->tokens[*token_idx], type, spell, loc, filename);
     ++*token_idx;
