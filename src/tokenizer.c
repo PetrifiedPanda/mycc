@@ -622,7 +622,7 @@ static bool handle_other(struct tokenizer_state* s, struct token_arr* res) {
     if (type != INVALID) {
         add_token(res, type, NULL, start_loc, s->current_file);
     } else {
-        if (is_hex_const(buf_to_check, buf_idx) || is_oct_const(buf_to_check, buf_idx) || is_dec_const(buf_to_check, buf_idx)) {
+        if (is_dec_const(buf_to_check, buf_idx) || is_hex_const(buf_to_check, buf_idx) || is_oct_const(buf_to_check, buf_idx)) {
             type = I_CONSTANT;
         } else if (is_float_const(buf_to_check, buf_idx)) {
             type = F_CONSTANT;
