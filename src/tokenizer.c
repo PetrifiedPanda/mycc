@@ -13,6 +13,7 @@
 struct token_arr {
     struct token* tokens;
     size_t len;
+    size_t alloc_len;
 };
 
 struct tokenizer_state {
@@ -33,13 +34,13 @@ static void advance(struct tokenizer_state* s, size_t num);
 static void advance_one(struct tokenizer_state* s);
 static void advance_newline(struct tokenizer_state* s);
 
-static void add_token_copy(size_t* token_idx, struct token_arr* res, enum token_type type, const char* spell, struct source_location loc, const char* filename);
-static void add_token(size_t* token_idx, struct token_arr* res, enum token_type type, char* spell, struct source_location loc, const char* filename);
+static void add_token_copy(struct token_arr* res, enum token_type type, const char* spell, struct source_location loc, const char* filename);
+static void add_token(struct token_arr* res, enum token_type type, char* spell, struct source_location loc, const char* filename);
 
 static bool handle_comments(struct tokenizer_state* s);
 
-static bool handle_character_literal(struct tokenizer_state* s, struct token_arr* res, size_t* token_idx);
-static bool handle_other(struct tokenizer_state* s, struct token_arr* res, size_t* token_idx);
+static bool handle_character_literal(struct tokenizer_state* s, struct token_arr* res);
+static bool handle_other(struct tokenizer_state* s, struct token_arr* res);
 
 struct token* tokenize(const char* str, const char* filename) {
     enum {NUM_START_TOKENS = 1};
@@ -50,12 +51,11 @@ struct token* tokenize(const char* str, const char* filename) {
             .source_loc = (struct source_location){1, 1},
             .current_file = filename
     };
-    
-    size_t token_idx = 0;
 
     struct token_arr res = {
             .tokens = xmalloc(sizeof(struct token) * NUM_START_TOKENS),
-            .len = NUM_START_TOKENS
+            .len = 0,
+            .alloc_len = NUM_START_TOKENS
     };
 
     while (*s.it != '\0') {
@@ -79,41 +79,37 @@ struct token* tokenize(const char* str, const char* filename) {
                 type = check_next(type, s.it + 1);
             }
             
-            add_token(&token_idx, &res, type, NULL, s.source_loc, s.current_file);
+            add_token(&res, type, NULL, s.source_loc, s.current_file);
 
             size_t len = strlen(get_spelling(type));
             advance(&s, len);
         } else if (*s.it == '\"' || *s.it == '\'' || (*s.it == 'L' && (s.it[1] == '\"' || s.it[1] == '\''))) {
-            if (!handle_character_literal(&s, &res, &token_idx)) {
+            if (!handle_character_literal(&s, &res)) {
                 goto fail;
             }
         } else {
-            if (!handle_other(&s, &res, &token_idx)) {
+            if (!handle_other(&s, &res)) {
                 goto fail;
             }
         }
     }
 
-    res.tokens = xrealloc(res.tokens, sizeof(struct token) * (token_idx + 1));
-    res.tokens[token_idx] = (struct token){
+    res.tokens = xrealloc(res.tokens, sizeof(struct token) * (res.len + 1));
+    res.tokens[res.len] = (struct token){
             .type = INVALID,
             .spelling = NULL,
             .file = NULL,
             .source_loc = {(size_t) -1, (size_t) -1}
     };
 
-    res.len = token_idx;
-
     return res.tokens;
 
 fail:
-    for (size_t i = 0; i < token_idx; ++i) {
+    for (size_t i = 0; i < res.len; ++i) {
         free_token(&res.tokens[i]);
     }
     free(res.tokens);
-    res.tokens = NULL;
-    res.len = 0;
-    return res.tokens;
+    return NULL;
 }
 
 void free_tokenizer_result(struct token* tokens) {
@@ -432,22 +428,22 @@ static void advance_newline(struct tokenizer_state* s) {
     ++s->it;
 }
 
-static void realloc_tokens_if_needed(size_t token_idx, struct token_arr* res) {
-    if (token_idx == res->len) {
-        grow_alloc((void**)&res->tokens, &res->len, sizeof(struct token));
+static void realloc_tokens_if_needed(struct token_arr* res) {
+    if (res->len == res->alloc_len) {
+        grow_alloc((void**)&res->tokens, &res->alloc_len, sizeof(struct token));
     }
 }
 
-static void add_token_copy(size_t* token_idx, struct token_arr* res, enum token_type type, const char* spell, struct source_location loc, const char* filename) {
-    realloc_tokens_if_needed(*token_idx, res);
-    init_token_copy(&res->tokens[*token_idx], type, spell, loc, filename);
-    ++*token_idx;
+static void add_token_copy(struct token_arr* res, enum token_type type, const char* spell, struct source_location loc, const char* filename) {
+    realloc_tokens_if_needed(res);
+    init_token_copy(&res->tokens[res->len], type, spell, loc, filename);
+    ++res->len;
 }
 
-static void add_token(size_t* token_idx, struct token_arr* res, enum token_type type, char* spell, struct source_location loc, const char* filename) {
-    realloc_tokens_if_needed(*token_idx, res);
-    init_token(&res->tokens[*token_idx], type, spell, loc, filename);
-    ++*token_idx;
+static void add_token(struct token_arr* res, enum token_type type, char* spell, struct source_location loc, const char* filename) {
+    realloc_tokens_if_needed(res);
+    init_token(&res->tokens[res->len], type, spell, loc, filename);
+    ++res->len;
 }
 
 static bool handle_comments(struct tokenizer_state* s) {
@@ -496,7 +492,7 @@ static void unterminated_literal_err(char terminator, struct source_location sta
     set_error_file(ERR_TOKENIZER, filename, start_loc, "%s literal not properly terminated", literal_type_str);
 }
 
-static bool handle_character_literal(struct tokenizer_state* s, struct token_arr* res, size_t* token_idx) {
+static bool handle_character_literal(struct tokenizer_state* s, struct token_arr* res) {
     assert(*s->it == '\'' || *s->it == '\"' || *s->it == 'L');
     enum {BUF_STRLEN = 512};
     char spell_buf[BUF_STRLEN + 1] = {0};
@@ -574,9 +570,9 @@ static bool handle_character_literal(struct tokenizer_state* s, struct token_arr
         }
         
         if (is_dyn) {
-            add_token(token_idx, res, type, dyn_buf, start_loc, s->current_file);
+            add_token(res, type, dyn_buf, start_loc, s->current_file);
         } else {
-            add_token_copy(token_idx, res, type, spell_buf, start_loc, s->current_file);
+            add_token_copy(res, type, spell_buf, start_loc, s->current_file);
         }
     }
 
@@ -588,7 +584,7 @@ static bool token_is_over(const struct tokenizer_state* s) {
     return *s->it == '\0' || isspace(*s->it) || (type != INVALID && is_valid_singlec_token(type, s->prev, s->prev_prev));
 }
 
-static bool handle_other(struct tokenizer_state* s, struct token_arr* res, size_t* token_idx) {
+static bool handle_other(struct tokenizer_state* s, struct token_arr* res) {
     enum {BUF_STRLEN = 512};
     char spell_buf[BUF_STRLEN + 1] = {0};
     size_t buf_idx = 0;
@@ -624,7 +620,7 @@ static bool handle_other(struct tokenizer_state* s, struct token_arr* res, size_
     char* buf_to_check = dyn_buf != NULL ? dyn_buf : spell_buf;
     enum token_type type = multic_token_type(buf_to_check);
     if (type != INVALID) {
-        add_token(token_idx, res, type, NULL, start_loc, s->current_file);
+        add_token(res, type, NULL, start_loc, s->current_file);
     } else {
         if (is_hex_const(buf_to_check, buf_idx) || is_oct_const(buf_to_check, buf_idx) || is_dec_const(buf_to_check, buf_idx)) {
             type = I_CONSTANT;
@@ -641,9 +637,9 @@ static bool handle_other(struct tokenizer_state* s, struct token_arr* res, size_
         }
 
         if (buf_to_check == dyn_buf) {
-            add_token(token_idx, res, type, dyn_buf, start_loc, s->current_file);
+            add_token(res, type, dyn_buf, start_loc, s->current_file);
         } else {
-            add_token_copy(token_idx, res, type, spell_buf, start_loc, s->current_file);
+            add_token_copy(res, type, spell_buf, start_loc, s->current_file);
         }
     }
 
