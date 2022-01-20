@@ -76,9 +76,13 @@ bool is_hex_const(const char* str, size_t num) {
     
 }
 
+static bool is_oct_const_start(const char* str, size_t num) {
+    return num >= 2 && str[0] == '0';
+}
+
 bool is_oct_const(const char* str, size_t num) {
     size_t i = 0;
-    if (num < 2 || str[i] != '0') {
+    if (!is_oct_const_start(str, num)) {
         return false;
     }
     ++i;
@@ -94,10 +98,9 @@ bool is_oct_const(const char* str, size_t num) {
     }
 }
 
-// TODO: recognizes octal constants as decimal constants
 bool is_dec_const(const char* str, size_t num) {
     size_t i = 0;
-    if (num < 1 || !isdigit(str[i])) {
+    if (num < 1 || !isdigit(str[i]) || is_oct_const_start(str, num)) {
         return false;
     }
     ++i;
