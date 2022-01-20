@@ -1,6 +1,8 @@
 #ifndef STATEMENT_H
 #define STATEMENT_H
 
+#include "parser/parser_state.h"
+
 struct labeled_statement;
 struct compound_statement;
 struct expr_statement;
@@ -29,11 +31,7 @@ struct statement {
     };
 };
 
-struct statement* create_statement_labeled(struct labeled_statement* labeled);
-struct statement* create_statement_compound(struct compound_statement* comp);
-struct statement* create_statement_select(struct selection_statement* sel);
-struct statement* create_statement_iter(struct iteration_statement* it);
-struct statement* create_statement_jump(struct jump_statement* jmp);
+struct statement* parse_statement(struct parser_state* s);
 
 void free_statement_children(struct statement* s);
 

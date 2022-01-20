@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-struct statement* create_statement_labeled(struct labeled_statement* labeled) {
+static struct statement* create_statement_labeled(struct labeled_statement* labeled) {
     assert(labeled);
     struct statement* res = xmalloc(sizeof(struct statement));
     res->type = STATEMENT_LABELED;
@@ -14,7 +14,7 @@ struct statement* create_statement_labeled(struct labeled_statement* labeled) {
     return res;
 }
 
-struct statement* create_statement_compound(struct compound_statement* comp) {
+static struct statement* create_statement_compound(struct compound_statement* comp) {
     assert(comp);
     struct statement* res = xmalloc(sizeof(struct statement));
     res->type = STATEMENT_COMPOUND;
@@ -23,7 +23,7 @@ struct statement* create_statement_compound(struct compound_statement* comp) {
     return res;
 }
 
-struct statement* create_statement_select(struct selection_statement* sel) {
+static struct statement* create_statement_select(struct selection_statement* sel) {
     assert(sel);
     struct statement* res = xmalloc(sizeof(struct statement));
     res->type = STATEMENT_SELECTION;
@@ -32,7 +32,7 @@ struct statement* create_statement_select(struct selection_statement* sel) {
     return res;
 }
 
-struct statement* create_statement_iter(struct iteration_statement* it) {
+static struct statement* create_statement_iter(struct iteration_statement* it) {
     assert(it);
     struct statement* res = xmalloc(sizeof(struct statement));
     res->type = STATEMENT_ITERATION;
@@ -41,13 +41,19 @@ struct statement* create_statement_iter(struct iteration_statement* it) {
     return res;
 }
 
-struct statement* create_statement_jump(struct jump_statement* jmp) {
+static struct statement* create_statement_jump(struct jump_statement* jmp) {
     assert(jmp);
     struct statement* res = xmalloc(sizeof(struct statement));
     res->type = STATEMENT_JUMP;
     res->jmp = jmp;
     
     return res;
+}
+
+struct statement* parse_statement(struct parser_state* s) {
+    (void)s;
+    // TODO:
+    return NULL;
 }
 
 void free_statement_children(struct statement* s) {

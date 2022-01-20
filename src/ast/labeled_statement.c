@@ -5,36 +5,59 @@
 
 #include "util.h"
 
-struct labeled_statement* create_labeled_statement_goto(struct identifier* identifier, struct statement* stat) {
-    assert(identifier);
-    assert(stat);
-    struct labeled_statement* res = xmalloc(sizeof(struct labeled_statement));
-    res->type = IDENTIFIER;
-    res->identifier = identifier;
-    res->stat = stat;
-    
-    return res;
-}
+#include "parser/parser_util.h"
 
-struct labeled_statement* create_labeled_statement_case(struct const_expr* case_expr, struct statement* stat) { 
-    assert(case_expr);
-    assert(stat);
+struct labeled_statement* parse_labeled_statement(struct parser_state* s) {
     struct labeled_statement* res = xmalloc(sizeof(struct labeled_statement));
-    res->type = CASE;
-    res->case_expr = case_expr;
-    res->stat = stat;
-    
-    return res;
-}
+    switch (s->it->type) {
+        case CASE: {
+            res->type = CASE;
+            accept_it(s);
+            struct const_expr* case_expr = parse_const_expr(s);
+            if (!case_expr) {
+                free(res);
+                return NULL;
+            }
+            res->case_expr = case_expr;
+            break;
+        }
 
-struct labeled_statement* craete_labeled_statement_default(struct statement* stat) {
-    assert(stat); 
-    struct labeled_statement* res = xmalloc(sizeof(struct labeled_statement));
-    res->type = DEFAULT;
-    res->stat = stat;
-    res->identifier = NULL;
-    
+        case IDENTIFIER:
+        case DEFAULT: {
+            res->type = s->it->type;
+            accept_it(s);
+            break;
+        }
+
+        default: {
+            free(res);
+            enum token_type expected[] = {
+                    IDENTIFIER,
+                    CASE,
+                    DEFAULT
+            };
+
+            expected_tokens_error(expected, sizeof expected / sizeof(enum token_type), s->it);
+            return NULL;
+        }
+    }
+
+    if (!accept(s, COLON)) {
+        goto fail;
+    }
+
+    res->stat = parse_statement(s);
+    if (!res->stat) {
+        goto fail;
+    }
+
     return res;
+fail:
+    if (res->type == CASE) {
+        free_const_expr(res->case_expr);
+    }
+    free(res);
+    return NULL;
 }
 
 static void free_children(struct labeled_statement* s) {

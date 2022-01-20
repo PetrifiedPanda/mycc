@@ -3,6 +3,8 @@
 
 #include "token_type.h"
 
+#include "parser/parser_state.h"
+
 struct const_expr;
 struct statement;
 struct identifier;
@@ -16,9 +18,7 @@ struct labeled_statement {
     struct statement* stat;
 };
 
-struct labeled_statement* create_labeled_statement_goto(struct identifier* identifier, struct statement* stat);
-struct labeled_statement* create_labeled_statement_case(struct const_expr* case_expr, struct statement* stat);
-struct labeled_statement* craete_labeled_statement_default(struct statement* stat);
+struct labeled_statement* parse_labeled_statement(struct parser_state* s);
 
 void free_labeled_statement(struct labeled_statement* s);
 
