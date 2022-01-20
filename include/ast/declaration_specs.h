@@ -4,8 +4,11 @@
 #include <stddef.h>
 
 #include "token.h"
+
 #include "ast/type_qual.h"
 #include "ast/func_spec.h"
+
+#include "parser/parser_state.h"
 
 struct type_spec;
 struct align_spec;
@@ -34,7 +37,7 @@ struct declaration_specs {
     struct declaration_specs_cont* contents;
 };
 
-struct declaration_specs* create_declaration_specs(struct declaration_specs_cont* contents, size_t len);
+struct declaration_specs* parse_declaration_specs(struct parser_state* s);
 
 void free_declaration_specs(struct declaration_specs* s);
 
