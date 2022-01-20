@@ -2,6 +2,8 @@
 
 #include "util.h"
 
+#include "parser/parser_util.h"
+
 static bool parse_spec_or_qual(struct parser_state* s, struct type_spec_or_qual* res) {
     if (is_type_qual(s->it->type)) {
         res->is_type_spec = false;
@@ -18,32 +20,6 @@ static bool parse_spec_or_qual(struct parser_state* s, struct type_spec_or_qual*
     }
 
     return true;
-}
-
-static bool is_type_spec(const struct parser_state* s) {
-    switch (s->it->type) {
-        case VOID:
-        case CHAR:
-        case SHORT:
-        case INT:
-        case LONG:
-        case FLOAT:
-        case DOUBLE:
-        case SIGNED:
-        case UNSIGNED:
-        case BOOL:
-        case COMPLEX:
-        case IMAGINARY:
-        case ATOMIC:
-        case STRUCT:
-        case UNION:
-        case ENUM:
-            return true;
-        case IDENTIFIER:
-            return is_typedef_name(s, s->it->spelling);
-        default:
-            return false;
-    }
 }
 
 struct spec_qual_list parse_spec_qual_list(struct parser_state* s) {

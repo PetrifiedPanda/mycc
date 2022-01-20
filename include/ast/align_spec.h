@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#include "parser/parser_state.h"
+
 struct type_name;
 struct const_expr;
 
@@ -13,6 +15,8 @@ struct align_spec {
         struct const_expr* const_expr;
     };
 };
+
+struct align_spec* parse_align_spec(struct parser_state* s);
 
 void free_align_spec(struct align_spec* s);
 

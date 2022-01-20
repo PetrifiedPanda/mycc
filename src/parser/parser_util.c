@@ -38,6 +38,32 @@ bool next_is_type_name(const struct parser_state* s) {
     return is_keyword_type_spec(next->type) || is_type_qual(next->type) || (next->type == IDENTIFIER && is_typedef_name(s, next->spelling));
 }
 
+bool is_type_spec(const struct parser_state* s) {
+    switch (s->it->type) {
+        case VOID:
+        case CHAR:
+        case SHORT:
+        case INT:
+        case LONG:
+        case FLOAT:
+        case DOUBLE:
+        case SIGNED:
+        case UNSIGNED:
+        case BOOL:
+        case COMPLEX:
+        case IMAGINARY:
+        case ATOMIC:
+        case STRUCT:
+        case UNION:
+        case ENUM:
+            return true;
+        case IDENTIFIER:
+            return is_typedef_name(s, s->it->spelling);
+        default:
+            return false;
+    }
+}
+
 char* take_spelling(struct token* t) {
     char* spelling = t->spelling;
     t->spelling = NULL;

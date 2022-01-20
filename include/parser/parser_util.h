@@ -20,6 +20,13 @@ bool next_is_type_name(const struct parser_state* s);
 
 /**
  *
+ * @param s The current parser_state
+ * @return Whether the current token is a type specifier
+ */
+bool is_type_spec(const struct parser_state* s);
+
+/**
+ *
  * @param t A token with non-null spelling
  * @return Returns the spelling of the given token, setting it to NULL in the token
  */
