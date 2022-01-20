@@ -1,36 +1,67 @@
 #include "ast/selection_statement.h"
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "util.h"
 
-static struct selection_statement* create(struct expr* sel_expr, struct statement* sel_stat, struct statement* else_stat) {
-    assert(sel_expr);
-    assert(sel_stat);
+#include "parser/parser_util.h"
+
+struct selection_statement* parse_selection_statement(struct parser_state* s) {
     struct selection_statement* res = xmalloc(sizeof(struct selection_statement));
-    res->sel_expr = sel_expr;
-    res->sel_stat = sel_stat;
-    res->else_stat = else_stat;
-    
-    return res;
-}
+    if (s->it->type == IF) {
+        res->is_if = true;
+        accept_it(s);
+    } else {
+        if (!accept(s, SWITCH)) {
+            free(res);
+            enum token_type expected[] = {
+                    IF,
+                    SWITCH
+            };
 
-struct selection_statement* create_if_else_statement(struct expr* sel_expr, struct statement* sel_stat, struct statement* else_stat) {
-    assert(sel_expr);
-    assert(sel_stat);
-    struct selection_statement* res = create(sel_expr, sel_stat, else_stat);
-    res->is_if = true;
-    
-    return res;
-}
+            expected_tokens_error(expected, sizeof expected / sizeof(enum token_type), s->it);
+            return NULL;
+        }
+        res->is_if = false;
+    }
 
-struct selection_statement* create_switch_statement(struct expr* sel_expr, struct statement* sel_stat) {
-    assert(sel_expr);
-    assert(sel_stat);
-    struct selection_statement* res = create(sel_expr, sel_stat, NULL);
-    res->is_if = false;
-    
+    if (!accept(s, LBRACKET)) {
+        free(res);
+        return NULL;
+    }
+
+    res->sel_expr = parse_expr(s);
+    if (!res->sel_expr) {
+        free(res);
+        return NULL;
+    }
+
+    if (!accept(s, RBRACKET)) {
+        free_expr(res->sel_expr);
+        free(res);
+        return NULL;
+    }
+
+    res->sel_stat = parse_statement(s);
+    if (!res->sel_stat) {
+        free_expr(res->sel_expr);
+        free(res);
+        return NULL;
+    }
+
+    if (res->is_if && s->it->type == ELSE) {
+        accept_it(s);
+        res->else_stat = parse_statement(s);
+        if (!res->else_stat) {
+            free_statement(res->sel_stat);
+            free_expr(res->sel_expr);
+            free(res);
+            return NULL;
+        }
+    } else {
+        res->sel_stat = NULL;
+    }
+
     return res;
 }
 

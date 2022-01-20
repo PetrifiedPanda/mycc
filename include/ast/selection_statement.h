@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#include "parser/parser_state.h"
+
 struct expr;
 struct statement;
 
@@ -13,8 +15,7 @@ struct selection_statement {
     struct statement* else_stat;
 };
 
-struct selection_statement* create_if_else_statement(struct expr* sel_expr, struct statement* sel_stat, struct statement* else_stat);
-struct selection_statement* create_switch_statement(struct expr* sel_expr, struct statement* sel_stat);
+struct selection_statement* parse_selection_statement(struct parser_state* s);
 
 void free_selection_statement(struct selection_statement* s);
 
