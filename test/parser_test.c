@@ -16,6 +16,7 @@ static void designation_test();
 static void unary_expr_test();
 static void postfix_expr_test();
 static void assign_expr_test();
+static void static_assert_declaration_test();
 
 void parser_test() {
     primary_expr_test();
@@ -26,6 +27,7 @@ void parser_test() {
     unary_expr_test();
     postfix_expr_test();
     assign_expr_test();
+    static_assert_declaration_test();
     printf("Parser test successful\n");
 }
 
@@ -536,4 +538,18 @@ static void assign_expr_test() {
     }
 
     // TODO: add more testcases
+}
+
+static void static_assert_declaration_test() {
+    struct token* tokens = tokenize("_Static_assert(12345, \"This is a string literal\")", "slkfjsak");
+
+    struct parser_state s = {.it = tokens};
+    struct static_assert_declaration* res = parse_static_assert_declaration(&s);
+    ASSERT_NOT_NULL(res);
+
+    ASSERT_STR(res->err_msg.spelling, "\"This is a string literal\"");
+    test_cond_expr_id_or_const(&res->const_expr->expr, "12345", I_CONSTANT);
+
+    free_tokenizer_result(tokens);
+    free_static_assert_declaration(res);
 }
