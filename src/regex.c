@@ -1,6 +1,5 @@
 #include "regex.h"
 
-#include <stdlib.h>
 #include <ctype.h>
 #include <stdbool.h>
 
@@ -105,7 +104,7 @@ bool is_dec_const(const char* str, size_t num) {
         ++i;
     }
 
-    if (i == 0 || is_int_suffix(str + i, num - i)) {
+    if (i == num || is_int_suffix(str + i, num - i)) {
         return true;
     } else {
         return false;
