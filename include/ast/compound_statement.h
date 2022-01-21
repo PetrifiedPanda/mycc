@@ -1,17 +1,22 @@
 #ifndef COMPOUND_STATEMENT_H
 #define COMPOUND_STATEMENT_H
 
-#include "ast/statement_list.h"
-#include "ast/declaration_list.h"
+#include <stddef.h>
+
+#include "parser/parser_state.h"
+
+struct block_item;
 
 struct compound_statement {
-    struct declaration_list decl_list;
-    struct statement_list stat_list;
+    size_t len;
+    struct block_item* items;
 };
 
-struct compound_statement* create_compound_statement(struct declaration_list decl_list, struct statement_list stat_list);
+struct compound_statement* parse_compound_statement(struct parser_state* s);
 
 void free_compound_statement(struct compound_statement* s);
+
+#include "ast/block_item.h"
 
 #endif
 
