@@ -99,15 +99,6 @@ static struct iteration_statement* parse_do_loop(struct parser_state* s) {
     return create_do_loop(while_cond, loop_body);
 }
 
-static bool is_declaration(const struct parser_state* s) {
-    return  is_storage_class_spec(s->it->type) ||
-            is_type_spec(s) ||
-            is_type_qual(s->it->type) ||
-            is_func_spec(s->it->type) ||
-            s->it->type == ALIGNAS ||
-            s->it->type == STATIC_ASSERT;
-}
-
 static struct iteration_statement* parse_for_loop(struct parser_state* s) {
     assert(s->it->type == FOR);
 
