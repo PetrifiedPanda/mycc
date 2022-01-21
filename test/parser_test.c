@@ -148,6 +148,64 @@ static void test_identifier(struct identifier* i, const char* spell) {
     ASSERT_STR(i->spelling, spell);
 }
 
+static void test_primary_expr_id_or_const(struct primary_expr* e, const char* spell, enum token_type type) {
+    enum primary_expr_type expected_type = type == IDENTIFIER ? PRIMARY_EXPR_IDENTIFIER : PRIMARY_EXPR_CONSTANT;
+    ASSERT(e->type == expected_type);
+    if (type == IDENTIFIER) {
+        ASSERT_NOT_NULL(e->identifier);
+        ASSERT_STR(e->identifier->spelling, spell);
+    } else {
+        ASSERT_TOKEN_TYPE(e->constant.type, type);
+        ASSERT_STR(e->constant.spelling, spell);
+    }
+}
+
+static void test_postfix_expr_id_or_const(struct postfix_expr* e, const char* spell, enum token_type type) {
+    ASSERT(e->is_primary);
+    test_primary_expr_id_or_const(e->primary, spell, type);
+}
+
+static void test_unary_expr_id_or_const(struct unary_expr* unary, const char* spell, enum token_type type) {
+    ASSERT_SIZE_T(unary->len, (size_t)0);
+    ASSERT_NULL(unary->operators_before);
+
+    ASSERT(unary->type == UNARY_POSTFIX);
+    test_postfix_expr_id_or_const(unary->postfix, spell, type);
+}
+
+static void test_cast_expr_id_or_const(struct cast_expr* expr, const char* spell, enum token_type type) {
+    ASSERT_SIZE_T(expr->len, (size_t)0);
+    ASSERT_NULL(expr->type_names);
+
+    test_unary_expr_id_or_const(expr->rhs, spell, type);
+}
+
+static void test_shift_expr_id_or_const(struct shift_expr* expr, const char* spell, enum token_type type) {
+    const size_t zero = (size_t)0;
+    ASSERT_SIZE_T(expr->len, (size_t)0);
+    ASSERT_NOT_NULL(expr->lhs);
+    ASSERT_SIZE_T(expr->lhs->len, zero);
+    ASSERT_NOT_NULL(expr->lhs->lhs);
+    ASSERT_SIZE_T(expr->lhs->lhs->len, zero);
+    ASSERT_NOT_NULL(expr->lhs->lhs->lhs);
+    test_cast_expr_id_or_const(expr->lhs->lhs->lhs, spell, type);
+}
+
+static void test_cond_expr_id_or_const(struct cond_expr* expr, const char* spell, enum token_type type) {
+    const size_t one = (size_t)1;
+    const size_t zero = (size_t)0;
+    ASSERT_SIZE_T(expr->len, zero);
+    ASSERT_SIZE_T(expr->last_else->len, one);
+    ASSERT_SIZE_T(expr->last_else->log_ands->len, one);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->len, one);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->len, one);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->len, one);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->len, zero);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->len, zero);
+    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->len, zero);
+    test_shift_expr_id_or_const(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs, spell, type);
+}
+
 static void jump_statement_test() {
     {
         struct token* tokens = tokenize("goto my_cool_label;", "file");
@@ -187,7 +245,23 @@ static void jump_statement_test() {
         free_tokenizer_result(tokens);
     }
 
-    // TODO: test with return value
+    {
+        struct token* tokens = tokenize("return 600;", "file.c");
+
+        struct parser_state s = {.it = tokens};
+        struct jump_statement* res = parse_jump_statement(&s);
+        ASSERT_NOT_NULL(res);
+        ASSERT_NO_ERROR();
+        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+
+        ASSERT_TOKEN_TYPE(res->type, RETURN);
+        ASSERT_NOT_NULL(res->ret_val);
+
+        test_cond_expr_id_or_const(res->ret_val->assign_exprs->value, "600", I_CONSTANT);
+
+        free_jump_statement(res);
+        free_tokenizer_result(tokens);
+    }
 }
 
 static void test_enum_list_ids(struct enum_list* l, const char** enum_constants, size_t len) {
@@ -271,64 +345,6 @@ static void enum_spec_test() {
         free_tokenizer_result(tokens);
         free_enum_spec(res);
     }
-}
-
-static void test_primary_expr_id_or_const(struct primary_expr* e, const char* spell, enum token_type type) {
-    enum primary_expr_type expected_type = type == IDENTIFIER ? PRIMARY_EXPR_IDENTIFIER : PRIMARY_EXPR_CONSTANT;
-    ASSERT(e->type == expected_type);
-    if (type == IDENTIFIER) {
-        ASSERT_NOT_NULL(e->identifier);
-        ASSERT_STR(e->identifier->spelling, spell);
-    } else {
-        ASSERT_TOKEN_TYPE(e->constant.type, type);
-        ASSERT_STR(e->constant.spelling, spell);
-    }
-}
-
-static void test_postfix_expr_id_or_const(struct postfix_expr* e, const char* spell, enum token_type type) {
-    ASSERT(e->is_primary);
-    test_primary_expr_id_or_const(e->primary, spell, type);
-}
-
-static void test_unary_expr_id_or_const(struct unary_expr* unary, const char* spell, enum token_type type) {
-    ASSERT_SIZE_T(unary->len, (size_t)0);
-    ASSERT_NULL(unary->operators_before);
-
-    ASSERT(unary->type == UNARY_POSTFIX);
-    test_postfix_expr_id_or_const(unary->postfix, spell, type);
-}
-
-static void test_cast_expr_id_or_const(struct cast_expr* expr, const char* spell, enum token_type type) {
-    ASSERT_SIZE_T(expr->len, (size_t)0);
-    ASSERT_NULL(expr->type_names);
-
-    test_unary_expr_id_or_const(expr->rhs, spell, type);
-}
-
-static void test_shift_expr_id_or_const(struct shift_expr* expr, const char* spell, enum token_type type) {
-    const size_t zero = (size_t)0;
-    ASSERT_SIZE_T(expr->len, (size_t)0);
-    ASSERT_NOT_NULL(expr->lhs);
-    ASSERT_SIZE_T(expr->lhs->len, zero);
-    ASSERT_NOT_NULL(expr->lhs->lhs);
-    ASSERT_SIZE_T(expr->lhs->lhs->len, zero);
-    ASSERT_NOT_NULL(expr->lhs->lhs->lhs);
-    test_cast_expr_id_or_const(expr->lhs->lhs->lhs, spell, type);
-}
-
-static void test_cond_expr_id_or_const(struct cond_expr* expr, const char* spell, enum token_type type) {
-    const size_t one = (size_t)1;
-    const size_t zero = (size_t)0;
-    ASSERT_SIZE_T(expr->len, zero);
-    ASSERT_SIZE_T(expr->last_else->len, one);
-    ASSERT_SIZE_T(expr->last_else->log_ands->len, one);
-    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->len, one);
-    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->len, one);
-    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->len, one);
-    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->len, zero);
-    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->len, zero);
-    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->len, zero);
-    test_shift_expr_id_or_const(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs, spell, type);
 }
 
 static void designation_test() {
