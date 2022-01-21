@@ -206,6 +206,25 @@ static void test_cond_expr_id_or_const(struct cond_expr* expr, const char* spell
     test_shift_expr_id_or_const(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs, spell, type);
 }
 
+static void test_const_expr_id_or_const(struct const_expr* expr, const char* spell, enum token_type type) {
+    ASSERT_SIZE_T(expr->expr.len, (size_t)0);
+    ASSERT_NOT_NULL(expr->expr.last_else);
+    test_cond_expr_id_or_const(&expr->expr, spell, type);
+}
+
+static void test_assign_expr_id_or_const(struct assign_expr* expr, const char* spell, enum token_type type) {
+    ASSERT_SIZE_T(expr->len, (size_t)0);
+    ASSERT_NULL(expr->assign_chain);
+    ASSERT_NOT_NULL(expr->value);
+    test_cond_expr_id_or_const(expr->value, spell, type);
+}
+
+static void test_expr_id_or_const(struct expr* expr, const char* spell, enum token_type type) {
+    ASSERT_SIZE_T(expr->len, (size_t)1);
+    ASSERT_NOT_NULL(expr->assign_exprs);
+    test_assign_expr_id_or_const(&expr->assign_exprs[0], spell, type);
+}
+
 static void jump_statement_test() {
     {
         struct token* tokens = tokenize("goto my_cool_label;", "file");
@@ -257,7 +276,7 @@ static void jump_statement_test() {
         ASSERT_TOKEN_TYPE(res->type, RETURN);
         ASSERT_NOT_NULL(res->ret_val);
 
-        test_cond_expr_id_or_const(res->ret_val->assign_exprs->value, "600", I_CONSTANT);
+        test_expr_id_or_const(res->ret_val, "600", I_CONSTANT);
 
         free_jump_statement(res);
         free_tokenizer_result(tokens);
@@ -505,11 +524,10 @@ static void assign_expr_test() {
         struct parser_state s = {.it = tokens};
         struct assign_expr* res = parse_assign_expr(&s);
         ASSERT_NOT_NULL(res);
+        ASSERT_NO_ERROR();
+        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
-        ASSERT_SIZE_T(res->len, (size_t)0);
-        ASSERT_NULL(res->assign_chain);
-        test_cond_expr_id_or_const(res->value, "10", I_CONSTANT);
-
+        test_assign_expr_id_or_const(res, "10", I_CONSTANT);
 
         free_tokenizer_result(tokens);
         free_assign_expr(res);
@@ -577,7 +595,7 @@ static void static_assert_declaration_test() {
     ASSERT_NO_ERROR();
 
     ASSERT_STR(res->err_msg.spelling, "\"This is a string literal\"");
-    test_cond_expr_id_or_const(&res->const_expr->expr, "12345", I_CONSTANT);
+    test_const_expr_id_or_const(res->const_expr, "12345", I_CONSTANT);
 
     free_tokenizer_result(tokens);
     free_static_assert_declaration(res);
@@ -632,7 +650,7 @@ static void statement_test() {
 
     struct selection_statement* switch_stat = compound->items[0].stat.sel;
     ASSERT(switch_stat->is_if == false);
-    test_cond_expr_id_or_const(switch_stat->sel_expr->assign_exprs->value, "c", IDENTIFIER);
+    test_expr_id_or_const(switch_stat->sel_expr, "c", IDENTIFIER);
     ASSERT(switch_stat->sel_stat->type == STATEMENT_COMPOUND);
     {
         struct compound_statement* switch_compound = switch_stat->sel_stat->comp;
@@ -642,7 +660,7 @@ static void statement_test() {
         ASSERT_TOKEN_TYPE(labeled->type, CASE);
 
         ASSERT_NOT_NULL(labeled->case_expr);
-        test_cond_expr_id_or_const(&labeled->case_expr->expr, "2", I_CONSTANT);
+        test_const_expr_id_or_const(labeled->case_expr, "2", I_CONSTANT);
 
         ASSERT(labeled->stat->type == STATEMENT_EXPRESSION);
         struct expr* case_expr = &labeled->stat->expr->expr;
