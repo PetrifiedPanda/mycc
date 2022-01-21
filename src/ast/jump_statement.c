@@ -49,6 +49,7 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
             enum token_type t = s->it->type;
             accept_it(s);
             res = create(t);
+            res->ret_val = NULL;
             break;
         }
         case RETURN: {
