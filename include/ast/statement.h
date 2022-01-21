@@ -31,6 +31,8 @@ struct statement {
     };
 };
 
+bool parse_statement_inplace(struct parser_state* s, struct statement* res);
+
 struct statement* parse_statement(struct parser_state* s);
 
 void free_statement_children(struct statement* s);

@@ -50,10 +50,21 @@ static struct statement* create_statement_jump(struct jump_statement* jmp) {
     return res;
 }
 
-struct statement* parse_statement(struct parser_state* s) {
+bool parse_statement_inplace(struct parser_state* s, struct statement* res) {
+    assert(res);
     (void)s;
+    (void)res;
     // TODO:
-    return NULL;
+    return false;
+}
+
+struct statement* parse_statement(struct parser_state* s) {
+    struct statement* res = xmalloc(sizeof(struct statement));
+    if (!parse_statement_inplace(s, res)) {
+        free(res);
+        return NULL;
+    }
+    return res;
 }
 
 void free_statement_children(struct statement* s) {
