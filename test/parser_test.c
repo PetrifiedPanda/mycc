@@ -364,14 +364,14 @@ static void enum_list_test() {
 }
 
 static void enum_spec_test() {
-    const char *enum_constants[] = {
+    const char* enum_constants[] = {
             "TEST1",
             "TEST2",
             "TEST3",
             "TEST4"
     };
     {
-        struct token *tokens = tokenize("enum my_enum { TEST1, TEST2, TEST3, TEST4 }", "sfjlfjk");
+        struct token* tokens = tokenize("enum my_enum { TEST1, TEST2, TEST3, TEST4 }", "sfjlfjk");
 
         struct parser_state s = {.it = tokens};
         struct enum_spec* res = parse_enum_spec(&s);
@@ -407,7 +407,7 @@ static void enum_spec_test() {
 
 static void designation_test() {
     {
-        struct token *tokens = tokenize(".test[19].what_is_this.another_one = ", "jsalkf");
+        struct token* tokens = tokenize(".test[19].what_is_this.another_one = ", "jsalkf");
 
         struct parser_state s = {.it = tokens};
         struct designation* res = parse_designation(&s);
@@ -473,10 +473,10 @@ static void designation_test() {
 
 static void unary_expr_test() {
     {
-        struct token *tokens = tokenize("++-- sizeof *name", "skfjdlfs");
+        struct token* tokens = tokenize("++-- sizeof *name", "skfjdlfs");
 
         struct parser_state s = {.it = tokens};
-        struct unary_expr *res = parse_unary_expr(&s);
+        struct unary_expr* res = parse_unary_expr(&s);
         ASSERT_NOT_NULL(res);
         ASSERT_NO_ERROR();
 
