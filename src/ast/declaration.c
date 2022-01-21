@@ -24,10 +24,21 @@ static struct declaration* create_declaration_assert(struct static_assert_declar
     return res;
 }
 
-struct declaration* parse_declaration(struct parser_state* s) {
+bool parse_declaration_inplace(struct parser_state* s, struct declaration* res) {
+    assert(res);
     (void)s;
+    (void)res;
     // TODO:
-    return NULL;
+    return false;
+}
+
+struct declaration* parse_declaration(struct parser_state* s) {
+    struct declaration* res = xmalloc(sizeof(struct declaration));
+    if (!parse_declaration_inplace(s, res)) {
+        free(res);
+        return NULL;
+    }
+    return res;
 }
 
 void free_declaration_children(struct declaration* d) {

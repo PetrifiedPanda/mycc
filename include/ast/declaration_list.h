@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "parser/parser_state.h"
+
 struct declaration;
 
 struct declaration_list {
@@ -10,7 +12,7 @@ struct declaration_list {
     struct declaration* decls;
 };
 
-struct declaration_list* create_declaration_list(struct declaration* decls, size_t len);
+struct declaration_list parse_declaration_list(struct parser_state* s);
 
 void free_declaration_list(struct declaration_list* l);
 
