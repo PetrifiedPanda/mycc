@@ -149,7 +149,7 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
     }
 
     return res;
-    fail:
+fail:
     free_postfix_expr(res);
     return NULL;
 }
