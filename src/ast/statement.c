@@ -5,57 +5,83 @@
 
 #include "util.h"
 
-static struct statement* create_statement_labeled(struct labeled_statement* labeled) {
-    assert(labeled);
-    struct statement* res = xmalloc(sizeof(struct statement));
-    res->type = STATEMENT_LABELED;
-    res->labeled = labeled;
-    
-    return res;
-}
-
-static struct statement* create_statement_compound(struct compound_statement* comp) {
-    assert(comp);
-    struct statement* res = xmalloc(sizeof(struct statement));
-    res->type = STATEMENT_COMPOUND;
-    res->comp = comp;
-    
-    return res;
-}
-
-static struct statement* create_statement_select(struct selection_statement* sel) {
-    assert(sel);
-    struct statement* res = xmalloc(sizeof(struct statement));
-    res->type = STATEMENT_SELECTION;
-    res->sel = sel;
-    
-    return res;
-}
-
-static struct statement* create_statement_iter(struct iteration_statement* it) {
-    assert(it);
-    struct statement* res = xmalloc(sizeof(struct statement));
-    res->type = STATEMENT_ITERATION;
-    res->it = it;
-    
-    return res;
-}
-
-static struct statement* create_statement_jump(struct jump_statement* jmp) {
-    assert(jmp);
-    struct statement* res = xmalloc(sizeof(struct statement));
-    res->type = STATEMENT_JUMP;
-    res->jmp = jmp;
-    
-    return res;
-}
-
 bool parse_statement_inplace(struct parser_state* s, struct statement* res) {
     assert(res);
-    (void)s;
-    (void)res;
-    // TODO:
-    return false;
+
+    switch (s->it->type) {
+        case LBRACE: {
+            res->type = STATEMENT_COMPOUND;
+            res->comp = parse_compound_statement(s);
+            if (!res->comp) {
+                return false;
+            }
+            break;
+        }
+
+        case FOR:
+        case WHILE:
+        case DO: {
+            res->type = STATEMENT_ITERATION;
+            res->it = parse_iteration_statement(s);
+            if (!res->it) {
+                return false;
+            }
+            break;
+        }
+
+        case GOTO:
+        case CONTINUE:
+        case BREAK:
+        case RETURN: {
+            res->type = STATEMENT_JUMP;
+            res->jmp = parse_jump_statement(s);
+            if (!res->jmp) {
+                return false;
+            }
+            break;
+        }
+
+        case IF:
+        case SWITCH: {
+            res->type = STATEMENT_SELECTION;
+            res->sel = parse_selection_statement(s);
+            if (!res->sel) {
+                return false;
+            }
+            break;
+        }
+
+        case CASE:
+        case DEFAULT: {
+            res->type = STATEMENT_LABELED;
+            res->labeled = parse_labeled_statement(s);
+            if (!res->labeled) {
+                return false;
+            }
+            break;
+        }
+
+        case IDENTIFIER: {
+            if (s->it[1].type == COLON) {
+                res->type = STATEMENT_LABELED;
+                res->labeled = parse_labeled_statement(s);
+                if (!res->labeled) {
+                    return false;
+                }
+                break;
+            }
+            // FALLTHROUGH
+        }
+
+        default: {
+            res->type = STATEMENT_EXPRESSION;
+            res->expr = parse_expr_statement(s);
+            if (!res->expr) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 struct statement* parse_statement(struct parser_state* s) {
