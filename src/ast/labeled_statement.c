@@ -26,6 +26,7 @@ struct labeled_statement* parse_labeled_statement(struct parser_state* s) {
         case DEFAULT: {
             res->type = s->it->type;
             accept_it(s);
+            res->case_expr = NULL;
             break;
         }
 
@@ -67,6 +68,8 @@ static void free_children(struct labeled_statement* s) {
             break;
         case CASE:
             free_const_expr(s->case_expr);
+            break;
+        case DEFAULT:
             break;
         default:
             assert(false);
