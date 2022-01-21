@@ -59,7 +59,7 @@ struct selection_statement* parse_selection_statement(struct parser_state* s) {
             return NULL;
         }
     } else {
-        res->sel_stat = NULL;
+        res->else_stat = NULL;
     }
 
     return res;
