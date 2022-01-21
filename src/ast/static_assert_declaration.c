@@ -27,6 +27,12 @@ struct static_assert_declaration* parse_static_assert_declaration(struct parser_
     char* spell = take_spelling(s->it);
     accept_it(s);
 
+    if (!(accept(s, RBRACKET) && accept(s, SEMICOLON))) {
+        free_const_expr(const_expr);
+        free(spell);
+        return NULL;
+    }
+
     struct static_assert_declaration* res = xmalloc(sizeof(struct static_assert_declaration));
     res->const_expr = const_expr;
     res->err_msg = (struct string_literal){.spelling = spell};
