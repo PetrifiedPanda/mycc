@@ -7,11 +7,13 @@
 #include "parser/parser_util.h"
 
 struct expr_statement* parse_expr_statement(struct parser_state* s) {
+    struct expr_statement* res = xmalloc(sizeof(struct expr_statement));
     if (s->it->type == SEMICOLON) {
         accept_it(s);
-        return NULL;
+        res->expr.len = 0;
+        res->expr.assign_exprs = NULL;
+        return res;
     } else {
-        struct expr_statement* res = xmalloc(sizeof(struct expr_statement));
         if (!parse_expr_inplace(s, &res->expr)) {
             free(res);
             return NULL;
