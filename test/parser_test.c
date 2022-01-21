@@ -292,21 +292,10 @@ static void test_enum_list_ids(struct enum_list* l, const char** enum_constants,
 }
 
 static void enum_list_test() {
-    struct token* tokens = tokenize("ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, baz, BAD", "saffds");
-
-    enum {EXPECTED_LEN = 8};
-    struct parser_state s = {.it = tokens};
-    struct enum_list res = parse_enum_list(&s);
-    ASSERT_NO_ERROR();
-    ASSERT_TOKEN_TYPE(s.it->type, INVALID);
-    ASSERT_SIZE_T(res.len, (size_t)EXPECTED_LEN);
-    ASSERT_NOT_NULL(res.enums);
-
-    for (size_t i = 0; i < EXPECTED_LEN; ++i) {
-        ASSERT_NOT_NULL(res.enums[i].identifier);
-        ASSERT_NULL(res.enums[i].enum_val);
-    }
-    const char* enum_constants[] = {
+    enum {
+        EXPECTED_LEN = 8
+    };
+    const char* enum_constants[EXPECTED_LEN] = {
             "ENUM_VAL1",
             "enum_VAl2",
             "enum_val_3",
@@ -316,12 +305,62 @@ static void enum_list_test() {
             "baz",
             "BAD"
     };
-    test_enum_list_ids(&res, enum_constants, sizeof enum_constants / sizeof(char*));
 
-    free_enum_list(&res);
-    free_tokenizer_result(tokens);
+    {
+        struct token* tokens = tokenize("ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, baz, BAD", "saffds");
 
-    // TODO: test with initializers
+        struct parser_state s = {.it = tokens};
+        struct enum_list res = parse_enum_list(&s);
+        ASSERT_NO_ERROR();
+        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+        ASSERT_SIZE_T(res.len, (size_t) EXPECTED_LEN);
+        ASSERT_NOT_NULL(res.enums);
+
+        for (size_t i = 0; i < EXPECTED_LEN; ++i) {
+            ASSERT_NOT_NULL(res.enums[i].identifier);
+            ASSERT_NULL(res.enums[i].enum_val);
+        }
+        test_enum_list_ids(&res, enum_constants, sizeof enum_constants / sizeof(char*));
+
+        free_enum_list(&res);
+        free_tokenizer_result(tokens);
+    }
+
+    {
+        struct token* tokens = tokenize("ENUM_VAL1 = 0, enum_VAl2 = 1000.0, enum_val_3 = n, enum_val_4 = test, foo, bar, baz, BAD", "saffds");
+
+        struct parser_state s = {.it = tokens};
+        struct enum_list res = parse_enum_list(&s);
+        ASSERT_NO_ERROR();
+        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+        ASSERT_SIZE_T(res.len, (size_t) EXPECTED_LEN);
+        ASSERT_NOT_NULL(res.enums);
+
+        for (size_t i = 0; i < EXPECTED_LEN; ++i) {
+            ASSERT_NOT_NULL(res.enums[i].identifier);
+        }
+
+        ASSERT_NOT_NULL(res.enums[0].enum_val);
+        test_const_expr_id_or_const(res.enums[0].enum_val, "0", I_CONSTANT);
+
+        ASSERT_NOT_NULL(res.enums[1].enum_val);
+        test_const_expr_id_or_const(res.enums[1].enum_val, "1000.0", F_CONSTANT);
+
+        ASSERT_NOT_NULL(res.enums[2].enum_val);
+        test_const_expr_id_or_const(res.enums[2].enum_val, "n", IDENTIFIER);
+
+        ASSERT_NOT_NULL(res.enums[3].enum_val);
+        test_const_expr_id_or_const(res.enums[3].enum_val, "test", IDENTIFIER);
+
+        for (size_t i = 4; i < EXPECTED_LEN; ++i) {
+            ASSERT_NULL(res.enums[i].enum_val);
+        }
+
+        free_enum_list(&res);
+        free_tokenizer_result(tokens);
+    }
+
+    // TODO: test whether the identifiers were registered as enums
 }
 
 static void enum_spec_test() {
