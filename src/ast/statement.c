@@ -70,15 +70,17 @@ bool parse_statement_inplace(struct parser_state* s, struct statement* res) {
                 }
                 break;
             }
-            // FALLTHROUGH
+            goto is_stat_expr; // to avoid fallthrough warning
         }
 
+        is_stat_expr:
         default: {
             res->type = STATEMENT_EXPRESSION;
             res->expr = parse_expr_statement(s);
             if (!res->expr) {
                 return false;
             }
+            break;
         }
     }
     return true;
