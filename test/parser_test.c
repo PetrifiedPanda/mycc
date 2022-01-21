@@ -17,6 +17,7 @@ static void unary_expr_test();
 static void postfix_expr_test();
 static void assign_expr_test();
 static void static_assert_declaration_test();
+static void statement_test();
 
 void parser_test() {
     primary_expr_test();
@@ -28,6 +29,7 @@ void parser_test() {
     postfix_expr_test();
     assign_expr_test();
     static_assert_declaration_test();
+    statement_test();
     printf("Parser test successful\n");
 }
 
@@ -303,6 +305,17 @@ static void test_cast_expr_id_or_const(struct cast_expr* expr, const char* spell
     test_unary_expr_id_or_const(expr->rhs, spell, type);
 }
 
+static void test_shift_expr_id_or_const(struct shift_expr* expr, const char* spell, enum token_type type) {
+    const size_t zero = (size_t)0;
+    ASSERT_SIZE_T(expr->len, (size_t)0);
+    ASSERT_NOT_NULL(expr->lhs);
+    ASSERT_SIZE_T(expr->lhs->len, zero);
+    ASSERT_NOT_NULL(expr->lhs->lhs);
+    ASSERT_SIZE_T(expr->lhs->lhs->len, zero);
+    ASSERT_NOT_NULL(expr->lhs->lhs->lhs);
+    test_cast_expr_id_or_const(expr->lhs->lhs->lhs, spell, type);
+}
+
 static void test_cond_expr_id_or_const(struct cond_expr* expr, const char* spell, enum token_type type) {
     const size_t one = (size_t)1;
     const size_t zero = (size_t)0;
@@ -315,9 +328,7 @@ static void test_cond_expr_id_or_const(struct cond_expr* expr, const char* spell
     ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->len, zero);
     ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->len, zero);
     ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->len, zero);
-    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->len, zero);
-    ASSERT_SIZE_T(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->len, zero);
-    test_cast_expr_id_or_const(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs, spell, type);
+    test_shift_expr_id_or_const(expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs, spell, type);
 }
 
 static void designation_test() {
@@ -552,4 +563,125 @@ static void static_assert_declaration_test() {
 
     free_tokenizer_result(tokens);
     free_static_assert_declaration(res);
+}
+
+static void statement_test() {
+    const char* code = "for (i = 0; i < 100; ++i) {"
+                       "    switch (c) {"
+                       "        case 2:"
+                       "            d -= 5;"
+                       "            break;"
+                       "        default:"
+                       "            d += 5;"
+                       "    }"
+                       "    if (i >= 5) {"
+                       "        ; "
+                       "    } else b = 0;"
+                       "}";
+    struct token* tokens = tokenize(code, "file.c");
+
+    struct parser_state s = {.it = tokens};
+    struct statement* res = parse_statement(&s);
+    ASSERT_NO_ERROR();
+    ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+    ASSERT_NOT_NULL(res);
+
+    ASSERT(res->type == STATEMENT_ITERATION);
+    struct iteration_statement* iteration = res->it;
+    ASSERT(iteration->type == FOR);
+
+    ASSERT(iteration->for_loop.is_decl == false);
+    ASSERT_SIZE_T(iteration->for_loop.cond->expr.len, (size_t)1);
+
+    ASSERT_SIZE_T(iteration->for_loop.cond->expr.assign_exprs[0].len, (size_t)0);
+
+    struct rel_expr* rel = iteration->for_loop.cond->expr.assign_exprs[0].value->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs;
+    ASSERT_SIZE_T(rel->len, (size_t)1);
+    test_shift_expr_id_or_const(rel->lhs, "i", IDENTIFIER);
+    ASSERT_TOKEN_TYPE(rel->rel_chain[0].rel_op, LT);
+    test_shift_expr_id_or_const(rel->rel_chain[0].rhs, "100", I_CONSTANT);
+
+
+    struct unary_expr* unary = iteration->for_loop.incr_expr->assign_exprs->value->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs;
+    ASSERT_SIZE_T(unary->len, (size_t)1);
+    ASSERT_TOKEN_TYPE(unary->operators_before[0], INC_OP);
+    ASSERT(unary->type == UNARY_POSTFIX);
+    test_postfix_expr_id_or_const(unary->postfix, "i", IDENTIFIER);
+
+    ASSERT(iteration->loop_body->type == STATEMENT_COMPOUND);
+    struct compound_statement* compound = iteration->loop_body->comp;
+    ASSERT_SIZE_T(compound->len, (size_t)2);
+
+    struct selection_statement* switch_stat = compound->items[0].stat.sel;
+    ASSERT(switch_stat->is_if == false);
+    test_cond_expr_id_or_const(switch_stat->sel_expr->assign_exprs->value, "c", IDENTIFIER);
+    ASSERT(switch_stat->sel_stat->type == STATEMENT_COMPOUND);
+    {
+        struct compound_statement* switch_compound = switch_stat->sel_stat->comp;
+        ASSERT_SIZE_T(switch_compound->len, (size_t)3);
+        ASSERT(switch_compound->items[0].stat.type == STATEMENT_LABELED);
+        struct labeled_statement* labeled = switch_compound->items[0].stat.labeled;
+        ASSERT_TOKEN_TYPE(labeled->type, CASE);
+
+        ASSERT_NOT_NULL(labeled->case_expr);
+        test_cond_expr_id_or_const(&labeled->case_expr->expr, "2", I_CONSTANT);
+
+        ASSERT(labeled->stat->type == STATEMENT_EXPRESSION);
+        struct expr* case_expr = &labeled->stat->expr->expr;
+        ASSERT_SIZE_T(case_expr->assign_exprs->len, (size_t)1);
+
+        test_cond_expr_id_or_const(case_expr->assign_exprs->value, "5", I_CONSTANT);
+        ASSERT_TOKEN_TYPE(case_expr->assign_exprs->assign_chain[0].assign_op, SUB_ASSIGN);
+        test_unary_expr_id_or_const(case_expr->assign_exprs->assign_chain[0].unary, "d", IDENTIFIER);
+
+        ASSERT(switch_compound->items[1].stat.type == STATEMENT_JUMP);
+        struct jump_statement* break_stat = switch_compound->items[1].stat.jmp;
+        ASSERT_TOKEN_TYPE(break_stat->type, BREAK);
+        ASSERT_NULL(break_stat->ret_val);
+
+        ASSERT(switch_compound->items[2].stat.type == STATEMENT_LABELED);
+        struct labeled_statement* default_stat = switch_compound->items[2].stat.labeled;
+
+        ASSERT_TOKEN_TYPE(default_stat->type, DEFAULT);
+        ASSERT_NULL(default_stat->case_expr);
+
+        ASSERT(default_stat->stat->type == STATEMENT_EXPRESSION);
+        struct expr* default_expr = &default_stat->stat->expr->expr;
+
+        ASSERT_SIZE_T(default_expr->assign_exprs->len, (size_t)1);
+        test_cond_expr_id_or_const(default_expr->assign_exprs->value, "5", I_CONSTANT);
+        ASSERT_TOKEN_TYPE(default_expr->assign_exprs->assign_chain[0].assign_op, ADD_ASSIGN);
+        test_unary_expr_id_or_const(default_expr->assign_exprs->assign_chain[0].unary, "d", IDENTIFIER);
+    }
+
+    ASSERT(compound->items[1].stat.type == STATEMENT_SELECTION);
+    struct selection_statement* if_stat = compound->items[1].stat.sel;
+
+    ASSERT(if_stat->is_if);
+
+    struct rel_expr* if_cond = if_stat->sel_expr->assign_exprs->value->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs;
+
+    ASSERT_SIZE_T(if_cond->len, (size_t)1);
+    test_shift_expr_id_or_const(if_cond->lhs, "i", IDENTIFIER);
+    ASSERT_TOKEN_TYPE(if_cond->rel_chain[0].rel_op, GE_OP);
+    test_shift_expr_id_or_const(if_cond->rel_chain[0].rhs, "5", I_CONSTANT);
+
+    ASSERT(if_stat->sel_stat->type == STATEMENT_COMPOUND);
+    ASSERT_SIZE_T(if_stat->sel_stat->comp->len, (size_t)1);
+    struct expr* if_cont = &if_stat->sel_stat->comp->items->stat.expr->expr;
+    ASSERT_NULL(if_cont->assign_exprs);
+    ASSERT_SIZE_T(if_cont->len, (size_t)0);
+
+    ASSERT_NOT_NULL(if_stat->else_stat);
+    ASSERT(if_stat->else_stat->type == STATEMENT_EXPRESSION);
+    struct expr* else_expr = &if_stat->else_stat->expr->expr;
+    test_cond_expr_id_or_const(else_expr->assign_exprs->value, "0", I_CONSTANT);
+    ASSERT_SIZE_T(else_expr->assign_exprs->len, (size_t)1);
+    ASSERT_TOKEN_TYPE(else_expr->assign_exprs->assign_chain[0].assign_op, ASSIGN);
+    test_unary_expr_id_or_const(else_expr->assign_exprs->assign_chain[0].unary, "b", IDENTIFIER);
+
+    free_statement(res);
+    free_tokenizer_result(tokens);
+
+    // TODO: Add tests with declarations when implemented
 }
