@@ -16,8 +16,8 @@ enum identifier_type {
 };
 
 /**
- * This only stores pointers that this map will not free, meaning the pointers need to stay
- * valid at least as long as this parser state is in use
+ * The pointers stored in this need to be valid at least as long
+ * as the parser_state
  */
 struct identifier_type_pair {
     const char* spelling;
@@ -28,12 +28,15 @@ struct identifier_type_pair {
 
 // Hash function taken from K&R version 2 (page 144)
 static size_t hash_string(const char* str) {
-    size_t hashval;
+    size_t hash = 0;
 
-    for (hashval = 0; *str != '\0'; str++)
-        hashval = *str + 31 * hashval;
+    const char* it = str;
+    while (*it != '\0') {
+        hash = *it + 31 * hash;
+        ++it;
+    }
 
-    return hashval;
+    return hash;
 }
 
 static bool insert_identifier(struct identifier_type_map* map, struct identifier_type_pair item);
