@@ -16,6 +16,19 @@ void* xmalloc(size_t bytes) {
     return res;
 }
 
+void* xcalloc(size_t len, size_t elem_size) {
+    if (len == 0 || elem_size == 0) {
+        return NULL;
+    }
+
+    void* res = calloc(len, elem_size);
+    if (!res) {
+        fprintf(stderr, "xcalloc():\n\tFailed to allocate %zu elements of size %zu bytes each\n", len, elem_size);
+        exit(EXIT_FAILURE);
+    }
+    return res;
+}
+
 void* xrealloc(void* alloc, size_t bytes) {
     if (bytes == 0) {
         free(alloc);

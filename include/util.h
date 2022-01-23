@@ -13,6 +13,15 @@
 void* xmalloc(size_t bytes);
 
 /**
+ * @brief calls calloc(), exiting when calloc() fails
+ *
+ * @param len Number of elements to allocate
+ * @param elem_size Size of one element in bytes
+ * @return void* Pointer to allocated storage, or NULL if len is zero
+ */
+void* xcalloc(size_t len, size_t elem_size);
+
+/**
  * @brief Calls realloc(), exiting when realloc() fails
  * If bytes is zero, the given buffer is freed and NULL is returned
  * 

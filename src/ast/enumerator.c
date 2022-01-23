@@ -15,10 +15,14 @@ bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* res) {
         return false;
     }
 
-    char* spell = take_spelling(s->it);
+    struct token* id_token = s->it;
     accept_it(s);
 
-    register_enum_constant(s, spell);
+    if (!register_enum_constant(s, id_token)) {
+        return false;
+    }
+
+    char* spell = take_spelling(id_token);
 
     struct const_expr* enum_val = NULL;
     if (s->it->type == ASSIGN) {

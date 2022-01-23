@@ -36,7 +36,7 @@ void parser_test() {
 static void test_primary_expr_identifier(const char* spell) {
     struct token* tokens = tokenize(spell, "a string");
 
-    struct parser_state s = {.it = tokens};
+    struct parser_state s = create_parser_state(tokens);
 
     struct primary_expr* res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
@@ -49,13 +49,14 @@ static void test_primary_expr_identifier(const char* spell) {
     ASSERT_NULL(tokens[0].spelling);
 
     free_primary_expr(res);
+    free_parser_state(&s);
     free_tokenizer_result(tokens);
 }
 
 static void test_primary_expr_constant(enum token_type type, const char* spell) {
     struct token* tokens = tokenize(spell, "not a file so I can write whatever here");
 
-    struct parser_state s = {.it = tokens};
+    struct parser_state s = create_parser_state(tokens);
 
     struct primary_expr *res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
@@ -68,13 +69,14 @@ static void test_primary_expr_constant(enum token_type type, const char* spell) 
     ASSERT_NULL(tokens[0].spelling);
 
     free_primary_expr(res);
+    free_parser_state(&s);
     free_tokenizer_result(tokens);
 }
 
 static void test_primary_expr_string(const char* spell) {
     struct token* tokens = tokenize(spell, "no_file.c");
 
-    struct parser_state s = {.it = tokens};
+    struct parser_state s = create_parser_state(tokens);
 
     struct primary_expr *res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
@@ -85,12 +87,13 @@ static void test_primary_expr_string(const char* spell) {
     ASSERT_STR(res->string.lit.spelling, spell);
 
     free_primary_expr(res);
+    free_parser_state(&s);
     free_tokenizer_result(tokens);
 }
 
 static void test_primary_expr_func_name() {
     struct token *tokens = tokenize("__func__", "not a file so go away");
-    struct parser_state s = {.it = tokens};
+    struct parser_state s = create_parser_state(tokens);
     struct primary_expr *res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
@@ -99,6 +102,7 @@ static void test_primary_expr_func_name() {
     ASSERT_NULL(res->string.lit.spelling);
 
     free_tokenizer_result(tokens);
+    free_parser_state(&s);
     free_primary_expr(res);
 }
 
@@ -117,7 +121,7 @@ static void primary_expr_test() {
 static void test_jump_statement(const char* spell, enum token_type t) {
     struct token* tokens = tokenize(spell, "skfjlskf");
 
-    struct parser_state s = {.it = tokens};
+    struct parser_state s = create_parser_state(tokens);
     struct jump_statement* res = parse_jump_statement(&s);
     ASSERT_NOT_NULL(res);
 
@@ -125,13 +129,14 @@ static void test_jump_statement(const char* spell, enum token_type t) {
     ASSERT_TOKEN_TYPE(res->type, t);
 
     free_jump_statement(res);
+    free_parser_state(&s);
     free_tokenizer_result(tokens);
 }
 
 static void test_expected_semicolon_jump_statement(const char* spell) {
     struct token* tokens = tokenize(spell, "file.c");
 
-    struct parser_state s = {.it = tokens};
+    struct parser_state s = create_parser_state(tokens);
 
     struct jump_statement* res = parse_jump_statement(&s);
     ASSERT_NULL(res);
@@ -141,6 +146,7 @@ static void test_expected_semicolon_jump_statement(const char* spell) {
 
     clear_last_error();
     free_tokenizer_result(tokens);
+    free_parser_state(&s);
 }
 
 static void test_identifier(struct identifier* i, const char* spell) {
@@ -229,7 +235,7 @@ static void jump_statement_test() {
     {
         struct token* tokens = tokenize("goto my_cool_label;", "file");
 
-        struct parser_state s = {.it = tokens};
+        struct parser_state s = create_parser_state(tokens);
         struct jump_statement* res = parse_jump_statement(&s);
         ASSERT_NOT_NULL(res);
 
@@ -239,6 +245,7 @@ static void jump_statement_test() {
         test_identifier(res->identifier, "my_cool_label");
 
         free_jump_statement(res);
+        free_parser_state(&s);
         free_tokenizer_result(tokens);
     }
 
@@ -252,7 +259,7 @@ static void jump_statement_test() {
     {
         struct token* tokens = tokenize("not_what_was_expected;", "a_file.c");
 
-        struct parser_state s = {.it = tokens};
+        struct parser_state s = create_parser_state(tokens);
 
         struct jump_statement* res = parse_jump_statement(&s);
         ASSERT_NULL(res);
@@ -262,12 +269,13 @@ static void jump_statement_test() {
 
         clear_last_error();
         free_tokenizer_result(tokens);
+        free_parser_state(&s);
     }
 
     {
         struct token* tokens = tokenize("return 600;", "file.c");
 
-        struct parser_state s = {.it = tokens};
+        struct parser_state s = create_parser_state(tokens);
         struct jump_statement* res = parse_jump_statement(&s);
         ASSERT_NOT_NULL(res);
         ASSERT_NO_ERROR();
@@ -279,6 +287,7 @@ static void jump_statement_test() {
         test_expr_id_or_const(res->ret_val, "600", I_CONSTANT);
 
         free_jump_statement(res);
+        free_parser_state(&s);
         free_tokenizer_result(tokens);
     }
 }
@@ -309,7 +318,7 @@ static void enum_list_test() {
     {
         struct token* tokens = tokenize("ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, baz, BAD", "saffds");
 
-        struct parser_state s = {.it = tokens};
+        struct parser_state s = create_parser_state(tokens);
         struct enum_list res = parse_enum_list(&s);
         ASSERT_NO_ERROR();
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
@@ -323,13 +332,14 @@ static void enum_list_test() {
         test_enum_list_ids(&res, enum_constants, sizeof enum_constants / sizeof(char*));
 
         free_enum_list(&res);
+        free_parser_state(&s);
         free_tokenizer_result(tokens);
     }
 
     {
         struct token* tokens = tokenize("ENUM_VAL1 = 0, enum_VAl2 = 1000.0, enum_val_3 = n, enum_val_4 = test, foo, bar, baz, BAD", "saffds");
 
-        struct parser_state s = {.it = tokens};
+        struct parser_state s = create_parser_state(tokens);
         struct enum_list res = parse_enum_list(&s);
         ASSERT_NO_ERROR();
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
@@ -357,6 +367,7 @@ static void enum_list_test() {
         }
 
         free_enum_list(&res);
+        free_parser_state(&s);
         free_tokenizer_result(tokens);
     }
 
@@ -373,7 +384,7 @@ static void enum_spec_test() {
     {
         struct token* tokens = tokenize("enum my_enum { TEST1, TEST2, TEST3, TEST4 }", "sfjlfjk");
 
-        struct parser_state s = {.it = tokens};
+        struct parser_state s = create_parser_state(tokens);
         struct enum_spec* res = parse_enum_spec(&s);
         ASSERT_NOT_NULL(res);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
@@ -384,13 +395,14 @@ static void enum_spec_test() {
         test_enum_list_ids(&res->enum_list, enum_constants, sizeof enum_constants / sizeof(char *));
 
         free_tokenizer_result(tokens);
+        free_parser_state(&s);
         free_enum_spec(res);
     }
 
     {
         struct token* tokens = tokenize("enum {TEST1, TEST2, TEST3, TEST4, }", "jsfjsf");
 
-        struct parser_state s = {.it = tokens};
+        struct parser_state s = create_parser_state(tokens);
         struct enum_spec* res = parse_enum_spec(&s);
         ASSERT_NO_ERROR();
         ASSERT_NOT_NULL(res);
@@ -401,6 +413,7 @@ static void enum_spec_test() {
         test_enum_list_ids(&res->enum_list, enum_constants, sizeof enum_constants / sizeof(char *));
 
         free_tokenizer_result(tokens);
+        free_parser_state(&s);
         free_enum_spec(res);
     }
 }
@@ -409,7 +422,7 @@ static void designation_test() {
     {
         struct token* tokens = tokenize(".test[19].what_is_this.another_one = ", "jsalkf");
 
-        struct parser_state s = {.it = tokens};
+        struct parser_state s = create_parser_state(tokens);
         struct designation* res = parse_designation(&s);
         ASSERT_NOT_NULL(res);
         ASSERT_NOT_NULL(res->designators.designators);
@@ -433,13 +446,14 @@ static void designation_test() {
         test_identifier(designators[3].identifier, "another_one");
 
         free_designation(res);
+        free_parser_state(&s);
         free_tokenizer_result(tokens);
     }
 
     {
         struct token* tokens = tokenize("[0.5].blah[420].oof[2][10] =", "stetsd");
 
-        struct parser_state s = {.it = tokens};
+        struct parser_state s = create_parser_state(tokens);
         struct designation* res = parse_designation(&s);
         ASSERT_NO_ERROR();
         ASSERT_NOT_NULL(res);
@@ -467,6 +481,7 @@ static void designation_test() {
         test_cond_expr_id_or_const(&designators[5].arr_index->expr, "10", I_CONSTANT);
 
         free_designation(res);
+        free_parser_state(&s);
         free_tokenizer_result(tokens);
     }
 }
@@ -475,7 +490,7 @@ static void unary_expr_test() {
     {
         struct token* tokens = tokenize("++-- sizeof *name", "skfjdlfs");
 
-        struct parser_state s = {.it = tokens};
+        struct parser_state s = create_parser_state(tokens);
         struct unary_expr* res = parse_unary_expr(&s);
         ASSERT_NOT_NULL(res);
         ASSERT_NO_ERROR();
@@ -492,12 +507,13 @@ static void unary_expr_test() {
         test_cast_expr_id_or_const(res->cast_expr, "name", IDENTIFIER);
 
         free_unary_expr(res);
+        free_parser_state(&s);
         free_tokenizer_result(tokens);
     }
     {
         struct token* tokens = tokenize("++++--++--100", "ksjflkdsjf");
 
-        struct parser_state s = {.it = tokens};
+        struct parser_state s = create_parser_state(tokens);
         struct unary_expr* res = parse_unary_expr(&s);
         ASSERT_NO_ERROR();
         ASSERT_NOT_NULL(res);
@@ -515,6 +531,7 @@ static void unary_expr_test() {
         test_primary_expr_id_or_const(res->postfix->primary, "100", I_CONSTANT);
 
         free_unary_expr(res);
+        free_parser_state(&s);
         free_tokenizer_result(tokens);
     }
 
@@ -524,7 +541,7 @@ static void unary_expr_test() {
 static void postfix_expr_test() {
     struct token* tokens = tokenize("test.ident->other++--++", "sjfkds");
 
-    struct parser_state s = {.it = tokens};
+    struct parser_state s = create_parser_state(tokens);
     struct postfix_expr* res = parse_postfix_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT_NO_ERROR();
@@ -551,6 +568,7 @@ static void postfix_expr_test() {
     ASSERT_TOKEN_TYPE(res->suffixes[4].inc_dec, INC_OP);
 
     free_postfix_expr(res);
+    free_parser_state(&s);
     free_tokenizer_result(tokens);
 
     // TODO: add more cases
@@ -560,7 +578,7 @@ static void assign_expr_test() {
     {
         struct token* tokens = tokenize("10", "blah");
 
-        struct parser_state s = {.it = tokens};
+        struct parser_state s = create_parser_state(tokens);
         struct assign_expr* res = parse_assign_expr(&s);
         ASSERT_NOT_NULL(res);
         ASSERT_NO_ERROR();
@@ -569,13 +587,14 @@ static void assign_expr_test() {
         test_assign_expr_id_or_const(res, "10", I_CONSTANT);
 
         free_tokenizer_result(tokens);
+        free_parser_state(&s);
         free_assign_expr(res);
     }
 
     {
         struct token* tokens = tokenize("x = 100 += y *= 100.0 /= 2", "not a file");
 
-        struct parser_state s = {.it = tokens};
+        struct parser_state s = create_parser_state(tokens);
         struct assign_expr* res = parse_assign_expr(&s);
         ASSERT_NOT_NULL(res);
         ASSERT_SIZE_T(res->len, (size_t) 4);
@@ -618,6 +637,7 @@ static void assign_expr_test() {
         test_cond_expr_id_or_const(res->value, "2", I_CONSTANT);
 
         free_tokenizer_result(tokens);
+        free_parser_state(&s);
         free_assign_expr(res);
     }
 
@@ -627,7 +647,7 @@ static void assign_expr_test() {
 static void static_assert_declaration_test() {
     struct token* tokens = tokenize("_Static_assert(12345, \"This is a string literal\");", "slkfjsak");
 
-    struct parser_state s = {.it = tokens};
+    struct parser_state s = create_parser_state(tokens);
     struct static_assert_declaration* res = parse_static_assert_declaration(&s);
     ASSERT_NOT_NULL(res);
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
@@ -637,6 +657,7 @@ static void static_assert_declaration_test() {
     test_const_expr_id_or_const(res->const_expr, "12345", I_CONSTANT);
 
     free_tokenizer_result(tokens);
+    free_parser_state(&s);
     free_static_assert_declaration(res);
 }
 
@@ -655,7 +676,7 @@ static void statement_test() {
                        "}";
     struct token* tokens = tokenize(code, "file.c");
 
-    struct parser_state s = {.it = tokens};
+    struct parser_state s = create_parser_state(tokens);
     struct statement* res = parse_statement(&s);
     ASSERT_NO_ERROR();
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
@@ -756,6 +777,7 @@ static void statement_test() {
     test_unary_expr_id_or_const(else_expr->assign_exprs->assign_chain[0].unary, "b", IDENTIFIER);
 
     free_statement(res);
+    free_parser_state(&s);
     free_tokenizer_result(tokens);
 
     // TODO: Add tests with declarations when implemented
