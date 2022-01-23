@@ -52,10 +52,12 @@ static void resize_map(struct identifier_type_map* map) {
             struct identifier_type_pair pair = old_pairs[i];
 
             bool success = insert_identifier(map, pair);
+            UNUSED(success);
             assert(success);
         }
     }
 
+    UNUSED(prev_len);
     assert(map->len == prev_len);
     free(old_pairs);
 }
