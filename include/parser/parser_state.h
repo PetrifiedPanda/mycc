@@ -5,17 +5,12 @@
 
 #include "token.h"
 
-struct identifier_type_pair;
-
-struct identifier_type_map {
-    struct identifier_type_pair* pairs;
-    size_t len;
-    size_t cap;
-};
+struct identifier_type_map;
 
 struct parser_state {
     struct token* it;
-    struct identifier_type_map map;
+    size_t len;
+    struct identifier_type_map* scope_maps;
 };
 
 struct parser_state create_parser_state(struct token* tokens);
@@ -23,6 +18,9 @@ void free_parser_state(struct parser_state* s);
 
 bool accept(struct parser_state* s, enum token_type expected);
 void accept_it(struct parser_state* s);
+
+void parser_push_scope(struct parser_state* s);
+void parser_pop_scope(struct parser_state* s);
 
 bool register_enum_constant(struct parser_state* s, const struct token* token);
 bool register_typedef_name(struct parser_state* s, const struct token* token);

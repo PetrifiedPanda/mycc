@@ -26,6 +26,12 @@ struct identifier_type_pair {
     enum identifier_type type;
 };
 
+struct identifier_type_map {
+    struct identifier_type_pair* pairs;
+    size_t len;
+    size_t cap;
+};
+
 // Hash function taken from K&R version 2 (page 144)
 static size_t hash_string(const char* str) {
     size_t hash = 0;
@@ -112,22 +118,32 @@ static enum identifier_type get_item(const struct identifier_type_map* map, cons
     return map->pairs[i].type;
 }
 
-struct parser_state create_parser_state(struct token* tokens) {
-    assert(tokens);
-
+static struct identifier_type_map create_id_type_map() {
     enum {INIT_LEN = 100};
-    return (struct parser_state) {
-        .it = tokens,
-        .map = (struct identifier_type_map) {
-            .pairs = xcalloc(INIT_LEN, sizeof(struct identifier_type_pair)),
-            .len = 0,
-            .cap = INIT_LEN
-        }
+    return (struct identifier_type_map) {
+        .pairs = xcalloc(INIT_LEN, sizeof(struct identifier_type_pair)),
+        .len = 0,
+        .cap = INIT_LEN
     };
 }
 
+struct parser_state create_parser_state(struct token* tokens) {
+    assert(tokens);
+
+    struct parser_state res = {
+        .it = tokens,
+        .len = 1,
+        .scope_maps = xmalloc(sizeof(struct identifier_type_map))
+    };
+    res.scope_maps[0] = create_id_type_map();
+    return res;
+}
+
 void free_parser_state(struct parser_state* s) {
-    free(s->map.pairs);
+    for (size_t i = 0; i < s->len; ++i) {
+        free(s->scope_maps[i].pairs);
+    }
+    free(s->scope_maps);
 }
 
 bool accept(struct parser_state* s, enum token_type expected) {
@@ -145,6 +161,19 @@ void accept_it(struct parser_state* s) {
     ++s->it;
 }
 
+void parser_push_scope(struct parser_state* s) {
+    ++s->len;
+    s->scope_maps = xrealloc(s->scope_maps, sizeof(struct identifier_type_map) * s->len);
+    s->scope_maps[s->len - 1] = create_id_type_map();
+}
+
+void parser_pop_scope(struct parser_state* s) {
+    assert(s->len > 1);
+    --s->len;
+    free(s->scope_maps[s->len].pairs);
+    s->scope_maps = xrealloc(s->scope_maps, sizeof(struct identifier_type_map) * s->len);
+}
+
 static bool register_identifier(struct parser_state* s, const struct token* token, enum identifier_type type) {
     assert(type != ID_TYPE_NONE);
     assert(token->type == IDENTIFIER);
@@ -155,7 +184,7 @@ static bool register_identifier(struct parser_state* s, const struct token* toke
             .file = token->file,
             .type = type
     };
-    return insert_identifier(&s->map, &to_insert);
+    return insert_identifier(&s->scope_maps[s->len - 1], &to_insert);
 }
 
 bool register_enum_constant(struct parser_state* s, const struct token* token) {
@@ -166,10 +195,21 @@ bool register_typedef_name(struct parser_state* s, const struct token* token) {
     return register_identifier(s, token, ID_TYPE_TYPEDEF_NAME);
 }
 
+static enum identifier_type get_item_type(const struct parser_state* s, const char* spell) {
+    for (size_t i = 0; i < s->len; ++i) {
+        enum identifier_type type = get_item(&s->scope_maps[i], spell);
+        if (type != ID_TYPE_NONE) {
+            return type;
+        }
+    }
+
+    return ID_TYPE_NONE;
+}
+
 bool is_enum_constant(const struct parser_state* s, const char* spell) {
-    return get_item(&s->map, spell) == ID_TYPE_ENUM_CONSTANT;
+    return get_item_type(s, spell) == ID_TYPE_ENUM_CONSTANT;
 }
 
 bool is_typedef_name(const struct parser_state* s, const char* spell) {
-    return get_item(&s->map, spell) == ID_TYPE_TYPEDEF_NAME;
+    return get_item_type(s, spell) == ID_TYPE_TYPEDEF_NAME;
 }
