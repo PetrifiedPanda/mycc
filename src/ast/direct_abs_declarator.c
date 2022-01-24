@@ -129,6 +129,8 @@ struct direct_abs_declarator* parse_direct_abs_declarator(struct parser_state* s
         ++res->len;
     }
 
+    res->following_suffixes = xrealloc(res->following_suffixes, sizeof(struct abs_arr_or_func_suffix) * res->len);
+
     return res;
 }
 
