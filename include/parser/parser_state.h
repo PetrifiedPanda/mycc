@@ -25,6 +25,7 @@ bool accept(struct parser_state* s, enum token_type expected);
 void accept_it(struct parser_state* s);
 
 bool register_enum_constant(struct parser_state* s, const struct token* token);
+bool register_typedef_name(struct parser_state* s, const struct token* token);
 
 bool is_enum_constant(const struct parser_state* s, const char* spell);
 bool is_typedef_name(const struct parser_state* s, const char* spell);

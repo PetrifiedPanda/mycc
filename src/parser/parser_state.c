@@ -39,7 +39,7 @@ static size_t hash_string(const char* str) {
     return hash;
 }
 
-static bool insert_identifier(struct identifier_type_map* map, struct identifier_type_pair item);
+static bool insert_identifier(struct identifier_type_map* map, const struct identifier_type_pair* item);
 
 static void resize_map(struct identifier_type_map* map) {
     const size_t prev_cap = map->cap;
@@ -52,9 +52,7 @@ static void resize_map(struct identifier_type_map* map) {
 
     for (size_t i = 0; i < prev_cap; ++i) {
         if (old_pairs[i].spelling != NULL) {
-            struct identifier_type_pair pair = old_pairs[i];
-
-            bool success = insert_identifier(map, pair);
+            bool success = insert_identifier(map, &old_pairs[i]);
             UNUSED(success);
             assert(success);
         }
@@ -65,18 +63,18 @@ static void resize_map(struct identifier_type_map* map) {
     free(old_pairs);
 }
 
-static bool insert_identifier(struct identifier_type_map* map, struct identifier_type_pair item) {
-    assert(item.spelling);
-    assert(item.file);
-    assert(item.type != ID_TYPE_NONE);
+static bool insert_identifier(struct identifier_type_map* map, const struct identifier_type_pair* item) {
+    assert(item->spelling);
+    assert(item->file);
+    assert(item->type != ID_TYPE_NONE);
 
     if (map->len == map->cap) {
         resize_map(map);
     }
 
-    const size_t hash = hash_string(item.spelling);
+    const size_t hash = hash_string(item->spelling);
     size_t i = hash != 0 ? hash % map->cap : hash;
-    while (map->pairs[i].spelling != NULL && strcmp(map->pairs[i].spelling, item.spelling) != 0) {
+    while (map->pairs[i].spelling != NULL && strcmp(map->pairs[i].spelling, item->spelling) != 0) {
         ++i;
         if (i == map->cap) {
             i = 0;
@@ -86,11 +84,11 @@ static bool insert_identifier(struct identifier_type_map* map, struct identifier
     if (map->pairs[i].spelling != NULL) {
         const char* type_string = map->pairs->type == ID_TYPE_ENUM_CONSTANT ? "enum constant" : "typedef name";
         struct source_location loc = map->pairs[i].source_loc;
-        set_error_file(ERR_PARSER, item.file, item.source_loc, "Redefined symbol %s that is already defined as %s in %s(%zu,%zu)", map->pairs[i].spelling, type_string, loc.line, loc.index);
+        set_error_file(ERR_PARSER, item->file, item->source_loc, "Redefined symbol %s that is already defined as %s in %s(%zu,%zu)", map->pairs[i].spelling, type_string, loc.line, loc.index);
         return false;
     }
 
-    map->pairs[i] = item;
+    map->pairs[i] = *item;
     ++map->len;
     return true;
 }
@@ -145,18 +143,26 @@ void accept_it(struct parser_state* s) {
     ++s->it;
 }
 
-bool register_enum_constant(struct parser_state* s, const struct token* token) {
+static bool register_identifier(struct parser_state* s, const struct token* token, enum identifier_type type) {
+    assert(type != ID_TYPE_NONE);
     struct identifier_type_pair to_insert = {
             .spelling = token->spelling,
             .source_loc = token->source_loc,
             .file = token->file,
-            .type = ID_TYPE_ENUM_CONSTANT
+            .type = type
     };
-    if (!insert_identifier(&s->map, to_insert)) {
+    if (!insert_identifier(&s->map, &to_insert)) {
         return false;
     }
-
     return true;
+}
+
+bool register_enum_constant(struct parser_state* s, const struct token* token) {
+    return register_identifier(s, token, ID_TYPE_ENUM_CONSTANT);
+}
+
+bool register_typedef_name(struct parser_state* s, const struct token* token) {
+    return register_identifier(s, token, ID_TYPE_TYPEDEF_NAME);
 }
 
 bool is_enum_constant(const struct parser_state* s, const char* spell) {
