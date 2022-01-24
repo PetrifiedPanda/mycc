@@ -6,14 +6,14 @@
 
 #include "ast/param_type_list.h"
 
+#include "parser/parser_state.h"
+
 struct abs_declarator;
-struct const_expr;
 struct assign_expr;
 
 enum abs_arr_or_func_suffix_type {
     ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY, // either [] or [*]
     ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN,
-    ABS_ARR_OR_FUNC_SUFFIX_ARRAY,
     ABS_ARR_OR_FUNC_SUFFIX_FUNC
 };
 
@@ -26,7 +26,6 @@ struct abs_arr_or_func_suffix {
             struct type_qual_list type_quals;
             struct assign_expr* assign;
         };
-        struct const_expr* array_size;
         struct param_type_list func_types;
     };
 };
@@ -38,12 +37,11 @@ struct direct_abs_declarator {
     struct abs_arr_or_func_suffix* following_suffixes;
 };
 
-struct direct_abs_declarator* create_direct_abs_declarator(struct abs_declarator* bracket_decl, struct abs_arr_or_func_suffix* following_suffixes, size_t len);
+struct direct_abs_declarator* parse_direct_abs_declarator(struct parser_state* s);
 
 void free_direct_abs_declarator(struct direct_abs_declarator* d);
 
 #include "ast/abs_declarator.h"
-#include "ast/const_expr.h"
 #include "ast/assign_expr.h"
 
 #endif
