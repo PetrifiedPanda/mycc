@@ -67,7 +67,12 @@ static void parser_state_test() {
         }
     }
 
-    struct token insert_test_token = {.type = IDENTIFIER, .spelling = "Test", .file = "file.c"};
+    struct token insert_test_token = {
+            .type = IDENTIFIER,
+            .spelling = "Test",
+            .file = "file.c",
+            .source_loc = {.line =0, .index =0}
+    };
     ASSERT(register_enum_constant(&s, &insert_test_token));
     ASSERT(!register_typedef_name(&s, &insert_test_token));
     ASSERT_ERROR(get_last_error(), ERR_PARSER);
