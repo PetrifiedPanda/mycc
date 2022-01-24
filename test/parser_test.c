@@ -8,6 +8,7 @@
 
 #include "test_asserts.h"
 
+static void parser_state_test();
 static void primary_expr_test();
 static void jump_statement_test();
 static void enum_list_test();
@@ -20,6 +21,7 @@ static void static_assert_declaration_test();
 static void statement_test();
 
 void parser_test() {
+    parser_state_test();
     primary_expr_test();
     jump_statement_test();
     enum_list_test();
@@ -31,6 +33,57 @@ void parser_test() {
     static_assert_declaration_test();
     statement_test();
     printf("Parser test successful\n");
+}
+
+static void parser_state_test() {
+    struct token dummy = {.type = INVALID};
+    struct parser_state s = create_parser_state(&dummy);
+
+    enum {NUM_STRINGS = 1000, STRLEN = NUM_STRINGS + 1};
+    struct token dummy_string_tokens[NUM_STRINGS] = {0};
+    char insert_string[STRLEN] = {0};
+    for (size_t i = 0; i < NUM_STRINGS; ++i) {
+        insert_string[i] = 'a';
+
+        struct token* item = &dummy_string_tokens[i];
+        init_token_copy(item, IDENTIFIER, insert_string, (struct source_location){.line = 0, .index = 0}, "file.c");
+        if (i % 2 == 0) {
+            ASSERT(register_enum_constant(&s, item));
+        } else {
+            ASSERT(register_typedef_name(&s, item));
+        }
+    }
+
+    char test_string[STRLEN] = {0};
+    for (size_t i = 0; i < NUM_STRINGS; ++i) {
+        test_string[i] = 'a';
+
+        if (i % 2 == 0) {
+            ASSERT(is_enum_constant(&s, test_string));
+            ASSERT(!is_typedef_name(&s, test_string));
+        } else {
+            ASSERT(is_typedef_name(&s, test_string));
+            ASSERT(!is_enum_constant(&s, test_string));
+        }
+    }
+
+    struct token insert_test_token = {.type = IDENTIFIER, .spelling = "Test", .file = "file.c"};
+    ASSERT(register_enum_constant(&s, &insert_test_token));
+    ASSERT(!register_typedef_name(&s, &insert_test_token));
+    ASSERT_ERROR(get_last_error(), ERR_PARSER);
+
+    clear_last_error();
+
+    ASSERT(!register_enum_constant(&s, &insert_test_token));
+    ASSERT_ERROR(get_last_error(), ERR_PARSER);
+
+    clear_last_error();
+
+
+    for (size_t i = 0; i < NUM_STRINGS; ++i) {
+        free_token(&dummy_string_tokens[i]);
+    }
+    free_parser_state(&s);
 }
 
 static void test_primary_expr_identifier(const char* spell) {

@@ -113,6 +113,8 @@ static enum identifier_type get_item(const struct identifier_type_map* map, cons
 }
 
 struct parser_state create_parser_state(struct token* tokens) {
+    assert(tokens);
+
     enum {INIT_LEN = 100};
     return (struct parser_state) {
         .it = tokens,
@@ -146,17 +148,14 @@ void accept_it(struct parser_state* s) {
 static bool register_identifier(struct parser_state* s, const struct token* token, enum identifier_type type) {
     assert(type != ID_TYPE_NONE);
     assert(token->type == IDENTIFIER);
-    
+
     struct identifier_type_pair to_insert = {
             .spelling = token->spelling,
             .source_loc = token->source_loc,
             .file = token->file,
             .type = type
     };
-    if (!insert_identifier(&s->map, &to_insert)) {
-        return false;
-    }
-    return true;
+    return insert_identifier(&s->map, &to_insert);
 }
 
 bool register_enum_constant(struct parser_state* s, const struct token* token) {
