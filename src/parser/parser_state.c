@@ -181,6 +181,8 @@ static bool register_identifier(struct parser_state* s, const struct token* toke
     assert(type != ID_TYPE_NONE);
     assert(token->type == IDENTIFIER);
 
+    // TODO: Add a warning when an identifier from a previous scope is shadowed
+
     struct identifier_type_pair to_insert = {
             .spelling = token->spelling,
             .source_loc = token->source_loc,
