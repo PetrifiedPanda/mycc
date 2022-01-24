@@ -145,6 +145,8 @@ void accept_it(struct parser_state* s) {
 
 static bool register_identifier(struct parser_state* s, const struct token* token, enum identifier_type type) {
     assert(type != ID_TYPE_NONE);
+    assert(token->type == IDENTIFIER);
+    
     struct identifier_type_pair to_insert = {
             .spelling = token->spelling,
             .source_loc = token->source_loc,
