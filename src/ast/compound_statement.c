@@ -10,6 +10,8 @@ struct compound_statement* parse_compound_statement(struct parser_state* s) {
         return NULL;
     }
 
+    parser_push_scope(s);
+
     struct compound_statement* res = xmalloc(sizeof(struct compound_statement));
     res->items = NULL;
     size_t alloc_len = res->len = 0;
@@ -28,6 +30,8 @@ struct compound_statement* parse_compound_statement(struct parser_state* s) {
 
     assert(s->it->type == RBRACE);
     accept_it(s);
+
+    parser_pop_scope(s);
 
     return res;
 }
