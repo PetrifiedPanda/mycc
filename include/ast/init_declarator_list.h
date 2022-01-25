@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "parser/parser_state.h"
+
 struct init_declarator;
 
 struct init_declarator_list {
@@ -10,7 +12,7 @@ struct init_declarator_list {
     struct init_declarator* decls;
 };
 
-struct init_declarator_list create_init_declarator_list(struct init_declarator* decls, size_t len);
+struct init_declarator_list parse_init_declarator_list(struct parser_state* s);
 
 void free_init_declarator_list(struct init_declarator_list* l);
 

@@ -3,13 +3,44 @@
 #include <stdlib.h>
 #include <assert.h>
 
-struct init_declarator_list create_init_declarator_list(struct init_declarator* decls, size_t len) {
-    if (len > 0) {
-        assert(decls);
-    } else {
-        assert(decls == NULL);
+#include "util.h"
+
+struct init_declarator_list parse_init_declarator_list(struct parser_state* s) {
+    struct init_declarator_list res = {
+        .len = 1,
+        .decls = xmalloc(sizeof(struct init_declarator))
+    };
+
+    if (!parse_init_declarator_inplace(s, &res.decls[0])) {
+        free(res.decls);
+        return (struct init_declarator_list) {
+            .len = 0,
+            .decls = NULL
+        };
     }
-    return (struct init_declarator_list){.len = len, .decls = decls};
+
+    size_t alloc_len = res.len;
+    while (s->it->type == COMMA) {
+        accept_it(s);
+
+        if (res.len == alloc_len) {
+            grow_alloc((void**)&res.decls, &alloc_len, sizeof(struct init_declarator));
+        }
+
+        if (!parse_init_declarator_inplace(s, &res.decls[res.len])) {
+            free_init_declarator_list(&res);
+            return (struct init_declarator_list) {
+                .len = 0,
+                .decls = NULL
+            };
+        }
+
+        ++res.len;
+    }
+
+    res.decls = xrealloc(res.decls, sizeof(struct init_declarator) * res.len);
+
+    return res;
 }
 
 void free_init_declarator_list(struct init_declarator_list* l) {
