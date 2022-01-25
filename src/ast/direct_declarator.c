@@ -181,6 +181,8 @@ struct direct_declarator* parse_direct_declarator(struct parser_state* s) {
         ++res->len;
     }
 
+    res->suffixes = xrealloc(res->suffixes, sizeof(struct arr_or_func_suffix) * res->len);
+
     return res;
 }
 
