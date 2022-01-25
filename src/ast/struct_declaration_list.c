@@ -1,21 +1,45 @@
 #include "ast/struct_declaration_list.h"
 
 #include <stdlib.h>
-#include <assert.h>
 
-static struct struct_declaration_list create_struct_declaration_list(struct struct_declaration* decls, size_t len) {
-    if (len > 0) {
-        assert(decls);
-    } else {
-        assert(decls == NULL);
-    }
-    return (struct struct_declaration_list){.len = len, .decls = decls};
-}
+#include "util.h"
 
 struct struct_declaration_list parse_struct_declaration_list(struct parser_state* s) {
-    (void)s;
-    // TODO:
-    return (struct struct_declaration_list){.len = 0, .decls = NULL};
+    struct struct_declaration_list res = {
+        .len = 1,
+        .decls = xmalloc(sizeof(struct struct_declaration_list))
+    };
+
+    if (!parse_struct_declaration_inplace(s, &res.decls[0])) {
+        free(res.decls);
+        return (struct struct_declaration_list) {
+            .len = 0,
+            .decls = NULL
+        };
+    }
+
+    size_t alloc_len = res.len;
+    while (s->it->type == COMMA) {
+        accept_it(s);
+
+        if (res.len == alloc_len) {
+            grow_alloc((void**)&res.decls, &alloc_len, sizeof(struct struct_declaration));
+        }
+
+        if (!parse_struct_declaration_inplace(s, &res.decls[res.len])) {
+            free_struct_declaration_list(&res);
+            return (struct struct_declaration_list) {
+                .len = 0,
+                .decls = NULL
+            };
+        }
+
+        ++res.len;
+    }
+
+    res.decls = xrealloc(res.decls, sizeof(struct struct_declaration) * res.len);
+
+    return res;
 }
 
 void free_struct_declaration_list(struct struct_declaration_list* l) {
