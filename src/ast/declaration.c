@@ -5,31 +5,36 @@
 
 #include "util.h"
 
-static struct declaration* create_declaration(struct declaration_specs* decl_specs, struct init_declarator_list init_decls) {
-    assert(decl_specs);
-    struct declaration* res = xmalloc(sizeof(struct declaration));
-    res->is_normal_decl = true;
-    res->decl_specs = decl_specs;
-    res->init_decls = init_decls;
-    
-    return res;
-}
-
-static struct declaration* create_declaration_assert(struct static_assert_declaration* static_assert_decl) {
-    assert(static_assert_decl);
-    struct declaration* res = xmalloc(sizeof(struct declaration));
-    res->is_normal_decl = false;
-    res->static_assert_decl = static_assert_decl;
-
-    return res;
-}
-
 bool parse_declaration_inplace(struct parser_state* s, struct declaration* res) {
     assert(res);
-    (void)s;
-    (void)res;
-    // TODO:
-    return false;
+    if (s->it->type == STATIC_ASSERT) {
+        res->is_normal_decl = false;
+        res->static_assert_decl = parse_static_assert_declaration(s);
+        if (!res->static_assert_decl) {
+            return false;
+        }
+    } else {
+        res->is_normal_decl = true;
+        res->decl_specs = parse_declaration_specs(s);
+        if (!res->decl_specs) {
+            return false;
+        }
+
+        if (s->it->type != SEMICOLON) {
+            res->init_decls = parse_init_declarator_list(s);
+            if (res->init_decls.len == 0) {
+                free_declaration_specs(res->decl_specs);
+                return false;
+            }
+        }
+
+        if (!accept(s, SEMICOLON)) {
+            free_declaration_specs(res->decl_specs);
+            free_init_declarator_list(&res->init_decls);
+        }
+    }
+
+    return true;
 }
 
 struct declaration* parse_declaration(struct parser_state* s) {
