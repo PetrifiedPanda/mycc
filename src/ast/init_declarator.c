@@ -1,15 +1,27 @@
 #include "ast/init_declarator.h"
 
-#include <assert.h>
-
 #include "util.h"
 
-struct init_declarator* create_init_declarator(struct declarator* decl, struct initializer* init) {
-    assert(decl);
+struct init_declarator* parse_init_declarator(struct parser_state* s) {
     struct init_declarator* res = xmalloc(sizeof(struct init_declarator));
-    res->decl = decl;
-    res->init = init;
-    
+
+    res->decl = parse_declarator(s);
+    if (!res->decl) {
+        free(res);
+        return NULL;
+    }
+
+    if (s->it->type == ASSIGN) {
+        accept_it(s);
+        res->init = parse_initializer(s);
+        if (!res->init) {
+            free_declarator(res->decl);
+            free(res);
+            return NULL;
+        }
+    } else {
+        res->init = NULL;
+    }
     return res;
 }
 
