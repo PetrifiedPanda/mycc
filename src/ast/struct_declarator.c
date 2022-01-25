@@ -1,18 +1,18 @@
 #include "ast/struct_declarator.h"
 
 #include <stdlib.h>
+#include <assert.h>
 
 #include "error.h"
 #include "util.h"
 
-struct struct_declarator* parse_struct_declarator(struct parser_state* s) {
-    struct struct_declarator* res = xmalloc(sizeof(struct struct_declarator));
+bool parse_struct_declarator_inplace(struct parser_state* s, struct struct_declarator* res) {
+    assert(res);
 
     if (s->it->type != COLON) {
         res->decl = parse_declarator(s);
         if (!res->decl) {
-            free(res);
-            return NULL;
+            return false;
         }
     } else {
         res->decl = NULL;
@@ -22,18 +22,18 @@ struct struct_declarator* parse_struct_declarator(struct parser_state* s) {
         accept_it(s);
         res->bit_field = parse_const_expr(s);
         if (!res->bit_field) {
-            free_struct_declarator(res);
-            return NULL;
+            free_struct_declarator_children(res);
+            return false;
         }
     } else {
         res->bit_field = NULL;
         if (!res->decl) {
             set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Expected a declarator or a bit field specifier");
-            return NULL;
+            return false;
         }
     }
 
-    return res;
+    return true;
 }
 
 void free_struct_declarator_children(struct struct_declarator* d) {
