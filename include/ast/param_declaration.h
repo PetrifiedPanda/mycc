@@ -20,9 +20,7 @@ struct param_declaration {
     };
 };
 
-struct param_declaration* create_param_declaration(struct declaration_specs* decl_specs);
-struct param_declaration* create_param_declaration_declarator(struct declaration_specs* decl_specs, struct declarator* decl);
-struct param_declaration* create_param_declaration_abstract(struct declaration_specs* decl_specs, struct abs_declarator* abstract_decl);
+bool parse_param_declaration_inplace(struct parser_state* s, struct param_declaration* res);
 
 void free_param_declaration_children(struct param_declaration* d);
 void free_param_declaration(struct param_declaration* d);

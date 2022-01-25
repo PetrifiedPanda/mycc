@@ -5,29 +5,60 @@
 
 #include "util.h"
 
-struct param_declaration* create_param_declaration(struct declaration_specs* decl_specs) {
-    assert(decl_specs);
-    struct param_declaration* res = xmalloc(sizeof(struct param_declaration));
-    res->type = PARAM_DECL_NONE;
-    res->decl_specs = decl_specs;
-    
-    return res;
+// There might be a better way to do this
+static bool is_declarator(const struct token* current) {
+    const struct token* it = current;
+    while (it->type == ASTERISK) {
+        while (is_type_qual(it->type)) {
+            ++it;
+        }
+
+        // if got to end of file
+        if (it->type == INVALID) {
+            return false;
+        }
+
+        ++it;
+    }
+
+    if (it->type == IDENTIFIER) {
+        return true;
+    } else if (it->type == LBRACKET) {
+        ++it;
+        return is_declarator(it);
+    } else {
+        return false;
+    }
 }
 
-struct param_declaration* create_param_declaration_declarator(struct declaration_specs* decl_specs, struct declarator* decl) {
-    struct param_declaration* res = create_param_declaration(decl_specs);
-    res->type = PARAM_DECL_DECL;
-    res->decl = decl;
-    
-    return res;
-}
+bool parse_param_declaration_inplace(struct parser_state* s, struct param_declaration* res) {
+    assert(res);
 
-struct param_declaration* create_param_declaration_abstract(struct declaration_specs* decl_specs, struct abs_declarator* abstract_decl) {
-    struct param_declaration* res = create_param_declaration(decl_specs);
-    res->type = PARAM_DECL_ABSTRACT_DECL;
-    res->abstract_decl = abstract_decl;
-    
-    return res;
+    res->decl_specs = parse_declaration_specs(s);
+    if (!res->decl_specs) {
+        return false;
+    }
+
+    if (s->it->type == COMMA) {
+        res->type = PARAM_DECL_NONE;
+        res->decl = NULL;
+    } else if (is_declarator(s->it)) {
+        res->type = PARAM_DECL_DECL;
+        res->decl = parse_declarator(s);
+        if (!res->decl) {
+            free_declaration_specs(res->decl_specs);
+            return false;
+        }
+    } else {
+        res->type = PARAM_DECL_ABSTRACT_DECL;
+        res->abstract_decl = parse_abs_declarator(s);
+        if (!res->abstract_decl) {
+            free_declaration_specs(res->decl_specs);
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void free_param_declaration_children(struct param_declaration* d) {
