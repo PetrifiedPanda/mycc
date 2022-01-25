@@ -1,6 +1,10 @@
 #ifndef PARAM_DECLARATION_H
 #define PARAM_DECLARATION_H
 
+#include <stdbool.h>
+
+#include "parser/parser_state.h"
+
 struct declaration_specs;
 struct declarator;
 struct abs_declarator;
