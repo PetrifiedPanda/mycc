@@ -3,33 +3,184 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "error.h"
 #include "util.h"
 
-static inline void add_suffixes(struct direct_declarator* d, struct arr_or_func_suffix* suffixes, size_t len) {
-    if (len > 0) {
-        assert(suffixes);
+#include "parser/parser_util.h"
+
+static void free_arr_suffix(struct arr_suffix* s) {
+    free_type_qual_list(&s->type_quals);
+    if (s->arr_len) {
+        free_assign_expr(s->arr_len);
     }
-    d->len = len;
-    d->suffixes = suffixes;
 }
 
-struct direct_declarator* create_direct_declarator(struct identifier* id, struct arr_or_func_suffix* suffixes, size_t len) {
-    assert(id);
-    struct direct_declarator* res = xmalloc(sizeof(struct direct_declarator));
-    res->is_id = true;
-    res->id = id;
-    add_suffixes(res, suffixes, len);
+static bool parse_arr_or_func_suffix(struct parser_state* s, struct arr_or_func_suffix* res) {
+    assert(res);
+    assert(s->it->type == LINDEX || s->it->type == LBRACKET);
 
-    return res;
+    switch (s->it->type) {
+        case LINDEX: {
+            res->type = ARR_OR_FUNC_ARRAY;
+            struct arr_suffix* suffix = &res->arr_suffix;
+            *suffix = (struct arr_suffix) {
+                .is_static = false,
+                .type_quals = {.len = 0, .type_quals = NULL},
+                .is_asterisk = false,
+                .arr_len = NULL
+            };
+            accept_it(s);
+            if (s->it->type == ASTERISK) {
+                accept_it(s);
+                suffix->is_asterisk = true;
+                if (!accept(s, RINDEX)) {
+                    return false;
+                }
+                return true;
+            } else if (s->it->type == RINDEX) {
+                accept_it(s);
+                return true;
+            }
+
+            if (s->it->type == STATIC) {
+                accept_it(s);
+                suffix->is_static = true;
+            }
+
+            if (is_type_qual(s->it->type)) {
+                suffix->type_quals = parse_type_qual_list(s);
+                if (suffix->type_quals.len == 0) {
+                    return false;
+                }
+
+                if (s->it->type == ASTERISK) {
+                    if (suffix->is_static) {
+                        free_arr_suffix(suffix);
+                        set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Asterisk cannot be used with static");
+                        return false;
+                    }
+                    suffix->is_asterisk = true;
+                    if (!accept(s, RINDEX)) {
+                        free_arr_suffix(suffix);
+                        return false;
+                    }
+                    return true;
+                }
+            }
+
+            if (s->it->type == STATIC) {
+                if (suffix->is_static) {
+                    free_arr_suffix(suffix);
+                    // TODO: maybe turn this into a warning
+                    set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Expected only one use of static");
+                    return false;
+                }
+                suffix->is_static = true;
+                accept_it(s);
+            }
+
+            if (s->it->type == RINDEX) {
+                if (suffix->is_static) {
+                    free_arr_suffix(suffix);
+                    set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Expected array size after use of static");
+                    return false;
+                }
+                accept_it(s);
+            } else {
+                suffix->arr_len = parse_assign_expr(s);
+                if (!(suffix->arr_len && accept(s, RINDEX))) {
+                    free_arr_suffix(suffix);
+                    return false;
+                }
+
+            }
+
+            return true;
+        }
+
+        case LBRACKET: {
+            accept_it(s);
+            if (s->it->type == IDENTIFIER) {
+                res->type = ARR_OR_FUNC_FUN_PARAMS;
+                res->fun_params = parse_identifier_list(s);
+                if (res->fun_params.len == 0) {
+                    return false;
+                }
+
+                if (!accept(s, RBRACKET)) {
+                    free_identifier_list(&res->fun_params);
+                    return false;
+                }
+            } else if (s->it->type == RBRACKET) {
+                accept_it(s);
+                res->type = ARR_OR_FUNC_FUN_EMPTY;
+            } else {
+                res->type = ARR_OR_FUNC_FUN_TYPES;
+                res->fun_types = parse_param_type_list(s);
+                if (res->fun_types.param_list == NULL) {
+                    return false;
+                }
+
+                if (!accept(s, RBRACKET)) {
+                    free_param_type_list(&res->fun_types);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        default: // UNREACHABLE
+            assert(false);
+    }
+    return false;
 }
 
-struct direct_declarator* create_direct_declarator_decl(struct declarator* decl, struct arr_or_func_suffix* suffixes, size_t len) {
-    assert(decl);
+struct direct_declarator* parse_direct_declarator(struct parser_state* s) {
     struct direct_declarator* res = xmalloc(sizeof(struct direct_declarator));
-    res->is_id = false;
-    res->decl = decl;
-    add_suffixes(res, suffixes, len);
-    
+    if (s->it->type == LBRACKET) {
+        accept_it(s);
+        res->is_id = false;
+        res->decl = parse_declarator(s);
+        if (!res->decl) {
+            free(res);
+            return NULL;
+        }
+
+        if (!accept(s, RBRACKET)) {
+            free_declarator(res->decl);
+            free(res);
+            return NULL;
+        }
+    } else if (s->it->type == IDENTIFIER) {
+        res->is_id = true;
+        char* spelling = take_spelling(s->it);
+        accept_it(s);
+        res->id = create_identifier(spelling);
+    } else {
+        free(res);
+        enum token_type expected[] = {
+            LBRACKET,
+            IDENTIFIER
+        };
+        expected_tokens_error(expected, sizeof expected / sizeof(enum token_type), s->it);
+        return NULL;
+    }
+
+    res->suffixes = NULL;
+    size_t alloc_len = res->len = 0;
+    while (s->it->type == LBRACKET || s->it->type == LINDEX) {
+        if (alloc_len == res->len) {
+            grow_alloc((void**)&res->suffixes, &alloc_len, sizeof(struct arr_or_func_suffix));
+        }
+
+        if (!parse_arr_or_func_suffix(s, &res->suffixes[res->len])) {
+            free_direct_declarator(res);
+            return false;
+        }
+
+        ++res->len;
+    }
+
     return res;
 }
 
@@ -43,18 +194,17 @@ static void free_children(struct direct_declarator* d) {
     for (size_t i = 0; i < d->len; ++i) {
         struct arr_or_func_suffix* item = &d->suffixes[i];
         switch (item->type) {
-        case ARR_OR_FUNC_ARRAY:
-            free_type_qual_list(&item->arr_suffix.type_quals);
-            if (!item->arr_suffix.is_asterisk) {
-                free_assign_expr(item->arr_suffix.arr_len);
-            }
-            break;
-        case ARR_OR_FUNC_FUN_TYPES:
-            free_param_type_list(&item->fun_types);
-            break;
-        case ARR_OR_FUNC_FUN_PARAMS:
-            free_identifier_list(&item->fun_params);
-            break;
+            case ARR_OR_FUNC_ARRAY:
+                free_arr_suffix(&item->arr_suffix);
+                break;
+            case ARR_OR_FUNC_FUN_TYPES:
+                free_param_type_list(&item->fun_types);
+                break;
+            case ARR_OR_FUNC_FUN_PARAMS:
+                free_identifier_list(&item->fun_params);
+                break;
+            case ARR_OR_FUNC_FUN_EMPTY:
+                break;
         }
     }
     free(d->suffixes);

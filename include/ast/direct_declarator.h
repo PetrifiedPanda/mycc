@@ -8,6 +8,8 @@
 #include "ast/type_qual_list.h"
 #include "ast/identifier_list.h"
 
+#include "parser/parser_state.h"
+
 struct assign_expr;
 struct const_expr;
 struct declarator;
@@ -16,7 +18,8 @@ struct identifier;
 enum arr_or_func_suffix_type {
     ARR_OR_FUNC_ARRAY,
     ARR_OR_FUNC_FUN_TYPES,
-    ARR_OR_FUNC_FUN_PARAMS
+    ARR_OR_FUNC_FUN_PARAMS,
+    ARR_OR_FUNC_FUN_EMPTY
 };
 
 struct arr_suffix {
@@ -45,8 +48,7 @@ struct direct_declarator {
     struct arr_or_func_suffix* suffixes;
 };
 
-struct direct_declarator* create_direct_declarator(struct identifier* id, struct arr_or_func_suffix* suffixes, size_t len);
-struct direct_declarator* create_direct_declarator_decl(struct declarator* decl, struct arr_or_func_suffix* suffixes, size_t len);
+struct direct_declarator* parse_direct_declarator(struct parser_state* s);
 
 void free_direct_declarator(struct direct_declarator* d);
 
