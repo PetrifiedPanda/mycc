@@ -17,11 +17,20 @@ struct abs_declarator* parse_abs_declarator(struct parser_state* s) {
         res->ptr = NULL;
     }
 
-    res->direct_abs_decl = parse_direct_abs_declarator(s);
-    if (!res->direct_abs_decl) {
-        if (res->ptr) {
-            free_pointer(res->ptr);
+    if (s->it->type == ASTERISK || s->it->type == LBRACKET || s->it->type == LINDEX) {
+        res->direct_abs_decl = parse_direct_abs_declarator(s);
+        if (!res->direct_abs_decl) {
+            if (res->ptr) {
+                free_pointer(res->ptr);
+            }
+            free(res);
+            return NULL;
         }
+    } else {
+        res->direct_abs_decl = NULL;
+    }
+
+    if (res->direct_abs_decl == NULL && res->ptr != NULL) {
         free(res);
         return NULL;
     }
