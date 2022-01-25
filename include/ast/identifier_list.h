@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "parser/parser_state.h"
+
 struct identifier;
 
 struct identifier_list {
@@ -10,7 +12,7 @@ struct identifier_list {
     struct identifier* identifiers;
 };
 
-struct identifier_list create_identifier_list(struct identifier* identifiers, size_t len);
+struct identifier_list parse_identifier_list(struct parser_state* s);
 
 void free_identifier_list(struct identifier_list* l);
 
