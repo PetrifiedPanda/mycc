@@ -249,8 +249,8 @@ const char* get_type_str(enum token_type type) {
             return "OR_ASSIGN";
         case XOR_ASSIGN:
             return "XOR_ASSIGN";
-        case TYPE_NAME:
-            return "TYPE_NAME";
+        case TYPEDEF_NAME:
+            return "TYPEDEF_NAME";
         case TYPEDEF:
             return "TYPEDEF";
         case EXTERN:

@@ -32,7 +32,7 @@ enum token_type {
     AND_ASSIGN,
     OR_ASSIGN,
     XOR_ASSIGN,
-    TYPE_NAME,
+    TYPEDEF_NAME,
     TYPEDEF,
     EXTERN,
     STATIC,
