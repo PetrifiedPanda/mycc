@@ -2,13 +2,10 @@
 
 #include "util.h"
 
-struct init_declarator* parse_init_declarator(struct parser_state* s) {
-    struct init_declarator* res = xmalloc(sizeof(struct init_declarator));
-
+bool parse_init_declarator_inplace(struct parser_state* s, struct init_declarator* res) {
     res->decl = parse_declarator(s);
     if (!res->decl) {
-        free(res);
-        return NULL;
+        return false;
     }
 
     if (s->it->type == ASSIGN) {
@@ -16,13 +13,12 @@ struct init_declarator* parse_init_declarator(struct parser_state* s) {
         res->init = parse_initializer(s);
         if (!res->init) {
             free_declarator(res->decl);
-            free(res);
-            return NULL;
+            return false;
         }
     } else {
         res->init = NULL;
     }
-    return res;
+    return true;
 }
 
 void free_init_declarator_children(struct init_declarator* d) {

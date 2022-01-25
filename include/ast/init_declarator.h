@@ -11,7 +11,7 @@ struct init_declarator {
     struct initializer* init;
 };
 
-struct init_declarator* parse_init_declarator(struct parser_state* s);
+bool parse_init_declarator_inplace(struct parser_state* s, struct init_declarator* res);
 
 void free_init_declarator_children(struct init_declarator* d);
 
