@@ -5,13 +5,19 @@
 
 #include "util.h"
 
-struct declarator* create_declarator(struct pointer* ptr, struct direct_declarator* direct_decl) {
+static struct declarator* create_declarator(struct pointer* ptr, struct direct_declarator* direct_decl) {
     assert(direct_decl);
     struct declarator* res = xmalloc(sizeof(struct declarator));
     res->ptr = ptr;
     res->direct_decl = direct_decl;
     
     return res;
+}
+
+struct declarator* parse_declarator(struct parser_state* s) {
+    (void)s;
+    // TODO:
+    return NULL;
 }
 
 static void free_children(struct declarator* d) {
