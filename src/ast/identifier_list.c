@@ -30,7 +30,16 @@ struct identifier_list parse_identifier_list(struct parser_state* s) {
             grow_alloc((void**)&res.identifiers, &alloc_len, sizeof(struct identifier));
         }
 
-        create_identifier_inplace(&res.identifiers[res.len]);
+        if (s->it->type != IDENTIFIER) {
+            free_identifier_list(&res);
+            return (struct identifier_list) {
+                .len = 0,
+                .identifiers = NULL
+            };
+        }
+        spell = take_spelling(s->it);
+        accept_it(s);
+        create_identifier_inplace(&res.identifiers[res.len], spell);
 
         ++res.len;
     }
