@@ -4,6 +4,8 @@
 #include "ast/spec_qual_list.h"
 #include "ast/struct_declarator_list.h"
 
+#include "parser/parser_state.h"
+
 struct static_assert_declaration;
 
 struct struct_declaration {
@@ -17,8 +19,7 @@ struct struct_declaration {
     };
 };
 
-struct struct_declaration* create_struct_declaration(struct spec_qual_list spec_qual_list, struct struct_declarator_list decls);
-struct struct_declaration* create_struct_declaration_assert(struct static_assert_declaration* assert_decl);
+bool parse_struct_declaration_inplace(struct parser_state* s, struct struct_declaration* res);
 
 void free_struct_declaration_children(struct struct_declaration* d);
 void free_struct_declaration(struct struct_declaration* d);
