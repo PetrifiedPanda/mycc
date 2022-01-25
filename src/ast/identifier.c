@@ -1,12 +1,18 @@
 #include "ast/identifier.h"
 
 #include <stdlib.h>
+#include <assert.h>
 
 #include "util.h"
 
+void create_identifier_inplace(struct identifier* res, char* spelling) {
+    assert(res);
+    res->spelling = spelling;
+}
+
 struct identifier* create_identifier(char* spelling) {
     struct identifier* res = xmalloc(sizeof(struct identifier));
-    res->spelling = spelling;
+    create_identifier_inplace(res, spelling);
     return res;
 }
 
