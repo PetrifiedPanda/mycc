@@ -5,7 +5,7 @@
 
 #include "util.h"
 
-struct param_list* create_param_list(struct param_declaration* decls, size_t len) {
+static struct param_list* create_param_list(struct param_declaration* decls, size_t len) {
     assert(len > 0);
     assert(decls);
     struct param_list* res = xmalloc(sizeof(struct param_list));
@@ -13,6 +13,12 @@ struct param_list* create_param_list(struct param_declaration* decls, size_t len
     res->decls = decls;
     
     return res;
+}
+
+struct param_list* parse_param_list(struct parser_state* s) {
+    (void)s;
+    // TODO:
+    return NULL;
 }
 
 static void free_children(struct param_list* l) {

@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "parser/parser_state.h"
+
 struct param_declaration;
 
 struct param_list {
@@ -10,7 +12,7 @@ struct param_list {
     struct param_declaration* decls;
 };
 
-struct param_list* create_param_list(struct param_declaration* decls, size_t len);
+struct param_list* parse_param_list(struct parser_state* s);
 
 void free_param_list(struct param_list* l);
 
