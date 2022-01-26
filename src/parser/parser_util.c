@@ -64,13 +64,17 @@ bool is_type_spec(const struct parser_state* s) {
     }
 }
 
+static bool is_declaration_spec(const struct parser_state* s) {
+    return is_storage_class_spec(s->it->type) ||
+           is_type_spec(s) ||
+           is_type_qual(s->it->type) ||
+           is_func_spec(s->it->type) ||
+           s->it->type == ALIGNAS;
+}
+
 bool is_declaration(const struct parser_state* s) {
-    return  is_storage_class_spec(s->it->type) ||
-            is_type_spec(s) ||
-            is_type_qual(s->it->type) ||
-            is_func_spec(s->it->type) ||
-            s->it->type == ALIGNAS ||
-            s->it->type == STATIC_ASSERT;
+    return is_declaration_spec(s) ||
+           s->it->type == STATIC_ASSERT;
 }
 
 char* take_spelling(struct token* t) {
