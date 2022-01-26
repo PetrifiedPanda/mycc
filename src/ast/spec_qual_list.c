@@ -42,7 +42,11 @@ struct spec_qual_list parse_spec_qual_list(struct parser_state* s) {
         }
 
         if (!parse_spec_or_qual(s, &res.specs_or_quals[res.len])) {
-            goto fail;
+            free_spec_qual_list(&res);
+            return (struct spec_qual_list){
+                .specs_or_quals = NULL,
+                .len = 0
+            };
         }
 
         ++res.len;
@@ -51,13 +55,6 @@ struct spec_qual_list parse_spec_qual_list(struct parser_state* s) {
     res.specs_or_quals = xrealloc(res.specs_or_quals, sizeof(struct type_spec_or_qual) * res.len);
 
     return res;
-
-fail:
-    free_spec_qual_list(&res);
-    return (struct spec_qual_list){
-            .specs_or_quals = NULL,
-            .len = 0
-    };
 }
 
 void free_spec_qual_list(struct spec_qual_list* l) {
