@@ -89,7 +89,7 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
 
         func_def->specs = decl_specs;
         func_def->decl = first_decl;
-        if (s->it->type != LBRACKET) {
+        if (s->it->type != LBRACE) {
             func_def->decl_list = parse_declaration_list(s);
             if (func_def->decl_list.len == 0) {
                 free_declaration_specs(decl_specs);
