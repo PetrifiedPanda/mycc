@@ -62,7 +62,9 @@ fail:
 }
 
 static void free_children(struct struct_union_spec* s) {
-    free_identifier(s->identifier);
+    if (s->identifier) {
+        free_identifier(s->identifier);
+    }
     free_struct_declaration_list(&s->decl_list);
 }
 
