@@ -35,10 +35,10 @@ struct spec_qual_list parse_spec_qual_list(struct parser_state* s) {
         };
     }
 
-    size_t alloc_size = res.len;
+    size_t alloc_len = res.len;
     while (is_type_spec(s) || is_type_qual(s->it->type)) {
-        if (res.len == alloc_size) {
-            grow_alloc((void**)&res.specs_or_quals, &alloc_size, sizeof(struct type_spec_or_qual));
+        if (res.len == alloc_len) {
+            grow_alloc((void**)&res.specs_or_quals, &alloc_len, sizeof(struct type_spec_or_qual));
         }
 
         if (!parse_spec_or_qual(s, &res.specs_or_quals[res.len])) {
@@ -47,6 +47,8 @@ struct spec_qual_list parse_spec_qual_list(struct parser_state* s) {
 
         ++res.len;
     }
+
+    res.specs_or_quals = xrealloc(res.specs_or_quals, sizeof(struct type_spec_or_qual) * res.len);
 
     return res;
 
