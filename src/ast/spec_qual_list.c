@@ -64,5 +64,6 @@ void free_spec_qual_list(struct spec_qual_list* l) {
             free_type_spec(item->type_spec);
         }
     }
+    free(l->specs_or_quals);
 }
 
