@@ -23,6 +23,8 @@ bool parse_init_declarator_inplace(struct parser_state* s, struct init_declarato
 
 void free_init_declarator_children(struct init_declarator* d) {
     free_declarator(d->decl);
-    free_initializer(d->init);
+    if (d->init) {
+        free_initializer(d->init);
+    }
 }
 
