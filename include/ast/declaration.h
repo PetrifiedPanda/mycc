@@ -12,7 +12,7 @@ struct declaration {
     bool is_normal_decl;
     union {
         struct {
-            struct declaration_specs *decl_specs;
+            struct declaration_specs* decl_specs;
             struct init_declarator_list init_decls;
         };
         struct static_assert_declaration* static_assert_decl;
