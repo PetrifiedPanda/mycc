@@ -17,7 +17,11 @@ struct translation_unit parse_translation_unit(struct parser_state* s) {
         }
 
         if (!parse_external_declaration_inplace(s, &res.external_decls[res.len])) {
-            goto fail;
+            free_translation_unit(&res);
+            return (struct translation_unit) {
+                .len = 0,
+                .external_decls = NULL
+            };
         }
 
         ++res.len;
@@ -28,10 +32,6 @@ struct translation_unit parse_translation_unit(struct parser_state* s) {
     }
 
     return res;
-
-    fail:
-    free_translation_unit(&res);
-    return (struct translation_unit){.len = 0, .external_decls = NULL};
 }
 
 static void free_children(struct translation_unit* u) {
