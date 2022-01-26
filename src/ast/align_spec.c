@@ -5,6 +5,10 @@
 #include "parser/parser_util.h"
 
 struct align_spec* parse_align_spec(struct parser_state* s) {
+    if (!(accept(s, ALIGNAS) && accept(s, LBRACKET))) {
+        return NULL;
+    }
+
     struct align_spec* res = xmalloc(sizeof(struct align_spec));
     if (is_type_spec(s) || is_type_qual(s->it->type)) {
         res->is_type_name = true;
@@ -22,6 +26,12 @@ struct align_spec* parse_align_spec(struct parser_state* s) {
             return NULL;
         }
     }
+
+    if (!accept(s, RBRACKET)) {
+        free_align_spec(res);
+        return NULL;
+    }
+
     return res;
 }
 
@@ -31,4 +41,5 @@ void free_align_spec(struct align_spec* s) {
     } else {
         free_const_expr(s->const_expr);
     }
+    free(s);
 }
