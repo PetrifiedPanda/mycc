@@ -22,6 +22,16 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
         return false;
     }
 
+    if (s->it->type == SEMICOLON) {
+        accept_it(s);
+        res->is_func_def = false;
+        res->decl.is_normal_decl = true;
+        res->decl.decl_specs = decl_specs;
+        res->decl.init_decls = (struct init_declarator_list){.len = 0, .decls = NULL};
+
+        return true;
+    }
+
     struct declarator* first_decl = parse_declarator(s);
     if (!first_decl) {
         free_declaration_specs(decl_specs);
@@ -98,6 +108,7 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
             free_declaration_specs(decl_specs);
             free_declarator(first_decl);
             free_declaration_list(&func_def->decl_list);
+            return false;
         }
     }
 
