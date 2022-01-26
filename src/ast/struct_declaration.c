@@ -36,8 +36,12 @@ bool parse_struct_declaration_inplace(struct parser_state* s, struct struct_decl
 }
 
 void free_struct_declaration_children(struct struct_declaration* d) {
-    free_spec_qual_list(&d->spec_qual_list);
-    free_struct_declarator_list(&d->decls);
+    if (d->is_static_assert) {
+        free_static_assert_declaration(d->assert);
+    } else {
+        free_spec_qual_list(&d->spec_qual_list);
+        free_struct_declarator_list(&d->decls);
+    }
 }
 
 void free_struct_declaration(struct struct_declaration* d) {
