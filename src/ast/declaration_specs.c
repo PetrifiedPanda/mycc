@@ -13,7 +13,7 @@
  * @param res The adress where the result is to be written in
  * @return 0 for an error, 1 for success and 2 if the next token is not a declaration_spec
  */
-static bool parse_declaration_spec_cont(struct parser_state* s, struct declaration_specs_cont* res) {
+static int parse_declaration_spec_cont(struct parser_state* s, struct declaration_specs_cont* res) {
     assert(res);
 
     if (is_storage_class_spec(s->it->type)) {
