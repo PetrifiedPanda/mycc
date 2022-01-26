@@ -4,10 +4,12 @@
 
 #include "util.h"
 
+#include "parser/parser_util.h"
+
 struct struct_declaration_list parse_struct_declaration_list(struct parser_state* s) {
     struct struct_declaration_list res = {
         .len = 1,
-        .decls = xmalloc(sizeof(struct struct_declaration_list))
+        .decls = xmalloc(sizeof(struct struct_declaration))
     };
 
     if (!parse_struct_declaration_inplace(s, &res.decls[0])) {
@@ -19,7 +21,7 @@ struct struct_declaration_list parse_struct_declaration_list(struct parser_state
     }
 
     size_t alloc_len = res.len;
-    while (s->it->type == COMMA) {
+    while (is_type_spec(s) || is_type_qual(s->it->type) || s->it->type == STATIC_ASSERT) {
         accept_it(s);
 
         if (res.len == alloc_len) {
