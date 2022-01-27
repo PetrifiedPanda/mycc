@@ -32,13 +32,7 @@ void expected_tokens_error(const enum token_type* expected, size_t num_expected,
     }
 }
 
-bool next_is_type_name(const struct parser_state* s) {
-    assert(s->it->type != INVALID);
-    struct token* next = s->it + 1;
-    return is_keyword_type_spec(next->type) || is_type_qual(next->type) || (next->type == IDENTIFIER && is_typedef_name(s, next->spelling));
-}
-
-bool is_type_spec(const struct parser_state* s) {
+static bool is_type_spec_token(const struct parser_state* s, const struct token* token) {
     switch (s->it->type) {
         case VOID:
         case CHAR:
@@ -58,10 +52,20 @@ bool is_type_spec(const struct parser_state* s) {
         case ENUM:
             return true;
         case IDENTIFIER:
-            return is_typedef_name(s, s->it->spelling);
+            return is_typedef_name(s, token->spelling);
         default:
             return false;
     }
+}
+
+bool next_is_type_name(const struct parser_state* s) {
+    assert(s->it->type != INVALID);
+    const struct token* next = s->it + 1;
+    return is_type_spec_token(s, next) || is_type_qual(next->type) || (next->type == IDENTIFIER && is_typedef_name(s, next->spelling));
+}
+
+bool is_type_spec(const struct parser_state* s) {
+    return is_type_spec_token(s, s->it);
 }
 
 static bool is_declaration_spec(const struct parser_state* s) {
