@@ -81,7 +81,15 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
         res->is_func_def = false;
         res->decl.is_normal_decl = true;
         res->decl.decl_specs = decl_specs;
-        res->decl.init_decls = (struct init_declarator_list){.len = 0, .decls = NULL};
+        res->decl.init_decls = (struct init_declarator_list) {
+            .len = 1,
+            .decls = xmalloc(sizeof(struct init_declarator))
+        };
+
+        *res->decl.init_decls.decls = (struct init_declarator) {
+            .decl = first_decl,
+            .init = NULL
+        };
     } else {
         res->is_func_def = true;
 
