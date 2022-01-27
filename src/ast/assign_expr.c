@@ -24,7 +24,7 @@ bool parse_assign_expr_inplace(struct parser_state* s, struct assign_expr* res) 
         accept_it(s);
 
         struct unary_expr* new_last = parse_unary_expr(s);
-        if (!last_unary) {
+        if (!new_last) {
             free_unary_expr(last_unary);
             goto fail;
         }
@@ -33,7 +33,7 @@ bool parse_assign_expr_inplace(struct parser_state* s, struct assign_expr* res) 
             grow_alloc((void**)&res->assign_chain, &alloc_len, sizeof(struct unary_and_op));
         }
 
-        res->assign_chain[res->len] = (struct unary_and_op){
+        res->assign_chain[res->len] = (struct unary_and_op) {
                 .assign_op = op,
                 .unary = last_unary
         };
