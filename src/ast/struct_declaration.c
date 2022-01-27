@@ -13,15 +13,15 @@ bool parse_struct_declaration_inplace(struct parser_state* s, struct struct_decl
         }
     } else {
         res->is_static_assert = false;
-        res->spec_qual_list = parse_spec_qual_list(s);
-        if (res->spec_qual_list.len == 0) {
+        res->decl_specs = parse_declaration_specs(s);
+        if (!res->decl_specs) {
             return NULL;
         }
 
         if (s->it->type != SEMICOLON) {
             res->decls = parse_struct_declarator_list(s);
             if (res->decls.len == 0) {
-                free_spec_qual_list(&res->spec_qual_list);
+                free_declaration_specs(res->decl_specs);
                 return NULL;
             }
         }
@@ -39,7 +39,7 @@ void free_struct_declaration_children(struct struct_declaration* d) {
     if (d->is_static_assert) {
         free_static_assert_declaration(d->assert);
     } else {
-        free_spec_qual_list(&d->spec_qual_list);
+        free_declaration_specs(d->decl_specs);
         free_struct_declarator_list(&d->decls);
     }
 }

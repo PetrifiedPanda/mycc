@@ -21,9 +21,7 @@ struct struct_declaration_list parse_struct_declaration_list(struct parser_state
     }
 
     size_t alloc_len = res.len;
-    while (is_type_spec(s) || is_type_qual(s->it->type) || s->it->type == STATIC_ASSERT) {
-        accept_it(s);
-
+    while (is_declaration(s) || s->it->type == STATIC_ASSERT) {
         if (res.len == alloc_len) {
             grow_alloc((void**)&res.decls, &alloc_len, sizeof(struct struct_declaration));
         }
