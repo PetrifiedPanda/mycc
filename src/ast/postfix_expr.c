@@ -200,6 +200,7 @@ static void free_children(struct postfix_expr* p) {
     if (p->is_primary) {
         free_primary_expr(p->primary);
     } else {
+        free_type_name(p->type_name);
         free_init_list_children(&p->init_list);
     }
     for (size_t i = 0; i < p->len; ++i) {
