@@ -123,17 +123,22 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
             return NULL;
         }
 
-        if (!accept(s, LBRACE)) {
-            goto fail;
+        if (!(accept(s, RBRACKET) && accept(s, LBRACE))) {
+            free_type_name(res->type_name);
+            free(res);
+            return NULL;
         }
 
         res->init_list = parse_init_list(s);
-        if (get_last_error() != ERR_NONE) {
-            goto fail;
+        if (res->init_list.len == 0) {
+            free_type_name(res->type_name);
+            free(res);
+            return NULL;
         }
 
         if (!accept(s, RBRACE)) {
-            goto fail;
+            free_postfix_expr(res);
+            return NULL;
         }
     } else {
         res->is_primary = true;
@@ -145,13 +150,11 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
     }
 
     if (!parse_postfix_suffixes(s, res)) {
-        goto fail;
+        free_postfix_expr(res);
+        return NULL;
     }
 
     return res;
-fail:
-    free_postfix_expr(res);
-    return NULL;
 }
 
 /**
