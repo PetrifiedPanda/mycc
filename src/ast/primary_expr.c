@@ -100,17 +100,6 @@ struct primary_expr* parse_primary_expr(struct parser_state* s) {
                     expected_token_error(RBRACKET, s->it);
                     return NULL;
                 }
-            } else {
-                enum token_type expected[] = {
-                        IDENTIFIER,
-                        I_CONSTANT,
-                        F_CONSTANT,
-                        STRING_LITERAL,
-                        LBRACKET
-                };
-                size_t size = sizeof expected / sizeof(enum token_type);
-                expected_tokens_error(expected, size, s->it);
-                return NULL;
             }
     }
 
