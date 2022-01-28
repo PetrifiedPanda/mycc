@@ -33,7 +33,7 @@ void expected_tokens_error(const enum token_type* expected, size_t num_expected,
 }
 
 static bool is_type_spec_token(const struct parser_state* s, const struct token* token) {
-    switch (s->it->type) {
+    switch (token->type) {
         case VOID:
         case CHAR:
         case SHORT:
