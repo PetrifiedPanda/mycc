@@ -34,7 +34,7 @@ static bool parse_cast_expr_rest(struct parser_state* s, struct cast_expr* res) 
             goto fail;
         }
 
-        if (!accept(s, LBRACKET)) {
+        if (!accept(s, RBRACKET)) {
             goto fail;
         }
         ++res->len;
