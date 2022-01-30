@@ -128,6 +128,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
                             free_type_name(type_name);
                             goto fail;
                         }
+                        return res;
                     } else {
                         return create_unary_expr_sizeof_type(ops_before, len, type_name);
                     }
@@ -142,7 +143,6 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
                     }
                     return create_unary_expr_postfix(ops_before, len, postfix);
                 }
-                break; // unreachable
             }
             case ALIGNOF: {
                 accept_it(s);
@@ -169,8 +169,6 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
             }
         }
     }
-
-    return NULL; // unreachable
 fail:
     free(ops_before);
     return NULL;
