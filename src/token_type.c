@@ -430,6 +430,7 @@ bool is_storage_class_spec(enum token_type t) {
         case TYPEDEF:
         case EXTERN:
         case STATIC:
+        case THREAD_LOCAL:
         case AUTO:
         case REGISTER:
             return true;
