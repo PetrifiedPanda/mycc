@@ -15,22 +15,33 @@ bool parse_declaration_inplace(struct parser_state* s, struct declaration* res) 
         }
     } else {
         res->is_normal_decl = true;
-        res->decl_specs = parse_declaration_specs(s);
+
+        bool found_typedef = false;
+        res->decl_specs = parse_declaration_specs(s, &found_typedef);
         if (!res->decl_specs) {
             return false;
         }
 
         if (s->it->type != SEMICOLON) {
-            res->init_decls = parse_init_declarator_list(s);
+            if (found_typedef) {
+                // TODO: parse typedef inits
+            } else {
+                res->init_decls = parse_init_declarator_list(s);
+            }
             if (res->init_decls.len == 0) {
                 free_declaration_specs(res->decl_specs);
                 return false;
             }
+        } else {
+            res->init_decls = (struct init_declarator_list) {
+                .len = 0,
+                .decls = NULL
+            };
         }
-
         if (!accept(s, SEMICOLON)) {
             free_declaration_specs(res->decl_specs);
             free_init_declarator_list(&res->init_decls);
+            return false;
         }
     }
 

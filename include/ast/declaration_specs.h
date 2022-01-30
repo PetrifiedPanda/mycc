@@ -37,7 +37,7 @@ struct declaration_specs {
     struct declaration_specs_cont* contents;
 };
 
-struct declaration_specs* parse_declaration_specs(struct parser_state* s);
+struct declaration_specs* parse_declaration_specs(struct parser_state* s, bool* found_typedef);
 
 void free_declaration_specs(struct declaration_specs* s);
 

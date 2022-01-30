@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "util.h"
+#include "error.h"
 
 bool parse_struct_declaration_inplace(struct parser_state* s, struct struct_declaration* res) {
     if (s->it->type == STATIC_ASSERT) {
@@ -13,9 +14,14 @@ bool parse_struct_declaration_inplace(struct parser_state* s, struct struct_decl
         }
     } else {
         res->is_static_assert = false;
-        res->decl_specs = parse_declaration_specs(s);
+        bool found_typedef = false;
+        res->decl_specs = parse_declaration_specs(s, &found_typedef);
         if (!res->decl_specs) {
             return NULL;
+        }
+
+        if (found_typedef) {
+            set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "typedef in struct declaration");
         }
 
         if (s->it->type != SEMICOLON) {

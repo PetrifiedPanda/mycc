@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "util.h"
+#include "error.h"
 
 bool parse_external_declaration_inplace(struct parser_state* s, struct external_declaration* res) {
     assert(res);
@@ -16,8 +17,8 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
         }
         return true;
     }
-
-    struct declaration_specs* decl_specs = parse_declaration_specs(s);
+    bool found_typedef = false;
+    struct declaration_specs* decl_specs = parse_declaration_specs(s, &found_typedef);
     if (!decl_specs) {
         return false;
     }
@@ -91,6 +92,12 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
             .init = NULL
         };
     } else {
+        if (found_typedef) {
+            set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Function definition declared typedef");
+            free_declaration_specs(decl_specs);
+            free_declarator(first_decl);
+            return false;
+        }
         res->is_func_def = true;
 
         struct func_def* func_def = &res->func_def;

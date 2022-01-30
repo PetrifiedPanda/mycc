@@ -11,12 +11,16 @@
  *
  * @param s The current parser_state
  * @param res The adress where the result is to be written in
+ * @param found_typedef Logs whether a typedef was among the declaration specifiers
  * @return 0 for an error, 1 for success and 2 if the next token is not a declaration_spec
  */
-static int parse_declaration_spec_cont(struct parser_state* s, struct declaration_specs_cont* res) {
+static int parse_declaration_spec_cont(struct parser_state* s, struct declaration_specs_cont* res, bool* found_typedef) {
     assert(res);
 
     if (is_storage_class_spec(s->it->type)) {
+        if (s->it->type == TYPEDEF) {
+            *found_typedef = true;
+        }
         res->type = DECLSPEC_STORAGE_CLASS_SPEC;
         res->storage_class_spec = s->it->type;
         accept_it(s);
@@ -49,10 +53,13 @@ static int parse_declaration_spec_cont(struct parser_state* s, struct declaratio
     return 1;
 }
 
-struct declaration_specs* parse_declaration_specs(struct parser_state* s) {
+struct declaration_specs* parse_declaration_specs(struct parser_state* s, bool* found_typedef) {
+    assert(found_typedef);
+    assert(*found_typedef == false);
+
     struct declaration_specs* res = xmalloc(sizeof(struct declaration_specs));
     res->contents = xmalloc(sizeof(struct declaration_specs_cont));
-    if (parse_declaration_spec_cont(s, res->contents) != 1) {
+    if (parse_declaration_spec_cont(s, res->contents, found_typedef) != 1) {
         free(res->contents);
         free(res);
         return NULL;
@@ -64,7 +71,7 @@ struct declaration_specs* parse_declaration_specs(struct parser_state* s) {
             grow_alloc((void**)&res->contents, &alloc_len, sizeof(struct declaration_specs_cont));
         }
 
-        int success = parse_declaration_spec_cont(s, &res->contents[res->len]);
+        int success = parse_declaration_spec_cont(s, &res->contents[res->len], found_typedef);
 
         if (success == 0) {
             goto fail;
