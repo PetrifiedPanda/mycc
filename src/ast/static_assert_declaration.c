@@ -5,7 +5,7 @@
 #include "parser/parser_util.h"
 
 struct static_assert_declaration* parse_static_assert_declaration(struct parser_state* s) {
-    if (!accept(s, STATIC_ASSERT) || !accept(s, LBRACKET)) {
+    if (!(accept(s, STATIC_ASSERT) && accept(s, LBRACKET))) {
         return NULL;
     }
 
@@ -20,6 +20,7 @@ struct static_assert_declaration* parse_static_assert_declaration(struct parser_
     }
 
     if (s->it->type != STRING_LITERAL) {
+        expected_token_error(STRING_LITERAL, s->it);
         free_const_expr(const_expr);
         return NULL;
     }
