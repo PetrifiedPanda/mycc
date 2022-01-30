@@ -12,6 +12,8 @@ static bool parse_cond_expr_conditionals(struct parser_state* s, struct cond_exp
     res->conditionals = NULL;
 
     while (s->it->type == QMARK) {
+        accept_it(s);
+
         struct expr* expr = parse_expr(s);
         if (!expr) {
             goto fail;
@@ -65,11 +67,11 @@ bool parse_cond_expr_inplace(struct parser_state* s, struct cond_expr* res) {
     return true;
 }
 
-struct cond_expr* parse_cond_expr_unary(struct parser_state* s, struct unary_expr* start) {
+struct cond_expr* parse_cond_expr_cast(struct parser_state* s, struct cast_expr* start) {
     assert(start);
 
     struct cond_expr* res = xmalloc(sizeof(struct cond_expr));
-    res->last_else = parse_log_or_expr_unary(s, start);
+    res->last_else = parse_log_or_expr_cast(s, start);
     if (!res->last_else) {
         free(res);
         return NULL;

@@ -18,7 +18,7 @@ static bool parse_log_or_expr_ops(struct parser_state* s, struct log_or_expr* re
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)res->log_ands, &alloc_len, sizeof(struct log_and_expr));
+            grow_alloc((void**)&res->log_ands, &alloc_len, sizeof(struct log_and_expr));
         }
 
         if (!parse_log_and_expr_inplace(s, &res->log_ands[res->len])) {
@@ -55,10 +55,10 @@ struct log_or_expr* parse_log_or_expr(struct parser_state* s) {
     return res;
 }
 
-struct log_or_expr* parse_log_or_expr_unary(struct parser_state* s, struct unary_expr* start) {
+struct log_or_expr* parse_log_or_expr_cast(struct parser_state* s, struct cast_expr* start) {
     assert(start);
 
-    struct log_and_expr* and_exprs = parse_log_and_expr_unary(s, start);
+    struct log_and_expr* and_exprs = parse_log_and_expr_cast(s, start);
     if (!and_exprs) {
         return NULL;
     }

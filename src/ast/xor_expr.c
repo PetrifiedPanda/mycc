@@ -50,10 +50,10 @@ bool parse_xor_expr_inplace(struct parser_state* s, struct xor_expr* res) {
     return true;
 }
 
-struct xor_expr* parse_xor_expr_unary(struct parser_state* s, struct unary_expr* start) {
+struct xor_expr* parse_xor_expr_cast(struct parser_state* s, struct cast_expr* start) {
     assert(start);
 
-    struct and_expr* and_exprs = parse_and_expr_unary(s, start);
+    struct and_expr* and_exprs = parse_and_expr_cast(s, start);
     if (!and_exprs) {
         return NULL;
     }

@@ -54,8 +54,10 @@ bool parse_eq_expr_inplace(struct parser_state* s, struct eq_expr* res) {
     return true;
 }
 
-struct eq_expr* parse_eq_expr_unary(struct parser_state* s, struct unary_expr* start) {
-    struct rel_expr* lhs = parse_rel_expr_unary(s, start);
+struct eq_expr* parse_eq_expr_cast(struct parser_state* s, struct cast_expr* start) {
+    assert(start);
+
+    struct rel_expr* lhs = parse_rel_expr_cast(s, start);
     if (!lhs) {
         return NULL;
     }
@@ -73,7 +75,7 @@ struct eq_expr* parse_eq_expr_unary(struct parser_state* s, struct unary_expr* s
 void free_eq_expr_children(struct eq_expr* e) {
     free_rel_expr(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
-        free_rel_expr_children(e->eq_chain[i].rhs);
+        free_rel_expr(e->eq_chain[i].rhs);
     }
     free(e->eq_chain);
 }

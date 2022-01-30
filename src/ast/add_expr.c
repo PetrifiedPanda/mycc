@@ -22,7 +22,8 @@ static bool parse_add_expr_add_chain(struct parser_state* s, struct add_expr* re
         struct mul_expr_and_op* curr = &res->add_chain[res->len];
         curr->rhs = parse_mul_expr(s);
         if (!curr->rhs) {
-            goto fail;
+            free_add_expr(res);
+            return false;
         }
 
         curr->add_op = op;
@@ -33,10 +34,6 @@ static bool parse_add_expr_add_chain(struct parser_state* s, struct add_expr* re
     res->add_chain = xrealloc(res->add_chain, sizeof(struct mul_expr_and_op) * res->len);
 
     return true;
-
-fail:
-    free_add_expr(res);
-    return false;
 }
 
 struct add_expr* parse_add_expr(struct parser_state* s) {
@@ -55,10 +52,10 @@ struct add_expr* parse_add_expr(struct parser_state* s) {
     return res;
 }
 
-struct add_expr* parse_add_expr_unary(struct parser_state* s, struct unary_expr* start) {
+struct add_expr* parse_add_expr_cast(struct parser_state* s, struct cast_expr* start) {
     assert(start);
 
-    struct mul_expr* lhs = parse_mul_expr_unary(s, start);
+    struct mul_expr* lhs = parse_mul_expr_cast(s, start);
     if (!lhs) {
         return NULL;
     }

@@ -21,58 +21,82 @@ static struct cast_expr* create_cast_expr(struct type_name* type_names, size_t l
     return res;
 }
 
-struct cast_expr* parse_cast_expr(struct parser_state* s) {
-    struct type_name* type_names = NULL;
-    size_t len = 0;
-
-    size_t alloc_len = 0;
+static bool parse_cast_expr_rest(struct parser_state* s, struct cast_expr* res) {
+    size_t alloc_len = res->len;
     while (s->it->type == LBRACKET && next_is_type_name(s)) {
         accept_it(s);
 
-        if (len == alloc_len) {
-            grow_alloc((void**)&type_names, &alloc_len, sizeof(struct type_name));
+        if (res->len == alloc_len) {
+            grow_alloc((void**)&res->type_names, &alloc_len, sizeof(struct type_name));
         }
 
-        if (!parse_type_name_inplace(s, &type_names[len])) {
+        if (!parse_type_name_inplace(s, &res->type_names[res->len])) {
             goto fail;
         }
 
         if (!accept(s, LBRACKET)) {
             goto fail;
         }
-        ++len;
+        ++res->len;
     }
 
-    struct unary_expr* rhs;
     if (s->it->type == LBRACE) {
         struct type_name* type_name = xmalloc(sizeof(struct type_name));
 
-        --len;
-        *type_name = type_names[len];
+        --res->len;
+        *type_name = res->type_names[res->len];
 
-        if (type_names) {
-            type_names = xrealloc(type_names, len * sizeof(struct type_name));
+        if (res->type_names) {
+            res->type_names = xrealloc(res->type_names, res->len * sizeof(struct type_name));
         }
 
-        rhs = parse_unary_expr_type_name(s, NULL, 0, type_name);
+        res->rhs = parse_unary_expr_type_name(s, NULL, 0, type_name);
     } else {
-        if (type_names) {
-            type_names = xrealloc(type_names, len * sizeof(struct type_name));
+        if (res->type_names) {
+            res->type_names = xrealloc(res->type_names, res->len * sizeof(struct type_name));
         }
-        rhs = parse_unary_expr(s);
+        res->rhs = parse_unary_expr(s);
     }
-    if (!rhs) {
+    if (!res->rhs) {
         goto fail;
     }
 
-    return create_cast_expr(type_names, len, rhs);
+    return true;
 
 fail:
-    for (size_t i = 0; i < len; ++i) {
-        free_type_name_children(&type_names[i]);
+    for (size_t i = 0; i < res->len; ++i) {
+        free_type_name_children(&res->type_names[i]);
     }
-    free(type_names);
-    return NULL;
+    free(res->type_names);
+    return false;
+}
+
+struct cast_expr* parse_cast_expr(struct parser_state* s) {
+    struct cast_expr* res = xmalloc(sizeof(struct cast_expr));
+    res->type_names = NULL;
+    res->len = 0;
+
+    if (!parse_cast_expr_rest(s, res)) {
+        free(res);
+        return NULL;
+    }
+
+    return res;
+}
+
+struct cast_expr* parse_cast_expr_type_name(struct parser_state* s, struct type_name* type_name) {
+    assert(type_name);
+
+    struct cast_expr* res = xmalloc(sizeof(struct cast_expr));
+    res->type_names = type_name;
+    res->len = 1;
+
+    if (!parse_cast_expr_rest(s, res)) {
+        free(res);
+        return NULL;
+    }
+
+    return res;
 }
 
 struct cast_expr* create_cast_expr_unary(struct unary_expr* start) {

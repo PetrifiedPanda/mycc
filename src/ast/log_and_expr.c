@@ -47,10 +47,10 @@ bool parse_log_and_expr_inplace(struct parser_state* s, struct log_and_expr* res
     return true;
 }
 
-struct log_and_expr* parse_log_and_expr_unary(struct parser_state* s, struct unary_expr* start) {
+struct log_and_expr* parse_log_and_expr_cast(struct parser_state* s, struct cast_expr* start) {
     assert(start);
 
-    struct or_expr* or_exprs = parse_or_expr_unary(s, start);
+    struct or_expr* or_exprs = parse_or_expr_cast(s, start);
     if (!or_exprs) {
         return NULL;
     }

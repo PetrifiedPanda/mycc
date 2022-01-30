@@ -22,15 +22,16 @@ struct eq_expr {
 
 bool parse_eq_expr_inplace(struct parser_state* s, struct eq_expr* res);
 
-struct unary_expr;
+struct cast_expr;
 
-struct eq_expr* parse_eq_expr_unary(struct parser_state* s, struct unary_expr* start);
+struct eq_expr* parse_eq_expr_cast(struct parser_state* s, struct cast_expr* start);
 
 void free_eq_expr_children(struct eq_expr* e);
 
 void free_eq_expr(struct eq_expr* e);
 
 #include "ast/rel_expr.h"
+#include "ast/cast_expr.h"
 
 #endif
 

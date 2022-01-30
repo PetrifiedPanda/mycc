@@ -21,16 +21,16 @@ struct cond_expr {
 
 bool parse_cond_expr_inplace(struct parser_state* s, struct cond_expr* res);
 
-struct unary_expr;
+struct cast_expr;
 
-struct cond_expr* parse_cond_expr_unary(struct parser_state* s, struct unary_expr* start);
+struct cond_expr* parse_cond_expr_cast(struct parser_state* s, struct cast_expr* start);
 
 void free_cond_expr_children(struct cond_expr* e);
 void free_cond_expr(struct cond_expr* e);
 
 #include "ast/expr.h"
 #include "ast/log_or_expr.h"
-#include "ast/unary_expr.h"
+#include "ast/cast_expr.h"
 
 #endif
 

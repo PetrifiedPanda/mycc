@@ -55,10 +55,10 @@ struct rel_expr* parse_rel_expr(struct parser_state* s) {
     return res;
 }
 
-struct rel_expr* parse_rel_expr_unary(struct parser_state* s, struct unary_expr* start) {
+struct rel_expr* parse_rel_expr_cast(struct parser_state* s, struct cast_expr* start) {
     assert(start);
 
-    struct shift_expr* lhs = parse_shift_expr_unary(s, start);
+    struct shift_expr* lhs = parse_shift_expr_cast(s, start);
     if (!lhs) {
         return NULL;
     }

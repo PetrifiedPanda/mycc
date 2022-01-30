@@ -14,14 +14,14 @@ struct log_or_expr {
 
 struct log_or_expr* parse_log_or_expr(struct parser_state* s);
 
-struct unary_expr;
+struct cast_expr;
 
-struct log_or_expr* parse_log_or_expr_unary(struct parser_state* s, struct unary_expr* start);
+struct log_or_expr* parse_log_or_expr_cast(struct parser_state* s, struct cast_expr* start);
 
 void free_log_or_expr(struct log_or_expr* e);
 
 #include "ast/log_and_expr.h"
-#include "ast/unary_expr.h"
+#include "ast/cast_expr.h"
 
 #endif
 

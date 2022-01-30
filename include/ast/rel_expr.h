@@ -22,14 +22,15 @@ struct rel_expr {
 
 struct rel_expr* parse_rel_expr(struct parser_state* s);
 
-struct unary_expr;
+struct cast_expr;
 
-struct rel_expr* parse_rel_expr_unary(struct parser_state* s, struct unary_expr* start);
+struct rel_expr* parse_rel_expr_cast(struct parser_state* s, struct cast_expr* start);
 
 void free_rel_expr_children(struct rel_expr* e);
 void free_rel_expr(struct rel_expr* e);
 
 #include "ast/shift_expr.h"
+#include "ast/cast_expr.h"
 
 #endif
 
