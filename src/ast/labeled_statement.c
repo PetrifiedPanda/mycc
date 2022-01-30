@@ -22,9 +22,16 @@ struct labeled_statement* parse_labeled_statement(struct parser_state* s) {
             break;
         }
 
-        case IDENTIFIER:
+        case IDENTIFIER: {
+            res->type = IDENTIFIER;
+            accept_it(s);
+            char* spelling = take_spelling(s->it);
+            res->identifier = create_identifier(spelling);
+            break;
+        }
+
         case DEFAULT: {
-            res->type = s->it->type;
+            res->type = DEFAULT;
             accept_it(s);
             res->case_expr = NULL;
             break;
