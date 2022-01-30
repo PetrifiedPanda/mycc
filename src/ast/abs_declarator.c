@@ -31,6 +31,7 @@ struct abs_declarator* parse_abs_declarator(struct parser_state* s) {
     }
 
     if (res->direct_abs_decl == NULL && res->ptr != NULL) {
+        free_pointer(res->ptr);
         free(res);
         return NULL;
     }
