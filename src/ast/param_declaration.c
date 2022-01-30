@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "util.h"
+#include "error.h"
 
 // There might be a better way to do this
 static bool is_declarator(const struct token* current) {
@@ -34,8 +35,15 @@ static bool is_declarator(const struct token* current) {
 bool parse_param_declaration_inplace(struct parser_state* s, struct param_declaration* res) {
     assert(res);
 
-    res->decl_specs = parse_declaration_specs(s);
+    bool found_typedef = false;
+    res->decl_specs = parse_declaration_specs(s, &found_typedef);
     if (!res->decl_specs) {
+        return false;
+    }
+
+    if (found_typedef) {
+        set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "typedef is not allowed in function declarator");
+        free_declaration_specs(res->decl_specs);
         return false;
     }
 
