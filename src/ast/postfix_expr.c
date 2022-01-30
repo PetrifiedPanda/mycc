@@ -56,7 +56,10 @@ static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* 
                         return false;
                     }
                 }
-                accept(s, RBRACKET);
+                if (!accept(s, RBRACKET)) {
+                    free_arg_expr_list(&arg_expr_list);
+                    return false;
+                }
                 res->suffixes[res->len] = (struct postfix_suffix){
                         .type = POSTFIX_BRACKET,
                         .bracket_list = arg_expr_list
