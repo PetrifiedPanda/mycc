@@ -171,6 +171,8 @@ static char* read_file(const char* filename) {
     return res;
 }
 
+#include "parser/parser.h"
+
 static void file_test() {
     const char* filename = "../test/files/no_preproc.c";
     char* code = read_file(filename); 
@@ -722,4 +724,19 @@ static void file_test() {
 
     free(code);
     free_tokenizer_result(tokens);
+
+    {
+        const char* file = "../test/files/oh_no.c";
+        char* contents = read_file(file);
+        struct token* new_tokens = tokenize(contents, file);
+        struct translation_unit tl = parse_tokens(new_tokens);
+        if (get_last_error() != ERR_NONE) {
+            printf("%s\n", get_error_string());
+            clear_last_error();
+        }
+
+        free_translation_unit(&tl);
+        free_tokenizer_result(new_tokens);
+        free(contents);
+    }
 }
