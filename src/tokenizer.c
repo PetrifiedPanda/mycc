@@ -513,8 +513,7 @@ static bool handle_character_literal(struct tokenizer_state* s, struct token_arr
     ++buf_idx;
 
     advance_one(s);
-
-    while (*s->it != '\0' && *s->it != terminator && buf_idx != BUF_STRLEN) {
+    while (*s->it != '\0' && (s->prev == '\\' || *s->it != terminator) && buf_idx != BUF_STRLEN) {
         spell_buf[buf_idx] = *s->it;
         ++buf_idx;
 
