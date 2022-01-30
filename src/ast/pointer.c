@@ -40,7 +40,7 @@ struct pointer* parse_pointer(struct parser_state* s) {
                 return NULL;
             }
         } else {
-            res->quals_after_ptr[0] = (struct type_qual_list){.len = 0, .type_quals = NULL};
+            res->quals_after_ptr[res->num_indirs] = (struct type_qual_list){.len = 0, .type_quals = NULL};
         }
 
         ++res->num_indirs;
