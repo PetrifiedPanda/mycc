@@ -39,6 +39,11 @@ struct generic_sel* parse_generic_sel(struct parser_state* s) {
         goto fail;
     }
 
+    if (!accept(s, RBRACKET)) {
+        free_generic_assoc_list(&assocs);
+        goto fail;
+    }
+
     return create_generic_sel(assign, assocs);
 
 fail:
