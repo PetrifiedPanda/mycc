@@ -11,7 +11,7 @@ bool parse_generic_assoc_inplace(struct parser_state* s, struct generic_assoc* r
         res->type_name = NULL;
     } else {
         res->type_name = parse_type_name(s);
-        if (!res->assign) {
+        if (!res->type_name) {
             return false;
         }
     }
