@@ -7,12 +7,16 @@
 #include "parser/parser_util.h"
 
 struct arg_expr_list parse_arg_expr_list(struct parser_state* s) {
-    size_t alloc_len = 1;
-    struct arg_expr_list res = {.len = 0, .assign_exprs = xmalloc(sizeof(struct assign_expr) * alloc_len)};
+    struct arg_expr_list res = {.len = 1, .assign_exprs = xmalloc(sizeof(struct assign_expr))};
     if (!parse_assign_expr_inplace(s, &res.assign_exprs[0])) {
-        goto fail;
+        free(res.assign_exprs);
+        return (struct arg_expr_list) {
+            .len = 0,
+            .assign_exprs = NULL
+        };
     }
-    res.len = 1;
+
+    size_t alloc_len = res.len = 1;
     while (s->it->type == COMMA) {
         accept_it(s);
         if (res.len == alloc_len) {
@@ -20,7 +24,8 @@ struct arg_expr_list parse_arg_expr_list(struct parser_state* s) {
         }
 
         if (!parse_assign_expr_inplace(s, &res.assign_exprs[res.len])) {
-            goto fail;
+            free_arg_expr_list(&res);
+            return (struct arg_expr_list){.assign_exprs = NULL, .len = 0};
         }
 
         ++res.len;
@@ -28,10 +33,6 @@ struct arg_expr_list parse_arg_expr_list(struct parser_state* s) {
 
     res.assign_exprs = xrealloc(res.assign_exprs, sizeof(struct assign_expr) * res.len);
     return res;
-
-fail:
-    free_arg_expr_list(&res);
-    return (struct arg_expr_list){.assign_exprs = NULL, .len = 0};
 }
 
 void free_arg_expr_list(struct arg_expr_list* l) {
