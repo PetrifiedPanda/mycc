@@ -171,7 +171,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
     }
 
     return NULL; // unreachable
-    fail:
+fail:
     free(ops_before);
     return NULL;
 }
