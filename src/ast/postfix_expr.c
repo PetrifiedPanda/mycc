@@ -52,7 +52,7 @@ static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* 
                 struct arg_expr_list arg_expr_list = {.assign_exprs = NULL, .len = 0};
                 if (s->it->type != RBRACKET) {
                     arg_expr_list = parse_arg_expr_list(s);
-                    if (get_last_error() != ERR_NONE) {
+                    if (arg_expr_list.len == 0) {
                         return false;
                     }
                 }
