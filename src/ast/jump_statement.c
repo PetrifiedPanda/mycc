@@ -54,16 +54,17 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
         }
         case RETURN: {
             accept_it(s);
-            if (s->it->type != SEMICOLON) {
-                struct expr *ret_val = parse_expr(s);
+            struct expr* ret_val;
+            if (s->it->type == SEMICOLON) {
+                ret_val = NULL;
+            } else {
+                ret_val = parse_expr(s);
                 if (!ret_val) {
                     return NULL;
                 }
-
-                res = create_return_statement(ret_val);
-            } else {
-                res = create_return_statement(NULL);
             }
+
+            res = create_return_statement(ret_val);
             break;
         }
 
