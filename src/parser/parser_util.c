@@ -68,7 +68,7 @@ bool is_type_spec(const struct parser_state* s) {
     return is_type_spec_token(s, s->it);
 }
 
-bool is_declaration_spec(const struct parser_state* s) {
+static bool is_declaration_spec(const struct parser_state* s) {
     return is_storage_class_spec(s->it->type) ||
            is_type_spec(s) ||
            is_type_qual(s->it->type) ||
