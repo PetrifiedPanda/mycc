@@ -13,8 +13,8 @@ bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
     res->assign_exprs = xmalloc(sizeof(struct assign_expr));
 
     if (!parse_assign_expr_inplace(s, &res->assign_exprs[0])) {
-        res->len = 0;
-        goto fail;
+        free(res->assign_exprs);
+        return false;
     }
 
     size_t alloc_len = res->len = 1;
@@ -25,7 +25,8 @@ bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
         }
 
         if (!parse_assign_expr_inplace(s, &res->assign_exprs[res->len])) {
-            goto fail;
+            free_expr_children(res);
+            return false;
         }
 
         ++res->len;
@@ -36,9 +37,6 @@ bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
     }
 
     return true;
-fail:
-    free_expr_children(res);
-    return false;
 }
 
 struct expr* parse_expr(struct parser_state* s) {
