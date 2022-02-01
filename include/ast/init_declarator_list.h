@@ -22,6 +22,10 @@ struct init_declarator_list parse_init_declarator_list_first(struct parser_state
 
 struct init_declarator_list parse_init_declarator_list(struct parser_state* s);
 
+struct init_declarator_list parse_init_declarator_list_typedef_first(struct parser_state* s, struct init_declarator* first_decl);
+
+struct init_declarator_list parse_init_declarator_list_typedef(struct parser_state* s);
+
 void free_init_declarator_list(struct init_declarator_list* l);
 
 #include "ast/init_declarator.h"

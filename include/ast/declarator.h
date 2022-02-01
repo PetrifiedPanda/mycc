@@ -12,6 +12,7 @@ struct declarator {
 };
 
 struct declarator* parse_declarator(struct parser_state* s);
+struct declarator* parse_declarator_typedef(struct parser_state* s);
 
 void free_declarator(struct declarator* d);
 

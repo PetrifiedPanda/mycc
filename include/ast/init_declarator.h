@@ -11,6 +11,7 @@ struct init_declarator {
     struct initializer* init;
 };
 
+bool parse_init_declarator_typedef_inplace(struct parser_state* s, struct init_declarator* res);
 bool parse_init_declarator_inplace(struct parser_state* s, struct init_declarator* res);
 
 void free_init_declarator_children(struct init_declarator* d);

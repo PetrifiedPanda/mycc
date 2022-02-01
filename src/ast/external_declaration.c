@@ -33,7 +33,13 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
         return true;
     }
 
-    struct declarator* first_decl = parse_declarator(s);
+    struct declarator* first_decl;
+    if (found_typedef) {
+        first_decl = parse_declarator_typedef(s);
+    } else {
+        first_decl = parse_declarator(s);
+    }
+
     if (!first_decl) {
         free_declaration_specs(decl_specs);
         return false;
@@ -50,6 +56,12 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
 
         struct initializer* init = NULL;
         if (s->it->type == ASSIGN) {
+            if (found_typedef) {
+                set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Initializer not allowed in typedef");
+                free_declaration_specs(decl_specs);
+                free_declarator(first_decl);
+                return false;
+            }
             accept_it(s);
             init = parse_initializer(s);
             if (!init) {
@@ -63,7 +75,11 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
         init_decl->decl = first_decl;
         init_decl->init = init;
 
-        decl->init_decls = parse_init_declarator_list_first(s, init_decl);
+        if (found_typedef) {
+            decl->init_decls = parse_init_declarator_list_typedef_first(s, init_decl);
+        } else {
+            decl->init_decls = parse_init_declarator_list_first(s, init_decl);
+        }
         if (decl->init_decls.len == 0) {
             free_init_declarator_children(init_decl);
             free(init_decl);

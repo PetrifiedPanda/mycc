@@ -48,6 +48,7 @@ struct direct_declarator {
 };
 
 struct direct_declarator* parse_direct_declarator(struct parser_state* s);
+struct direct_declarator* parse_direct_declarator_typedef(struct parser_state* s);
 
 void free_direct_declarator(struct direct_declarator* d);
 

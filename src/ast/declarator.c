@@ -4,7 +4,7 @@
 
 #include "util.h"
 
-struct declarator* parse_declarator(struct parser_state* s) {
+static struct declarator* parse_declarator_base(struct parser_state* s, struct direct_declarator*(*parse_func)(struct parser_state* s)) {
     struct declarator* res = xmalloc(sizeof(struct declarator));
     if (s->it->type == ASTERISK) {
         res->ptr = parse_pointer(s);
@@ -16,7 +16,7 @@ struct declarator* parse_declarator(struct parser_state* s) {
         res->ptr = NULL;
     }
 
-    res->direct_decl = parse_direct_declarator(s);
+    res->direct_decl = parse_func(s);
     if (!res->direct_decl) {
         if (res->ptr) {
             free_pointer(res->ptr);
@@ -26,6 +26,14 @@ struct declarator* parse_declarator(struct parser_state* s) {
     }
 
     return res;
+}
+
+struct declarator* parse_declarator_typedef(struct parser_state* s) {
+    return parse_declarator_base(s, parse_direct_declarator_typedef);
+}
+
+struct declarator* parse_declarator(struct parser_state* s) {
+    return parse_declarator_base(s, parse_direct_declarator);
 }
 
 static void free_children(struct declarator* d) {

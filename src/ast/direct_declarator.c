@@ -134,12 +134,12 @@ static bool parse_arr_or_func_suffix(struct parser_state* s, struct arr_or_func_
     return false;
 }
 
-struct direct_declarator* parse_direct_declarator(struct parser_state* s) {
+static struct direct_declarator* parse_direct_declarator_base(struct parser_state* s, struct declarator* (*parse_func)(struct parser_state*), bool (*identifier_handler)(struct parser_state*, const struct token*)) {
     struct direct_declarator* res = xmalloc(sizeof(struct direct_declarator));
     if (s->it->type == LBRACKET) {
         accept_it(s);
         res->is_id = false;
-        res->decl = parse_declarator(s);
+        res->decl = parse_func(s);
         if (!res->decl) {
             free(res);
             return NULL;
@@ -152,6 +152,9 @@ struct direct_declarator* parse_direct_declarator(struct parser_state* s) {
         }
     } else if (s->it->type == IDENTIFIER) {
         res->is_id = true;
+        if (!identifier_handler(s, s->it)) {
+            return NULL;
+        } 
         char* spelling = take_spelling(s->it);
         accept_it(s);
         res->id = create_identifier(spelling);
@@ -182,7 +185,21 @@ struct direct_declarator* parse_direct_declarator(struct parser_state* s) {
 
     res->suffixes = xrealloc(res->suffixes, sizeof(struct arr_or_func_suffix) * res->len);
 
-    return res;
+    return res;   
+}
+
+static bool empty_id_handler(struct parser_state* s, const struct token* token) {
+    UNUSED(s);
+    UNUSED(token);
+    return true;
+}
+
+struct direct_declarator* parse_direct_declarator(struct parser_state* s) {
+    return parse_direct_declarator_base(s, parse_declarator, empty_id_handler);
+}
+
+struct direct_declarator* parse_direct_declarator_typedef(struct parser_state* s) {
+    return parse_direct_declarator_base(s, parse_declarator_typedef, register_typedef_name);
 }
 
 static void free_children(struct direct_declarator* d) {

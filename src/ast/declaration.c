@@ -24,7 +24,7 @@ bool parse_declaration_inplace(struct parser_state* s, struct declaration* res) 
 
         if (s->it->type != SEMICOLON) {
             if (found_typedef) {
-                // TODO: parse typedef inits
+                res->init_decls = parse_init_declarator_list_typedef(s);
             } else {
                 res->init_decls = parse_init_declarator_list(s);
             }
