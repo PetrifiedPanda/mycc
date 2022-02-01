@@ -47,7 +47,7 @@ bool parse_param_declaration_inplace(struct parser_state* s, struct param_declar
         return false;
     }
 
-    if (s->it->type == COMMA) {
+    if (s->it->type == COMMA || s->it->type == RBRACKET) {
         res->type = PARAM_DECL_NONE;
         res->decl = NULL;
     } else if (is_declarator(s->it)) {
