@@ -29,8 +29,10 @@ struct type_spec {
     };
 };
 
+bool parse_type_spec_inplace(struct parser_state* s, struct type_spec* res);
 struct type_spec* parse_type_spec(struct parser_state* s);
 
+void free_type_spec_children(struct type_spec* t);
 void free_type_spec(struct type_spec* t);
 
 #include "ast/atomic_type_spec.h"

@@ -5,7 +5,6 @@
 #include <stddef.h>
 
 #include "ast/param_type_list.h"
-#include "ast/type_qual_list.h"
 #include "ast/identifier_list.h"
 
 #include "parser/parser_state.h"
@@ -24,7 +23,7 @@ enum arr_or_func_suffix_type {
 
 struct arr_suffix {
     bool is_static;
-    struct type_qual_list type_quals;
+    struct type_quals type_quals;
     bool is_asterisk; // if this is true arr_len should be NULL
     struct assign_expr* arr_len;
 };

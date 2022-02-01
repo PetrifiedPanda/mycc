@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "util.h"
+#include "error.h"
 
 #include "parser/parser_util.h"
 
@@ -27,104 +28,79 @@ static inline bool is_standalone_type_spec(enum token_type t) {
     }
 }
 
-static struct type_spec* create_type_spec_predef(enum token_type type_spec) {
-    assert(is_standalone_type_spec(type_spec));
+bool parse_type_spec_inplace(struct parser_state* s, struct type_spec* res) {
+    assert(res);
 
-    struct type_spec* res = xmalloc(sizeof(struct type_spec));
-    res->type = TYPESPEC_PREDEF;
-    res->type_spec = type_spec;
-    
-    return res;
-}
-
-static struct type_spec* create_type_spec_atomic(struct atomic_type_spec* atomic_spec) {
-    assert(atomic_spec);
-
-    struct type_spec* res = xmalloc(sizeof(struct type_spec));
-    res->type = TYPESPEC_ATOMIC;
-    res->atomic_spec = atomic_spec;
-
-    return res;
-}
-
-static struct type_spec* create_type_spec_struct(struct struct_union_spec* struct_union_spec) {
-    struct type_spec* res = xmalloc(sizeof(struct type_spec));
-    res->type = TYPESPEC_STRUCT;
-    res->struct_union_spec = struct_union_spec;
-    
-    return res;
-}
-
-static struct type_spec* create_type_spec_enum(struct enum_spec* enum_spec) {
-    struct type_spec* res = xmalloc(sizeof(struct type_spec));
-    res->type = TYPESPEC_ENUM;
-    res->enum_spec = enum_spec;
-    
-    return res;
-}
-
-static struct type_spec* create_type_spec_typename(struct identifier* type_name) {
-    struct type_spec* res = xmalloc(sizeof(struct type_spec));
-    res->type = TYPESPEC_TYPENAME;
-    res->type_name = type_name;
-    
-    return res;
-}
-
-struct type_spec* parse_type_spec(struct parser_state* s) {
     if (is_standalone_type_spec(s->it->type)) {
         enum token_type type = s->it->type;
         accept_it(s);
-        return create_type_spec_predef(type);
+        res->type = TYPESPEC_PREDEF;
+        res->type_spec = type;
+        return true;
     }
 
     switch (s->it->type) {
         case ATOMIC: {
-            struct atomic_type_spec* spec = parse_atomic_type_spec(s);
-            if (!spec) {
-                return NULL;
+            res->type = TYPESPEC_ATOMIC;
+            res->atomic_spec = parse_atomic_type_spec(s);
+            if (!res->atomic_spec) {
+                return false;
             }
-            return create_type_spec_atomic(spec);
+            break;
         }
         case STRUCT:
         case UNION: {
-            struct struct_union_spec* spec = parse_struct_union_spec(s);
-            if (!spec) {
-                return NULL;
+            res->type = TYPESPEC_STRUCT;
+            res->struct_union_spec = parse_struct_union_spec(s);
+            if (!res->struct_union_spec) {
+                return false;
             }
-            return create_type_spec_struct(spec);
+            break;
         }
         case ENUM: {
-            struct enum_spec* spec = parse_enum_spec(s);
-            if (!spec) {
-                return NULL;
+            res->type = TYPESPEC_ENUM;
+            res->enum_spec = parse_enum_spec(s);
+            if (!res->enum_spec) {
+                return false;
             }
-            return create_type_spec_enum(spec);
+            break;
         }
         case IDENTIFIER: {
             if (is_typedef_name(s, s->it->spelling)) {
-                char* spell = take_spelling(s->it);
+                res->type = TYPESPEC_TYPENAME;
+                res->type_name = create_identifier(take_spelling(s->it));
                 accept_it(s);
-                return create_type_spec_typename(create_identifier(spell));
+                return true;
             }
-            return NULL;
+            set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Expected a type name but got %s with spelling %s", get_type_str(IDENTIFIER), s->it->spelling);
+            return false;
         }
 
         default: {
             enum token_type expected[] = {
-                    ATOMIC,
-                    STRUCT,
-                    UNION,
-                    ENUM,
-                    IDENTIFIER
+                ATOMIC,
+                STRUCT,
+                UNION,
+                ENUM,
+                IDENTIFIER
             };
             expected_tokens_error(expected, sizeof(expected) / sizeof(enum token_type), s->it);
-            return NULL;
+            return false;
         }
     }
+    return true;
 }
 
-static void free_children(struct type_spec* t) {
+struct type_spec* parse_type_spec(struct parser_state* s) {
+    struct type_spec* res = xmalloc(sizeof(struct type_spec));
+    if (!parse_type_spec_inplace(s, res)) {
+        free(res);
+        return NULL;
+    }
+    return res;
+}
+
+void free_type_spec_children(struct type_spec* t) {
     switch (t->type) {
         case TYPESPEC_PREDEF:
             break;
@@ -144,7 +120,7 @@ static void free_children(struct type_spec* t) {
 }
 
 void free_type_spec(struct type_spec* t) {
-    free_children(t);
+    free_type_spec_children(t);
     free(t);
 }
 

@@ -9,7 +9,6 @@
 #include "parser/parser_util.h"
 
 static void free_arr_suffix(struct arr_suffix* s) {
-    free_type_qual_list(&s->type_quals);
     if (s->arr_len) {
         free_assign_expr(s->arr_len);
     }
@@ -25,7 +24,7 @@ static bool parse_arr_or_func_suffix(struct parser_state* s, struct arr_or_func_
             struct arr_suffix* suffix = &res->arr_suffix;
             *suffix = (struct arr_suffix) {
                 .is_static = false,
-                .type_quals = {.len = 0, .type_quals = NULL},
+                .type_quals = create_type_quals(),
                 .is_asterisk = false,
                 .arr_len = NULL
             };
@@ -49,7 +48,7 @@ static bool parse_arr_or_func_suffix(struct parser_state* s, struct arr_or_func_
 
             if (is_type_qual(s->it->type)) {
                 suffix->type_quals = parse_type_qual_list(s);
-                if (suffix->type_quals.len == 0) {
+                if (!is_valid_type_quals(&suffix->type_quals)) {
                     return false;
                 }
 

@@ -3,20 +3,18 @@
 
 #include <stddef.h>
 
-#include "parser/parser_state.h"
+#include "ast/type_quals.h"
 
-struct type_qual_list;
+#include "parser/parser_state.h"
 
 struct pointer {
     size_t num_indirs;
-    struct type_qual_list* quals_after_ptr;
+    struct type_quals* quals_after_ptr;
 };
 
 struct pointer* parse_pointer(struct parser_state* s);
 
 void free_pointer(struct pointer* p);
-
-#include "ast/type_qual_list.h"
 
 #endif
 

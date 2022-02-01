@@ -23,7 +23,7 @@ struct abs_arr_or_func_suffix {
         bool has_asterisk;
         struct {
             bool is_static; // only if assign != NULL
-            struct type_qual_list type_quals;
+            struct type_quals type_quals;
             struct assign_expr* assign;
         };
         struct param_type_list func_types;

@@ -12,7 +12,7 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
 
     if (is_type_spec(s) || is_type_qual(s->it->type)) {
         res->spec_qual_list = parse_spec_qual_list(s);
-        if (res->spec_qual_list.len == 0) {
+        if (!is_valid_spec_qual_list(&res->spec_qual_list)) {
             return false;
         }
     } else {

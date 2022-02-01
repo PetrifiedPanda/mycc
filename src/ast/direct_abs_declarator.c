@@ -53,7 +53,7 @@ static bool parse_abs_arr_or_func_suffix(struct parser_state* s, struct abs_arr_
 
             if (is_type_qual(s->it->type)) {
                 res->type_quals = parse_type_qual_list(s);
-                if (res->type_quals.len == 0) {
+                if (!is_valid_type_quals(&res->type_quals)) {
                     return false;
                 }
 
@@ -140,7 +140,6 @@ static void free_abs_arr_or_func_suffix(struct abs_arr_or_func_suffix* s) {
             if (s->assign) {
                 free_assign_expr(s->assign);
             }
-            free_type_qual_list(&s->type_quals);
             break;
         case ABS_ARR_OR_FUNC_SUFFIX_FUNC:
             free_param_type_list(&s->func_types);
