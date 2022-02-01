@@ -24,6 +24,11 @@ static bool parse_abs_arr_or_func_suffix(struct parser_state* s, struct abs_arr_
                 if (res->func_types.param_list == NULL) {
                     return false;
                 }
+
+                if (!accept(s, RBRACKET)) {
+                    free_param_type_list(&res->func_types);
+                    return false;
+                }
             }
             return true;
         }
