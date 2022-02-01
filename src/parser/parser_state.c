@@ -146,7 +146,7 @@ static bool insert_identifier(struct identifier_type_map* map, const struct iden
     if (map->pairs[i].spelling != NULL) {
         const char* type_string = map->pairs->type == ID_TYPE_ENUM_CONSTANT ? "enum constant" : "typedef name";
         struct source_location loc = map->pairs[i].source_loc;
-        set_error_file(ERR_PARSER, item->file, item->source_loc, "Redefined symbol %s that is already defined as %s in %s(%zu,%zu)", map->pairs[i].spelling, type_string, loc.line, loc.index);
+        set_error_file(ERR_PARSER, item->file, item->source_loc, "Redefined symbol %s that is already defined as %s in %s(%zu,%zu)", map->pairs[i].spelling, type_string, map->pairs[i].file, loc.line, loc.index);
         return false;
     }
 
