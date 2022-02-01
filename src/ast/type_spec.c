@@ -114,7 +114,7 @@ void free_type_spec_children(struct type_spec* t) {
             free_enum_spec(t->enum_spec);
             break;
         case TYPESPEC_TYPENAME:
-            free(t->type_name);
+            free_identifier(t->type_name);
             break;
     }
 }
