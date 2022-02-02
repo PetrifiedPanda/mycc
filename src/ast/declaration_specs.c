@@ -7,6 +7,18 @@
 
 #include "parser/parser_util.h"
 
+static bool current_is_type_qual(const struct parser_state* s) {
+    if (is_type_qual(s->it->type)) {
+        if (s->it->type == ATOMIC) {
+            return s->it[1].type != LBRACKET;
+        } else {
+            return true;
+        }
+    } else {
+        return false;
+    }
+}
+
 /**
  *
  * @param s The current parser_state
@@ -46,7 +58,7 @@ int parse_declaration_spec(struct parser_state* s, struct declaration_specs* res
                 assert(false);
         }
         accept_it(s);
-    } else if (is_type_qual(s->it->type)) {
+    } else if (current_is_type_qual(s)) {
         update_type_quals(s,&res->type_quals);
     } else if (is_type_spec(s)) {
         if (res->num_type_specs == *alloc_len_type_specs) {
