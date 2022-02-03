@@ -1,3 +1,32 @@
+typedef _Bool bool;
+typedef unsigned long long size_t;
+
+const bool true = 1;
+const bool false = 0;
+
+void* NULL = 0;
+
+void free(void*);
+
+int isdigit(char);
+char tolower(unsigned char);
+
+int isspace(int);
+size_t strlen(const char*);
+int strcmp(const char*, const char*);
+int strncmp(const char*, const char*, size_t);
+void strcpy(char*, const char*);
+
+void assert(bool);
+
+bool is_hex_const(const char* str, size_t num);
+bool is_oct_const(const char* str, size_t num);
+bool is_dec_const(const char* str, size_t num);
+bool is_char_const(const char* str, size_t num);
+bool is_float_const(const char* str, size_t num);
+bool is_string_literal(const char* str, size_t num);
+bool is_valid_identifier(const char* str, size_t num);
+
 enum token_type {
     IDENTIFIER,
     I_CONSTANT,
@@ -105,10 +134,180 @@ enum token_type {
     INVALID
 };
 
+/**
+ * @brief Gets a spelling for the given token_type
+ *
+ * @param type Type to get the spelling for
+ * @return const char* The spelling of the given token type, if it is unambiguous, otherwise NULL
+ */
+const char* get_spelling(enum token_type type);
+
+/**
+ * @brief Gets a string to identify the token_type
+ *
+ * @param type enum token_type value
+ * @return const char* A string that is identical to the spelling of the enum value
+ */
+const char* get_type_str(enum token_type type);
+
+bool is_unary_op(enum token_type t);
+bool is_assign_op(enum token_type t);
+bool is_storage_class_spec(enum token_type t);
+bool is_keyword_type_spec(enum token_type t);
+bool is_type_qual(enum token_type t);
+bool is_func_spec(enum token_type t);
+
+bool is_shift_op(enum token_type t);
+bool is_rel_op(enum token_type t);
+bool is_mul_op(enum token_type t);
+bool is_add_op(enum token_type t);
+bool is_eq_op(enum token_type t);
+
+struct source_location {
+    size_t line, index;
+};
+
+struct token {
+    enum token_type type;
+    char* spelling;
+    char* file;
+    struct source_location source_loc;
+};
+
+/**
+ * @brief Initialize the token given in the pointer
+ *
+ * @param t The token to initialize, must not be NULL
+ * @param type The type of the token
+ * @param spelling The spelling of the token, or NULL if tokens of the given type have only one spelling
+ * @param loc The source location of the token
+ * @param filename The file this token is in (This is copied into the token)
+ */
+void init_token(struct token* t, enum token_type type, char* spelling, struct source_location loc, const char* filename);
+
+/**
+ * @brief Initialize the token in the given pointer, copying the spelling
+ *
+ * @param t The token to initialize, must not be NULL
+ * @param type The type of the token
+ * @param spelling The spelling of the token, which is to be copied, must not be NULL
+ * @param loc The source location of the token
+ * @param filename The file this token is in (This is copied into the token)
+ */
+void init_token_copy(struct token* t, enum token_type type, const char* spelling, struct source_location loc, const char* filename);
+
+void free_token(struct token* t);
+
+enum error_type {
+    ERR_NONE,
+    ERR_TOKENIZER,
+    ERR_PARSER
+};
+
+/**
+ * @brief Get the last error that was set
+ *
+ * @return enum error_type The last error that was set using set_error() or set_error_file()
+ */
+enum error_type get_last_error();
+
+/**
+ * @brief Clears the global error state, so get_last_error() returns ERR_NONE
+ *
+ */
+void clear_last_error();
+
+/**
+ * @brief Get the message set by the last error. An error must have been set
+ *
+ * @return const char* The error set by the last call to set_error() or set_error_file()
+ */
+const char* get_error_string();
+
+/**
+ *
+ * @param t The error type to be converted to a string
+ * @return The enum constant as a string
+ */
+const char* get_error_type_str(enum error_type t);
+
+/**
+ * @brief Set the global error state
+ *
+ * @param type The error type to set
+ * @param format A format string, analogous to printf()
+ * @param ... The strings format arguments
+ */
+void set_error(enum error_type type, const char* format, ...);
+
+/**
+ * @brief Sets the global error state, specifying the location of the error in the file
+ *
+ * @param type The error type to set
+ * @param filename Filename of the file that was trying to be compiled
+ * @param loc SourceLocation in the given file
+ * @param format A format string, analogous to printf()
+ * @param ... The strings format arguments
+ */
+void set_error_file(enum error_type type, const char* filename, struct source_location loc, const char* format, ...);
+
+/**
+ * @brief Appends to the already existing error message. The error must have already been set
+ *
+ * @param format A format string, analogous to printf()
+ * @param ... The strings format arguments
+ */
+void append_error_msg(const char* format, ...);
+
+/**
+ * @brief Calls malloc(), exiting when malloc() fails
+ *
+ * @param bytes Size of allocation
+ * @return void* Pointer to allocated storage
+ */
+void* xmalloc(size_t bytes);
+
+/**
+ * @brief calls calloc(), exiting when calloc() fails
+ *
+ * @param len Number of elements to allocate
+ * @param elem_size Size of one element in bytes
+ * @return void* Pointer to allocated storage, or NULL if len is zero
+ */
+void* xcalloc(size_t len, size_t elem_size);
+
+/**
+ * @brief Calls realloc(), exiting when realloc() fails
+ * If bytes is zero, the given buffer is freed and NULL is returned
+ *
+ * @param alloc Existing allocation, or NULL
+ * @param bytes New size for the allocation
+ * @return void* Resized allocation
+ */
+void* xrealloc(void* alloc, size_t bytes);
+
+/**
+ * @brief Grows an existing allocation, writing the new allocation and its size in the given pointers
+ *
+ * @param alloc Pointer to existing allocation, to which the resulting allocation will be written
+ * @param alloc_len Pointer to number of allocated elements, to which the new number of elements
+ *                  will be written
+ * @param elem_size Size of one element in bytes
+ */
+void grow_alloc(void** alloc, size_t* alloc_len, size_t elem_size);
+
+/**
+ * @brief Allocates a copy of the given string
+ *
+ * @param str A zero-terminated string that must not be NULL
+ * @return char* A heap allocated copy of str
+ */
+char* alloc_string_copy(const char* str);
+
 struct token_arr {
     struct token* tokens;
-    unsigned long long len;
-    unsigned long long alloc_len;
+    size_t len;
+    size_t alloc_len;
 };
 
 struct tokenizer_state {
@@ -122,20 +321,20 @@ struct tokenizer_state {
 static enum token_type multic_token_type(const char* spelling);
 static enum token_type singlec_token_type(char c);
 static enum token_type check_next(enum token_type type, const char* next);
-static _Bool token_is_over(const struct tokenizer_state* s);
-static _Bool is_valid_singlec_token(enum token_type type, char prev, char prev_prev);
+static bool token_is_over(const struct tokenizer_state* s);
+static bool is_valid_singlec_token(enum token_type type, char prev, char prev_prev);
 
-static void advance(struct tokenizer_state* s, unsigned long long num);
+static void advance(struct tokenizer_state* s, size_t num);
 static void advance_one(struct tokenizer_state* s);
 static void advance_newline(struct tokenizer_state* s);
 
 static void add_token_copy(struct token_arr* res, enum token_type type, const char* spell, struct source_location loc, const char* filename);
 static void add_token(struct token_arr* res, enum token_type type, char* spell, struct source_location loc, const char* filename);
 
-static _Bool handle_comments(struct tokenizer_state* s);
+static bool handle_comments(struct tokenizer_state* s);
 
-static _Bool handle_character_literal(struct tokenizer_state* s, struct token_arr* res);
-static _Bool handle_other(struct tokenizer_state* s, struct token_arr* res);
+static bool handle_character_literal(struct tokenizer_state* s, struct token_arr* res);
+static bool handle_other(struct tokenizer_state* s, struct token_arr* res);
 
 struct token* tokenize(const char* str, const char* filename) {
     enum {NUM_START_TOKENS = 1};
@@ -176,7 +375,7 @@ struct token* tokenize(const char* str, const char* filename) {
 
             add_token(&res, type, NULL, s.source_loc, s.current_file);
 
-            unsigned long long len = strlen(get_spelling(type));
+            size_t len = strlen(get_spelling(type));
             advance(&s, len);
         } else if (*s.it == '\"' || *s.it == '\'' || (*s.it == 'L' && (s.it[1] == '\"' || s.it[1] == '\''))) {
             if (!handle_character_literal(&s, &res)) {
@@ -194,13 +393,13 @@ struct token* tokenize(const char* str, const char* filename) {
         .type = INVALID,
         .spelling = NULL,
         .file = NULL,
-        .source_loc = {(unsigned long long) -1, (unsigned long long) -1}
+        .source_loc = {(size_t) -1, (size_t) -1}
     };
 
     return res.tokens;
 
     fail:
-    for (unsigned long long i = 0; i < res.len; ++i) {
+    for (size_t i = 0; i < res.len; ++i) {
         free_token(&res.tokens[i]);
     }
     free(res.tokens);
@@ -214,7 +413,7 @@ void free_tokenizer_result(struct token* tokens) {
     free(tokens);
 }
 
-static inline _Bool is_spelling(const char* spelling, enum token_type type) {
+static inline bool is_spelling(const char* spelling, enum token_type type) {
     return strcmp(spelling, get_spelling(type)) == 0;
 }
 
@@ -369,9 +568,9 @@ static enum token_type singlec_token_type(char c) {
     }
 }
 
-static _Bool check_type(enum token_type type, const char* next_chars) {
+static bool check_type(enum token_type type, const char* next_chars) {
     const char* spelling = get_spelling(type);
-    unsigned long long len = strlen(spelling);
+    size_t len = strlen(spelling);
     assert(len != 0);
     assert(len >= 2);
     return strncmp(spelling + 1, next_chars, len - 1) == 0;
@@ -483,7 +682,7 @@ static enum token_type check_next(enum token_type type, const char* next) {
     return type;
 }
 
-static _Bool is_valid_singlec_token(enum token_type type, char prev, char prev_prev) {
+static bool is_valid_singlec_token(enum token_type type, char prev, char prev_prev) {
     assert(type != INVALID);
     if ((type == DOT && isdigit(prev)) || ((type == SUB || type == ADD) && tolower((unsigned char)prev) == 'e' && isdigit(prev_prev))) {
         return false;
@@ -492,7 +691,7 @@ static _Bool is_valid_singlec_token(enum token_type type, char prev, char prev_p
     }
 }
 
-static void advance(struct tokenizer_state* s, unsigned long long num) {
+static void advance(struct tokenizer_state* s, size_t num) {
     assert(num > 0);
     s->it += num;
     s->source_loc.index += num;
@@ -541,7 +740,7 @@ static void add_token(struct token_arr* res, enum token_type type, char* spell, 
     ++res->len;
 }
 
-static _Bool handle_comments(struct tokenizer_state* s) {
+static bool handle_comments(struct tokenizer_state* s) {
     if (s->it[1] == '*') {
         advance(s, 2);
         while (*s->it != '\0' && *s->it != '*' && s->it[1] != '/') {
@@ -567,7 +766,7 @@ static _Bool handle_comments(struct tokenizer_state* s) {
     }
 }
 
-static enum token_type get_char_lit_type(const char* buf, unsigned long long len, char terminator) {
+static enum token_type get_char_lit_type(const char* buf, size_t len, char terminator) {
     if (terminator == '\"' && is_string_literal(buf, len)) {
         return STRING_LITERAL;
     } else if (terminator == '\'' && is_char_const(buf, len)) {
@@ -587,11 +786,11 @@ static void unterminated_literal_err(char terminator, struct source_location sta
     set_error_file(ERR_TOKENIZER, filename, start_loc, "%s literal not properly terminated", literal_type_str);
 }
 
-static _Bool handle_character_literal(struct tokenizer_state* s, struct token_arr* res) {
+static bool handle_character_literal(struct tokenizer_state* s, struct token_arr* res) {
     assert(*s->it == '\'' || *s->it == '\"' || *s->it == 'L');
     enum {BUF_STRLEN = 512};
     char spell_buf[BUF_STRLEN + 1] = {0};
-    unsigned long long buf_idx = 0;
+    size_t buf_idx = 0;
     const struct source_location start_loc = s->source_loc;
 
     char terminator;
@@ -608,8 +807,7 @@ static _Bool handle_character_literal(struct tokenizer_state* s, struct token_ar
     ++buf_idx;
 
     advance_one(s);
-
-    while (*s->it != '\0' && *s->it != terminator && buf_idx != BUF_STRLEN) {
+    while (*s->it != '\0' && (s->prev == '\\' || *s->it != terminator) && buf_idx != BUF_STRLEN) {
         spell_buf[buf_idx] = *s->it;
         ++buf_idx;
 
@@ -618,7 +816,7 @@ static _Bool handle_character_literal(struct tokenizer_state* s, struct token_ar
 
     char* dyn_buf = NULL;
     if (buf_idx == BUF_STRLEN) {
-        unsigned long long buf_len = BUF_STRLEN + BUF_STRLEN / 2;
+        size_t buf_len = BUF_STRLEN + BUF_STRLEN / 2;
         dyn_buf = xmalloc(buf_len * sizeof(char));
         strcpy(dyn_buf, spell_buf);
 
@@ -643,7 +841,7 @@ static _Bool handle_character_literal(struct tokenizer_state* s, struct token_ar
         unterminated_literal_err(terminator, start_loc, s->current_file);
         return false;
     } else {
-        _Bool is_dyn = dyn_buf != NULL;
+        bool is_dyn = dyn_buf != NULL;
         if (is_dyn) {
             dyn_buf[buf_idx] = *s->it;
             dyn_buf[buf_idx + 1] = '\0';
@@ -674,15 +872,15 @@ static _Bool handle_character_literal(struct tokenizer_state* s, struct token_ar
     return true;
 }
 
-static _Bool token_is_over(const struct tokenizer_state* s) {
+static bool token_is_over(const struct tokenizer_state* s) {
     enum token_type type = singlec_token_type(*s->it);
     return *s->it == '\0' || isspace(*s->it) || (type != INVALID && is_valid_singlec_token(type, s->prev, s->prev_prev));
 }
 
-static _Bool handle_other(struct tokenizer_state* s, struct token_arr* res) {
+static bool handle_other(struct tokenizer_state* s, struct token_arr* res) {
     enum {BUF_STRLEN = 512};
     char spell_buf[BUF_STRLEN + 1] = {0};
-    unsigned long long buf_idx = 0;
+    size_t buf_idx = 0;
     struct source_location start_loc = s->source_loc;
     while (!token_is_over(s) && buf_idx != BUF_STRLEN) {
         spell_buf[buf_idx] = *s->it;
@@ -693,7 +891,7 @@ static _Bool handle_other(struct tokenizer_state* s, struct token_arr* res) {
 
     char* dyn_buf = NULL;
     if (!token_is_over(s)) {
-        unsigned long long buf_len = BUF_STRLEN + BUF_STRLEN / 2;
+        size_t buf_len = BUF_STRLEN + BUF_STRLEN / 2;
         dyn_buf = xmalloc(buf_len * sizeof(char));
         strcpy(dyn_buf, spell_buf);
 

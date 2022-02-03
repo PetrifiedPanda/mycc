@@ -913,7 +913,7 @@ static void file_test() {
         struct token* tokens = tokenize(contents, file);
         struct translation_unit tl = parse_tokens(tokens);
         ASSERT_NO_ERROR();
-        ASSERT_SIZE_T(tl.len, (size_t)36);
+        ASSERT_SIZE_T(tl.len, (size_t)88);
 
         free_translation_unit(&tl);
         free_tokenizer_result(tokens);
