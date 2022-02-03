@@ -99,7 +99,7 @@ static bool parse_arr_or_func_suffix(struct parser_state* s, struct arr_or_func_
 
         case LBRACKET: {
             accept_it(s);
-            if (s->it->type == IDENTIFIER) {
+            if (s->it->type == IDENTIFIER && !is_typedef_name(s, s->it->spelling)) {
                 res->type = ARR_OR_FUNC_FUN_PARAMS;
                 res->fun_params = parse_identifier_list(s);
                 if (res->fun_params.len == 0) {
