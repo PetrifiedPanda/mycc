@@ -4,9 +4,10 @@
 #include "tokenizer.h"
 #include "util.h"
 
-#include "ast/translation_unit.h"
+#include "parser/parser.h"
 
 #include "test_asserts.h"
+#include "test_util.h"
 
 static void parser_state_test();
 static void primary_expr_test();
@@ -19,6 +20,7 @@ static void postfix_expr_test();
 static void assign_expr_test();
 static void static_assert_declaration_test();
 static void statement_test();
+static void file_test();
 
 void parser_test() {
     parser_state_test();
@@ -32,6 +34,7 @@ void parser_test() {
     assign_expr_test();
     static_assert_declaration_test();
     statement_test();
+    file_test();
     printf("Parser test successful\n");
 }
 
@@ -878,4 +881,42 @@ static void statement_test() {
     free_tokenizer_result(tokens);
 
     // TODO: Add tests with declarations when implemented
+}
+
+static void file_test() {
+    {
+        const char* file = "../test/files/parser_testfile.c";
+        char* contents = read_file(file);
+        struct token* tokens = tokenize(contents, file);
+        struct translation_unit tl = parse_tokens(tokens);
+        ASSERT_NO_ERROR();
+        ASSERT_SIZE_T(tl.len, (size_t)12);
+
+        ASSERT(tl.external_decls[0].is_func_def == false);
+        ASSERT(tl.external_decls[0].decl.is_normal_decl);
+        ASSERT(tl.external_decls[0].decl.decl_specs->type_specs[0].type == TYPESPEC_STRUCT);
+        ASSERT(tl.external_decls[0].decl.decl_specs->type_specs[0].struct_union_spec->is_struct);
+        ASSERT_NULL(tl.external_decls[0].decl.decl_specs->type_specs[0].struct_union_spec->identifier);
+        ASSERT_SIZE_T(tl.external_decls[0].decl.decl_specs->type_specs[0].struct_union_spec->decl_list.len, (size_t)2);
+
+        ASSERT(tl.external_decls[7].is_func_def);
+        ASSERT_SIZE_T(tl.external_decls[7].func_def.comp->len, (size_t)22);
+
+        free_translation_unit(&tl);
+        free_tokenizer_result(tokens);
+        free(contents);
+    }
+
+    {
+        const char* file = "../test/files/large_testfile.c";
+        char* contents = read_file(file);
+        struct token* tokens = tokenize(contents, file);
+        struct translation_unit tl = parse_tokens(tokens);
+        ASSERT_NO_ERROR();
+        ASSERT_SIZE_T(tl.len, (size_t)36);
+
+        free_translation_unit(&tl);
+        free_tokenizer_result(tokens);
+        free(contents);
+    }
 }
