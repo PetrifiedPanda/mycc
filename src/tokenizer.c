@@ -449,7 +449,7 @@ static void add_token(struct token_arr* res, enum token_type type, char* spell, 
 static bool handle_comments(struct tokenizer_state* s) {
     if (s->it[1] == '*') {
         advance(s, 2);
-        while (*s->it != '\0' && *s->it != '*' && s->it[1] != '/') {
+        while (*s->it != '\0' && (*s->it != '*' || s->it[1] != '/')) {
             advance_newline(s);
         }
 
@@ -513,7 +513,7 @@ static bool handle_character_literal(struct tokenizer_state* s, struct token_arr
     ++buf_idx;
 
     advance_one(s);
-    while (*s->it != '\0' && (s->prev == '\\' || *s->it != terminator) && buf_idx != BUF_STRLEN) {
+    while (*s->it != '\0' && ((s->prev_prev != '\\' && s->prev == '\\') || *s->it != terminator) && buf_idx != BUF_STRLEN) {
         spell_buf[buf_idx] = *s->it;
         ++buf_idx;
 
