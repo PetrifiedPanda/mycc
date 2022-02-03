@@ -11,8 +11,9 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
     assert(res);
 
     if (is_type_spec(s) || is_type_qual(s->it->type)) {
-        res->spec_qual_list = parse_spec_qual_list(s);
-        if (!is_valid_spec_qual_list(&res->spec_qual_list)) {
+        res->spec_qual_list = xmalloc(sizeof(struct spec_qual_list));
+        *res->spec_qual_list = parse_spec_qual_list(s);
+        if (!is_valid_spec_qual_list(res->spec_qual_list)) {
             return false;
         }
     } else {
@@ -47,7 +48,7 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
     if (s->it->type == ASTERISK || s->it->type == LBRACKET || s->it->type == LINDEX) {
         res->abstract_decl = parse_abs_declarator(s);
         if (!res->abstract_decl) {
-            free_spec_qual_list(&res->spec_qual_list);
+            free_spec_qual_list(res->spec_qual_list);
             return false;
         }
     } else {
@@ -67,7 +68,8 @@ struct type_name* parse_type_name(struct parser_state* s) {
 }
 
 void free_type_name_children(struct type_name* n) {
-    free_spec_qual_list(&n->spec_qual_list);
+    free_spec_qual_list(n->spec_qual_list);
+    free(n->spec_qual_list);
     if (n->abstract_decl) {
         free_abs_declarator(n->abstract_decl);
     }

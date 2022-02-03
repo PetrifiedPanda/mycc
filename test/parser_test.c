@@ -894,10 +894,10 @@ static void file_test() {
 
         ASSERT(tl.external_decls[0].is_func_def == false);
         ASSERT(tl.external_decls[0].decl.is_normal_decl);
-        ASSERT(tl.external_decls[0].decl.decl_specs->type_specs[0].type == TYPESPEC_STRUCT);
-        ASSERT(tl.external_decls[0].decl.decl_specs->type_specs[0].struct_union_spec->is_struct);
-        ASSERT_NULL(tl.external_decls[0].decl.decl_specs->type_specs[0].struct_union_spec->identifier);
-        ASSERT_SIZE_T(tl.external_decls[0].decl.decl_specs->type_specs[0].struct_union_spec->decl_list.len, (size_t)2);
+        ASSERT(tl.external_decls[0].decl.decl_specs->type_specs.type == TYPESPEC_STRUCT);
+        ASSERT(tl.external_decls[0].decl.decl_specs->type_specs.struct_union_spec->is_struct);
+        ASSERT_NULL(tl.external_decls[0].decl.decl_specs->type_specs.struct_union_spec->identifier);
+        ASSERT_SIZE_T(tl.external_decls[0].decl.decl_specs->type_specs.struct_union_spec->decl_list.len, (size_t)2);
 
         ASSERT(tl.external_decls[7].is_func_def);
         ASSERT_SIZE_T(tl.external_decls[7].func_def.comp->len, (size_t)22);

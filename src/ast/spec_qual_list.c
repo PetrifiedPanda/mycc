@@ -6,22 +6,13 @@
 
 #include "parser/parser_util.h"
 
-static bool parse_spec_or_qual(struct parser_state* s, struct spec_qual_list* res, size_t* alloc_len) {
+static bool parse_spec_or_qual(struct parser_state* s, struct spec_qual_list* res) {
     assert(res);
-    assert(alloc_len);
 
     if (is_type_qual(s->it->type)) {
         update_type_quals(s, &res->quals);
-    } else {
-        if (res->len == *alloc_len) {
-            grow_alloc((void**)&res->type_specs, alloc_len, sizeof(struct type_spec));
-        }
-
-        if (!parse_type_spec_inplace(s, &res->type_specs[res->len])) {
-            return false;
-        }
-
-        ++res->len;
+    } else if (!update_type_specs(s, &res->specs)) {
+        return false;
     }
 
     return true;
@@ -30,47 +21,37 @@ static bool parse_spec_or_qual(struct parser_state* s, struct spec_qual_list* re
 struct spec_qual_list parse_spec_qual_list(struct parser_state* s) {
     struct spec_qual_list res = {
             .quals = create_type_quals(),
-            .len = 0,
-            .type_specs = NULL
+            .specs = create_type_specs()
     };
 
-    size_t alloc_len = res.len;
-    if (!parse_spec_or_qual(s, &res, &alloc_len)) {
-        free(res.type_specs);
+    if (!parse_spec_or_qual(s, &res)) {
         return (struct spec_qual_list) {
             .quals = create_type_quals(),
-            .len = 0,
-            .type_specs = NULL
+            .specs = create_type_specs()
         };
     }
 
     while (is_type_spec(s) || is_type_qual(s->it->type)) {
-        if (!parse_spec_or_qual(s, &res, &alloc_len)) {
-            free_spec_qual_list(&res);
+        if (!parse_spec_or_qual(s, &res)) {
+            free_spec_qual_list_children(&res);
             return (struct spec_qual_list) {
                 .quals = create_type_quals(),
-                .len = 0,
-                .type_specs = NULL,
+                .specs = create_type_specs()
             };
         }
     }
 
-    res.type_specs = xrealloc(res.type_specs, sizeof(struct type_spec) * res.len);
-
     return res;
 }
 
+void free_spec_qual_list_children(struct spec_qual_list* l) {
+    free_type_specs_children(&l->specs);
+}
+
 void free_spec_qual_list(struct spec_qual_list* l) {
-    for (size_t i = 0; i < l->len; ++i) {
-        free_type_spec_children(&l->type_specs[i]);
-    }
-    free(l->type_specs);
+    free_spec_qual_list_children(l);
 }
 
 bool is_valid_spec_qual_list(struct spec_qual_list* l) {
-    if (l->len > 0) {
-        return true;
-    }
-    struct type_quals* tq = &l->quals;
-    return tq->is_atomic || tq->is_volatile || tq->is_restrict || tq->is_const;
+    return is_valid_type_quals(&l->quals) || is_valid_type_specs(&l->specs);
 }

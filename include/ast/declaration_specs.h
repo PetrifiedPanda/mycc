@@ -6,10 +6,10 @@
 #include "token.h"
 
 #include "ast/type_quals.h"
+#include "ast/type_specs.h"
 
 #include "parser/parser_state.h"
 
-struct type_spec;
 struct align_spec;
 
 struct storage_class {
@@ -34,15 +34,13 @@ struct declaration_specs {
     struct align_spec* align_specs;
     size_t num_align_specs;
 
-    struct type_spec* type_specs;
-    size_t num_type_specs;
+    struct type_specs type_specs;
 };
 
 struct declaration_specs* parse_declaration_specs(struct parser_state* s, bool* found_typedef);
 
 void free_declaration_specs(struct declaration_specs* s);
 
-#include "ast/type_spec.h"
 #include "ast/align_spec.h"
 
 #endif

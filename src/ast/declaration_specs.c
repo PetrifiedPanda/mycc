@@ -61,15 +61,9 @@ int parse_declaration_spec(struct parser_state* s, struct declaration_specs* res
     } else if (current_is_type_qual(s)) {
         update_type_quals(s,&res->type_quals);
     } else if (is_type_spec(s)) {
-        if (res->num_type_specs == *alloc_len_type_specs) {
-            grow_alloc((void**)&res->type_specs, alloc_len_type_specs, sizeof(struct type_spec));
-        }
-
-        if (!parse_type_spec_inplace(s, &res->type_specs[res->num_type_specs])) {
+        if (!update_type_specs(s, &res->type_specs)) {
             return 0;
         }
-
-        ++res->num_type_specs;
     } else if (is_func_spec(s->it->type)) {
         struct func_specs* fs = &res->func_specs;
         switch (s->it->type) {
@@ -125,8 +119,7 @@ struct declaration_specs* parse_declaration_specs(struct parser_state* s, bool* 
     res->num_align_specs = 0;
     size_t alloc_len_align_specs = 0;
 
-    res->type_specs = NULL;
-    res->num_type_specs = 0;
+    res->type_specs = create_type_specs();
     size_t alloc_len_type_specs = 0;
 
     while (true) {
@@ -141,7 +134,6 @@ struct declaration_specs* parse_declaration_specs(struct parser_state* s, bool* 
     }
 
     res->align_specs = xrealloc(res->align_specs, sizeof(struct align_spec) * res->num_align_specs);
-    res->type_specs = xrealloc(res->type_specs, sizeof(struct type_spec) * res->num_type_specs);
 
     *found_typedef = res->storage_class.is_typedef;
 
@@ -153,10 +145,7 @@ static void free_children(struct declaration_specs* s) {
         free_align_spec_children(&s->align_specs[i]);
     }
     free(s->align_specs);
-    for (size_t i = 0; i < s->num_type_specs; ++i) {
-        free_type_spec_children(&s->type_specs[i]);
-    }
-    free(s->type_specs);
+    free_type_specs_children(&s->type_specs);
 }
 
 void free_declaration_specs(struct declaration_specs* s) {

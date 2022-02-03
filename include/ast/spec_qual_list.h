@@ -5,22 +5,21 @@
 #include <stddef.h>
 
 #include "ast/type_quals.h"
-
-struct type_spec;
+#include "ast/type_specs.h"
 
 struct spec_qual_list {
     struct type_quals quals;
-    size_t len;
-    struct type_spec* type_specs;
+    struct type_specs specs;
 };
 
 struct spec_qual_list parse_spec_qual_list(struct parser_state* s);
 
+void free_spec_qual_list_children(struct spec_qual_list* l);
 void free_spec_qual_list(struct spec_qual_list* l);
 
 bool is_valid_spec_qual_list(struct spec_qual_list* l);
 
-#include "ast/type_spec.h"
+#include "ast/type_specs.h"
 
 #endif
 

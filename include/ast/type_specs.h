@@ -18,22 +18,35 @@ enum type_spec_type {
     TYPESPEC_TYPENAME
 };
 
-struct type_spec {
+struct type_modifiers {
+    bool is_unsigned;
+    bool is_signed;
+    bool is_short;
+    int num_long;
+    bool is_complex;
+    bool is_imaginary;
+};
+
+struct type_specs {
+    struct type_modifiers mods;
+    bool has_specifier;
     enum type_spec_type type;
     union {
         enum token_type type_spec;
         struct atomic_type_spec* atomic_spec;
         struct struct_union_spec* struct_union_spec;
         struct enum_spec* enum_spec;
-        struct identifier* type_name;
+        struct identifier* typedef_name;
     };
 };
 
-bool parse_type_spec_inplace(struct parser_state* s, struct type_spec* res);
-struct type_spec* parse_type_spec(struct parser_state* s);
+struct type_specs create_type_specs();
 
-void free_type_spec_children(struct type_spec* t);
-void free_type_spec(struct type_spec* t);
+bool update_type_specs(struct parser_state* s, struct type_specs* q);
+
+void free_type_specs_children(struct type_specs* s);
+
+bool is_valid_type_specs(struct type_specs* s);
 
 #include "ast/atomic_type_spec.h"
 #include "ast/struct_union_spec.h"
