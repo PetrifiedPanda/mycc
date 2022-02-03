@@ -49,7 +49,7 @@ int main() {
 
     MyStruct *s_ptr = &s;
     s_ptr->str = "Goodbye";
-    *s_ptr = (MyStruct){L"Lstrings seem to be int pointers", "doot"};
+    *s_ptr = (MyStruct){L"\"Lstrings seem to be int pointers\"", "doot"};
 
     union my_union soviet_union;
     soviet_union.i = 0x1000 + 033242;
@@ -115,6 +115,8 @@ _Noreturn static void variadic(int m, ...) {
     double _Imaginary im_d = _Generic(1.0, float: 10, double: 12.0);
     _Static_assert(1, "Something is wrong");
     return;
+    char d = '\\', e = '\'', f = '"', g = '\0';
+    int h = 'sfss';
 }
 
 _Thread_local int g_thread;
