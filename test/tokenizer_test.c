@@ -6,11 +6,12 @@
 #include "error.h"
 
 #include "test_asserts.h"
+#include "test_util.h"
 
 static void simple_test();
 static void file_test();
 
-void tokenizer_test() {
+void tokenizer_test() { 
     simple_test();
     file_test();
     printf("Tokenizer test successful\n");;
@@ -147,39 +148,17 @@ static void simple_test() {
     free_tokenizer_result(tokens);
 }
 
-static char* read_file(const char* filename) {
-    FILE* f = fopen(filename, "rb");
-    ASSERT_NOT_NULL(f);
-
-    int result;
-
-    result = fseek(f, 0, SEEK_END);
-    ASSERT_INT(result, 0);
-
-    size_t fsize = ftell(f);
-    result = fseek(f, 0, SEEK_SET);
-    ASSERT_INT(result, 0);
-
-    char* res = malloc(sizeof(char) * (fsize + 1));
-    ASSERT_NOT_NULL(res);
-
-    size_t chars_read = fread(res, 1, fsize, f);
-    ASSERT_SIZE_T(chars_read, fsize);
-    res[fsize] = '\0';
-
-    fclose(f);
-    return res;
-}
+#include "parser/parser.h"
 
 static void file_test() {
     const char* filename = "../test/files/no_preproc.c";
-    char* code = read_file(filename); 
+    char* code = read_file(filename);
     ASSERT_NOT_NULL(code);
-    
+
     struct token* tokens = tokenize(code, filename);
     ASSERT_NO_ERROR();
     ASSERT_NOT_NULL(tokens);
-    
+
     struct token expected[] = {
         create(TYPEDEF, NULL, 3, 1),
         create(STRUCT, NULL, 3, 9),
@@ -719,7 +698,12 @@ static void file_test() {
     check_file(tokens, filename);
 
     compare_tokens(tokens, expected, EXPECTED_SIZE);
+    struct translation_unit tl = parse_tokens(tokens);
+    ASSERT_NO_ERROR();
+    ASSERT_SIZE_T(tl.len, (size_t)10);
+
+    free_translation_unit(&tl);
 
     free(code);
-    free_tokenizer_result(tokens);
+    free_tokenizer_result(tokens); 
 }
