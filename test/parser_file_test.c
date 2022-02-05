@@ -68,16 +68,20 @@ static void check_external_decl_enum(struct external_declaration* d, bool is_typ
     ASSERT_SIZE_T(d->decl.decl_specs->type_specs.enum_spec->enum_list.len, enum_list_len);
 }
 
+static void check_pointer_indirs(struct pointer* ptr, size_t num_indirs) {
+    if (num_indirs == 0) {
+        ASSERT_NULL(ptr);
+    } else {
+        ASSERT_NOT_NULL(ptr);
+        ASSERT_SIZE_T(ptr->num_indirs, num_indirs);
+    }
+}
+
 static void check_external_decl_func_def(struct external_declaration* d, const struct storage_class* storage_class, const struct func_specs* func_specs, size_t num_indirs, const char* id_spell, size_t body_len) {
     ASSERT(d->is_func_def);
     ASSERT(d->func_def.decl->direct_decl->is_id);
     check_identifier(d->func_def.decl->direct_decl->id, id_spell);
-    if (num_indirs == 0) {
-        ASSERT_NULL(d->func_def.decl->ptr);
-    } else {
-        ASSERT_NOT_NULL(d->func_def.decl->ptr);
-        ASSERT_SIZE_T(d->func_def.decl->ptr->num_indirs, num_indirs);
-    }
+    check_pointer_indirs(d->func_def.decl->ptr, num_indirs);
 
     check_storage_class(&d->func_def.specs->storage_class, storage_class);
     check_func_specs(&d->func_def.specs->func_specs, func_specs);
