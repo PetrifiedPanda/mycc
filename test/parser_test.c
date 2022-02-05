@@ -905,24 +905,30 @@ static void check_storage_class(const struct storage_class* got, const struct st
     ASSERT_BOOL(got->is_register, expected->is_register);
 }
 
-static void check_external_decl_struct(struct external_declaration* d, bool is_struct, const char* id_spell, size_t decl_list_len) {
+static void check_external_decl_struct(struct external_declaration* d, bool is_typedef, bool is_struct, const char* id_spell, size_t decl_list_len) {
     ASSERT(d->is_func_def == false);
     ASSERT(d->decl.is_normal_decl);
     ASSERT(d->decl.decl_specs->type_specs.type == TYPESPEC_STRUCT);
     const struct func_specs none = {false, false};
     check_func_specs(&d->decl.decl_specs->func_specs, &none);
+
+    struct storage_class sc = {.is_typedef = is_typedef};
+    check_storage_class(&d->decl.decl_specs->storage_class, &sc);
+
     ASSERT_BOOL(d->decl.decl_specs->type_specs.struct_union_spec->is_struct, is_struct);
     check_identifier(d->decl.decl_specs->type_specs.struct_union_spec->identifier, id_spell);
 
     ASSERT_SIZE_T(d->decl.decl_specs->type_specs.struct_union_spec->decl_list.len, decl_list_len);
 }
 
-static void check_external_decl_enum(struct external_declaration* d, const char* id_spell, size_t enum_list_len) {
+static void check_external_decl_enum(struct external_declaration* d, bool is_typedef, const char* id_spell, size_t enum_list_len) {
     ASSERT(d->is_func_def == false);
     ASSERT(d->decl.is_normal_decl);
     ASSERT(d->decl.decl_specs->type_specs.type == TYPESPEC_ENUM);
     const struct func_specs none = {false, false};
     check_func_specs(&d->decl.decl_specs->func_specs, &none);
+    struct storage_class sc = {.is_typedef = is_typedef};
+    check_storage_class(&d->decl.decl_specs->storage_class, &sc);
     check_identifier(d->decl.decl_specs->type_specs.enum_spec->identifier, id_spell);
 
     ASSERT_SIZE_T(d->decl.decl_specs->type_specs.enum_spec->enum_list.len, enum_list_len);
@@ -992,9 +998,9 @@ static void file_test() {
         const struct storage_class sc_static = {.is_static = true};
         const struct func_specs fs = (struct func_specs){false, false};
 
-        check_external_decl_struct(&tl.external_decls[0], true, NULL, 2);
-        check_external_decl_struct(&tl.external_decls[1], false, "my_union", 2);
-        check_external_decl_enum(&tl.external_decls[2], "my_enum", 3);
+        check_external_decl_struct(&tl.external_decls[0], true, true, NULL, 2);
+        check_external_decl_struct(&tl.external_decls[1], false, false, "my_union", 2);
+        check_external_decl_enum(&tl.external_decls[2], false, "my_enum", 3);
         check_external_decl_func_def_predef(&tl.external_decls[6], sc, fs, 0, INT, "main", 15);
         check_external_decl_func_def_predef(&tl.external_decls[7], sc_static, fs, 0, INT, "do_shit", 13);
         check_external_decl_func_def_predef(&tl.external_decls[8], sc_static, (struct func_specs){.is_noreturn = true}, 0, VOID, "variadic", 8);
@@ -1016,15 +1022,15 @@ static void file_test() {
         const struct storage_class sc_static = {.is_static = true};
         const struct func_specs fs = {false, false};
 
-        check_external_decl_struct(&tl.external_decls[0], true, NULL, 2);
+        check_external_decl_struct(&tl.external_decls[0], true, true, NULL, 2);
 
         ASSERT(tl.external_decls[1].is_func_def == false);
         ASSERT(tl.external_decls[1].decl.is_normal_decl);
         ASSERT(tl.external_decls[1].decl.decl_specs->type_specs.type == TYPESPEC_PREDEF);
         ASSERT_SIZE_T(tl.external_decls[1].decl.init_decls.len, (size_t)1);
 
-        check_external_decl_struct(&tl.external_decls[2], false, "my_union", 3);
-        check_external_decl_enum(&tl.external_decls[3], "my_enum", 3);
+        check_external_decl_struct(&tl.external_decls[2], false, false, "my_union", 3);
+        check_external_decl_enum(&tl.external_decls[3], false, "my_enum", 3);
         check_external_decl_func_def_predef(&tl.external_decls[7], sc, fs, 0, INT, "main", 22);
         check_external_decl_func_def_predef(&tl.external_decls[8], sc_static, fs, 3, INT, "do_shit", 14);
         check_external_decl_func_def_predef(&tl.external_decls[9], sc_static, (struct func_specs){.is_noreturn = true}, 0, VOID, "variadic", 6);
@@ -1047,15 +1053,15 @@ static void file_test() {
         const struct storage_class sc_static = {.is_static = true};
         const struct func_specs fs = {false, false};
 
-        check_external_decl_enum(&tl.external_decls[21], "token_type", 97);
+        check_external_decl_enum(&tl.external_decls[21], false, "token_type", 97);
 
-        check_external_decl_struct(&tl.external_decls[35], true, "source_location", 1);
-        check_external_decl_struct(&tl.external_decls[36], true, "token", 4);
+        check_external_decl_struct(&tl.external_decls[35], false, true, "source_location", 1);
+        check_external_decl_struct(&tl.external_decls[36], false, true, "token", 4);
 
-        check_external_decl_enum(&tl.external_decls[40], "error_type", 3);
+        check_external_decl_enum(&tl.external_decls[40], false, "error_type", 3);
 
-        check_external_decl_struct(&tl.external_decls[53], true, "token_arr", 3);
-        check_external_decl_struct(&tl.external_decls[54], true, "tokenizer_state", 5);
+        check_external_decl_struct(&tl.external_decls[53], false, true, "token_arr", 3);
+        check_external_decl_struct(&tl.external_decls[54], false, true, "tokenizer_state", 5);
 
         check_external_decl_func_def_struct(&tl.external_decls[68], sc, fs, "token", 1, "tokenize", 10);
         check_external_decl_func_def_predef(&tl.external_decls[69], sc, fs, 0, VOID, "free_tokenizer_result", 2);
