@@ -20,7 +20,7 @@ enum my_enum {
     VAL_3 = VAL_1 + VAL_2
 };
 
-static inline int do_shit();
+static inline int*** do_shit();
 
 static void variadic(int m, char v, MyStruct s, ...);
 
@@ -79,7 +79,7 @@ int main() {
     *s_ptr->ptr = (char*)s_ptr->str;
 }
 
-static int do_shit() {
+static int*** do_shit() {
     typedef int MyStruct;
     double d = 1e-10 - 1e10;
     int type_size = sizeof(double);
