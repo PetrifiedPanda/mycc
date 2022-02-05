@@ -159,40 +159,109 @@ static void unary_expr_test() {
     // TODO: test other cases
 }
 
-static void postfix_expr_test() {
-    struct token* tokens = tokenize("test.ident->other++--++", "sjfkds");
+static void test_postfix_expr_intializer(bool tailing_comma) {
+    char* code = alloc_string_copy("(struct a_struct_name){1, test }");
+    if (tailing_comma) {
+        code[30] = ',';
+    }
+    struct token* tokens = tokenize(code, "not_a_file.c");
 
     struct parser_state s = create_parser_state(tokens);
     struct postfix_expr* res = parse_postfix_expr(&s);
-    ASSERT_NOT_NULL(res);
     ASSERT_NO_ERROR();
+    ASSERT_NOT_NULL(res);
 
-    ASSERT(res->is_primary);
+    ASSERT(res->is_primary == false);
+    ASSERT_SIZE_T(res->init_list.len, (size_t)2);
 
-    ASSERT_SIZE_T(res->len, (size_t)5);
+    ASSERT_NULL(res->init_list.inits[0].designation);
+    ASSERT(res->init_list.inits[0].init->is_assign);
+    check_assign_expr_id_or_const(res->init_list.inits[0].init->assign, "1", I_CONSTANT);
 
-    check_primary_expr_id_or_const(res->primary, "test", IDENTIFIER);
+    ASSERT_NULL(res->init_list.inits[1].designation);
+    ASSERT(res->init_list.inits[1].init->is_assign);
+    check_assign_expr_id_or_const(res->init_list.inits[1].init->assign, "test", IDENTIFIER);
 
-    ASSERT(res->suffixes[0].type == POSTFIX_ACCESS);
-    ASSERT_STR(res->suffixes[0].identifier->spelling, "ident");
-
-    ASSERT(res->suffixes[1].type == POSTFIX_PTR_ACCESS);
-    ASSERT_STR(res->suffixes[1].identifier->spelling, "other");
-
-    ASSERT(res->suffixes[2].type == POSTFIX_INC_DEC);
-    ASSERT_TOKEN_TYPE(res->suffixes[2].inc_dec, INC_OP);
-
-    ASSERT(res->suffixes[3].type == POSTFIX_INC_DEC);
-    ASSERT_TOKEN_TYPE(res->suffixes[3].inc_dec, DEC_OP);
-
-    ASSERT(res->suffixes[4].type == POSTFIX_INC_DEC);
-    ASSERT_TOKEN_TYPE(res->suffixes[4].inc_dec, INC_OP);
-
+    free(code);
     free_postfix_expr(res);
     free_parser_state(&s);
     free_tokenizer_result(tokens);
+}
 
-    // TODO: add more cases
+static void postfix_expr_test() {
+    {
+        struct token* tokens = tokenize("test.ident->other++--++", "sjfkds");
+
+        struct parser_state s = create_parser_state(tokens);
+        struct postfix_expr* res = parse_postfix_expr(&s);
+        ASSERT_NOT_NULL(res);
+        ASSERT_NO_ERROR();
+
+        ASSERT(res->is_primary);
+
+        ASSERT_SIZE_T(res->len, (size_t) 5);
+
+        check_primary_expr_id_or_const(res->primary, "test", IDENTIFIER);
+
+        ASSERT(res->suffixes[0].type == POSTFIX_ACCESS);
+        ASSERT_STR(res->suffixes[0].identifier->spelling, "ident");
+
+        ASSERT(res->suffixes[1].type == POSTFIX_PTR_ACCESS);
+        ASSERT_STR(res->suffixes[1].identifier->spelling, "other");
+
+        ASSERT(res->suffixes[2].type == POSTFIX_INC_DEC);
+        ASSERT_TOKEN_TYPE(res->suffixes[2].inc_dec, INC_OP);
+
+        ASSERT(res->suffixes[3].type == POSTFIX_INC_DEC);
+        ASSERT_TOKEN_TYPE(res->suffixes[3].inc_dec, DEC_OP);
+
+        ASSERT(res->suffixes[4].type == POSTFIX_INC_DEC);
+        ASSERT_TOKEN_TYPE(res->suffixes[4].inc_dec, INC_OP);
+
+        free_postfix_expr(res);
+        free_parser_state(&s);
+        free_tokenizer_result(tokens);
+    }
+
+    {
+        struct token* tokens = tokenize("test[i_am_id]()[23](another_id, 34, id)", "not_a_file.c");
+
+        struct parser_state s = create_parser_state(tokens);
+        struct postfix_expr* res = parse_postfix_expr(&s);
+        ASSERT_NO_ERROR();
+        ASSERT_NOT_NULL(res);
+
+        ASSERT_SIZE_T(res->len, (size_t)4);
+        struct postfix_suffix* suffix = res->suffixes;
+
+        ASSERT(suffix->type == POSTFIX_INDEX);
+        check_expr_id_or_const(suffix->index_expr, "i_am_id", IDENTIFIER);
+
+        ++suffix;
+
+        ASSERT(suffix->type == POSTFIX_BRACKET);
+        ASSERT_SIZE_T(suffix->bracket_list.len, (size_t)0);
+
+        ++suffix;
+
+        ASSERT(suffix->type == POSTFIX_INDEX);
+        check_expr_id_or_const(suffix->index_expr, "23", I_CONSTANT);
+
+        ++suffix;
+
+        ASSERT(suffix->type == POSTFIX_BRACKET);
+        ASSERT_SIZE_T(suffix->bracket_list.len, (size_t)3);
+        check_assign_expr_id_or_const(&suffix->bracket_list.assign_exprs[0], "another_id", IDENTIFIER);
+        check_assign_expr_id_or_const(&suffix->bracket_list.assign_exprs[1], "34", I_CONSTANT);
+        check_assign_expr_id_or_const(&suffix->bracket_list.assign_exprs[2], "id", IDENTIFIER);
+
+        free_postfix_expr(res);
+        free_parser_state(&s);
+        free_tokenizer_result(tokens);
+    }
+
+    test_postfix_expr_intializer(true);
+    test_postfix_expr_intializer(false);
 }
 
 static void assign_expr_test() {

@@ -139,6 +139,10 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
             return NULL;
         }
 
+        if (s->it->type == COMMA) {
+            accept_it(s);
+        }
+
         if (!accept(s, RBRACE)) {
             free_postfix_expr(res);
             return NULL;
@@ -184,6 +188,10 @@ struct postfix_expr* parse_postfix_expr_type_name(struct parser_state* s, struct
     res->init_list = parse_init_list(s);
     if (get_last_error() != ERR_NONE) {
         goto fail;
+    }
+
+    if (s->it->type == COMMA) {
+        accept_it(s);
     }
 
     if (!accept(s, RBRACE)) {
