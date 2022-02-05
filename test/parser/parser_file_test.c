@@ -4,8 +4,10 @@
 
 #include "parser/parser.h"
 
-#include "test_asserts.h"
-#include "test_util.h"
+#include "../test_asserts.h"
+#include "../test_util.h"
+
+#include "parser_test_util.h"
 
 static void no_preproc_file_test();
 static void parser_testfile_file_test();
@@ -15,14 +17,6 @@ void parser_file_test() {
     no_preproc_file_test();
     parser_testfile_file_test();
     large_testfile_file_test();
-}
-
-static void check_identifier(struct identifier* id, const char* spell) {
-    if (spell != NULL) {
-        ASSERT_STR(id->spelling, spell);
-    } else {
-        ASSERT_NULL(id);
-    }
 }
 
 static void check_func_specs(const struct func_specs* got, const struct func_specs* expected) {

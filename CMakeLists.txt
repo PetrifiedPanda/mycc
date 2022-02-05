@@ -27,6 +27,7 @@ target_link_libraries(${This} ${Lib})
 set(Test mycctest)
 
 file(GLOB TestSources test/*.c)
+file(GLOB ParserTestSources test/parser/*.c)
 
-add_executable(${Test} ${TestSources})
+add_executable(${Test} ${TestSources} ${ParserTestSources})
 target_link_libraries(${Test} ${Lib})
