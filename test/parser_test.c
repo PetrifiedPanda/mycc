@@ -11,7 +11,6 @@
 extern void parser_file_test();
 extern void parser_state_test();
 
-static void parser_state_test();
 static void primary_expr_test();
 static void jump_statement_test();
 static void enum_list_test();
