@@ -19,7 +19,6 @@ static void enum_list_test();
 static void enum_spec_test();
 static void designation_test();
 static void static_assert_declaration_test();
-static void file_test();
 
 void parser_test() {
     parser_expr_test();
