@@ -720,11 +720,6 @@ static void file_test() {
     check_file(tokens, filename);
 
     compare_tokens(tokens, expected, EXPECTED_SIZE);
-    struct translation_unit tl = parse_tokens(tokens);
-    ASSERT_NO_ERROR();
-    ASSERT_SIZE_T(tl.len, (size_t)10);
-
-    free_translation_unit(&tl);
 
     free(code);
     free_tokenizer_result(tokens); 

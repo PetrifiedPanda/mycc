@@ -885,6 +885,19 @@ static void statement_test() {
 
 static void file_test() {
     {
+        const char* file = "../test/files/no_preproc.c";
+        char* contents = read_file(file);
+        struct token* tokens = tokenize(contents, file);
+        struct translation_unit tl = parse_tokens(tokens);
+        ASSERT_NO_ERROR();
+        ASSERT_SIZE_T(tl.len, (size_t)10);
+
+        free_translation_unit(&tl);
+        free_tokenizer_result(tokens);
+        free(contents);
+    }
+
+    {
         const char* file = "../test/files/parser_testfile.c";
         char* contents = read_file(file);
         struct token* tokens = tokenize(contents, file);
