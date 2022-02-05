@@ -22,6 +22,16 @@
     } while (0)
 
 
+#define ASSERT_BOOL(got, expected)                                          \
+do {                                                                        \
+    if ((got) != (expected)) {                                              \
+        const char* expected_str = expected ? "true" : "false";             \
+        const char* got_str = got ? "true" : "false";                       \
+        PRINT_ASSERT_ERR("Expected %s but got %s", expected_str, got_str);  \
+    }                                                                       \
+} while (0)
+
+
 #define ASSERT_INT(got, expected)                                       \
     do {                                                                \
         if ((got) != (expected)) {                                      \

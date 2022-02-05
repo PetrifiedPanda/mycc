@@ -883,6 +883,40 @@ static void statement_test() {
     // TODO: Add tests with declarations when implemented
 }
 
+static void check_identifier(struct identifier* id, const char* spell) {
+    if (spell != NULL) {
+        ASSERT_STR(id->spelling, spell);
+    } else {
+        ASSERT_NULL(id);
+    }
+}
+
+static void check_external_decl_struct(struct external_declaration* d, bool is_struct, const char* id_spell, size_t decl_list_len) {
+    ASSERT(d->is_func_def == false);
+    ASSERT(d->decl.is_normal_decl);
+    ASSERT(d->decl.decl_specs->type_specs.type == TYPESPEC_STRUCT);
+    ASSERT_BOOL(d->decl.decl_specs->type_specs.struct_union_spec->is_struct, is_struct);
+    check_identifier(d->decl.decl_specs->type_specs.struct_union_spec->identifier, id_spell);
+
+    ASSERT_SIZE_T(d->decl.decl_specs->type_specs.struct_union_spec->decl_list.len, decl_list_len);
+}
+
+static void check_external_decl_enum(struct external_declaration* d, const char* id_spell, size_t enum_list_len) {
+    ASSERT(d->is_func_def == false);
+    ASSERT(d->decl.is_normal_decl);
+    ASSERT(d->decl.decl_specs->type_specs.type == TYPESPEC_ENUM);
+    check_identifier(d->decl.decl_specs->type_specs.enum_spec->identifier, id_spell);
+
+    ASSERT_SIZE_T(d->decl.decl_specs->type_specs.enum_spec->enum_list.len, enum_list_len);
+}
+
+static void check_external_decl_func_def(struct external_declaration* d, const char* id_spell, size_t body_len) {
+    ASSERT(d->is_func_def);
+    ASSERT(d->func_def.decl->direct_decl->is_id);
+    ASSERT_STR(d->func_def.decl->direct_decl->id->spelling, id_spell);
+    ASSERT_SIZE_T(d->func_def.comp->len, body_len);
+}
+
 static void file_test() {
     {
         const char* file = "../test/files/no_preproc.c";
@@ -891,6 +925,13 @@ static void file_test() {
         struct translation_unit tl = parse_tokens(tokens);
         ASSERT_NO_ERROR();
         ASSERT_SIZE_T(tl.len, (size_t)10);
+
+        check_external_decl_struct(&tl.external_decls[0], true, NULL, 2);
+        check_external_decl_struct(&tl.external_decls[1], false, "my_union", 2);
+        check_external_decl_enum(&tl.external_decls[2], "my_enum", 3);
+        check_external_decl_func_def(&tl.external_decls[6], "main", 15);
+        check_external_decl_func_def(&tl.external_decls[7], "do_shit", 13);
+        check_external_decl_func_def(&tl.external_decls[8], "variadic", 8);
 
         free_translation_unit(&tl);
         free_tokenizer_result(tokens);
@@ -905,15 +946,19 @@ static void file_test() {
         ASSERT_NO_ERROR();
         ASSERT_SIZE_T(tl.len, (size_t)12);
 
-        ASSERT(tl.external_decls[0].is_func_def == false);
-        ASSERT(tl.external_decls[0].decl.is_normal_decl);
-        ASSERT(tl.external_decls[0].decl.decl_specs->type_specs.type == TYPESPEC_STRUCT);
-        ASSERT(tl.external_decls[0].decl.decl_specs->type_specs.struct_union_spec->is_struct);
-        ASSERT_NULL(tl.external_decls[0].decl.decl_specs->type_specs.struct_union_spec->identifier);
-        ASSERT_SIZE_T(tl.external_decls[0].decl.decl_specs->type_specs.struct_union_spec->decl_list.len, (size_t)2);
+        check_external_decl_struct(&tl.external_decls[0], true, NULL, 2);
 
-        ASSERT(tl.external_decls[7].is_func_def);
-        ASSERT_SIZE_T(tl.external_decls[7].func_def.comp->len, (size_t)22);
+        ASSERT(tl.external_decls[1].is_func_def == false);
+        ASSERT(tl.external_decls[1].decl.is_normal_decl);
+        ASSERT(tl.external_decls[1].decl.decl_specs->type_specs.type == TYPESPEC_PREDEF);
+        ASSERT_SIZE_T(tl.external_decls[1].decl.init_decls.len, (size_t)1);
+
+        check_external_decl_struct(&tl.external_decls[2], false, "my_union", 3);
+        check_external_decl_enum(&tl.external_decls[3], "my_enum", 3);
+        check_external_decl_func_def(&tl.external_decls[7], "main", 22);
+        check_external_decl_func_def(&tl.external_decls[8], "do_shit", 14);
+        check_external_decl_func_def(&tl.external_decls[9], "variadic", 6);
+        check_external_decl_func_def(&tl.external_decls[10], "strcpy", 1);
 
         free_translation_unit(&tl);
         free_tokenizer_result(tokens);
@@ -927,6 +972,37 @@ static void file_test() {
         struct translation_unit tl = parse_tokens(tokens);
         ASSERT_NO_ERROR();
         ASSERT_SIZE_T(tl.len, (size_t)88);
+
+        check_external_decl_enum(&tl.external_decls[21], "token_type", 97);
+
+        check_external_decl_struct(&tl.external_decls[35], true, "source_location", 1);
+        check_external_decl_struct(&tl.external_decls[36], true, "token", 4);
+
+        check_external_decl_enum(&tl.external_decls[40], "error_type", 3);
+
+        check_external_decl_struct(&tl.external_decls[53], true, "token_arr", 3);
+        check_external_decl_struct(&tl.external_decls[54], true, "tokenizer_state", 5);
+
+        check_external_decl_func_def(&tl.external_decls[68], "tokenize", 10);
+        check_external_decl_func_def(&tl.external_decls[69], "free_tokenizer_result", 2);
+        check_external_decl_func_def(&tl.external_decls[70], "is_spelling", 1);
+        check_external_decl_func_def(&tl.external_decls[71], "multic_token_type", 1);
+        check_external_decl_func_def(&tl.external_decls[72], "singlec_token_type", 1);
+        check_external_decl_func_def(&tl.external_decls[73], "check_type", 5);
+        check_external_decl_func_def(&tl.external_decls[74], "check_next", 3);
+        check_external_decl_func_def(&tl.external_decls[75], "is_valid_singlec_token", 2);
+        check_external_decl_func_def(&tl.external_decls[76], "advance", 4);
+        check_external_decl_func_def(&tl.external_decls[77], "advance_one", 4);
+        check_external_decl_func_def(&tl.external_decls[78], "advance_newline", 4);
+        check_external_decl_func_def(&tl.external_decls[79], "realloc_tokens_if_needed", 1);
+        check_external_decl_func_def(&tl.external_decls[80], "add_token_copy", 3);
+        check_external_decl_func_def(&tl.external_decls[81], "add_token", 3);
+        check_external_decl_func_def(&tl.external_decls[82], "handle_comments", 1);
+        check_external_decl_func_def(&tl.external_decls[83], "get_char_lit_type", 1);
+        check_external_decl_func_def(&tl.external_decls[84], "unterminated_literal_err", 3);
+        check_external_decl_func_def(&tl.external_decls[85], "handle_character_literal", 16);
+        check_external_decl_func_def(&tl.external_decls[86], "token_is_over", 2);
+        check_external_decl_func_def(&tl.external_decls[87], "handle_other", 11);
 
         free_translation_unit(&tl);
         free_tokenizer_result(tokens);
