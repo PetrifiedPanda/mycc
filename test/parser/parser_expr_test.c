@@ -264,6 +264,14 @@ static void postfix_expr_test() {
     test_postfix_expr_intializer(false);
 }
 
+static void check_assign_expr_cast(struct cond_expr* expr, enum token_type cast_type, const char* spell, enum token_type value_type) {
+    struct cast_expr* cast = expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs;
+    ASSERT_SIZE_T(cast->len, (size_t)1);
+    ASSERT(cast->type_names[0].spec_qual_list->specs.type == TYPESPEC_PREDEF);
+    ASSERT_TOKEN_TYPE(cast->type_names[0].spec_qual_list->specs.type_spec, cast_type);
+    check_unary_expr_id_or_const(cast->rhs, spell, value_type);
+}
+
 static void assign_expr_test() {
     {
         struct token* tokens = tokenize("10", "blah");
@@ -303,16 +311,14 @@ static void assign_expr_test() {
             F_CONSTANT
         };
 
-        const char *expected_spellings[] = {
+        const char* expected_spellings[] = {
             "x",
             "100",
             "y",
             "100.0"
         };
 
-        enum {
-            SIZE = sizeof expected_ops / sizeof(enum token_type)
-        };
+        enum {SIZE = sizeof expected_ops / sizeof(enum token_type)};
 
         for (size_t i = 0; i < SIZE; ++i) {
             ASSERT_TOKEN_TYPE(res->assign_chain[i].assign_op, expected_ops[i]);
@@ -329,6 +335,73 @@ static void assign_expr_test() {
         free_tokenizer_result(tokens);
         free_parser_state(&s);
         free_assign_expr(res);
+    }
+
+
+    {
+        struct token* tokens = tokenize("(char)100", "not_file.c");
+
+        struct parser_state s = create_parser_state(tokens);
+        struct assign_expr* res = parse_assign_expr(&s);
+        ASSERT_NO_ERROR();
+        ASSERT_NOT_NULL(res);
+
+        ASSERT_SIZE_T(res->len, (size_t)0);
+        check_assign_expr_cast(res->value, CHAR, "100", I_CONSTANT);
+
+        free_assign_expr(res);
+        free_parser_state(&s);
+        free_tokenizer_result(tokens);
+    }
+
+    {
+        struct token* tokens = tokenize("(struct a_struct){1, var} = 0", "not_a_file.c");
+
+        struct parser_state s = create_parser_state(tokens);
+        struct assign_expr* res = parse_assign_expr(&s);
+        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+        ASSERT_NO_ERROR();
+        ASSERT_NOT_NULL(res);
+
+        ASSERT_SIZE_T(res->len, (size_t)1);
+
+        ASSERT_TOKEN_TYPE(res->assign_chain[0].assign_op, ASSIGN);
+
+        struct unary_expr* unary = res->assign_chain[0].unary;
+        ASSERT(unary->type == UNARY_POSTFIX);
+        ASSERT_SIZE_T(unary->len, (size_t)0);
+
+        ASSERT(unary->postfix->is_primary == false);
+        ASSERT_SIZE_T(unary->postfix->len, (size_t)0);
+
+        ASSERT_SIZE_T(unary->postfix->init_list.len, (size_t)2);
+        check_assign_expr_id_or_const(unary->postfix->init_list.inits[0].init->assign, "1", I_CONSTANT);
+        check_assign_expr_id_or_const(unary->postfix->init_list.inits[1].init->assign, "var", IDENTIFIER);
+
+        free_assign_expr(res);
+        free_parser_state(&s);
+        free_tokenizer_result(tokens);
+    }
+
+    {
+        struct token* tokens = tokenize("var *= (double)12", "not_a_file.c");
+
+        struct parser_state s = create_parser_state(tokens);
+        struct assign_expr* res = parse_assign_expr(&s);
+        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+        ASSERT_NO_ERROR();
+        ASSERT_NOT_NULL(res);
+
+        ASSERT_SIZE_T(res->len, (size_t)1);
+
+        ASSERT_TOKEN_TYPE(res->assign_chain[0].assign_op, MUL_ASSIGN);
+        check_unary_expr_id_or_const(res->assign_chain[0].unary, "var", IDENTIFIER);
+
+        check_assign_expr_cast(res->value, DOUBLE, "12", I_CONSTANT);
+
+        free_assign_expr(res);
+        free_parser_state(&s);
+        free_tokenizer_result(tokens);
     }
 
     // TODO: add more testcases
