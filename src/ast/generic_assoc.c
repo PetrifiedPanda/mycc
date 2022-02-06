@@ -8,6 +8,7 @@ bool parse_generic_assoc_inplace(struct parser_state* s, struct generic_assoc* r
     assert(res);
 
     if (s->it->type == DEFAULT) {
+        accept_it(s);
         res->type_name = NULL;
     } else {
         res->type_name = parse_type_name(s);
