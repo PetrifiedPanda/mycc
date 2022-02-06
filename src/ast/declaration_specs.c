@@ -28,10 +28,9 @@ static bool current_is_type_qual(const struct parser_state* s) {
  *
  * @return 0 for an error, 1 for success and 2 if the next token is not a declaration_spec
  */
-int parse_declaration_spec(struct parser_state* s, struct declaration_specs* res, size_t* alloc_len_align_specs, size_t* alloc_len_type_specs) {
+int parse_declaration_spec(struct parser_state* s, struct declaration_specs* res, size_t* alloc_len_align_specs) {
     assert(res);
     assert(alloc_len_align_specs);
-    assert(alloc_len_type_specs);
 
     if (is_storage_class_spec(s->it->type)) {
         struct storage_class* sc = &res->storage_class;
@@ -120,10 +119,9 @@ struct declaration_specs* parse_declaration_specs(struct parser_state* s, bool* 
     size_t alloc_len_align_specs = 0;
 
     res->type_specs = create_type_specs();
-    size_t alloc_len_type_specs = 0;
 
     while (true) {
-        int success = parse_declaration_spec(s, res, &alloc_len_align_specs, &alloc_len_type_specs);
+        int success = parse_declaration_spec(s, res, &alloc_len_align_specs);
 
         if (success == 0) {
             free_declaration_specs(res);
