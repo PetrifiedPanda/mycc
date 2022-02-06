@@ -27,7 +27,7 @@ static void check_primary_expr_constant(enum token_type type, const char* spell)
 
     struct parser_state s = create_parser_state(tokens);
 
-    struct primary_expr *res = parse_primary_expr(&s);
+    struct primary_expr* res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT_NO_ERROR();
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
@@ -231,7 +231,49 @@ static void unary_expr_test() {
         free_tokenizer_result(tokens);
     }
 
-    // TODO: test other cases
+    {
+        struct token* tokens = tokenize("sizeof(int)", "no");
+
+        struct parser_state s = create_parser_state(tokens);
+        struct unary_expr* res = parse_unary_expr(&s);
+        ASSERT_NO_ERROR();
+        ASSERT_NOT_NULL(res);
+        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+
+        ASSERT(res->type == UNARY_SIZEOF_TYPE);
+        ASSERT(res->type_name->spec_qual_list->specs.has_specifier);
+        ASSERT(res->type_name->spec_qual_list->specs.type == TYPESPEC_PREDEF);
+        ASSERT_TOKEN_TYPE(res->type_name->spec_qual_list->specs.type_spec, INT);
+
+        free_unary_expr(res);
+        free_parser_state(&s);
+        free_tokenizer_result(tokens);
+    }
+
+    {
+        struct token* tokens = tokenize("~*var", "a file");
+
+        struct parser_state s = create_parser_state(tokens);
+        struct unary_expr* res = parse_unary_expr(&s);
+        ASSERT_NO_ERROR();
+        ASSERT_NOT_NULL(res);
+        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+
+        ASSERT(res->type == UNARY_UNARY_OP);
+        ASSERT_TOKEN_TYPE(res->unary_op, BNOT);
+
+        struct cast_expr* cast = res->cast_expr;
+        ASSERT_SIZE_T(cast->len, (size_t)0);
+        struct unary_expr* child_unary = cast->rhs;
+
+        ASSERT(child_unary->type == UNARY_UNARY_OP);
+        ASSERT_TOKEN_TYPE(child_unary->unary_op, ASTERISK);
+        check_cast_expr_id_or_const(child_unary->cast_expr, "var", IDENTIFIER);
+
+        free_unary_expr(res);
+        free_parser_state(&s);
+        free_tokenizer_result(tokens);
+    }
 }
 
 static void test_postfix_expr_intializer(bool tailing_comma) {
