@@ -355,7 +355,7 @@ static void assign_expr_test() {
     }
 
     {
-        struct token* tokens = tokenize("(struct a_struct){1, var} = 0", "not_a_file.c");
+        struct token* tokens = tokenize("(struct a_struct){1, var} = 0.0", "not_a_file.c");
 
         struct parser_state s = create_parser_state(tokens);
         struct assign_expr* res = parse_assign_expr(&s);
@@ -377,6 +377,8 @@ static void assign_expr_test() {
         ASSERT_SIZE_T(unary->postfix->init_list.len, (size_t)2);
         check_assign_expr_id_or_const(unary->postfix->init_list.inits[0].init->assign, "1", I_CONSTANT);
         check_assign_expr_id_or_const(unary->postfix->init_list.inits[1].init->assign, "var", IDENTIFIER);
+
+        check_cond_expr_id_or_const(res->value, "0.0", F_CONSTANT);
 
         free_assign_expr(res);
         free_parser_state(&s);
@@ -404,5 +406,36 @@ static void assign_expr_test() {
         free_tokenizer_result(tokens);
     }
 
-    // TODO: add more testcases
+    {
+        struct token* tokens = tokenize("var ^= (struct a_struct){1, var}", "not_a_file.c");
+
+        struct parser_state s = create_parser_state(tokens);
+        struct assign_expr* res = parse_assign_expr(&s);
+        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+        ASSERT_NO_ERROR();
+        ASSERT_NOT_NULL(res);
+
+        ASSERT_SIZE_T(res->len, (size_t)1);
+
+        ASSERT_TOKEN_TYPE(res->assign_chain[0].assign_op, XOR_ASSIGN);
+        check_unary_expr_id_or_const(res->assign_chain[0].unary, "var", IDENTIFIER);
+
+        struct unary_expr* unary = res->value->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs;
+
+        ASSERT(unary->type == UNARY_POSTFIX);
+        ASSERT_SIZE_T(unary->len, (size_t)0);
+        ASSERT(unary->postfix->is_primary == false);
+        ASSERT_SIZE_T(unary->postfix->init_list.len, (size_t)2);
+
+        ASSERT_NULL(unary->postfix->init_list.inits[0].designation);
+        ASSERT(unary->postfix->init_list.inits[0].init->is_assign);
+        check_assign_expr_id_or_const(unary->postfix->init_list.inits[0].init->assign, "1", I_CONSTANT);
+        ASSERT_NULL(unary->postfix->init_list.inits[1].designation);
+        ASSERT(unary->postfix->init_list.inits[1].init->is_assign);
+        check_assign_expr_id_or_const(unary->postfix->init_list.inits[1].init->assign, "var", IDENTIFIER);
+
+        free_assign_expr(res);
+        free_parser_state(&s);
+        free_tokenizer_result(tokens);
+    }
 }
