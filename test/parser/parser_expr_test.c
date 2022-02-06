@@ -22,13 +22,14 @@ void parser_expr_test() {
     assign_expr_test();
 }
 
-static void test_primary_expr_constant(enum token_type type, const char* spell) {
+static void check_primary_expr_constant(enum token_type type, const char* spell) {
     struct token* tokens = tokenize(spell, "not a file so I can write whatever here");
 
     struct parser_state s = create_parser_state(tokens);
 
     struct primary_expr *res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
+    ASSERT_NO_ERROR();
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
     ASSERT(res->type == PRIMARY_EXPR_CONSTANT);
@@ -42,13 +43,14 @@ static void test_primary_expr_constant(enum token_type type, const char* spell) 
     free_tokenizer_result(tokens);
 }
 
-static void test_primary_expr_string(const char* spell) {
+static void check_primary_expr_string(const char* spell) {
     struct token* tokens = tokenize(spell, "no_file.c");
 
     struct parser_state s = create_parser_state(tokens);
 
     struct primary_expr *res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
+    ASSERT_NO_ERROR();
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
     ASSERT(res->type == PRIMARY_EXPR_STRING_LITERAL);
@@ -60,11 +62,12 @@ static void test_primary_expr_string(const char* spell) {
     free_tokenizer_result(tokens);
 }
 
-static void test_primary_expr_func_name() {
+static void check_primary_expr_func_name() {
     struct token *tokens = tokenize("__func__", "not a file so go away");
     struct parser_state s = create_parser_state(tokens);
     struct primary_expr *res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
+    ASSERT_NO_ERROR();
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
     ASSERT(res->string.is_func == true);
@@ -75,7 +78,7 @@ static void test_primary_expr_func_name() {
     free_primary_expr(res);
 }
 
-static void test_primary_expr_identifier(const char* spell) {
+static void check_primary_expr_identifier(const char* spell) {
     struct token* tokens = tokenize(spell, "a string");
 
     struct parser_state s = create_parser_state(tokens);
@@ -83,7 +86,7 @@ static void test_primary_expr_identifier(const char* spell) {
     struct primary_expr* res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
-    ASSERT_ERROR(get_last_error(), ERR_NONE);
+    ASSERT_NO_ERROR();
 
     ASSERT(res->type == PRIMARY_EXPR_IDENTIFIER);
     ASSERT_STR(res->identifier->spelling, spell);
@@ -95,16 +98,88 @@ static void test_primary_expr_identifier(const char* spell) {
     free_tokenizer_result(tokens);
 }
 
-static void primary_expr_test() {
-    test_primary_expr_constant(F_CONSTANT, "3.1e-5f");
-    test_primary_expr_constant(I_CONSTANT, "0xdeadbeefl");
-    test_primary_expr_identifier("super_cool_identifier");
-    test_primary_expr_identifier("another_cool_identifier");
-    test_primary_expr_string("\"Test string it does not matter whether this is an actual string literal but hey\"");
-    test_primary_expr_string("\"Multi\\\nline\\\nstring\\\nbaybee\"");
-    test_primary_expr_func_name();
+static void check_primary_expr_bracket(const char* code, const char* cont_spell, enum token_type expr_type) {
+    struct token* tokens = tokenize(code, "not_file.c");
 
-    // TODO: '(' expr ')' and generic selection
+    struct parser_state s = create_parser_state(tokens);
+    struct primary_expr* res = parse_primary_expr(&s);
+    ASSERT_NOT_NULL(res);
+    ASSERT_NO_ERROR();
+    ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+
+    ASSERT(res->type == PRIMARY_EXPR_BRACKET);
+    check_expr_id_or_const(res->bracket_expr, cont_spell, expr_type);
+
+    free_primary_expr(res);
+    free_parser_state(&s);
+    free_tokenizer_result(tokens);
+}
+
+static void primary_expr_generic_sel_test() {
+    struct token* tokens = tokenize("_Generic(var, int: 0, TypedefName: oops, struct a_struct: 5.0, default: default_value )", "not_file.c");
+
+    struct parser_state s = create_parser_state(tokens);
+    struct token insert_token = {
+        .type = IDENTIFIER,
+        .spelling = "TypedefName",
+        .source_loc = {0, 0},
+        .file = "another_nonexistent_file.c"
+    };
+
+    register_typedef_name(&s, &insert_token);
+    struct primary_expr* res = parse_primary_expr(&s);
+    ASSERT_NO_ERROR();
+    ASSERT_NOT_NULL(res);
+    ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+
+    ASSERT(res->type == PRIMARY_EXPR_GENERIC);
+    check_assign_expr_id_or_const(res->generic->assign, "var", IDENTIFIER);
+
+    ASSERT_SIZE_T(res->generic->assocs.len, (size_t)4);
+    struct generic_assoc* assoc = res->generic->assocs.assocs;
+
+    ASSERT_NULL(assoc->type_name->abstract_decl);
+    ASSERT(assoc->type_name->spec_qual_list->specs.type == TYPESPEC_PREDEF);
+    ASSERT_TOKEN_TYPE(assoc->type_name->spec_qual_list->specs.type_spec, INT);
+    check_assign_expr_id_or_const(assoc->assign, "0", I_CONSTANT);
+
+    ++assoc;
+
+    ASSERT_NULL(assoc->type_name->abstract_decl);
+    ASSERT(assoc->type_name->spec_qual_list->specs.type == TYPESPEC_TYPENAME);
+    check_identifier(assoc->type_name->spec_qual_list->specs.typedef_name, "TypedefName");
+    check_assign_expr_id_or_const(assoc->assign, "oops", IDENTIFIER);
+
+    ++assoc;
+
+    ASSERT_NULL(assoc->type_name->abstract_decl);
+    ASSERT(assoc->type_name->spec_qual_list->specs.type == TYPESPEC_STRUCT);
+    ASSERT(assoc->type_name->spec_qual_list->specs.struct_union_spec->is_struct);
+    ASSERT_SIZE_T(assoc->type_name->spec_qual_list->specs.struct_union_spec->decl_list.len, (size_t)0);
+    check_identifier(assoc->type_name->spec_qual_list->specs.struct_union_spec->identifier, "a_struct");
+    check_assign_expr_id_or_const(assoc->assign, "5.0", F_CONSTANT);
+
+    ++assoc;
+
+    ASSERT_NULL(assoc->type_name);
+    check_assign_expr_id_or_const(assoc->assign, "default_value", IDENTIFIER);
+
+    free_primary_expr(res);
+    free_parser_state(&s);
+    free_tokenizer_result(tokens);
+}
+
+static void primary_expr_test() {
+    check_primary_expr_constant(F_CONSTANT, "3.1e-5f");
+    check_primary_expr_constant(I_CONSTANT, "0xdeadbeefl");
+    check_primary_expr_identifier("super_cool_identifier");
+    check_primary_expr_identifier("another_cool_identifier");
+    check_primary_expr_string("\"Test string it does not matter whether this is an actual string literal but hey\"");
+    check_primary_expr_string("\"Multi\\\nline\\\nstring\\\nbaybee\"");
+    check_primary_expr_func_name();
+    check_primary_expr_bracket("(23.3)", "23.3", F_CONSTANT);
+    check_primary_expr_bracket("(var)", "var", IDENTIFIER);
+    primary_expr_generic_sel_test();
 }
 
 static void unary_expr_test() {
