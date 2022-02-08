@@ -7,7 +7,8 @@
 
 #include "parser/parser_util.h"
 
-static bool parse_cond_expr_conditionals(struct parser_state* s, struct cond_expr* res) {
+static bool parse_cond_expr_conditionals(struct parser_state* s,
+                                         struct cond_expr* res) {
     size_t alloc_len = res->len = 0;
     res->conditionals = NULL;
 
@@ -31,12 +32,14 @@ static bool parse_cond_expr_conditionals(struct parser_state* s, struct cond_exp
         }
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->conditionals, &alloc_len, sizeof(struct log_or_and_expr));
+            grow_alloc((void**)&res->conditionals,
+                       &alloc_len,
+                       sizeof(struct log_or_and_expr));
         }
 
         res->conditionals[res->len] = (struct log_or_and_expr){
-                .log_or = res->last_else,
-                .expr = expr
+            .log_or = res->last_else,
+            .expr = expr,
         };
 
         res->last_else = new_last;
@@ -44,7 +47,8 @@ static bool parse_cond_expr_conditionals(struct parser_state* s, struct cond_exp
         ++res->len;
     }
 
-    res->conditionals = xrealloc(res->conditionals, sizeof(struct log_or_and_expr) * res->len);
+    res->conditionals = xrealloc(res->conditionals,
+                                 sizeof(struct log_or_and_expr) * res->len);
     return true;
 
 fail:
@@ -67,7 +71,8 @@ bool parse_cond_expr_inplace(struct parser_state* s, struct cond_expr* res) {
     return true;
 }
 
-struct cond_expr* parse_cond_expr_cast(struct parser_state* s, struct cast_expr* start) {
+struct cond_expr* parse_cond_expr_cast(struct parser_state* s,
+                                       struct cast_expr* start) {
     assert(start);
 
     struct cond_expr* res = xmalloc(sizeof(struct cond_expr));
@@ -99,4 +104,3 @@ void free_cond_expr(struct cond_expr* e) {
     free_cond_expr_children(e);
     free(e);
 }
-

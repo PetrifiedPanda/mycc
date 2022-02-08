@@ -11,11 +11,12 @@ static struct jump_statement* create(enum token_type type) {
     assert(type == GOTO || type == CONTINUE || type == BREAK || type == RETURN);
     struct jump_statement* res = xmalloc(sizeof(struct jump_statement));
     res->type = type;
-    
-    return res;
-} 
 
-static struct jump_statement* create_goto_statement(struct identifier* identifier) {
+    return res;
+}
+
+static struct jump_statement* create_goto_statement(
+    struct identifier* identifier) {
     assert(identifier);
     struct jump_statement* res = create(GOTO);
     res->identifier = identifier;
@@ -35,7 +36,7 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
         case GOTO: {
             accept_it(s);
             if (s->it->type == IDENTIFIER) {
-                char *spell = take_spelling(s->it);
+                char* spell = take_spelling(s->it);
                 accept_it(s);
                 res = create_goto_statement(create_identifier(spell));
                 break;
@@ -69,13 +70,10 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
         }
 
         default: {
-            enum token_type expected[] = {
-                    GOTO,
-                    CONTINUE,
-                    BREAK,
-                    RETURN
-            };
-            expected_tokens_error(expected, sizeof expected / sizeof(enum token_type), s->it);
+            enum token_type expected[] = {GOTO, CONTINUE, BREAK, RETURN};
+            expected_tokens_error(expected,
+                                  sizeof expected / sizeof(enum token_type),
+                                  s->it);
             return NULL;
         }
     }
@@ -107,4 +105,3 @@ void free_jump_statement(struct jump_statement* s) {
     free_children(s);
     free(s);
 }
-

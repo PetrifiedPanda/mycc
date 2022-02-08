@@ -5,7 +5,11 @@
 
 #include "util.h"
 
-void init_token(struct token* t, enum token_type type, char* spelling, struct source_location loc, const char* filename) {
+void init_token(struct token* t,
+                enum token_type type,
+                char* spelling,
+                struct source_location loc,
+                const char* filename) {
     assert(t);
     assert(filename);
 
@@ -22,7 +26,11 @@ void init_token(struct token* t, enum token_type type, char* spelling, struct so
     t->source_loc = loc;
 }
 
-void init_token_copy(struct token* t, enum token_type type, const char* spelling, struct source_location loc, const char* filename) {
+void init_token_copy(struct token* t,
+                     enum token_type type,
+                     const char* spelling,
+                     struct source_location loc,
+                     const char* filename) {
     init_token(t, type, alloc_string_copy(spelling), loc, filename);
 }
 
@@ -31,4 +39,3 @@ void free_token(struct token* t) {
     free(t->spelling);
     free(t->file);
 }
-

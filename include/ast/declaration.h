@@ -30,4 +30,3 @@ void free_declaration(struct declaration* d);
 #include "ast/static_assert_declaration.h"
 
 #endif
-

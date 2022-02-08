@@ -7,7 +7,8 @@
 
 #include "parser/parser_util.h"
 
-static bool parse_rel_expr_rel_chain(struct parser_state* s, struct rel_expr* res) {
+static bool parse_rel_expr_rel_chain(struct parser_state* s,
+                                     struct rel_expr* res) {
     assert(res->lhs);
 
     size_t alloc_len = res->len = 0;
@@ -18,7 +19,9 @@ static bool parse_rel_expr_rel_chain(struct parser_state* s, struct rel_expr* re
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->rel_chain, &alloc_len, sizeof(struct shift_expr_and_op));
+            grow_alloc((void**)&res->rel_chain,
+                       &alloc_len,
+                       sizeof(struct shift_expr_and_op));
         }
 
         struct shift_expr_and_op* curr = &res->rel_chain[res->len];
@@ -31,7 +34,8 @@ static bool parse_rel_expr_rel_chain(struct parser_state* s, struct rel_expr* re
         ++res->len;
     }
 
-    res->rel_chain = xrealloc(res->rel_chain, sizeof(struct shift_expr_and_op) * res->len);
+    res->rel_chain = xrealloc(res->rel_chain,
+                              sizeof(struct shift_expr_and_op) * res->len);
 
     return true;
 fail:
@@ -55,7 +59,8 @@ struct rel_expr* parse_rel_expr(struct parser_state* s) {
     return res;
 }
 
-struct rel_expr* parse_rel_expr_cast(struct parser_state* s, struct cast_expr* start) {
+struct rel_expr* parse_rel_expr_cast(struct parser_state* s,
+                                     struct cast_expr* start) {
     assert(start);
 
     struct shift_expr* lhs = parse_shift_expr_cast(s, start);
@@ -79,10 +84,9 @@ void free_rel_expr_children(struct rel_expr* e) {
         free_shift_expr(e->rel_chain[i].rhs);
     }
     free(e->rel_chain);
-} 
+}
 
 void free_rel_expr(struct rel_expr* e) {
     free_rel_expr_children(e);
     free(e);
 }
-

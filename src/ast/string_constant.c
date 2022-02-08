@@ -5,7 +5,10 @@
 
 struct string_constant create_string_constant(char* spelling) {
     assert(spelling);
-    return (struct string_constant){.is_func = false, .lit = {.spelling = spelling}};
+    return (struct string_constant){
+        .is_func = false,
+        .lit = {.spelling = spelling},
+    };
 }
 
 struct string_constant create_func_name() {

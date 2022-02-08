@@ -21,4 +21,3 @@ void free_const_expr(struct const_expr* e) {
     free_children(e);
     free(e);
 }
-

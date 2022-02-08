@@ -24,7 +24,8 @@ struct shift_expr* parse_shift_expr(struct parser_state* s);
 
 struct cast_expr;
 
-struct shift_expr* parse_shift_expr_cast(struct parser_state* s, struct cast_expr* start);
+struct shift_expr* parse_shift_expr_cast(struct parser_state* s,
+                                         struct cast_expr* start);
 
 void free_shift_expr(struct shift_expr* e);
 
@@ -32,4 +33,3 @@ void free_shift_expr(struct shift_expr* e);
 #include "ast/cast_expr.h"
 
 #endif
-

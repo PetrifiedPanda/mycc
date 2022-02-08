@@ -27,4 +27,3 @@ void free_labeled_statement(struct labeled_statement* s);
 #include "ast/identifier.h"
 
 #endif
-

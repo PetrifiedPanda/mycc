@@ -23,7 +23,8 @@ bool parse_cond_expr_inplace(struct parser_state* s, struct cond_expr* res);
 
 struct cast_expr;
 
-struct cond_expr* parse_cond_expr_cast(struct parser_state* s, struct cast_expr* start);
+struct cond_expr* parse_cond_expr_cast(struct parser_state* s,
+                                       struct cast_expr* start);
 
 void free_cond_expr_children(struct cond_expr* e);
 void free_cond_expr(struct cond_expr* e);
@@ -33,4 +34,3 @@ void free_cond_expr(struct cond_expr* e);
 #include "ast/cast_expr.h"
 
 #endif
-

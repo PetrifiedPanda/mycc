@@ -24,4 +24,3 @@ void free_identifier(struct identifier* i) {
     free_identifier_children(i);
     free(i);
 }
-

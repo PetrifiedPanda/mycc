@@ -19,4 +19,3 @@ void free_param_type_list(struct param_type_list* l);
 #include "ast/param_list.h"
 
 #endif
-

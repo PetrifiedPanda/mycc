@@ -21,4 +21,3 @@ void free_func_def_children(struct func_def* d);
 #include "ast/compound_statement.h"
 
 #endif
-

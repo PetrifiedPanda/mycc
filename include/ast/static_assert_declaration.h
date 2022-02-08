@@ -12,7 +12,8 @@ struct static_assert_declaration {
     struct string_literal err_msg;
 };
 
-struct static_assert_declaration* parse_static_assert_declaration(struct parser_state* s);
+struct static_assert_declaration* parse_static_assert_declaration(
+    struct parser_state* s);
 
 void free_static_assert_declaration(struct static_assert_declaration* d);
 

@@ -26,4 +26,3 @@ void free_init_list_children(struct init_list* l);
 #include "ast/designation.h"
 
 #endif
-

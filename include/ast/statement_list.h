@@ -10,11 +10,11 @@ struct statement_list {
     struct statement* statements;
 };
 
-struct statement_list create_statement_list(struct statement* statements, size_t len);
+struct statement_list create_statement_list(struct statement* statements,
+                                            size_t len);
 
 void free_statement_list(struct statement_list* l);
 
 #include "ast/statement.h"
 
 #endif
-

@@ -7,7 +7,9 @@
 
 #include "parser/parser_util.h"
 
-static struct generic_sel* create_generic_sel(struct assign_expr* assign, struct generic_assoc_list assocs) {
+static struct generic_sel* create_generic_sel(
+    struct assign_expr* assign,
+    struct generic_assoc_list assocs) {
     assert(assign);
     assert(assocs.len != 0);
     struct generic_sel* res = xmalloc(sizeof(struct generic_sel));

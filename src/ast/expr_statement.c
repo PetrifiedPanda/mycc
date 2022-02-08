@@ -36,4 +36,3 @@ void free_expr_statement(struct expr_statement* s) {
     free_children(s);
     free(s);
 }
-

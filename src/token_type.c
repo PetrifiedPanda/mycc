@@ -189,7 +189,6 @@ const char* get_spelling(enum token_type type) {
 
         default:
             return NULL;
-
     }
 }
 
@@ -400,9 +399,9 @@ bool is_unary_op(enum token_type t) {
         case SUB:
         case BNOT:
         case NOT:
-           return true;
+            return true;
         default:
-            return false; 
+            return false;
     }
 }
 
@@ -435,7 +434,7 @@ bool is_storage_class_spec(enum token_type t) {
         case REGISTER:
             return true;
         default:
-            return false; 
+            return false;
     }
 }
 
@@ -532,4 +531,3 @@ bool is_eq_op(enum token_type t) {
             return false;
     }
 }
-

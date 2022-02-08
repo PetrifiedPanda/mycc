@@ -4,7 +4,8 @@
 
 #include "parser/parser_util.h"
 
-struct static_assert_declaration* parse_static_assert_declaration(struct parser_state* s) {
+struct static_assert_declaration* parse_static_assert_declaration(
+    struct parser_state* s) {
     if (!(accept(s, STATIC_ASSERT) && accept(s, LBRACKET))) {
         return NULL;
     }
@@ -34,7 +35,8 @@ struct static_assert_declaration* parse_static_assert_declaration(struct parser_
         return NULL;
     }
 
-    struct static_assert_declaration* res = xmalloc(sizeof(struct static_assert_declaration));
+    struct static_assert_declaration* res = xmalloc(
+        sizeof(struct static_assert_declaration));
     res->const_expr = const_expr;
     res->err_msg = (struct string_literal){.spelling = spell};
 

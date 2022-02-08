@@ -24,11 +24,11 @@ struct mul_expr* parse_mul_expr(struct parser_state* s);
 
 struct cast_expr;
 
-struct mul_expr* parse_mul_expr_cast(struct parser_state* s, struct cast_expr* start);
+struct mul_expr* parse_mul_expr_cast(struct parser_state* s,
+                                     struct cast_expr* start);
 
 void free_mul_expr(struct mul_expr* e);
 
 #include "ast/cast_expr.h"
 
 #endif
-

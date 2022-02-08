@@ -17,7 +17,9 @@ struct compound_statement* parse_compound_statement(struct parser_state* s) {
     size_t alloc_len = res->len = 0;
     while (s->it->type != RBRACE) {
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->items, &alloc_len, sizeof(struct block_item));
+            grow_alloc((void**)&res->items,
+                       &alloc_len,
+                       sizeof(struct block_item));
         }
 
         if (!parse_block_item_inplace(s, &res->items[res->len])) {
@@ -47,4 +49,3 @@ void free_compound_statement(struct compound_statement* s) {
     free_children(s);
     free(s);
 }
-

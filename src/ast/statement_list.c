@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
-struct statement_list create_statement_list(struct statement* statements, size_t len) {
+struct statement_list create_statement_list(struct statement* statements,
+                                            size_t len) {
     if (len > 0) {
         assert(statements);
     } else {
@@ -18,4 +19,3 @@ void free_statement_list(struct statement_list* l) {
     }
     free(l->statements);
 }
-

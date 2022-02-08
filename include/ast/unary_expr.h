@@ -40,10 +40,13 @@ struct unary_expr* parse_unary_expr(struct parser_state* s);
  * @param ops_before array of len tokens
  * @param len length of ops_before
  * @param type_name the already parsed type_name, with which this starts
- * @return struct unary_expr* unary expression created with the given parameters NULL on fail
- * This does not free any of the parameters
+ * @return struct unary_expr* unary expression created with the given parameters
+ * NULL on fail This does not free any of the parameters
  */
-struct unary_expr* parse_unary_expr_type_name(struct parser_state* s, enum token_type* ops_before, size_t len, struct type_name* type_name);
+struct unary_expr* parse_unary_expr_type_name(struct parser_state* s,
+                                              enum token_type* ops_before,
+                                              size_t len,
+                                              struct type_name* type_name);
 
 void free_unary_expr_children(struct unary_expr* u);
 void free_unary_expr(struct unary_expr* u);
@@ -53,4 +56,3 @@ void free_unary_expr(struct unary_expr* u);
 #include "ast/type_name.h"
 
 #endif
-

@@ -32,12 +32,13 @@ struct abs_arr_or_func_suffix {
 
 struct direct_abs_declarator {
     struct abs_declarator* bracket_decl;
-    
+
     size_t len;
     struct abs_arr_or_func_suffix* following_suffixes;
 };
 
-struct direct_abs_declarator* parse_direct_abs_declarator(struct parser_state* s);
+struct direct_abs_declarator* parse_direct_abs_declarator(
+    struct parser_state* s);
 
 void free_direct_abs_declarator(struct direct_abs_declarator* d);
 
@@ -45,4 +46,3 @@ void free_direct_abs_declarator(struct direct_abs_declarator* d);
 #include "ast/assign_expr.h"
 
 #endif
-

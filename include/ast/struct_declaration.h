@@ -19,7 +19,8 @@ struct struct_declaration {
     };
 };
 
-bool parse_struct_declaration_inplace(struct parser_state* s, struct struct_declaration* res);
+bool parse_struct_declaration_inplace(struct parser_state* s,
+                                      struct struct_declaration* res);
 
 void free_struct_declaration_children(struct struct_declaration* d);
 void free_struct_declaration(struct struct_declaration* d);

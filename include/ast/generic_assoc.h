@@ -13,7 +13,8 @@ struct generic_assoc {
     struct assign_expr* assign;
 };
 
-bool parse_generic_assoc_inplace(struct parser_state* s, struct generic_assoc* res);
+bool parse_generic_assoc_inplace(struct parser_state* s,
+                                 struct generic_assoc* res);
 
 void free_generic_assoc_children(struct generic_assoc* a);
 

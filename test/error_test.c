@@ -84,7 +84,11 @@ static void test_set_error_file() {
     {
         const char* filename = "abcdefghij.c";
         struct source_location loc = {10000, 123456789};
-        int last = sprintf(test_buf, "%s(%zu,%zu):\n", filename, loc.line, loc.index);
+        int last = sprintf(test_buf,
+                           "%s(%zu,%zu):\n",
+                           filename,
+                           loc.line,
+                           loc.index);
 
         char print_buf[TEST_BUF_SIZE];
         int print_buf_len = 0;
@@ -108,22 +112,14 @@ static void test_set_error_file() {
 
 static void test_append_error() {
     enum { ARR_SIZE = 6 };
-    const char* split_string[ARR_SIZE] = {
-        "Hello",
-        " this",
-        " is",
-        " a",
-        " split",
-        " string"
-    };
+    const char* split_string[ARR_SIZE] =
+        {"Hello", " this", " is", " a", " split", " string"};
 
-    const char* expected_steps[5] = {
-        "Hello this",
-        "Hello this is",
-        "Hello this is a",
-        "Hello this is a split",
-        "Hello this is a split string"
-    };
+    const char* expected_steps[5] = {"Hello this",
+                                     "Hello this is",
+                                     "Hello this is a",
+                                     "Hello this is a split",
+                                     "Hello this is a split string"};
 
     set_error(ERR_TOKENIZER, split_string[0]);
     ASSERT_ERROR(get_last_error(), ERR_TOKENIZER);

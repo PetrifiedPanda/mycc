@@ -3,14 +3,18 @@
 #include "util.h"
 #include "error.h"
 
-bool parse_init_declarator_typedef_inplace(struct parser_state* s, struct init_declarator* res) {
+bool parse_init_declarator_typedef_inplace(struct parser_state* s,
+                                           struct init_declarator* res) {
     res->decl = parse_declarator_typedef(s);
     if (!res->decl) {
         return false;
     }
 
     if (s->it->type == ASSIGN) {
-        set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Initializer not allowed in typedef");
+        set_error_file(ERR_PARSER,
+                       s->it->file,
+                       s->it->source_loc,
+                       "Initializer not allowed in typedef");
         return false;
     }
 
@@ -19,7 +23,8 @@ bool parse_init_declarator_typedef_inplace(struct parser_state* s, struct init_d
     return true;
 }
 
-bool parse_init_declarator_inplace(struct parser_state* s, struct init_declarator* res) {
+bool parse_init_declarator_inplace(struct parser_state* s,
+                                   struct init_declarator* res) {
     res->decl = parse_declarator(s);
     if (!res->decl) {
         return false;
@@ -44,4 +49,3 @@ void free_init_declarator_children(struct init_declarator* d) {
         free_initializer(d->init);
     }
 }
-

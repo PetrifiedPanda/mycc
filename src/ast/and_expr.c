@@ -15,7 +15,9 @@ static bool parse_and_expr_rest(struct parser_state* s, struct and_expr* res) {
     while (s->it->type == AND) {
         accept_it(s);
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->eq_exprs, &alloc_len, sizeof(struct eq_expr));
+            grow_alloc((void**)&res->eq_exprs,
+                       &alloc_len,
+                       sizeof(struct eq_expr));
         }
         if (!parse_eq_expr_inplace(s, &res->eq_exprs[res->len])) {
             goto fail;
@@ -45,7 +47,8 @@ bool parse_and_expr_inplace(struct parser_state* s, struct and_expr* res) {
     return true;
 }
 
-struct and_expr* parse_and_expr_cast(struct parser_state* s, struct cast_expr* start) {
+struct and_expr* parse_and_expr_cast(struct parser_state* s,
+                                     struct cast_expr* start) {
     assert(start);
 
     struct eq_expr* eq_exprs = parse_eq_expr_cast(s, start);
@@ -74,4 +77,3 @@ void free_and_expr(struct and_expr* e) {
     free_and_expr_children(e);
     free(e);
 }
-

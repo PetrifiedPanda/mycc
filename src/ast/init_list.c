@@ -4,7 +4,8 @@
 
 #include "parser/parser_util.h"
 
-static bool parse_designation_init(struct parser_state* s, struct designation_init* res) {
+static bool parse_designation_init(struct parser_state* s,
+                                   struct designation_init* res) {
     if (s->it->type == LINDEX || s->it->type == DOT) {
         res->designation = parse_designation(s);
         if (!res->designation) {
@@ -26,8 +27,8 @@ static bool parse_designation_init(struct parser_state* s, struct designation_in
 
 struct init_list parse_init_list(struct parser_state* s) {
     struct init_list res = {
-            .len = 1,
-            .inits = xmalloc(sizeof(struct designation_init))
+        .len = 1,
+        .inits = xmalloc(sizeof(struct designation_init)),
     };
     if (!parse_designation_init(s, &res.inits[0])) {
         free(res.inits);
@@ -39,7 +40,9 @@ struct init_list parse_init_list(struct parser_state* s) {
         accept_it(s);
 
         if (res.len == alloc_len) {
-            grow_alloc((void**)&res.inits, &alloc_len, sizeof(struct designation_init));
+            grow_alloc((void**)&res.inits,
+                       &alloc_len,
+                       sizeof(struct designation_init));
         }
 
         if (!parse_designation_init(s, &res.inits[res.len])) {
@@ -67,4 +70,3 @@ void free_init_list_children(struct init_list* l) {
     }
     free(l->inits);
 }
-

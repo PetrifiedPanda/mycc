@@ -5,11 +5,11 @@
 #include "parser/parser_util.h"
 
 struct type_quals create_type_quals() {
-    return (struct type_quals) {
+    return (struct type_quals){
         .is_const = false,
         .is_restrict = false,
         .is_volatile = false,
-        .is_atomic = false
+        .is_atomic = false,
     };
 }
 
@@ -39,14 +39,11 @@ struct type_quals parse_type_qual_list(struct parser_state* s) {
     struct type_quals res = create_type_quals();
 
     if (!is_type_qual(s->it->type)) {
-        enum token_type expected[] = {
-            CONST,
-            RESTRICT,
-            VOLATILE,
-            ATOMIC
-        };
+        enum token_type expected[] = {CONST, RESTRICT, VOLATILE, ATOMIC};
 
-        expected_tokens_error(expected, sizeof expected / sizeof(enum token_type), s->it);
+        expected_tokens_error(expected,
+                              sizeof expected / sizeof(enum token_type),
+                              s->it);
         return create_type_quals();
     }
 

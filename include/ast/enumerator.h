@@ -19,4 +19,3 @@ void free_enumerator_children(struct enumerator* e);
 #include "ast/const_expr.h"
 
 #endif
-

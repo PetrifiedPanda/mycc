@@ -24,4 +24,3 @@ void free_jump_statement(struct jump_statement* s);
 #include "ast/identifier.h"
 
 #endif
-

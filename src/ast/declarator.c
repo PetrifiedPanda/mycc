@@ -4,7 +4,9 @@
 
 #include "util.h"
 
-static struct declarator* parse_declarator_base(struct parser_state* s, struct direct_declarator*(*parse_func)(struct parser_state* s)) {
+static struct declarator* parse_declarator_base(
+    struct parser_state* s,
+    struct direct_declarator* (*parse_func)(struct parser_state* s)) {
     struct declarator* res = xmalloc(sizeof(struct declarator));
     if (s->it->type == ASTERISK) {
         res->ptr = parse_pointer(s);
@@ -47,4 +49,3 @@ void free_declarator(struct declarator* d) {
     free_children(d);
     free(d);
 }
-

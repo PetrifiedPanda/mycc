@@ -17,4 +17,3 @@ void free_enum_spec(struct enum_spec* s);
 #include "ast/identifier.h"
 
 #endif
-

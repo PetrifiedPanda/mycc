@@ -6,7 +6,8 @@
 
 #include "parser/parser_util.h"
 
-static bool parse_spec_or_qual(struct parser_state* s, struct spec_qual_list* res) {
+static bool parse_spec_or_qual(struct parser_state* s,
+                               struct spec_qual_list* res) {
     assert(res);
 
     if (is_type_qual(s->it->type)) {
@@ -20,24 +21,20 @@ static bool parse_spec_or_qual(struct parser_state* s, struct spec_qual_list* re
 
 struct spec_qual_list parse_spec_qual_list(struct parser_state* s) {
     struct spec_qual_list res = {
-            .quals = create_type_quals(),
-            .specs = create_type_specs()
+        .quals = create_type_quals(),
+        .specs = create_type_specs(),
     };
 
     if (!parse_spec_or_qual(s, &res)) {
-        return (struct spec_qual_list) {
-            .quals = create_type_quals(),
-            .specs = create_type_specs()
-        };
+        return (struct spec_qual_list){.quals = create_type_quals(),
+                                       .specs = create_type_specs(),};
     }
 
     while (is_type_spec(s) || is_type_qual(s->it->type)) {
         if (!parse_spec_or_qual(s, &res)) {
             free_spec_qual_list_children(&res);
-            return (struct spec_qual_list) {
-                .quals = create_type_quals(),
-                .specs = create_type_specs()
-            };
+            return (struct spec_qual_list){.quals = create_type_quals(),
+                                           .specs = create_type_specs()};
         }
     }
 

@@ -39,7 +39,8 @@ static void check_expected_semicolon_jump_statement(const char* spell) {
     ASSERT_NULL(res);
 
     ASSERT_ERROR(get_last_error(), ERR_PARSER);
-    ASSERT_STR(get_error_string(), "Expected token of type SEMICOLON but got to end of file");
+    ASSERT_STR(get_error_string(),
+               "Expected token of type SEMICOLON but got to end of file");
 
     clear_last_error();
     free_tokenizer_result(tokens);
@@ -82,7 +83,9 @@ static void jump_statement_test() {
         ASSERT_NULL(res);
         ASSERT_ERROR(get_last_error(), ERR_PARSER);
 
-        ASSERT_STR(get_error_string(), "a_file.c(1,1):\nExpected token of type GOTO, CONTINUE, BREAK, RETURN but got token of type IDENTIFIER");
+        ASSERT_STR(get_error_string(),
+                   "a_file.c(1,1):\nExpected token of type GOTO, CONTINUE, "
+                   "BREAK, RETURN but got token of type IDENTIFIER");
 
         clear_last_error();
         free_tokenizer_result(tokens);
@@ -137,16 +140,21 @@ static void statement_test() {
     ASSERT(iteration->for_loop.is_decl == false);
     ASSERT_SIZE_T(iteration->for_loop.cond->expr.len, (size_t)1);
 
-    ASSERT_SIZE_T(iteration->for_loop.cond->expr.assign_exprs[0].len, (size_t)0);
+    ASSERT_SIZE_T(iteration->for_loop.cond->expr.assign_exprs[0].len,
+                  (size_t)0);
 
-    struct rel_expr* rel = iteration->for_loop.cond->expr.assign_exprs[0].value->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs;
+    struct rel_expr* rel = iteration->for_loop.cond->expr.assign_exprs[0]
+                               .value->last_else->log_ands->or_exprs->xor_exprs
+                               ->and_exprs->eq_exprs->lhs;
     ASSERT_SIZE_T(rel->len, (size_t)1);
     check_shift_expr_id_or_const(rel->lhs, "i", IDENTIFIER);
     ASSERT_TOKEN_TYPE(rel->rel_chain[0].rel_op, LT);
     check_shift_expr_id_or_const(rel->rel_chain[0].rhs, "100", I_CONSTANT);
 
-
-    struct unary_expr* unary = iteration->for_loop.incr_expr->assign_exprs->value->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs;
+    struct unary_expr* unary = iteration->for_loop.incr_expr->assign_exprs
+                                   ->value->last_else->log_ands->or_exprs
+                                   ->xor_exprs->and_exprs->eq_exprs->lhs->lhs
+                                   ->lhs->lhs->lhs->rhs;
     ASSERT_SIZE_T(unary->len, (size_t)1);
     ASSERT_TOKEN_TYPE(unary->operators_before[0], INC_OP);
     ASSERT(unary->type == UNARY_POSTFIX);
@@ -161,10 +169,12 @@ static void statement_test() {
     check_expr_id_or_const(switch_stat->sel_expr, "c", IDENTIFIER);
     ASSERT(switch_stat->sel_stat->type == STATEMENT_COMPOUND);
     {
-        struct compound_statement* switch_compound = switch_stat->sel_stat->comp;
+        struct compound_statement* switch_compound = switch_stat->sel_stat
+                                                         ->comp;
         ASSERT_SIZE_T(switch_compound->len, (size_t)3);
         ASSERT(switch_compound->items[0].stat.type == STATEMENT_LABELED);
-        struct labeled_statement* labeled = switch_compound->items[0].stat.labeled;
+        struct labeled_statement* labeled = switch_compound->items[0]
+                                                .stat.labeled;
         ASSERT_TOKEN_TYPE(labeled->type, CASE);
 
         ASSERT_NOT_NULL(labeled->case_expr);
@@ -174,9 +184,15 @@ static void statement_test() {
         struct expr* case_expr = &labeled->stat->expr->expr;
         ASSERT_SIZE_T(case_expr->assign_exprs->len, (size_t)1);
 
-        check_cond_expr_id_or_const(case_expr->assign_exprs->value, "5", I_CONSTANT);
-        ASSERT_TOKEN_TYPE(case_expr->assign_exprs->assign_chain[0].assign_op, SUB_ASSIGN);
-        check_unary_expr_id_or_const(case_expr->assign_exprs->assign_chain[0].unary, "d", IDENTIFIER);
+        check_cond_expr_id_or_const(case_expr->assign_exprs->value,
+                                    "5",
+                                    I_CONSTANT);
+        ASSERT_TOKEN_TYPE(case_expr->assign_exprs->assign_chain[0].assign_op,
+                          SUB_ASSIGN);
+        check_unary_expr_id_or_const(
+            case_expr->assign_exprs->assign_chain[0].unary,
+            "d",
+            IDENTIFIER);
 
         ASSERT(switch_compound->items[1].stat.type == STATEMENT_JUMP);
         struct jump_statement* break_stat = switch_compound->items[1].stat.jmp;
@@ -184,7 +200,8 @@ static void statement_test() {
         ASSERT_NULL(break_stat->ret_val);
 
         ASSERT(switch_compound->items[2].stat.type == STATEMENT_LABELED);
-        struct labeled_statement* default_stat = switch_compound->items[2].stat.labeled;
+        struct labeled_statement* default_stat = switch_compound->items[2]
+                                                     .stat.labeled;
 
         ASSERT_TOKEN_TYPE(default_stat->type, DEFAULT);
         ASSERT_NULL(default_stat->case_expr);
@@ -193,9 +210,15 @@ static void statement_test() {
         struct expr* default_expr = &default_stat->stat->expr->expr;
 
         ASSERT_SIZE_T(default_expr->assign_exprs->len, (size_t)1);
-        check_cond_expr_id_or_const(default_expr->assign_exprs->value, "5", I_CONSTANT);
-        ASSERT_TOKEN_TYPE(default_expr->assign_exprs->assign_chain[0].assign_op, ADD_ASSIGN);
-        check_unary_expr_id_or_const(default_expr->assign_exprs->assign_chain[0].unary, "d", IDENTIFIER);
+        check_cond_expr_id_or_const(default_expr->assign_exprs->value,
+                                    "5",
+                                    I_CONSTANT);
+        ASSERT_TOKEN_TYPE(default_expr->assign_exprs->assign_chain[0].assign_op,
+                          ADD_ASSIGN);
+        check_unary_expr_id_or_const(
+            default_expr->assign_exprs->assign_chain[0].unary,
+            "d",
+            IDENTIFIER);
     }
 
     ASSERT(compound->items[1].stat.type == STATEMENT_SELECTION);
@@ -203,7 +226,9 @@ static void statement_test() {
 
     ASSERT(if_stat->is_if);
 
-    struct rel_expr* if_cond = if_stat->sel_expr->assign_exprs->value->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs;
+    struct rel_expr* if_cond = if_stat->sel_expr->assign_exprs->value->last_else
+                                   ->log_ands->or_exprs->xor_exprs->and_exprs
+                                   ->eq_exprs->lhs;
 
     ASSERT_SIZE_T(if_cond->len, (size_t)1);
     check_shift_expr_id_or_const(if_cond->lhs, "i", IDENTIFIER);
@@ -219,10 +244,15 @@ static void statement_test() {
     ASSERT_NOT_NULL(if_stat->else_stat);
     ASSERT(if_stat->else_stat->type == STATEMENT_EXPRESSION);
     struct expr* else_expr = &if_stat->else_stat->expr->expr;
-    check_cond_expr_id_or_const(else_expr->assign_exprs->value, "0", I_CONSTANT);
+    check_cond_expr_id_or_const(else_expr->assign_exprs->value,
+                                "0",
+                                I_CONSTANT);
     ASSERT_SIZE_T(else_expr->assign_exprs->len, (size_t)1);
-    ASSERT_TOKEN_TYPE(else_expr->assign_exprs->assign_chain[0].assign_op, ASSIGN);
-    check_unary_expr_id_or_const(else_expr->assign_exprs->assign_chain[0].unary, "b", IDENTIFIER);
+    ASSERT_TOKEN_TYPE(else_expr->assign_exprs->assign_chain[0].assign_op,
+                      ASSIGN);
+    check_unary_expr_id_or_const(else_expr->assign_exprs->assign_chain[0].unary,
+                                 "b",
+                                 IDENTIFIER);
 
     free_statement(res);
     free_parser_state(&s);

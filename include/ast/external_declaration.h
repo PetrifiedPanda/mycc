@@ -16,9 +16,9 @@ struct external_declaration {
     };
 };
 
-bool parse_external_declaration_inplace(struct parser_state* s, struct external_declaration* res);
+bool parse_external_declaration_inplace(struct parser_state* s,
+                                        struct external_declaration* res);
 
 void free_external_declaration_children(struct external_declaration* d);
 
 #endif
-

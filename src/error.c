@@ -5,7 +5,7 @@
 #include <assert.h>
 
 static enum error_type g_type = ERR_NONE;
-enum {MSG_BUF_SIZE = 512};
+enum { MSG_BUF_SIZE = 512 };
 static char g_msg_buf[MSG_BUF_SIZE] = {0};
 static size_t g_msg_len = 0;
 
@@ -36,7 +36,6 @@ const char* get_error_type_str(enum error_type t) {
             return "ERR_PARSER";
         default:
             return "INVALID ERROR TYPE";
-
     }
 }
 
@@ -59,14 +58,18 @@ void set_error(enum error_type type, const char* format, ...) {
     va_end(args);
 }
 
-void set_error_file(enum error_type type, const char* filename, struct source_location loc, const char* format, ...) {
+void set_error_file(enum error_type type,
+                    const char* filename,
+                    struct source_location loc,
+                    const char* format,
+                    ...) {
     assert(g_type == ERR_NONE);
 
     g_type = type;
     append_error_msg("%s(%zu,%zu):\n", filename, loc.line, loc.index);
 
     va_list(args);
-    va_start(args, format); 
+    va_start(args, format);
     append_error_msg_va_list(format, args);
     va_end(args);
 }
@@ -81,4 +84,3 @@ void append_error_msg(const char* format, ...) {
     append_error_msg_va_list(format, args);
     va_end(args);
 }
-

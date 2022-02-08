@@ -37,11 +37,11 @@ struct declaration_specs {
     struct type_specs type_specs;
 };
 
-struct declaration_specs* parse_declaration_specs(struct parser_state* s, bool* found_typedef);
+struct declaration_specs* parse_declaration_specs(struct parser_state* s,
+                                                  bool* found_typedef);
 
 void free_declaration_specs(struct declaration_specs* s);
 
 #include "ast/align_spec.h"
 
 #endif
-

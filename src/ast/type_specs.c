@@ -29,21 +29,28 @@ static inline bool is_standalone_type_spec(enum token_type t) {
 }
 
 struct type_specs create_type_specs() {
-    return (struct type_specs) {
-        .mods = {
-            .is_unsigned = false,
-            .is_signed = false,
-            .is_short = false,
-            .num_long = 0,
-            .is_complex = false,
-            .is_imaginary = false
-        },
-        .has_specifier = false
+    return (struct type_specs){
+        .mods =
+            {
+                .is_unsigned = false,
+                .is_signed = false,
+                .is_short = false,
+                .num_long = 0,
+                .is_complex = false,
+                .is_imaginary = false,
+            },
+        .has_specifier = false,
     };
 }
 
-static void cannot_combine_with_spec_err(const struct parser_state* s, enum token_type prev_spec) {
-    set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Cannot combine %s with previous %s type specifier", get_type_str(s->it->type), get_type_str(prev_spec));
+static void cannot_combine_with_spec_err(const struct parser_state* s,
+                                         enum token_type prev_spec) {
+    set_error_file(ERR_PARSER,
+                   s->it->file,
+                   s->it->source_loc,
+                   "Cannot combine %s with previous %s type specifier",
+                   get_type_str(s->it->type),
+                   get_type_str(prev_spec));
 }
 
 bool update_type_specs(struct parser_state* s, struct type_specs* res) {
@@ -58,7 +65,12 @@ bool update_type_specs(struct parser_state* s, struct type_specs* res) {
             case DOUBLE:
             case BOOL:
                 if (res->has_specifier) {
-                    set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Cannot combine %s with previous type specifier", get_type_str(s->it->type));
+                    set_error_file(
+                        ERR_PARSER,
+                        s->it->file,
+                        s->it->source_loc,
+                        "Cannot combine %s with previous type specifier",
+                        get_type_str(s->it->type));
                     free_type_specs_children(res);
                     return false;
                 }
@@ -146,19 +158,25 @@ bool update_type_specs(struct parser_state* s, struct type_specs* res) {
                 accept_it(s);
                 break;
             } else {
-                set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Expected a type name but got %s with spelling %s", get_type_str(IDENTIFIER), s->it->spelling);
+                set_error_file(
+                    ERR_PARSER,
+                    s->it->file,
+                    s->it->source_loc,
+                    "Expected a type name but got %s with spelling %s",
+                    get_type_str(IDENTIFIER),
+                    s->it->spelling);
                 return false;
             }
         }
         default: {
-            enum token_type expected[] = {
-                ATOMIC,
-                STRUCT,
-                UNION,
-                ENUM,
-                TYPEDEF_NAME
-            };
-            expected_tokens_error(expected, sizeof(expected) / sizeof(enum token_type), s->it);
+            enum token_type expected[] = {ATOMIC,
+                                          STRUCT,
+                                          UNION,
+                                          ENUM,
+                                          TYPEDEF_NAME};
+            expected_tokens_error(expected,
+                                  sizeof(expected) / sizeof(enum token_type),
+                                  s->it);
             return false;
         }
     }
@@ -193,12 +211,8 @@ bool is_valid_type_specs(struct type_specs* s) {
 
     if (!s->has_specifier) {
         struct type_modifiers* mods = &s->mods;
-        return mods->is_unsigned ||
-               mods->is_signed ||
-               mods->is_short ||
-               mods->num_long != 0 ||
-               mods->is_complex ||
-               mods->is_imaginary;
+        return mods->is_unsigned || mods->is_signed || mods->is_short
+               || mods->num_long != 0 || mods->is_complex || mods->is_imaginary;
     }
 
     return true;

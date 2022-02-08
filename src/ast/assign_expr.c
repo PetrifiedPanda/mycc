@@ -7,7 +7,8 @@
 
 #include "parser/parser_util.h"
 
-bool parse_assign_expr_inplace(struct parser_state* s, struct assign_expr* res) {
+bool parse_assign_expr_inplace(struct parser_state* s,
+                               struct assign_expr* res) {
     assert(res);
 
     struct unary_expr* last_unary;
@@ -28,7 +29,8 @@ bool parse_assign_expr_inplace(struct parser_state* s, struct assign_expr* res) 
         } else {
             res->len = 0;
             res->assign_chain = NULL;
-            struct cast_expr* cast_expr = parse_cast_expr_type_name(s, type_name);
+            struct cast_expr* cast_expr = parse_cast_expr_type_name(s,
+                                                                    type_name);
             if (!cast_expr) {
                 return false;
             }
@@ -74,7 +76,9 @@ bool parse_assign_expr_inplace(struct parser_state* s, struct assign_expr* res) 
             if (s->it->type == LBRACE) {
                 new_last = parse_unary_expr_type_name(s, NULL, 0, type_name);
             } else {
-                struct cast_expr* cast_expr = parse_cast_expr_type_name(s, type_name);
+                struct cast_expr* cast_expr = parse_cast_expr_type_name(
+                    s,
+                    type_name);
                 if (!cast_expr) {
                     free_unary_expr(last_unary);
                     goto fail;
@@ -87,11 +91,12 @@ bool parse_assign_expr_inplace(struct parser_state* s, struct assign_expr* res) 
                     goto fail;
                 }
                 ++res->len;
-                res->assign_chain = xrealloc(res->assign_chain, sizeof(struct cond_expr) * res->len);
-                res->assign_chain[res->len - 1] = (struct unary_and_op) {
+                res->assign_chain = xrealloc(res->assign_chain,
+                                             sizeof(struct cond_expr)
+                                                 * res->len);
+                res->assign_chain[res->len - 1] = (struct unary_and_op){
                     .assign_op = op,
-                    .unary = last_unary
-                };
+                    .unary = last_unary};
                 return true;
             }
         } else {
@@ -104,19 +109,22 @@ bool parse_assign_expr_inplace(struct parser_state* s, struct assign_expr* res) 
         }
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->assign_chain, &alloc_len, sizeof(struct unary_and_op));
+            grow_alloc((void**)&res->assign_chain,
+                       &alloc_len,
+                       sizeof(struct unary_and_op));
         }
 
-        res->assign_chain[res->len] = (struct unary_and_op) {
-                .assign_op = op,
-                .unary = last_unary
+        res->assign_chain[res->len] = (struct unary_and_op){
+            .assign_op = op,
+            .unary = last_unary,
         };
         last_unary = new_last;
 
         ++res->len;
     }
 
-    res->assign_chain = xrealloc(res->assign_chain, sizeof(struct unary_and_op) * res->len);
+    res->assign_chain = xrealloc(res->assign_chain,
+                                 sizeof(struct unary_and_op) * res->len);
 
     res->value = parse_cond_expr_cast(s, create_cast_expr_unary(last_unary));
     if (!res->value) {
@@ -147,7 +155,7 @@ void free_assign_expr_children(struct assign_expr* e) {
         free_unary_expr(e->assign_chain[i].unary);
     }
     free(e->assign_chain);
-    
+
     free_cond_expr(e->value);
 }
 
@@ -155,4 +163,3 @@ void free_assign_expr(struct assign_expr* e) {
     free_assign_expr_children(e);
     free(e);
 }
-

@@ -34,12 +34,15 @@ static void check_file(const struct token* tokens, const char* file) {
     }
 }
 
-static struct token create(enum token_type type, const char* spelling, size_t line, size_t index) {
+static struct token create(enum token_type type,
+                           const char* spelling,
+                           size_t line,
+                           size_t index) {
     return (struct token){
         .type = type,
-        .spelling =(char*)spelling,
+        .spelling = (char*)spelling,
         .file = NULL,
-        .source_loc = {line, index}
+        .source_loc = {line, index},
     };
 }
 
@@ -52,27 +55,29 @@ static void check_token(const struct token* t, const struct token* expected) {
     ASSERT_SIZE_T(t->source_loc.index, expected->source_loc.index);
 }
 
-static void compare_tokens(const struct token* got, const struct token* expected, size_t len) {
+static void compare_tokens(const struct token* got,
+                           const struct token* expected,
+                           size_t len) {
     for (size_t i = 0; i < len; ++i) {
         check_token(&got[i], &expected[i]);
     }
 }
 
 static void simple_test() {
-    const char* code =
-        "typedef struct typedeftest /* This is a comment \n"
-        "that goes over\n"
-        "multiple lines\n"
-        "*/\n"
-        "{\n"
-        "\tlong int* n;\n"
-        "const long double *m;\n"
-        "} Typedeftest; // Line comment\n"
-        "const char* lstr = \n"
-        "L\"Long string literal to check if long strings work\";\n"
-        "int n = 0x123213 + 132 << 32 >> 0x123 - 0123 / 12;\n"
-        "const char* str = \"Normal string literal\";\n"
-        "int arr[1 ? 100 : 1000];\n";
+    const char*
+        code = "typedef struct typedeftest /* This is a comment \n"
+               "that goes over\n"
+               "multiple lines\n"
+               "*/\n"
+               "{\n"
+               "\tlong int* n;\n"
+               "const long double *m;\n"
+               "} Typedeftest; // Line comment\n"
+               "const char* lstr = \n"
+               "L\"Long string literal to check if long strings work\";\n"
+               "int n = 0x123213 + 132 << 32 >> 0x123 - 0123 / 12;\n"
+               "const char* str = \"Normal string literal\";\n"
+               "int arr[1 ? 100 : 1000];\n";
 
     const char* filename = "not_a_file.c";
     struct token* tokens = tokenize(code, filename);
@@ -103,7 +108,10 @@ static void simple_test() {
         create(ASTERISK, NULL, 9, 11),
         create(IDENTIFIER, "lstr", 9, 13),
         create(ASSIGN, NULL, 9, 18),
-        create(STRING_LITERAL, "L\"Long string literal to check if long strings work\"", 10, 1),
+        create(STRING_LITERAL,
+               "L\"Long string literal to check if long strings work\"",
+               10,
+               1),
         create(SEMICOLON, NULL, 10, 53),
         create(INT, NULL, 11, 1),
         create(IDENTIFIER, "n", 11, 5),
@@ -136,8 +144,7 @@ static void simple_test() {
         create(COLON, NULL, 13, 17),
         create(I_CONSTANT, "1000", 13, 19),
         create(RINDEX, NULL, 13, 23),
-        create(SEMICOLON, NULL, 13, 24)
-    };
+        create(SEMICOLON, NULL, 13, 24)};
     enum { EXPECTED_SIZE = sizeof expected / sizeof(struct token) };
 
     check_size(tokens, EXPECTED_SIZE);
@@ -277,7 +284,29 @@ static void file_test() {
         create(LBRACE, NULL, 46, 18),
         create(I_CONSTANT, "0", 46, 19),
         create(COMMA, NULL, 46, 20),
-        create(STRING_LITERAL, "L\"Hello there, this string literal needs to be longer than 512 characters oh no I don't know what to write here aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", 46, 22),
+        create(
+            STRING_LITERAL,
+            "L\"Hello there, this string literal needs to be longer than 512 "
+            "characters oh no I don't know what to write here "
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaa\"",
+            46,
+            22),
         create(RBRACE, NULL, 46, 1204),
         create(SEMICOLON, NULL, 46, 1205),
         create(INT, NULL, 47, 5),
@@ -314,7 +343,10 @@ static void file_test() {
         create(IDENTIFIER, "MyStruct", 52, 15),
         create(RBRACKET, NULL, 52, 23),
         create(LBRACE, NULL, 52, 24),
-        create(STRING_LITERAL, "L\"\\\"Lstrings seem to be int pointers\\\"\"", 52, 25),
+        create(STRING_LITERAL,
+               "L\"\\\"Lstrings seem to be int pointers\\\"\"",
+               52,
+               25),
         create(COMMA, NULL, 52, 64),
         create(STRING_LITERAL, "\"doot\"", 52, 66),
         create(RBRACE, NULL, 52, 72),
@@ -332,7 +364,28 @@ static void file_test() {
         create(I_CONSTANT, "033242", 55, 31),
         create(SEMICOLON, NULL, 55, 37),
         create(INT, NULL, 56, 5),
-        create(IDENTIFIER, "super_long_identifier_that_needs_to_be_over_512_characters_long_what_the_hell_am_i_supposed_to_write_here_a_b_c_d_e_f_g_h_i_j_k_l_m_n_o_p_q_r_s_t_u_v_w_x_y_z_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccooooooooooooooooooooooooooooooooooooooooooooosoooooooooooooooooooooooooooodfsoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo_ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss", 56, 9),
+        create(
+            IDENTIFIER,
+            "super_long_identifier_that_needs_to_be_over_512_characters_long_"
+            "what_the_hell_am_i_supposed_to_write_here_a_b_c_d_e_f_g_h_i_j_k_l_"
+            "m_n_o_p_q_r_s_t_u_v_w_x_y_z_"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacccccccccccccccccccccccc"
+            "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            "ccccccccccccccccccccccccccccccccccccccccccccccccccccoooooooooooooo"
+            "ooooooooooooooooooooooooooooooosoooooooooooooooooooooooooooodfsooo"
+            "ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo_"
+            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+            "ssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+            56,
+            9),
         create(SEMICOLON, NULL, 56, 1141),
         create(GOTO, NULL, 57, 5),
         create(IDENTIFIER, "my_cool_label", 57, 10),
@@ -345,7 +398,28 @@ static void file_test() {
         create(SEMICOLON, NULL, 59, 26),
         create(IDENTIFIER, "my_cool_label", 61, 1),
         create(COLON, NULL, 61, 14),
-        create(IDENTIFIER, "super_long_identifier_that_needs_to_be_over_512_characters_long_what_the_hell_am_i_supposed_to_write_here_a_b_c_d_e_f_g_h_i_j_k_l_m_n_o_p_q_r_s_t_u_v_w_x_y_z_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccooooooooooooooooooooooooooooooooooooooooooooosoooooooooooooooooooooooooooodfsoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo_ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss", 62, 5),
+        create(
+            IDENTIFIER,
+            "super_long_identifier_that_needs_to_be_over_512_characters_long_"
+            "what_the_hell_am_i_supposed_to_write_here_a_b_c_d_e_f_g_h_i_j_k_l_"
+            "m_n_o_p_q_r_s_t_u_v_w_x_y_z_"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacccccccccccccccccccccccc"
+            "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            "ccccccccccccccccccccccccccccccccccccccccccccccccccccoooooooooooooo"
+            "ooooooooooooooooooooooooooooooosoooooooooooooooooooooooooooodfsooo"
+            "ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo_"
+            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+            "ssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+            62,
+            5),
         create(ASSIGN, NULL, 62, 1138),
         create(LBRACKET, NULL, 62, 1140),
         create(INT, NULL, 62, 1141),
@@ -710,8 +784,7 @@ static void file_test() {
         create(THREAD_LOCAL, NULL, 122, 1),
         create(INT, NULL, 122, 15),
         create(IDENTIFIER, "g_thread", 122, 19),
-        create(SEMICOLON, NULL, 122, 27)
-    };
+        create(SEMICOLON, NULL, 122, 27)};
 
     enum { EXPECTED_SIZE = sizeof expected / sizeof(struct token) };
     check_size(tokens, EXPECTED_SIZE);

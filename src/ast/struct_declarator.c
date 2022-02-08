@@ -6,7 +6,8 @@
 #include "error.h"
 #include "util.h"
 
-bool parse_struct_declarator_inplace(struct parser_state* s, struct struct_declarator* res) {
+bool parse_struct_declarator_inplace(struct parser_state* s,
+                                     struct struct_declarator* res) {
     assert(res);
 
     if (s->it->type != COLON) {
@@ -28,7 +29,10 @@ bool parse_struct_declarator_inplace(struct parser_state* s, struct struct_decla
     } else {
         res->bit_field = NULL;
         if (!res->decl) {
-            set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Expected a declarator or a bit field specifier");
+            set_error_file(ERR_PARSER,
+                           s->it->file,
+                           s->it->source_loc,
+                           "Expected a declarator or a bit field specifier");
             return false;
         }
     }
@@ -49,4 +53,3 @@ void free_struct_declarator(struct struct_declarator* d) {
     free_struct_declarator_children(d);
     free(d);
 }
-

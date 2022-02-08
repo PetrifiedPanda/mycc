@@ -7,12 +7,13 @@
 
 #include "parser/parser_util.h"
 
-static struct enum_spec* create_enum_spec(struct identifier* identifier, struct enum_list enum_list) {
-    assert(identifier || enum_list.len > 0); 
+static struct enum_spec* create_enum_spec(struct identifier* identifier,
+                                          struct enum_list enum_list) {
+    assert(identifier || enum_list.len > 0);
     struct enum_spec* res = xmalloc(sizeof(struct enum_spec));
     res->identifier = identifier;
     res->enum_list = enum_list;
-    
+
     return res;
 }
 
@@ -66,4 +67,3 @@ void free_enum_spec(struct enum_spec* s) {
     free_children(s);
     free(s);
 }
-

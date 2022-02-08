@@ -32,7 +32,8 @@ static bool is_declarator(const struct token* current) {
     }
 }
 
-bool parse_param_declaration_inplace(struct parser_state* s, struct param_declaration* res) {
+bool parse_param_declaration_inplace(struct parser_state* s,
+                                     struct param_declaration* res) {
     assert(res);
 
     bool found_typedef = false;
@@ -42,7 +43,10 @@ bool parse_param_declaration_inplace(struct parser_state* s, struct param_declar
     }
 
     if (found_typedef) {
-        set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "typedef is not allowed in function declarator");
+        set_error_file(ERR_PARSER,
+                       s->it->file,
+                       s->it->source_loc,
+                       "typedef is not allowed in function declarator");
         free_declaration_specs(res->decl_specs);
         return false;
     }
@@ -72,14 +76,14 @@ bool parse_param_declaration_inplace(struct parser_state* s, struct param_declar
 void free_param_declaration_children(struct param_declaration* d) {
     free_declaration_specs(d->decl_specs);
     switch (d->type) {
-    case PARAM_DECL_DECL:
-        free_declarator(d->decl);
-        break;
-    case PARAM_DECL_ABSTRACT_DECL:
-        free_abs_declarator(d->abstract_decl);
-        break;
-    case PARAM_DECL_NONE:
-        break;
+        case PARAM_DECL_DECL:
+            free_declarator(d->decl);
+            break;
+        case PARAM_DECL_ABSTRACT_DECL:
+            free_abs_declarator(d->abstract_decl);
+            break;
+        case PARAM_DECL_NONE:
+            break;
     }
 }
 
@@ -87,4 +91,3 @@ void free_param_declaration(struct param_declaration* d) {
     free_param_declaration_children(d);
     free(d);
 }
-

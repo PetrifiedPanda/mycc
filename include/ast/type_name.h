@@ -22,4 +22,3 @@ void free_type_name(struct type_name* n);
 #include "ast/abs_declarator.h"
 
 #endif
-

@@ -7,7 +7,8 @@
 
 #include "parser/parser_util.h"
 
-static bool parse_mul_expr_mul_chain(struct parser_state* s, struct mul_expr* res) {
+static bool parse_mul_expr_mul_chain(struct parser_state* s,
+                                     struct mul_expr* res) {
     size_t alloc_len = res->len = 0;
     res->mul_chain = NULL;
 
@@ -16,7 +17,9 @@ static bool parse_mul_expr_mul_chain(struct parser_state* s, struct mul_expr* re
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->mul_chain, &alloc_len, sizeof(struct cast_expr_and_op));
+            grow_alloc((void**)&res->mul_chain,
+                       &alloc_len,
+                       sizeof(struct cast_expr_and_op));
         }
 
         struct cast_expr_and_op* curr = &res->mul_chain[res->len];
@@ -30,7 +33,8 @@ static bool parse_mul_expr_mul_chain(struct parser_state* s, struct mul_expr* re
         ++res->len;
     }
 
-    res->mul_chain = xrealloc(res->mul_chain, sizeof(struct mul_expr_and_op) * res->len);
+    res->mul_chain = xrealloc(res->mul_chain,
+                              sizeof(struct mul_expr_and_op) * res->len);
 
     return true;
 }
@@ -52,7 +56,8 @@ struct mul_expr* parse_mul_expr(struct parser_state* s) {
     return res;
 }
 
-struct mul_expr* parse_mul_expr_cast(struct parser_state* s, struct cast_expr* start) {
+struct mul_expr* parse_mul_expr_cast(struct parser_state* s,
+                                     struct cast_expr* start) {
     assert(start);
 
     struct mul_expr* res = xmalloc(sizeof(struct mul_expr));
@@ -77,4 +82,3 @@ void free_mul_expr(struct mul_expr* e) {
     free_children(e);
     free(e);
 }
-

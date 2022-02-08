@@ -1,0 +1,76 @@
+---
+# We'll use defaults from the LLVM style, but with 4 columns indentation.
+BasedOnStyle: LLVM
+IndentWidth: 4
+---
+Language: Cpp
+# Force pointers to the type for C++.
+ColumnLimit: 80
+DerivePointerAlignment: false
+PointerAlignment: Left
+QualifierAlignment: Left
+IndentCaseLabels: true
+IndentGotoLabels: false
+SortIncludes: Never
+IncludeBlocks: Preserve
+
+BinPackArguments: false
+BinPackParameters: false
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+AlwaysBreakAfterReturnType: None
+AlwaysBreakAfterDefinitionReturnType: None
+
+# Try to prevent putting return type on its own line
+PenaltyBreakAssignment: 1000
+PenaltyBreakBeforeFirstCallParameter: 19
+PenaltyBreakComment: 300
+PenaltyBreakString: 1000
+PenaltyExcessCharacter: 1000000
+PenaltyReturnTypeOnItsOwnLine: 1000
+
+AlignEscapedNewlines: Right
+
+Cpp11BracedListStyle: true
+IndentPPDirectives: None
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: false
+  AfterEnum: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterCaseLabel: false
+  BeforeElse: false
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAroundPointerQualifiers: After
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCaseColon: false
+SpaceBeforeParens: ControlStatements
+SpaceBeforeSquareBrackets: false
+SpaceInEmptyBlock: false
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInCStyleCastParentheses: false
+SpacesInConditionalStatement: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+UseCRLF: false
+UseTab: Never
+
+BreakBeforeTernaryOperators: true
+BreakBeforeBinaryOperators: NonAssignment

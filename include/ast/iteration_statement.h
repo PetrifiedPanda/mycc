@@ -39,4 +39,3 @@ void free_iteration_statement(struct iteration_statement* s);
 #include "ast/statement.h"
 
 #endif
-

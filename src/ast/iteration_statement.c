@@ -7,7 +7,9 @@
 
 #include "parser/parser_util.h"
 
-static inline void assign_do_or_while(struct iteration_statement* res, struct expr* while_cond, struct statement* loop_body) {
+static inline void assign_do_or_while(struct iteration_statement* res,
+                                      struct expr* while_cond,
+                                      struct statement* loop_body) {
     assert(res);
     assert(while_cond);
     assert(loop_body);
@@ -15,23 +17,30 @@ static inline void assign_do_or_while(struct iteration_statement* res, struct ex
     res->loop_body = loop_body;
 }
 
-static struct iteration_statement* create_while_loop(struct expr* while_cond, struct statement* loop_body) {
-    struct iteration_statement* res = xmalloc(sizeof(struct iteration_statement));
+static struct iteration_statement* create_while_loop(
+    struct expr* while_cond,
+    struct statement* loop_body) {
+    struct iteration_statement* res = xmalloc(
+        sizeof(struct iteration_statement));
     res->type = WHILE;
     assign_do_or_while(res, while_cond, loop_body);
-    
+
     return res;
 }
 
-static struct iteration_statement* create_do_loop(struct expr* while_cond, struct statement* loop_body) {
-    struct iteration_statement* res = xmalloc(sizeof(struct iteration_statement));
+static struct iteration_statement* create_do_loop(struct expr* while_cond,
+                                                  struct statement* loop_body) {
+    struct iteration_statement* res = xmalloc(
+        sizeof(struct iteration_statement));
     res->type = DO;
     assign_do_or_while(res, while_cond, loop_body);
-    
+
     return res;
 }
 
-static struct iteration_statement* create_for_loop(struct for_loop for_loop, struct statement* loop_body) {
+static struct iteration_statement* create_for_loop(
+    struct for_loop for_loop,
+    struct statement* loop_body) {
     if (for_loop.is_decl) {
         assert(for_loop.init_decl);
     } else {
@@ -39,15 +48,17 @@ static struct iteration_statement* create_for_loop(struct for_loop for_loop, str
     }
     assert(for_loop.cond);
     assert(loop_body);
-    struct iteration_statement* res = xmalloc(sizeof(struct iteration_statement));
+    struct iteration_statement* res = xmalloc(
+        sizeof(struct iteration_statement));
     res->type = FOR;
     res->loop_body = loop_body;
     res->for_loop = for_loop;
-    
+
     return res;
 }
 
-static struct iteration_statement* parse_while_statement(struct parser_state* s) {
+static struct iteration_statement* parse_while_statement(
+    struct parser_state* s) {
     assert(s->it->type == WHILE);
 
     accept_it(s);
@@ -175,13 +186,11 @@ struct iteration_statement* parse_iteration_statement(struct parser_state* s) {
         }
 
         default: {
-            enum token_type expected[] = {
-                    WHILE,
-                    DO,
-                    FOR
-            };
+            enum token_type expected[] = {WHILE, DO, FOR};
 
-            expected_tokens_error(expected, sizeof expected / sizeof(enum token_type), s->it);
+            expected_tokens_error(expected,
+                                  sizeof expected / sizeof(enum token_type),
+                                  s->it);
             return NULL;
         }
     }
@@ -215,4 +224,3 @@ void free_iteration_statement(struct iteration_statement* s) {
     free_children(s);
     free(s);
 }
-

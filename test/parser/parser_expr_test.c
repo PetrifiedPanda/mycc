@@ -22,8 +22,10 @@ void parser_expr_test() {
     assign_expr_test();
 }
 
-static void check_primary_expr_constant(enum token_type type, const char* spell) {
-    struct token* tokens = tokenize(spell, "not a file so I can write whatever here");
+static void check_primary_expr_constant(enum token_type type,
+                                        const char* spell) {
+    struct token* tokens = tokenize(spell,
+                                    "not a file so I can write whatever here");
 
     struct parser_state s = create_parser_state(tokens);
 
@@ -48,7 +50,7 @@ static void check_primary_expr_string(const char* spell) {
 
     struct parser_state s = create_parser_state(tokens);
 
-    struct primary_expr *res = parse_primary_expr(&s);
+    struct primary_expr* res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT_NO_ERROR();
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
@@ -63,9 +65,9 @@ static void check_primary_expr_string(const char* spell) {
 }
 
 static void check_primary_expr_func_name() {
-    struct token *tokens = tokenize("__func__", "not a file so go away");
+    struct token* tokens = tokenize("__func__", "not a file so go away");
     struct parser_state s = create_parser_state(tokens);
-    struct primary_expr *res = parse_primary_expr(&s);
+    struct primary_expr* res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT_NO_ERROR();
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
@@ -98,7 +100,9 @@ static void check_primary_expr_identifier(const char* spell) {
     free_tokenizer_result(tokens);
 }
 
-static void check_primary_expr_bracket(const char* code, const char* cont_spell, enum token_type expr_type) {
+static void check_primary_expr_bracket(const char* code,
+                                       const char* cont_spell,
+                                       enum token_type expr_type) {
     struct token* tokens = tokenize(code, "not_file.c");
 
     struct parser_state s = create_parser_state(tokens);
@@ -116,14 +120,17 @@ static void check_primary_expr_bracket(const char* code, const char* cont_spell,
 }
 
 static void primary_expr_generic_sel_test() {
-    struct token* tokens = tokenize("_Generic(var, int: 0, TypedefName: oops, struct a_struct: 5.0, default: default_value )", "not_file.c");
+    struct token* tokens = tokenize(
+        "_Generic(var, int: 0, TypedefName: oops, struct a_struct: 5.0, "
+        "default: default_value )",
+        "not_file.c");
 
     struct parser_state s = create_parser_state(tokens);
     struct token insert_token = {
         .type = IDENTIFIER,
         .spelling = "TypedefName",
         .source_loc = {0, 0},
-        .file = "another_nonexistent_file.c"
+        .file = "another_nonexistent_file.c",
     };
 
     register_typedef_name(&s, &insert_token);
@@ -147,16 +154,22 @@ static void primary_expr_generic_sel_test() {
 
     ASSERT_NULL(assoc->type_name->abstract_decl);
     ASSERT(assoc->type_name->spec_qual_list->specs.type == TYPESPEC_TYPENAME);
-    check_identifier(assoc->type_name->spec_qual_list->specs.typedef_name, "TypedefName");
+    check_identifier(assoc->type_name->spec_qual_list->specs.typedef_name,
+                     "TypedefName");
     check_assign_expr_id_or_const(assoc->assign, "oops", IDENTIFIER);
 
     ++assoc;
 
     ASSERT_NULL(assoc->type_name->abstract_decl);
     ASSERT(assoc->type_name->spec_qual_list->specs.type == TYPESPEC_STRUCT);
-    ASSERT(assoc->type_name->spec_qual_list->specs.struct_union_spec->is_struct);
-    ASSERT_SIZE_T(assoc->type_name->spec_qual_list->specs.struct_union_spec->decl_list.len, (size_t)0);
-    check_identifier(assoc->type_name->spec_qual_list->specs.struct_union_spec->identifier, "a_struct");
+    ASSERT(
+        assoc->type_name->spec_qual_list->specs.struct_union_spec->is_struct);
+    ASSERT_SIZE_T(assoc->type_name->spec_qual_list->specs.struct_union_spec
+                      ->decl_list.len,
+                  (size_t)0);
+    check_identifier(
+        assoc->type_name->spec_qual_list->specs.struct_union_spec->identifier,
+        "a_struct");
     check_assign_expr_id_or_const(assoc->assign, "5.0", F_CONSTANT);
 
     ++assoc;
@@ -174,7 +187,8 @@ static void primary_expr_test() {
     check_primary_expr_constant(I_CONSTANT, "0xdeadbeefl");
     check_primary_expr_identifier("super_cool_identifier");
     check_primary_expr_identifier("another_cool_identifier");
-    check_primary_expr_string("\"Test string it does not matter whether this is an actual string literal but hey\"");
+    check_primary_expr_string("\"Test string it does not matter whether this "
+                              "is an actual string literal but hey\"");
     check_primary_expr_string("\"Multi\\\nline\\\nstring\\\nbaybee\"");
     check_primary_expr_func_name();
     check_primary_expr_bracket("(23.3)", "23.3", F_CONSTANT);
@@ -193,7 +207,7 @@ static void unary_expr_test() {
 
         ASSERT(res->type == UNARY_UNARY_OP);
 
-        ASSERT_SIZE_T(res->len, (size_t) 3);
+        ASSERT_SIZE_T(res->len, (size_t)3);
 
         ASSERT_TOKEN_TYPE(res->operators_before[0], INC_OP);
         ASSERT_TOKEN_TYPE(res->operators_before[1], DEC_OP);
@@ -224,7 +238,9 @@ static void unary_expr_test() {
         ASSERT_TOKEN_TYPE(res->operators_before[4], DEC_OP);
 
         ASSERT(res->postfix->is_primary);
-        check_primary_expr_id_or_const(res->postfix->primary, "100", I_CONSTANT);
+        check_primary_expr_id_or_const(res->postfix->primary,
+                                       "100",
+                                       I_CONSTANT);
 
         free_unary_expr(res);
         free_parser_state(&s);
@@ -293,11 +309,15 @@ static void test_postfix_expr_intializer(bool tailing_comma) {
 
     ASSERT_NULL(res->init_list.inits[0].designation);
     ASSERT(res->init_list.inits[0].init->is_assign);
-    check_assign_expr_id_or_const(res->init_list.inits[0].init->assign, "1", I_CONSTANT);
+    check_assign_expr_id_or_const(res->init_list.inits[0].init->assign,
+                                  "1",
+                                  I_CONSTANT);
 
     ASSERT_NULL(res->init_list.inits[1].designation);
     ASSERT(res->init_list.inits[1].init->is_assign);
-    check_assign_expr_id_or_const(res->init_list.inits[1].init->assign, "test", IDENTIFIER);
+    check_assign_expr_id_or_const(res->init_list.inits[1].init->assign,
+                                  "test",
+                                  IDENTIFIER);
 
     free(code);
     free_postfix_expr(res);
@@ -316,7 +336,7 @@ static void postfix_expr_test() {
 
         ASSERT(res->is_primary);
 
-        ASSERT_SIZE_T(res->len, (size_t) 5);
+        ASSERT_SIZE_T(res->len, (size_t)5);
 
         check_primary_expr_id_or_const(res->primary, "test", IDENTIFIER);
 
@@ -341,7 +361,9 @@ static void postfix_expr_test() {
     }
 
     {
-        struct token* tokens = tokenize("test[i_am_id]()[23](another_id, 34, id)", "not_a_file.c");
+        struct token* tokens = tokenize(
+            "test[i_am_id]()[23](another_id, 34, id)",
+            "not_a_file.c");
 
         struct parser_state s = create_parser_state(tokens);
         struct postfix_expr* res = parse_postfix_expr(&s);
@@ -368,9 +390,15 @@ static void postfix_expr_test() {
 
         ASSERT(suffix->type == POSTFIX_BRACKET);
         ASSERT_SIZE_T(suffix->bracket_list.len, (size_t)3);
-        check_assign_expr_id_or_const(&suffix->bracket_list.assign_exprs[0], "another_id", IDENTIFIER);
-        check_assign_expr_id_or_const(&suffix->bracket_list.assign_exprs[1], "34", I_CONSTANT);
-        check_assign_expr_id_or_const(&suffix->bracket_list.assign_exprs[2], "id", IDENTIFIER);
+        check_assign_expr_id_or_const(&suffix->bracket_list.assign_exprs[0],
+                                      "another_id",
+                                      IDENTIFIER);
+        check_assign_expr_id_or_const(&suffix->bracket_list.assign_exprs[1],
+                                      "34",
+                                      I_CONSTANT);
+        check_assign_expr_id_or_const(&suffix->bracket_list.assign_exprs[2],
+                                      "id",
+                                      IDENTIFIER);
 
         free_postfix_expr(res);
         free_parser_state(&s);
@@ -381,11 +409,16 @@ static void postfix_expr_test() {
     test_postfix_expr_intializer(false);
 }
 
-static void check_assign_expr_cast(struct cond_expr* expr, enum token_type cast_type, const char* spell, enum token_type value_type) {
-    struct cast_expr* cast = expr->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs;
+static void check_assign_expr_cast(struct cond_expr* expr,
+                                   enum token_type cast_type,
+                                   const char* spell,
+                                   enum token_type value_type) {
+    struct cast_expr* cast = expr->last_else->log_ands->or_exprs->xor_exprs
+                                 ->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs;
     ASSERT_SIZE_T(cast->len, (size_t)1);
     ASSERT(cast->type_names[0].spec_qual_list->specs.type == TYPESPEC_PREDEF);
-    ASSERT_TOKEN_TYPE(cast->type_names[0].spec_qual_list->specs.type_spec, cast_type);
+    ASSERT_TOKEN_TYPE(cast->type_names[0].spec_qual_list->specs.type_spec,
+                      cast_type);
     check_unary_expr_id_or_const(cast->rhs, spell, value_type);
 }
 
@@ -407,45 +440,41 @@ static void assign_expr_test() {
     }
 
     {
-        struct token* tokens = tokenize("x = 100 += y *= 100.0 /= 2", "not a file");
+        struct token* tokens = tokenize("x = 100 += y *= 100.0 /= 2",
+                                        "not a file");
 
         struct parser_state s = create_parser_state(tokens);
         struct assign_expr* res = parse_assign_expr(&s);
         ASSERT_NOT_NULL(res);
-        ASSERT_SIZE_T(res->len, (size_t) 4);
+        ASSERT_SIZE_T(res->len, (size_t)4);
 
-        enum token_type expected_ops[] = {
-            ASSIGN,
-            ADD_ASSIGN,
-            MUL_ASSIGN,
-            DIV_ASSIGN
-        };
+        enum token_type expected_ops[] = {ASSIGN,
+                                          ADD_ASSIGN,
+                                          MUL_ASSIGN,
+                                          DIV_ASSIGN};
 
-        enum token_type expected_types[] = {
-            IDENTIFIER,
-            I_CONSTANT,
-            IDENTIFIER,
-            F_CONSTANT
-        };
+        enum token_type expected_types[] = {IDENTIFIER,
+                                            I_CONSTANT,
+                                            IDENTIFIER,
+                                            F_CONSTANT};
 
-        const char* expected_spellings[] = {
-            "x",
-            "100",
-            "y",
-            "100.0"
-        };
+        const char* expected_spellings[] = {"x", "100", "y", "100.0"};
 
-        enum {SIZE = sizeof expected_ops / sizeof(enum token_type)};
+        enum { SIZE = sizeof expected_ops / sizeof(enum token_type) };
 
         for (size_t i = 0; i < SIZE; ++i) {
             ASSERT_TOKEN_TYPE(res->assign_chain[i].assign_op, expected_ops[i]);
 
-            check_unary_expr_id_or_const(res->assign_chain[i].unary, expected_spellings[i], expected_types[i]);
+            check_unary_expr_id_or_const(res->assign_chain[i].unary,
+                                         expected_spellings[i],
+                                         expected_types[i]);
         }
 
         ASSERT_TOKEN_TYPE(res->assign_chain[0].assign_op, ASSIGN);
 
-        check_unary_expr_id_or_const(res->assign_chain[0].unary, "x", IDENTIFIER);
+        check_unary_expr_id_or_const(res->assign_chain[0].unary,
+                                     "x",
+                                     IDENTIFIER);
 
         check_cond_expr_id_or_const(res->value, "2", I_CONSTANT);
 
@@ -453,7 +482,6 @@ static void assign_expr_test() {
         free_parser_state(&s);
         free_assign_expr(res);
     }
-
 
     {
         struct token* tokens = tokenize("(char)100", "not_file.c");
@@ -472,7 +500,8 @@ static void assign_expr_test() {
     }
 
     {
-        struct token* tokens = tokenize("(struct a_struct){1, var} = 0.0", "not_a_file.c");
+        struct token* tokens = tokenize("(struct a_struct){1, var} = 0.0",
+                                        "not_a_file.c");
 
         struct parser_state s = create_parser_state(tokens);
         struct assign_expr* res = parse_assign_expr(&s);
@@ -492,8 +521,14 @@ static void assign_expr_test() {
         ASSERT_SIZE_T(unary->postfix->len, (size_t)0);
 
         ASSERT_SIZE_T(unary->postfix->init_list.len, (size_t)2);
-        check_assign_expr_id_or_const(unary->postfix->init_list.inits[0].init->assign, "1", I_CONSTANT);
-        check_assign_expr_id_or_const(unary->postfix->init_list.inits[1].init->assign, "var", IDENTIFIER);
+        check_assign_expr_id_or_const(
+            unary->postfix->init_list.inits[0].init->assign,
+            "1",
+            I_CONSTANT);
+        check_assign_expr_id_or_const(
+            unary->postfix->init_list.inits[1].init->assign,
+            "var",
+            IDENTIFIER);
 
         check_cond_expr_id_or_const(res->value, "0.0", F_CONSTANT);
 
@@ -514,7 +549,9 @@ static void assign_expr_test() {
         ASSERT_SIZE_T(res->len, (size_t)1);
 
         ASSERT_TOKEN_TYPE(res->assign_chain[0].assign_op, MUL_ASSIGN);
-        check_unary_expr_id_or_const(res->assign_chain[0].unary, "var", IDENTIFIER);
+        check_unary_expr_id_or_const(res->assign_chain[0].unary,
+                                     "var",
+                                     IDENTIFIER);
 
         check_assign_expr_cast(res->value, DOUBLE, "12", I_CONSTANT);
 
@@ -524,7 +561,8 @@ static void assign_expr_test() {
     }
 
     {
-        struct token* tokens = tokenize("var ^= (struct a_struct){1, var}", "not_a_file.c");
+        struct token* tokens = tokenize("var ^= (struct a_struct){1, var}",
+                                        "not_a_file.c");
 
         struct parser_state s = create_parser_state(tokens);
         struct assign_expr* res = parse_assign_expr(&s);
@@ -535,9 +573,13 @@ static void assign_expr_test() {
         ASSERT_SIZE_T(res->len, (size_t)1);
 
         ASSERT_TOKEN_TYPE(res->assign_chain[0].assign_op, XOR_ASSIGN);
-        check_unary_expr_id_or_const(res->assign_chain[0].unary, "var", IDENTIFIER);
+        check_unary_expr_id_or_const(res->assign_chain[0].unary,
+                                     "var",
+                                     IDENTIFIER);
 
-        struct unary_expr* unary = res->value->last_else->log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs->rhs;
+        struct unary_expr* unary = res->value->last_else->log_ands->or_exprs
+                                       ->xor_exprs->and_exprs->eq_exprs->lhs
+                                       ->lhs->lhs->lhs->lhs->rhs;
 
         ASSERT(unary->type == UNARY_POSTFIX);
         ASSERT_SIZE_T(unary->len, (size_t)0);
@@ -546,10 +588,16 @@ static void assign_expr_test() {
 
         ASSERT_NULL(unary->postfix->init_list.inits[0].designation);
         ASSERT(unary->postfix->init_list.inits[0].init->is_assign);
-        check_assign_expr_id_or_const(unary->postfix->init_list.inits[0].init->assign, "1", I_CONSTANT);
+        check_assign_expr_id_or_const(
+            unary->postfix->init_list.inits[0].init->assign,
+            "1",
+            I_CONSTANT);
         ASSERT_NULL(unary->postfix->init_list.inits[1].designation);
         ASSERT(unary->postfix->init_list.inits[1].init->is_assign);
-        check_assign_expr_id_or_const(unary->postfix->init_list.inits[1].init->assign, "var", IDENTIFIER);
+        check_assign_expr_id_or_const(
+            unary->postfix->init_list.inits[1].init->assign,
+            "var",
+            IDENTIFIER);
 
         free_assign_expr(res);
         free_parser_state(&s);

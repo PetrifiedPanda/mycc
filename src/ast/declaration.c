@@ -5,7 +5,8 @@
 
 #include "util.h"
 
-bool parse_declaration_inplace(struct parser_state* s, struct declaration* res) {
+bool parse_declaration_inplace(struct parser_state* s,
+                               struct declaration* res) {
     assert(res);
     if (s->it->type == STATIC_ASSERT) {
         res->is_normal_decl = false;
@@ -33,9 +34,9 @@ bool parse_declaration_inplace(struct parser_state* s, struct declaration* res) 
                 return false;
             }
         } else {
-            res->init_decls = (struct init_declarator_list) {
+            res->init_decls = (struct init_declarator_list){
                 .len = 0,
-                .decls = NULL
+                .decls = NULL,
             };
         }
         if (!accept(s, SEMICOLON)) {
@@ -70,4 +71,3 @@ void free_declaration(struct declaration* d) {
     free_declaration_children(d);
     free(d);
 }
-

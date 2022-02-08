@@ -16,7 +16,8 @@ bool parse_xor_expr_inplace(struct parser_state* s, struct xor_expr* res);
 
 struct cast_expr;
 
-struct xor_expr* parse_xor_expr_cast(struct parser_state* s, struct cast_expr* start);
+struct xor_expr* parse_xor_expr_cast(struct parser_state* s,
+                                     struct cast_expr* start);
 
 void free_xor_expr_children(struct xor_expr* e);
 
@@ -26,4 +27,3 @@ void free_xor_expr(struct xor_expr* e);
 #include "ast/cast_expr.h"
 
 #endif
-

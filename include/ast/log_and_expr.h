@@ -12,11 +12,13 @@ struct log_and_expr {
     struct or_expr* or_exprs;
 };
 
-bool parse_log_and_expr_inplace(struct parser_state* s, struct log_and_expr* res);
+bool parse_log_and_expr_inplace(struct parser_state* s,
+                                struct log_and_expr* res);
 
 struct cast_expr;
 
-struct log_and_expr* parse_log_and_expr_cast(struct parser_state* s, struct cast_expr* start);
+struct log_and_expr* parse_log_and_expr_cast(struct parser_state* s,
+                                             struct cast_expr* start);
 
 void free_log_and_expr_children(struct log_and_expr* e);
 void free_log_and_expr(struct log_and_expr* e);
@@ -25,4 +27,3 @@ void free_log_and_expr(struct log_and_expr* e);
 #include "ast/cast_expr.h"
 
 #endif
-

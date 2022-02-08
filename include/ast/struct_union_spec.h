@@ -22,4 +22,3 @@ void free_struct_union_spec(struct struct_union_spec* s);
 #include "ast/identifier.h"
 
 #endif
-

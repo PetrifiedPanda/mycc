@@ -7,8 +7,8 @@
 struct generic_assoc_list parse_generic_assoc_list(struct parser_state* s) {
     size_t alloc_len = 1;
     struct generic_assoc_list res = {
-            .len = 1,
-            .assocs = xmalloc(sizeof(struct generic_assoc) * alloc_len)
+        .len = 1,
+        .assocs = xmalloc(sizeof(struct generic_assoc) * alloc_len),
     };
 
     if (!parse_generic_assoc_inplace(s, &res.assocs[0])) {
@@ -20,7 +20,9 @@ struct generic_assoc_list parse_generic_assoc_list(struct parser_state* s) {
         accept_it(s);
 
         if (res.len == alloc_len) {
-            grow_alloc((void**)&res.assocs, &alloc_len, sizeof(struct generic_assoc));
+            grow_alloc((void**)&res.assocs,
+                       &alloc_len,
+                       sizeof(struct generic_assoc));
         }
 
         if (!parse_generic_assoc_inplace(s, &res.assocs[res.len])) {

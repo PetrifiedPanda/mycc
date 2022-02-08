@@ -19,4 +19,3 @@ void free_declaration_list(struct declaration_list* l);
 #include "ast/declaration.h"
 
 #endif
-

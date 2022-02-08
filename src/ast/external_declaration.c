@@ -5,7 +5,8 @@
 #include "util.h"
 #include "error.h"
 
-bool parse_external_declaration_inplace(struct parser_state* s, struct external_declaration* res) {
+bool parse_external_declaration_inplace(struct parser_state* s,
+                                        struct external_declaration* res) {
     assert(res);
 
     if (s->it->type == STATIC_ASSERT) {
@@ -18,7 +19,9 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
         return true;
     }
     bool found_typedef = false;
-    struct declaration_specs* decl_specs = parse_declaration_specs(s, &found_typedef);
+    struct declaration_specs* decl_specs = parse_declaration_specs(
+        s,
+        &found_typedef);
     if (!decl_specs) {
         return false;
     }
@@ -28,7 +31,10 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
         res->is_func_def = false;
         res->decl.is_normal_decl = true;
         res->decl.decl_specs = decl_specs;
-        res->decl.init_decls = (struct init_declarator_list){.len = 0, .decls = NULL};
+        res->decl.init_decls = (struct init_declarator_list){
+            .len = 0,
+            .decls = NULL,
+        };
 
         return true;
     }
@@ -45,7 +51,6 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
         return false;
     }
 
-
     if (s->it->type == ASSIGN || s->it->type == COMMA) {
         res->is_func_def = false;
 
@@ -57,7 +62,10 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
         struct initializer* init = NULL;
         if (s->it->type == ASSIGN) {
             if (found_typedef) {
-                set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Initializer not allowed in typedef");
+                set_error_file(ERR_PARSER,
+                               s->it->file,
+                               s->it->source_loc,
+                               "Initializer not allowed in typedef");
                 free_declaration_specs(decl_specs);
                 free_declarator(first_decl);
                 return false;
@@ -71,12 +79,15 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
             }
         }
 
-        struct init_declarator* init_decl = xmalloc(sizeof(struct init_declarator));
+        struct init_declarator* init_decl = xmalloc(
+            sizeof(struct init_declarator));
         init_decl->decl = first_decl;
         init_decl->init = init;
 
         if (found_typedef) {
-            decl->init_decls = parse_init_declarator_list_typedef_first(s, init_decl);
+            decl->init_decls = parse_init_declarator_list_typedef_first(
+                s,
+                init_decl);
         } else {
             decl->init_decls = parse_init_declarator_list_first(s, init_decl);
         }
@@ -98,18 +109,21 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
         res->is_func_def = false;
         res->decl.is_normal_decl = true;
         res->decl.decl_specs = decl_specs;
-        res->decl.init_decls = (struct init_declarator_list) {
+        res->decl.init_decls = (struct init_declarator_list){
             .len = 1,
-            .decls = xmalloc(sizeof(struct init_declarator))
+            .decls = xmalloc(sizeof(struct init_declarator)),
         };
 
-        *res->decl.init_decls.decls = (struct init_declarator) {
+        *res->decl.init_decls.decls = (struct init_declarator){
             .decl = first_decl,
-            .init = NULL
+            .init = NULL,
         };
     } else {
         if (found_typedef) {
-            set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Function definition declared typedef");
+            set_error_file(ERR_PARSER,
+                           s->it->file,
+                           s->it->source_loc,
+                           "Function definition declared typedef");
             free_declaration_specs(decl_specs);
             free_declarator(first_decl);
             return false;
@@ -128,9 +142,9 @@ bool parse_external_declaration_inplace(struct parser_state* s, struct external_
                 return false;
             }
         } else {
-            func_def->decl_list = (struct declaration_list) {
+            func_def->decl_list = (struct declaration_list){
                 .len = 0,
-                .decls = NULL
+                .decls = NULL,
             };
         }
 
@@ -153,4 +167,3 @@ void free_external_declaration_children(struct external_declaration* d) {
         free_declaration_children(&d->decl);
     }
 }
-

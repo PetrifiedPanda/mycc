@@ -20,4 +20,3 @@ void free_declarator(struct declarator* d);
 #include "ast/direct_declarator.h"
 
 #endif
-

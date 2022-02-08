@@ -19,12 +19,13 @@ static bool is_exp_suffix(const char* str, size_t num) {
     }
     ++i;
 
-    if ((str[i] != '+' && str[i] != '-' && !isdigit(str[i])) || (!isdigit(str[i]) && i + 1 == num)) {
+    if ((str[i] != '+' && str[i] != '-' && !isdigit(str[i]))
+        || (!isdigit(str[i]) && i + 1 == num)) {
         return false;
     }
 
     ++i;
-    for (;i != num; ++i) {
+    for (; i != num; ++i) {
         if (!isdigit(str[i])) {
             return false;
         }
@@ -73,7 +74,6 @@ bool is_hex_const(const char* str, size_t num) {
     } else {
         return false;
     }
-    
 }
 
 static bool is_oct_const_start(const char* str, size_t num) {
@@ -152,9 +152,10 @@ static bool is_nondecimal_float_const(const char* str, size_t num) {
         ++i;
     }
 
-    if ((is_float_suffix(str[num - 1]) && is_exp_suffix(str + i, num - i - 1)) || is_exp_suffix(str + i, num - i)) {
+    if ((is_float_suffix(str[num - 1]) && is_exp_suffix(str + i, num - i - 1))
+        || is_exp_suffix(str + i, num - i)) {
         return true;
-    }  else {
+    } else {
         return false;
     }
 }
@@ -182,9 +183,12 @@ static bool is_after_decimal_float_const(const char* str, size_t num) {
         ++i;
     }
 
-    if (i == num || (i == num - 1 && is_float_suffix(str[num - 1])) || (is_float_suffix(str[num - 1]) && is_exp_suffix(str + i, num - i - 1)) || is_exp_suffix(str + i, num - i)) {
+    if (i == num || (i == num - 1 && is_float_suffix(str[num - 1]))
+        || (is_float_suffix(str[num - 1])
+            && is_exp_suffix(str + i, num - i - 1))
+        || is_exp_suffix(str + i, num - i)) {
         return true;
-    }  else {
+    } else {
         return false;
     }
 }
@@ -210,15 +214,20 @@ static bool is_before_decimal_float_const(const char* str, size_t num) {
         ++i;
     }
 
-    if (i == num || (i == num - 1 && is_float_suffix(str[num - 1])) || (is_float_suffix(str[num - 1]) && is_exp_suffix(str + i, num - i - 1)) || is_exp_suffix(str + i, num - i)) {
+    if (i == num || (i == num - 1 && is_float_suffix(str[num - 1]))
+        || (is_float_suffix(str[num - 1])
+            && is_exp_suffix(str + i, num - i - 1))
+        || is_exp_suffix(str + i, num - i)) {
         return true;
-    }  else {
+    } else {
         return false;
     }
 }
 
 bool is_float_const(const char* str, size_t num) {
-    return is_nondecimal_float_const(str, num) || is_after_decimal_float_const(str, num) || is_before_decimal_float_const(str, num);
+    return is_nondecimal_float_const(str, num)
+           || is_after_decimal_float_const(str, num)
+           || is_before_decimal_float_const(str, num);
 }
 
 bool is_string_literal(const char* str, size_t num) {
@@ -252,4 +261,3 @@ bool is_valid_identifier(const char* str, size_t num) {
 
     return true;
 }
-

@@ -19,4 +19,3 @@ void free_translation_unit(struct translation_unit* u);
 #include "ast/external_declaration.h"
 
 #endif
-

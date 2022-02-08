@@ -22,4 +22,3 @@ bool is_valid_spec_qual_list(struct spec_qual_list* l);
 #include "ast/type_specs.h"
 
 #endif
-

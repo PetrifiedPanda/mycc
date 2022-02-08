@@ -8,30 +8,25 @@
 
 struct declaration_list parse_declaration_list(struct parser_state* s) {
     struct declaration_list res = {
-            .len = 1,
-            .decls = xmalloc(sizeof(struct declaration))
-    };
+        .len = 1,
+        .decls = xmalloc(sizeof(struct declaration))};
 
     if (!parse_declaration_inplace(s, res.decls)) {
         free(res.decls);
-        return (struct declaration_list) {
-            .len = 0,
-            .decls = NULL
-        };
+        return (struct declaration_list){.len = 0, .decls = NULL};
     }
 
     size_t alloc_size = res.len;
     while (is_declaration(s)) {
         if (res.len == alloc_size) {
-            grow_alloc((void**)&res.decls, &alloc_size, sizeof(struct declaration));
+            grow_alloc((void**)&res.decls,
+                       &alloc_size,
+                       sizeof(struct declaration));
         }
 
         if (!parse_declaration_inplace(s, &res.decls[res.len])) {
             free_declaration_list(&res);
-            return (struct declaration_list) {
-                .len = 0,
-                .decls = NULL
-            };
+            return (struct declaration_list){.len = 0, .decls = NULL};
         }
 
         ++res.len;

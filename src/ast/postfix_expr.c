@@ -22,11 +22,14 @@ static bool is_posfix_op(enum token_type t) {
     }
 }
 
-static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* res) {
+static bool parse_postfix_suffixes(struct parser_state* s,
+                                   struct postfix_expr* res) {
     size_t alloc_len = 0;
     while (is_posfix_op(s->it->type)) {
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->suffixes, &alloc_len, sizeof(struct postfix_suffix));
+            grow_alloc((void**)&res->suffixes,
+                       &alloc_len,
+                       sizeof(struct postfix_suffix));
         }
 
         switch (s->it->type) {
@@ -41,15 +44,18 @@ static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* 
                     return false;
                 }
                 res->suffixes[res->len] = (struct postfix_suffix){
-                        .type = POSTFIX_INDEX,
-                        .index_expr = expr
+                    .type = POSTFIX_INDEX,
+                    .index_expr = expr,
                 };
                 break;
             }
 
             case LBRACKET: {
                 accept_it(s);
-                struct arg_expr_list arg_expr_list = {.assign_exprs = NULL, .len = 0};
+                struct arg_expr_list arg_expr_list = {
+                    .assign_exprs = NULL,
+                    .len = 0,
+                };
                 if (s->it->type != RBRACKET) {
                     arg_expr_list = parse_arg_expr_list(s);
                     if (arg_expr_list.len == 0) {
@@ -61,8 +67,8 @@ static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* 
                     return false;
                 }
                 res->suffixes[res->len] = (struct postfix_suffix){
-                        .type = POSTFIX_BRACKET,
-                        .bracket_list = arg_expr_list
+                    .type = POSTFIX_BRACKET,
+                    .bracket_list = arg_expr_list,
                 };
                 break;
             }
@@ -70,7 +76,8 @@ static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* 
             case DOT:
             case PTR_OP: {
                 enum postfix_suffix_type type = s->it->type == PTR_OP
-                                                ? POSTFIX_PTR_ACCESS : POSTFIX_ACCESS;
+                                                    ? POSTFIX_PTR_ACCESS
+                                                    : POSTFIX_ACCESS;
                 accept_it(s);
                 if (s->it->type != IDENTIFIER) {
                     return false;
@@ -79,8 +86,8 @@ static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* 
                 accept_it(s);
                 struct identifier* identifier = create_identifier(spelling);
                 res->suffixes[res->len] = (struct postfix_suffix){
-                        .type = type,
-                        .identifier = identifier
+                    .type = type,
+                    .identifier = identifier,
                 };
                 break;
             }
@@ -90,8 +97,8 @@ static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* 
                 enum token_type inc_dec = s->it->type;
                 accept_it(s);
                 res->suffixes[res->len] = (struct postfix_suffix){
-                        .type = POSTFIX_INC_DEC,
-                        .inc_dec = inc_dec
+                    .type = POSTFIX_INC_DEC,
+                    .inc_dec = inc_dec,
                 };
                 break;
             }
@@ -104,7 +111,8 @@ static bool parse_postfix_suffixes(struct parser_state* s, struct postfix_expr* 
     }
 
     if (alloc_len != res->len) {
-        res->suffixes = xrealloc(res->suffixes, res->len * sizeof(struct postfix_suffix));
+        res->suffixes = xrealloc(res->suffixes,
+                                 res->len * sizeof(struct postfix_suffix));
     }
 
     return true;
@@ -170,7 +178,8 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
  * @param type_name A type name that was already parsed by parse_unary_expr
  * @return A postfix_expr that uses the given type_name
  */
-struct postfix_expr* parse_postfix_expr_type_name(struct parser_state* s, struct type_name* type_name) {
+struct postfix_expr* parse_postfix_expr_type_name(struct parser_state* s,
+                                                  struct type_name* type_name) {
     assert(type_name);
     assert(s->it->type == LBRACE);
 
@@ -238,4 +247,3 @@ void free_postfix_expr(struct postfix_expr* p) {
     free_children(p);
     free(p);
 }
-

@@ -8,8 +8,14 @@ void parser_state_test() {
     struct token dummy = {.type = INVALID};
     struct parser_state s = create_parser_state(&dummy);
 
-    enum {NUM_STRINGS = 1000, STRLEN = NUM_STRINGS + 1, SCOPE_INTERVAL = 200};
-    _Static_assert(NUM_STRINGS % SCOPE_INTERVAL == 0, "Number of test strings must be divisible by the scope interval");
+    enum {
+        NUM_STRINGS = 1000,
+        STRLEN = NUM_STRINGS + 1,
+        SCOPE_INTERVAL = 200
+    };
+    _Static_assert(
+        NUM_STRINGS % SCOPE_INTERVAL == 0,
+        "Number of test strings must be divisible by the scope interval");
 
     struct token dummy_string_tokens[NUM_STRINGS] = {0};
     char insert_string[STRLEN] = {0};
@@ -22,7 +28,11 @@ void parser_state_test() {
         insert_string[i] = 'a';
 
         struct token* item = &dummy_string_tokens[i];
-        init_token_copy(item, IDENTIFIER, insert_string, (struct source_location){.line = 0, .index = 0}, "file.c");
+        init_token_copy(item,
+                        IDENTIFIER,
+                        insert_string,
+                        (struct source_location){.line = 0, .index = 0},
+                        "file.c");
         if (i % 2 == 0) {
             ASSERT(register_enum_constant(&s, item));
         } else {
@@ -60,7 +70,7 @@ void parser_state_test() {
         }
 
         // test if values from popped scopes are not present anymore
-        for (;j < NUM_STRINGS; ++j) {
+        for (; j < NUM_STRINGS; ++j) {
             pop_test_string[j] = 'a';
 
             ASSERT(!is_enum_constant(&s, pop_test_string));
@@ -79,7 +89,7 @@ void parser_state_test() {
         .type = IDENTIFIER,
         .spelling = "Test",
         .file = "file.c",
-        .source_loc = {.line =0, .index =0}
+        .source_loc = {.line = 0, .index = 0},
     };
     ASSERT(register_enum_constant(&s, &insert_test_token));
     ASSERT(!register_typedef_name(&s, &insert_test_token));
@@ -91,7 +101,6 @@ void parser_state_test() {
     ASSERT_ERROR(get_last_error(), ERR_PARSER);
 
     clear_last_error();
-
 
     for (size_t i = 0; i < NUM_STRINGS; ++i) {
         free_token(&dummy_string_tokens[i]);

@@ -14,14 +14,14 @@ enum token_type {
     PTR_OP, // ->
     INC_OP,
     DEC_OP,
-    LEFT_OP, // <<
+    LEFT_OP,  // <<
     RIGHT_OP, // >>
     LE_OP,
     GE_OP,
     EQ_OP,
     NE_OP,
     AND_OP, // &&
-    OR_OP, // ||
+    OR_OP,  // ||
     MUL_ASSIGN,
     DIV_ASSIGN,
     MOD_ASSIGN,
@@ -51,7 +51,7 @@ enum token_type {
     DOUBLE,
     VOID,
 
-    COMPLEX, // _Complex
+    COMPLEX,   // _Complex
     IMAGINARY, // _Imaginary
 
     CONST,
@@ -76,35 +76,35 @@ enum token_type {
     BREAK,
     RETURN,
 
-    ALIGNAS, // _Alignas
-    ALIGNOF, // _Alignof
-    GENERIC, // _Generic
-    NORETURN, // _Noreturn
+    ALIGNAS,       // _Alignas
+    ALIGNOF,       // _Alignof
+    GENERIC,       // _Generic
+    NORETURN,      // _Noreturn
     STATIC_ASSERT, // _Static_assert
-    THREAD_LOCAL, // _Thread_local
+    THREAD_LOCAL,  // _Thread_local
 
     SEMICOLON,
     LBRACKET, // (
     RBRACKET, // )
-    LBRACE, // {
-    RBRACE, // }
-    LINDEX, // [
-    RINDEX, // ]
+    LBRACE,   // {
+    RBRACE,   // }
+    LINDEX,   // [
+    RINDEX,   // ]
     DOT,
-    AND, // &
-    OR, // |
-    XOR, // ^
-    NOT, // !
+    AND,  // &
+    OR,   // |
+    XOR,  // ^
+    NOT,  // !
     BNOT, // ~
     SUB,
     ADD,
     ASTERISK,
     DIV,
     MOD,
-    LT, // <
-    GT, // >
-    QMARK, // ?
-    COLON, // :
+    LT,     // <
+    GT,     // >
+    QMARK,  // ?
+    COLON,  // :
     ASSIGN, // =
     COMMA,
     INVALID
@@ -112,17 +112,19 @@ enum token_type {
 
 /**
  * @brief Gets a spelling for the given token_type
- * 
+ *
  * @param type Type to get the spelling for
- * @return const char* The spelling of the given token type, if it is unambiguous, otherwise NULL
+ * @return const char* The spelling of the given token type, if it is
+ * unambiguous, otherwise NULL
  */
 const char* get_spelling(enum token_type type);
 
 /**
  * @brief Gets a string to identify the token_type
- * 
+ *
  * @param type enum token_type value
- * @return const char* A string that is identical to the spelling of the enum value
+ * @return const char* A string that is identical to the spelling of the enum
+ * value
  */
 const char* get_type_str(enum token_type type);
 
@@ -140,4 +142,3 @@ bool is_add_op(enum token_type t);
 bool is_eq_op(enum token_type t);
 
 #endif
-

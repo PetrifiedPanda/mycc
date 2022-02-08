@@ -34,9 +34,12 @@ struct identifier_type_map {
 
 static struct identifier_type_map create_id_type_map();
 
-static bool register_identifier(struct parser_state* s, const struct token* token, enum identifier_type type);
+static bool register_identifier(struct parser_state* s,
+                                const struct token* token,
+                                enum identifier_type type);
 
-static enum identifier_type get_item(const struct parser_state* s, const char* spell);
+static enum identifier_type get_item(const struct parser_state* s,
+                                     const char* spell);
 
 struct parser_state create_parser_state(struct token* tokens) {
     assert(tokens);
@@ -44,7 +47,7 @@ struct parser_state create_parser_state(struct token* tokens) {
     struct parser_state res = {
         .it = tokens,
         .len = 1,
-        .scope_maps = xmalloc(sizeof(struct identifier_type_map))
+        .scope_maps = xmalloc(sizeof(struct identifier_type_map)),
     };
     res.scope_maps[0] = create_id_type_map();
     return res;
@@ -74,7 +77,8 @@ void accept_it(struct parser_state* s) {
 
 void parser_push_scope(struct parser_state* s) {
     ++s->len;
-    s->scope_maps = xrealloc(s->scope_maps, sizeof(struct identifier_type_map) * s->len);
+    s->scope_maps = xrealloc(s->scope_maps,
+                             sizeof(struct identifier_type_map) * s->len);
     s->scope_maps[s->len - 1] = create_id_type_map();
 }
 
@@ -82,7 +86,8 @@ void parser_pop_scope(struct parser_state* s) {
     assert(s->len > 1);
     --s->len;
     free(s->scope_maps[s->len].pairs);
-    s->scope_maps = xrealloc(s->scope_maps, sizeof(struct identifier_type_map) * s->len);
+    s->scope_maps = xrealloc(s->scope_maps,
+                             sizeof(struct identifier_type_map) * s->len);
 }
 
 bool register_enum_constant(struct parser_state* s, const struct token* token) {
@@ -102,11 +107,11 @@ bool is_typedef_name(const struct parser_state* s, const char* spell) {
 }
 
 static struct identifier_type_map create_id_type_map() {
-    enum {INIT_LEN = 100};
-    return (struct identifier_type_map) {
-            .pairs = xcalloc(INIT_LEN, sizeof(struct identifier_type_pair)),
-            .len = 0,
-            .cap = INIT_LEN
+    enum { INIT_LEN = 100 };
+    return (struct identifier_type_map){
+        .pairs = xcalloc(INIT_LEN, sizeof(struct identifier_type_pair)),
+        .len = 0,
+        .cap = INIT_LEN,
     };
 }
 
@@ -125,7 +130,8 @@ static size_t hash_string(const char* str) {
 
 static void resize_map(struct identifier_type_map* map);
 
-static bool insert_identifier(struct identifier_type_map* map, const struct identifier_type_pair* item) {
+static bool insert_identifier(struct identifier_type_map* map,
+                              const struct identifier_type_pair* item) {
     assert(item->spelling);
     assert(item->file);
     assert(item->type != ID_TYPE_NONE);
@@ -136,7 +142,8 @@ static bool insert_identifier(struct identifier_type_map* map, const struct iden
 
     const size_t hash = hash_string(item->spelling);
     size_t i = hash != 0 ? hash % map->cap : hash;
-    while (map->pairs[i].spelling != NULL && strcmp(map->pairs[i].spelling, item->spelling) != 0) {
+    while (map->pairs[i].spelling != NULL
+           && strcmp(map->pairs[i].spelling, item->spelling) != 0) {
         ++i;
         if (i == map->cap) {
             i = 0;
@@ -144,9 +151,20 @@ static bool insert_identifier(struct identifier_type_map* map, const struct iden
     }
 
     if (map->pairs[i].spelling != NULL) {
-        const char* type_string = map->pairs->type == ID_TYPE_ENUM_CONSTANT ? "enum constant" : "typedef name";
+        const char* type_string = map->pairs->type == ID_TYPE_ENUM_CONSTANT
+                                      ? "enum constant"
+                                      : "typedef name";
         struct source_location loc = map->pairs[i].source_loc;
-        set_error_file(ERR_PARSER, item->file, item->source_loc, "Redefined symbol %s that is already defined as %s in %s(%zu,%zu)", map->pairs[i].spelling, type_string, map->pairs[i].file, loc.line, loc.index);
+        set_error_file(
+            ERR_PARSER,
+            item->file,
+            item->source_loc,
+            "Redefined symbol %s that is already defined as %s in %s(%zu,%zu)",
+            map->pairs[i].spelling,
+            type_string,
+            map->pairs[i].file,
+            loc.line,
+            loc.index);
         return false;
     }
 
@@ -177,27 +195,31 @@ static void resize_map(struct identifier_type_map* map) {
     free(old_pairs);
 }
 
-static bool register_identifier(struct parser_state* s, const struct token* token, enum identifier_type type) {
+static bool register_identifier(struct parser_state* s,
+                                const struct token* token,
+                                enum identifier_type type) {
     assert(type != ID_TYPE_NONE);
     assert(token->type == IDENTIFIER);
 
     // TODO: Add a warning when an identifier from a previous scope is shadowed
 
     struct identifier_type_pair to_insert = {
-            .spelling = token->spelling,
-            .source_loc = token->source_loc,
-            .file = token->file,
-            .type = type
+        .spelling = token->spelling,
+        .source_loc = token->source_loc,
+        .file = token->file,
+        .type = type,
     };
     return insert_identifier(&s->scope_maps[s->len - 1], &to_insert);
 }
 
-static enum identifier_type map_get_item(const struct identifier_type_map* map, const char* spelling) {
+static enum identifier_type map_get_item(const struct identifier_type_map* map,
+                                         const char* spelling) {
     assert(spelling);
 
     const size_t hash = hash_string(spelling);
     size_t i = hash != 0 ? hash % map->cap : hash;
-    while (map->pairs[i].spelling != NULL && strcmp(map->pairs[i].spelling, spelling) != 0) {
+    while (map->pairs[i].spelling != NULL
+           && strcmp(map->pairs[i].spelling, spelling) != 0) {
         ++i;
         if (i == map->cap) {
             i = 0;
@@ -211,7 +233,8 @@ static enum identifier_type map_get_item(const struct identifier_type_map* map, 
     return map->pairs[i].type;
 }
 
-static enum identifier_type get_item(const struct parser_state* s, const char* spell) {
+static enum identifier_type get_item(const struct parser_state* s,
+                                     const char* spell) {
     for (size_t i = 0; i < s->len; ++i) {
         enum identifier_type type = map_get_item(&s->scope_maps[i], spell);
         if (type != ID_TYPE_NONE) {

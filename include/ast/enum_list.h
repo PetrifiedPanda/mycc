@@ -19,4 +19,3 @@ void free_enum_list(struct enum_list* l);
 #include "ast/enumerator.h"
 
 #endif
-

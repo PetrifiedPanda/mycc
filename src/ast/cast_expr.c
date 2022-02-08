@@ -7,7 +7,9 @@
 
 #include "parser/parser_util.h"
 
-static struct cast_expr* create_cast_expr(struct type_name* type_names, size_t len, struct unary_expr* rhs) {
+static struct cast_expr* create_cast_expr(struct type_name* type_names,
+                                          size_t len,
+                                          struct unary_expr* rhs) {
     assert(rhs);
     if (len > 0) {
         assert(type_names);
@@ -21,13 +23,16 @@ static struct cast_expr* create_cast_expr(struct type_name* type_names, size_t l
     return res;
 }
 
-static bool parse_cast_expr_rest(struct parser_state* s, struct cast_expr* res) {
+static bool parse_cast_expr_rest(struct parser_state* s,
+                                 struct cast_expr* res) {
     size_t alloc_len = res->len;
     while (s->it->type == LBRACKET && next_is_type_name(s)) {
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->type_names, &alloc_len, sizeof(struct type_name));
+            grow_alloc((void**)&res->type_names,
+                       &alloc_len,
+                       sizeof(struct type_name));
         }
 
         if (!parse_type_name_inplace(s, &res->type_names[res->len])) {
@@ -47,13 +52,15 @@ static bool parse_cast_expr_rest(struct parser_state* s, struct cast_expr* res) 
         *type_name = res->type_names[res->len];
 
         if (res->type_names) {
-            res->type_names = xrealloc(res->type_names, res->len * sizeof(struct type_name));
+            res->type_names = xrealloc(res->type_names,
+                                       res->len * sizeof(struct type_name));
         }
 
         res->rhs = parse_unary_expr_type_name(s, NULL, 0, type_name);
     } else {
         if (res->type_names) {
-            res->type_names = xrealloc(res->type_names, res->len * sizeof(struct type_name));
+            res->type_names = xrealloc(res->type_names,
+                                       res->len * sizeof(struct type_name));
         }
         res->rhs = parse_unary_expr(s);
     }
@@ -84,7 +91,8 @@ struct cast_expr* parse_cast_expr(struct parser_state* s) {
     return res;
 }
 
-struct cast_expr* parse_cast_expr_type_name(struct parser_state* s, struct type_name* type_name) {
+struct cast_expr* parse_cast_expr_type_name(struct parser_state* s,
+                                            struct type_name* type_name) {
     assert(type_name);
 
     struct cast_expr* res = xmalloc(sizeof(struct cast_expr));
@@ -117,4 +125,3 @@ void free_cast_expr(struct cast_expr* e) {
     free_children(e);
     free(e);
 }
-

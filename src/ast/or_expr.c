@@ -14,7 +14,9 @@ static bool parse_or_expr_rest(struct parser_state* s, struct or_expr* res) {
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->xor_exprs, &alloc_len, sizeof(struct xor_expr));
+            grow_alloc((void**)&res->xor_exprs,
+                       &alloc_len,
+                       sizeof(struct xor_expr));
         }
 
         if (!parse_xor_expr_inplace(s, &res->xor_exprs[res->len])) {
@@ -24,7 +26,8 @@ static bool parse_or_expr_rest(struct parser_state* s, struct or_expr* res) {
         ++res->len;
     }
 
-    res->xor_exprs = xrealloc(res->xor_exprs, sizeof(struct xor_expr) * res->len);
+    res->xor_exprs = xrealloc(res->xor_exprs,
+                              sizeof(struct xor_expr) * res->len);
 
     return true;
 
@@ -49,7 +52,8 @@ bool parse_or_expr_inplace(struct parser_state* s, struct or_expr* res) {
     return true;
 }
 
-struct or_expr* parse_or_expr_cast(struct parser_state* s, struct cast_expr* start) {
+struct or_expr* parse_or_expr_cast(struct parser_state* s,
+                                   struct cast_expr* start) {
     assert(start);
 
     struct xor_expr* xor_exprs = parse_xor_expr_cast(s, start);
@@ -78,4 +82,3 @@ void free_or_expr(struct or_expr* e) {
     free_or_expr_children(e);
     free(e);
 }
-

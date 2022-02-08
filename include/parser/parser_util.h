@@ -9,7 +9,9 @@
 
 void expected_token_error(enum token_type expected, const struct token* got);
 
-void expected_tokens_error(const enum token_type* expected, size_t num_expected, const struct token* got);
+void expected_tokens_error(const enum token_type* expected,
+                           size_t num_expected,
+                           const struct token* got);
 
 /**
  *
@@ -35,7 +37,8 @@ bool is_declaration(const struct parser_state* s);
 /**
  *
  * @param t A token with non-null spelling
- * @return Returns the spelling of the given token, setting it to NULL in the token
+ * @return Returns the spelling of the given token, setting it to NULL in the
+ * token
  */
 char* take_spelling(struct token* t);
 

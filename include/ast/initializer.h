@@ -25,4 +25,3 @@ void free_initializer(struct initializer* i);
 #include "ast/assign_expr.h"
 
 #endif
-

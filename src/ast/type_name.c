@@ -17,35 +17,21 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
             return false;
         }
     } else {
-        // might be better for the error to just say "Expected type specifier or type qualifier"
+        // might be better for the error to just say "Expected type specifier or
+        // type qualifier"
         enum token_type expected[] = {
-                VOID,
-                CHAR,
-                SHORT,
-                INT,
-                LONG,
-                FLOAT,
-                DOUBLE,
-                SIGNED,
-                UNSIGNED,
-                BOOL,
-                COMPLEX,
-                IMAGINARY,
-                ATOMIC,
-                STRUCT,
-                UNION,
-                ENUM,
-                TYPEDEF_NAME,
-                CONST,
-                RESTRICT,
-                VOLATILE,
-                ATOMIC
-        };
-        expected_tokens_error(expected, sizeof expected / sizeof(enum token_type), s->it);
+            VOID,     CHAR,     SHORT,    INT,  LONG,         FLOAT,
+            DOUBLE,   SIGNED,   UNSIGNED, BOOL, COMPLEX,      IMAGINARY,
+            ATOMIC,   STRUCT,   UNION,    ENUM, TYPEDEF_NAME, CONST,
+            RESTRICT, VOLATILE, ATOMIC};
+        expected_tokens_error(expected,
+                              sizeof expected / sizeof(enum token_type),
+                              s->it);
         return false;
     }
 
-    if (s->it->type == ASTERISK || s->it->type == LBRACKET || s->it->type == LINDEX) {
+    if (s->it->type == ASTERISK || s->it->type == LBRACKET
+        || s->it->type == LINDEX) {
         res->abstract_decl = parse_abs_declarator(s);
         if (!res->abstract_decl) {
             free_spec_qual_list(res->spec_qual_list);
@@ -79,4 +65,3 @@ void free_type_name(struct type_name* n) {
     free_type_name_children(n);
     free(n);
 }
-

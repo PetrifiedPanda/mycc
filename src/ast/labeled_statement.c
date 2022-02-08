@@ -39,13 +39,11 @@ struct labeled_statement* parse_labeled_statement(struct parser_state* s) {
 
         default: {
             free(res);
-            enum token_type expected[] = {
-                    IDENTIFIER,
-                    CASE,
-                    DEFAULT
-            };
+            enum token_type expected[] = {IDENTIFIER, CASE, DEFAULT};
 
-            expected_tokens_error(expected, sizeof expected / sizeof(enum token_type), s->it);
+            expected_tokens_error(expected,
+                                  sizeof expected / sizeof(enum token_type),
+                                  s->it);
             return NULL;
         }
     }
@@ -88,4 +86,3 @@ void free_labeled_statement(struct labeled_statement* s) {
     free_children(s);
     free(s);
 }
-

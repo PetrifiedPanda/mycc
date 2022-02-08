@@ -7,19 +7,19 @@
 #include "parser/parser_util.h"
 
 struct selection_statement* parse_selection_statement(struct parser_state* s) {
-    struct selection_statement* res = xmalloc(sizeof(struct selection_statement));
+    struct selection_statement* res = xmalloc(
+        sizeof(struct selection_statement));
     if (s->it->type == IF) {
         res->is_if = true;
         accept_it(s);
     } else {
         if (!accept(s, SWITCH)) {
             free(res);
-            enum token_type expected[] = {
-                    IF,
-                    SWITCH
-            };
+            enum token_type expected[] = {IF, SWITCH};
 
-            expected_tokens_error(expected, sizeof expected / sizeof(enum token_type), s->it);
+            expected_tokens_error(expected,
+                                  sizeof expected / sizeof(enum token_type),
+                                  s->it);
             return NULL;
         }
         res->is_if = false;
@@ -65,7 +65,7 @@ struct selection_statement* parse_selection_statement(struct parser_state* s) {
     return res;
 }
 
-static void free_children(struct selection_statement* s) {  
+static void free_children(struct selection_statement* s) {
     free_expr(s->sel_expr);
     free_statement(s->sel_stat);
     if (s->else_stat) {
@@ -77,4 +77,3 @@ void free_selection_statement(struct selection_statement* s) {
     free_children(s);
     free(s);
 }
-

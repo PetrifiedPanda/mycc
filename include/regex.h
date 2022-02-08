@@ -13,4 +13,3 @@ bool is_string_literal(const char* str, size_t num);
 bool is_valid_identifier(const char* str, size_t num);
 
 #endif
-

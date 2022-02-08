@@ -19,4 +19,3 @@ void free_abs_declarator(struct abs_declarator* d);
 #include "ast/direct_abs_declarator.h"
 
 #endif
-

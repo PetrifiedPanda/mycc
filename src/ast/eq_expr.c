@@ -7,7 +7,8 @@
 
 #include "parser/parser_util.h"
 
-static bool parse_eq_expr_eq_chain(struct parser_state* s, struct eq_expr* res) {
+static bool parse_eq_expr_eq_chain(struct parser_state* s,
+                                   struct eq_expr* res) {
     assert(res->lhs);
 
     size_t alloc_len = res->len = 0;
@@ -18,7 +19,9 @@ static bool parse_eq_expr_eq_chain(struct parser_state* s, struct eq_expr* res) 
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->eq_chain, &alloc_len, sizeof(struct rel_expr_and_op));
+            grow_alloc((void**)&res->eq_chain,
+                       &alloc_len,
+                       sizeof(struct rel_expr_and_op));
         }
 
         struct rel_expr_and_op* curr = &res->eq_chain[res->len];
@@ -31,7 +34,8 @@ static bool parse_eq_expr_eq_chain(struct parser_state* s, struct eq_expr* res) 
         ++res->len;
     }
 
-    res->eq_chain = xrealloc(res->eq_chain, sizeof(struct rel_expr_and_op) * res->len);
+    res->eq_chain = xrealloc(res->eq_chain,
+                             sizeof(struct rel_expr_and_op) * res->len);
 
     return true;
 fail:
@@ -54,7 +58,8 @@ bool parse_eq_expr_inplace(struct parser_state* s, struct eq_expr* res) {
     return true;
 }
 
-struct eq_expr* parse_eq_expr_cast(struct parser_state* s, struct cast_expr* start) {
+struct eq_expr* parse_eq_expr_cast(struct parser_state* s,
+                                   struct cast_expr* start) {
     assert(start);
 
     struct rel_expr* lhs = parse_rel_expr_cast(s, start);
@@ -84,4 +89,3 @@ void free_eq_expr(struct eq_expr* e) {
     free_eq_expr_children(e);
     free(e);
 }
-

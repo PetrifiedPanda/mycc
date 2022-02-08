@@ -12,7 +12,8 @@ struct struct_declaration_list {
     struct struct_declaration* decls;
 };
 
-struct struct_declaration_list parse_struct_declaration_list(struct parser_state* s);
+struct struct_declaration_list parse_struct_declaration_list(
+    struct parser_state* s);
 
 void free_struct_declaration_list(struct struct_declaration_list* l);
 

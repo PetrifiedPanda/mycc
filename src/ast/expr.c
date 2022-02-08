@@ -21,7 +21,9 @@ bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
     while (s->it->type == COMMA) {
         accept_it(s);
         if (alloc_len == res->len) {
-            grow_alloc((void**)&res->assign_exprs, &alloc_len, sizeof(struct assign_expr));
+            grow_alloc((void**)&res->assign_exprs,
+                       &alloc_len,
+                       sizeof(struct assign_expr));
         }
 
         if (!parse_assign_expr_inplace(s, &res->assign_exprs[res->len])) {
@@ -33,7 +35,8 @@ bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
     }
 
     if (alloc_len != res->len) {
-        res->assign_exprs = xrealloc(res->assign_exprs, sizeof(struct assign_expr) * res->len);
+        res->assign_exprs = xrealloc(res->assign_exprs,
+                                     sizeof(struct assign_expr) * res->len);
     }
 
     return true;
@@ -57,6 +60,5 @@ void free_expr_children(struct expr* e) {
 
 void free_expr(struct expr* e) {
     free_expr_children(e);
-    free(e);  
+    free(e);
 }
-

@@ -23,4 +23,3 @@ void free_selection_statement(struct selection_statement* s);
 #include "ast/statement.h"
 
 #endif
-

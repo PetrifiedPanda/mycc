@@ -19,4 +19,3 @@ void free_identifier_list(struct identifier_list* l);
 #include "ast/identifier.h"
 
 #endif
-

@@ -19,4 +19,3 @@ void free_compound_statement(struct compound_statement* s);
 #include "ast/block_item.h"
 
 #endif
-

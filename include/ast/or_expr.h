@@ -16,7 +16,8 @@ bool parse_or_expr_inplace(struct parser_state* s, struct or_expr* res);
 
 struct cast_expr;
 
-struct or_expr* parse_or_expr_cast(struct parser_state* s, struct cast_expr* start);
+struct or_expr* parse_or_expr_cast(struct parser_state* s,
+                                   struct cast_expr* start);
 
 void free_or_expr_children(struct or_expr* e);
 
@@ -26,4 +27,3 @@ void free_or_expr(struct or_expr* e);
 #include "ast/cast_expr.h"
 
 #endif
-

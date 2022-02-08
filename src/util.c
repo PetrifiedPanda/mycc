@@ -23,7 +23,11 @@ void* xcalloc(size_t len, size_t elem_size) {
 
     void* res = calloc(len, elem_size);
     if (!res) {
-        fprintf(stderr, "xcalloc():\n\tFailed to allocate %zu elements of size %zu bytes each\n", len, elem_size);
+        fprintf(stderr,
+                "xcalloc():\n\tFailed to allocate %zu elements of size %zu "
+                "bytes each\n",
+                len,
+                elem_size);
         exit(EXIT_FAILURE);
     }
     return res;
@@ -34,7 +38,7 @@ void* xrealloc(void* alloc, size_t bytes) {
         free(alloc);
         return NULL;
     }
-    
+
     void* res = realloc(alloc, bytes);
     if (!res) {
         fprintf(stderr, "xrealloc():\n\tFailed to realloc %zu bytes\n", bytes);

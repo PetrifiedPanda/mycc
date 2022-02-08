@@ -54,4 +54,3 @@ bool is_valid_type_specs(struct type_specs* s);
 #include "ast/identifier.h"
 
 #endif
-

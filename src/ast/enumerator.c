@@ -46,4 +46,3 @@ void free_enumerator_children(struct enumerator* e) {
         free_const_expr(e->enum_val);
     }
 }
-

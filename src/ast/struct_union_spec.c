@@ -6,12 +6,15 @@
 
 #include "parser/parser_util.h"
 
-struct struct_union_spec* create_struct_union_spec(bool is_struct, struct identifier* identifier, struct struct_declaration_list decl_list) {
+struct struct_union_spec* create_struct_union_spec(
+    bool is_struct,
+    struct identifier* identifier,
+    struct struct_declaration_list decl_list) {
     struct struct_union_spec* res = xmalloc(sizeof(struct struct_union_spec));
     res->is_struct = is_struct;
     res->identifier = identifier;
     res->decl_list = decl_list;
-    
+
     return res;
 }
 
@@ -24,11 +27,10 @@ struct struct_union_spec* parse_struct_union_spec(struct parser_state* s) {
         is_struct = false;
         accept_it(s);
     } else {
-        enum token_type expected[] = {
-            STRUCT,
-            UNION
-        };
-        expected_tokens_error(expected, sizeof expected / sizeof(enum token_type), s->it);
+        enum token_type expected[] = {STRUCT, UNION};
+        expected_tokens_error(expected,
+                              sizeof expected / sizeof(enum token_type),
+                              s->it);
         return NULL;
     }
 
@@ -72,4 +74,3 @@ void free_struct_union_spec(struct struct_union_spec* s) {
     free_children(s);
     free(s);
 }
-

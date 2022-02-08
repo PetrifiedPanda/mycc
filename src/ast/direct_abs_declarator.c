@@ -8,7 +8,8 @@
 
 static void free_abs_arr_or_func_suffix(struct abs_arr_or_func_suffix* s);
 
-static bool parse_abs_arr_or_func_suffix(struct parser_state* s, struct abs_arr_or_func_suffix* res) {
+static bool parse_abs_arr_or_func_suffix(struct parser_state* s,
+                                         struct abs_arr_or_func_suffix* res) {
     assert(res);
     assert(s->it->type == LBRACKET || s->it->type == LINDEX);
 
@@ -17,7 +18,10 @@ static bool parse_abs_arr_or_func_suffix(struct parser_state* s, struct abs_arr_
             res->type = ABS_ARR_OR_FUNC_SUFFIX_FUNC;
             accept_it(s);
             if (s->it->type == RBRACKET) {
-                res->func_types = (struct param_type_list){.is_variadic = false, .param_list = NULL};
+                res->func_types = (struct param_type_list){
+                    .is_variadic = false,
+                    .param_list = NULL,
+                };
                 accept_it(s);
             } else {
                 res->func_types = parse_param_type_list(s);
@@ -65,7 +69,10 @@ static bool parse_abs_arr_or_func_suffix(struct parser_state* s, struct abs_arr_
                 if (s->it->type == STATIC) {
                     if (res->is_static) {
                         // TODO: maybe turn this into a warning?
-                        set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Expected only one use of static");
+                        set_error_file(ERR_PARSER,
+                                       s->it->file,
+                                       s->it->source_loc,
+                                       "Expected only one use of static");
                         free_abs_arr_or_func_suffix(res);
                         return false;
                     } else {
@@ -77,7 +84,10 @@ static bool parse_abs_arr_or_func_suffix(struct parser_state* s, struct abs_arr_
 
             if (s->it->type == RINDEX) {
                 if (res->is_static) {
-                    set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "Expected array size after use of static");
+                    set_error_file(ERR_PARSER,
+                                   s->it->file,
+                                   s->it->source_loc,
+                                   "Expected array size after use of static");
                     free_abs_arr_or_func_suffix(res);
                     return false;
                 }
@@ -100,9 +110,13 @@ static bool parse_abs_arr_or_func_suffix(struct parser_state* s, struct abs_arr_
     return false;
 }
 
-struct direct_abs_declarator* parse_direct_abs_declarator(struct parser_state* s) {
-    struct direct_abs_declarator* res = xmalloc(sizeof(struct direct_abs_declarator));
-    if (s->it->type == LBRACKET && (s->it[1].type == LBRACKET || s->it[1].type == LINDEX || s->it[1].type == ASTERISK)) {
+struct direct_abs_declarator* parse_direct_abs_declarator(
+    struct parser_state* s) {
+    struct direct_abs_declarator* res = xmalloc(
+        sizeof(struct direct_abs_declarator));
+    if (s->it->type == LBRACKET
+        && (s->it[1].type == LBRACKET || s->it[1].type == LINDEX
+            || s->it[1].type == ASTERISK)) {
         accept_it(s);
         res->bracket_decl = parse_abs_declarator(s);
         if (!res->bracket_decl) {
@@ -123,10 +137,13 @@ struct direct_abs_declarator* parse_direct_abs_declarator(struct parser_state* s
     size_t alloc_len = res->len = 0;
     while (s->it->type == LBRACKET || s->it->type == LINDEX) {
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->following_suffixes, &alloc_len, sizeof(struct abs_arr_or_func_suffix));
+            grow_alloc((void**)&res->following_suffixes,
+                       &alloc_len,
+                       sizeof(struct abs_arr_or_func_suffix));
         }
 
-        if (!parse_abs_arr_or_func_suffix(s, &res->following_suffixes[res->len])) {
+        if (!parse_abs_arr_or_func_suffix(s,
+                                          &res->following_suffixes[res->len])) {
             free_direct_abs_declarator(res);
             return NULL;
         }
@@ -134,7 +151,9 @@ struct direct_abs_declarator* parse_direct_abs_declarator(struct parser_state* s
         ++res->len;
     }
 
-    res->following_suffixes = xrealloc(res->following_suffixes, sizeof(struct abs_arr_or_func_suffix) * res->len);
+    res->following_suffixes = xrealloc(res->following_suffixes,
+                                       sizeof(struct abs_arr_or_func_suffix)
+                                           * res->len);
 
     return res;
 }
@@ -169,4 +188,3 @@ void free_direct_abs_declarator(struct direct_abs_declarator* d) {
     free_children(d);
     free(d);
 }
-

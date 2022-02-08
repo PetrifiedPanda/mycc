@@ -29,7 +29,9 @@ struct pointer* parse_pointer(struct parser_state* s) {
         accept_it(s);
 
         if (res->num_indirs == alloc_size) {
-            grow_alloc((void**)&res->quals_after_ptr, &alloc_size, sizeof(struct type_quals));
+            grow_alloc((void**)&res->quals_after_ptr,
+                       &alloc_size,
+                       sizeof(struct type_quals));
         }
 
         if (is_type_qual(s->it->type)) {
@@ -45,7 +47,9 @@ struct pointer* parse_pointer(struct parser_state* s) {
         ++res->num_indirs;
     }
 
-    res->quals_after_ptr = xrealloc(res->quals_after_ptr, sizeof(struct type_quals) * res->num_indirs);
+    res->quals_after_ptr = xrealloc(res->quals_after_ptr,
+                                    sizeof(struct type_quals)
+                                        * res->num_indirs);
 
     return res;
 }
@@ -58,4 +62,3 @@ void free_pointer(struct pointer* p) {
     free_children(p);
     free(p);
 }
-

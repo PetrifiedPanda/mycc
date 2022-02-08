@@ -33,11 +33,10 @@ bool parse_designator_inplace(struct parser_state* s, struct designator* res) {
             }
         }
         default: {
-            enum token_type expected[] = {
-                    LINDEX,
-                    DOT
-            };
-            expected_tokens_error(expected, sizeof expected / sizeof(enum token_type), s->it);
+            enum token_type expected[] = {LINDEX, DOT};
+            expected_tokens_error(expected,
+                                  sizeof expected / sizeof(enum token_type),
+                                  s->it);
             return false;
         }
     }

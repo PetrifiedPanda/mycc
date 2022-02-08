@@ -5,7 +5,8 @@
 #include "util.h"
 #include "error.h"
 
-bool parse_struct_declaration_inplace(struct parser_state* s, struct struct_declaration* res) {
+bool parse_struct_declaration_inplace(struct parser_state* s,
+                                      struct struct_declaration* res) {
     if (s->it->type == STATIC_ASSERT) {
         res->is_static_assert = true;
         res->assert = parse_static_assert_declaration(s);
@@ -21,7 +22,10 @@ bool parse_struct_declaration_inplace(struct parser_state* s, struct struct_decl
         }
 
         if (found_typedef) {
-            set_error_file(ERR_PARSER, s->it->file, s->it->source_loc, "typedef in struct declaration");
+            set_error_file(ERR_PARSER,
+                           s->it->file,
+                           s->it->source_loc,
+                           "typedef in struct declaration");
         }
 
         if (s->it->type != SEMICOLON) {
@@ -54,4 +58,3 @@ void free_struct_declaration(struct struct_declaration* d) {
     free_struct_declaration_children(d);
     free(d);
 }
-

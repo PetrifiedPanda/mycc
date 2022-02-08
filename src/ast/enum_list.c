@@ -8,8 +8,8 @@
 
 struct enum_list parse_enum_list(struct parser_state* s) {
     struct enum_list res = {
-            .len = 1,
-            .enums = xmalloc(sizeof(struct enumerator))
+        .len = 1,
+        .enums = xmalloc(sizeof(struct enumerator)),
     };
     if (!parse_enumerator_inplace(s, &res.enums[0])) {
         free(res.enums);
@@ -21,7 +21,9 @@ struct enum_list parse_enum_list(struct parser_state* s) {
         accept_it(s);
 
         if (res.len == alloc_len) {
-            grow_alloc((void**)&res.enums, &alloc_len, sizeof(struct enumerator));
+            grow_alloc((void**)&res.enums,
+                       &alloc_len,
+                       sizeof(struct enumerator));
         }
 
         if (!parse_enumerator_inplace(s, &res.enums[res.len])) {
@@ -45,4 +47,3 @@ void free_enum_list(struct enum_list* l) {
     }
     free(l->enums);
 }
-
