@@ -10,16 +10,11 @@
 static bool is_declarator(const struct token* current) {
     const struct token* it = current;
     while (it->type == ASTERISK) {
+        ++it;
+
         while (is_type_qual(it->type)) {
             ++it;
         }
-
-        // if got to end of file
-        if (it->type == INVALID) {
-            return false;
-        }
-
-        ++it;
     }
 
     if (it->type == IDENTIFIER) {
