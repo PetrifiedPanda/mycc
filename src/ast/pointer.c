@@ -36,7 +36,7 @@ struct pointer* parse_pointer(struct parser_state* s) {
 
         if (is_type_qual(s->it->type)) {
             res->quals_after_ptr[res->num_indirs] = parse_type_qual_list(s);
-            if (is_valid_type_quals(&res->quals_after_ptr[res->num_indirs])) {
+            if (!is_valid_type_quals(&res->quals_after_ptr[res->num_indirs])) {
                 free_pointer(res);
                 return NULL;
             }
