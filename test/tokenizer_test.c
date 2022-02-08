@@ -11,7 +11,7 @@
 static void simple_test();
 static void file_test();
 
-void tokenizer_test() { 
+void tokenizer_test() {
     simple_test();
     file_test();
     printf("Tokenizer test successful\n");
@@ -20,7 +20,7 @@ void tokenizer_test() {
 static void check_size(const struct token* tokens, size_t expected) {
     size_t size = 0;
     const struct token* it = tokens;
-    
+
     while (it->type != INVALID) {
         ++it;
         ++size;
@@ -59,7 +59,7 @@ static void compare_tokens(const struct token* got, const struct token* expected
 }
 
 static void simple_test() {
-    const char* code = 
+    const char* code =
         "typedef struct typedeftest /* This is a comment \n"
         "that goes over\n"
         "multiple lines\n"
@@ -73,7 +73,7 @@ static void simple_test() {
         "int n = 0x123213 + 132 << 32 >> 0x123 - 0123 / 12;\n"
         "const char* str = \"Normal string literal\";\n"
         "int arr[1 ? 100 : 1000];\n";
-    
+
     const char* filename = "not_a_file.c";
     struct token* tokens = tokenize(code, filename);
     ASSERT_NO_ERROR();
@@ -142,7 +142,7 @@ static void simple_test() {
 
     check_size(tokens, EXPECTED_SIZE);
     check_file(tokens, filename);
-    
+
     compare_tokens(tokens, expected, EXPECTED_SIZE);
 
     free_tokenizer_result(tokens);
@@ -720,5 +720,5 @@ static void file_test() {
     compare_tokens(tokens, expected, EXPECTED_SIZE);
 
     free(code);
-    free_tokenizer_result(tokens); 
+    free_tokenizer_result(tokens);
 }
