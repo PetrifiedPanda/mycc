@@ -1,10 +1,8 @@
 ---
-# We'll use defaults from the LLVM style, but with 4 columns indentation.
 BasedOnStyle: LLVM
 IndentWidth: 4
 ---
 Language: Cpp
-# Force pointers to the type for C++.
 ColumnLimit: 80
 DerivePointerAlignment: false
 PointerAlignment: Left
@@ -29,12 +27,12 @@ AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterReturnType: None
 AlwaysBreakAfterDefinitionReturnType: None
 
-# Try to prevent putting return type on its own line
 PenaltyBreakAssignment: 1000
 PenaltyBreakBeforeFirstCallParameter: 19
 PenaltyBreakComment: 300
 PenaltyBreakString: 1000
 PenaltyExcessCharacter: 1000000
+# Try to prevent putting return type on its own line
 PenaltyReturnTypeOnItsOwnLine: 1000
 
 AlignEscapedNewlines: Right
@@ -42,6 +40,8 @@ AlignEscapedNewlines: Right
 Cpp11BracedListStyle: true
 IndentPPDirectives: None
 
+BreakBeforeTernaryOperators: true
+BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterFunction: false
@@ -71,6 +71,3 @@ SpacesInSquareBrackets: false
 
 UseCRLF: false
 UseTab: Never
-
-BreakBeforeTernaryOperators: true
-BreakBeforeBinaryOperators: NonAssignment
