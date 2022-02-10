@@ -17,7 +17,6 @@ struct align_spec {
 };
 
 bool parse_align_spec_inplace(struct parser_state* s, struct align_spec* res);
-struct align_spec* parse_align_spec(struct parser_state* s);
 
 void free_align_spec_children(struct align_spec* s);
 void free_align_spec(struct align_spec* s);
