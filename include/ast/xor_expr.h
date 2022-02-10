@@ -21,8 +21,6 @@ struct xor_expr* parse_xor_expr_cast(struct parser_state* s,
 
 void free_xor_expr_children(struct xor_expr* e);
 
-void free_xor_expr(struct xor_expr* e);
-
 #include "ast/and_expr.h"
 #include "ast/cast_expr.h"
 

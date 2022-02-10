@@ -78,8 +78,3 @@ void free_xor_expr_children(struct xor_expr* e) {
     }
     free(e->and_exprs);
 }
-
-void free_xor_expr(struct xor_expr* e) {
-    free_xor_expr_children(e);
-    free(e);
-}
