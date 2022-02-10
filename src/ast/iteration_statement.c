@@ -148,7 +148,6 @@ static struct iteration_statement* parse_for_loop(struct parser_state* s) {
         loop.incr_expr = parse_expr(s);
         if (!loop.incr_expr) {
             goto fail;
-            return NULL;
         }
     } else {
         loop.incr_expr = NULL;
