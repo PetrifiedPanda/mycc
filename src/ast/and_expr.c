@@ -72,8 +72,3 @@ void free_and_expr_children(struct and_expr* e) {
     }
     free(e->eq_exprs);
 }
-
-void free_and_expr(struct and_expr* e) {
-    free_and_expr_children(e);
-    free(e);
-}
