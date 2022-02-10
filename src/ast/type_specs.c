@@ -1,6 +1,5 @@
 #include "ast/type_specs.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util.h"
