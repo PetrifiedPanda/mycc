@@ -77,8 +77,3 @@ void free_or_expr_children(struct or_expr* e) {
     }
     free(e->xor_exprs);
 }
-
-void free_or_expr(struct or_expr* e) {
-    free_or_expr_children(e);
-    free(e);
-}
