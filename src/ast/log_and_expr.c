@@ -77,8 +77,3 @@ void free_log_and_expr_children(struct log_and_expr* e) {
     }
     free(e->or_exprs);
 }
-
-void free_log_and_expr(struct log_and_expr* e) {
-    free_log_and_expr_children(e);
-    free(e);
-}
