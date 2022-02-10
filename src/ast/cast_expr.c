@@ -7,22 +7,6 @@
 
 #include "parser/parser_util.h"
 
-static struct cast_expr* create_cast_expr(struct type_name* type_names,
-                                          size_t len,
-                                          struct unary_expr* rhs) {
-    assert(rhs);
-    if (len > 0) {
-        assert(type_names);
-    } else {
-        assert(type_names == NULL);
-    }
-    struct cast_expr* res = xmalloc(sizeof(struct cast_expr));
-    res->type_names = type_names;
-    res->len = len;
-    res->rhs = rhs;
-    return res;
-}
-
 static bool parse_cast_expr_rest(struct parser_state* s,
                                  struct cast_expr* res) {
     size_t alloc_len = res->len;
@@ -110,7 +94,11 @@ struct cast_expr* parse_cast_expr_type_name(struct parser_state* s,
 struct cast_expr* create_cast_expr_unary(struct unary_expr* start) {
     assert(start);
 
-    return create_cast_expr(NULL, 0, start);
+    struct cast_expr* res = xmalloc(sizeof(struct cast_expr));
+    res->type_names = NULL;
+    res->len = 0;
+    res->rhs = start;
+    return res;
 }
 
 static void free_children(struct cast_expr* e) {
