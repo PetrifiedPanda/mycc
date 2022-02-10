@@ -1,7 +1,6 @@
 #include "ast/abs_declarator.h"
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "util.h"
 
