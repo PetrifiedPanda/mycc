@@ -48,8 +48,3 @@ void free_struct_declarator_children(struct struct_declarator* d) {
         free_const_expr(d->bit_field);
     }
 }
-
-void free_struct_declarator(struct struct_declarator* d) {
-    free_struct_declarator_children(d);
-    free(d);
-}
