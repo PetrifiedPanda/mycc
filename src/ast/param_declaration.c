@@ -81,8 +81,3 @@ void free_param_declaration_children(struct param_declaration* d) {
             break;
     }
 }
-
-void free_param_declaration(struct param_declaration* d) {
-    free_param_declaration_children(d);
-    free(d);
-}
