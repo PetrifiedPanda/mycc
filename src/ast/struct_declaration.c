@@ -53,8 +53,3 @@ void free_struct_declaration_children(struct struct_declaration* d) {
         free_struct_declarator_list(&d->decls);
     }
 }
-
-void free_struct_declaration(struct struct_declaration* d) {
-    free_struct_declaration_children(d);
-    free(d);
-}
