@@ -84,8 +84,3 @@ void free_eq_expr_children(struct eq_expr* e) {
     }
     free(e->eq_chain);
 }
-
-void free_eq_expr(struct eq_expr* e) {
-    free_eq_expr_children(e);
-    free(e);
-}

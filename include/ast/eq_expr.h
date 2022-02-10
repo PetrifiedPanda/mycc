@@ -29,8 +29,6 @@ struct eq_expr* parse_eq_expr_cast(struct parser_state* s,
 
 void free_eq_expr_children(struct eq_expr* e);
 
-void free_eq_expr(struct eq_expr* e);
-
 #include "ast/rel_expr.h"
 #include "ast/cast_expr.h"
 
