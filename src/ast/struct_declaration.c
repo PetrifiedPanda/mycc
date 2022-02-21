@@ -11,14 +11,14 @@ bool parse_struct_declaration_inplace(struct parser_state* s,
         res->is_static_assert = true;
         res->assert = parse_static_assert_declaration(s);
         if (!res->assert) {
-            return NULL;
+            return false;
         }
     } else {
         res->is_static_assert = false;
         bool found_typedef = false;
         res->decl_specs = parse_declaration_specs(s, &found_typedef);
         if (!res->decl_specs) {
-            return NULL;
+            return false;
         }
 
         if (found_typedef) {
@@ -32,17 +32,17 @@ bool parse_struct_declaration_inplace(struct parser_state* s,
             res->decls = parse_struct_declarator_list(s);
             if (res->decls.len == 0) {
                 free_declaration_specs(res->decl_specs);
-                return NULL;
+                return false;
             }
         }
 
         if (!accept(s, SEMICOLON)) {
             free_struct_declaration_children(res);
-            return NULL;
+            return false;
         }
     }
 
-    return res;
+    return true;
 }
 
 void free_struct_declaration_children(struct struct_declaration* d) {

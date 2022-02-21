@@ -30,7 +30,7 @@ bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* res) {
         enum_val = parse_const_expr(s);
         if (!enum_val) {
             free(spell);
-            return NULL;
+            return false;
         }
     }
 
