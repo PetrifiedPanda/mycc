@@ -4,9 +4,9 @@
 
 #include "tokenizer.h"
 #include "error.h"
+#include "util.h"
 
 #include "test_asserts.h"
-#include "test_util.h"
 
 static void simple_test();
 static void file_test();

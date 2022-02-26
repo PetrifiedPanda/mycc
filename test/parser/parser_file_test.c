@@ -1,11 +1,11 @@
 #include <stdio.h>
 
 #include "tokenizer.h"
+#include "util.h"
 
 #include "parser/parser.h"
 
 #include "../test_asserts.h"
-#include "../test_util.h"
 
 #include "parser_test_util.h"
 
