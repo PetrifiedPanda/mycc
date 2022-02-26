@@ -57,4 +57,12 @@ void grow_alloc(void** alloc, size_t* alloc_len, size_t elem_size);
  */
 char* alloc_string_copy(const char* str);
 
+/**
+ * @brief Reads whole file into memory
+ *
+ * @param filename Zero terminated filename
+ * @return char* A heap allocated string containing the contents of the given file
+ */
+char* read_file(const char* filename);
+
 #endif
