@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 #include "error.h"
-#include "util.h"
 
 #include "preproc/preproc.h"
 

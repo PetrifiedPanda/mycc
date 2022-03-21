@@ -1,8 +1,6 @@
 #include <stdio.h>
-#include <assert.h>
 
 #include "error.h"
-#include "util.h"
 
 #include "preproc/preproc.h"
 #include "parser/parser.h"
