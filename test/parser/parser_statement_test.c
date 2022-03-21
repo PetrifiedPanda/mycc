@@ -1,5 +1,6 @@
-#include "tokenizer.h"
 #include "util.h"
+
+#include "preproc/preproc.h"
 
 #include "parser/parser.h"
 
@@ -16,7 +17,7 @@ void parser_statement_test() {
 }
 
 static void check_jump_statement(const char* spell, enum token_type t) {
-    struct token* tokens = tokenize(spell, "skfjlskf");
+    struct token* tokens = preproc_string(spell, "skfjlskf");
 
     struct parser_state s = create_parser_state(tokens);
     struct jump_statement* res = parse_jump_statement(&s);
@@ -27,11 +28,11 @@ static void check_jump_statement(const char* spell, enum token_type t) {
 
     free_jump_statement(res);
     free_parser_state(&s);
-    free_tokenizer_result(tokens);
+    free_tokens(tokens);
 }
 
 static void check_expected_semicolon_jump_statement(const char* spell) {
-    struct token* tokens = tokenize(spell, "file.c");
+    struct token* tokens = preproc_string(spell, "file.c");
 
     struct parser_state s = create_parser_state(tokens);
 
@@ -43,13 +44,13 @@ static void check_expected_semicolon_jump_statement(const char* spell) {
                "Expected token of type SEMICOLON but got to end of file");
 
     clear_last_error();
-    free_tokenizer_result(tokens);
+    free_tokens(tokens);
     free_parser_state(&s);
 }
 
 static void jump_statement_test() {
     {
-        struct token* tokens = tokenize("goto my_cool_label;", "file");
+        struct token* tokens = preproc_string("goto my_cool_label;", "file");
 
         struct parser_state s = create_parser_state(tokens);
         struct jump_statement* res = parse_jump_statement(&s);
@@ -62,7 +63,7 @@ static void jump_statement_test() {
 
         free_jump_statement(res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 
     check_jump_statement("continue;", CONTINUE);
@@ -75,7 +76,7 @@ static void jump_statement_test() {
     check_expected_semicolon_jump_statement("return *id += (int)100");
 
     {
-        struct token* tokens = tokenize("not_what_was_expected;", "a_file.c");
+        struct token* tokens = preproc_string("not_what_was_expected;", "a_file.c");
 
         struct parser_state s = create_parser_state(tokens);
 
@@ -88,12 +89,12 @@ static void jump_statement_test() {
                    "BREAK, RETURN but got token of type IDENTIFIER");
 
         clear_last_error();
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
         free_parser_state(&s);
     }
 
     {
-        struct token* tokens = tokenize("return 600;", "file.c");
+        struct token* tokens = preproc_string("return 600;", "file.c");
 
         struct parser_state s = create_parser_state(tokens);
         struct jump_statement* res = parse_jump_statement(&s);
@@ -108,7 +109,7 @@ static void jump_statement_test() {
 
         free_jump_statement(res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 }
 
@@ -125,7 +126,7 @@ static void statement_test() {
                        "        ; "
                        "    } else b = 0;"
                        "}";
-    struct token* tokens = tokenize(code, "file.c");
+    struct token* tokens = preproc_string(code, "file.c");
 
     struct parser_state s = create_parser_state(tokens);
     struct statement* res = parse_statement(&s);
@@ -256,7 +257,7 @@ static void statement_test() {
 
     free_statement(res);
     free_parser_state(&s);
-    free_tokenizer_result(tokens);
+    free_tokens(tokens);
 
     // TODO: Add tests with declarations when implemented
 }

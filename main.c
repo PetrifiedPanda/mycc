@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "tokenizer.h"
 #include "error.h"
 #include "util.h"
 
+#include "preproc/preproc.h"
 #include "parser/parser.h"
 
 static void check_error();
@@ -17,10 +17,7 @@ int main(int argc, char** argv) {
 
     const char* filename = argv[1];
 
-    char* file_contents = read_file(filename);
-    assert(file_contents);
-
-    struct token* tokens = tokenize(file_contents, filename);
+    struct token* tokens = preproc(filename);
     check_error();
     
     struct translation_unit tl = parse_tokens(tokens);
@@ -29,8 +26,7 @@ int main(int argc, char** argv) {
     printf("Finished tokenization successfully\n");
 
     free_translation_unit(&tl);
-    free_tokenizer_result(tokens);
-    free(file_contents);
+    free_tokens(tokens);
 }
 
 static void check_error() {

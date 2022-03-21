@@ -2,9 +2,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "tokenizer.h"
 #include "error.h"
 #include "util.h"
+
+#include "preproc/preproc.h"
 
 #include "test_asserts.h"
 
@@ -80,7 +81,7 @@ static void simple_test() {
                "int arr[1 ? 100 : 1000];\n";
 
     const char* filename = "not_a_file.c";
-    struct token* tokens = tokenize(code, filename);
+    struct token* tokens = preproc_string(code, filename);
     ASSERT_NO_ERROR();
     ASSERT_NOT_NULL(tokens);
 
@@ -152,15 +153,13 @@ static void simple_test() {
 
     compare_tokens(tokens, expected, EXPECTED_SIZE);
 
-    free_tokenizer_result(tokens);
+    free_tokens(tokens);
 }
 
 static void file_test() {
     const char* filename = "../test/files/no_preproc.c";
-    char* code = read_file(filename);
-    ASSERT_NOT_NULL(code);
 
-    struct token* tokens = tokenize(code, filename);
+    struct token* tokens = preproc(filename);
     ASSERT_NO_ERROR();
     ASSERT_NOT_NULL(tokens);
 
@@ -792,6 +791,5 @@ static void file_test() {
 
     compare_tokens(tokens, expected, EXPECTED_SIZE);
 
-    free(code);
-    free_tokenizer_result(tokens);
+    free_tokens(tokens);
 }

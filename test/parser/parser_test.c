@@ -1,8 +1,9 @@
 #include <stdio.h>
 
 #include "token.h"
-#include "tokenizer.h"
 #include "util.h"
+
+#include "preproc/preproc.h"
 
 #include "parser/parser.h"
 
@@ -44,17 +45,19 @@ static void check_enum_list_ids(struct enum_list* l,
 
 static void enum_list_test() {
     enum { EXPECTED_LEN = 8 };
-    const char* enum_constants[EXPECTED_LEN] = {"ENUM_VAL1",
-                                                "enum_VAl2",
-                                                "enum_val_3",
-                                                "enum_val_4",
-                                                "foo",
-                                                "bar",
-                                                "baz",
-                                                "BAD"};
+    const char* enum_constants[EXPECTED_LEN] = {
+        "ENUM_VAL1",
+        "enum_VAl2",
+        "enum_val_3",
+        "enum_val_4",
+        "foo",
+        "bar",
+        "baz",
+        "BAD",
+    };
 
     {
-        struct token* tokens = tokenize(
+        struct token* tokens = preproc_string(
             "ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, baz, BAD",
             "saffds");
 
@@ -79,11 +82,11 @@ static void enum_list_test() {
 
         free_enum_list(&res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 
     {
-        struct token* tokens = tokenize(
+        struct token* tokens = preproc_string(
             "ENUM_VAL1 = 0, enum_VAl2 = 1000.0, enum_val_3 = n, enum_val_4 = "
             "test, foo, bar, baz, BAD",
             "saffds");
@@ -123,14 +126,14 @@ static void enum_list_test() {
 
         free_enum_list(&res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 }
 
 static void enum_spec_test() {
     const char* enum_constants[] = {"TEST1", "TEST2", "TEST3", "TEST4"};
     {
-        struct token* tokens = tokenize(
+        struct token* tokens = preproc_string(
             "enum my_enum { TEST1, TEST2, TEST3, TEST4 }",
             "sfjlfjk");
 
@@ -146,13 +149,13 @@ static void enum_spec_test() {
                             enum_constants,
                             sizeof enum_constants / sizeof(char*));
 
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
         free_parser_state(&s);
         free_enum_spec(res);
     }
 
     {
-        struct token* tokens = tokenize("enum {TEST1, TEST2, TEST3, TEST4, }",
+        struct token* tokens = preproc_string("enum {TEST1, TEST2, TEST3, TEST4, }",
                                         "jsfjsf");
 
         struct parser_state s = create_parser_state(tokens);
@@ -167,7 +170,7 @@ static void enum_spec_test() {
                             enum_constants,
                             sizeof enum_constants / sizeof(char*));
 
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
         free_parser_state(&s);
         free_enum_spec(res);
     }
@@ -175,7 +178,7 @@ static void enum_spec_test() {
 
 static void designation_test() {
     {
-        struct token* tokens = tokenize(".test[19].what_is_this.another_one = ",
+        struct token* tokens = preproc_string(".test[19].what_is_this.another_one = ",
                                         "jsalkf");
 
         struct parser_state s = create_parser_state(tokens);
@@ -205,11 +208,11 @@ static void designation_test() {
 
         free_designation(res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 
     {
-        struct token* tokens = tokenize("[0.5].blah[420].oof[2][10] =",
+        struct token* tokens = preproc_string("[0.5].blah[420].oof[2][10] =",
                                         "stetsd");
 
         struct parser_state s = create_parser_state(tokens);
@@ -249,12 +252,12 @@ static void designation_test() {
 
         free_designation(res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 }
 
 static void static_assert_declaration_test() {
-    struct token* tokens = tokenize(
+    struct token* tokens = preproc_string(
         "_Static_assert(12345, \"This is a string literal\");",
         "slkfjsak");
 
@@ -267,7 +270,7 @@ static void static_assert_declaration_test() {
     ASSERT_STR(res->err_msg.spelling, "\"This is a string literal\"");
     check_const_expr_id_or_const(res->const_expr, "12345", I_CONSTANT);
 
-    free_tokenizer_result(tokens);
+    free_tokens(tokens);
     free_parser_state(&s);
     free_static_assert_declaration(res);
 }

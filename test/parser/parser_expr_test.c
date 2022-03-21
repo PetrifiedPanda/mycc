@@ -1,8 +1,9 @@
 #include <stdio.h>
 
 #include "token.h"
-#include "tokenizer.h"
 #include "util.h"
+
+#include "preproc/preproc.h"
 
 #include "parser/parser.h"
 
@@ -24,8 +25,8 @@ void parser_expr_test() {
 
 static void check_primary_expr_constant(enum token_type type,
                                         const char* spell) {
-    struct token* tokens = tokenize(spell,
-                                    "not a file so I can write whatever here");
+    struct token* tokens = preproc_string(spell,
+                                          "not a file so I can write whatever here");
 
     struct parser_state s = create_parser_state(tokens);
 
@@ -42,11 +43,11 @@ static void check_primary_expr_constant(enum token_type type,
 
     free_primary_expr(res);
     free_parser_state(&s);
-    free_tokenizer_result(tokens);
+    free_tokens(tokens);
 }
 
 static void check_primary_expr_string(const char* spell) {
-    struct token* tokens = tokenize(spell, "no_file.c");
+    struct token* tokens = preproc_string(spell, "no_file.c");
 
     struct parser_state s = create_parser_state(tokens);
 
@@ -61,11 +62,11 @@ static void check_primary_expr_string(const char* spell) {
 
     free_primary_expr(res);
     free_parser_state(&s);
-    free_tokenizer_result(tokens);
+    free_tokens(tokens);
 }
 
 static void check_primary_expr_func_name() {
-    struct token* tokens = tokenize("__func__", "not a file so go away");
+    struct token* tokens = preproc_string("__func__", "not a file so go away");
     struct parser_state s = create_parser_state(tokens);
     struct primary_expr* res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
@@ -75,13 +76,13 @@ static void check_primary_expr_func_name() {
     ASSERT(res->string.is_func == true);
     ASSERT_NULL(res->string.lit.spelling);
 
-    free_tokenizer_result(tokens);
+    free_tokens(tokens);
     free_parser_state(&s);
     free_primary_expr(res);
 }
 
 static void check_primary_expr_identifier(const char* spell) {
-    struct token* tokens = tokenize(spell, "a string");
+    struct token* tokens = preproc_string(spell, "a string");
 
     struct parser_state s = create_parser_state(tokens);
 
@@ -97,13 +98,13 @@ static void check_primary_expr_identifier(const char* spell) {
 
     free_primary_expr(res);
     free_parser_state(&s);
-    free_tokenizer_result(tokens);
+    free_tokens(tokens);
 }
 
 static void check_primary_expr_bracket(const char* code,
                                        const char* cont_spell,
                                        enum token_type expr_type) {
-    struct token* tokens = tokenize(code, "not_file.c");
+    struct token* tokens = preproc_string(code, "not_file.c");
 
     struct parser_state s = create_parser_state(tokens);
     struct primary_expr* res = parse_primary_expr(&s);
@@ -116,11 +117,11 @@ static void check_primary_expr_bracket(const char* code,
 
     free_primary_expr(res);
     free_parser_state(&s);
-    free_tokenizer_result(tokens);
+    free_tokens(tokens);
 }
 
 static void primary_expr_generic_sel_test() {
-    struct token* tokens = tokenize(
+    struct token* tokens = preproc_string(
         "_Generic(var, int: 0, TypedefName: oops, struct a_struct: 5.0, "
         "default: default_value )",
         "not_file.c");
@@ -179,7 +180,7 @@ static void primary_expr_generic_sel_test() {
 
     free_primary_expr(res);
     free_parser_state(&s);
-    free_tokenizer_result(tokens);
+    free_tokens(tokens);
 }
 
 static void primary_expr_test() {
@@ -189,7 +190,6 @@ static void primary_expr_test() {
     check_primary_expr_identifier("another_cool_identifier");
     check_primary_expr_string("\"Test string it does not matter whether this "
                               "is an actual string literal but hey\"");
-    check_primary_expr_string("\"Multi\\\nline\\\nstring\\\nbaybee\"");
     check_primary_expr_func_name();
     check_primary_expr_bracket("(23.3)", "23.3", F_CONSTANT);
     check_primary_expr_bracket("(var)", "var", IDENTIFIER);
@@ -198,7 +198,7 @@ static void primary_expr_test() {
 
 static void unary_expr_test() {
     {
-        struct token* tokens = tokenize("++-- sizeof *name", "skfjdlfs");
+        struct token* tokens = preproc_string("++-- sizeof *name", "skfjdlfs");
 
         struct parser_state s = create_parser_state(tokens);
         struct unary_expr* res = parse_unary_expr(&s);
@@ -218,10 +218,10 @@ static void unary_expr_test() {
 
         free_unary_expr(res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
     {
-        struct token* tokens = tokenize("++++--++--100", "ksjflkdsjf");
+        struct token* tokens = preproc_string("++++--++--100", "ksjflkdsjf");
 
         struct parser_state s = create_parser_state(tokens);
         struct unary_expr* res = parse_unary_expr(&s);
@@ -244,11 +244,11 @@ static void unary_expr_test() {
 
         free_unary_expr(res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 
     {
-        struct token* tokens = tokenize("sizeof(int)", "no");
+        struct token* tokens = preproc_string("sizeof(int)", "no");
 
         struct parser_state s = create_parser_state(tokens);
         struct unary_expr* res = parse_unary_expr(&s);
@@ -263,11 +263,11 @@ static void unary_expr_test() {
 
         free_unary_expr(res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 
     {
-        struct token* tokens = tokenize("~*var", "a file");
+        struct token* tokens = preproc_string("~*var", "a file");
 
         struct parser_state s = create_parser_state(tokens);
         struct unary_expr* res = parse_unary_expr(&s);
@@ -288,7 +288,7 @@ static void unary_expr_test() {
 
         free_unary_expr(res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 }
 
@@ -297,7 +297,7 @@ static void test_postfix_expr_intializer(bool tailing_comma) {
     if (tailing_comma) {
         code[30] = ',';
     }
-    struct token* tokens = tokenize(code, "not_a_file.c");
+    struct token* tokens = preproc_string(code, "not_a_file.c");
 
     struct parser_state s = create_parser_state(tokens);
     struct postfix_expr* res = parse_postfix_expr(&s);
@@ -322,12 +322,12 @@ static void test_postfix_expr_intializer(bool tailing_comma) {
     free(code);
     free_postfix_expr(res);
     free_parser_state(&s);
-    free_tokenizer_result(tokens);
+    free_tokens(tokens);
 }
 
 static void postfix_expr_test() {
     {
-        struct token* tokens = tokenize("test.ident->other++--++", "sjfkds");
+        struct token* tokens = preproc_string("test.ident->other++--++", "sjfkds");
 
         struct parser_state s = create_parser_state(tokens);
         struct postfix_expr* res = parse_postfix_expr(&s);
@@ -357,11 +357,11 @@ static void postfix_expr_test() {
 
         free_postfix_expr(res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 
     {
-        struct token* tokens = tokenize(
+        struct token* tokens = preproc_string(
             "test[i_am_id]()[23](another_id, 34, id)",
             "not_a_file.c");
 
@@ -402,7 +402,7 @@ static void postfix_expr_test() {
 
         free_postfix_expr(res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 
     test_postfix_expr_intializer(true);
@@ -424,7 +424,7 @@ static void check_assign_expr_cast(struct cond_expr* expr,
 
 static void assign_expr_test() {
     {
-        struct token* tokens = tokenize("10", "blah");
+        struct token* tokens = preproc_string("10", "blah");
 
         struct parser_state s = create_parser_state(tokens);
         struct assign_expr* res = parse_assign_expr(&s);
@@ -434,13 +434,13 @@ static void assign_expr_test() {
 
         check_assign_expr_id_or_const(res, "10", I_CONSTANT);
 
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
         free_parser_state(&s);
         free_assign_expr(res);
     }
 
     {
-        struct token* tokens = tokenize("x = 100 += y *= 100.0 /= 2",
+        struct token* tokens = preproc_string("x = 100 += y *= 100.0 /= 2",
                                         "not a file");
 
         struct parser_state s = create_parser_state(tokens);
@@ -478,13 +478,13 @@ static void assign_expr_test() {
 
         check_cond_expr_id_or_const(res->value, "2", I_CONSTANT);
 
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
         free_parser_state(&s);
         free_assign_expr(res);
     }
 
     {
-        struct token* tokens = tokenize("(char)100", "not_file.c");
+        struct token* tokens = preproc_string("(char)100", "not_file.c");
 
         struct parser_state s = create_parser_state(tokens);
         struct assign_expr* res = parse_assign_expr(&s);
@@ -496,11 +496,11 @@ static void assign_expr_test() {
 
         free_assign_expr(res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 
     {
-        struct token* tokens = tokenize("(struct a_struct){1, var} = 0.0",
+        struct token* tokens = preproc_string("(struct a_struct){1, var} = 0.0",
                                         "not_a_file.c");
 
         struct parser_state s = create_parser_state(tokens);
@@ -534,11 +534,11 @@ static void assign_expr_test() {
 
         free_assign_expr(res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 
     {
-        struct token* tokens = tokenize("var *= (double)12", "not_a_file.c");
+        struct token* tokens = preproc_string("var *= (double)12", "not_a_file.c");
 
         struct parser_state s = create_parser_state(tokens);
         struct assign_expr* res = parse_assign_expr(&s);
@@ -557,11 +557,11 @@ static void assign_expr_test() {
 
         free_assign_expr(res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 
     {
-        struct token* tokens = tokenize("var ^= (struct a_struct){1, var}",
+        struct token* tokens = preproc_string("var ^= (struct a_struct){1, var}",
                                         "not_a_file.c");
 
         struct parser_state s = create_parser_state(tokens);
@@ -601,6 +601,6 @@ static void assign_expr_test() {
 
         free_assign_expr(res);
         free_parser_state(&s);
-        free_tokenizer_result(tokens);
+        free_tokens(tokens);
     }
 }

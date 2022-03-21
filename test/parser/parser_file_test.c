@@ -1,7 +1,6 @@
 #include <stdio.h>
 
-#include "tokenizer.h"
-#include "util.h"
+#include "preproc/preproc.h"
 
 #include "parser/parser.h"
 
@@ -195,8 +194,7 @@ static void check_external_decl_func_def_typedef(
 
 static void no_preproc_file_test() {
     const char* file = "../test/files/no_preproc.c";
-    char* contents = read_file(file);
-    struct token* tokens = tokenize(contents, file);
+    struct token* tokens = preproc(file);
     struct translation_unit tl = parse_tokens(tokens);
     ASSERT_NO_ERROR();
     ASSERT_SIZE_T(tl.len, (size_t)10);
@@ -236,14 +234,12 @@ static void no_preproc_file_test() {
         8);
 
     free_translation_unit(&tl);
-    free_tokenizer_result(tokens);
-    free(contents);
+    free_tokens(tokens);
 }
 
 static void parser_testfile_file_test() {
     const char* file = "../test/files/parser_testfile.c";
-    char* contents = read_file(file);
-    struct token* tokens = tokenize(contents, file);
+    struct token* tokens = preproc(file);
     struct translation_unit tl = parse_tokens(tokens);
     ASSERT_NO_ERROR();
     ASSERT_SIZE_T(tl.len, (size_t)12);
@@ -297,14 +293,12 @@ static void parser_testfile_file_test() {
                                         1);
 
     free_translation_unit(&tl);
-    free_tokenizer_result(tokens);
-    free(contents);
+    free_tokens(tokens);
 }
 
 static void large_testfile_file_test() {
     const char* file = "../test/files/large_testfile.c";
-    char* contents = read_file(file);
-    struct token* tokens = tokenize(contents, file);
+    struct token* tokens = preproc(file);
     struct translation_unit tl = parse_tokens(tokens);
     ASSERT_NO_ERROR();
     ASSERT_SIZE_T(tl.len, (size_t)88);
@@ -478,6 +472,5 @@ static void large_testfile_file_test() {
                                          11);
 
     free_translation_unit(&tl);
-    free_tokenizer_result(tokens);
-    free(contents);
+    free_tokens(tokens);
 }
