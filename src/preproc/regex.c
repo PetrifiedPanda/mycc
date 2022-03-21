@@ -1,4 +1,4 @@
-#include "regex.h"
+#include "preproc/regex.h"
 
 #include <ctype.h>
 #include <stdbool.h>
