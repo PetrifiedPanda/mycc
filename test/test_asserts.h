@@ -11,6 +11,7 @@
 #define PRINT_ASSERT_ERR(format, ...)                                          \
     fprintf(stderr, "Assertion failure in %s, %d\n\t", __FILE__, __LINE__);    \
     fprintf(stderr, format, __VA_ARGS__);                                      \
+    fprintf(stderr, "\n");                                                     \
     exit(EXIT_FAILURE)
 
 #define ASSERT(expr)                                                           \
