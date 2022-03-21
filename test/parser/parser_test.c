@@ -155,8 +155,9 @@ static void enum_spec_test() {
     }
 
     {
-        struct token* tokens = preproc_string("enum {TEST1, TEST2, TEST3, TEST4, }",
-                                        "jsfjsf");
+        struct token* tokens = preproc_string(
+            "enum {TEST1, TEST2, TEST3, TEST4, }",
+            "jsfjsf");
 
         struct parser_state s = create_parser_state(tokens);
         struct enum_spec* res = parse_enum_spec(&s);
@@ -178,8 +179,9 @@ static void enum_spec_test() {
 
 static void designation_test() {
     {
-        struct token* tokens = preproc_string(".test[19].what_is_this.another_one = ",
-                                        "jsalkf");
+        struct token* tokens = preproc_string(
+            ".test[19].what_is_this.another_one = ",
+            "jsalkf");
 
         struct parser_state s = create_parser_state(tokens);
         struct designation* res = parse_designation(&s);
@@ -213,7 +215,7 @@ static void designation_test() {
 
     {
         struct token* tokens = preproc_string("[0.5].blah[420].oof[2][10] =",
-                                        "stetsd");
+                                              "stetsd");
 
         struct parser_state s = create_parser_state(tokens);
         struct designation* res = parse_designation(&s);

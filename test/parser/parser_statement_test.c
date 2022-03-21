@@ -76,7 +76,8 @@ static void jump_statement_test() {
     check_expected_semicolon_jump_statement("return *id += (int)100");
 
     {
-        struct token* tokens = preproc_string("not_what_was_expected;", "a_file.c");
+        struct token* tokens = preproc_string("not_what_was_expected;",
+                                              "a_file.c");
 
         struct parser_state s = create_parser_state(tokens);
 
