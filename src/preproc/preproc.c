@@ -29,7 +29,7 @@ static enum token_type keyword_type(const char* spelling);
 
 void append_terminator_token(struct token** tokens, size_t len) {
     *tokens = xrealloc(*tokens, sizeof(struct token) * (len + 1));
-    (*tokens)[len] = (struct token) {
+    (*tokens)[len] = (struct token){
         .type = INVALID,
         .spelling = NULL,
         .file = NULL,
@@ -51,8 +51,8 @@ void convert_preproc_tokens(struct token* tokens) {
 
 struct token* preproc(const char* path) {
     struct token_arr res = {
-        .len = 0, 
-        .alloc_len = 0, 
+        .len = 0,
+        .alloc_len = 0,
         .tokens = NULL,
     };
 
@@ -66,14 +66,19 @@ struct token* preproc(const char* path) {
 
     append_terminator_token(&res.tokens, res.len);
 
-    convert_preproc_tokens(res.tokens); 
+    convert_preproc_tokens(res.tokens);
 
     return res.tokens;
 }
 
-
-static bool preproc_statement(struct token_arr* res, const char* line, size_t line_num);
-static bool tokenize_line(struct token_arr* res, const char* line, size_t line_num, const char* file, bool* comment_not_terminated);
+static bool preproc_statement(struct token_arr* res,
+                              const char* line,
+                              size_t line_num);
+static bool tokenize_line(struct token_arr* res,
+                          const char* line,
+                          size_t line_num,
+                          const char* file,
+                          bool* comment_not_terminated);
 
 struct token* preproc_string(const char* str, const char* path) {
     struct token_arr res = {
@@ -81,7 +86,7 @@ struct token* preproc_string(const char* str, const char* path) {
         .alloc_len = 0,
         .tokens = NULL,
     };
-    
+
     const char* it = str;
 
     const char* start = str;
@@ -96,7 +101,11 @@ struct token* preproc_string(const char* str, const char* path) {
             line[len] = '\0';
 
             if ((line[0] == '#' && !preproc_statement(&res, line, line_num))
-                || !tokenize_line(&res, line, line_num, path, &comment_not_terminated)) {
+                || !tokenize_line(&res,
+                                  line,
+                                  line_num,
+                                  path,
+                                  &comment_not_terminated)) {
                 free(line);
                 goto fail;
             }
@@ -138,7 +147,7 @@ static bool preproc_file(struct token_arr* res, const char* path) {
         return false;
     }
 
-    enum {LINE_BUF_LEN = 1000};
+    enum { LINE_BUF_LEN = 1000 };
     char line_buf[LINE_BUF_LEN];
 
     const char LAST_PLACEHOLDER = '$';
@@ -157,7 +166,8 @@ static bool preproc_file(struct token_arr* res, const char* path) {
 
         char* line = line_buf;
 
-        if (line_buf[LINE_BUF_LEN - 1] == '\0' && line_buf[LINE_BUF_LEN - 2] != '\n') {
+        if (line_buf[LINE_BUF_LEN - 1] == '\0'
+            && line_buf[LINE_BUF_LEN - 2] != '\n') {
             int len = LINE_BUF_LEN * 2;
             char* dyn_buf = xmalloc(sizeof(char) * len);
             memcpy(dyn_buf, line_buf, LINE_BUF_LEN * sizeof(char));
@@ -166,7 +176,8 @@ static bool preproc_file(struct token_arr* res, const char* path) {
             dyn_buf[len - 2] = LAST_PLACEHOLDER;
 
             ret = fgets(dyn_buf + LINE_BUF_LEN - 1, len - LINE_BUF_LEN, file);
-            while (ret != NULL && dyn_buf[len - 1] == '\0' &&  dyn_buf[len - 2] != '\n') {
+            while (ret != NULL && dyn_buf[len - 1] == '\0'
+                   && dyn_buf[len - 2] != '\n') {
                 int prev_len = len;
                 len *= 2;
                 dyn_buf = xrealloc(dyn_buf, len * sizeof(char));
@@ -181,7 +192,11 @@ static bool preproc_file(struct token_arr* res, const char* path) {
         }
 
         if ((line[0] == '#' && !preproc_statement(res, line, line_num))
-            || !tokenize_line(res, line, line_num, path, &comment_not_terminated)) {
+            || !tokenize_line(res,
+                              line,
+                              line_num,
+                              path,
+                              &comment_not_terminated)) {
             goto fail;
         }
 
@@ -208,7 +223,9 @@ fail:
     return false;
 }
 
-static bool preproc_statement(struct token_arr* res, const char* line, size_t line_num) {
+static bool preproc_statement(struct token_arr* res,
+                              const char* line,
+                              size_t line_num) {
     assert(line != NULL);
     assert(line[0] == '#');
     (void)res;
@@ -241,13 +258,19 @@ static void add_token(struct token_arr* res,
                       struct source_location loc,
                       const char* filename);
 
-static void handle_comments(struct tokenizer_state* s, bool* comment_not_terminated);
+static void handle_comments(struct tokenizer_state* s,
+                            bool* comment_not_terminated);
 static bool handle_character_literal(struct tokenizer_state* s,
                                      struct token_arr* res);
 static bool handle_other(struct tokenizer_state* s, struct token_arr* res);
-static void handle_continued_comments(struct tokenizer_state* s, bool* comment_not_terminated);
+static void handle_ongoing_comment(struct tokenizer_state* s,
+                                      bool* comment_not_terminated);
 
-static bool tokenize_line(struct token_arr* res, const char* line, size_t line_num, const char* file, bool* comment_not_terminated) {
+static bool tokenize_line(struct token_arr* res,
+                          const char* line,
+                          size_t line_num,
+                          const char* file,
+                          bool* comment_not_terminated) {
     assert(res);
     assert(line);
     assert(file);
@@ -257,16 +280,17 @@ static bool tokenize_line(struct token_arr* res, const char* line, size_t line_n
         .it = line,
         .prev = '\0',
         .prev_prev = '\0',
-        .source_loc = {
-            .line = line_num,
-            .index = 1,
-        },
-        .current_file = file
+        .source_loc =
+            {
+                .line = line_num,
+                .index = 1,
+            },
+        .current_file = file,
     };
 
     while (*s.it != '\0') {
         if (*comment_not_terminated) {
-            handle_continued_comments(&s, comment_not_terminated);
+            handle_ongoing_comment(&s, comment_not_terminated);
             continue;
         }
         while (isspace(*s.it)) {
@@ -648,15 +672,16 @@ static void add_token(struct token_arr* res,
     ++res->len;
 }
 
-static void handle_comments(struct tokenizer_state* s, bool* comment_not_terminated) {
+static void handle_comments(struct tokenizer_state* s,
+                            bool* comment_not_terminated) {
     assert(*s->it == '/');
     assert(s->it[1] == '*' || s->it[1] == '/');
 
     assert(s->it[1] == '*' || s->it[1] == '/');
     if (s->it[1] == '*') {
         advance(s, 2);
-        
-        handle_continued_comments(s, comment_not_terminated);
+
+        handle_ongoing_comment(s, comment_not_terminated);
     } else {
         while (*s->it != '\0' && *s->it != '\n') {
             advance_one(s);
@@ -664,9 +689,10 @@ static void handle_comments(struct tokenizer_state* s, bool* comment_not_termina
     }
 }
 
-static void handle_continued_comments(struct tokenizer_state* s, bool* comment_not_terminated) {
+static void handle_ongoing_comment(struct tokenizer_state* s,
+                                      bool* comment_not_terminated) {
     assert(comment_not_terminated);
-    
+
     while (*s->it != '\0' && (*s->it != '*' || s->it[1] != '/')) {
         advance_newline(s);
     }
