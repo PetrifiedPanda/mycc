@@ -12,19 +12,21 @@ int main(int argc, char** argv) {
         fprintf(stderr, "%s: no input file\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-
-    const char* filename = argv[1];
-
-    struct token* tokens = preproc(filename);
-    check_error();
     
-    struct translation_unit tl = parse_tokens(tokens);
-    check_error();
-    
-    printf("Finished tokenization successfully\n");
+    for (int i = 1; i < argc; ++i) {
+        const char* filename = argv[i];
 
-    free_translation_unit(&tl);
-    free_tokens(tokens);
+        struct token* tokens = preproc(filename);
+        check_error();
+    
+        struct translation_unit tl = parse_tokens(tokens);
+        check_error();
+    
+        printf("Finished tokenization successfully\n");
+
+        free_translation_unit(&tl);
+        free_tokens(tokens);
+    }
 }
 
 static void check_error() {
