@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
         struct translation_unit tl = parse_tokens(tokens);
         check_error();
     
-        printf("Finished tokenization successfully\n");
+        printf("Finished parsing %s successfully\n", filename);
 
         free_translation_unit(&tl);
         free_tokens(tokens);
