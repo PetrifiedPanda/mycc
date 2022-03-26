@@ -175,7 +175,7 @@ static bool preproc_file(struct preproc_state* res, const char* path) {
 
             line = dyn_buf;
         }
-
+        
         if ((line[0] == '#' && !preproc_statement(res, line, line_num))
             || !tokenize_line(res,
                               line,
@@ -184,6 +184,8 @@ static bool preproc_file(struct preproc_state* res, const char* path) {
                               &comment_not_terminated)) {
             goto fail;
         }
+
+        // TODO: expand macros on added tokens
 
         ++line_num;
 
