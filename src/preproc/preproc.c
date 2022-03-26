@@ -220,7 +220,6 @@ static bool preproc_statement(struct preproc_state* res,
     return false;
 }
 
-
 static inline bool is_spelling(const char* spelling, enum token_type type) {
     return strcmp(spelling, get_spelling(type)) == 0;
 }
@@ -320,4 +319,3 @@ static enum token_type keyword_type(const char* spell) {
         return IDENTIFIER;
     }
 }
-

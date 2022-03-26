@@ -50,7 +50,11 @@ static bool handle_other(struct tokenizer_state* s, struct preproc_state* res);
 static void handle_ongoing_comment(struct tokenizer_state* s,
                                    bool* comment_not_terminated);
 
-bool tokenize_line(struct preproc_state* res, const char* line, size_t line_num, const char* file, bool* comment_not_terminated) {
+bool tokenize_line(struct preproc_state* res,
+                   const char* line,
+                   size_t line_num,
+                   const char* file,
+                   bool* comment_not_terminated) {
     assert(res);
     assert(line);
     assert(file);
@@ -106,7 +110,7 @@ bool tokenize_line(struct preproc_state* res, const char* line, size_t line_num,
         } else {
             if (!handle_other(&s, res)) {
                 return false;
-           }
+            }
         }
     }
 
@@ -370,7 +374,7 @@ static void handle_comments(struct tokenizer_state* s,
 }
 
 static void handle_ongoing_comment(struct tokenizer_state* s,
-                                      bool* comment_not_terminated) {
+                                   bool* comment_not_terminated) {
     assert(comment_not_terminated);
 
     while (*s->it != '\0' && (*s->it != '*' || s->it[1] != '/')) {
@@ -578,4 +582,4 @@ static bool handle_other(struct tokenizer_state* s, struct preproc_state* res) {
     }
 
     return true;
-} 
+}
