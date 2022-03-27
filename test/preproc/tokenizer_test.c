@@ -14,7 +14,6 @@ static void file_test();
 void tokenizer_test() {
     simple_test();
     file_test();
-    printf("Tokenizer test successful\n");
 }
 
 static void check_size(const struct token* tokens, size_t expected) {
