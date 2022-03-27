@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 struct preproc_state {
-    size_t len, alloc_len;
+    size_t len, cap;
     struct token* tokens;
 };
 

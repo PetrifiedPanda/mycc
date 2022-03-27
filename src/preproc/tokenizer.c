@@ -331,8 +331,8 @@ static void advance_newline(struct tokenizer_state* s) {
 }
 
 static void realloc_tokens_if_needed(struct preproc_state* res) {
-    if (res->len == res->alloc_len) {
-        grow_alloc((void**)&res->tokens, &res->alloc_len, sizeof(struct token));
+    if (res->len == res->cap) {
+        grow_alloc((void**)&res->tokens, &res->cap, sizeof(struct token));
     }
 }
 

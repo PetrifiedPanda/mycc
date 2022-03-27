@@ -20,7 +20,7 @@ void convert_preproc_tokens(struct token* tokens);
 struct token* preproc(const char* path) {
     struct preproc_state state = {
         .len = 0,
-        .alloc_len = 0,
+        .cap = 0,
         .tokens = NULL,
     };
 
@@ -68,7 +68,7 @@ static bool preproc_statement(struct preproc_state* res,
 struct token* preproc_string(const char* str, const char* path) {
     struct preproc_state res = {
         .len = 0,
-        .alloc_len = 0,
+        .cap = 0,
         .tokens = NULL,
     };
 
