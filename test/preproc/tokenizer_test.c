@@ -6,7 +6,7 @@
 
 #include "preproc/preproc.h"
 
-#include "test_asserts.h"
+#include "../test_asserts.h"
 
 static void simple_test();
 static void file_test();
