@@ -106,4 +106,6 @@ void parser_state_test() {
         free_token(&dummy_string_tokens[i]);
     }
     free_parser_state(&s);
+
+    printf("\tParser state test successful\n");
 }

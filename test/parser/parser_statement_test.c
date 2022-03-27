@@ -14,6 +14,7 @@ static void statement_test();
 void parser_statement_test() {
     jump_statement_test();
     statement_test();
+    printf("\tParser statement test successful\n");
 }
 
 static void check_jump_statement(const char* spell, enum token_type t) {

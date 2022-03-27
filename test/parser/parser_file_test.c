@@ -16,6 +16,7 @@ void parser_file_test() {
     no_preproc_file_test();
     parser_testfile_file_test();
     large_testfile_file_test();
+    printf("\tParser file test successful\n");
 }
 
 static void check_func_specs(const struct func_specs* got,

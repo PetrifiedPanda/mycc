@@ -21,6 +21,7 @@ void parser_expr_test() {
     unary_expr_test();
     postfix_expr_test();
     assign_expr_test();
+    printf("\tParser expression test successful\n");
 }
 
 static void check_primary_expr_constant(enum token_type type,

@@ -22,6 +22,7 @@ static void designation_test();
 static void static_assert_declaration_test();
 
 void parser_test() {
+    printf("Starting parser test\n");
     parser_expr_test();
     parser_statement_test();
     enum_list_test();
@@ -128,6 +129,7 @@ static void enum_list_test() {
         free_parser_state(&s);
         free_tokens(tokens);
     }
+    printf("\tParser enum list test successful\n");
 }
 
 static void enum_spec_test() {
@@ -175,6 +177,7 @@ static void enum_spec_test() {
         free_parser_state(&s);
         free_enum_spec(res);
     }
+    printf("\tParser enum spec test successful\n");
 }
 
 static void designation_test() {
@@ -256,6 +259,7 @@ static void designation_test() {
         free_parser_state(&s);
         free_tokens(tokens);
     }
+    printf("\tParser designator test successful\n");
 }
 
 static void static_assert_declaration_test() {
@@ -275,4 +279,5 @@ static void static_assert_declaration_test() {
     free_tokens(tokens);
     free_parser_state(&s);
     free_static_assert_declaration(res);
+    printf("\tParser static assert declaration test successful\n");
 }
