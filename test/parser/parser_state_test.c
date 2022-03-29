@@ -28,11 +28,10 @@ void parser_state_test() {
         insert_string[i] = 'a';
 
         struct token* item = &dummy_string_tokens[i];
-        init_token_copy(item,
-                        IDENTIFIER,
-                        insert_string,
-                        (struct source_location){.line = 0, .index = 0},
-                        "file.c");
+        *item = create_token_copy(IDENTIFIER,
+                                  insert_string,
+                                  (struct source_location){0, 0},
+                                  "file.c");
         if (i % 2 == 0) {
             ASSERT(register_enum_constant(&s, item));
         } else {

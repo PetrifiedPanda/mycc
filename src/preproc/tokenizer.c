@@ -342,7 +342,7 @@ static void add_token_copy(struct preproc_state* res,
                            struct source_location loc,
                            const char* filename) {
     realloc_tokens_if_needed(res);
-    init_token_copy(&res->tokens[res->len], type, spell, loc, filename);
+    res->tokens[res->len] = create_token_copy(type, spell, loc, filename);
     ++res->len;
 }
 
@@ -352,7 +352,7 @@ static void add_token(struct preproc_state* res,
                       struct source_location loc,
                       const char* filename) {
     realloc_tokens_if_needed(res);
-    init_token(&res->tokens[res->len], type, spell, loc, filename);
+    res->tokens[res->len] = create_token(type, spell, loc, filename);
     ++res->len;
 }
 
