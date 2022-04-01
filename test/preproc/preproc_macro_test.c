@@ -7,13 +7,6 @@
 
 #include "../test_asserts.h"
 
-static void non_func_like_test();
-
-void preproc_macro_test() {
-    non_func_like_test();
-    printf("\tPrepocessor macro test successful\n");
-}
-
 static void check_token(struct token* got, struct token* ex) {
     ASSERT_TOKEN_TYPE(got->type, ex->type);
     ASSERT_STR(got->spelling, ex->spelling);
@@ -22,8 +15,7 @@ static void check_token(struct token* got, struct token* ex) {
     ASSERT_SIZE_T(got->source_loc.index, ex->source_loc.index);
 }
 
-static void non_func_like_test() {
-
+TEST(non_func_like_macro) {
     char* macro_file = (char*)"macro_file.c";
     struct token_or_num expansion[] = {
         {.is_arg_num = false, .token = {I_CONSTANT, "1", macro_file, {1, 15}}},
@@ -94,3 +86,8 @@ static void non_func_like_test() {
 
     free(state.tokens);
 }
+
+TEST_SUITE_BEGIN(preproc_macro, 1) {
+    REGISTER_TEST(non_func_like_macro);
+}
+TEST_SUITE_END()

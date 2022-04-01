@@ -1,21 +1,11 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 
 #include "error.h"
 
 #include "preproc/preproc.h"
 
 #include "../test_asserts.h"
-
-static void simple_test();
-static void file_test();
-
-void tokenizer_test() {
-    simple_test();
-    file_test();
-    printf("\tTokenizer test successful\n");
-}
 
 static void check_size(const struct token* tokens, size_t expected) {
     size_t size = 0;
@@ -63,7 +53,7 @@ static void compare_tokens(const struct token* got,
     }
 }
 
-static void simple_test() {
+TEST(simple) {
     const char*
         code = "typedef struct typedeftest /* This is a comment \n"
                "that goes over\n"
@@ -155,7 +145,7 @@ static void simple_test() {
     free_tokens(tokens);
 }
 
-static void file_test() {
+TEST(file) {
     const char* filename = "../test/files/no_preproc.c";
 
     struct token* tokens = preproc(filename);
@@ -792,3 +782,9 @@ static void file_test() {
 
     free_tokens(tokens);
 }
+
+TEST_SUITE_BEGIN(tokenizer, 2) {
+    REGISTER_TEST(simple);
+    REGISTER_TEST(file);
+}
+TEST_SUITE_END()

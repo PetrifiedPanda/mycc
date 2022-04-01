@@ -5,17 +5,6 @@
 
 #include "test_asserts.h"
 
-static void test_set_error();
-static void test_set_error_file();
-static void test_append_error();
-
-void error_test() {
-    test_set_error();
-    test_set_error_file();
-    test_append_error();
-    printf("Error test successful\n");
-}
-
 static void clear_err_assert() {
     clear_last_error();
     ASSERT_ERROR(get_last_error(), ERR_NONE);
@@ -26,7 +15,7 @@ static void compare_buffers(const char* got, const char* expected) {
     ASSERT_STR(got, expected);
 }
 
-static void test_set_error() {
+TEST(set_error) {
     enum { TEST_BUF_SIZE = 512 };
     char test_buf[TEST_BUF_SIZE];
     {
@@ -59,7 +48,7 @@ static void test_set_error() {
     }
 }
 
-static void test_set_error_file() {
+TEST(set_error_file) {
     enum { TEST_BUF_SIZE = 512 };
     char test_buf[TEST_BUF_SIZE];
 
@@ -110,7 +99,7 @@ static void test_set_error_file() {
     }
 }
 
-static void test_append_error() {
+TEST(append_error_msg) {
     enum { ARR_SIZE = 6 };
     const char* split_string[ARR_SIZE] =
         {"Hello", " this", " is", " a", " split", " string"};
@@ -133,3 +122,10 @@ static void test_append_error() {
 
     clear_err_assert();
 }
+
+TEST_SUITE_BEGIN(error, 3) {
+    REGISTER_TEST(set_error);
+    REGISTER_TEST(set_error_file);
+    REGISTER_TEST(append_error_msg);
+}
+TEST_SUITE_END()

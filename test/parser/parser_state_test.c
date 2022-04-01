@@ -4,7 +4,7 @@
 
 #include "../test_asserts.h"
 
-void parser_state_test() {
+TEST(parser_state) {
     struct token dummy = {.type = INVALID};
     struct parser_state s = create_parser_state(&dummy);
 
@@ -108,3 +108,8 @@ void parser_state_test() {
 
     printf("\tParser state test successful\n");
 }
+
+TEST_SUITE_BEGIN(parser_state, 1) {
+    REGISTER_TEST(parser_state);
+}
+TEST_SUITE_END()

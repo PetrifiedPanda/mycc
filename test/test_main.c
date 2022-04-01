@@ -1,14 +1,13 @@
-#include <stdio.h>
+#include "test.h"
 
-extern void error_test();
+GET_EXTERN_SUITE(error);
 
 extern void preproc_test();
 
 extern void parser_test();
 
 int main() {
-    error_test();
+    TEST_SUITE_RUN(error);
     preproc_test();
     parser_test();
-    printf("All tests successful\n");
 }

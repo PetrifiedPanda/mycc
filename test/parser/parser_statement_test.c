@@ -8,15 +8,6 @@
 
 #include "parser_test_util.h"
 
-static void jump_statement_test();
-static void statement_test();
-
-void parser_statement_test() {
-    jump_statement_test();
-    statement_test();
-    printf("\tParser statement test successful\n");
-}
-
 static void check_jump_statement(const char* spell, enum token_type t) {
     struct token* tokens = preproc_string(spell, "skfjlskf");
 
@@ -49,7 +40,7 @@ static void check_expected_semicolon_jump_statement(const char* spell) {
     free_parser_state(&s);
 }
 
-static void jump_statement_test() {
+TEST(jump_statement) {
     {
         struct token* tokens = preproc_string("goto my_cool_label;", "file");
 
@@ -115,7 +106,7 @@ static void jump_statement_test() {
     }
 }
 
-static void statement_test() {
+TEST(statement) {
     const char* code = "for (i = 0; i < 100; ++i) {"
                        "    switch (c) {"
                        "        case 2:"
@@ -263,3 +254,9 @@ static void statement_test() {
 
     // TODO: Add tests with declarations when implemented
 }
+
+TEST_SUITE_BEGIN(parser_statement, 2) {
+    REGISTER_TEST(jump_statement);
+    REGISTER_TEST(statement);
+}
+TEST_SUITE_END()

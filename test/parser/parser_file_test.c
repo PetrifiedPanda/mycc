@@ -8,17 +8,6 @@
 
 #include "parser_test_util.h"
 
-static void no_preproc_file_test();
-static void parser_testfile_file_test();
-static void large_testfile_file_test();
-
-void parser_file_test() {
-    no_preproc_file_test();
-    parser_testfile_file_test();
-    large_testfile_file_test();
-    printf("\tParser file test successful\n");
-}
-
 static void check_func_specs(const struct func_specs* got,
                              const struct func_specs* expected) {
     ASSERT_BOOL(got->is_inline, expected->is_inline);
@@ -193,7 +182,7 @@ static void check_external_decl_func_def_typedef(
     ASSERT_STR(d->func_def.specs->type_specs.typedef_name->spelling, ret_type);
 }
 
-static void no_preproc_file_test() {
+TEST(no_preproc) {
     const char* file = "../test/files/no_preproc.c";
     struct token* tokens = preproc(file);
     struct translation_unit tl = parse_tokens(tokens);
@@ -238,7 +227,7 @@ static void no_preproc_file_test() {
     free_tokens(tokens);
 }
 
-static void parser_testfile_file_test() {
+TEST(parser_testfile) {
     const char* file = "../test/files/parser_testfile.c";
     struct token* tokens = preproc(file);
     struct translation_unit tl = parse_tokens(tokens);
@@ -297,7 +286,7 @@ static void parser_testfile_file_test() {
     free_tokens(tokens);
 }
 
-static void large_testfile_file_test() {
+TEST(large_testfile) {
     const char* file = "../test/files/large_testfile.c";
     struct token* tokens = preproc(file);
     struct translation_unit tl = parse_tokens(tokens);
@@ -475,3 +464,10 @@ static void large_testfile_file_test() {
     free_translation_unit(&tl);
     free_tokens(tokens);
 }
+
+TEST_SUITE_BEGIN(parser_file, 3) {
+    REGISTER_TEST(no_preproc);
+    REGISTER_TEST(parser_testfile);
+    REGISTER_TEST(large_testfile);
+}
+TEST_SUITE_END()

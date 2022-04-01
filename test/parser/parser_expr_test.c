@@ -11,19 +11,6 @@
 
 #include "parser_test_util.h"
 
-static void primary_expr_test();
-static void unary_expr_test();
-static void postfix_expr_test();
-static void assign_expr_test();
-
-void parser_expr_test() {
-    primary_expr_test();
-    unary_expr_test();
-    postfix_expr_test();
-    assign_expr_test();
-    printf("\tParser expression test successful\n");
-}
-
 static void check_primary_expr_constant(enum token_type type,
                                         const char* spell) {
     struct token* tokens = preproc_string(
@@ -185,7 +172,7 @@ static void primary_expr_generic_sel_test() {
     free_tokens(tokens);
 }
 
-static void primary_expr_test() {
+TEST(primary_expr) {
     check_primary_expr_constant(F_CONSTANT, "3.1e-5f");
     check_primary_expr_constant(I_CONSTANT, "0xdeadbeefl");
     check_primary_expr_identifier("super_cool_identifier");
@@ -198,7 +185,7 @@ static void primary_expr_test() {
     primary_expr_generic_sel_test();
 }
 
-static void unary_expr_test() {
+TEST(unary_expr) {
     {
         struct token* tokens = preproc_string("++-- sizeof *name", "skfjdlfs");
 
@@ -327,7 +314,7 @@ static void test_postfix_expr_intializer(bool tailing_comma) {
     free_tokens(tokens);
 }
 
-static void postfix_expr_test() {
+TEST(postfix_expr) {
     {
         struct token* tokens = preproc_string("test.ident->other++--++",
                                               "sjfkds");
@@ -425,7 +412,7 @@ static void check_assign_expr_cast(struct cond_expr* expr,
     check_unary_expr_id_or_const(cast->rhs, spell, value_type);
 }
 
-static void assign_expr_test() {
+TEST(assign_expr) {
     {
         struct token* tokens = preproc_string("10", "blah");
 
@@ -609,3 +596,11 @@ static void assign_expr_test() {
         free_tokens(tokens);
     }
 }
+
+TEST_SUITE_BEGIN(parser_expr, 4) {
+    REGISTER_TEST(primary_expr);
+    REGISTER_TEST(unary_expr);
+    REGISTER_TEST(postfix_expr);
+    REGISTER_TEST(assign_expr);
+}
+TEST_SUITE_END()

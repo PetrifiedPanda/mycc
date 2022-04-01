@@ -1,12 +1,10 @@
-#include <stdio.h>
+#include "../test.h"
 
-extern void tokenizer_test();
-extern void preproc_macro_test();
+GET_EXTERN_SUITE(tokenizer);
+GET_EXTERN_SUITE(preproc_macro);
 
 void preproc_test() {
-    printf("Starting preprocessor test\n");
-    tokenizer_test();
-    preproc_macro_test();
-    printf("Preprocessor test successful\n");
+    TEST_SUITE_RUN(tokenizer);
+    TEST_SUITE_RUN(preproc_macro);
 }
 
