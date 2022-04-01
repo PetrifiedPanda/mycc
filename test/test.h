@@ -6,7 +6,7 @@
 #include <time.h>
 #include <setjmp.h>
 
-static jmp_buf test_jump_buf;
+jmp_buf test_jump_buf;
 
 /**
  * Begin a test suite, must be followed by a new scope, followed by
@@ -65,7 +65,7 @@ test_failed:                                                                   \
 #define TEST(name) static void name##_test()
 
 #define PRINT_ASSERT_ERR(format, ...)                                          \
-    printf("Assertion failure in %s, %d\n\t", __FILE__, __LINE__);             \
+    printf("\tAssertion failure in %s, %d\n\t\t", __FILE__, __LINE__);         \
     printf(format, __VA_ARGS__);                                               \
     printf("\n");                                                              \
     longjmp(test_jump_buf, 0)
