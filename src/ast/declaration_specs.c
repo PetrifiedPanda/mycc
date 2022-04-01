@@ -22,7 +22,7 @@ static bool current_is_type_qual(const struct parser_state* s) {
 /**
  *
  * @param s The current parser_state
- * @param res The adress where the result is to be written in
+ * @param res The address where the result is to be written in
  * @param alloc_len_align_specs The length of the current allocation in
  * res->align_specs
  * @param alloc_len_type_specs The length of the current allocation in
