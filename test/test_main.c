@@ -1,5 +1,7 @@
 #include "test.h"
 
+jmp_buf test_jump_buf;
+
 GET_EXTERN_SUITE(error);
 
 extern void preproc_test();

@@ -6,7 +6,10 @@
 #include <time.h>
 #include <setjmp.h>
 
-jmp_buf test_jump_buf;
+/**
+ * Jump buffer for unit tests, defined in test_main.c
+ */
+extern jmp_buf test_jump_buf;
 
 /**
  * Begin a test suite, must be followed by a new scope, followed by
