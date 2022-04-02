@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdlib.h>
 #include <time.h>
 #include <setjmp.h>
 
@@ -19,7 +21,7 @@ extern jmp_buf test_jump_buf;
  * @param max_num_tests determines how many tests can fit into this suite
  */
 #define TEST_SUITE_BEGIN(name, max_num_tests)                                  \
-    void name##_test_suite() {                                                 \
+    size_t name##_test_suite() {                                               \
         printf("Starting %s tests\n", #name);                                  \
         void (*tests[max_num_tests])();                                        \
         char* test_names[max_num_tests];                                       \
@@ -59,6 +61,8 @@ test_failed:                                                                   \
            num_succeeded,                                                      \
            num_tests,                                                          \
            suite_name);                                                        \
+                                                                               \
+    return num_tests - num_succeeded; /* return how many tests failed */       \
     }
 
 #define TEST_SUITE_RUN(name) name##_test_suite()
@@ -66,10 +70,66 @@ test_failed:                                                                   \
 /**
  * Make a test suite defined in another .c file available
  */
-#define GET_EXTERN_SUITE(name) extern void name##_test_suite()
+#define GET_EXTERN_SUITE(name) extern size_t name##_test_suite()
 
+/**
+ * Forward declaration of test suite
+ */
+#define TEST_SUITE_DECL(name) size_t name##_test_suite()
+
+/**
+ * Begin a test, should be followed by new scope, as with a function
+ */
 #define TEST(name) static void name##_test()
 
+#define TEST_SUITE_LIST_BEGIN(list_name)                                       \
+    size_t (*list_name##_test_suite_list[])() =
+
+#define TEST_SUITE_LIST_ITEM(suite_name) suite_name##_test_suite
+
+#define TEST_SUITE_LIST_END(list_name)                                         \
+    ;                                                                          \
+    enum {                                                                     \
+        list_name##_test_suite_list_size = sizeof(list_name##_test_suite_list) \
+                                           / sizeof(size_t(*)())               \
+    }
+
+#define TEST_MAIN_BEGIN(max_num_suites)                                        \
+    int main() {                                                               \
+        size_t (*test_suites[max_num_suites])();                               \
+        size_t num_suites = 0;
+
+#define TEST_MAIN_ADD(test_suite)                                              \
+    do {                                                                       \
+        test_suites[num_suites] = test_suite##_test_suite;                     \
+        ++num_suites;                                                          \
+    } while (0)
+
+#define TEST_MAIN_ADD_LIST(list_name)                                          \
+    do {                                                                       \
+        for (size_t i = 0; i < list_name##_test_suite_list_size; ++i) {        \
+            test_suites[num_suites] = list_name##_test_suite_list[i];          \
+            ++num_suites;                                                      \
+        }                                                                      \
+    } while (0)
+
+#define TEST_MAIN_END()                                                        \
+    size_t num_failed = 0;                                                     \
+    for (size_t i = 0; i < num_suites; ++i) {                                  \
+        num_failed += test_suites[i]();                                        \
+    }                                                                          \
+    if (num_failed == 0) {                                                     \
+        printf("All tests successful\n");                                      \
+        return EXIT_SUCCESS;                                                   \
+    } else {                                                                   \
+        printf("%zu tests failed\n", num_failed);                              \
+        return EXIT_FAILURE;                                                   \
+    }                                                                          \
+    }
+
+/**
+ * Prints an assert error, failing the test. Must not be called outside of tests
+ */
 #define PRINT_ASSERT_ERR(format, ...)                                          \
     printf("\tAssertion failure in %s, %d\n\t\t", __FILE__, __LINE__);         \
     printf(format, __VA_ARGS__);                                               \
