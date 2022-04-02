@@ -9,8 +9,8 @@ static void check_error();
 
 int main(int argc, char** argv) {
     if (argc < 2) {
-        fprintf(stderr, "%s: no input file\n", argv[0]);
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "%s: no input files\n", argv[0]);
+        return EXIT_FAILURE;
     }
     
     for (int i = 1; i < argc; ++i) {
