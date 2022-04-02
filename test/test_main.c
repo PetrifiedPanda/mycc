@@ -11,5 +11,5 @@ TEST_MAIN_BEGIN(8) {
     TEST_MAIN_ADD(error);
     TEST_MAIN_ADD_LIST(preproc);
     TEST_MAIN_ADD_LIST(parser);
-} TEST_MAIN_END()
-
+}
+TEST_MAIN_END()
