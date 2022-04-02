@@ -13,7 +13,10 @@ extern jmp_buf test_jump_buf;
 
 /**
  * Begin a test suite, must be followed by a new scope, followed by
- * TEST_SUITE_END
+ * TEST_SUITE_END.
+ *
+ * @param name name of the test suite (can be name of an existing function)
+ * @param max_num_tests determines how many tests can fit into this suite
  */
 #define TEST_SUITE_BEGIN(name, max_num_tests)                                  \
     void name##_test_suite() {                                                 \
