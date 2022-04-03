@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <time.h>
+#include <assert.h>
 #include <setjmp.h>
 
 /**
@@ -19,12 +19,14 @@ extern jmp_buf test_jump_buf;
  *
  * @param name name of the test suite (can be name of an existing function)
  * @param max_num_tests determines how many tests can fit into this suite
+ *                      must be a compile-time constant
  */
 #define TEST_SUITE_BEGIN(name, max_num_tests)                                  \
     size_t name##_test_suite() {                                               \
         printf("Starting %s tests\n", #name);                                  \
-        void (*tests[max_num_tests])();                                        \
-        char* test_names[max_num_tests];                                       \
+        enum { MAX_NUM_TESTS = (max_num_tests) };                              \
+        void (*tests[MAX_NUM_TESTS])();                                        \
+        char* test_names[MAX_NUM_TESTS];                                       \
         const char* suite_name = #name;                                        \
         size_t num_tests = 0;
 
@@ -34,6 +36,7 @@ extern jmp_buf test_jump_buf;
  */
 #define REGISTER_TEST(test_name)                                               \
     do {                                                                       \
+        assert(num_tests < MAX_NUM_TESTS);                                     \
         tests[num_tests] = test_name##_test;                                   \
         test_names[num_tests] = #test_name;                                    \
         ++num_tests;                                                           \
@@ -65,8 +68,6 @@ test_failed:                                                                   \
     return num_tests - num_succeeded; /* return how many tests failed */       \
     }
 
-#define TEST_SUITE_RUN(name) name##_test_suite()
-
 /**
  * Make a test suite defined in another .c file available
  */
@@ -94,20 +95,30 @@ test_failed:                                                                   \
                                            / sizeof(size_t(*)())               \
     }
 
+/**
+ * Begins the test main function, which returns EXIT_FAILURE if any test failed
+ *
+ * @param max_num_suites The maximum number of test suites in this main
+ *                       must be a compile-time constant
+ */
 #define TEST_MAIN_BEGIN(max_num_suites)                                        \
     int main() {                                                               \
-        size_t (*test_suites[max_num_suites])();                               \
+        enum { MAX_NUM_SUITES = (max_num_suites) };                            \
+        size_t (*test_suites[MAX_NUM_SUITES])();                               \
         size_t num_suites = 0;
 
 #define TEST_MAIN_ADD(test_suite)                                              \
     do {                                                                       \
+        assert(num_suites < MAX_NUM_SUITES);                                   \
         test_suites[num_suites] = test_suite##_test_suite;                     \
         ++num_suites;                                                          \
     } while (0)
 
 #define TEST_MAIN_ADD_LIST(list_name)                                          \
     do {                                                                       \
-        for (size_t i = 0; i < list_name##_test_suite_list_size; ++i) {        \
+        const size_t list_size = list_name##_test_suite_list_size;             \
+        assert(num_suites + list_size <= MAX_NUM_SUITES);                      \
+        for (size_t i = 0; i < list_size; ++i) {                               \
             test_suites[num_suites] = list_name##_test_suite_list[i];          \
             ++num_suites;                                                      \
         }                                                                      \
