@@ -12,14 +12,11 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-file(GLOB Sources src/*.c)
-file(GLOB PreprocSources src/preproc/*.c)
-file(GLOB ASTSources src/ast/*.c)
-file(GLOB ParserSources src/parser/*.c)
+file(GLOB Sources src/*.c src/preproc/*.c src/ast/*.c src/parser/*.c)
 
 set(Lib mycclib)
 
-add_library(${Lib} OBJECT ${Sources} ${PreprocSources} ${ASTSources} ${ParserSources})
+add_library(${Lib} OBJECT ${Sources})
 target_include_directories(${Lib} PUBLIC ./include)
 
 add_executable(${This} main.c)
@@ -27,9 +24,7 @@ target_link_libraries(${This} ${Lib})
 
 set(Test mycctest)
 
-file(GLOB TestSources test/*.c)
-file(GLOB PreprocTestSources test/preproc/*.c)
-file(GLOB ParserTestSources test/parser/*.c)
+file(GLOB TestSources test/*.c test/preproc/*.c test/parser/*.c)
 
-add_executable(${Test} ${TestSources} ${PreprocTestSources} ${ParserTestSources})
+add_executable(${Test} ${TestSources})
 target_link_libraries(${Test} ${Lib})
