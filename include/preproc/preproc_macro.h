@@ -21,6 +21,7 @@ struct preproc_macro {
 
     bool is_func_macro;
     size_t num_args;
+    bool is_variadic;
 
     size_t expansion_len;
     struct token_or_num* expansion;
