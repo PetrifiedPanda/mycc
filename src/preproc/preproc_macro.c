@@ -160,13 +160,10 @@ static bool expand_func_macro(struct preproc_state* state,
     assert(macro->is_func_macro);
     assert(state->tokens[macro_idx + 1].type == LBRACKET);
 
-    (void)state;
-    (void)macro;
-    (void)macro_idx;
-    (void)macro_end;
-    // TODO: implement
     struct macro_args args = collect_macro_args(state->tokens + macro_idx + 1, macro_end, macro->num_args);
     const size_t exp_len = get_expansion_len(macro, &args);
+    (void)exp_len;
+    // TODO: Implement
     return false;
 }
 
@@ -193,8 +190,8 @@ static void expand_non_func_macro(struct preproc_state* state,
     free_token(&state->tokens[macro_idx]);
 
     for (size_t i = 0; i < exp_len; ++i) {
-        const struct token_or_num* curr = &macro->expansion[i];
-        assert(!curr->is_arg_num);
+        const struct token_or_arg* curr = &macro->expansion[i];
+        assert(!curr->is_arg);
 
         state->tokens[macro_idx + i] = copy_token(&curr->token);
     }

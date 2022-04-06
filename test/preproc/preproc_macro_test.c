@@ -17,12 +17,12 @@ static void check_token(struct token* got, struct token* ex) {
 
 TEST(non_func_like_macro) {
     char* macro_file = (char*)"macro_file.c";
-    struct token_or_num expansion[] = {
-        {.is_arg_num = false, .token = {I_CONSTANT, "1", macro_file, {1, 15}}},
-        {.is_arg_num = false, .token = {ADD, NULL, macro_file, {1, 17}}},
-        {.is_arg_num = false, .token = {I_CONSTANT, "2", macro_file, {1, 19}}},
+    struct token_or_arg expansion[] = {
+        {.is_arg = false, .token = {I_CONSTANT, "1", macro_file, {1, 15}}},
+        {.is_arg = false, .token = {ADD, NULL, macro_file, {1, 17}}},
+        {.is_arg = false, .token = {I_CONSTANT, "2", macro_file, {1, 19}}},
     };
-    enum { EXP_LEN = sizeof(expansion) / sizeof(struct token_or_num) };
+    enum { EXP_LEN = sizeof(expansion) / sizeof(struct token_or_arg) };
 
     struct preproc_macro macro = {
         .spelling = "MACRO",
