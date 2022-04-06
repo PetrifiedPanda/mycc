@@ -60,7 +60,7 @@ TEST(non_func_like_macro) {
     memcpy(state.tokens, tokens, sizeof(tokens));
 
     const size_t prev_len = state.len;
-    ASSERT(expand_preproc_macro(&state, &macro, 3));
+    ASSERT(expand_preproc_macro(&state, &macro, 3, NULL));
     ASSERT_SIZE_T(state.len, prev_len + EXP_LEN - 1);
     ASSERT_SIZE_T(state.len, state.cap);
 

@@ -27,7 +27,10 @@ struct preproc_macro {
     struct token_or_num* expansion;
 };
 
-bool expand_preproc_macro(struct preproc_state* state, struct preproc_macro* macro, size_t macro_idx);
+bool expand_preproc_macro(struct preproc_state* state,
+                          struct preproc_macro* macro,
+                          size_t macro_idx,
+                          struct token* macro_end);
 
 #endif
 
