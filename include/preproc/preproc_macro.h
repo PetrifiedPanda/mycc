@@ -8,10 +8,13 @@
 
 #include "preproc/preproc_state.h"
 
-struct token_or_num {
-    bool is_arg_num;
+struct token_or_arg {
+    bool is_arg;
     union {
-        size_t arg_num;
+        struct {
+            bool is_va_args;
+            size_t arg_num;
+        };
         struct token token;
     };
 };
@@ -24,7 +27,7 @@ struct preproc_macro {
     bool is_variadic;
 
     size_t expansion_len;
-    struct token_or_num* expansion;
+    struct token_or_arg* expansion;
 };
 
 bool expand_preproc_macro(struct preproc_state* state,
