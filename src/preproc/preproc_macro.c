@@ -80,6 +80,11 @@ static struct token_arr collect_macro_arg(const struct token* it,
     return res;
 }
 
+struct macro_args {
+    struct token_arr* arrs;
+    size_t len;
+};
+
 // TODO: maybe it is worth it to move the tokens for the parameters
 /**
  * @brief Collects arguments for the given macro, assuming the number of
@@ -93,29 +98,59 @@ static struct token_arr collect_macro_arg(const struct token* it,
  * @return Pointer to #expected_args token_arrs representing the arguments of
  *         this macro call
  */
-struct token_arr* collect_macro_args(const struct token* args_start,
+struct macro_args collect_macro_args(const struct token* args_start,
                                      const struct token* limit_ptr,
                                      size_t expected_args) {
     assert(args_start->type == LBRACKET);
-
-    struct token_arr* args = xmalloc(sizeof(struct token_arr) * expected_args);
+    
+    size_t cap = expected_args;
+    struct macro_args res = {
+        .len = 0,
+        .arrs = xmalloc(sizeof(struct token_arr) * cap),
+    };
 
     const struct token* it = args_start + 1;
-    size_t arg_num = 0;
     while (it != limit_ptr) {
-        assert(arg_num < expected_args);
+        if (res.len == cap) {
+            grow_alloc((void**)&res.arrs, &cap, sizeof(struct token_arr));
+        }
 
-        args[arg_num] = collect_macro_arg(it, limit_ptr);
-        it += args[arg_num].len;
+        res.arrs[res.len] = collect_macro_arg(it, limit_ptr);
+        it += res.arrs[res.len].len;
 
         if (it->type == COMMA) {
             ++it;
         }
+        ++res.len;
     }
 
     assert(it->type == RBRACKET);
 
-    return args;
+    return res;
+}
+
+static size_t get_expansion_len(struct preproc_macro* macro,
+                                struct macro_args* args) { 
+    size_t va_args_len = 0;
+    for (size_t i = macro->num_args; i < args->len; ++i) {
+        va_args_len += args->arrs[i].len;
+    }
+
+    size_t len = 0;
+    for (size_t i = 0; i < macro->expansion_len; ++i) { 
+        struct token_or_arg* item = &macro->expansion[i];
+        if (item->is_arg) {
+            if (item->is_va_args) {
+                len += va_args_len;
+            } else {
+                len += args->arrs[item->arg_num].len;
+            }
+        } else {
+            len += 1;
+        }
+    }
+    
+    return len;
 }
 
 static bool expand_func_macro(struct preproc_state* state,
@@ -130,6 +165,8 @@ static bool expand_func_macro(struct preproc_state* state,
     (void)macro_idx;
     (void)macro_end;
     // TODO: implement
+    struct macro_args args = collect_macro_args(state->tokens + macro_idx + 1, macro_end, macro->num_args);
+    const size_t exp_len = get_expansion_len(macro, &args);
     return false;
 }
 
