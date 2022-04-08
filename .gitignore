@@ -3,6 +3,7 @@ build/
 cmake-build-*/
 .idea/
 .ccls-cache/
+.cache/
 compile_commands.json
 grammar.txt
 lex_spec.txt
