@@ -12,16 +12,16 @@ int main(int argc, char** argv) {
         fprintf(stderr, "%s: no input files\n", argv[0]);
         return EXIT_FAILURE;
     }
-    
+
     for (int i = 1; i < argc; ++i) {
         const char* filename = argv[i];
 
         struct token* tokens = preproc(filename);
         check_error();
-    
+
         struct translation_unit tl = parse_tokens(tokens);
         check_error();
-    
+
         printf("Finished parsing %s successfully\n", filename);
 
         free_translation_unit(&tl);
