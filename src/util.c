@@ -60,27 +60,3 @@ char* alloc_string_copy(const char* str) {
     return res;
 }
 
-char* read_file(const char* filename) {
-    FILE* f = fopen(filename, "rb");
-    assert(f);
-
-    int result;
-
-    result = fseek(f, 0, SEEK_END);
-    assert(result == 0);
-
-    size_t fsize = ftell(f);
-    result = fseek(f, 0, SEEK_SET);
-    assert(result == 0);
-
-    char* res = malloc(sizeof(char) * (fsize + 1));
-    assert(res);
-
-    size_t chars_read = fread(res, 1, fsize, f);
-    assert(chars_read == fsize);
-    res[fsize] = '\0';
-
-    fclose(f);
-    return res;
-}
-
