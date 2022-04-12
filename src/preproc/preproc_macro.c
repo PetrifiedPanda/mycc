@@ -129,12 +129,24 @@ struct macro_args collect_macro_args(const struct token* args_start,
     return res;
 }
 
-static size_t get_expansion_len(struct preproc_macro* macro,
-                                struct macro_args* args) { 
+static void free_macro_args(struct macro_args* args) {
+    for (size_t i = 0; i < args->len; ++i) {
+        free_token_arr(&args->arrs[i]);
+    }
+}
+
+static size_t get_va_args_len(struct preproc_macro* macro,
+                              struct macro_args* args) {
     size_t va_args_len = 0;
     for (size_t i = macro->num_args; i < args->len; ++i) {
         va_args_len += args->arrs[i].len;
     }
+    return va_args_len;
+}
+
+static size_t get_expansion_len(struct preproc_macro* macro,
+                                struct macro_args* args) { 
+    const size_t va_args_len = get_va_args_len(macro, args); 
 
     size_t len = 0;
     for (size_t i = 0; i < macro->expansion_len; ++i) { 
@@ -161,12 +173,26 @@ static bool expand_func_macro(struct preproc_state* state,
     assert(state->tokens[macro_idx + 1].type == LBRACKET);
 
     struct macro_args args = collect_macro_args(state->tokens + macro_idx + 1, macro_end, macro->num_args);
+
     const size_t exp_len = get_expansion_len(macro, &args);
-    (void)exp_len;
-    // TODO: Implement
+    const size_t macro_call_len = macro_end - &state->tokens[macro_idx];
+    const size_t alloc_increase = exp_len > macro_call_len 
+        ? exp_len - macro_call_len 
+        : 0;
+    
+    if (alloc_increase != 0) {
+        state->len += alloc_increase;
+        state->cap += alloc_increase;
+        state->tokens = xrealloc(state->tokens, sizeof(struct token) * state->cap);
+    }
+    
+    // TODO:
+
+    free_macro_args(&args);
     return false;
 }
 
+// TODO: handle empty non_func_macros (and test them)
 static void expand_non_func_macro(struct preproc_state* state,
                                   struct preproc_macro* macro,
                                   size_t macro_idx) {
@@ -175,11 +201,11 @@ static void expand_non_func_macro(struct preproc_state* state,
 
     const size_t exp_len = macro->expansion_len;
     const size_t old_len = state->len;
-    state->len += exp_len - 1;
-    if (state->cap < state->len) {
-        state->tokens = xrealloc(state->tokens,
-                                 state->len * sizeof(struct token));
-        state->cap = state->len;
+    
+    if (exp_len != 0) {
+        state->cap += exp_len - 1;
+        state->len += exp_len - 1;
+        state->tokens = xrealloc(state->tokens, sizeof(struct token) * state->cap);
     }
 
     // shift tokens behind macro forward
@@ -205,7 +231,7 @@ static struct token copy_token(const struct token* t) {
         .file = alloc_string_copy(t->file),
         .source_loc =
             {
-                // TODO: what do we do here?
+                // TODO: identify as token from macro expansion
                 .line = t->source_loc.line,
                 .index = t->source_loc.index,
             },
