@@ -31,7 +31,7 @@ struct preproc_macro {
 };
 
 bool expand_preproc_macro(struct preproc_state* state,
-                          struct preproc_macro* macro,
+                          const struct preproc_macro* macro,
                           size_t macro_idx,
                           struct token* macro_end);
 

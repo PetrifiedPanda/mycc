@@ -6,16 +6,16 @@
 #include "util.h"
 
 static bool expand_func_macro(struct preproc_state* state,
-                              struct preproc_macro* macro,
+                              const struct preproc_macro* macro,
                               size_t macro_idx,
                               struct token* macro_end);
 
 static void expand_non_func_macro(struct preproc_state* state,
-                                  struct preproc_macro* macro,
+                                  const struct preproc_macro* macro,
                                   size_t macro_idx);
 
 bool expand_preproc_macro(struct preproc_state* state,
-                          struct preproc_macro* macro,
+                          const struct preproc_macro* macro,
                           size_t macro_idx,
                           struct token* macro_end) {
     assert(state);
@@ -135,7 +135,7 @@ static void free_macro_args(struct macro_args* args) {
     }
 }
 
-static size_t get_va_args_len(struct preproc_macro* macro,
+static size_t get_va_args_len(const struct preproc_macro* macro,
                               struct macro_args* args) {
     size_t va_args_len = 0;
     for (size_t i = macro->num_args; i < args->len; ++i) {
@@ -144,7 +144,7 @@ static size_t get_va_args_len(struct preproc_macro* macro,
     return va_args_len;
 }
 
-static size_t get_expansion_len(struct preproc_macro* macro,
+static size_t get_expansion_len(const struct preproc_macro* macro,
                                 struct macro_args* args) { 
     const size_t va_args_len = get_va_args_len(macro, args); 
 
@@ -166,7 +166,7 @@ static size_t get_expansion_len(struct preproc_macro* macro,
 }
 
 static bool expand_func_macro(struct preproc_state* state,
-                              struct preproc_macro* macro,
+                              const struct preproc_macro* macro,
                               size_t macro_idx,
                               struct token* macro_end) {
     assert(macro->is_func_macro);
@@ -192,28 +192,33 @@ static bool expand_func_macro(struct preproc_state* state,
     return false;
 }
 
-// TODO: handle empty non_func_macros (and test them)
 static void expand_non_func_macro(struct preproc_state* state,
-                                  struct preproc_macro* macro,
+                                  const struct preproc_macro* macro,
                                   size_t macro_idx) {
     assert(macro->is_func_macro == false);
     assert(macro->num_args == 0);
 
     const size_t exp_len = macro->expansion_len;
     const size_t old_len = state->len;
+   
+    free_token(&state->tokens[macro_idx]); 
     
-    if (exp_len != 0) {
+    if (exp_len > 0) {
         state->cap += exp_len - 1;
         state->len += exp_len - 1;
         state->tokens = xrealloc(state->tokens, sizeof(struct token) * state->cap);
-    }
 
-    // shift tokens behind macro forward
-    for (size_t i = old_len - 1; i > macro_idx; --i) {
-        state->tokens[i + exp_len - 1] = state->tokens[i];
-    }
+        // shift tokens behind macro forward
+        for (size_t i = old_len - 1; i > macro_idx; --i) {
+            state->tokens[i + exp_len - 1] = state->tokens[i];
+        }
+    } else {
+        state->len -= 1;
 
-    free_token(&state->tokens[macro_idx]);
+        for (size_t i = macro_idx; i < old_len; ++i) {
+            state->tokens[i] = state->tokens[i + 1];
+        }
+    }
 
     for (size_t i = 0; i < exp_len; ++i) {
         const struct token_or_arg* curr = &macro->expansion[i];
