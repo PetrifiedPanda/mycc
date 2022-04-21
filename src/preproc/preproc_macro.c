@@ -10,9 +10,9 @@ static bool expand_func_macro(struct preproc_state* state,
                               size_t macro_idx,
                               struct token* macro_end);
 
-static void expand_non_func_macro(struct preproc_state* state,
-                                  const struct preproc_macro* macro,
-                                  size_t macro_idx);
+static void expand_obj_macro(struct preproc_state* state,
+                             const struct preproc_macro* macro,
+                             size_t macro_idx);
 
 bool expand_preproc_macro(struct preproc_state* state,
                           const struct preproc_macro* macro,
@@ -26,7 +26,7 @@ bool expand_preproc_macro(struct preproc_state* state,
         assert(macro_end->type == RBRACKET);
         return expand_func_macro(state, macro, macro_idx, macro_end);
     } else {
-        expand_non_func_macro(state, macro, macro_idx);
+        expand_obj_macro(state, macro, macro_idx);
         return true;
     }
 }
@@ -192,7 +192,7 @@ static bool expand_func_macro(struct preproc_state* state,
     return false;
 }
 
-static void expand_non_func_macro(struct preproc_state* state,
+static void expand_obj_macro(struct preproc_state* state,
                                   const struct preproc_macro* macro,
                                   size_t macro_idx) {
     assert(macro->is_func_macro == false);

@@ -17,7 +17,7 @@ static void check_token(const struct token* got,
     ASSERT_SIZE_T(got->source_loc.index, ex->source_loc.index);
 }
 
-TEST(non_func_like) {
+TEST(object_like) {
     char* macro_file = (char*)"macro_file.c";
     // #define MACRO 1 + 2
     struct token_or_arg expansion[] = {
@@ -93,7 +93,7 @@ TEST(non_func_like) {
     free(state.tokens);
 }
 
-TEST(non_func_like_empty) {
+TEST(object_like_empty) {
     const char* macro_name = "EMPTY_MACRO";
     const struct preproc_macro macro = {
         .spelling = (char*)macro_name,
@@ -154,7 +154,7 @@ TEST(non_func_like_empty) {
 }
 
 TEST_SUITE_BEGIN(preproc_macro, 2) {
-    REGISTER_TEST(non_func_like);
-    REGISTER_TEST(non_func_like_empty);
+    REGISTER_TEST(object_like);
+    REGISTER_TEST(object_like_empty);
 }
 TEST_SUITE_END()
