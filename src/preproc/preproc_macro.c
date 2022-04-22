@@ -136,7 +136,7 @@ static void free_macro_args(struct macro_args* args) {
 }
 
 static size_t get_va_args_len(const struct preproc_macro* macro,
-                              struct macro_args* args) {
+                              const struct macro_args* args) {
     size_t va_args_len = 0;
     for (size_t i = macro->num_args; i < args->len; ++i) {
         va_args_len += args->arrs[i].len;
@@ -145,7 +145,7 @@ static size_t get_va_args_len(const struct preproc_macro* macro,
 }
 
 static size_t get_expansion_len(const struct preproc_macro* macro,
-                                struct macro_args* args) { 
+                                const struct macro_args* args) { 
     const size_t va_args_len = get_va_args_len(macro, args); 
 
     size_t len = 0;
