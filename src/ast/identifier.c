@@ -5,14 +5,14 @@
 
 #include "util.h"
 
-void create_identifier_inplace(struct identifier* res, char* spelling) {
+void init_identifier(struct identifier* res, char* spelling) {
     assert(res);
     res->spelling = spelling;
 }
 
 struct identifier* create_identifier(char* spelling) {
     struct identifier* res = xmalloc(sizeof(struct identifier));
-    create_identifier_inplace(res, spelling);
+    init_identifier(res, spelling);
     return res;
 }
 

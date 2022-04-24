@@ -17,7 +17,7 @@ struct identifier_list parse_identifier_list(struct parser_state* s) {
     };
     char* spell = take_spelling(s->it);
     accept_it(s);
-    create_identifier_inplace(res.identifiers, spell);
+    init_identifier(res.identifiers, spell);
 
     size_t alloc_len = res.len;
     while (s->it->type == COMMA) {
@@ -35,7 +35,7 @@ struct identifier_list parse_identifier_list(struct parser_state* s) {
         }
         spell = take_spelling(s->it);
         accept_it(s);
-        create_identifier_inplace(&res.identifiers[res.len], spell);
+        init_identifier(&res.identifiers[res.len], spell);
 
         ++res.len;
     }
