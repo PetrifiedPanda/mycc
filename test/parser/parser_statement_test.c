@@ -5,11 +5,12 @@
 #include "parser/parser.h"
 
 #include "../test_asserts.h"
+#include "../test_helpers.h"
 
 #include "parser_test_util.h"
 
 static void check_jump_statement(const char* spell, enum token_type t) {
-    struct token* tokens = preproc_string(spell, "skfjlskf");
+    struct token* tokens = tokenize_string(spell, "skfjlskf");
 
     struct parser_state s = create_parser_state(tokens);
     struct jump_statement* res = parse_jump_statement(&s);
@@ -24,7 +25,7 @@ static void check_jump_statement(const char* spell, enum token_type t) {
 }
 
 static void check_expected_semicolon_jump_statement(const char* spell) {
-    struct token* tokens = preproc_string(spell, "file.c");
+    struct token* tokens = tokenize_string(spell, "file.c");
 
     struct parser_state s = create_parser_state(tokens);
 
@@ -42,7 +43,7 @@ static void check_expected_semicolon_jump_statement(const char* spell) {
 
 TEST(jump_statement) {
     {
-        struct token* tokens = preproc_string("goto my_cool_label;", "file");
+        struct token* tokens = tokenize_string("goto my_cool_label;", "file");
 
         struct parser_state s = create_parser_state(tokens);
         struct jump_statement* res = parse_jump_statement(&s);
@@ -68,7 +69,7 @@ TEST(jump_statement) {
     check_expected_semicolon_jump_statement("return *id += (int)100");
 
     {
-        struct token* tokens = preproc_string("not_what_was_expected;",
+        struct token* tokens = tokenize_string("not_what_was_expected;",
                                               "a_file.c");
 
         struct parser_state s = create_parser_state(tokens);
@@ -87,7 +88,7 @@ TEST(jump_statement) {
     }
 
     {
-        struct token* tokens = preproc_string("return 600;", "file.c");
+        struct token* tokens = tokenize_string("return 600;", "file.c");
 
         struct parser_state s = create_parser_state(tokens);
         struct jump_statement* res = parse_jump_statement(&s);
@@ -119,7 +120,7 @@ TEST(statement) {
                        "        ; "
                        "    } else b = 0;"
                        "}";
-    struct token* tokens = preproc_string(code, "file.c");
+    struct token* tokens = tokenize_string(code, "file.c");
 
     struct parser_state s = create_parser_state(tokens);
     struct statement* res = parse_statement(&s);

@@ -14,7 +14,7 @@
 static bool preproc_file(struct preproc_state* state, const char* path);
 static enum token_type keyword_type(const char* spelling);
 
-void append_terminator_token(struct token** tokens, size_t len);
+static void append_terminator_token(struct token** tokens, size_t len);
 void convert_preproc_tokens(struct token* tokens);
 
 struct token* preproc(const char* path) {
@@ -34,36 +34,13 @@ struct token* preproc(const char* path) {
 
     append_terminator_token(&state.tokens, state.len);
 
-    convert_preproc_tokens(state.tokens);
-
     return state.tokens;
-}
-
-void append_terminator_token(struct token** tokens, size_t len) {
-    *tokens = xrealloc(*tokens, sizeof(struct token) * (len + 1));
-    (*tokens)[len] = (struct token){
-        .type = INVALID,
-        .spelling = NULL,
-        .file = NULL,
-        .source_loc = {(size_t)-1, (size_t)-1},
-    };
-}
-
-void convert_preproc_tokens(struct token* tokens) {
-    for (struct token* t = tokens; t->type != INVALID; ++t) {
-        if (t->type == IDENTIFIER) {
-            t->type = keyword_type(t->spelling);
-            if (t->type != IDENTIFIER) {
-                free(t->spelling);
-                t->spelling = NULL;
-            }
-        }
-    }
 }
 
 static bool preproc_statement(struct preproc_state* res,
                               const char* line,
                               size_t line_num);
+
 
 struct token* preproc_string(const char* str, const char* path) {
     struct preproc_state res = {
@@ -106,7 +83,6 @@ struct token* preproc_string(const char* str, const char* path) {
     }
 
     append_terminator_token(&res.tokens, res.len);
-    convert_preproc_tokens(res.tokens);
 
     return res.tokens;
 
@@ -123,6 +99,27 @@ void free_tokens(struct token* tokens) {
         free_token(it);
     }
     free(tokens);
+}
+void convert_preproc_tokens(struct token* tokens) {
+    for (struct token* t = tokens; t->type != INVALID; ++t) {
+        if (t->type == IDENTIFIER) {
+            t->type = keyword_type(t->spelling);
+            if (t->type != IDENTIFIER) {
+                free(t->spelling);
+                t->spelling = NULL;
+            }
+        }
+    }
+}
+
+static void append_terminator_token(struct token** tokens, size_t len) {
+    *tokens = xrealloc(*tokens, sizeof(struct token) * (len + 1));
+    (*tokens)[len] = (struct token){
+        .type = INVALID,
+        .spelling = NULL,
+        .file = NULL,
+        .source_loc = {(size_t)-1, (size_t)-1},
+    };
 }
 
 static bool preproc_file(struct preproc_state* res, const char* path) {

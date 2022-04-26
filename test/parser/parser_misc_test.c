@@ -3,6 +3,7 @@
 #include "parser/parser.h"
 
 #include "../test_asserts.h"
+#include "../test_helpers.h"
 
 #include "parser_test_util.h"
 
@@ -30,7 +31,7 @@ TEST(enum_list) {
     };
 
     {
-        struct token* tokens = preproc_string(
+        struct token* tokens = tokenize_string(
             "ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, baz, BAD",
             "saffds");
 
@@ -59,7 +60,7 @@ TEST(enum_list) {
     }
 
     {
-        struct token* tokens = preproc_string(
+        struct token* tokens = tokenize_string(
             "ENUM_VAL1 = 0, enum_VAl2 = 1000.0, enum_val_3 = n, enum_val_4 = "
             "test, foo, bar, baz, BAD",
             "saffds");
@@ -106,7 +107,7 @@ TEST(enum_list) {
 TEST(enum_spec) {
     const char* enum_constants[] = {"TEST1", "TEST2", "TEST3", "TEST4"};
     {
-        struct token* tokens = preproc_string(
+        struct token* tokens = tokenize_string(
             "enum my_enum { TEST1, TEST2, TEST3, TEST4 }",
             "sfjlfjk");
 
@@ -128,7 +129,7 @@ TEST(enum_spec) {
     }
 
     {
-        struct token* tokens = preproc_string(
+        struct token* tokens = tokenize_string(
             "enum {TEST1, TEST2, TEST3, TEST4, }",
             "jsfjsf");
 
@@ -152,7 +153,7 @@ TEST(enum_spec) {
 
 TEST(designation) {
     {
-        struct token* tokens = preproc_string(
+        struct token* tokens = tokenize_string(
             ".test[19].what_is_this.another_one = ",
             "jsalkf");
 
@@ -187,7 +188,7 @@ TEST(designation) {
     }
 
     {
-        struct token* tokens = preproc_string("[0.5].blah[420].oof[2][10] =",
+        struct token* tokens = tokenize_string("[0.5].blah[420].oof[2][10] =",
                                               "stetsd");
 
         struct parser_state s = create_parser_state(tokens);
@@ -232,7 +233,7 @@ TEST(designation) {
 }
 
 TEST(static_assert_declaration) {
-    struct token* tokens = preproc_string(
+    struct token* tokens = tokenize_string(
         "_Static_assert(12345, \"This is a string literal\");",
         "slkfjsak");
 

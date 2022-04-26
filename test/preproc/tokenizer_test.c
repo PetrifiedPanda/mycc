@@ -6,6 +6,7 @@
 #include "preproc/preproc.h"
 
 #include "../test_asserts.h"
+#include "../test_helpers.h"
 
 static void check_size(const struct token* tokens, size_t expected) {
     size_t size = 0;
@@ -70,7 +71,7 @@ TEST(simple) {
                "int arr[1 ? 100 : 1000];\n";
 
     const char* filename = "not_a_file.c";
-    struct token* tokens = preproc_string(code, filename);
+    struct token* tokens = tokenize_string(code, filename);
     ASSERT_NO_ERROR();
     ASSERT_NOT_NULL(tokens);
 
@@ -148,7 +149,7 @@ TEST(simple) {
 TEST(file) {
     const char* filename = "../test/files/no_preproc.c";
 
-    struct token* tokens = preproc(filename);
+    struct token* tokens = tokenize(filename);
     ASSERT_NO_ERROR();
     ASSERT_NOT_NULL(tokens);
 

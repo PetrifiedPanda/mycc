@@ -18,6 +18,7 @@ int main(int argc, char** argv) {
 
         struct token* tokens = preproc(filename);
         check_error();
+        convert_preproc_tokens(tokens);
 
         struct translation_unit tl = parse_tokens(tokens);
         check_error();

@@ -5,6 +5,7 @@
 #include "parser/parser.h"
 
 #include "../test_asserts.h"
+#include "../test_helpers.h"
 
 #include "parser_test_util.h"
 
@@ -184,7 +185,7 @@ static void check_external_decl_func_def_typedef(
 
 TEST(no_preproc) {
     const char* file = "../test/files/no_preproc.c";
-    struct token* tokens = preproc(file);
+    struct token* tokens = tokenize(file);
     struct translation_unit tl = parse_tokens(tokens);
     ASSERT_NO_ERROR();
     ASSERT_SIZE_T(tl.len, (size_t)10);
@@ -229,7 +230,7 @@ TEST(no_preproc) {
 
 TEST(parser_testfile) {
     const char* file = "../test/files/parser_testfile.c";
-    struct token* tokens = preproc(file);
+    struct token* tokens = tokenize(file);
     struct translation_unit tl = parse_tokens(tokens);
     ASSERT_NO_ERROR();
     ASSERT_SIZE_T(tl.len, (size_t)12);
@@ -288,7 +289,7 @@ TEST(parser_testfile) {
 
 TEST(large_testfile) {
     const char* file = "../test/files/large_testfile.c";
-    struct token* tokens = preproc(file);
+    struct token* tokens = tokenize(file);
     struct translation_unit tl = parse_tokens(tokens);
     ASSERT_NO_ERROR();
     ASSERT_SIZE_T(tl.len, (size_t)88);
