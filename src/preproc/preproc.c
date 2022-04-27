@@ -41,7 +41,6 @@ static bool preproc_statement(struct preproc_state* res,
                               const char* line,
                               size_t line_num);
 
-
 struct token* preproc_string(const char* str, const char* path) {
     struct preproc_state res = {
         .len = 0,
@@ -101,6 +100,7 @@ void free_tokens(struct token* tokens) {
     free(tokens);
 }
 void convert_preproc_tokens(struct token* tokens) {
+    assert(tokens);
     for (struct token* t = tokens; t->type != INVALID; ++t) {
         if (t->type == IDENTIFIER) {
             t->type = keyword_type(t->spelling);
@@ -122,16 +122,17 @@ static void append_terminator_token(struct token** tokens, size_t len) {
     };
 }
 
-enum { PREPROC_LINE_BUF_LEN = 1000 };
+enum {
+    PREPROC_LINE_BUF_LEN = 200
+};
 
 // TODO: Handle escaped newlines
 static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) {
-    
     const char LAST_PLACEHOLDER = '$';
 
     static_buf[PREPROC_LINE_BUF_LEN - 1] = LAST_PLACEHOLDER;
     static_buf[PREPROC_LINE_BUF_LEN - 2] = LAST_PLACEHOLDER;
-    
+
     char* ret = fgets(static_buf, PREPROC_LINE_BUF_LEN, file);
     if (ret == NULL) {
         return NULL;
@@ -141,24 +142,25 @@ static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) {
 
     if (static_buf[PREPROC_LINE_BUF_LEN - 1] == '\0'
         && static_buf[PREPROC_LINE_BUF_LEN - 2] != '\n') {
-        int len = PREPROC_LINE_BUF_LEN * 2;
+        size_t len = PREPROC_LINE_BUF_LEN * 2;
         char* dyn_buf = xmalloc(sizeof(char) * len);
         memcpy(dyn_buf, static_buf, PREPROC_LINE_BUF_LEN * sizeof(char));
 
         dyn_buf[len - 1] = LAST_PLACEHOLDER;
         dyn_buf[len - 2] = LAST_PLACEHOLDER;
 
-        ret = fgets(dyn_buf + PREPROC_LINE_BUF_LEN - 1, len - PREPROC_LINE_BUF_LEN, file);
-        while (ret != NULL && dyn_buf[len - 1] == '\0' 
-               && dyn_buf[len - 2] != '\n') {
-            int prev_len = len;
-            len *= 2;
-            dyn_buf = xrealloc(dyn_buf, len * sizeof(char));
+        ret = fgets(dyn_buf + PREPROC_LINE_BUF_LEN - 1,
+                    len - PREPROC_LINE_BUF_LEN + 1,
+                    file);
+        while (ret != NULL && dyn_buf[len - 1] != LAST_PLACEHOLDER
+               && (dyn_buf[len - 1] != '\0' || dyn_buf[len - 2] != '\n')) {
+            const size_t prev_len = len;
+            grow_alloc((void*)&dyn_buf, &len, sizeof(char));
 
             dyn_buf[len - 1] = LAST_PLACEHOLDER;
             dyn_buf[len - 2] = LAST_PLACEHOLDER;
 
-            ret = fgets(dyn_buf + len - 1, len - prev_len, file);
+            ret = fgets(dyn_buf + prev_len - 1, len - prev_len + 1, file);
         }
 
         res = dyn_buf;
@@ -181,7 +183,6 @@ static bool preproc_file(struct preproc_state* res, const char* path) {
     // TODO: handle escaped newlines
     // Should be read into the same buffer as the previous line
     while (true) {
-        
         char* line = read_line(file, line_buf);
         if (line == NULL) {
             break;
@@ -206,7 +207,6 @@ static bool preproc_file(struct preproc_state* res, const char* path) {
         if (line != line_buf) {
             free(line);
         }
-
     }
 
     if (fclose(file) != 0) {
