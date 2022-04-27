@@ -126,46 +126,46 @@ enum {
     PREPROC_LINE_BUF_LEN = 200
 };
 
-// TODO: Handle escaped newlines
-static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) {
-    const char LAST_PLACEHOLDER = '$';
-
-    static_buf[PREPROC_LINE_BUF_LEN - 1] = LAST_PLACEHOLDER;
-    static_buf[PREPROC_LINE_BUF_LEN - 2] = LAST_PLACEHOLDER;
-
-    char* ret = fgets(static_buf, PREPROC_LINE_BUF_LEN, file);
-    if (ret == NULL) {
+// TODO: handle escaped newlines
+static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) { 
+    size_t i = 0;
+    
+    do {
+        int c = getc(file);
+        if (c == EOF) {
+            break;
+        }
+        static_buf[i] = c;
+        ++i;
+    } while (i < PREPROC_LINE_BUF_LEN - 1 && static_buf[i - 1] != '\n');
+    
+    if (i == 0) { // only EOF read
         return NULL;
     }
 
     char* res = static_buf;
-
-    if (static_buf[PREPROC_LINE_BUF_LEN - 1] == '\0'
-        && static_buf[PREPROC_LINE_BUF_LEN - 2] != '\n') {
+    
+    if (static_buf[i - 1] != '\n' && static_buf[i - 1] != EOF) {
         size_t len = PREPROC_LINE_BUF_LEN * 2;
         char* dyn_buf = xmalloc(sizeof(char) * len);
         memcpy(dyn_buf, static_buf, PREPROC_LINE_BUF_LEN * sizeof(char));
-
-        dyn_buf[len - 1] = LAST_PLACEHOLDER;
-        dyn_buf[len - 2] = LAST_PLACEHOLDER;
-
-        ret = fgets(dyn_buf + PREPROC_LINE_BUF_LEN - 1,
-                    len - PREPROC_LINE_BUF_LEN + 1,
-                    file);
-        while (ret != NULL && dyn_buf[len - 1] != LAST_PLACEHOLDER
-               && (dyn_buf[len - 1] != '\0' || dyn_buf[len - 2] != '\n')) {
-            const size_t prev_len = len;
-            grow_alloc((void*)&dyn_buf, &len, sizeof(char));
-
-            dyn_buf[len - 1] = LAST_PLACEHOLDER;
-            dyn_buf[len - 2] = LAST_PLACEHOLDER;
-
-            ret = fgets(dyn_buf + prev_len - 1, len - prev_len + 1, file);
-        }
+        
+        do {
+            if (i == len - 1) {
+                grow_alloc((void**)&dyn_buf, &len, sizeof(char));
+            }
+            int c = getc(file);
+            if (c == EOF) {
+                break;
+            }
+            dyn_buf[i] = c;
+            ++i;
+        } while (dyn_buf[i - 1] != '\n');
 
         res = dyn_buf;
     }
-
+     
+    res[i] = '\0';
     return res;
 }
 
