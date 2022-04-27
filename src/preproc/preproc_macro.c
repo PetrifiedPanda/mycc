@@ -102,7 +102,7 @@ struct macro_args collect_macro_args(const struct token* args_start,
                                      const struct token* limit_ptr,
                                      size_t expected_args) {
     assert(args_start->type == LBRACKET);
-    
+
     size_t cap = expected_args;
     struct macro_args res = {
         .len = 0,
@@ -145,11 +145,11 @@ static size_t get_va_args_len(const struct preproc_macro* macro,
 }
 
 static size_t get_expansion_len(const struct preproc_macro* macro,
-                                const struct macro_args* args) { 
-    const size_t va_args_len = get_va_args_len(macro, args); 
+                                const struct macro_args* args) {
+    const size_t va_args_len = get_va_args_len(macro, args);
 
     size_t len = 0;
-    for (size_t i = 0; i < macro->expansion_len; ++i) { 
+    for (size_t i = 0; i < macro->expansion_len; ++i) {
         struct token_or_arg* item = &macro->expansion[i];
         if (item->is_arg) {
             if (item->is_va_args) {
@@ -161,7 +161,7 @@ static size_t get_expansion_len(const struct preproc_macro* macro,
             len += 1;
         }
     }
-    
+
     return len;
 }
 
@@ -172,20 +172,23 @@ static bool expand_func_macro(struct preproc_state* state,
     assert(macro->is_func_macro);
     assert(state->tokens[macro_idx + 1].type == LBRACKET);
 
-    struct macro_args args = collect_macro_args(state->tokens + macro_idx + 1, macro_end, macro->num_args);
+    struct macro_args args = collect_macro_args(state->tokens + macro_idx + 1,
+                                                macro_end,
+                                                macro->num_args);
 
     const size_t exp_len = get_expansion_len(macro, &args);
     const size_t macro_call_len = macro_end - &state->tokens[macro_idx];
-    const size_t alloc_increase = exp_len > macro_call_len 
-        ? exp_len - macro_call_len 
-        : 0;
-    
+    const size_t alloc_increase = exp_len > macro_call_len
+                                      ? exp_len - macro_call_len
+                                      : 0;
+
     if (alloc_increase != 0) {
         state->len += alloc_increase;
         state->cap += alloc_increase;
-        state->tokens = xrealloc(state->tokens, sizeof(struct token) * state->cap);
+        state->tokens = xrealloc(state->tokens,
+                                 sizeof(struct token) * state->cap);
     }
-    
+
     // TODO:
 
     free_macro_args(&args);
@@ -193,20 +196,21 @@ static bool expand_func_macro(struct preproc_state* state,
 }
 
 static void expand_obj_macro(struct preproc_state* state,
-                                  const struct preproc_macro* macro,
-                                  size_t macro_idx) {
+                             const struct preproc_macro* macro,
+                             size_t macro_idx) {
     assert(macro->is_func_macro == false);
     assert(macro->num_args == 0);
 
     const size_t exp_len = macro->expansion_len;
     const size_t old_len = state->len;
-   
-    free_token(&state->tokens[macro_idx]); 
-    
+
+    free_token(&state->tokens[macro_idx]);
+
     if (exp_len > 0) {
         state->cap += exp_len - 1;
         state->len += exp_len - 1;
-        state->tokens = xrealloc(state->tokens, sizeof(struct token) * state->cap);
+        state->tokens = xrealloc(state->tokens,
+                                 sizeof(struct token) * state->cap);
 
         // shift tokens behind macro forward
         for (size_t i = old_len - 1; i > macro_idx; --i) {
