@@ -122,6 +122,51 @@ static void append_terminator_token(struct token** tokens, size_t len) {
     };
 }
 
+enum { PREPROC_LINE_BUF_LEN = 1000 };
+
+// TODO: Handle escaped newlines
+static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) {
+    
+    const char LAST_PLACEHOLDER = '$';
+
+    static_buf[PREPROC_LINE_BUF_LEN - 1] = LAST_PLACEHOLDER;
+    static_buf[PREPROC_LINE_BUF_LEN - 2] = LAST_PLACEHOLDER;
+    
+    char* ret = fgets(static_buf, PREPROC_LINE_BUF_LEN, file);
+    if (ret == NULL) {
+        return NULL;
+    }
+
+    char* res = static_buf;
+
+    if (static_buf[PREPROC_LINE_BUF_LEN - 1] == '\0'
+        && static_buf[PREPROC_LINE_BUF_LEN - 2] != '\n') {
+        int len = PREPROC_LINE_BUF_LEN * 2;
+        char* dyn_buf = xmalloc(sizeof(char) * len);
+        memcpy(dyn_buf, static_buf, PREPROC_LINE_BUF_LEN * sizeof(char));
+
+        dyn_buf[len - 1] = LAST_PLACEHOLDER;
+        dyn_buf[len - 2] = LAST_PLACEHOLDER;
+
+        ret = fgets(dyn_buf + PREPROC_LINE_BUF_LEN - 1, len - PREPROC_LINE_BUF_LEN, file);
+        while (ret != NULL && dyn_buf[len - 1] == '\0' 
+               && dyn_buf[len - 2] != '\n') {
+            int prev_len = len;
+            len *= 2;
+            dyn_buf = xrealloc(dyn_buf, len * sizeof(char));
+
+            dyn_buf[len - 1] = LAST_PLACEHOLDER;
+            dyn_buf[len - 2] = LAST_PLACEHOLDER;
+
+            ret = fgets(dyn_buf + len - 1, len - prev_len, file);
+        }
+
+        res = dyn_buf;
+    }
+
+    return res;
+}
+
 static bool preproc_file(struct preproc_state* res, const char* path) {
     FILE* file = fopen(path, "r");
     if (!file) {
@@ -129,56 +174,28 @@ static bool preproc_file(struct preproc_state* res, const char* path) {
         return false;
     }
 
-    enum { LINE_BUF_LEN = 1000 };
-    char line_buf[LINE_BUF_LEN];
-
-    const char LAST_PLACEHOLDER = '$';
-    line_buf[LINE_BUF_LEN - 1] = LAST_PLACEHOLDER;
-    line_buf[LINE_BUF_LEN - 2] = LAST_PLACEHOLDER;
+    char line_buf[PREPROC_LINE_BUF_LEN];
 
     bool comment_not_terminated = false;
     size_t line_num = 1;
     // TODO: handle escaped newlines
     // Should be read into the same buffer as the previous line
     while (true) {
-        char* ret = fgets(line_buf, LINE_BUF_LEN, file);
-        if (ret == NULL) {
+        
+        char* line = read_line(file, line_buf);
+        if (line == NULL) {
             break;
         }
 
-        char* line = line_buf;
-
-        if (line_buf[LINE_BUF_LEN - 1] == '\0'
-            && line_buf[LINE_BUF_LEN - 2] != '\n') {
-            int len = LINE_BUF_LEN * 2;
-            char* dyn_buf = xmalloc(sizeof(char) * len);
-            memcpy(dyn_buf, line_buf, LINE_BUF_LEN * sizeof(char));
-
-            dyn_buf[len - 1] = LAST_PLACEHOLDER;
-            dyn_buf[len - 2] = LAST_PLACEHOLDER;
-
-            ret = fgets(dyn_buf + LINE_BUF_LEN - 1, len - LINE_BUF_LEN, file);
-            while (ret != NULL && dyn_buf[len - 1] == '\0'
-                   && dyn_buf[len - 2] != '\n') {
-                int prev_len = len;
-                len *= 2;
-                dyn_buf = xrealloc(dyn_buf, len * sizeof(char));
-
-                dyn_buf[len - 1] = LAST_PLACEHOLDER;
-                dyn_buf[len - 2] = LAST_PLACEHOLDER;
-
-                ret = fgets(dyn_buf + len - 1, len - prev_len, file);
-            }
-
-            line = dyn_buf;
-        }
-        
         if ((line[0] == '#' && !preproc_statement(res, line, line_num))
             || !tokenize_line(res,
                               line,
                               line_num,
                               path,
                               &comment_not_terminated)) {
+            if (line != line_buf) {
+                free(line);
+            }
             goto fail;
         }
 
@@ -190,8 +207,6 @@ static bool preproc_file(struct preproc_state* res, const char* path) {
             free(line);
         }
 
-        line_buf[LINE_BUF_LEN - 1] = LAST_PLACEHOLDER;
-        line_buf[LINE_BUF_LEN - 2] = LAST_PLACEHOLDER;
     }
 
     if (fclose(file) != 0) {
