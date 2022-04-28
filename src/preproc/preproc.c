@@ -129,10 +129,11 @@ enum {
 // TODO: handle escaped newlines
 static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) { 
     size_t i = 0;
-    
+    bool found_eof = false; 
     do {
         int c = getc(file);
         if (c == EOF) {
+            found_eof = true;
             break;
         }
         static_buf[i] = c;
@@ -145,7 +146,7 @@ static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) {
 
     char* res = static_buf;
     
-    if (static_buf[i - 1] != '\n' && static_buf[i - 1] != EOF) {
+    if (static_buf[i - 1] != '\n' && !found_eof) {
         size_t len = PREPROC_LINE_BUF_LEN * 2;
         char* dyn_buf = xmalloc(sizeof(char) * len);
         memcpy(dyn_buf, static_buf, PREPROC_LINE_BUF_LEN * sizeof(char));
