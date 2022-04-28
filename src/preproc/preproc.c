@@ -180,8 +180,6 @@ static bool preproc_file(struct preproc_state* res, const char* path) {
 
     bool comment_not_terminated = false;
     size_t line_num = 1;
-    // TODO: handle escaped newlines
-    // Should be read into the same buffer as the previous line
     while (true) {
         char* line = read_line(file, line_buf);
         if (line == NULL) {
