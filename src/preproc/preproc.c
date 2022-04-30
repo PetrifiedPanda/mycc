@@ -56,7 +56,7 @@ struct token* preproc_string(const char* str, const char* path) {
     size_t line_num = 1;
     while (true) {
         if (*it == '\n' || *it == '\0') {
-            size_t len = it - start + 1;
+            size_t len = it - start;
             char* line = xmalloc(sizeof(char) * len + 1);
             memcpy(line, start, sizeof(char) * len);
             line[len] = '\0';
@@ -129,43 +129,38 @@ enum {
 // TODO: handle escaped newlines
 static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) { 
     size_t i = 0;
-    bool found_eof = false; 
-    do {
-        int c = getc(file);
-        if (c == EOF) {
-            found_eof = true;
+    int c;
+    while ((c = getc(file)) != '\n' && c != EOF) {
+       static_buf[i] = c;
+        ++i;
+        if (i == PREPROC_LINE_BUF_LEN - 1) {
             break;
         }
-        static_buf[i] = c;
-        ++i;
-    } while (i < PREPROC_LINE_BUF_LEN - 1 && static_buf[i - 1] != '\n');
-    
-    if (i == 0) { // only EOF read
+    }
+
+    if (i == 0 && c == EOF) { // only EOF read
         return NULL;
     }
 
     char* res = static_buf;
     
-    if (static_buf[i - 1] != '\n' && !found_eof) {
+    if (c != '\n' && c != EOF) {
         size_t len = PREPROC_LINE_BUF_LEN * 2;
         char* dyn_buf = xmalloc(sizeof(char) * len);
-        memcpy(dyn_buf, static_buf, PREPROC_LINE_BUF_LEN * sizeof(char));
-        
-        do {
+        memcpy(dyn_buf, static_buf, (PREPROC_LINE_BUF_LEN - 1) * sizeof(char));
+
+        while ((c = getc(file)) != '\n' && c != EOF) {
             if (i == len - 1) {
                 grow_alloc((void**)&dyn_buf, &len, sizeof(char));
             }
-            int c = getc(file);
-            if (c == EOF) {
-                break;
-            }
+
             dyn_buf[i] = c;
             ++i;
-        } while (dyn_buf[i - 1] != '\n');
+        }
 
         res = dyn_buf;
     }
-     
+
     res[i] = '\0';
     return res;
 }

@@ -319,6 +319,7 @@ static void advance_one(struct tokenizer_state* s) {
 
 static void advance_newline(struct tokenizer_state* s) {
     if (*s->it == '\n') {
+        assert(s->it[-1] == '\\');
         s->source_loc.line += 1;
         s->source_loc.index = 1;
     } else {
