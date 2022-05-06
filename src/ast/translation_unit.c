@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "util.h"
+#include "util/mem.h"
 
 struct translation_unit parse_translation_unit(struct parser_state* s) {
     struct translation_unit res;

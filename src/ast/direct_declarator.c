@@ -4,7 +4,8 @@
 #include <assert.h>
 
 #include "error.h"
-#include "util.h"
+
+#include "util/mem.h"
 
 #include "parser/parser_util.h"
 

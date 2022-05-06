@@ -5,8 +5,9 @@
 #include <string.h>
 #include <assert.h>
 
-#include "util.h"
 #include "error.h"
+
+#include "util/mem.h"
 
 #include "preproc/preproc_state.h"
 #include "preproc/tokenizer.h"

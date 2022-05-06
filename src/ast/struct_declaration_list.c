@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-#include "util.h"
+#include "util/mem.h"
 
 #include "parser/parser_util.h"
 
@@ -46,3 +46,4 @@ void free_struct_declaration_list(struct struct_declaration_list* l) {
     }
     free(l->decls);
 }
+

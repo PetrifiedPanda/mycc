@@ -4,7 +4,8 @@
 #include <assert.h>
 
 #include "error.h"
-#include "util.h"
+
+#include "util/mem.h"
 
 static void free_abs_arr_or_func_suffix(struct abs_arr_or_func_suffix* s);
 

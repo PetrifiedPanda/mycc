@@ -2,8 +2,9 @@
 
 #include <assert.h>
 
-#include "util.h"
 #include "error.h"
+
+#include "util/mem.h"
 
 bool parse_external_declaration_inplace(struct parser_state* s,
                                         struct external_declaration* res) {

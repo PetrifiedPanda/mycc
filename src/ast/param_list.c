@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-#include "util.h"
+#include "util/mem.h"
 
 struct param_list* parse_param_list(struct parser_state* s) {
     struct param_list* res = xmalloc(sizeof(struct param_list));

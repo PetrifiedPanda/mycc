@@ -1,6 +1,6 @@
 #include "ast/static_assert_declaration.h"
 
-#include "util.h"
+#include "util/mem.h"
 
 #include "parser/parser_util.h"
 

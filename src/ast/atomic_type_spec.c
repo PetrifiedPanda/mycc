@@ -1,6 +1,6 @@
 #include "ast/atomic_type_spec.h"
 
-#include "util.h"
+#include "util/mem.h"
 
 #include "parser/parser_util.h"
 

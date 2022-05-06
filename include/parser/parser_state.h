@@ -5,12 +5,12 @@
 
 #include "token.h"
 
-struct identifier_type_map;
+#include "util/string_hash_map.h"
 
 struct parser_state {
     struct token* it;
-    size_t len;
-    struct identifier_type_map* scope_maps;
+    size_t _len;
+    struct string_hash_map* _scope_maps;
 };
 
 struct parser_state create_parser_state(struct token* tokens);

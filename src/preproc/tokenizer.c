@@ -7,7 +7,8 @@
 
 #include "token.h"
 #include "error.h"
-#include "util.h"
+
+#include "util/mem.h"
 
 #include "preproc/regex.h"
 

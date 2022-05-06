@@ -4,7 +4,8 @@
 #include <assert.h>
 
 #include "error.h"
-#include "util.h"
+
+#include "util/mem.h"
 
 bool parse_struct_declarator_inplace(struct parser_state* s,
                                      struct struct_declarator* res) {
@@ -48,3 +49,4 @@ void free_struct_declarator_children(struct struct_declarator* d) {
         free_const_expr(d->bit_field);
     }
 }
+

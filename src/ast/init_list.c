@@ -1,6 +1,6 @@
 #include "ast/init_list.h"
 
-#include "util.h"
+#include "util/mem.h"
 
 #include "parser/parser_util.h"
 

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "util.h"
+#include "util/mem.h"
 
 struct compound_statement* parse_compound_statement(struct parser_state* s) {
     if (!accept(s, LBRACE)) {

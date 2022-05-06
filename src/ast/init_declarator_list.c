@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "util.h"
+#include "util/mem.h"
 
 static struct init_declarator_list parse_init_declarator_list_first_base(
     struct parser_state* s,

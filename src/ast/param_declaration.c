@@ -3,8 +3,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "util.h"
 #include "error.h"
+
+#include "util/mem.h"
 
 // There might be a better way to do this
 static bool is_declarator(const struct token* current) {

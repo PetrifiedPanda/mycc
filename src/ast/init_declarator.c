@@ -1,7 +1,8 @@
 #include "ast/init_declarator.h"
 
-#include "util.h"
 #include "error.h"
+
+#include "util/mem.h"
 
 bool parse_init_declarator_typedef_inplace(struct parser_state* s,
                                            struct init_declarator* res) {

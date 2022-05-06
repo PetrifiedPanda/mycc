@@ -82,7 +82,7 @@ TEST(parser_state) {
         }
     }
 
-    ASSERT(s.len == 1);
+    ASSERT(s._len == 1);
 
     struct token insert_test_token = {
         .type = IDENTIFIER,

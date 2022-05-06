@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-#include "util.h"
+#include "util/mem.h"
 
 struct pointer* parse_pointer(struct parser_state* s) {
     if (!accept(s, ASTERISK)) {

@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include "util.h"
+#include "util/mem.h"
 
 static bool expand_func_macro(struct preproc_state* state,
                               const struct preproc_macro* macro,

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "util.h"
+#include "util/mem.h"
 
 void init_identifier(struct identifier* res, char* spelling) {
     assert(res);

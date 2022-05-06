@@ -3,7 +3,8 @@
 
 #include "token.h"
 #include "token_type.h"
-#include "util.h"
+
+#include "util/mem.h"
 
 #include "preproc/preproc.h"
 #include "preproc/preproc_macro.h"

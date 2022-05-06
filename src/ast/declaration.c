@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "util.h"
+#include "util/mem.h"
 
 bool parse_declaration_inplace(struct parser_state* s,
                                struct declaration* res) {

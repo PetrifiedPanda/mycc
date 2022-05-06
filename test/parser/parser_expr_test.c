@@ -1,7 +1,8 @@
 #include <stdio.h>
 
 #include "token.h"
-#include "util.h"
+
+#include "util/mem.h"
 
 #include "preproc/preproc.h"
 

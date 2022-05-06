@@ -2,8 +2,9 @@
 
 #include <assert.h>
 
-#include "util.h"
 #include "error.h"
+
+#include "util/mem.h"
 
 #include "parser/parser_util.h"
 
@@ -247,3 +248,4 @@ void free_postfix_expr(struct postfix_expr* p) {
     free_children(p);
     free(p);
 }
+

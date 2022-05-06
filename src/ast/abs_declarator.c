@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-#include "util.h"
+#include "util/mem.h"
 
 struct abs_declarator* parse_abs_declarator(struct parser_state* s) {
     struct abs_declarator* res = xmalloc(sizeof(struct abs_declarator));

@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-#include "util.h"
+#include "util/mem.h"
 
 static struct declarator* parse_declarator_base(
     struct parser_state* s,

@@ -2,8 +2,9 @@
 
 #include <stdlib.h>
 
-#include "util.h"
 #include "error.h"
+
+#include "util/mem.h"
 
 bool parse_struct_declaration_inplace(struct parser_state* s,
                                       struct struct_declaration* res) {

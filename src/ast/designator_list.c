@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-#include "util.h"
+#include "util/mem.h"
 
 struct designator_list parse_designator_list(struct parser_state* s) {
     struct designator_list res = {
