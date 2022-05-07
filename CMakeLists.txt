@@ -7,7 +7,7 @@ set(This mycc)
 project(${This} LANGUAGES C)
 
 if (WIN32)
-    add_compile_definitions(_CRT_SECURE_NO_WARNINGS=1)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
 if (MSVC)
