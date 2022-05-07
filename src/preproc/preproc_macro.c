@@ -3,12 +3,14 @@
 #include <assert.h>
 #include <string.h>
 
+#include "error.h"
+
 #include "util/mem.h"
 
 static bool expand_func_macro(struct preproc_state* state,
                               const struct preproc_macro* macro,
                               size_t macro_idx,
-                              struct token* macro_end);
+                              const struct token* macro_end);
 
 static void expand_obj_macro(struct preproc_state* state,
                              const struct preproc_macro* macro,
@@ -17,7 +19,7 @@ static void expand_obj_macro(struct preproc_state* state,
 bool expand_preproc_macro(struct preproc_state* state,
                           const struct preproc_macro* macro,
                           size_t macro_idx,
-                          struct token* macro_end) {
+                          const struct token* macro_end) {
     assert(state);
     assert(macro);
     assert(strcmp(state->tokens[macro_idx].spelling, macro->spelling) == 0);
@@ -45,6 +47,13 @@ static void free_token_arr(struct token_arr* arr) {
     }
 }
 
+static struct token move_token(struct token* t) {
+    struct token res = *t;
+    t->spelling = NULL;
+    t->file = NULL;
+    return res;
+}
+
 /**
  *
  * @param it Token pointer to the start of a macro argument
@@ -52,10 +61,10 @@ static void free_token_arr(struct token_arr* arr) {
  *
  * @return The macro argument given at the start of this pointer
  */
-static struct token_arr collect_macro_arg(const struct token* it,
+static struct token_arr collect_macro_arg(struct token* it,
                                           const struct token* limit_ptr) {
     size_t num_open_brackets = 0;
-    const struct token* arg_start = it;
+    struct token* arg_start = it;
     while (it != limit_ptr && it->type != COMMA
            && (it->type != RBRACKET || num_open_brackets != 0)) {
         if (it->type == LBRACKET) {
@@ -74,7 +83,7 @@ static struct token_arr collect_macro_arg(const struct token* it,
     };
 
     for (size_t i = 0; i < arg_len; ++i) {
-        res.tokens[i] = copy_token(&arg_start[i]);
+        res.tokens[i] = move_token(&arg_start[i]);
     }
 
     return res;
@@ -85,7 +94,6 @@ struct macro_args {
     size_t len;
 };
 
-// TODO: maybe it is worth it to move the tokens for the parameters
 /**
  * @brief Collects arguments for the given macro, assuming the number of
  *        arguments was already checked in the course of finding the closing
@@ -98,7 +106,7 @@ struct macro_args {
  * @return Pointer to #expected_args token_arrs representing the arguments of
  *         this macro call
  */
-struct macro_args collect_macro_args(const struct token* args_start,
+struct macro_args collect_macro_args(struct token* args_start,
                                      const struct token* limit_ptr,
                                      size_t expected_args) {
     assert(args_start->type == LBRACKET);
@@ -109,7 +117,7 @@ struct macro_args collect_macro_args(const struct token* args_start,
         .arrs = xmalloc(sizeof(struct token_arr) * cap),
     };
 
-    const struct token* it = args_start + 1;
+    struct token* it = args_start + 1;
     while (it != limit_ptr) {
         if (res.len == cap) {
             grow_alloc((void**)&res.arrs, &cap, sizeof(struct token_arr));
@@ -165,34 +173,100 @@ static size_t get_expansion_len(const struct preproc_macro* macro,
     return len;
 }
 
+static void shift_back(struct token* tokens, size_t num, size_t from, size_t to) {
+    for (size_t i = to - 1; i > from; --i) {
+        tokens[i + num - 1] = tokens[i];
+    }
+}
+
+static void shift_forward(struct token* tokens, size_t num, size_t from, size_t to) {
+    for (size_t i = from; i < to; ++i) {
+        tokens[i] = tokens[i + num];
+    }
+}
+
+static void copy_into_tokens(struct token* tokens, size_t* token_idx, const struct token_arr* arr) {
+    for (size_t i = 0; i < arr->len; ++i) {
+        tokens[*token_idx] = copy_token(&arr->tokens[i]);
+        ++*token_idx;
+    }
+}
+
+// TODO: stringification and concatenation and definitely some memory leaks
 static bool expand_func_macro(struct preproc_state* state,
                               const struct preproc_macro* macro,
                               size_t macro_idx,
-                              struct token* macro_end) {
+                              const struct token* macro_end) {
     assert(macro->is_func_macro);
     assert(state->tokens[macro_idx + 1].type == LBRACKET);
-
     struct macro_args args = collect_macro_args(state->tokens + macro_idx + 1,
                                                 macro_end,
                                                 macro->num_args);
+    if (args.len < macro->num_args) {
+        const struct token* err_token = &state->tokens[macro_idx];
+
+        const char* at_least_str = macro->is_variadic ? " at least" : "";
+        set_error_file(ERR_PREPROC,
+                       err_token->file, 
+                       err_token->source_loc, 
+                       "Too few arguments for function-like macro %s: " 
+                       "Expected%s %zu arguments but got %zu",
+                       err_token->spelling,
+                       at_least_str,
+                       macro->num_args,
+                       args.len);
+        return false;
+    }
 
     const size_t exp_len = get_expansion_len(macro, &args);
     const size_t macro_call_len = macro_end - &state->tokens[macro_idx];
-    const size_t alloc_increase = exp_len > macro_call_len
-                                      ? exp_len - macro_call_len
-                                      : 0;
-
-    if (alloc_increase != 0) {
-        state->len += alloc_increase;
-        state->cap += alloc_increase;
+    
+    const bool alloc_grows = exp_len > macro_call_len;
+    const size_t alloc_change = alloc_grows
+                                    ? exp_len - macro_call_len
+                                    : macro_call_len - exp_len;
+    
+    const size_t old_len = state->len;
+    if (alloc_grows) { 
+        state->len += alloc_change;
+        state->cap += alloc_change;
         state->tokens = xrealloc(state->tokens,
                                  sizeof(struct token) * state->cap);
+ 
+        shift_back(state->tokens, alloc_change, macro_idx, old_len);         
+    } else if (alloc_change != 0) {
+        state->len -= alloc_change;
+
+        shift_forward(state->tokens, alloc_change, macro_idx, old_len);
     }
 
-    // TODO:
+    size_t token_idx = macro_idx;
+    for (size_t i = 0; i < macro->expansion_len; ++i) {
+        const struct token_or_arg* curr = &macro->expansion[i];
+        assert(state->tokens + token_idx < macro_end);
+        if (curr->is_arg) {
+            if (curr->is_va_args) {
+                assert(macro->is_variadic);
+                for (size_t j = macro->num_args; j < args.len; ++j) {
+                    copy_into_tokens(state->tokens, &token_idx, &args.arrs[j]);
+                    if (i != args.len - 1) {
+                        // TODO: filename and location
+                        state->tokens[token_idx] = create_token(COMMA, NULL, (struct source_location){0, 0}, "AAAAH");
+                        ++token_idx;
+                    }
+                }
 
+            } else {
+                copy_into_tokens(state->tokens, &token_idx, &args.arrs[curr->arg_num]);
+            }
+        } else {
+            state->tokens[token_idx] = copy_token(&curr->token);
+            ++token_idx;
+        }
+    }
+ 
     free_macro_args(&args);
-    return false;
+    return true;
 }
 
 static void expand_obj_macro(struct preproc_state* state,
@@ -211,17 +285,12 @@ static void expand_obj_macro(struct preproc_state* state,
         state->len += exp_len - 1;
         state->tokens = xrealloc(state->tokens,
                                  sizeof(struct token) * state->cap);
-
-        // shift tokens behind macro forward
-        for (size_t i = old_len - 1; i > macro_idx; --i) {
-            state->tokens[i + exp_len - 1] = state->tokens[i];
-        }
+        
+        shift_back(state->tokens, exp_len, macro_idx, old_len);
     } else {
         state->len -= 1;
-
-        for (size_t i = macro_idx; i < old_len; ++i) {
-            state->tokens[i] = state->tokens[i + 1];
-        }
+        
+        shift_forward(state->tokens, 1, macro_idx, old_len);
     }
 
     for (size_t i = 0; i < exp_len; ++i) {
