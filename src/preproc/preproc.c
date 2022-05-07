@@ -7,6 +7,8 @@
 
 #include "error.h"
 
+#include "preproc/preproc_macro.h"
+#include "token_type.h"
 #include "util/mem.h"
 
 #include "preproc/preproc_state.h"
@@ -166,7 +168,7 @@ static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) {
     return res;
 }
 
-static bool preproc_file(struct preproc_state* res, const char* path) {
+static bool preproc_file(struct preproc_state* state, const char* path) {
     FILE* file = fopen(path, "r");
     if (!file) {
         // TODO: error
@@ -182,9 +184,10 @@ static bool preproc_file(struct preproc_state* res, const char* path) {
         if (line == NULL) {
             break;
         }
-
-        if ((line[0] == '#' && !preproc_statement(res, line, line_num))
-            || !tokenize_line(res,
+        
+        const size_t prev_len = state->len;
+        if ((line[0] == '#' && !preproc_statement(state, line, line_num))
+            || !tokenize_line(state,
                               line,
                               line_num,
                               path,
@@ -196,6 +199,19 @@ static bool preproc_file(struct preproc_state* res, const char* path) {
         }
 
         // TODO: expand macros on added tokens
+        for (size_t i = prev_len; i < state->len; ++i) {
+            const struct token* curr = &state->tokens[i];
+            if (curr->type == IDENTIFIER) {
+                struct preproc_macro* macro = find_preproc_macro(curr->spelling);
+                if (macro != NULL) {
+                    const struct token* macro_end = NULL;
+                    if (macro->is_func_macro) {
+                        // TODO: find the closing bracket
+                    }
+                    expand_preproc_macro(state, macro, i, macro_end);
+                }
+            }
+        }
 
         ++line_num;
 
