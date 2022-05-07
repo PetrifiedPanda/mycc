@@ -5,6 +5,7 @@
 
 enum error_type {
     ERR_NONE,
+    ERR_PREPROC,
     ERR_TOKENIZER,
     ERR_PARSER
 };
