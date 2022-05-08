@@ -1,7 +1,5 @@
 #include "ast/struct_declaration.h"
 
-#include <stdlib.h>
-
 #include "error.h"
 
 #include "util/mem.h"

@@ -1,6 +1,5 @@
 #include "ast/struct_declarator.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "error.h"

@@ -1,6 +1,5 @@
 #include "ast/param_declaration.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "error.h"

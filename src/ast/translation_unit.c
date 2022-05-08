@@ -1,7 +1,6 @@
 #include "ast/translation_unit.h"
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "util/mem.h"
 

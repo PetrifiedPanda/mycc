@@ -1,7 +1,6 @@
 #include "ast/identifier_list.h"
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include "util/mem.h"
 
