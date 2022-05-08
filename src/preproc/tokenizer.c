@@ -557,7 +557,7 @@ static bool handle_other(struct tokenizer_state* s, struct preproc_state* res) {
     }
 
     char* buf_to_check = dyn_buf != NULL ? dyn_buf : spell_buf;
-    enum token_type type = INVALID;
+    enum token_type type;
     if (is_dec_const(buf_to_check, buf_idx)
         || is_hex_const(buf_to_check, buf_idx)
         || is_oct_const(buf_to_check, buf_idx)) {
@@ -567,13 +567,14 @@ static bool handle_other(struct tokenizer_state* s, struct preproc_state* res) {
     } else if (is_valid_identifier(buf_to_check, buf_idx)) {
         type = IDENTIFIER;
     } else {
-        if (buf_to_check == dyn_buf) {
-            free(dyn_buf);
-        }
         set_error_file(ERR_TOKENIZER,
                        s->current_file,
                        start_loc,
-                       "Invalid identifier");
+                       "Invalid identifier: %s",
+                       buf_to_check);
+        if (buf_to_check == dyn_buf) {
+            free(dyn_buf);
+        }
         return false;
     }
 
