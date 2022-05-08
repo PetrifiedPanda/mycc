@@ -136,7 +136,9 @@ TEST(simple) {
         create(I_CONSTANT, "1000", 13, 19),
         create(RINDEX, NULL, 13, 23),
         create(SEMICOLON, NULL, 13, 24)};
-    enum { EXPECTED_SIZE = sizeof expected / sizeof(struct token) };
+    enum {
+        EXPECTED_SIZE = sizeof expected / sizeof(struct token)
+    };
 
     check_size(tokens, EXPECTED_SIZE);
     check_file(tokens, filename);
@@ -815,9 +817,29 @@ TEST(file) {
         create(STRING_LITERAL, "\"\"", 124, 49),
         create(RBRACKET, NULL, 124, 51),
         create(SEMICOLON, NULL, 124, 52),
+        create(STRUCT, NULL, 126, 1),
+        create(IDENTIFIER, "struct_for_static_assert", 126, 8),
+        create(LBRACE, NULL, 126, 33),
+        create(STATIC_ASSERT, NULL, 127, 5),
+        create(LBRACKET, NULL, 127, 19),
+        create(I_CONSTANT, "1", 127, 20),
+        create(COMMA, NULL, 127, 21),
+        create(STRING_LITERAL,
+               "\"if this failed that would be weird\"",
+               127,
+               23),
+        create(RBRACKET, NULL, 127, 59),
+        create(SEMICOLON, NULL, 127, 60),
+        create(INT, NULL, 128, 5),
+        create(IDENTIFIER, "n", 128, 9),
+        create(SEMICOLON, NULL, 128, 10),
+        create(RBRACE, NULL, 129, 1),
+        create(SEMICOLON, NULL, 129, 2),
     };
 
-    enum { EXPECTED_SIZE = sizeof expected / sizeof(struct token) };
+    enum {
+        EXPECTED_SIZE = sizeof expected / sizeof(struct token)
+    };
     check_size(tokens, EXPECTED_SIZE);
     check_file(tokens, filename);
 

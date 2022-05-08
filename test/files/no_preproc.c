@@ -122,3 +122,8 @@ _Noreturn static void variadic(int m, ...) {
 _Thread_local int g_thread;
 
 _Static_assert(sizeof(g_thread) == sizeof(int), "");
+
+struct struct_for_static_assert {
+    _Static_assert(1, "if this failed that would be weird");
+    int n;
+};
