@@ -1,13 +1,13 @@
 
 
 typedef struct {
-    volatile int* restrict ptr;
+    _Atomic volatile int* restrict ptr;
     _Alignas(16) const char * str;
 } MyStruct;
 
 union my_union {
-    _Atomic short int i;
-    float f;
+    short int i : 4, : 4;
+    _Alignas(const MyStruct) float f;
 };
 
 // this is an enum
@@ -17,7 +17,7 @@ enum my_enum {
     VAL_3
 };
 
-static inline int do_shit();
+static inline int do_shit(int n, int m);
 
 static void variadic(int m, ...);
 
@@ -44,7 +44,7 @@ int main() {
      woo multiple line comment
      */
     MyStruct s = {0, L"Hello there, this string literal needs to be longer than 512 characters oh no I don't know what to write here aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"};
-    int integer = 01000 - 10;
+    int integer = 01000 << 10;
     s.ptr = &integer;
 
     MyStruct *s_ptr = &s;
@@ -62,7 +62,7 @@ my_cool_label:
     super_long_identifier_that_needs_to_be_over_512_characters_long_what_the_hell_am_i_supposed_to_write_here_a_b_c_d_e_f_g_h_i_j_k_l_m_n_o_p_q_r_s_t_u_v_w_x_y_z_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccooooooooooooooooooooooooooooooooooooooooooooosoooooooooooooooooooooooooooodfsoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo_ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss = (int)soviet_union.f;
 }
 
-static int do_shit() {
+static int do_shit(n, m) int n; int m; { // this syntax exists I guess
     double d = 1e-10 - 1e10;
     int type_size = sizeof(double);
     int size = sizeof d;
@@ -74,7 +74,7 @@ static int do_shit() {
     enum { LIMIT = 50000 };
     char arr[LIMIT] = {0};
     for (int i = 0, j = LIMIT; i < LIMIT && j > 0; ++i, j--) {
-        arr[i] = (char)j * 5;
+        arr[i] = (char)j | 5;
         arr[j] = (char)i / 4 ^ ~size;
     }
 
@@ -104,7 +104,7 @@ static int do_shit() {
         break;
     }
 
-    return (arr[0] == 37 ? size : (arr[1] == 37 ? type_size : -123123));
+    return (arr[0] == 37 ? size : (arr[1] == 37 ? type_size : -123123 >> 4));
 }
 
 _Noreturn static void variadic(int m, ...) {
@@ -120,3 +120,5 @@ _Noreturn static void variadic(int m, ...) {
 }
 
 _Thread_local int g_thread;
+
+_Static_assert(sizeof(g_thread) == sizeof(int), "");
