@@ -9,8 +9,8 @@ typedef int(*CursedFunction)(int(*)(void(*)(MyStruct, AlsoMyStruct)));
 
 union my_union {
     _Atomic short int i;
-    float f;
-    int n: 1;
+    _Alignas(AlsoMyStruct) float f;
+    int n: 1, : 10;
 };
 
 // this is an enum
@@ -20,7 +20,7 @@ enum my_enum {
     VAL_3 = VAL_1 + VAL_2
 };
 
-static inline int*** do_shit();
+static inline int*** do_shit(int n, int m);
 
 static void variadic(int m, char v, MyStruct s, ...);
 
@@ -79,7 +79,7 @@ int main() {
     *s_ptr->ptr = (char*)s_ptr->str;
 }
 
-static int*** do_shit() {
+static int*** do_shit(n, m) int n; int m; {
     typedef int MyStruct;
     double d = 1e-10 - 1e10;
     int type_size = sizeof(double);
@@ -143,3 +143,10 @@ void strcpy(char* dst, const char* src) {
 }
 
 _Thread_local int g_thread;
+
+struct struct_for_static_assert {
+    _Static_assert(1, "if this failed that would be weird");
+    int n;
+};
+
+_Static_assert(sizeof(g_thread) == sizeof(int), "");

@@ -188,7 +188,7 @@ TEST(no_preproc) {
     struct token* tokens = tokenize(file);
     struct translation_unit tl = parse_tokens(tokens);
     ASSERT_NO_ERROR();
-    ASSERT_SIZE_T(tl.len, (size_t)12);
+    ASSERT_SIZE_T(tl.len, (size_t)10);
 
     const struct storage_class sc = {false, false, false, false, false, false};
     const struct storage_class sc_static = {.is_static = true};
@@ -233,7 +233,7 @@ TEST(parser_testfile) {
     struct token* tokens = tokenize(file);
     struct translation_unit tl = parse_tokens(tokens);
     ASSERT_NO_ERROR();
-    ASSERT_SIZE_T(tl.len, (size_t)12);
+    ASSERT_SIZE_T(tl.len, (size_t)14);
 
     const struct storage_class sc = {false, false, false, false, false, false};
     const struct storage_class sc_static = {.is_static = true};
