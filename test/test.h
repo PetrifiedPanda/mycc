@@ -8,6 +8,8 @@
 #include <assert.h>
 #include <setjmp.h>
 
+#include "error.h"
+
 /**
  * Jump buffer for unit tests, defined in test_main.c
  */
@@ -140,11 +142,13 @@ test_failed:                                                                   \
 
 /**
  * Prints an assert error, failing the test. Must not be called outside of tests
+ * Also clears the global error state
  */
 #define PRINT_ASSERT_ERR(format, ...)                                          \
     printf("\tAssertion failure in %s, %d\n\t\t", __FILE__, __LINE__);         \
     printf(format, __VA_ARGS__);                                               \
     printf("\n");                                                              \
+    clear_last_error();                                                        \
     longjmp(test_jump_buf, 0)
 
 #endif
