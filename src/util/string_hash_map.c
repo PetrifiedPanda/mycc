@@ -18,7 +18,7 @@ struct string_hash_map create_string_hash_map(size_t elem_size) {
 }
 
 void free_string_hash_map(struct string_hash_map* map) {
-    free(map->_keys);
+    free((void*)map->_keys);
     free(map->_items);
 }
 
@@ -98,7 +98,7 @@ static void resize_map(struct string_hash_map* map) {
     UNUSED(prev_len);
     assert(map->_len == prev_len);
     free(old_items);
-    free(old_keys);
+    free((void*)old_keys);
 }
 
 // Hash function taken from K&R version 2 (page 144)
