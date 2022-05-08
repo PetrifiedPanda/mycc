@@ -104,7 +104,6 @@ struct primary_expr* parse_primary_expr(struct parser_state* s) {
                     return create_primary_expr_bracket(bracket_expr);
                 } else {
                     free_expr(bracket_expr);
-                    expected_token_error(RBRACKET, s->it);
                     return NULL;
                 }
             }
