@@ -17,7 +17,7 @@ TEST(parser_state) {
         NUM_STRINGS % SCOPE_INTERVAL == 0,
         "Number of test strings must be divisible by the scope interval");
 
-    struct token dummy_string_tokens[NUM_STRINGS] = {0};
+    struct token dummy_string_tokens[NUM_STRINGS] = {{0}};
     char insert_string[STRLEN] = {0};
     for (size_t i = 0; i < NUM_STRINGS; ++i) {
 
