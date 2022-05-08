@@ -134,7 +134,7 @@ static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) {
     size_t i = 0;
     int c;
     while ((c = getc(file)) != '\n' && c != EOF) {
-       static_buf[i] = c;
+       static_buf[i] = (char)c;
         ++i;
         if (i == PREPROC_LINE_BUF_LEN - 1) {
             break;
@@ -157,7 +157,7 @@ static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) {
                 grow_alloc((void**)&dyn_buf, &len, sizeof(char));
             }
 
-            dyn_buf[i] = c;
+            dyn_buf[i] = (char)c;
             ++i;
         }
 
