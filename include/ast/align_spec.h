@@ -19,7 +19,6 @@ struct align_spec {
 bool parse_align_spec_inplace(struct parser_state* s, struct align_spec* res);
 
 void free_align_spec_children(struct align_spec* s);
-void free_align_spec(struct align_spec* s);
 
 #include "ast/type_name.h"
 #include "ast/const_expr.h"

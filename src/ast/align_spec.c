@@ -6,6 +6,8 @@
 
 #include "parser/parser_util.h"
 
+static void free_align_spec(struct align_spec* s);
+
 bool parse_align_spec_inplace(struct parser_state* s, struct align_spec* res) {
     assert(res);
     if (!(accept(s, ALIGNAS) && accept(s, LBRACKET))) {
@@ -44,7 +46,7 @@ void free_align_spec_children(struct align_spec* s) {
     }
 }
 
-void free_align_spec(struct align_spec* s) {
+static void free_align_spec(struct align_spec* s) {
     free_align_spec_children(s);
     free(s);
 }
