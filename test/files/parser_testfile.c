@@ -80,6 +80,7 @@ int main() {
 }
 
 static int*** do_shit(n, m) int n; int m; {
+    typedef MyStruct OldMyStruct;
     typedef int MyStruct;
     double d = 1e-10 - 1e10;
     int type_size = sizeof(double);
@@ -88,6 +89,11 @@ static int*** do_shit(n, m) int n; int m; {
     char c = '\n';
 
     _Bool true_bool = !(c != c) && (c <= size || c >= size || c < size || c > size || c == size || c != size);
+
+    typedef int MyInt;
+    MyInt my_int = 010;
+
+    OldMyStruct s = {.ptr = 0, .str = "Hi"};
 
     enum {
         LIMIT = 50000

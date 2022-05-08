@@ -266,7 +266,7 @@ TEST(parser_testfile) {
                                         3,
                                         INT,
                                         "do_shit",
-                                        14);
+                                        18);
     check_external_decl_func_def_predef(
         &tl.external_decls[9],
         sc_static,
