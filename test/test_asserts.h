@@ -10,6 +10,11 @@
 
 #include "test.h"
 
+#ifdef WIN32
+// warning for comparing string literal addresses
+#pragma warning(disable : 4130)
+#endif
+
 #define ASSERT(expr)                                                           \
     do {                                                                       \
         if (!(expr)) {                                                         \
