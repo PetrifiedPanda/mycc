@@ -55,6 +55,19 @@ static struct token move_token(struct token* t) {
     return res;
 }
 
+static struct token_arr collect_until(struct token* start, const struct token* end) {
+    const size_t len = end - start;
+    struct token_arr res = {
+        .len = len,
+        .tokens = len == 0 ? NULL : xmalloc(sizeof(struct token) * len),
+    };
+    
+    for (size_t i = 0; i < len; ++i) {
+        res.tokens[i] = move_token(&start[i]);
+    }
+    return res;
+}
+
 /**
  *
  * @param it Token pointer to the start of a macro argument
@@ -77,41 +90,13 @@ static struct token_arr collect_macro_arg(struct token* it,
         ++it;
     }
 
-    const size_t arg_len = it - arg_start;
-    struct token_arr res = {
-        .len = arg_len,
-        .tokens = arg_len == 0 ? NULL : xmalloc(sizeof(struct token) * arg_len),
-    };
-
-    for (size_t i = 0; i < arg_len; ++i) {
-        res.tokens[i] = move_token(&arg_start[i]);
-    }
-
-    return res;
+    return collect_until(arg_start, it);
 }
 
 struct macro_args {
     size_t len;
     struct token_arr* arrs;
 };
-
-static struct token_arr collect_va_args(struct token* it,
-                                        const struct token* limit_ptr) {
-    assert(it->type == COMMA);
-    ++it;
-    
-    const size_t len = limit_ptr - it;
-    struct token_arr res = {
-        .len = len,
-        .tokens = len == 0 ? NULL : xmalloc(sizeof(struct token) * len),
-    };
-
-    for (size_t i = 0; i < res.len; ++i) {
-        res.tokens[i] = move_token(&it[i]);
-    }
-
-    return res;
-}
 
 
 static void free_macro_args(struct macro_args* args) {
@@ -170,7 +155,8 @@ struct macro_args collect_macro_args(struct token* args_start,
                        expected_args);
         goto fail;
     } else if (is_variadic) {
-        res.arrs[res.len] = collect_va_args(it, limit_ptr);
+        assert(it->type == COMMA);
+        res.arrs[res.len] = collect_until(it + 1, limit_ptr);
         ++res.len;
     } else if (it != limit_ptr) {
         set_error_file(ERR_PREPROC,
