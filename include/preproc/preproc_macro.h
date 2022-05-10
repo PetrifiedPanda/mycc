@@ -11,10 +11,7 @@
 struct token_or_arg {
     bool is_arg;
     union {
-        struct {
-            bool is_va_args;
-            size_t arg_num;
-        };
+        size_t arg_num;
         struct token token;
     };
 };

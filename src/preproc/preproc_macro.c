@@ -25,6 +25,7 @@ bool expand_preproc_macro(struct preproc_state* state,
     assert(strcmp(state->tokens[macro_idx].spelling, macro->spelling) == 0);
 
     if (macro->is_func_macro) {
+        assert(macro_end);
         assert(macro_end->type == RBRACKET);
         return expand_func_macro(state, macro, macro_idx, macro_end);
     } else {
@@ -90,9 +91,34 @@ static struct token_arr collect_macro_arg(struct token* it,
 }
 
 struct macro_args {
-    struct token_arr* arrs;
     size_t len;
+    struct token_arr* arrs;
 };
+
+static struct token_arr collect_va_args(struct token* it,
+                                        const struct token* limit_ptr) {
+    assert(it->type == COMMA);
+    ++it;
+    
+    const size_t len = limit_ptr - it;
+    struct token_arr res = {
+        .len = len,
+        .tokens = len == 0 ? NULL : xmalloc(sizeof(struct token) * len),
+    };
+
+    for (size_t i = 0; i < res.len; ++i) {
+        res.tokens[i] = move_token(&it[i]);
+    }
+
+    return res;
+}
+
+
+static void free_macro_args(struct macro_args* args) {
+    for (size_t i = 0; i < args->len; ++i) {
+        free_token_arr(&args->arrs[i]);
+    }
+}
 
 /**
  * @brief Collects arguments for the given macro, assuming the number of
@@ -108,17 +134,18 @@ struct macro_args {
  */
 struct macro_args collect_macro_args(struct token* args_start,
                                      const struct token* limit_ptr,
-                                     size_t expected_args) {
+                                     size_t expected_args,
+                                     bool is_variadic) {
     assert(args_start->type == LBRACKET);
 
-    size_t cap = expected_args;
+    size_t cap = is_variadic ? expected_args + 1 : expected_args;
     struct macro_args res = {
         .len = 0,
         .arrs = xmalloc(sizeof(struct token_arr) * cap),
     };
 
     struct token* it = args_start + 1;
-    while (it != limit_ptr) {
+    while (res.len != expected_args && it != limit_ptr) {
         if (res.len == cap) {
             grow_alloc((void**)&res.arrs, &cap, sizeof(struct token_arr));
         }
@@ -131,40 +158,46 @@ struct macro_args collect_macro_args(struct token* args_start,
         }
         ++res.len;
     }
-
-    assert(it->type == RBRACKET);
+    
+    if (res.len < expected_args) {
+        const char* at_least_str = is_variadic ? " at least" : "";
+        set_error_file(ERR_PREPROC,
+                       it->file,
+                       it->source_loc,
+                       "Too few arguments in function-like macro invocation: "
+                       "Expected%s %zu arguments",
+                       at_least_str,
+                       expected_args);
+        goto fail;
+    } else if (is_variadic) {
+        res.arrs[res.len] = collect_va_args(it, limit_ptr);
+        ++res.len;
+    } else if (it != limit_ptr) {
+        set_error_file(ERR_PREPROC,
+                       it->file,
+                       it->source_loc,
+                       "Too many arguments in function-like macro invocation: "
+                       "Expected only %zu arguments",
+                       expected_args);
+        goto fail;
+    }
 
     return res;
-}
-
-static void free_macro_args(struct macro_args* args) {
-    for (size_t i = 0; i < args->len; ++i) {
-        free_token_arr(&args->arrs[i]);
-    }
-}
-
-static size_t get_va_args_len(const struct preproc_macro* macro,
-                              const struct macro_args* args) {
-    size_t va_args_len = 0;
-    for (size_t i = macro->num_args; i < args->len; ++i) {
-        va_args_len += args->arrs[i].len;
-    }
-    return va_args_len;
+fail:
+    free_macro_args(&res);
+    return (struct macro_args){
+        .len = 0,
+        .arrs = NULL,
+    };
 }
 
 static size_t get_expansion_len(const struct preproc_macro* macro,
                                 const struct macro_args* args) {
-    const size_t va_args_len = get_va_args_len(macro, args);
-
     size_t len = 0;
     for (size_t i = 0; i < macro->expansion_len; ++i) {
         struct token_or_arg* item = &macro->expansion[i];
         if (item->is_arg) {
-            if (item->is_va_args) {
-                len += va_args_len;
-            } else {
-                len += args->arrs[item->arg_num].len;
-            }
+            len += args->arrs[item->arg_num].len;
         } else {
             len += 1;
         }
@@ -201,22 +234,15 @@ static bool expand_func_macro(struct preproc_state* state,
     assert(state->tokens[macro_idx + 1].type == LBRACKET);
     struct macro_args args = collect_macro_args(state->tokens + macro_idx + 1,
                                                 macro_end,
-                                                macro->num_args);
-    if (args.len < macro->num_args) {
-        const struct token* err_token = &state->tokens[macro_idx];
-
-        const char* at_least_str = macro->is_variadic ? " at least" : "";
-        set_error_file(ERR_PREPROC,
-                       err_token->file, 
-                       err_token->source_loc, 
-                       "Too few arguments for function-like macro %s: " 
-                       "Expected%s %zu arguments but got %zu",
-                       err_token->spelling,
-                       at_least_str,
-                       macro->num_args,
-                       args.len);
+                                                macro->num_args,
+                                                macro->is_variadic);
+    if (args.len == 0 && macro->num_args != 0) {
+        assert(get_last_error() != ERR_NONE);
         return false;
     }
+    
+    assert((macro->is_variadic && (args.len == macro->num_args + 1 || args.len == macro->num_args)) ||
+            !macro->is_variadic && (args.len == macro->num_args));
 
     const size_t exp_len = get_expansion_len(macro, &args);
     const size_t macro_call_len = macro_end - &state->tokens[macro_idx];
@@ -245,20 +271,7 @@ static bool expand_func_macro(struct preproc_state* state,
         const struct token_or_arg* curr = &macro->expansion[i];
         assert(state->tokens + token_idx < macro_end);
         if (curr->is_arg) {
-            if (curr->is_va_args) {
-                assert(macro->is_variadic);
-                for (size_t j = macro->num_args; j < args.len; ++j) {
-                    copy_into_tokens(state->tokens, &token_idx, &args.arrs[j]);
-                    if (i != args.len - 1) {
-                        // TODO: filename and location
-                        state->tokens[token_idx] = create_token(COMMA, NULL, (struct source_location){0, 0}, "AAAAH");
-                        ++token_idx;
-                    }
-                }
-
-            } else {
-                copy_into_tokens(state->tokens, &token_idx, &args.arrs[curr->arg_num]);
-            }
+            copy_into_tokens(state->tokens, &token_idx, &args.arrs[curr->arg_num]);
         } else {
             state->tokens[token_idx] = copy_token(&curr->token);
             ++token_idx;
