@@ -459,7 +459,8 @@ static bool handle_character_literal(struct tokenizer_state* s,
         dyn_buf = xmalloc(buf_len * sizeof(char));
         strcpy(dyn_buf, spell_buf);
 
-        while (*s->it != '\0' && *s->it != terminator) {
+        while (*s->it != '\0' 
+               && ((s->prev_prev != '\\' && s->prev == '\\') || *s->it != terminator)) {
             if (buf_idx == buf_len - 1) {
                 grow_alloc((void**)&dyn_buf, &buf_len, sizeof(char));
             }
