@@ -16,6 +16,6 @@ struct translation_unit parse_translation_unit(struct parser_state* s);
 
 void free_translation_unit(struct translation_unit* u);
 
-#include "ast/external_declaration.h"
+#include "ast/declaration/external_declaration.h"
 
 #endif

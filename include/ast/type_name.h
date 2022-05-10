@@ -19,6 +19,6 @@ void free_type_name_children(struct type_name* n);
 void free_type_name(struct type_name* n);
 
 #include "ast/spec_qual_list.h"
-#include "ast/abs_declarator.h"
+#include "ast/declaration/abs_declarator.h"
 
 #endif

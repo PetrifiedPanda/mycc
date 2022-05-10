@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "ast/type_quals.h"
-#include "ast/type_specs.h"
+#include "ast/declaration/type_quals.h"
+#include "ast/declaration/type_specs.h"
 
 struct spec_qual_list {
     struct type_quals quals;
@@ -18,7 +18,5 @@ void free_spec_qual_list_children(struct spec_qual_list* l);
 void free_spec_qual_list(struct spec_qual_list* l);
 
 bool is_valid_spec_qual_list(struct spec_qual_list* l);
-
-#include "ast/type_specs.h"
 
 #endif
