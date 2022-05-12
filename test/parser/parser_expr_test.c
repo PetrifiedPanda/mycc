@@ -1,12 +1,14 @@
 #include <stdio.h>
 
+#include "parser/parser_state.h"
+#include "parser/parser.h"
+
 #include "token.h"
+#include "token_type.h"
 
 #include "util/mem.h"
 
 #include "preproc/preproc.h"
-
-#include "parser/parser.h"
 
 #include "../test_asserts.h"
 #include "../test_helpers.h"
@@ -599,10 +601,39 @@ TEST(assign_expr) {
     }
 }
 
-TEST_SUITE_BEGIN(parser_expr, 4) {
+void check_assign_expr_single_assign(struct assign_expr* expr,
+                                     const char* lhs,
+                                     enum token_type op,
+                                     const char* rhs,
+                                     enum token_type rhs_type) {
+    ASSERT_SIZE_T(expr->len, (size_t)1);
+    ASSERT_TOKEN_TYPE(expr->assign_chain[0].assign_op, op);
+    check_unary_expr_id_or_const(expr->assign_chain[0].unary, lhs, IDENTIFIER);
+    check_cond_expr_id_or_const(expr->value, rhs, rhs_type);
+}
+
+TEST(expr) {
+    struct token* tokens = tokenize_string("a = 10, b *= x, c += 3.1", "file.c");
+    ASSERT_NOT_NULL(tokens);
+    struct parser_state s = create_parser_state(tokens);
+    struct expr* expr = parse_expr(&s);
+    ASSERT_NOT_NULL(expr);
+    
+    ASSERT_SIZE_T(expr->len, (size_t)3);
+    check_assign_expr_single_assign(&expr->assign_exprs[0], "a", ASSIGN, "10", I_CONSTANT);
+    check_assign_expr_single_assign(&expr->assign_exprs[1], "b", MUL_ASSIGN, "x", IDENTIFIER);
+    check_assign_expr_single_assign(&expr->assign_exprs[2], "c", ADD_ASSIGN, "3.1", F_CONSTANT);
+
+    free_expr(expr);
+    free_parser_state(&s);
+    free_tokens(tokens);
+}
+
+TEST_SUITE_BEGIN(parser_expr, 5) {
     REGISTER_TEST(primary_expr);
     REGISTER_TEST(unary_expr);
     REGISTER_TEST(postfix_expr);
     REGISTER_TEST(assign_expr);
+    REGISTER_TEST(expr);
 }
 TEST_SUITE_END()
