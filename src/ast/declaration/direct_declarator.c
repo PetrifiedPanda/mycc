@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "error.h"
-
 #include "util/mem.h"
 
 #include "parser/parser_util.h"
@@ -56,11 +54,10 @@ static bool parse_arr_or_func_suffix(struct parser_state* s,
 
                 if (s->it->type == ASTERISK) {
                     if (suffix->is_static) {
+                        set_parser_err(s->err,
+                                       PARSER_ERR_ARR_STATIC_ASTERISK,
+                                       s->it);
                         free_arr_suffix(suffix);
-                        set_error_file(ERR_PARSER,
-                                       s->it->file,
-                                       s->it->source_loc,
-                                       "Asterisk cannot be used with static");
                         return false;
                     }
                     suffix->is_asterisk = true;
@@ -73,13 +70,12 @@ static bool parse_arr_or_func_suffix(struct parser_state* s,
             }
 
             if (s->it->type == STATIC) {
-                if (suffix->is_static) {
-                    free_arr_suffix(suffix);
+                if (suffix->is_static) { 
                     // TODO: maybe turn this into a warning
-                    set_error_file(ERR_PARSER,
-                                   s->it->file,
-                                   s->it->source_loc,
-                                   "Expected only one use of static");
+                    set_parser_err(s->err,
+                                   PARSER_ERR_ARR_DOUBLE_STATIC,
+                                   s->it);
+                    free_arr_suffix(suffix);
                     return false;
                 }
                 suffix->is_static = true;
@@ -88,11 +84,10 @@ static bool parse_arr_or_func_suffix(struct parser_state* s,
 
             if (s->it->type == RINDEX) {
                 if (suffix->is_static) {
+                    set_parser_err(s->err,
+                                   PARSER_ERR_ARR_STATIC_NO_LEN,
+                                   s->it);
                     free_arr_suffix(suffix);
-                    set_error_file(ERR_PARSER,
-                                   s->it->file,
-                                   s->it->source_loc,
-                                   "Expected array size after use of static");
                     return false;
                 }
                 accept_it(s);
@@ -204,8 +199,7 @@ static struct direct_declarator* parse_direct_declarator_base(
     return res;
 }
 
-static bool empty_id_handler(struct parser_state* s,
-                             const struct token* token) {
+static bool empty_id_handler(struct parser_state* s, const struct token* token) {
     UNUSED(s);
     UNUSED(token);
     return true;

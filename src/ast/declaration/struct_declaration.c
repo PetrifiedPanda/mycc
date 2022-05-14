@@ -1,7 +1,5 @@
 #include "ast/declaration/struct_declaration.h"
 
-#include "error.h"
-
 #include "util/mem.h"
 
 bool parse_struct_declaration_inplace(struct parser_state* s,
@@ -21,10 +19,7 @@ bool parse_struct_declaration_inplace(struct parser_state* s,
         }
 
         if (found_typedef) {
-            set_error_file(ERR_PARSER,
-                           s->it->file,
-                           s->it->source_loc,
-                           "typedef in struct declaration");
+            set_parser_err(s->err, PARSER_ERR_TYPEDEF_STRUCT, s->it);
         }
 
         if (s->it->type != SEMICOLON) {

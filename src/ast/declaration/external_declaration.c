@@ -2,8 +2,6 @@
 
 #include <assert.h>
 
-#include "error.h"
-
 #include "util/mem.h"
 
 bool parse_external_declaration_inplace(struct parser_state* s,
@@ -63,10 +61,7 @@ bool parse_external_declaration_inplace(struct parser_state* s,
         struct initializer* init = NULL;
         if (s->it->type == ASSIGN) {
             if (found_typedef) {
-                set_error_file(ERR_PARSER,
-                               s->it->file,
-                               s->it->source_loc,
-                               "Initializer not allowed in typedef");
+                set_parser_err(s->err, PARSER_ERR_TYPEDEF_INIT, s->it);
                 free_declaration_specs(decl_specs);
                 free_declarator(first_decl);
                 return false;
@@ -121,10 +116,7 @@ bool parse_external_declaration_inplace(struct parser_state* s,
         };
     } else {
         if (found_typedef) {
-            set_error_file(ERR_PARSER,
-                           s->it->file,
-                           s->it->source_loc,
-                           "Function definition declared typedef");
+            set_parser_err(s->err, PARSER_ERR_TYPEDEF_FUNC_DEF, s->it);
             free_declaration_specs(decl_specs);
             free_declarator(first_decl);
             return false;

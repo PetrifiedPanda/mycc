@@ -112,12 +112,13 @@ static bool register_identifier(struct parser_state* s,
     };
     const struct identifier_type_data* item = string_hash_map_insert(&s->_scope_maps[s->_len - 1], token->spelling, &to_insert);
     if (item != &to_insert) {
-        init_parser_err(s->err, PARSER_ERR_REDEFINED_SYMBOL, alloc_string_copy(token->file), token->source_loc);
+        set_parser_err_copy(s->err, PARSER_ERR_REDEFINED_SYMBOL, token);
+
         s->err->redefined_symbol = alloc_string_copy(token->spelling);
         s->err->was_typedef_name = item->type == ID_TYPE_TYPEDEF_NAME;
         s->err->prev_def_file = alloc_string_copy(item->file);
         s->err->prev_def_loc = item->source_loc;
-         return false;
+        return false;
     } else {
         return true;
     }

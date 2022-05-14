@@ -38,6 +38,7 @@ TEST(parser_state) {
         } else {
             ASSERT(register_typedef_name(&s, item));
         }
+        ASSERT(err.type == PARSER_ERR_NONE);
     }
 
     char test_string[STRLEN] = {0};
@@ -51,6 +52,7 @@ TEST(parser_state) {
             ASSERT(is_typedef_name(&s, test_string));
             ASSERT(!is_enum_constant(&s, test_string));
         }
+        ASSERT(err.type == PARSER_ERR_NONE);
     }
 
     const size_t num_steps = NUM_STRINGS / SCOPE_INTERVAL + 1;
@@ -67,6 +69,7 @@ TEST(parser_state) {
                 ASSERT(is_typedef_name(&s, pop_test_string));
                 ASSERT(!is_enum_constant(&s, pop_test_string));
             }
+            ASSERT(err.type == PARSER_ERR_NONE);
         }
 
         // test if values from popped scopes are not present anymore
@@ -75,6 +78,8 @@ TEST(parser_state) {
 
             ASSERT(!is_enum_constant(&s, pop_test_string));
             ASSERT(!is_typedef_name(&s, pop_test_string));
+
+            ASSERT(err.type == PARSER_ERR_NONE);
         }
 
         // do not pop last scope
@@ -84,6 +89,7 @@ TEST(parser_state) {
     }
 
     ASSERT(s._len == 1);
+    ASSERT(err.type == PARSER_ERR_NONE);
 
     struct token insert_test_token = {
         .type = IDENTIFIER,

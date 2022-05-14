@@ -16,10 +16,8 @@ void expected_tokens_error(struct parser_state* s,
     assert(expected);
     assert(num_expected >= 1);
     
-    init_parser_err(s->err,
-                   PARSER_ERR_EXPECTED_TOKENS,
-                   s->it->file == NULL ? NULL : alloc_string_copy(s->it->file),
-                   s->it->source_loc);
+    set_parser_err(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it);
+
     const size_t bytes = sizeof(enum token_type) * num_expected;
     s->err->expected = xmalloc(bytes);
     memcpy(s->err->expected, expected, bytes);

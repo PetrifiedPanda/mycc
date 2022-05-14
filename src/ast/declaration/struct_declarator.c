@@ -2,8 +2,6 @@
 
 #include <assert.h>
 
-#include "error.h"
-
 #include "util/mem.h"
 
 bool parse_struct_declarator_inplace(struct parser_state* s,
@@ -29,10 +27,7 @@ bool parse_struct_declarator_inplace(struct parser_state* s,
     } else {
         res->bit_field = NULL;
         if (!res->decl) {
-            set_error_file(ERR_PARSER,
-                           s->it->file,
-                           s->it->source_loc,
-                           "Expected a declarator or a bit field specifier");
+            set_parser_err(s->err, PARSER_ERR_EMPTY_STRUCT_DECLARATOR, s->it);
             return false;
         }
     }

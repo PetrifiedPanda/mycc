@@ -2,8 +2,6 @@
 
 #include <assert.h>
 
-#include "error.h"
-
 #include "util/mem.h"
 
 // There might be a better way to do this
@@ -38,10 +36,7 @@ bool parse_param_declaration_inplace(struct parser_state* s,
     }
 
     if (found_typedef) {
-        set_error_file(ERR_PARSER,
-                       s->it->file,
-                       s->it->source_loc,
-                       "typedef is not allowed in function declarator");
+        set_parser_err(s->err, PARSER_ERR_TYPEDEF_PARAM_DECL, s->it);
         free_declaration_specs(res->decl_specs);
         return false;
     }

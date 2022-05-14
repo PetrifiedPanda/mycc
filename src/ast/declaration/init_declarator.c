@@ -1,7 +1,5 @@
 #include "ast/declaration/init_declarator.h"
 
-#include "error.h"
-
 #include "util/mem.h"
 
 bool parse_init_declarator_typedef_inplace(struct parser_state* s,
@@ -12,10 +10,7 @@ bool parse_init_declarator_typedef_inplace(struct parser_state* s,
     }
 
     if (s->it->type == ASSIGN) {
-        set_error_file(ERR_PARSER,
-                       s->it->file,
-                       s->it->source_loc,
-                       "Initializer not allowed in typedef");
+        set_parser_err(s->err, PARSER_ERR_TYPEDEF_INIT, s->it);
         return false;
     }
 

@@ -2,8 +2,6 @@
 
 #include <assert.h>
 
-#include "error.h"
-
 #include "util/mem.h"
 
 #include "parser/parser_util.h"
@@ -30,27 +28,23 @@ static inline bool is_standalone_type_spec(enum token_type t) {
 
 struct type_specs create_type_specs() {
     return (struct type_specs){
-        .mods =
-            {
-                .is_unsigned = false,
-                .is_signed = false,
-                .is_short = false,
-                .num_long = 0,
-                .is_complex = false,
-                .is_imaginary = false,
-            },
+        .mods = {
+            .is_unsigned = false,
+            .is_signed = false,
+            .is_short = false,
+            .num_long = 0,
+            .is_complex = false,
+            .is_imaginary = false,
+        },
         .has_specifier = false,
     };
 }
 
 static void cannot_combine_with_spec_err(const struct parser_state* s,
                                          enum token_type prev_spec) {
-    set_error_file(ERR_PARSER,
-                   s->it->file,
-                   s->it->source_loc,
-                   "Cannot combine %s with previous %s type specifier",
-                   get_type_str(s->it->type),
-                   get_type_str(prev_spec));
+    set_parser_err(s->err, PARSER_ERR_INCOMPATIBLE_TYPE_SPECS, s->it);
+    s->err->type_spec = s->it->type;
+    s->err->prev_type_spec = prev_spec;
 }
 
 bool update_type_specs(struct parser_state* s, struct type_specs* res) {
@@ -65,12 +59,8 @@ bool update_type_specs(struct parser_state* s, struct type_specs* res) {
             case DOUBLE:
             case BOOL:
                 if (res->has_specifier) {
-                    set_error_file(
-                        ERR_PARSER,
-                        s->it->file,
-                        s->it->source_loc,
-                        "Cannot combine %s with previous type specifier",
-                        get_type_str(s->it->type));
+                    set_parser_err(s->err, PARSER_ERR_DISALLOWED_TYPE_QUALS, s->it);
+                    s->err->incompatible_type = s->it->type;
                     free_type_specs_children(res);
                     return false;
                 }
@@ -158,13 +148,8 @@ bool update_type_specs(struct parser_state* s, struct type_specs* res) {
                 accept_it(s);
                 break;
             } else {
-                set_error_file(
-                    ERR_PARSER,
-                    s->it->file,
-                    s->it->source_loc,
-                    "Expected a type name but got %s with spelling %s",
-                    get_type_str(IDENTIFIER),
-                    s->it->spelling);
+                set_parser_err(s->err, PARSER_ERR_EXPECTED_TYPEDEF_NAME, s->it);
+                s->err->non_typedef_spelling = take_spelling(s->it);
                 return false;
             }
         }

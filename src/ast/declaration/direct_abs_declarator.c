@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "error.h"
-
 #include "util/mem.h"
 
 static void free_abs_arr_or_func_suffix(struct abs_arr_or_func_suffix* s);
@@ -70,10 +68,9 @@ static bool parse_abs_arr_or_func_suffix(struct parser_state* s,
                 if (s->it->type == STATIC) {
                     if (res->is_static) {
                         // TODO: maybe turn this into a warning?
-                        set_error_file(ERR_PARSER,
-                                       s->it->file,
-                                       s->it->source_loc,
-                                       "Expected only one use of static");
+                        set_parser_err(s->err,
+                                       PARSER_ERR_ARR_DOUBLE_STATIC,
+                                       s->it);
                         free_abs_arr_or_func_suffix(res);
                         return false;
                     } else {
@@ -85,10 +82,9 @@ static bool parse_abs_arr_or_func_suffix(struct parser_state* s,
 
             if (s->it->type == RINDEX) {
                 if (res->is_static) {
-                    set_error_file(ERR_PARSER,
-                                   s->it->file,
-                                   s->it->source_loc,
-                                   "Expected array size after use of static");
+                    set_parser_err(s->err,
+                                   PARSER_ERR_ARR_STATIC_NO_LEN,
+                                   s->it);
                     free_abs_arr_or_func_suffix(res);
                     return false;
                 }
