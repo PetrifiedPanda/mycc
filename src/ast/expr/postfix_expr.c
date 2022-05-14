@@ -2,8 +2,6 @@
 
 #include <assert.h>
 
-#include "error.h"
-
 #include "util/mem.h"
 
 #include "parser/parser_util.h"
@@ -196,7 +194,7 @@ struct postfix_expr* parse_postfix_expr_type_name(struct parser_state* s,
     accept_it(s);
 
     res->init_list = parse_init_list(s);
-    if (get_last_error() != ERR_NONE) {
+    if (s->err->type != PARSER_ERR_NONE) {
         goto fail;
     }
 
