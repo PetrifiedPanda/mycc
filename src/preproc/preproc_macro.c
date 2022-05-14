@@ -228,7 +228,7 @@ static bool expand_func_macro(struct preproc_state* state,
     }
     
     assert((macro->is_variadic && args.len == macro->num_args + 1) ||
-            !macro->is_variadic && args.len == macro->num_args);
+           (!macro->is_variadic && args.len == macro->num_args));
 
     const size_t exp_len = get_expansion_len(macro, &args);
     const size_t macro_call_len = macro_end - &state->tokens[macro_idx];
