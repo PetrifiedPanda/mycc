@@ -4,8 +4,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "error.h"
-
 #include "util/mem.h"
 
 #include "parser/parser_util.h"
@@ -33,13 +31,14 @@ static bool register_identifier(struct parser_state* s,
 static enum identifier_type get_item(const struct parser_state* s,
                                      const char* spell);
 
-struct parser_state create_parser_state(struct token* tokens) {
+struct parser_state create_parser_state(struct token* tokens, struct parser_err* err) {
     assert(tokens);
 
     struct parser_state res = {
         .it = tokens,
         ._len = 1,
         ._scope_maps = xmalloc(sizeof(struct string_hash_map)),
+        .err = err,
     };
     res._scope_maps[0] = create_string_hash_map(sizeof(struct identifier_type_data));
     return res;
@@ -54,7 +53,7 @@ void free_parser_state(struct parser_state* s) {
 
 bool accept(struct parser_state* s, enum token_type expected) {
     if (s->it->type != expected) {
-        expected_token_error(expected, s->it);
+        expected_token_error(s, expected);
         return false;
     } else {
         ++s->it;
@@ -113,20 +112,11 @@ static bool register_identifier(struct parser_state* s,
     };
     const struct identifier_type_data* item = string_hash_map_insert(&s->_scope_maps[s->_len - 1], token->spelling, &to_insert);
     if (item != &to_insert) {
-        const char* type_string = item->type == ID_TYPE_ENUM_CONSTANT
-                                        ? "enum constant"
-                                        : "typedef name";
-        struct source_location loc = item->source_loc;
-         set_error_file(
-            ERR_PARSER,
-            item->file,
-            item->source_loc,
-            "Redefined symbol %s that is already defined as %s in %s(%zu,%zu)",
-            token->spelling,
-            type_string,
-            item->file,
-            loc.line,
-            loc.index);
+        init_parser_err(s->err, PARSER_ERR_REDEFINED_SYMBOL, alloc_string_copy(token->file), token->source_loc);
+        s->err->redefined_symbol = alloc_string_copy(token->spelling);
+        s->err->was_typedef_name = item->type == ID_TYPE_TYPEDEF_NAME;
+        s->err->prev_def_file = alloc_string_copy(item->file);
+        s->err->prev_def_loc = item->source_loc;
          return false;
     } else {
         return true;

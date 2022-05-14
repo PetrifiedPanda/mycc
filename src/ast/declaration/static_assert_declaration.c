@@ -21,7 +21,7 @@ struct static_assert_declaration* parse_static_assert_declaration(
     }
 
     if (s->it->type != STRING_LITERAL) {
-        expected_token_error(STRING_LITERAL, s->it);
+        expected_token_error(s, STRING_LITERAL);
         free_const_expr(const_expr);
         return NULL;
     }

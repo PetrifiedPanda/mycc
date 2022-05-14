@@ -1,43 +1,30 @@
 #include "parser/parser_util.h"
 
+#include <string.h>
 #include <assert.h>
 
-#include "error.h"
+#include "parser/parser_err.h"
+#include "util/mem.h"
 
-void expected_token_error(enum token_type expected, const struct token* got) {
-    assert(got);
-    expected_tokens_error(&expected, 1, got);
+void expected_token_error(struct parser_state* s, enum token_type expected) {
+    expected_tokens_error(s, &expected, 1);
 }
 
-void expected_tokens_error(const enum token_type* expected,
-                           size_t num_expected,
-                           const struct token* got) {
+void expected_tokens_error(struct parser_state* s,
+                           const enum token_type* expected,
+                           size_t num_expected) {
     assert(expected);
-    assert(got);
-
-    bool not_eof = got->type != INVALID;
-
-    if (not_eof) {
-        set_error_file(ERR_PARSER,
-                       got->file,
-                       got->source_loc,
-                       "Expected token of type %s",
-                       get_type_str(expected[0]));
-    } else {
-        set_error(ERR_PARSER,
-                  "Expected token of type %s",
-                  get_type_str(expected[0]));
-    }
-
-    for (size_t i = 1; i < num_expected; ++i) {
-        append_error_msg(", %s", get_type_str(expected[i]));
-    }
-
-    if (not_eof) {
-        append_error_msg(" but got token of type %s", get_type_str(got->type));
-    } else {
-        append_error_msg(" but got to end of file");
-    }
+    assert(num_expected >= 1);
+    
+    init_parser_err(s->err,
+                   PARSER_ERR_EXPECTED_TOKENS,
+                   s->it->file == NULL ? NULL : alloc_string_copy(s->it->file),
+                   s->it->source_loc);
+    const size_t bytes = sizeof(enum token_type) * num_expected;
+    s->err->expected = xmalloc(bytes);
+    memcpy(s->err->expected, expected, bytes);
+    s->err->num_expected = num_expected;
+    s->err->got = s->it->type;
 }
 
 static bool is_type_spec_token(const struct parser_state* s,

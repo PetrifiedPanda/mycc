@@ -175,9 +175,9 @@ static struct direct_declarator* parse_direct_declarator_base(
     } else {
         free(res);
         enum token_type expected[] = {LBRACKET, IDENTIFIER};
-        expected_tokens_error(expected,
-                              sizeof expected / sizeof(enum token_type),
-                              s->it);
+        expected_tokens_error(s,
+                              expected,
+                              sizeof expected / sizeof(enum token_type));
         return NULL;
     }
 

@@ -19,9 +19,13 @@ int main(int argc, char** argv) {
         struct token* tokens = preproc(filename);
         check_error();
         convert_preproc_tokens(tokens);
-
-        struct translation_unit tl = parse_tokens(tokens);
-        check_error();
+        
+        struct parser_err err = create_parser_err();
+        struct translation_unit tl = parse_tokens(tokens, &err);
+        if (err.type != PARSER_ERR_NONE) {
+            print_parser_err(&err);
+            return EXIT_FAILURE;
+        }
 
         printf("Finished parsing %s successfully\n", filename);
 

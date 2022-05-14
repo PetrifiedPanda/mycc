@@ -5,15 +5,18 @@
 
 #include "token.h"
 
+#include "parser/parser_err.h"
+
 #include "util/string_hash_map.h"
 
 struct parser_state {
     struct token* it;
     size_t _len;
     struct string_hash_map* _scope_maps;
+    struct parser_err* err;
 };
 
-struct parser_state create_parser_state(struct token* tokens);
+struct parser_state create_parser_state(struct token* tokens, struct parser_err* err);
 void free_parser_state(struct parser_state* s);
 
 bool accept(struct parser_state* s, enum token_type expected);

@@ -28,15 +28,15 @@ bool parse_designator_inplace(struct parser_state* s, struct designator* res) {
                 res->identifier = create_identifier(spell);
                 return true;
             } else {
-                expected_token_error(IDENTIFIER, s->it);
+                expected_token_error(s, IDENTIFIER);
                 return false;
             }
         }
         default: {
             enum token_type expected[] = {LINDEX, DOT};
-            expected_tokens_error(expected,
-                                  sizeof expected / sizeof(enum token_type),
-                                  s->it);
+            expected_tokens_error(s,
+                                  expected,
+                                  sizeof expected / sizeof(enum token_type));
             return false;
         }
     }

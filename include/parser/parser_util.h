@@ -7,11 +7,11 @@
 #include "token.h"
 #include "parser/parser_state.h"
 
-void expected_token_error(enum token_type expected, const struct token* got);
+void expected_token_error(struct parser_state* s, enum token_type expected);
 
-void expected_tokens_error(const enum token_type* expected,
-                           size_t num_expected,
-                           const struct token* got);
+void expected_tokens_error(struct parser_state* s,
+                           const enum token_type* expected,
+                           size_t num_expected);
 
 /**
  *

@@ -41,7 +41,7 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
                 res = create_goto_statement(create_identifier(spell));
                 break;
             } else {
-                expected_token_error(IDENTIFIER, s->it);
+                expected_token_error(s, IDENTIFIER);
                 return NULL;
             }
         }
@@ -71,9 +71,9 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
 
         default: {
             enum token_type expected[] = {GOTO, CONTINUE, BREAK, RETURN};
-            expected_tokens_error(expected,
-                                  sizeof expected / sizeof(enum token_type),
-                                  s->it);
+            expected_tokens_error(s,
+                                  expected,
+                                  sizeof expected / sizeof(enum token_type));
             return NULL;
         }
     }

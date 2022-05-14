@@ -169,14 +169,16 @@ bool update_type_specs(struct parser_state* s, struct type_specs* res) {
             }
         }
         default: {
-            enum token_type expected[] = {ATOMIC,
-                                          STRUCT,
-                                          UNION,
-                                          ENUM,
-                                          TYPEDEF_NAME};
-            expected_tokens_error(expected,
-                                  sizeof(expected) / sizeof(enum token_type),
-                                  s->it);
+            enum token_type expected[] = {
+                ATOMIC,
+                STRUCT,
+                UNION,
+                ENUM,
+                TYPEDEF_NAME,
+            };
+            expected_tokens_error(s,
+                                  expected,
+                                  sizeof(expected) / sizeof(enum token_type));
             return false;
         }
     }

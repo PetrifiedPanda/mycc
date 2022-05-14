@@ -6,7 +6,8 @@
 
 TEST(parser_state) {
     struct token dummy = {.type = INVALID};
-    struct parser_state s = create_parser_state(&dummy);
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(&dummy, &err);
 
     enum {
         NUM_STRINGS = 1000,
@@ -92,18 +93,30 @@ TEST(parser_state) {
     };
     ASSERT(register_enum_constant(&s, &insert_test_token));
     ASSERT(!register_typedef_name(&s, &insert_test_token));
-    ASSERT_ERROR(get_last_error(), ERR_PARSER);
 
-    clear_last_error();
+    ASSERT(err.type == PARSER_ERR_REDEFINED_SYMBOL);
+    ASSERT_STR(err.redefined_symbol, "Test");
+    ASSERT(!err.was_typedef_name);
+    ASSERT_STR(err.prev_def_file, "file.c");
+    ASSERT_SIZE_T(err.prev_def_loc.line, (size_t)0);
+    ASSERT_SIZE_T(err.prev_def_loc.index, (size_t)0);
+    
+    free_parser_err(&err);
+    err = create_parser_err();
 
     ASSERT(!register_enum_constant(&s, &insert_test_token));
-    ASSERT_ERROR(get_last_error(), ERR_PARSER);
 
-    clear_last_error();
+    ASSERT(err.type == PARSER_ERR_REDEFINED_SYMBOL);
+    ASSERT_STR(err.redefined_symbol, "Test");
+    ASSERT(!err.was_typedef_name);
+    ASSERT_STR(err.prev_def_file, "file.c");
+    ASSERT_SIZE_T(err.prev_def_loc.line, (size_t)0);
+    ASSERT_SIZE_T(err.prev_def_loc.index, (size_t)0);
 
     for (size_t i = 0; i < NUM_STRINGS; ++i) {
         free_token(&dummy_string_tokens[i]);
     }
+    free_parser_err(&err);
     free_parser_state(&s);
 }
 

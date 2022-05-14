@@ -186,8 +186,10 @@ static void check_external_decl_func_def_typedef(
 TEST(no_preproc) {
     const char* file = "../test/files/no_preproc.c";
     struct token* tokens = tokenize(file);
-    struct translation_unit tl = parse_tokens(tokens);
-    ASSERT_NO_ERROR();
+    
+    struct parser_err err = create_parser_err();
+    struct translation_unit tl = parse_tokens(tokens, &err);
+    ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)10);
 
     const struct storage_class sc = {false, false, false, false, false, false};
@@ -231,8 +233,10 @@ TEST(no_preproc) {
 TEST(parser_testfile) {
     const char* file = "../test/files/parser_testfile.c";
     struct token* tokens = tokenize(file);
-    struct translation_unit tl = parse_tokens(tokens);
-    ASSERT_NO_ERROR();
+    
+    struct parser_err err = create_parser_err();
+    struct translation_unit tl = parse_tokens(tokens, &err);
+    ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)14);
 
     const struct storage_class sc = {false, false, false, false, false, false};
@@ -290,8 +294,10 @@ TEST(parser_testfile) {
 TEST(large_testfile) {
     const char* file = "../test/files/large_testfile.c";
     struct token* tokens = tokenize(file);
-    struct translation_unit tl = parse_tokens(tokens);
-    ASSERT_NO_ERROR();
+    
+    struct parser_err err = create_parser_err();
+    struct translation_unit tl = parse_tokens(tokens, &err);
+    ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)88);
 
     const struct storage_class sc = {false, false, false, false, false, false};

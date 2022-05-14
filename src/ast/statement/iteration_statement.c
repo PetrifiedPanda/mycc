@@ -187,9 +187,9 @@ struct iteration_statement* parse_iteration_statement(struct parser_state* s) {
         default: {
             enum token_type expected[] = {WHILE, DO, FOR};
 
-            expected_tokens_error(expected,
-                                  sizeof expected / sizeof(enum token_type),
-                                  s->it);
+            expected_tokens_error(s,
+                                  expected,
+                                  sizeof expected / sizeof(enum token_type));
             return NULL;
         }
     }

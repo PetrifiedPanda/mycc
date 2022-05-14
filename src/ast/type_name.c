@@ -24,9 +24,9 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
             DOUBLE,   SIGNED,   UNSIGNED, BOOL, COMPLEX,      IMAGINARY,
             ATOMIC,   STRUCT,   UNION,    ENUM, TYPEDEF_NAME, CONST,
             RESTRICT, VOLATILE, ATOMIC};
-        expected_tokens_error(expected,
-                              sizeof expected / sizeof(enum token_type),
-                              s->it);
+        expected_tokens_error(s,
+                              expected,
+                              sizeof expected / sizeof(enum token_type));
         return false;
     }
 

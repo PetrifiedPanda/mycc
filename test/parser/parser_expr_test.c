@@ -20,12 +20,13 @@ static void check_primary_expr_constant(enum token_type type,
     struct token* tokens = tokenize_string(
         spell,
         "not a file so I can write whatever here");
-
-    struct parser_state s = create_parser_state(tokens);
+    
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(tokens, &err);
 
     struct primary_expr* res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
-    ASSERT_NO_ERROR();
+    ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
     ASSERT(res->type == PRIMARY_EXPR_CONSTANT);
@@ -42,11 +43,12 @@ static void check_primary_expr_constant(enum token_type type,
 static void check_primary_expr_string(const char* spell) {
     struct token* tokens = tokenize_string(spell, "no_file.c");
 
-    struct parser_state s = create_parser_state(tokens);
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(tokens, &err);
 
     struct primary_expr* res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
-    ASSERT_NO_ERROR();
+    ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
     ASSERT(res->type == PRIMARY_EXPR_STRING_LITERAL);
@@ -60,10 +62,13 @@ static void check_primary_expr_string(const char* spell) {
 
 static void check_primary_expr_func_name() {
     struct token* tokens = tokenize_string("__func__", "not a file so go away");
-    struct parser_state s = create_parser_state(tokens);
+
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(tokens, &err);
+
     struct primary_expr* res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
-    ASSERT_NO_ERROR();
+    ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
     ASSERT(res->string.is_func == true);
@@ -77,12 +82,13 @@ static void check_primary_expr_func_name() {
 static void check_primary_expr_identifier(const char* spell) {
     struct token* tokens = tokenize_string(spell, "a string");
 
-    struct parser_state s = create_parser_state(tokens);
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(tokens, &err);
 
     struct primary_expr* res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
-    ASSERT_NO_ERROR();
+    ASSERT(err.type == PARSER_ERR_NONE);
 
     ASSERT(res->type == PRIMARY_EXPR_IDENTIFIER);
     ASSERT_STR(res->identifier->spelling, spell);
@@ -99,10 +105,12 @@ static void check_primary_expr_bracket(const char* code,
                                        enum token_type expr_type) {
     struct token* tokens = tokenize_string(code, "not_file.c");
 
-    struct parser_state s = create_parser_state(tokens);
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(tokens, &err);
+
     struct primary_expr* res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
-    ASSERT_NO_ERROR();
+    ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
     ASSERT(res->type == PRIMARY_EXPR_BRACKET);
@@ -119,7 +127,8 @@ static void primary_expr_generic_sel_test() {
         "default: default_value )",
         "not_file.c");
 
-    struct parser_state s = create_parser_state(tokens);
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(tokens, &err);
     struct token insert_token = {
         .type = IDENTIFIER,
         .spelling = "TypedefName",
@@ -129,7 +138,7 @@ static void primary_expr_generic_sel_test() {
 
     register_typedef_name(&s, &insert_token);
     struct primary_expr* res = parse_primary_expr(&s);
-    ASSERT_NO_ERROR();
+    ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_NOT_NULL(res);
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
@@ -192,11 +201,12 @@ TEST(primary_expr) {
 TEST(unary_expr) {
     {
         struct token* tokens = tokenize_string("++-- sizeof *name", "skfjdlfs");
-
-        struct parser_state s = create_parser_state(tokens);
+        
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
         struct unary_expr* res = parse_unary_expr(&s);
         ASSERT_NOT_NULL(res);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
 
         ASSERT(res->type == UNARY_UNARY_OP);
 
@@ -216,9 +226,10 @@ TEST(unary_expr) {
     {
         struct token* tokens = tokenize_string("++++--++--100", "ksjflkdsjf");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
         struct unary_expr* res = parse_unary_expr(&s);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
 
         ASSERT_SIZE_T(res->len, (size_t)5);
@@ -243,9 +254,11 @@ TEST(unary_expr) {
     {
         struct token* tokens = tokenize_string("sizeof(int)", "no");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct unary_expr* res = parse_unary_expr(&s);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
@@ -262,9 +275,11 @@ TEST(unary_expr) {
     {
         struct token* tokens = tokenize_string("~*var", "a file");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct unary_expr* res = parse_unary_expr(&s);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
@@ -292,9 +307,11 @@ static void test_postfix_expr_intializer(bool tailing_comma) {
     }
     struct token* tokens = tokenize_string(code, "not_a_file.c");
 
-    struct parser_state s = create_parser_state(tokens);
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(tokens, &err);
+
     struct postfix_expr* res = parse_postfix_expr(&s);
-    ASSERT_NO_ERROR();
+    ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_NOT_NULL(res);
 
     ASSERT(res->is_primary == false);
@@ -323,10 +340,12 @@ TEST(postfix_expr) {
         struct token* tokens = tokenize_string("test.ident->other++--++",
                                               "sjfkds");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct postfix_expr* res = parse_postfix_expr(&s);
         ASSERT_NOT_NULL(res);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
 
         ASSERT(res->is_primary);
 
@@ -359,9 +378,11 @@ TEST(postfix_expr) {
             "test[i_am_id]()[23](another_id, 34, id)",
             "not_a_file.c");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct postfix_expr* res = parse_postfix_expr(&s);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
 
         ASSERT_SIZE_T(res->len, (size_t)4);
@@ -420,10 +441,12 @@ TEST(assign_expr) {
     {
         struct token* tokens = tokenize_string("10", "blah");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct assign_expr* res = parse_assign_expr(&s);
         ASSERT_NOT_NULL(res);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
         check_assign_expr_id_or_const(res, "10", I_CONSTANT);
@@ -437,20 +460,26 @@ TEST(assign_expr) {
         struct token* tokens = tokenize_string("x = 100 += y *= 100.0 /= 2",
                                               "not a file");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
         struct assign_expr* res = parse_assign_expr(&s);
         ASSERT_NOT_NULL(res);
         ASSERT_SIZE_T(res->len, (size_t)4);
+        ASSERT(err.type == PARSER_ERR_NONE);
 
-        enum token_type expected_ops[] = {ASSIGN,
-                                          ADD_ASSIGN,
-                                          MUL_ASSIGN,
-                                          DIV_ASSIGN};
+        enum token_type expected_ops[] = {
+            ASSIGN,
+            ADD_ASSIGN,
+            MUL_ASSIGN,
+            DIV_ASSIGN,
+        };
 
-        enum token_type expected_types[] = {IDENTIFIER,
-                                            I_CONSTANT,
-                                            IDENTIFIER,
-                                            F_CONSTANT};
+        enum token_type expected_types[] = {
+            IDENTIFIER,
+            I_CONSTANT,
+            IDENTIFIER,
+            F_CONSTANT,
+        };
 
         const char* expected_spellings[] = {"x", "100", "y", "100.0"};
 
@@ -480,9 +509,10 @@ TEST(assign_expr) {
     {
         struct token* tokens = tokenize_string("(char)100", "not_file.c");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
         struct assign_expr* res = parse_assign_expr(&s);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
 
         ASSERT_SIZE_T(res->len, (size_t)0);
@@ -497,10 +527,12 @@ TEST(assign_expr) {
         struct token* tokens = tokenize_string("(struct a_struct){1, var} = 0.0",
                                               "not_a_file.c");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct assign_expr* res = parse_assign_expr(&s);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
 
         ASSERT_SIZE_T(res->len, (size_t)1);
@@ -535,10 +567,12 @@ TEST(assign_expr) {
         struct token* tokens = tokenize_string("var *= (double)12",
                                               "not_a_file.c");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct assign_expr* res = parse_assign_expr(&s);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
 
         ASSERT_SIZE_T(res->len, (size_t)1);
@@ -560,10 +594,12 @@ TEST(assign_expr) {
             "var ^= (struct a_struct){1, var}",
             "not_a_file.c");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct assign_expr* res = parse_assign_expr(&s);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
 
         ASSERT_SIZE_T(res->len, (size_t)1);
@@ -615,10 +651,14 @@ void check_assign_expr_single_assign(struct assign_expr* expr,
 TEST(expr) {
     struct token* tokens = tokenize_string("a = 10, b *= x, c += 3.1", "file.c");
     ASSERT_NOT_NULL(tokens);
-    struct parser_state s = create_parser_state(tokens);
+
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(tokens, &err);
+
     struct expr* expr = parse_expr(&s);
     ASSERT_NOT_NULL(expr);
-    
+    ASSERT(err.type == PARSER_ERR_NONE);
+
     ASSERT_SIZE_T(expr->len, (size_t)3);
     check_assign_expr_single_assign(&expr->assign_exprs[0], "a", ASSIGN, "10", I_CONSTANT);
     check_assign_expr_single_assign(&expr->assign_exprs[1], "b", MUL_ASSIGN, "x", IDENTIFIER);

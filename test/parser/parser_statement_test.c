@@ -11,9 +11,12 @@
 
 static void check_jump_statement(const char* spell, enum token_type t) {
     struct token* tokens = tokenize_string(spell, "skfjlskf");
+    
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(tokens, &err);
 
-    struct parser_state s = create_parser_state(tokens);
     struct jump_statement* res = parse_jump_statement(&s);
+    ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_NOT_NULL(res);
 
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
@@ -27,17 +30,19 @@ static void check_jump_statement(const char* spell, enum token_type t) {
 static void check_expected_semicolon_jump_statement(const char* spell) {
     struct token* tokens = tokenize_string(spell, "file.c");
 
-    struct parser_state s = create_parser_state(tokens);
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(tokens, &err);
 
     struct jump_statement* res = parse_jump_statement(&s);
     ASSERT_NULL(res);
 
-    ASSERT_ERROR(get_last_error(), ERR_PARSER);
-    ASSERT_STR(get_error_string(),
-               "Expected token of type SEMICOLON but got to end of file");
+    ASSERT(err.type == PARSER_ERR_EXPECTED_TOKENS);
+    ASSERT_SIZE_T(err.num_expected, (size_t)1);
+    ASSERT_TOKEN_TYPE(err.expected[0], SEMICOLON);
+    ASSERT_TOKEN_TYPE(err.got, INVALID);
 
-    clear_last_error();
     free_tokens(tokens);
+    free_parser_err(&err);
     free_parser_state(&s);
 }
 
@@ -45,8 +50,11 @@ TEST(jump_statement) {
     {
         struct token* tokens = tokenize_string("goto my_cool_label;", "file");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct jump_statement* res = parse_jump_statement(&s);
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
 
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
@@ -72,28 +80,37 @@ TEST(jump_statement) {
         struct token* tokens = tokenize_string("not_what_was_expected;",
                                               "a_file.c");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
 
         struct jump_statement* res = parse_jump_statement(&s);
         ASSERT_NULL(res);
-        ASSERT_ERROR(get_last_error(), ERR_PARSER);
+        
+        ASSERT_STR(err.base.file, "a_file.c");
+        ASSERT_SIZE_T(err.base.loc.line, (size_t)1);
+        ASSERT_SIZE_T(err.base.loc.index, (size_t)1);
 
-        ASSERT_STR(get_error_string(),
-                   "a_file.c(1,1):\nExpected token of type GOTO, CONTINUE, "
-                   "BREAK, RETURN but got token of type IDENTIFIER");
+        ASSERT_SIZE_T(err.num_expected, (size_t)4);
+        ASSERT_TOKEN_TYPE(err.got, IDENTIFIER);
+        ASSERT_TOKEN_TYPE(err.expected[0], GOTO);
+        ASSERT_TOKEN_TYPE(err.expected[1], CONTINUE);
+        ASSERT_TOKEN_TYPE(err.expected[2], BREAK);
+        ASSERT_TOKEN_TYPE(err.expected[3], RETURN);
 
-        clear_last_error();
         free_tokens(tokens);
+        free_parser_err(&err);
         free_parser_state(&s);
     }
 
     {
         struct token* tokens = tokenize_string("return 600;", "file.c");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct jump_statement* res = parse_jump_statement(&s);
         ASSERT_NOT_NULL(res);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
         ASSERT_TOKEN_TYPE(res->type, RETURN);
@@ -122,9 +139,11 @@ TEST(statement) {
                        "}";
     struct token* tokens = tokenize_string(code, "file.c");
 
-    struct parser_state s = create_parser_state(tokens);
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(tokens, &err);
+
     struct statement* res = parse_statement(&s);
-    ASSERT_NO_ERROR();
+    ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
     ASSERT_NOT_NULL(res);
 

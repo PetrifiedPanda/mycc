@@ -17,9 +17,9 @@ struct selection_statement* parse_selection_statement(struct parser_state* s) {
             free(res);
             enum token_type expected[] = {IF, SWITCH};
 
-            expected_tokens_error(expected,
-                                  sizeof expected / sizeof(enum token_type),
-                                  s->it);
+            expected_tokens_error(s,
+                                  expected,
+                                  sizeof expected / sizeof(enum token_type));
             return NULL;
         }
         res->is_if = false;

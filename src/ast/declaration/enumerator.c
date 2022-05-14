@@ -11,7 +11,7 @@ bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* res) {
     assert(res);
 
     if (s->it->type != IDENTIFIER) {
-        expected_token_error(IDENTIFIER, s->it);
+        expected_token_error(s, IDENTIFIER);
         return false;
     }
 

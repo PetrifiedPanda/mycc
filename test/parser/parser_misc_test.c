@@ -35,9 +35,11 @@ TEST(enum_list) {
             "ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, baz, BAD",
             "saffds");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct enum_list res = parse_enum_list(&s);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
         ASSERT_SIZE_T(res.len, (size_t)EXPECTED_LEN);
         ASSERT_NOT_NULL(res.enums);
@@ -64,10 +66,12 @@ TEST(enum_list) {
             "ENUM_VAL1 = 0, enum_VAl2 = 1000.0, enum_val_3 = n, enum_val_4 = "
             "test, foo, bar, baz, BAD",
             "saffds");
+        
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
 
-        struct parser_state s = create_parser_state(tokens);
         struct enum_list res = parse_enum_list(&s);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
         ASSERT_SIZE_T(res.len, (size_t)EXPECTED_LEN);
         ASSERT_NOT_NULL(res.enums);
@@ -111,8 +115,11 @@ TEST(enum_spec) {
             "enum my_enum { TEST1, TEST2, TEST3, TEST4 }",
             "sfjlfjk");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct enum_spec* res = parse_enum_spec(&s);
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
@@ -133,9 +140,11 @@ TEST(enum_spec) {
             "enum {TEST1, TEST2, TEST3, TEST4, }",
             "jsfjsf");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct enum_spec* res = parse_enum_spec(&s);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
@@ -157,11 +166,13 @@ TEST(designation) {
             ".test[19].what_is_this.another_one = ",
             "jsalkf");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct designation* res = parse_designation(&s);
         ASSERT_NOT_NULL(res);
         ASSERT_NOT_NULL(res->designators.designators);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
 
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
@@ -191,9 +202,11 @@ TEST(designation) {
         struct token* tokens = tokenize_string("[0.5].blah[420].oof[2][10] =",
                                               "stetsd");
 
-        struct parser_state s = create_parser_state(tokens);
+        struct parser_err err = create_parser_err();
+        struct parser_state s = create_parser_state(tokens, &err);
+
         struct designation* res = parse_designation(&s);
-        ASSERT_NO_ERROR();
+        ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
         ASSERT_NOT_NULL(res->designators.designators);
 
@@ -237,11 +250,13 @@ TEST(static_assert_declaration) {
         "_Static_assert(12345, \"This is a string literal\");",
         "slkfjsak");
 
-    struct parser_state s = create_parser_state(tokens);
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(tokens, &err);
+
     struct static_assert_declaration* res = parse_static_assert_declaration(&s);
     ASSERT_NOT_NULL(res);
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
-    ASSERT_NO_ERROR();
+    ASSERT(err.type == PARSER_ERR_NONE);
 
     ASSERT_STR(res->err_msg.spelling, "\"This is a string literal\"");
     check_const_expr_id_or_const(res->const_expr, "12345", I_CONSTANT);

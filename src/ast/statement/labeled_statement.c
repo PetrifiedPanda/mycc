@@ -41,9 +41,9 @@ struct labeled_statement* parse_labeled_statement(struct parser_state* s) {
             free(res);
             enum token_type expected[] = {IDENTIFIER, CASE, DEFAULT};
 
-            expected_tokens_error(expected,
-                                  sizeof expected / sizeof(enum token_type),
-                                  s->it);
+            expected_tokens_error(s,
+                                  expected,
+                                  sizeof expected / sizeof(enum token_type));
             return NULL;
         }
     }

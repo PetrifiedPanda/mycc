@@ -44,7 +44,7 @@ struct enum_spec* parse_enum_spec(struct parser_state* s) {
             goto fail;
         }
     } else if (id == NULL) {
-        expected_token_error(LBRACE, s->it);
+        expected_token_error(s, LBRACE);
         goto fail;
     }
 
