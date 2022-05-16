@@ -24,6 +24,7 @@ int main(int argc, char** argv) {
         struct translation_unit tl = parse_tokens(tokens, &err);
         if (err.type != PARSER_ERR_NONE) {
             print_parser_err(&err);
+            free_parser_err(&err);
             return EXIT_FAILURE;
         }
 
