@@ -26,7 +26,7 @@ static void variadic(int m, char v, MyStruct s, ...);
 
 extern int some_func();
 
-int main() {
+int main(void) {
     register _Atomic(enum my_enum) type = VAL_1;
 
     void (*func_ptr)(int, char, MyStruct, ...) = variadic;
