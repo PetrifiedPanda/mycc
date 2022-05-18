@@ -13,126 +13,136 @@ static void free_arr_suffix(struct arr_suffix* s) {
     }
 }
 
+static bool parse_arr_suffix(struct parser_state* s,
+                             struct arr_or_func_suffix* res) {
+    res->type = ARR_OR_FUNC_ARRAY;
+    struct arr_suffix* suffix = &res->arr_suffix;
+    *suffix = (struct arr_suffix){
+        .is_static = false,
+        .type_quals = create_type_quals(),
+        .is_asterisk = false,
+        .arr_len = NULL,
+    };
+    accept_it(s);
+    if (s->it->type == ASTERISK) {
+        accept_it(s);
+        suffix->is_asterisk = true;
+        if (!accept(s, RINDEX)) {
+            return false;
+        }
+        return true;
+    } else if (s->it->type == RINDEX) {
+        accept_it(s);
+        return true;
+    }
+
+    if (s->it->type == STATIC) {
+        accept_it(s);
+        suffix->is_static = true;
+    }
+
+    if (is_type_qual(s->it->type)) {
+        suffix->type_quals = parse_type_qual_list(s);
+        if (!is_valid_type_quals(&suffix->type_quals)) {
+            return false;
+        }
+
+        if (s->it->type == ASTERISK) {
+            if (suffix->is_static) {
+                set_parser_err(s->err,
+                               PARSER_ERR_ARR_STATIC_ASTERISK,
+                               s->it);
+                free_arr_suffix(suffix);
+                return false;
+            }
+            suffix->is_asterisk = true;
+            if (!accept(s, RINDEX)) {
+                free_arr_suffix(suffix);
+                return false;
+            }
+            return true;
+        }
+    }
+
+    if (s->it->type == STATIC) {
+        if (suffix->is_static) { 
+            // TODO: maybe turn this into a warning
+            set_parser_err(s->err,
+                           PARSER_ERR_ARR_DOUBLE_STATIC,
+                           s->it);
+            free_arr_suffix(suffix);
+            return false;
+        }
+        suffix->is_static = true;
+        accept_it(s);
+    }
+
+    if (s->it->type == RINDEX) {
+        if (suffix->is_static) {
+            set_parser_err(s->err,
+                           PARSER_ERR_ARR_STATIC_NO_LEN,
+                           s->it);
+            free_arr_suffix(suffix);
+            return false;
+        }
+        accept_it(s);
+    } else {
+        suffix->arr_len = parse_assign_expr(s);
+        if (!(suffix->arr_len && accept(s, RINDEX))) {
+            free_arr_suffix(suffix);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool parse_func_suffix(struct parser_state* s,
+                              struct arr_or_func_suffix* res) {
+    assert(s->it->type == LBRACKET);
+
+    accept_it(s);
+    if (s->it->type == IDENTIFIER
+        && !is_typedef_name(s, s->it->spelling)) {
+        res->type = ARR_OR_FUNC_FUN_OLD_PARAMS;
+        res->fun_params = parse_identifier_list(s);
+        if (res->fun_params.len == 0) {
+            return false;
+        }
+
+        if (!accept(s, RBRACKET)) {
+            free_identifier_list(&res->fun_params);
+            return false;
+        }
+    } else if (s->it->type == RBRACKET) {
+        accept_it(s);
+        res->type = ARR_OR_FUNC_FUN_EMPTY;
+    } else {
+        res->type = ARR_OR_FUNC_FUN_PARAMS;
+        res->fun_types = parse_param_type_list(s);
+        if (res->fun_types.param_list == NULL) {
+            return false;
+        }
+
+        if (!accept(s, RBRACKET)) {
+            free_param_type_list(&res->fun_types);
+            return false;
+        }
+    }
+    return true;
+}
+
 static bool parse_arr_or_func_suffix(struct parser_state* s,
                                      struct arr_or_func_suffix* res) {
     assert(res);
     assert(s->it->type == LINDEX || s->it->type == LBRACKET);
 
     switch (s->it->type) {
-        case LINDEX: {
-            res->type = ARR_OR_FUNC_ARRAY;
-            struct arr_suffix* suffix = &res->arr_suffix;
-            *suffix = (struct arr_suffix){
-                .is_static = false,
-                .type_quals = create_type_quals(),
-                .is_asterisk = false,
-                .arr_len = NULL,
-            };
-            accept_it(s);
-            if (s->it->type == ASTERISK) {
-                accept_it(s);
-                suffix->is_asterisk = true;
-                if (!accept(s, RINDEX)) {
-                    return false;
-                }
-                return true;
-            } else if (s->it->type == RINDEX) {
-                accept_it(s);
-                return true;
-            }
+        case LINDEX:
+            return parse_arr_suffix(s, res);
 
-            if (s->it->type == STATIC) {
-                accept_it(s);
-                suffix->is_static = true;
-            }
-
-            if (is_type_qual(s->it->type)) {
-                suffix->type_quals = parse_type_qual_list(s);
-                if (!is_valid_type_quals(&suffix->type_quals)) {
-                    return false;
-                }
-
-                if (s->it->type == ASTERISK) {
-                    if (suffix->is_static) {
-                        set_parser_err(s->err,
-                                       PARSER_ERR_ARR_STATIC_ASTERISK,
-                                       s->it);
-                        free_arr_suffix(suffix);
-                        return false;
-                    }
-                    suffix->is_asterisk = true;
-                    if (!accept(s, RINDEX)) {
-                        free_arr_suffix(suffix);
-                        return false;
-                    }
-                    return true;
-                }
-            }
-
-            if (s->it->type == STATIC) {
-                if (suffix->is_static) { 
-                    // TODO: maybe turn this into a warning
-                    set_parser_err(s->err,
-                                   PARSER_ERR_ARR_DOUBLE_STATIC,
-                                   s->it);
-                    free_arr_suffix(suffix);
-                    return false;
-                }
-                suffix->is_static = true;
-                accept_it(s);
-            }
-
-            if (s->it->type == RINDEX) {
-                if (suffix->is_static) {
-                    set_parser_err(s->err,
-                                   PARSER_ERR_ARR_STATIC_NO_LEN,
-                                   s->it);
-                    free_arr_suffix(suffix);
-                    return false;
-                }
-                accept_it(s);
-            } else {
-                suffix->arr_len = parse_assign_expr(s);
-                if (!(suffix->arr_len && accept(s, RINDEX))) {
-                    free_arr_suffix(suffix);
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        case LBRACKET: {
-            accept_it(s);
-            if (s->it->type == IDENTIFIER
-                && !is_typedef_name(s, s->it->spelling)) {
-                res->type = ARR_OR_FUNC_FUN_PARAMS;
-                res->fun_params = parse_identifier_list(s);
-                if (res->fun_params.len == 0) {
-                    return false;
-                }
-
-                if (!accept(s, RBRACKET)) {
-                    free_identifier_list(&res->fun_params);
-                    return false;
-                }
-            } else if (s->it->type == RBRACKET) {
-                accept_it(s);
-                res->type = ARR_OR_FUNC_FUN_EMPTY;
-            } else {
-                res->type = ARR_OR_FUNC_FUN_TYPES;
-                res->fun_types = parse_param_type_list(s);
-                if (res->fun_types.param_list == NULL) {
-                    return false;
-                }
-
-                if (!accept(s, RBRACKET)) {
-                    free_param_type_list(&res->fun_types);
-                    return false;
-                }
-            }
-            return true;
-        }
+        case LBRACKET:
+            return parse_func_suffix(s, res);
 
         default: // UNREACHABLE
             assert(false);
@@ -229,10 +239,10 @@ static void free_children(struct direct_declarator* d) {
             case ARR_OR_FUNC_ARRAY:
                 free_arr_suffix(&item->arr_suffix);
                 break;
-            case ARR_OR_FUNC_FUN_TYPES:
+            case ARR_OR_FUNC_FUN_PARAMS:
                 free_param_type_list(&item->fun_types);
                 break;
-            case ARR_OR_FUNC_FUN_PARAMS:
+            case ARR_OR_FUNC_FUN_OLD_PARAMS:
                 free_identifier_list(&item->fun_params);
                 break;
             case ARR_OR_FUNC_FUN_EMPTY:

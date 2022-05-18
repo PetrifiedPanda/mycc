@@ -16,8 +16,8 @@ struct identifier;
 
 enum arr_or_func_suffix_type {
     ARR_OR_FUNC_ARRAY,
-    ARR_OR_FUNC_FUN_TYPES,
     ARR_OR_FUNC_FUN_PARAMS,
+    ARR_OR_FUNC_FUN_OLD_PARAMS,
     ARR_OR_FUNC_FUN_EMPTY
 };
 
