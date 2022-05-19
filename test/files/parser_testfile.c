@@ -152,7 +152,7 @@ _Thread_local int g_thread;
 
 struct struct_for_static_assert {
     _Static_assert(1, "if this failed that would be weird");
-    int n;
+    int n, (*func)(int);
 };
 
 _Static_assert(sizeof(g_thread) == sizeof(int), "");
