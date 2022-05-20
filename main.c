@@ -5,7 +5,7 @@
 #include "preproc/preproc.h"
 #include "parser/parser.h"
 
-static void check_error();
+static void check_error(void);
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
     }
 }
 
-static void check_error() {
+static void check_error(void) {
     if (get_last_error() != ERR_NONE) {
         fprintf(stderr, "%s\n", get_error_string());
         exit(EXIT_FAILURE);
