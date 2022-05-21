@@ -126,6 +126,7 @@ void free_parser_err(struct parser_err* err) {
             break;
         case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
             free(err->non_typedef_spelling);
+            break;
         default:
             break;
     }
