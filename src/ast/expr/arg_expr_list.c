@@ -16,7 +16,7 @@ struct arg_expr_list parse_arg_expr_list(struct parser_state* s) {
         return (struct arg_expr_list){.len = 0, .assign_exprs = NULL};
     }
 
-    size_t alloc_len = res.len = 1;
+    size_t alloc_len = res.len;
     while (s->it->type == COMMA) {
         accept_it(s);
         if (res.len == alloc_len) {
