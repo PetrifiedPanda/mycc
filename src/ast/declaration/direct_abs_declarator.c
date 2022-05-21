@@ -139,7 +139,8 @@ struct direct_abs_declarator* parse_direct_abs_declarator(
     }
 
     res->following_suffixes = NULL;
-    size_t alloc_len = res->len = 0;
+    res->len = 0;
+    size_t alloc_len = res->len;
     while (s->it->type == LBRACKET || s->it->type == LINDEX) {
         if (res->len == alloc_len) {
             grow_alloc((void**)&res->following_suffixes,
