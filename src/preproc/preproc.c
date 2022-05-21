@@ -44,8 +44,29 @@ static bool preproc_statement(struct preproc_state* res,
                               const char* line,
                               size_t line_num);
 
+static bool expand_all_macros(struct preproc_state* state, size_t start) {
+    // TODO: expand macros on added tokens
+    for (size_t i = start; i < state->len; ++i) {
+        const struct token* curr = &state->tokens[i];
+        if (curr->type == IDENTIFIER) {
+            const struct preproc_macro* macro = find_preproc_macro(curr->spelling);
+            if (macro != NULL) {
+                const struct token* macro_end = NULL;
+                if (macro->is_func_macro) {
+                    // TODO: find the closing bracket
+                }
+                if (!expand_preproc_macro(state, macro, i, macro_end)) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
 struct token* preproc_string(const char* str, const char* path) {
-    struct preproc_state res = {
+    struct preproc_state state = {
         .len = 0,
         .cap = 0,
         .tokens = NULL,
@@ -64,8 +85,9 @@ struct token* preproc_string(const char* str, const char* path) {
             memcpy(line, start, sizeof(char) * len);
             line[len] = '\0';
 
-            if ((line[0] == '#' && !preproc_statement(&res, line, line_num))
-                || !tokenize_line(&res,
+            const size_t prev_len = state.len;
+            if ((line[0] == '#' && !preproc_statement(&state, line, line_num))
+                || !tokenize_line(&state,
                                   line,
                                   line_num,
                                   path,
@@ -73,6 +95,8 @@ struct token* preproc_string(const char* str, const char* path) {
                 free(line);
                 goto fail;
             }
+
+            expand_all_macros(&state, prev_len);
 
             free(line);
             ++line_num;
@@ -84,15 +108,15 @@ struct token* preproc_string(const char* str, const char* path) {
         ++it;
     }
 
-    append_terminator_token(&res.tokens, res.len);
+    append_terminator_token(&state.tokens, state.len);
 
-    return res.tokens;
+    return state.tokens;
 
 fail:
-    for (size_t i = 0; i < res.len; ++i) {
-        free_token(&res.tokens[i]);
+    for (size_t i = 0; i < state.len; ++i) {
+        free_token(&state.tokens[i]);
     }
-    free(res.tokens);
+    free(state.tokens);
     return NULL;
 }
 
@@ -198,20 +222,7 @@ static bool preproc_file(struct preproc_state* state, const char* path) {
             goto fail;
         }
 
-        // TODO: expand macros on added tokens
-        for (size_t i = prev_len; i < state->len; ++i) {
-            const struct token* curr = &state->tokens[i];
-            if (curr->type == IDENTIFIER) {
-                struct preproc_macro* macro = find_preproc_macro(curr->spelling);
-                if (macro != NULL) {
-                    const struct token* macro_end = NULL;
-                    if (macro->is_func_macro) {
-                        // TODO: find the closing bracket
-                    }
-                    expand_preproc_macro(state, macro, i, macro_end);
-                }
-            }
-        }
+        expand_all_macros(state, prev_len);
 
         ++line_num;
 
