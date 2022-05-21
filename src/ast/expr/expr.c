@@ -16,8 +16,8 @@ bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
         free(res->assign_exprs);
         return false;
     }
-
-    size_t alloc_len = res->len = 1;
+    res->len = 1;
+    size_t alloc_len = res->len;
     while (s->it->type == COMMA) {
         accept_it(s);
         if (alloc_len == res->len) {
