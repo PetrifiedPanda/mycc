@@ -9,9 +9,10 @@
 
 static bool parse_add_expr_add_chain(struct parser_state* s,
                                      struct add_expr* res) {
-    size_t alloc_len = res->len = 0;
+    res->len = 0;
     res->add_chain = NULL;
 
+    size_t alloc_len = res->len;
     while (is_add_op(s->it->type)) {
         enum token_type op = s->it->type;
         accept_it(s);
