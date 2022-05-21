@@ -181,7 +181,7 @@ static size_t get_expansion_len(const struct preproc_macro* macro,
                                 const struct macro_args* args) {
     size_t len = 0;
     for (size_t i = 0; i < macro->expansion_len; ++i) {
-        struct token_or_arg* item = &macro->expansion[i];
+        const struct token_or_arg* item = &macro->expansion[i];
         if (item->is_arg) {
             len += args->arrs[item->arg_num].len;
         } else {
