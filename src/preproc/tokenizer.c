@@ -89,11 +89,9 @@ bool tokenize_line(struct preproc_state* res,
         enum token_type type = singlec_token_type(*s.it);
         if (type != INVALID
             && is_valid_singlec_token(type, s.prev, s.prev_prev)) {
-            if (type == DIV) {
-                if (s.it[1] == '/' || s.it[1] == '*') {
-                    handle_comments(&s, comment_not_terminated);
-                    continue;
-                }
+            if (type == DIV && (s.it[1] == '/' || s.it[1] == '*')) {
+                handle_comments(&s, comment_not_terminated);
+                continue;
             }
             if (s.it[1] != '\0') {
                 type = check_next(type, s.it + 1);
