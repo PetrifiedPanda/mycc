@@ -8,8 +8,9 @@
 #include "parser/parser_util.h"
 
 static bool parse_or_expr_rest(struct parser_state* s, struct or_expr* res) {
-    size_t alloc_len = res->len = 1;
+    res->len = 1;
 
+    size_t alloc_len = res->len;
     while (s->it->type == OR) {
         accept_it(s);
 
