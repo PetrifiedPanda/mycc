@@ -9,9 +9,10 @@
 
 static bool parse_cond_expr_conditionals(struct parser_state* s,
                                          struct cond_expr* res) {
-    size_t alloc_len = res->len = 0;
+    res->len = 0;
     res->conditionals = NULL;
 
+    size_t alloc_len = res->len;
     while (s->it->type == QMARK) {
         accept_it(s);
 
