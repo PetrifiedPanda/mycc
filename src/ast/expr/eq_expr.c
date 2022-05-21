@@ -11,9 +11,10 @@ static bool parse_eq_expr_eq_chain(struct parser_state* s,
                                    struct eq_expr* res) {
     assert(res->lhs);
 
-    size_t alloc_len = res->len = 0;
+    res->len = 0;
     res->eq_chain = NULL;
 
+    size_t alloc_len = res->len;
     while (is_eq_op(s->it->type)) {
         enum token_type op = s->it->type;
         accept_it(s);
