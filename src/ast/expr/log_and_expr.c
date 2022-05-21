@@ -10,7 +10,8 @@
 static bool parse_log_and_expr_rest(struct parser_state* s,
                                     struct log_and_expr* res) {
     assert(res);
-    size_t alloc_len = res->len = 1;
+    res->len = 1;
+    size_t alloc_len = res->len;
     while (s->it->type == AND_OP) {
         accept_it(s);
 
