@@ -15,6 +15,8 @@ static void free_arr_suffix(struct arr_suffix* s) {
 
 static bool parse_arr_suffix(struct parser_state* s,
                              struct arr_or_func_suffix* res) {
+    assert(s->it->type == LINDEX);
+
     res->type = ARR_OR_FUNC_ARRAY;
     struct arr_suffix* suffix = &res->arr_suffix;
     *suffix = (struct arr_suffix){
@@ -187,7 +189,8 @@ static struct direct_declarator* parse_direct_declarator_base(
     }
 
     res->suffixes = NULL;
-    size_t alloc_len = res->len = 0;
+    res->len = 0;
+    size_t alloc_len = res->len;
     while (s->it->type == LBRACKET || s->it->type == LINDEX) {
         if (alloc_len == res->len) {
             grow_alloc((void**)&res->suffixes,
@@ -247,6 +250,8 @@ static void free_children(struct direct_declarator* d) {
                 break;
             case ARR_OR_FUNC_FUN_EMPTY:
                 break;
+            default:
+                assert(false);
         }
     }
     free(d->suffixes);
