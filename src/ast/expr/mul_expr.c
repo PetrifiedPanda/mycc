@@ -9,9 +9,10 @@
 
 static bool parse_mul_expr_mul_chain(struct parser_state* s,
                                      struct mul_expr* res) {
-    size_t alloc_len = res->len = 0;
+    res->len = 0;
     res->mul_chain = NULL;
 
+    size_t alloc_len = res->len;
     while (is_mul_op(s->it->type)) {
         enum token_type op = s->it->type;
         accept_it(s);
