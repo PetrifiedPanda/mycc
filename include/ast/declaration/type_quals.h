@@ -18,6 +18,6 @@ void update_type_quals(struct parser_state* s, struct type_quals* quals);
 
 struct type_quals parse_type_qual_list(struct parser_state* s);
 
-bool is_valid_type_quals(struct type_quals* q);
+bool is_valid_type_quals(const struct type_quals* q);
 
 #endif
