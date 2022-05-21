@@ -10,7 +10,8 @@
 static bool parse_and_expr_rest(struct parser_state* s, struct and_expr* res) {
     assert(res->eq_exprs);
 
-    size_t alloc_len = res->len = 1;
+    res->len = 1;
+    size_t alloc_len = res->len;
 
     while (s->it->type == AND) {
         accept_it(s);
