@@ -11,9 +11,10 @@ static bool parse_rel_expr_rel_chain(struct parser_state* s,
                                      struct rel_expr* res) {
     assert(res->lhs);
 
-    size_t alloc_len = res->len = 0;
+    res->len = 0;
     res->rel_chain = NULL;
 
+    size_t alloc_len = res->len;
     while (is_rel_op(s->it->type)) {
         enum token_type op = s->it->type;
         accept_it(s);
