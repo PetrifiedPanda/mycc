@@ -14,7 +14,9 @@ struct compound_statement* parse_compound_statement(struct parser_state* s) {
 
     struct compound_statement* res = xmalloc(sizeof(struct compound_statement));
     res->items = NULL;
-    size_t alloc_len = res->len = 0;
+    res->len = 0;
+
+    size_t alloc_len = res->len;
     while (s->it->type != RBRACE) {
         if (res->len == alloc_len) {
             grow_alloc((void**)&res->items,
