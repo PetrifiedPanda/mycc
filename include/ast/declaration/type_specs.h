@@ -46,7 +46,7 @@ bool update_type_specs(struct parser_state* s, struct type_specs* q);
 
 void free_type_specs_children(struct type_specs* s);
 
-bool is_valid_type_specs(struct type_specs* s);
+bool is_valid_type_specs(const struct type_specs* s);
 
 #include "ast/declaration/atomic_type_spec.h"
 #include "ast/declaration/struct_union_spec.h"

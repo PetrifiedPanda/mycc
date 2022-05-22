@@ -193,11 +193,11 @@ void free_type_specs_children(struct type_specs* s) {
     }
 }
 
-bool is_valid_type_specs(struct type_specs* s) {
+bool is_valid_type_specs(const struct type_specs* s) {
     assert(s);
 
     if (!s->has_specifier) {
-        struct type_modifiers* mods = &s->mods;
+        const struct type_modifiers* mods = &s->mods;
         return mods->is_unsigned || mods->is_signed || mods->is_short
                || mods->num_long != 0 || mods->is_complex || mods->is_imaginary;
     }
