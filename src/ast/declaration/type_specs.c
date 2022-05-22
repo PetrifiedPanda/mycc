@@ -47,74 +47,72 @@ static void cannot_combine_with_spec_err(const struct parser_state* s,
     s->err->prev_type_spec = prev_spec;
 }
 
-bool update_type_specs(struct parser_state* s, struct type_specs* res) {
-    assert(res);
+static bool update_standalone_type_spec(struct parser_state* s, struct type_specs* res) {
+    switch (s->it->type) {
+        case VOID:
+        case CHAR:
+        case INT:
+        case FLOAT:
+        case DOUBLE:
+        case BOOL:
+            if (res->has_specifier) {
+                set_parser_err(s->err, PARSER_ERR_DISALLOWED_TYPE_QUALS, s->it);
+                s->err->incompatible_type = s->it->type;
+                free_type_specs_children(res);
+                return false;
+            }
+            res->has_specifier = true;
+            res->type = TYPESPEC_PREDEF;
+            res->type_spec = s->it->type;
+            break;
+        case SHORT:
+            if (res->mods.num_long != 0) {
+                cannot_combine_with_spec_err(s, LONG);
+                free_type_specs_children(res);
+                return false;
+            }
 
-    if (is_standalone_type_spec(s->it->type)) {
-        switch (s->it->type) {
-            case VOID:
-            case CHAR:
-            case INT:
-            case FLOAT:
-            case DOUBLE:
-            case BOOL:
-                if (res->has_specifier) {
-                    set_parser_err(s->err, PARSER_ERR_DISALLOWED_TYPE_QUALS, s->it);
-                    s->err->incompatible_type = s->it->type;
-                    free_type_specs_children(res);
-                    return false;
-                }
-                res->has_specifier = true;
-                res->type = TYPESPEC_PREDEF;
-                res->type_spec = s->it->type;
-                break;
-            case SHORT:
-                if (res->mods.num_long != 0) {
-                    cannot_combine_with_spec_err(s, LONG);
-                    free_type_specs_children(res);
-                    return false;
-                }
+            res->mods.is_short = true;
+            break;
+        case LONG:
+            if (res->mods.is_short) {
+                cannot_combine_with_spec_err(s, SHORT);
+                free_type_specs_children(res);
+                return false;
+            }
+            res->mods.num_long += 1;
+            break;
+        case SIGNED:
+            if (res->mods.is_unsigned) {
+                cannot_combine_with_spec_err(s, UNSIGNED);
+                free_type_specs_children(res);
+                return false;
+            }
+            res->mods.is_signed = true;
+            break;
+        case UNSIGNED:
+            if (res->mods.is_signed) {
+                cannot_combine_with_spec_err(s, SIGNED);
+                free_type_specs_children(res);
+                return false;
+            }
+            res->mods.is_unsigned = true;
+            break;
+        case COMPLEX:
+            res->mods.is_complex = true;
+            break;
+        case IMAGINARY:
+            res->mods.is_imaginary = true;
+            break;
 
-                res->mods.is_short = true;
-                break;
-            case LONG:
-                if (res->mods.is_short) {
-                    cannot_combine_with_spec_err(s, SHORT);
-                    free_type_specs_children(res);
-                    return false;
-                }
-                res->mods.num_long += 1;
-                break;
-            case SIGNED:
-                if (res->mods.is_unsigned) {
-                    cannot_combine_with_spec_err(s, UNSIGNED);
-                    free_type_specs_children(res);
-                    return false;
-                }
-                res->mods.is_signed = true;
-                break;
-            case UNSIGNED:
-                if (res->mods.is_signed) {
-                    cannot_combine_with_spec_err(s, SIGNED);
-                    free_type_specs_children(res);
-                    return false;
-                }
-                res->mods.is_unsigned = true;
-                break;
-            case COMPLEX:
-                res->mods.is_complex = true;
-                break;
-            case IMAGINARY:
-                res->mods.is_imaginary = true;
-                break;
-
-            default:
-                assert(false);
-        }
-        accept_it(s);
-        return true;
+        default:
+            assert(false);
     }
+    accept_it(s);
+    return true;
+}
 
+static bool update_non_standalone_type_spec(struct parser_state* s, struct type_specs* res) {
     switch (s->it->type) {
         case ATOMIC: {
             res->type = TYPESPEC_ATOMIC;
@@ -170,6 +168,16 @@ bool update_type_specs(struct parser_state* s, struct type_specs* res) {
 
     res->has_specifier = true;
     return true;
+}
+
+bool update_type_specs(struct parser_state* s, struct type_specs* res) {
+    assert(res);
+
+    if (is_standalone_type_spec(s->it->type)) {
+        return update_standalone_type_spec(s, res);
+    } else {
+        return update_non_standalone_type_spec(s, res);
+    }
 }
 
 void free_type_specs_children(struct type_specs* s) {
