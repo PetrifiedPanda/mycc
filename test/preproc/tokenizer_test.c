@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "error.h"
-
 #include "preproc/preproc.h"
 
 #include "../test_asserts.h"
@@ -72,7 +70,6 @@ TEST(simple) {
 
     const char* filename = "not_a_file.c";
     struct token* tokens = tokenize_string(code, filename);
-    ASSERT_NO_ERROR();
     ASSERT_NOT_NULL(tokens);
 
     struct token expected[] = {
@@ -152,7 +149,6 @@ TEST(file) {
     const char* filename = "../test/files/no_preproc.c";
 
     struct token* tokens = tokenize(filename);
-    ASSERT_NO_ERROR();
     ASSERT_NOT_NULL(tokens);
 
     struct token expected[] = {

@@ -1,11 +1,7 @@
 #include <stdio.h>
 
-#include "error.h"
-
 #include "preproc/preproc.h"
 #include "parser/parser.h"
-
-static void check_error(void);
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -15,16 +11,21 @@ int main(int argc, char** argv) {
 
     for (int i = 1; i < argc; ++i) {
         const char* filename = argv[i];
-
-        struct token* tokens = preproc(filename);
-        check_error();
+        
+        struct preproc_err preproc_err = create_preproc_err();
+        struct token* tokens = preproc(filename, &preproc_err);
+        if (preproc_err.type != PREPROC_ERR_NONE) {
+            print_preproc_err(&preproc_err);
+            free_preproc_err(&preproc_err);
+            return EXIT_FAILURE;
+        }
         convert_preproc_tokens(tokens);
         
-        struct parser_err err = create_parser_err();
-        struct translation_unit tl = parse_tokens(tokens, &err);
-        if (err.type != PARSER_ERR_NONE) {
-            print_parser_err(&err);
-            free_parser_err(&err);
+        struct parser_err parser_err = create_parser_err();
+        struct translation_unit tl = parse_tokens(tokens, &parser_err);
+        if (parser_err.type != PARSER_ERR_NONE) {
+            print_parser_err(&parser_err);
+            free_parser_err(&parser_err);
             return EXIT_FAILURE;
         }
 
@@ -32,13 +33,6 @@ int main(int argc, char** argv) {
 
         free_translation_unit(&tl);
         free_tokens(tokens);
-    }
-}
-
-static void check_error(void) {
-    if (get_last_error() != ERR_NONE) {
-        fprintf(stderr, "%s\n", get_error_string());
-        exit(EXIT_FAILURE);
     }
 }
 

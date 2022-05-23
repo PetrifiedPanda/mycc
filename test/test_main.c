@@ -7,8 +7,7 @@ jmp_buf test_jump_buf;
 
 GET_EXTERN_SUITE(error);
 
-TEST_MAIN_BEGIN(9) {
-    TEST_MAIN_ADD(error);
+TEST_MAIN_BEGIN(8) {
     TEST_MAIN_ADD_LIST(preproc);
     TEST_MAIN_ADD_LIST(parser);
 }

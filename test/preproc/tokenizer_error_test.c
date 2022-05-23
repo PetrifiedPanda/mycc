@@ -1,5 +1,3 @@
-#include "error.h"
-
 #include "preproc/preproc.h"
 
 #include "../test.h"
@@ -7,42 +5,49 @@
 
 TEST(unterminated_literal) {
     {
+        struct preproc_err err = create_preproc_err();
         struct token* tokens = preproc_string("\"this is a string literal",
-                                              "file.c");
+                                              "file.c",
+                                              &err);
         ASSERT_NULL(tokens);
-        ASSERT_ERROR(get_last_error(), ERR_TOKENIZER);
-
-        ASSERT_STR(get_error_string(),
-                   "file.c(1,1):\n"
-                   "String literal not properly terminated");
-
-        clear_last_error();
+        
+        ASSERT(err.type == PREPROC_ERR_UNTERMINATED_LIT);
+        ASSERT_SIZE_T(err.base.loc.line, (size_t)1);
+        ASSERT_SIZE_T(err.base.loc.index, (size_t)1);
+        ASSERT_STR(err.base.file, "file.c");
+        ASSERT(!err.is_char_lit);
+        
+        free_preproc_err(&err);
     }
     {
+        struct preproc_err err = create_preproc_err();
         struct token* tokens = preproc_string(
             "int n = 10;\nchar c = \'char literal that cannot exist",
-            "file.c");
+            "file.c",
+            &err);
         ASSERT_NULL(tokens);
-        ASSERT_ERROR(get_last_error(), ERR_TOKENIZER);
-
-        ASSERT_STR(get_error_string(),
-                   "file.c(2,10):\n"
-                   "Char literal not properly terminated");
-
-        clear_last_error();
+        
+        ASSERT(err.type == PREPROC_ERR_UNTERMINATED_LIT);
+        ASSERT_SIZE_T(err.base.loc.line, (size_t)2);
+        ASSERT_SIZE_T(err.base.loc.index, (size_t)10);
+        ASSERT_STR(err.base.file, "file.c");
+        ASSERT(err.is_char_lit);
+        
+        free_preproc_err(&err);
     }
     // TODO: escaped newlines when implemented
 }
 
 TEST(invalid_identifier) {
-    struct token* tokens = preproc_string("int in$valid = 10;", "file.c");
+    struct preproc_err err = create_preproc_err();
+    struct token* tokens = preproc_string("int in$valid = 10;", "file.c", &err);
     ASSERT_NULL(tokens);
-    ASSERT_ERROR(get_last_error(), ERR_TOKENIZER);
+    
+    ASSERT(err.type == PREPROC_ERR_INVALID_ID);
 
-    ASSERT_STR(get_error_string(),
-               "file.c(1,5):\nInvalid identifier: in$valid");
+    ASSERT_STR(err.invalid_id, "in$valid");
 
-    clear_last_error();
+    free_preproc_err(&err);
 }
 
 TEST_SUITE_BEGIN(tokenizer_error, 2) {

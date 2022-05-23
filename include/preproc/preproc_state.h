@@ -3,9 +3,12 @@
 
 #include <stddef.h>
 
+#include "preproc/preproc_err.h"
+
 struct preproc_state {
     size_t len, cap;
     struct token* tokens;
+    struct preproc_err* err;
 };
 
 struct preproc_macro;

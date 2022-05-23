@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "token_type.h"
-#include "error.h"
 
 #include "test.h"
 
@@ -81,24 +80,5 @@
         }                                                                      \
     } while (0)
 
-#define ASSERT_ERROR(got, expected)                                            \
-    do {                                                                       \
-        if ((got) != (expected)) {                                             \
-            PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             get_error_type_str(expected),                     \
-                             get_error_type_str(got));                         \
-        }                                                                      \
-    } while (0)
-
-#define ASSERT_NO_ERROR()                                                      \
-    do {                                                                       \
-        enum error_type assert_no_error_type = get_last_error();               \
-        if (assert_no_error_type != ERR_NONE) {                                \
-            PRINT_ASSERT_ERR(                                                  \
-                "Expected no error but got %s with message:\n\t%s",            \
-                get_error_type_str(assert_no_error_type),                      \
-                get_error_string());                                           \
-        }                                                                      \
-    } while (0)
-
 #endif
+

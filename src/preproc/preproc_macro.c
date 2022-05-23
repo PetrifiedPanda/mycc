@@ -3,8 +3,6 @@
 #include <assert.h>
 #include <string.h>
 
-#include "error.h"
-
 #include "util/mem.h"
 
 static bool expand_func_macro(struct preproc_state* state,
@@ -120,7 +118,8 @@ static void free_macro_args(struct macro_args* args) {
 struct macro_args collect_macro_args(struct token* args_start,
                                      const struct token* limit_ptr,
                                      size_t expected_args,
-                                     bool is_variadic) {
+                                     bool is_variadic,
+                                     struct preproc_err* err) {
     assert(args_start->type == LBRACKET);
 
     size_t cap = is_variadic ? expected_args + 1 : expected_args;
@@ -145,26 +144,24 @@ struct macro_args collect_macro_args(struct token* args_start,
     }
     
     if (res.len < expected_args) {
-        const char* at_least_str = is_variadic ? " at least" : "";
-        set_error_file(ERR_PREPROC,
-                       it->file,
-                       it->source_loc,
-                       "Too few arguments in function-like macro invocation: "
-                       "Expected%s %zu arguments",
-                       at_least_str,
-                       expected_args);
+        char* file = it->file;
+        it->file = NULL;
+        set_preproc_err(err, PREPROC_ERR_MACRO_ARG_COUNT, file, it->source_loc);
+        err->expected_arg_count = expected_args;
+        err->is_variadic = is_variadic;
+        err->too_few_args = true;
         goto fail;
     } else if (is_variadic) {
         assert(it->type == COMMA);
         res.arrs[res.len] = collect_until(it + 1, limit_ptr);
         ++res.len;
     } else if (it != limit_ptr) {
-        set_error_file(ERR_PREPROC,
-                       it->file,
-                       it->source_loc,
-                       "Too many arguments in function-like macro invocation: "
-                       "Expected only %zu arguments",
-                       expected_args);
+        char* file = it->file;
+        it->file = NULL;
+        set_preproc_err(err, PREPROC_ERR_MACRO_ARG_COUNT, file, it->source_loc);
+        err->expected_arg_count = expected_args;
+        err->is_variadic = is_variadic;
+        err->too_few_args = false;
         goto fail;
     }
 
@@ -221,9 +218,10 @@ static bool expand_func_macro(struct preproc_state* state,
     struct macro_args args = collect_macro_args(state->tokens + macro_idx + 1,
                                                 macro_end,
                                                 macro->num_args,
-                                                macro->is_variadic);
+                                                macro->is_variadic,
+                                                state->err);
     if (args.len == 0 && macro->num_args != 0) {
-        assert(get_last_error() != ERR_NONE);
+        assert(state->err->type != PREPROC_ERR_NONE);
         return false;
     }
     

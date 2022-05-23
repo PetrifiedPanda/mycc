@@ -6,7 +6,6 @@
 #include <assert.h>
 
 #include "token.h"
-#include "error.h"
 
 #include "util/mem.h"
 
@@ -403,20 +402,13 @@ static enum token_type get_char_lit_type(const char* buf,
     }
 }
 
-static void unterminated_literal_err(char terminator,
+static void unterminated_literal_err(struct preproc_err* err,
+                                     char terminator,
                                      struct source_location start_loc,
                                      const char* filename) {
-    const char* literal_type_str;
-    if (terminator == '\"') {
-        literal_type_str = "String";
-    } else {
-        literal_type_str = "Char";
-    }
-    set_error_file(ERR_TOKENIZER,
-                   filename,
-                   start_loc,
-                   "%s literal not properly terminated",
-                   literal_type_str);
+    const bool is_char_lit = terminator == '\'';
+    set_preproc_err_copy(err, PREPROC_ERR_UNTERMINATED_LIT, filename, start_loc);
+    err->is_char_lit = is_char_lit;
 }
 
 static bool handle_character_literal(struct tokenizer_state* s,
@@ -476,7 +468,7 @@ static bool handle_character_literal(struct tokenizer_state* s,
         if (dyn_buf != NULL) {
             free(dyn_buf);
         }
-        unterminated_literal_err(terminator, start_loc, s->current_file);
+        unterminated_literal_err(res->err, terminator, start_loc, s->current_file);
         return false;
     } else {
         bool is_dyn = dyn_buf != NULL;
@@ -493,17 +485,7 @@ static bool handle_character_literal(struct tokenizer_state* s,
         enum token_type type = get_char_lit_type(is_dyn ? dyn_buf : spell_buf,
                                                  buf_idx,
                                                  terminator);
-
-        if (type == INVALID) {
-            if (is_dyn) {
-                free(dyn_buf);
-            }
-            set_error_file(ERR_TOKENIZER,
-                           s->current_file,
-                           start_loc,
-                           "Terminated literal is of unknown type");
-            return false;
-        }
+        assert(type != INVALID);
 
         if (is_dyn) {
             add_token(res, type, dyn_buf, start_loc, s->current_file);
@@ -566,11 +548,9 @@ static bool handle_other(struct tokenizer_state* s, struct preproc_state* res) {
     } else if (is_valid_identifier(buf_to_check, buf_idx)) {
         type = IDENTIFIER;
     } else {
-        set_error_file(ERR_TOKENIZER,
-                       s->current_file,
-                       start_loc,
-                       "Invalid identifier: %s",
-                       buf_to_check);
+        set_preproc_err_copy(res->err, PREPROC_ERR_INVALID_ID, s->current_file, start_loc);
+        char* id_spell = buf_to_check != dyn_buf ? alloc_string_copy(buf_to_check) : dyn_buf;
+        res->err->invalid_id = id_spell;
         if (buf_to_check == dyn_buf) {
             free(dyn_buf);
         }
@@ -585,3 +565,4 @@ static bool handle_other(struct tokenizer_state* s, struct preproc_state* res) {
 
     return true;
 }
+

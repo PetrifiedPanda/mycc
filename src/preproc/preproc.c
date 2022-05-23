@@ -5,29 +5,35 @@
 #include <string.h>
 #include <assert.h>
 
-#include "error.h"
-
-#include "preproc/preproc_macro.h"
 #include "token_type.h"
+
 #include "util/mem.h"
 
+#include "preproc/preproc_macro.h"
 #include "preproc/preproc_state.h"
 #include "preproc/tokenizer.h"
 
-static bool preproc_file(struct preproc_state* state, const char* path);
+static bool preproc_file(struct preproc_state* state,
+                         const char* path,
+                         const char* include_file,
+                         struct source_location include_loc);
+
 static enum token_type keyword_type(const char* spelling);
 
 static void append_terminator_token(struct token** tokens, size_t len);
 void convert_preproc_tokens(struct token* tokens);
 
-struct token* preproc(const char* path) {
+struct token* preproc(const char* path, struct preproc_err* err) {
+    assert(err);
+
     struct preproc_state state = {
         .len = 0,
         .cap = 0,
         .tokens = NULL,
+        .err = err,
     };
 
-    if (!preproc_file(&state, path)) {
+    if (!preproc_file(&state, path, NULL, (struct source_location){0, 0})) {
         for (size_t i = 0; i < state.len; ++i) {
             free_token(&state.tokens[i]);
         }
@@ -65,11 +71,14 @@ static bool expand_all_macros(struct preproc_state* state, size_t start) {
     return true;
 }
 
-struct token* preproc_string(const char* str, const char* path) {
+struct token* preproc_string(const char* str, const char* path, struct preproc_err* err) {
+    assert(err);
+
     struct preproc_state state = {
         .len = 0,
         .cap = 0,
         .tokens = NULL,
+        .err = err,
     };
 
     const char* it = str;
@@ -192,10 +201,26 @@ static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) {
     return res;
 }
 
-static bool preproc_file(struct preproc_state* state, const char* path) {
+static void file_err(struct preproc_err* err,
+                     const char* path,
+                     const char* include_file,
+                     struct source_location include_loc,
+                     bool open_fail) {
+    assert(path);
+    
+    char* file = include_file == NULL ? NULL : alloc_string_copy(include_file);
+    set_preproc_err(err, PREPROC_ERR_FILE_FAIL, file, include_loc);
+    err->fail_file = alloc_string_copy(path);
+    err->open_fail = open_fail;
+}
+
+static bool preproc_file(struct preproc_state* state,
+                         const char* path,
+                         const char* include_file,
+                         struct source_location include_loc) {
     FILE* file = fopen(path, "r");
     if (!file) {
-        // TODO: error
+        file_err(state->err, path, include_file, include_loc, true);
         return false;
     }
 
@@ -232,15 +257,13 @@ static bool preproc_file(struct preproc_state* state, const char* path) {
     }
 
     if (fclose(file) != 0) {
-        // TODO: error
+        file_err(state->err, path, include_file, include_loc, false);
         return false;
     }
     return true;
 
 fail:
-    if (fclose(file) != 0) {
-        // TODO: wat do
-    }
+    fclose(file);
     return false;
 }
 
@@ -355,3 +378,4 @@ static enum token_type keyword_type(const char* spell) {
         return IDENTIFIER;
     }
 }
+

@@ -11,6 +11,7 @@
 struct parser_err create_parser_err() {
     return (struct parser_err){
         .type = PARSER_ERR_NONE,
+        .base.file = NULL,
     };
 }
 
