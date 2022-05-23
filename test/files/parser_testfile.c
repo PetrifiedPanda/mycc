@@ -130,7 +130,6 @@ static int*** do_shit(n, m) int n; int m; {
     while (1) {
         break;
     }
-
     return (arr[0] == 37 ? size : (arr[1] == 37 ? type_size : -123123));
 }
 
@@ -144,8 +143,19 @@ _Noreturn static void variadic(int m, char v, MyStruct s, ...) {
     return;
 }
 
-void strcpy(char* dst, const char* src) {
+void strcpy_for_some_reason(int len, char* dst,
+                            const char* src,
+                            int arr[static 10],
+                            float ast_arr[*],
+                            char *vol_arr[volatile],
+                            MyStruct asterisk_arr[restrict *],
+                            char static_qual[static volatile 10],
+                            const int qual_static[restrict static 32]) {
     while (*dst++ = *src++);
+    int (*cursed_func)(double [*],
+                       char [static volatile restrict 10],
+                       char * [restrict volatile static 69],
+                       int [restrict]);
 }
 
 _Thread_local int g_thread;

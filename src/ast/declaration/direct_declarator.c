@@ -57,6 +57,7 @@ static bool parse_arr_suffix(struct parser_state* s,
                 free_arr_suffix(suffix);
                 return false;
             }
+            accept_it(s);
             suffix->is_asterisk = true;
             if (!accept(s, RINDEX)) {
                 free_arr_suffix(suffix);

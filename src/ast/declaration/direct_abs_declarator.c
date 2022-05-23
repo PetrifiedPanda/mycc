@@ -44,6 +44,8 @@ static bool parse_abs_arr_suffix(struct parser_state* s,
     } else if (s->it->type == ASTERISK) {
         res->type = ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY;
         res->has_asterisk = true;
+        accept_it(s);
+        res->assign = NULL;
         if (!accept(s, RINDEX)) {
             return false;
         }
@@ -86,7 +88,7 @@ static bool parse_abs_arr_suffix(struct parser_state* s,
             free_abs_arr_or_func_suffix(res);
             return false;
         }
-
+        res->assign = NULL;
         accept_it(s);
     } else {
         res->assign = parse_assign_expr(s);

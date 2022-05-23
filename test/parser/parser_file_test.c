@@ -284,8 +284,8 @@ TEST(parser_testfile) {
                                         fs,
                                         0,
                                         VOID,
-                                        "strcpy",
-                                        1);
+                                        "strcpy_for_some_reason",
+                                        2);
 
     free_translation_unit(&tl);
     free_tokens(tokens);
