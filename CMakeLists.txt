@@ -16,7 +16,15 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 endif()
 
-file(GLOB Sources src/*.c src/preproc/*.c src/ast/*.c src/ast/expr/*.c src/ast/statement/*.c src/ast/declaration/*.c src/ast/initializer/*.c src/parser/*.c src/util/*.c)
+file(GLOB Sources src/*.c
+                  src/util/*.c
+                  src/preproc/*.c
+                  src/ast/*.c
+                  src/ast/expr/*.c
+                  src/ast/statement/*.c
+                  src/ast/declaration/*.c
+                  src/ast/initializer/*.c
+                  src/parser/*.c)
 
 set(Lib mycclib)
 
