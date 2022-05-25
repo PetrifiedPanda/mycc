@@ -160,8 +160,9 @@ struct macro_args collect_macro_args(struct token* args_start,
         assert(it == limit_ptr);
         ++res.len;
     } else if (is_variadic && res.len == expected_args) {
-        assert(it == limit_ptr);
+        assert(it == limit_ptr || it == args_start + 1);
         res.arrs[res.len] = collect_until(it, limit_ptr);
+        it += res.arrs[res.len].len;
         ++res.len;
     }
     

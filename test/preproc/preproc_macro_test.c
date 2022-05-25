@@ -191,6 +191,28 @@ TEST(func_like_variadic) {
 
     test_preproc_macro(&macro1, 2, 9, "res = CALL_FUNC(printf, \"Hello World %d\", 89);", "res = printf(\"Hello World %d\", 89);");
     test_preproc_macro(&macro1, 0, 3, "CALL_FUNC(function);", "function();");
+    
+    // #define ONLY_VARARGS(...) 1, 2, __VA_ARGS__
+    struct token_or_arg ex2[] = {
+        {.is_arg = false, .token = {I_CONSTANT, "1", macro_file, {1, 27}}},
+        {.is_arg = false, .token = {COMMA, NULL, macro_file, {1, 28}}},
+        {.is_arg = false, .token = {I_CONSTANT, "2", macro_file, {1, 30}}},
+        {.is_arg = false, .token = {COMMA, NULL, macro_file, {1, 31}}},
+        {.is_arg = true, .arg_num = 0},
+    };
+
+    const struct preproc_macro macro2 = {
+        .spelling = (char*)"ONLY_VARARGS",
+        .is_func_macro = true,
+        .num_args = 0,
+        .is_variadic = true,
+
+        .expansion_len = sizeof(ex2) / sizeof(struct token_or_arg),
+        .expansion = ex2,
+    };
+
+    test_preproc_macro(&macro2, 3, 5, "int n = ONLY_VARARGS();", "int n = 1, 2,;");
+    test_preproc_macro(&macro2, 2, 7, "m = ONLY_VARARGS(3, 4);", "m = 1, 2, 3, 4;");
 }
 
 TEST_SUITE_BEGIN(preproc_macro, 4) {
