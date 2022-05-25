@@ -133,10 +133,6 @@ struct macro_args collect_macro_args(struct token* args_start,
 
     struct token* it = args_start + 1;
     while (res.len < expected_args && it != limit_ptr) {
-        if (res.len == cap) {
-            grow_alloc((void**)&res.arrs, &cap, sizeof(struct token_arr));
-        }
-
         res.arrs[res.len] = collect_macro_arg(it, limit_ptr);
         it += res.arrs[res.len].len;
         
