@@ -10,9 +10,9 @@ TEST(parser_state) {
     struct parser_state s = create_parser_state(&dummy, &err);
 
     enum {
-        NUM_STRINGS = 1000,
+        NUM_STRINGS = 450,
         STRLEN = NUM_STRINGS + 1,
-        SCOPE_INTERVAL = 200
+        SCOPE_INTERVAL = 150
     };
     _Static_assert(
         NUM_STRINGS % SCOPE_INTERVAL == 0,
