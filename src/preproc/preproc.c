@@ -50,6 +50,25 @@ static bool preproc_statement(struct preproc_state* res,
                               const char* line,
                               size_t line_num);
 
+static const struct token* find_macro_end(const struct preproc_state* state, 
+                                          size_t start) {
+    const struct token* it = &state->tokens[start];
+    assert(it->type == LBRACKET);
+    ++it;
+    
+    const struct token* const last_ptr = &state->tokens[state->len - 1];
+    size_t open_bracket_count = 0;
+    while (it != last_ptr && open_bracket_count != 0 && it->type != RBRACKET) {
+        if (it->type == LBRACKET) {
+            ++open_bracket_count;
+        } else if (it->type == RBRACKET) {
+            --open_bracket_count;
+        }
+        ++it;
+    }
+    return it;
+}
+
 static bool expand_all_macros(struct preproc_state* state, size_t start) {
     // TODO: expand macros on added tokens
     for (size_t i = start; i < state->len; ++i) {
@@ -57,10 +76,9 @@ static bool expand_all_macros(struct preproc_state* state, size_t start) {
         if (curr->type == IDENTIFIER) {
             const struct preproc_macro* macro = find_preproc_macro(curr->spelling);
             if (macro != NULL) {
-                const struct token* macro_end = NULL;
-                if (macro->is_func_macro) {
-                    // TODO: find the closing bracket
-                }
+                const struct token* const macro_end = macro->is_func_macro 
+                                        ? find_macro_end(state, start) 
+                                        : NULL;
                 if (!expand_preproc_macro(state, macro, i, macro_end)) {
                     return false;
                 }
