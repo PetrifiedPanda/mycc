@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
         if (parser_err.type != PARSER_ERR_NONE) {
             print_parser_err(&parser_err);
             free_parser_err(&parser_err);
+            free_tokens(tokens);
             return EXIT_FAILURE;
         }
 
