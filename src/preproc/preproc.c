@@ -51,9 +51,9 @@ static bool preproc_statement(struct preproc_state* res,
                               size_t line_num);
 
 static const struct token* find_macro_end(const struct preproc_state* state, 
-                                          size_t start) {
-    const struct token* it = &state->tokens[start];
-    assert(it->type == LBRACKET);
+                                          const struct token* macro_start) {
+    const struct token* it = macro_start;
+    assert(it->type == IDENTIFIER);
     ++it;
     
     const struct token* const last_ptr = &state->tokens[state->len - 1];
@@ -66,6 +66,15 @@ static const struct token* find_macro_end(const struct preproc_state* state,
         }
         ++it;
     }
+
+    if (it == last_ptr && it->type != RBRACKET) {
+        // TODO: need to load more lines until eof or closing bracket
+        set_preproc_err_copy(state->err,
+                        PREPROC_ERR_UNTERMINATED_MACRO,
+                        macro_start->file, 
+                        macro_start->source_loc);
+        return NULL;
+    }
     return it;
 }
 
@@ -76,9 +85,17 @@ static bool expand_all_macros(struct preproc_state* state, size_t start) {
         if (curr->type == IDENTIFIER) {
             const struct preproc_macro* macro = find_preproc_macro(curr->spelling);
             if (macro != NULL) {
-                const struct token* const macro_end = macro->is_func_macro 
-                                        ? find_macro_end(state, start) 
-                                        : NULL;
+                const struct token* macro_end;
+                if (macro->is_func_macro) {
+                    macro_end = find_macro_end(state, curr);
+                    if (state->err != PREPROC_ERR_NONE) {
+                        return false;
+                    } else if (macro_end == NULL) {
+                        continue;
+                    }
+                } else {
+                    macro_end = NULL;
+                }
                 if (!expand_preproc_macro(state, macro, i, macro_end)) {
                     return false;
                 }
