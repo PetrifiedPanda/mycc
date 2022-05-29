@@ -107,6 +107,10 @@ enum token_type {
     COLON,  // :
     ASSIGN, // =
     COMMA,
+    
+    HASHTAG, // #
+    CONCAT, // ##
+
     INVALID
 };
 

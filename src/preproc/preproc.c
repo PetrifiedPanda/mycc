@@ -46,153 +46,6 @@ struct token* preproc(const char* path, struct preproc_err* err) {
     return state.tokens;
 }
 
-static bool preproc_statement(struct preproc_state* res,
-                              const char* line,
-                              size_t line_num);
-
-static const struct token* find_macro_end(const struct preproc_state* state, 
-                                          const struct token* macro_start) {
-    const struct token* it = macro_start;
-    assert(it->type == IDENTIFIER);
-    ++it;
-    
-    const struct token* const last_ptr = &state->tokens[state->len - 1];
-    size_t open_bracket_count = 0;
-    while (it != last_ptr && open_bracket_count != 0 && it->type != RBRACKET) {
-        if (it->type == LBRACKET) {
-            ++open_bracket_count;
-        } else if (it->type == RBRACKET) {
-            --open_bracket_count;
-        }
-        ++it;
-    }
-
-    if (it == last_ptr && it->type != RBRACKET) {
-        // TODO: need to load more lines until eof or closing bracket
-        set_preproc_err_copy(state->err,
-                             PREPROC_ERR_UNTERMINATED_MACRO,
-                             macro_start->file, 
-                             macro_start->source_loc);
-        return NULL;
-    }
-    return it;
-}
-
-static bool expand_all_macros(struct preproc_state* state, size_t start) {
-    // TODO: expand macros on added tokens
-    for (size_t i = start; i < state->len; ++i) {
-        const struct token* curr = &state->tokens[i];
-        if (curr->type == IDENTIFIER) {
-            const struct preproc_macro* macro = find_preproc_macro(curr->spelling);
-            if (macro != NULL) {
-                const struct token* macro_end;
-                if (macro->is_func_macro) {
-                    macro_end = find_macro_end(state, curr);
-                    if (state->err != PREPROC_ERR_NONE) {
-                        return false;
-                    } else if (macro_end == NULL) {
-                        continue;
-                    }
-                } else {
-                    macro_end = NULL;
-                }
-                if (!expand_preproc_macro(state, macro, i, macro_end)) {
-                    return false;
-                }
-            }
-        }
-    }
-
-    return true;
-}
-
-struct token* preproc_string(const char* str, const char* path, struct preproc_err* err) {
-    assert(err);
-
-    struct preproc_state state = {
-        .len = 0,
-        .cap = 0,
-        .tokens = NULL,
-        .err = err,
-    };
-
-    const char* it = str;
-
-    const char* start = str;
-    bool comment_not_terminated = false;
-
-    size_t line_num = 1;
-    while (true) {
-        if (*it == '\n' || *it == '\0') {
-            size_t len = it - start;
-            char* line = xmalloc(sizeof(char) * len + 1);
-            memcpy(line, start, sizeof(char) * len);
-            line[len] = '\0';
-
-            const size_t prev_len = state.len;
-            if ((line[0] == '#' && !preproc_statement(&state, line, line_num))
-                || !tokenize_line(&state,
-                                  line,
-                                  line_num,
-                                  path,
-                                  &comment_not_terminated)) {
-                free(line);
-                goto fail;
-            }
-
-            expand_all_macros(&state, prev_len);
-
-            free(line);
-            ++line_num;
-            start = it + 1;
-            if (*it == '\0') {
-                break;
-            }
-        }
-        ++it;
-    }
-
-    append_terminator_token(&state.tokens, state.len);
-
-    return state.tokens;
-
-fail:
-    for (size_t i = 0; i < state.len; ++i) {
-        free_token(&state.tokens[i]);
-    }
-    free(state.tokens);
-    return NULL;
-}
-
-void free_tokens(struct token* tokens) {
-    for (struct token* it = tokens; it->type != INVALID; ++it) {
-        free_token(it);
-    }
-    free(tokens);
-}
-void convert_preproc_tokens(struct token* tokens) {
-    assert(tokens);
-    for (struct token* t = tokens; t->type != INVALID; ++t) {
-        if (t->type == IDENTIFIER) {
-            t->type = keyword_type(t->spelling);
-            if (t->type != IDENTIFIER) {
-                free(t->spelling);
-                t->spelling = NULL;
-            }
-        }
-    }
-}
-
-static void append_terminator_token(struct token** tokens, size_t len) {
-    *tokens = xrealloc(*tokens, sizeof(struct token) * (len + 1));
-    (*tokens)[len] = (struct token){
-        .type = INVALID,
-        .spelling = NULL,
-        .file = NULL,
-        .source_loc = {(size_t)-1, (size_t)-1},
-    };
-}
-
 enum {
     PREPROC_LINE_BUF_LEN = 200
 };
@@ -236,6 +89,210 @@ static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) {
     return res;
 }
 
+struct code_source {
+    bool is_file;
+    union {
+        FILE* file;
+        const char* str;
+    };
+    const char* path;
+    size_t current_line;
+    bool comment_not_terminated;
+};
+
+static bool code_source_over(struct code_source* src) {
+    if (src->is_file) {
+        return feof(src->file);
+    } else {
+        return *src->str == '\0';
+    }
+}
+
+static bool read_and_tokenize_line(struct preproc_state* state,
+                                   struct code_source* src) {
+    char static_buf[PREPROC_LINE_BUF_LEN];
+    char* line;
+    if (src->is_file) {
+        line = read_line(src->file, static_buf); 
+    } else {
+        const char* start = src->str;
+        const char* it = src->str;
+        size_t len = 0;
+        while (*it != '\n' && *it != '\0') {
+            ++it;
+            ++len;
+        }
+        
+        src->str = *it == '\0' ? it : it + 1;
+
+        line = len != 0 ? xmalloc(sizeof(char) * (len + 1)) : NULL;
+        memcpy(line, start, len * sizeof(char));
+        if (line != NULL) {
+            line[len] = '\0';
+        }
+    }
+
+    if (line == NULL) {
+        return true;
+    }
+    bool res = tokenize_line(state,
+                             line,
+                             src->current_line,
+                             src->path,
+                             &src->comment_not_terminated);
+    if (line != static_buf) {
+        free(line);
+    }
+    if (!res) {
+        return false;
+    }
+    ++src->current_line;
+    return true;
+}
+
+static const struct token* find_macro_end(const struct preproc_state* state, 
+                                          const struct token* macro_start) {
+    const struct token* it = macro_start;
+    assert(it->type == IDENTIFIER);
+    ++it;
+    
+    const struct token* const last_ptr = state->tokens + state->len;
+    size_t open_bracket_count = 0;
+    while (it != last_ptr && open_bracket_count != 0 && it->type != RBRACKET) {
+        if (it->type == LBRACKET) {
+            ++open_bracket_count;
+        } else if (it->type == RBRACKET) {
+            --open_bracket_count;
+        }
+        ++it;
+    }
+
+    if (it == last_ptr) {
+        // TODO: need to load more lines until eof or closing bracket
+        set_preproc_err_copy(state->err,
+                             PREPROC_ERR_UNTERMINATED_MACRO,
+                             macro_start->file, 
+                             macro_start->source_loc);
+        return NULL;
+    }
+    return it;
+}
+
+static bool expand_all_macros(struct preproc_state* state, size_t start) {
+    // TODO: expand macros on added tokens
+    for (size_t i = start; i < state->len; ++i) {
+        const struct token* curr = &state->tokens[i];
+        if (curr->type == IDENTIFIER) {
+            const struct preproc_macro* macro = find_preproc_macro(curr->spelling);
+            if (macro != NULL) {
+                const struct token* macro_end;
+                if (macro->is_func_macro) {
+                    macro_end = find_macro_end(state, curr);
+                    if (state->err != PREPROC_ERR_NONE) {
+                        return false;
+                    } else if (macro_end == NULL) {
+                        continue;
+                    }
+                } else {
+                    macro_end = NULL;
+                }
+                if (!expand_preproc_macro(state, macro, i, macro_end)) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+static bool preproc_statement(struct preproc_state* res,
+                              size_t line_start,
+                              struct code_source* src);
+
+static bool preproc_src(struct preproc_state* state, struct code_source* src) {
+    while (!code_source_over(src)) {
+        const size_t prev_len = state->len;
+        if (!read_and_tokenize_line(state, src)) {
+            return false;
+        }
+
+        if (state->len != prev_len 
+            && state->tokens[prev_len].type == HASHTAG
+            && !preproc_statement(state, prev_len, src)) { 
+            return false;
+        }
+
+        expand_all_macros(state, prev_len);
+    }
+
+    append_terminator_token(&state->tokens, state->len);
+    return true;
+}
+
+struct token* preproc_string(const char* str, const char* path, struct preproc_err* err) {
+    assert(err);
+
+    struct preproc_state state = {
+        .len = 0,
+        .cap = 0,
+        .tokens = NULL,
+        .err = err,
+    };
+    
+    struct code_source src = {
+        .is_file = false,
+        .str = str,
+        .path = path,
+        .current_line = 1,
+        .comment_not_terminated = false,
+    };
+
+    if (!preproc_src(&state, &src)) {
+        for (size_t i = 0; i < state.len; ++i) {
+            free_token(&state.tokens[i]);
+        }
+        free(state.tokens);
+        return NULL; 
+    }
+
+    return state.tokens;
+}
+
+static void file_err(struct preproc_err* err,
+                     const char* path,
+                     const char* include_file,
+                     struct source_location include_loc,
+                     bool open_fail);
+
+static bool preproc_file(struct preproc_state* state,
+                         const char* path,
+                         const char* include_file,
+                         struct source_location include_loc) {
+    FILE* file = fopen(path, "r");
+    if (!file) {
+        file_err(state->err, path, include_file, include_loc, true);
+        return false;
+    }
+    
+    struct code_source src = {
+        .is_file = true,
+        .file = file,
+        .path = path,
+        .current_line = 1,
+        .comment_not_terminated = false,
+    };
+
+    const bool res = preproc_src(state, &src);
+    fclose(file);
+
+    if (!res) {
+        return false;
+    }
+
+    return true;
+}
+
 static void file_err(struct preproc_err* err,
                      const char* path,
                      const char* include_file,
@@ -249,67 +306,43 @@ static void file_err(struct preproc_err* err,
     err->open_fail = open_fail;
 }
 
-static bool preproc_file(struct preproc_state* state,
-                         const char* path,
-                         const char* include_file,
-                         struct source_location include_loc) {
-    FILE* file = fopen(path, "r");
-    if (!file) {
-        file_err(state->err, path, include_file, include_loc, true);
-        return false;
+void free_tokens(struct token* tokens) {
+    for (struct token* it = tokens; it->type != INVALID; ++it) {
+        free_token(it);
     }
-
-    char line_buf[PREPROC_LINE_BUF_LEN];
-
-    bool comment_not_terminated = false;
-    size_t line_num = 1;
-    while (true) {
-        char* line = read_line(file, line_buf);
-        if (line == NULL) {
-            break;
-        }
-        
-        const size_t prev_len = state->len;
-        if ((line[0] == '#' && !preproc_statement(state, line, line_num))
-            || !tokenize_line(state,
-                              line,
-                              line_num,
-                              path,
-                              &comment_not_terminated)) {
-            if (line != line_buf) {
-                free(line);
+    free(tokens);
+}
+void convert_preproc_tokens(struct token* tokens) {
+    assert(tokens);
+    for (struct token* t = tokens; t->type != INVALID; ++t) {
+        if (t->type == IDENTIFIER) {
+            t->type = keyword_type(t->spelling);
+            if (t->type != IDENTIFIER) {
+                free(t->spelling);
+                t->spelling = NULL;
             }
-            goto fail;
-        }
-
-        expand_all_macros(state, prev_len);
-
-        ++line_num;
-
-        if (line != line_buf) {
-            free(line);
         }
     }
-
-    if (fclose(file) != 0) {
-        file_err(state->err, path, include_file, include_loc, false);
-        return false;
-    }
-    return true;
-
-fail:
-    fclose(file);
-    return false;
 }
 
-static bool preproc_statement(struct preproc_state* res,
-                              const char* line,
-                              size_t line_num) {
-    assert(line != NULL);
-    assert(line[0] == '#');
-    (void)res;
-    (void)line;
-    (void)line_num;
+static void append_terminator_token(struct token** tokens, size_t len) {
+    *tokens = xrealloc(*tokens, sizeof(struct token) * (len + 1));
+    (*tokens)[len] = (struct token){
+        .type = INVALID,
+        .spelling = NULL,
+        .file = NULL,
+        .source_loc = {(size_t)-1, (size_t)-1},
+    };
+}
+
+static bool preproc_statement(struct preproc_state* state,
+                              size_t line_start,
+                              struct code_source* src) {
+    assert(src != NULL);
+    assert(state->tokens[line_start].type == HASHTAG);
+    (void)state;
+    (void)line_start;
+    (void)src;
     // TODO:
     return false;
 }
