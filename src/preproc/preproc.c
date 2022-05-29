@@ -50,8 +50,9 @@ enum {
     PREPROC_LINE_BUF_LEN = 200
 };
 
-// TODO: handle escaped newlines
-static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) { 
+static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN], bool* escaped_newline) {
+    assert(escaped_newline);
+
     size_t i = 0;
     int c;
     while ((c = getc(file)) != '\n' && c != EOF) {
@@ -84,7 +85,9 @@ static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN]) {
 
         res = dyn_buf;
     }
-
+    if (i > 0) { 
+        *escaped_newline = res[i - 1] == '\\';
+    }
     res[i] = '\0';
     return res;
 }
@@ -110,43 +113,49 @@ static bool code_source_over(struct code_source* src) {
 
 static bool read_and_tokenize_line(struct preproc_state* state,
                                    struct code_source* src) {
-    char static_buf[PREPROC_LINE_BUF_LEN];
-    char* line;
-    if (src->is_file) {
-        line = read_line(src->file, static_buf); 
-    } else {
-        const char* start = src->str;
-        const char* it = src->str;
-        size_t len = 0;
-        while (*it != '\n' && *it != '\0') {
-            ++it;
-            ++len;
-        }
+    assert(src);
+
+    bool escaped_newline = false;    
+    do {
+        char static_buf[PREPROC_LINE_BUF_LEN];
+        char* line;
+        if (src->is_file) {
+            line = read_line(src->file, static_buf, &escaped_newline); 
+        } else {
+            const char* start = src->str;
+            const char* it = src->str;
+            while (*it != '\n' && *it != '\0') {
+                ++it;
+            }
         
-        src->str = *it == '\0' ? it : it + 1;
-
-        line = len != 0 ? xmalloc(sizeof(char) * (len + 1)) : NULL;
-        memcpy(line, start, len * sizeof(char));
-        if (line != NULL) {
-            line[len] = '\0';
+            src->str = *it == '\0' ? it : it + 1;
+            
+            const size_t len = it - start;
+            line = len != 0 ? xmalloc(sizeof(char) * (len + 1)) : NULL;
+            memcpy(line, start, len * sizeof(char));
+            if (line != NULL) {
+                line[len] = '\0';
+                escaped_newline = line[len - 1] == '\\';
+            }
         }
-    }
 
-    if (line == NULL) {
-        return true;
-    }
-    bool res = tokenize_line(state,
-                             line,
-                             src->current_line,
-                             src->path,
-                             &src->comment_not_terminated);
-    if (line != static_buf) {
-        free(line);
-    }
-    if (!res) {
-        return false;
-    }
-    ++src->current_line;
+        if (line == NULL) {
+            return true;
+        }
+        bool res = tokenize_line(state,
+                                 line,
+                                 src->current_line,
+                                 src->path,
+                                 &src->comment_not_terminated);
+        if (line != static_buf) {
+            free(line);
+        }
+        if (!res) {
+            return false;
+        }
+        ++src->current_line;
+    } while (escaped_newline);
+
     return true;
 }
 
