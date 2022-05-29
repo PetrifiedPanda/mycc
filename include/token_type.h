@@ -108,8 +108,8 @@ enum token_type {
     ASSIGN, // =
     COMMA,
     
-    HASHTAG, // #
-    CONCAT, // ##
+    STRINGIFY_OP, // #
+    CONCAT_OP, // ##
 
     INVALID
 };

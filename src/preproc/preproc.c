@@ -150,15 +150,27 @@ static bool read_and_tokenize_line(struct preproc_state* state,
     return true;
 }
 
-static const struct token* find_macro_end(const struct preproc_state* state, 
-                                          const struct token* macro_start) {
+static const struct token* find_macro_end(struct preproc_state* state, 
+                                          const struct token* macro_start,
+                                          struct code_source* src) {
     const struct token* it = macro_start;
     assert(it->type == IDENTIFIER);
     ++it;
+    assert(it->type == LBRACKET);
+    ++it;
     
-    const struct token* const last_ptr = state->tokens + state->len;
     size_t open_bracket_count = 0;
-    while (it != last_ptr && open_bracket_count != 0 && it->type != RBRACKET) {
+    while (!code_source_over(src) && (open_bracket_count != 0 || it->type != RBRACKET)) {
+        while (!code_source_over(src) && it == state->tokens + state->len) {
+            if (!read_and_tokenize_line(state, src)) {
+                return NULL;
+            }
+        }
+
+        if (code_source_over(src) && it == state->tokens + state->len) {
+            break;
+        }
+
         if (it->type == LBRACKET) {
             ++open_bracket_count;
         } else if (it->type == RBRACKET) {
@@ -167,8 +179,7 @@ static const struct token* find_macro_end(const struct preproc_state* state,
         ++it;
     }
 
-    if (it == last_ptr) {
-        // TODO: need to load more lines until eof or closing bracket
+    if (it->type != RBRACKET) {
         set_preproc_err_copy(state->err,
                              PREPROC_ERR_UNTERMINATED_MACRO,
                              macro_start->file, 
@@ -178,7 +189,7 @@ static const struct token* find_macro_end(const struct preproc_state* state,
     return it;
 }
 
-static bool expand_all_macros(struct preproc_state* state, size_t start) {
+static bool expand_all_macros(struct preproc_state* state, size_t start, struct code_source* src) {
     // TODO: expand macros on added tokens
     for (size_t i = start; i < state->len; ++i) {
         const struct token* curr = &state->tokens[i];
@@ -187,7 +198,7 @@ static bool expand_all_macros(struct preproc_state* state, size_t start) {
             if (macro != NULL) {
                 const struct token* macro_end;
                 if (macro->is_func_macro) {
-                    macro_end = find_macro_end(state, curr);
+                    macro_end = find_macro_end(state, curr, src);
                     if (state->err != PREPROC_ERR_NONE) {
                         return false;
                     } else if (macro_end == NULL) {
@@ -218,12 +229,12 @@ static bool preproc_src(struct preproc_state* state, struct code_source* src) {
         }
 
         if (state->len != prev_len 
-            && state->tokens[prev_len].type == HASHTAG
+            && state->tokens[prev_len].type == STRINGIFY_OP
             && !preproc_statement(state, prev_len, src)) { 
             return false;
         }
 
-        expand_all_macros(state, prev_len);
+        expand_all_macros(state, prev_len, src);
     }
 
     append_terminator_token(&state->tokens, state->len);
@@ -315,6 +326,7 @@ void free_tokens(struct token* tokens) {
 void convert_preproc_tokens(struct token* tokens) {
     assert(tokens);
     for (struct token* t = tokens; t->type != INVALID; ++t) {
+        assert(t->type != STRINGIFY_OP && t->type != CONCAT_OP);
         if (t->type == IDENTIFIER) {
             t->type = keyword_type(t->spelling);
             if (t->type != IDENTIFIER) {
@@ -339,7 +351,7 @@ static bool preproc_statement(struct preproc_state* state,
                               size_t line_start,
                               struct code_source* src) {
     assert(src != NULL);
-    assert(state->tokens[line_start].type == HASHTAG);
+    assert(state->tokens[line_start].type == STRINGIFY_OP);
     (void)state;
     (void)line_start;
     (void)src;
