@@ -70,9 +70,9 @@ static const struct token* find_macro_end(const struct preproc_state* state,
     if (it == last_ptr && it->type != RBRACKET) {
         // TODO: need to load more lines until eof or closing bracket
         set_preproc_err_copy(state->err,
-                        PREPROC_ERR_UNTERMINATED_MACRO,
-                        macro_start->file, 
-                        macro_start->source_loc);
+                             PREPROC_ERR_UNTERMINATED_MACRO,
+                             macro_start->file, 
+                             macro_start->source_loc);
         return NULL;
     }
     return it;
