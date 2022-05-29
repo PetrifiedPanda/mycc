@@ -81,9 +81,9 @@ TEST(object_like) {
         .expansion = expansion,
     };
 
-    test_preproc_macro(&macro, 3, -1, "int var = MACRO;\nfunc();", "int var = 1 + 2;\nfunc();");
-    test_preproc_macro(&macro, 0, -1, "MACRO; for (size_t i = 0; i < 42; ++i) continue;", "1 + 2; for (size_t i = 0; i < 42; ++i) continue;");
-    test_preproc_macro(&macro, 5, -1, "int x = 1000; MACRO", "int x = 1000; 1 + 2");
+    test_preproc_macro(&macro, 3, (size_t)-1, "int var = MACRO;\nfunc();", "int var = 1 + 2;\nfunc();");
+    test_preproc_macro(&macro, 0, (size_t)-1, "MACRO; for (size_t i = 0; i < 42; ++i) continue;", "1 + 2; for (size_t i = 0; i < 42; ++i) continue;");
+    test_preproc_macro(&macro, 5, (size_t)-1, "int x = 1000; MACRO", "int x = 1000; 1 + 2");
 }
 
 TEST(object_like_empty) {
@@ -98,9 +98,9 @@ TEST(object_like_empty) {
         .expansion = NULL,
     };
     
-    test_preproc_macro(&macro, 1, -1, "function EMPTY_MACRO (var, 2);", "function (var, 2);");
-    test_preproc_macro(&macro, 0, -1, "EMPTY_MACRO int n = 1000;", "int n = 1000;");
-    test_preproc_macro(&macro, 10, -1, "while (true) x *= 2 * 2;\nEMPTY_MACRO;", "while (true) x *= 2 * 2;\n;");
+    test_preproc_macro(&macro, 1, (size_t)-1, "function EMPTY_MACRO (var, 2);", "function (var, 2);");
+    test_preproc_macro(&macro, 0, (size_t)-1, "EMPTY_MACRO int n = 1000;", "int n = 1000;");
+    test_preproc_macro(&macro, 10, (size_t)-1, "while (true) x *= 2 * 2;\nEMPTY_MACRO;", "while (true) x *= 2 * 2;\n;");
 }
 
 TEST(func_like) {
