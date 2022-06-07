@@ -166,3 +166,8 @@ struct struct_for_static_assert {
 };
 
 _Static_assert(sizeof(g_thread) == sizeof(int), "");
+
+void (*function_that_returns_a_function(int n, int r))(int, int) {
+    return 0;
+}
+

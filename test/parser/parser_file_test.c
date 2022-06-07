@@ -237,7 +237,7 @@ TEST(parser_testfile) {
     struct parser_err err = create_parser_err();
     struct translation_unit tl = parse_tokens(tokens, &err);
     ASSERT(err.type == PARSER_ERR_NONE);
-    ASSERT_SIZE_T(tl.len, (size_t)14);
+    ASSERT_SIZE_T(tl.len, (size_t)15);
 
     const struct storage_class sc = {false, false, false, false, false, false};
     const struct storage_class sc_static = {.is_static = true};
