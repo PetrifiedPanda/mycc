@@ -111,6 +111,8 @@ static bool code_source_over(struct code_source* src) {
     }
 }
 
+// TODO: what to do if the line is a preprocessor directive
+// Maybe just handle preprocessor directives until we reach an "actual" line
 static bool read_and_tokenize_line(struct preproc_state* state,
                                    struct code_source* src) {
     assert(src);
@@ -203,6 +205,7 @@ static bool expand_all_macros(struct preproc_state* state, size_t start, struct 
     for (size_t i = start; i < state->len; ++i) {
         if (no_incr) {
             --i;
+            no_incr = false;
         }
 
         const struct token* curr = &state->tokens[i];
