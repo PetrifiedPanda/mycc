@@ -199,8 +199,12 @@ static const struct token* find_macro_end(struct preproc_state* state,
 }
 
 static bool expand_all_macros(struct preproc_state* state, size_t start, struct code_source* src) {
-    // TODO: expand macros on added tokens
+    bool no_incr = false;
     for (size_t i = start; i < state->len; ++i) {
+        if (no_incr) {
+            --i;
+        }
+
         const struct token* curr = &state->tokens[i];
         if (curr->type == IDENTIFIER) {
             const struct preproc_macro* macro = find_preproc_macro(curr->spelling);
@@ -219,6 +223,8 @@ static bool expand_all_macros(struct preproc_state* state, size_t start, struct 
                 if (!expand_preproc_macro(state, macro, i, macro_end)) {
                     return false;
                 }
+                // need to continue at the start of the macro expansion
+                no_incr = false;
             }
         }
     }
