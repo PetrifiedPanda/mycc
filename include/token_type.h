@@ -8,38 +8,17 @@ enum token_type {
     I_CONSTANT,
     F_CONSTANT,
     STRING_LITERAL,
-    FUNC_NAME, // __func__
-
-    SIZEOF,
-    PTR_OP, // ->
-    INC_OP,
-    DEC_OP,
-    LEFT_OP,  // <<
-    RIGHT_OP, // >>
-    LE_OP,
-    GE_OP,
-    EQ_OP,
-    NE_OP,
-    AND_OP, // &&
-    OR_OP,  // ||
-    MUL_ASSIGN,
-    DIV_ASSIGN,
-    MOD_ASSIGN,
-    ADD_ASSIGN,
-    SUB_ASSIGN,
-    LEFT_ASSIGN,
-    RIGHT_ASSIGN,
-    AND_ASSIGN,
-    OR_ASSIGN,
-    XOR_ASSIGN,
     TYPEDEF_NAME,
+    
+    // Keywords
+    FUNC_NAME, // __func__
+    SIZEOF,
     TYPEDEF,
     EXTERN,
     STATIC,
     AUTO,
     REGISTER,
     INLINE,
-
     BOOL, // _Bool
     CHAR,
     SHORT,
@@ -50,19 +29,15 @@ enum token_type {
     FLOAT,
     DOUBLE,
     VOID,
-
     COMPLEX,   // _Complex
     IMAGINARY, // _Imaginary
-
     CONST,
     VOLATILE,
     RESTRICT,
     ATOMIC,
-
     STRUCT,
     UNION,
     ENUM,
-    ELLIPSIS, // ...
     CASE,
     DEFAULT,
     IF,
@@ -75,14 +50,14 @@ enum token_type {
     CONTINUE,
     BREAK,
     RETURN,
-
     ALIGNAS,       // _Alignas
     ALIGNOF,       // _Alignof
     GENERIC,       // _Generic
     NORETURN,      // _Noreturn
     STATIC_ASSERT, // _Static_assert
     THREAD_LOCAL,  // _Thread_local
-
+    
+    // Punctuation
     SEMICOLON,
     LBRACKET, // (
     RBRACKET, // )
@@ -106,8 +81,31 @@ enum token_type {
     QMARK,  // ?
     COLON,  // :
     ASSIGN, // =
-    COMMA,
+    COMMA,    
+    PTR_OP, // ->
+    INC_OP,
+    DEC_OP,
+    LEFT_OP,  // <<
+    RIGHT_OP, // >>
+    LE_OP,
+    GE_OP,
+    EQ_OP,
+    NE_OP,
+    AND_OP, // &&
+    OR_OP,  // ||
+    MUL_ASSIGN,
+    DIV_ASSIGN,
+    MOD_ASSIGN,
+    ADD_ASSIGN,
+    SUB_ASSIGN,
+    LEFT_ASSIGN,
+    RIGHT_ASSIGN,
+    AND_ASSIGN,
+    OR_ASSIGN,
+    XOR_ASSIGN,    
+    ELLIPSIS, // ...
     
+    // Preprocessor only
     STRINGIFY_OP, // #
     CONCAT_OP, // ##
 
