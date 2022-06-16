@@ -50,7 +50,7 @@ enum {
     PREPROC_LINE_BUF_LEN = 200
 };
 
-static char* read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN], bool* escaped_newline) {
+static char* file_read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN], bool* escaped_newline) {
     assert(escaped_newline);
 
     size_t i = 0;
@@ -111,6 +111,30 @@ static bool code_source_over(struct code_source* src) {
     }
 }
 
+static char* code_source_read_line(struct code_source* src, char static_buf[PREPROC_LINE_BUF_LEN], bool* escaped_newline) {
+    char* res;
+    if (src->is_file) {
+        res = file_read_line(src->file, static_buf, escaped_newline);    
+    } else {
+        const char* start = src->str;
+        const char* it = src->str;
+        while (*it != '\n' && *it != '\0') {
+            ++it;
+        }
+        
+        src->str = *it == '\0' ? it : it + 1;
+            
+        const size_t len = it - start;
+        res = len != 0 ? xmalloc(sizeof(char) * (len + 1)) : NULL;
+        memcpy(res, start, len * sizeof(char));
+        if (res != NULL) {
+            res[len] = '\0';
+            *escaped_newline = res[len - 1] == '\\';
+        }
+    }
+    return res; 
+}
+
 // TODO: what to do if the line is a preprocessor directive
 // Maybe just handle preprocessor directives until we reach an "actual" line
 static bool read_and_tokenize_line(struct preproc_state* state,
@@ -120,27 +144,7 @@ static bool read_and_tokenize_line(struct preproc_state* state,
     bool escaped_newline = false;    
     do {
         char static_buf[PREPROC_LINE_BUF_LEN];
-        char* line;
-        if (src->is_file) {
-            line = read_line(src->file, static_buf, &escaped_newline); 
-        } else {
-            const char* start = src->str;
-            const char* it = src->str;
-            while (*it != '\n' && *it != '\0') {
-                ++it;
-            }
-        
-            src->str = *it == '\0' ? it : it + 1;
-            
-            const size_t len = it - start;
-            line = len != 0 ? xmalloc(sizeof(char) * (len + 1)) : NULL;
-            memcpy(line, start, len * sizeof(char));
-            if (line != NULL) {
-                line[len] = '\0';
-                escaped_newline = line[len - 1] == '\\';
-            }
-        }
-
+        char* line = code_source_read_line(src, static_buf, &escaped_newline);
         if (line == NULL) {
             return true;
         }
