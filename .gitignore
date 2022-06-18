@@ -1,10 +1,11 @@
+# IDE / language server files
 .vscode/
-build/
-cmake-build-*/
 .idea/
 .ccls-cache/
 .cache/
 .clangd/
 compile_commands.json
-grammar.txt
-lex_spec.txt
+
+# build folders
+cmake-build-*/
+build*/
