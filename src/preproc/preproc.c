@@ -385,7 +385,7 @@ static bool preproc_statement(struct preproc_state* state,
 static inline bool is_spelling(const char* spelling, enum token_type type) {
     const char* expected_spell = get_spelling(type);
     assert(expected_spell != NULL);
-    return strcmp(spelling, get_spelling(type)) == 0;
+    return strcmp(spelling, expected_spell) == 0;
 }
 
 static enum token_type keyword_type(const char* spell) {
