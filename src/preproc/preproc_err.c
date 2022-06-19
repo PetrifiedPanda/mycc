@@ -29,9 +29,9 @@ void set_preproc_err(struct preproc_err* err,
 }
 
 void set_preproc_err_copy(struct preproc_err* err,
-                         enum preproc_err_type type,
-                         const char* file,
-                         struct source_location loc) {
+                          enum preproc_err_type type,
+                          const char* file,
+                          struct source_location loc) {
     assert(err);
     assert(type != PREPROC_ERR_NONE);
     assert(err->type == PREPROC_ERR_NONE);
@@ -91,7 +91,7 @@ void print_preproc_err(struct preproc_err* err) {
 
 void free_preproc_err(struct preproc_err* err) {
     assert(err);
-    
+
     free_err_base(&err->base);
     switch (err->type) {
         case PREPROC_ERR_FILE_FAIL:

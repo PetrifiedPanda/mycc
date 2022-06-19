@@ -50,13 +50,15 @@ enum {
     PREPROC_LINE_BUF_LEN = 200
 };
 
-static char* file_read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN], bool* escaped_newline) {
+static char* file_read_line(FILE* file,
+                            char static_buf[PREPROC_LINE_BUF_LEN],
+                            bool* escaped_newline) {
     assert(escaped_newline);
 
     size_t i = 0;
     int c;
     while ((c = getc(file)) != '\n' && c != EOF) {
-       static_buf[i] = (char)c;
+        static_buf[i] = (char)c;
         ++i;
         if (i == PREPROC_LINE_BUF_LEN - 1) {
             break;
@@ -68,7 +70,7 @@ static char* file_read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN], b
     }
 
     char* res = static_buf;
-    
+
     if (c != '\n' && c != EOF) {
         size_t len = PREPROC_LINE_BUF_LEN * 2;
         char* dyn_buf = xmalloc(sizeof(char) * len);
@@ -85,7 +87,7 @@ static char* file_read_line(FILE* file, char static_buf[PREPROC_LINE_BUF_LEN], b
 
         res = dyn_buf;
     }
-    if (i > 0) { 
+    if (i > 0) {
         *escaped_newline = res[i - 1] == '\\';
     }
     res[i] = '\0';
@@ -111,19 +113,21 @@ static bool code_source_over(struct code_source* src) {
     }
 }
 
-static char* code_source_read_line(struct code_source* src, char static_buf[PREPROC_LINE_BUF_LEN], bool* escaped_newline) {
+static char* code_source_read_line(struct code_source* src,
+                                   char static_buf[PREPROC_LINE_BUF_LEN],
+                                   bool* escaped_newline) {
     char* res;
     if (src->is_file) {
-        res = file_read_line(src->file, static_buf, escaped_newline);    
+        res = file_read_line(src->file, static_buf, escaped_newline);
     } else {
         const char* start = src->str;
         const char* it = src->str;
         while (*it != '\n' && *it != '\0') {
             ++it;
         }
-        
+
         src->str = *it == '\0' ? it : it + 1;
-            
+
         const size_t len = it - start;
         res = len != 0 ? xmalloc(sizeof(char) * (len + 1)) : NULL;
         memcpy(res, start, len * sizeof(char));
@@ -132,7 +136,7 @@ static char* code_source_read_line(struct code_source* src, char static_buf[PREP
             *escaped_newline = res[len - 1] == '\\';
         }
     }
-    return res; 
+    return res;
 }
 
 // TODO: what to do if the line is a preprocessor directive
@@ -140,9 +144,9 @@ static char* code_source_read_line(struct code_source* src, char static_buf[PREP
 static bool read_and_tokenize_line(struct preproc_state* state,
                                    struct code_source* src) {
     assert(src);
-    
+
     // TODO: if an escaped newline separates a whole token this does not work
-    bool escaped_newline = false;    
+    bool escaped_newline = false;
     do {
         char static_buf[PREPROC_LINE_BUF_LEN];
         char* line = code_source_read_line(src, static_buf, &escaped_newline);
@@ -166,7 +170,7 @@ static bool read_and_tokenize_line(struct preproc_state* state,
     return true;
 }
 
-static const struct token* find_macro_end(struct preproc_state* state, 
+static const struct token* find_macro_end(struct preproc_state* state,
                                           const struct token* macro_start,
                                           struct code_source* src) {
     const struct token* it = macro_start;
@@ -174,9 +178,10 @@ static const struct token* find_macro_end(struct preproc_state* state,
     ++it;
     assert(it->type == LBRACKET);
     ++it;
-    
+
     size_t open_bracket_count = 0;
-    while (!code_source_over(src) && (open_bracket_count != 0 || it->type != RBRACKET)) {
+    while (!code_source_over(src)
+           && (open_bracket_count != 0 || it->type != RBRACKET)) {
         while (!code_source_over(src) && it == state->tokens + state->len) {
             if (!read_and_tokenize_line(state, src)) {
                 return NULL;
@@ -198,14 +203,16 @@ static const struct token* find_macro_end(struct preproc_state* state,
     if (it->type != RBRACKET) {
         set_preproc_err_copy(state->err,
                              PREPROC_ERR_UNTERMINATED_MACRO,
-                             macro_start->file, 
+                             macro_start->file,
                              macro_start->source_loc);
         return NULL;
     }
     return it;
 }
 
-static bool expand_all_macros(struct preproc_state* state, size_t start, struct code_source* src) {
+static bool expand_all_macros(struct preproc_state* state,
+                              size_t start,
+                              struct code_source* src) {
     bool no_incr = false;
     for (size_t i = start; i < state->len; ++i) {
         if (no_incr) {
@@ -215,7 +222,8 @@ static bool expand_all_macros(struct preproc_state* state, size_t start, struct 
 
         const struct token* curr = &state->tokens[i];
         if (curr->type == IDENTIFIER) {
-            const struct preproc_macro* macro = find_preproc_macro(curr->spelling);
+            const struct preproc_macro* macro = find_preproc_macro(
+                curr->spelling);
             if (macro != NULL) {
                 const struct token* macro_end;
                 if (macro->is_func_macro) {
@@ -251,9 +259,9 @@ static bool preproc_src(struct preproc_state* state, struct code_source* src) {
             return false;
         }
 
-        if (state->len != prev_len 
+        if (state->len != prev_len
             && state->tokens[prev_len].type == STRINGIFY_OP
-            && !preproc_statement(state, prev_len, src)) { 
+            && !preproc_statement(state, prev_len, src)) {
             return false;
         }
 
@@ -264,7 +272,9 @@ static bool preproc_src(struct preproc_state* state, struct code_source* src) {
     return true;
 }
 
-struct token* preproc_string(const char* str, const char* path, struct preproc_err* err) {
+struct token* preproc_string(const char* str,
+                             const char* path,
+                             struct preproc_err* err) {
     assert(err);
 
     struct preproc_state state = {
@@ -273,7 +283,7 @@ struct token* preproc_string(const char* str, const char* path, struct preproc_e
         .tokens = NULL,
         .err = err,
     };
-    
+
     struct code_source src = {
         .is_file = false,
         .str = str,
@@ -287,7 +297,7 @@ struct token* preproc_string(const char* str, const char* path, struct preproc_e
             free_token(&state.tokens[i]);
         }
         free(state.tokens);
-        return NULL; 
+        return NULL;
     }
 
     return state.tokens;
@@ -308,7 +318,7 @@ static bool preproc_file(struct preproc_state* state,
         file_err(state->err, path, include_file, include_loc, true);
         return false;
     }
-    
+
     struct code_source src = {
         .is_file = true,
         .file = file,
@@ -333,7 +343,7 @@ static void file_err(struct preproc_err* err,
                      struct source_location include_loc,
                      bool open_fail) {
     assert(path);
-    
+
     char* file = include_file == NULL ? NULL : alloc_string_copy(include_file);
     set_preproc_err(err, PREPROC_ERR_FILE_FAIL, file, include_loc);
     err->fail_file = alloc_string_copy(path);

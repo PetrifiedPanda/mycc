@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
 
     for (int i = 1; i < argc; ++i) {
         const char* filename = argv[i];
-        
+
         struct preproc_err preproc_err = create_preproc_err();
         struct token* tokens = preproc(filename, &preproc_err);
         if (preproc_err.type != PREPROC_ERR_NONE) {
@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
             return EXIT_FAILURE;
         }
         convert_preproc_tokens(tokens);
-        
+
         struct parser_err parser_err = create_parser_err();
         struct translation_unit tl = parse_tokens(tokens, &parser_err);
         if (parser_err.type != PARSER_ERR_NONE) {
