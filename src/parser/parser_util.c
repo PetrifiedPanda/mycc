@@ -15,7 +15,7 @@ void expected_tokens_error(struct parser_state* s,
                            size_t num_expected) {
     assert(expected);
     assert(num_expected >= 1);
-    
+
     set_parser_err(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it);
 
     const size_t bytes = sizeof(enum token_type) * num_expected;

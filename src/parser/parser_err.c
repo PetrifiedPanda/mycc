@@ -56,7 +56,7 @@ void print_parser_err(const struct parser_err* err) {
             for (size_t i = 1; i < err->num_expected; ++i) {
                 printf(", %s", get_type_str(err->expected[i]));
             }
-            
+
             if (err->got == INVALID) {
                 printf(" but got to enf of file");
             } else {
@@ -65,8 +65,10 @@ void print_parser_err(const struct parser_err* err) {
             break;
         }
         case PARSER_ERR_REDEFINED_SYMBOL: {
-            const char* type_str = err->was_typedef_name ? "typedef name" : "enum constant";
-            printf("Redefined symbol %s that was already defined as %s in %s(%zu, %zu)",
+            const char* type_str = err->was_typedef_name ? "typedef name"
+                                                         : "enum constant";
+            printf("Redefined symbol %s that was already defined as %s in "
+                   "%s(%zu, %zu)",
                    err->redefined_symbol,
                    type_str,
                    err->prev_def_file,
@@ -108,8 +110,9 @@ void print_parser_err(const struct parser_err* err) {
                    get_type_str(err->incompatible_type));
             break;
         case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
-            printf("Expected a typedef name but got identifier with spelling %s",
-                   err->non_typedef_spelling);
+            printf(
+                "Expected a typedef name but got identifier with spelling %s",
+                err->non_typedef_spelling);
     }
     printf("\n");
 }

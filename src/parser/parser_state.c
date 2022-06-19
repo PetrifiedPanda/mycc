@@ -31,7 +31,8 @@ static bool register_identifier(struct parser_state* s,
 static enum identifier_type get_item(const struct parser_state* s,
                                      const char* spell);
 
-struct parser_state create_parser_state(struct token* tokens, struct parser_err* err) {
+struct parser_state create_parser_state(struct token* tokens,
+                                        struct parser_err* err) {
     assert(tokens);
 
     struct parser_state res = {
@@ -40,7 +41,8 @@ struct parser_state create_parser_state(struct token* tokens, struct parser_err*
         ._scope_maps = xmalloc(sizeof(struct string_hash_map)),
         .err = err,
     };
-    res._scope_maps[0] = create_string_hash_map(sizeof(struct identifier_type_data));
+    res._scope_maps[0] = create_string_hash_map(
+        sizeof(struct identifier_type_data));
     return res;
 }
 
@@ -69,8 +71,9 @@ void accept_it(struct parser_state* s) {
 void parser_push_scope(struct parser_state* s) {
     ++s->_len;
     s->_scope_maps = xrealloc(s->_scope_maps,
-                             sizeof(struct string_hash_map) * s->_len);
-    s->_scope_maps[s->_len - 1] = create_string_hash_map(sizeof(struct identifier_type_data));
+                              sizeof(struct string_hash_map) * s->_len);
+    s->_scope_maps[s->_len - 1] = create_string_hash_map(
+        sizeof(struct identifier_type_data));
 }
 
 void parser_pop_scope(struct parser_state* s) {
@@ -78,7 +81,7 @@ void parser_pop_scope(struct parser_state* s) {
     --s->_len;
     free_string_hash_map(&s->_scope_maps[s->_len]);
     s->_scope_maps = xrealloc(s->_scope_maps,
-                             sizeof(struct string_hash_map) * s->_len);
+                              sizeof(struct string_hash_map) * s->_len);
 }
 
 bool register_enum_constant(struct parser_state* s, const struct token* token) {
@@ -110,7 +113,10 @@ static bool register_identifier(struct parser_state* s,
         .file = token->file,
         .type = type,
     };
-    const struct identifier_type_data* item = string_hash_map_insert(&s->_scope_maps[s->_len - 1], token->spelling, &to_insert);
+    const struct identifier_type_data* item = string_hash_map_insert(
+        &s->_scope_maps[s->_len - 1],
+        token->spelling,
+        &to_insert);
     if (item != &to_insert) {
         set_parser_err_copy(s->err, PARSER_ERR_REDEFINED_SYMBOL, token);
 
@@ -123,11 +129,13 @@ static bool register_identifier(struct parser_state* s,
         return true;
     }
 }
- 
+
 static enum identifier_type get_item(const struct parser_state* s,
                                      const char* spell) {
     for (size_t i = 0; i < s->_len; ++i) {
-        const struct identifier_type_data* data = string_hash_map_get(&s->_scope_maps[i], spell);
+        const struct identifier_type_data* data = string_hash_map_get(
+            &s->_scope_maps[i],
+            spell);
         if (data != NULL) {
             return data->type;
         }

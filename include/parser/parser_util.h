@@ -43,3 +43,4 @@ bool is_declaration(const struct parser_state* s);
 char* take_spelling(struct token* t);
 
 #endif
+

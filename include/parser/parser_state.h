@@ -16,7 +16,8 @@ struct parser_state {
     struct parser_err* err;
 };
 
-struct parser_state create_parser_state(struct token* tokens, struct parser_err* err);
+struct parser_state create_parser_state(struct token* tokens,
+                                        struct parser_err* err);
 void free_parser_state(struct parser_state* s);
 
 bool accept(struct parser_state* s, enum token_type expected);
