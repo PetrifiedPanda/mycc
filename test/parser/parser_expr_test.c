@@ -60,7 +60,7 @@ static void check_primary_expr_string(const char* spell) {
     free_tokens(tokens);
 }
 
-static void check_primary_expr_func_name() {
+static void check_primary_expr_func_name(void) {
     struct token* tokens = tokenize_string("__func__", "not a file so go away");
 
     struct parser_err err = create_parser_err();
@@ -121,7 +121,7 @@ static void check_primary_expr_bracket(const char* code,
     free_tokens(tokens);
 }
 
-static void primary_expr_generic_sel_test() {
+static void primary_expr_generic_sel_test(void) {
     struct token* tokens = tokenize_string(
         "_Generic(var, int: 0, TypedefName: oops, struct a_struct: 5.0, "
         "default: default_value )",

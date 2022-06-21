@@ -22,10 +22,12 @@ extern jmp_buf test_jump_buf;
  *                      must be a compile-time constant
  */
 #define TEST_SUITE_BEGIN(name, max_num_tests)                                  \
-    size_t name##_test_suite() {                                               \
+    size_t name##_test_suite(void) {                                           \
         printf("Starting %s tests\n", #name);                                  \
-        enum { MAX_NUM_TESTS = (max_num_tests) };                              \
-        void (*tests[MAX_NUM_TESTS])();                                        \
+        enum {                                                                 \
+            MAX_NUM_TESTS = (max_num_tests)                                    \
+        };                                                                     \
+        void (*tests[MAX_NUM_TESTS])(void);                                    \
         char* test_names[MAX_NUM_TESTS];                                       \
         const char* suite_name = #name;                                        \
         size_t num_tests = 0;
@@ -71,20 +73,20 @@ test_failed:                                                                   \
 /**
  * Make a test suite defined in another .c file available
  */
-#define GET_EXTERN_SUITE(name) extern size_t name##_test_suite()
+#define GET_EXTERN_SUITE(name) extern size_t name##_test_suite(void)
 
 /**
  * Forward declaration of test suite
  */
-#define TEST_SUITE_DECL(name) size_t name##_test_suite()
+#define TEST_SUITE_DECL(name) size_t name##_test_suite(void)
 
 /**
  * Begin a test, should be followed by new scope, as with a function
  */
-#define TEST(name) static void name##_test()
+#define TEST(name) static void name##_test(void)
 
 #define TEST_SUITE_LIST_BEGIN(list_name)                                       \
-    size_t (*list_name##_test_suite_list[])() =
+    size_t (*list_name##_test_suite_list[])(void) =
 
 #define TEST_SUITE_LIST_ITEM(suite_name) suite_name##_test_suite
 
@@ -92,7 +94,7 @@ test_failed:                                                                   \
     ;                                                                          \
     enum {                                                                     \
         list_name##_test_suite_list_size = sizeof(list_name##_test_suite_list) \
-                                           / sizeof(size_t(*)())               \
+                                           / sizeof(size_t(*)(void))           \
     }
 
 /**
@@ -102,9 +104,11 @@ test_failed:                                                                   \
  *                       must be a compile-time constant
  */
 #define TEST_MAIN_BEGIN(max_num_suites)                                        \
-    int main() {                                                               \
-        enum { MAX_NUM_SUITES = (max_num_suites) };                            \
-        size_t (*test_suites[MAX_NUM_SUITES])();                               \
+    int main(void) {                                                           \
+        enum {                                                                 \
+            MAX_NUM_SUITES = (max_num_suites)                                  \
+        };                                                                     \
+        size_t (*test_suites[MAX_NUM_SUITES])(void);                           \
         size_t num_suites = 0;
 
 #define TEST_MAIN_ADD(test_suite)                                              \

@@ -40,7 +40,7 @@ struct type_specs {
     };
 };
 
-struct type_specs create_type_specs();
+struct type_specs create_type_specs(void);
 
 bool update_type_specs(struct parser_state* s, struct type_specs* q);
 

@@ -30,7 +30,7 @@ struct preproc_err {
     };
 };
 
-struct preproc_err create_preproc_err();
+struct preproc_err create_preproc_err(void);
 
 void set_preproc_err(struct preproc_err* err,
                      enum preproc_err_type type,

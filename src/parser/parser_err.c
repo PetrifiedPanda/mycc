@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-struct parser_err create_parser_err() {
+struct parser_err create_parser_err(void) {
     return (struct parser_err){
         .type = PARSER_ERR_NONE,
         .base.file = NULL,

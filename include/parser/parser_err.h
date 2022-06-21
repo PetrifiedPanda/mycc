@@ -45,7 +45,7 @@ struct parser_err {
     };
 };
 
-struct parser_err create_parser_err();
+struct parser_err create_parser_err(void);
 
 void set_parser_err(struct parser_err* err,
                     enum parser_err_type type,

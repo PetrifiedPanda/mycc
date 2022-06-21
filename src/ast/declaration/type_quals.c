@@ -4,7 +4,7 @@
 
 #include "parser/parser_util.h"
 
-struct type_quals create_type_quals() {
+struct type_quals create_type_quals(void) {
     return (struct type_quals){
         .is_const = false,
         .is_restrict = false,

@@ -12,7 +12,7 @@ struct string_constant {
 
 struct string_constant create_string_constant(char* spelling);
 
-struct string_constant create_func_name();
+struct string_constant create_func_name(void);
 
 void free_string_constant(struct string_constant* c);
 

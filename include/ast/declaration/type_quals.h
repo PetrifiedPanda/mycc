@@ -12,7 +12,7 @@ struct type_quals {
     bool is_atomic;
 };
 
-struct type_quals create_type_quals();
+struct type_quals create_type_quals(void);
 
 void update_type_quals(struct parser_state* s, struct type_quals* quals);
 

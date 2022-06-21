@@ -26,7 +26,7 @@ static inline bool is_standalone_type_spec(enum token_type t) {
     }
 }
 
-struct type_specs create_type_specs() {
+struct type_specs create_type_specs(void) {
     return (struct type_specs){
         .mods = {
             .is_unsigned = false,

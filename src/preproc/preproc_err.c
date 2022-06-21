@@ -6,7 +6,7 @@
 
 #include "util/mem.h"
 
-struct preproc_err create_preproc_err() {
+struct preproc_err create_preproc_err(void) {
     return (struct preproc_err){
         .type = PREPROC_ERR_NONE,
         .base.file = NULL,
