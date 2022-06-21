@@ -30,8 +30,6 @@ struct token create_token(enum token_type type,
                           struct source_location loc,
                           const char* filename);
 
-
-
 /**
  *
  * @param type The type of the token

@@ -15,10 +15,10 @@ struct string_hash_map create_string_hash_map(size_t elem_size);
 void free_string_hash_map(struct string_hash_map* map);
 
 /**
- * @brief Inserts item and key into this map, if key is not already 
+ * @brief Inserts item and key into this map, if key is not already
  *        present
  *
- * @return If this key is not already in use, item, otherwise a pointer 
+ * @return If this key is not already in use, item, otherwise a pointer
  *         to the item associated with key
  */
 const void* string_hash_map_insert(struct string_hash_map* map,
@@ -28,7 +28,7 @@ const void* string_hash_map_insert(struct string_hash_map* map,
 /**
  * @brief Gets the item with the given key
  *
- * @return A pointer to the item associated with key, or null, if key is not 
+ * @return A pointer to the item associated with key, or null, if key is not
  *         present
  */
 const void* string_hash_map_get(const struct string_hash_map* map,

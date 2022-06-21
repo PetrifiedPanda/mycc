@@ -9,7 +9,7 @@ enum token_type {
     F_CONSTANT,
     STRING_LITERAL,
     TYPEDEF_NAME,
-    
+
     // Keywords
     FUNC_NAME, // __func__
     SIZEOF,
@@ -56,7 +56,7 @@ enum token_type {
     NORETURN,      // _Noreturn
     STATIC_ASSERT, // _Static_assert
     THREAD_LOCAL,  // _Thread_local
-    
+
     // Punctuation
     SEMICOLON,
     LBRACKET, // (
@@ -81,7 +81,7 @@ enum token_type {
     QMARK,  // ?
     COLON,  // :
     ASSIGN, // =
-    COMMA,    
+    COMMA,
     PTR_OP, // ->
     INC_OP,
     DEC_OP,
@@ -102,12 +102,12 @@ enum token_type {
     RIGHT_ASSIGN,
     AND_ASSIGN,
     OR_ASSIGN,
-    XOR_ASSIGN,    
+    XOR_ASSIGN,
     ELLIPSIS, // ...
-    
+
     // Preprocessor only
     STRINGIFY_OP, // #
-    CONCAT_OP, // ##
+    CONCAT_OP,    // ##
 
     INVALID
 };

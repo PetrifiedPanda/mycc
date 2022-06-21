@@ -16,7 +16,7 @@ struct token create_token(enum token_type type,
         assert(spelling == NULL);
     }
 
-    return (struct token) {
+    return (struct token){
         .type = type,
         .spelling = spelling,
         .file = alloc_string_copy(filename),
@@ -29,7 +29,7 @@ struct token create_token_copy(enum token_type type,
                                struct source_location loc,
                                const char* filename) {
     assert(spelling);
-    return create_token(type, alloc_string_copy(spelling), loc, filename); 
+    return create_token(type, alloc_string_copy(spelling), loc, filename);
 }
 
 void free_token(struct token* t) {

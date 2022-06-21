@@ -7,8 +7,10 @@
 #include "util/mem.h"
 
 struct string_hash_map create_string_hash_map(size_t elem_size) {
-    enum { INIT_LEN = 100 };
-    return (struct string_hash_map){        
+    enum {
+        INIT_LEN = 100
+    };
+    return (struct string_hash_map){
         ._len = 0,
         ._cap = INIT_LEN,
         ._item_size = elem_size,
@@ -36,19 +38,18 @@ const void* string_hash_map_insert(struct string_hash_map* map,
 
     const size_t hash = hash_string(key);
     size_t i = hash != 0 ? hash % map->_cap : hash;
-    while (map->_keys[i] != NULL
-           && strcmp(map->_keys[i], key) != 0) {
+    while (map->_keys[i] != NULL && strcmp(map->_keys[i], key) != 0) {
         ++i;
         if (i == map->_cap) {
             i = 0;
         }
     }
-    
+
     void* found = (char*)map->_items + i * map->_item_size;
     if (map->_keys[i] != NULL) {
         return found;
     }
-    
+
     map->_keys[i] = key;
     memcpy(found, item, map->_item_size);
     ++map->_len;
@@ -61,8 +62,7 @@ const void* string_hash_map_get(const struct string_hash_map* map,
 
     const size_t hash = hash_string(key);
     size_t i = hash != 0 ? hash % map->_cap : hash;
-    while (map->_keys[i] != NULL
-           && strcmp(map->_keys[i], key) != 0) {
+    while (map->_keys[i] != NULL && strcmp(map->_keys[i], key) != 0) {
         ++i;
         if (i == map->_cap) {
             i = 0;
@@ -89,7 +89,10 @@ static void resize_map(struct string_hash_map* map) {
 
     for (size_t i = 0; i < prev_cap; ++i) {
         if (old_keys[i] != NULL) {
-            bool success = string_hash_map_insert(map, old_keys[i], (char*)old_items + i * map->_item_size);
+            bool success = string_hash_map_insert(map,
+                                                  old_keys[i],
+                                                  (char*)old_items
+                                                      + i * map->_item_size);
             UNUSED(success);
             assert(success);
         }
