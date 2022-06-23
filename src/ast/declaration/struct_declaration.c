@@ -2,6 +2,8 @@
 
 #include "util/mem.h"
 
+#include "ast/ast_visitor.h"
+
 bool parse_struct_declaration_inplace(struct parser_state* s,
                                       struct struct_declaration* res) {
     if (s->it->type == STATIC_ASSERT) {
@@ -47,3 +49,30 @@ void free_struct_declaration_children(struct struct_declaration* d) {
         free_struct_declarator_list(&d->decls);
     }
 }
+
+static bool visit_children(struct ast_visitor* visitor,
+                           struct struct_declaration* d) {
+    if (d->is_static_assert) {
+        return visit_static_assert_declaration(visitor, d->assert);
+    } else {
+        if (!visit_declaration_specs(visitor, d->decl_specs)) {
+            return false;
+        }
+        // TODO: 
+        /*
+        return visit_struct_declarator(visitor, d->decls);
+        */
+    }
+    (void)visitor;
+    (void)d;
+    return false;
+}
+
+bool visit_struct_declaration(struct ast_visitor* visitor,
+                              struct struct_declaration* d) {
+    AST_VISITOR_VISIT_TEMPLATE(visitor,
+                               d,
+                               visit_children,
+                               visitor->visit_struct_declaration);
+}
+

@@ -4,6 +4,8 @@
 
 #include "parser/parser_util.h"
 
+#include "ast/ast_visitor.h"
+
 struct static_assert_declaration* parse_static_assert_declaration(
     struct parser_state* s) {
     if (!(accept(s, STATIC_ASSERT) && accept(s, LBRACKET))) {
@@ -53,3 +55,20 @@ void free_static_assert_declaration(struct static_assert_declaration* d) {
 
     free(d);
 }
+
+static bool visit_children(struct ast_visitor* visitor,
+                           struct static_assert_declaration* d) {
+    if (!visit_const_expr(visitor, d->const_expr)) {
+        return false;
+    }
+    return visit_string_literal(visitor, &d->err_msg);
+}
+
+bool visit_static_assert_declaration(struct ast_visitor* visitor,
+                                     struct static_assert_declaration* d) {
+    AST_VISITOR_VISIT_TEMPLATE(visitor,
+                               d,
+                               visit_children,
+                               visitor->visit_static_assert_declaration);
+}
+

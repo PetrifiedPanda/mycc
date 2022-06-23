@@ -29,8 +29,13 @@ struct cond_expr* parse_cond_expr_cast(struct parser_state* s,
 void free_cond_expr_children(struct cond_expr* e);
 void free_cond_expr(struct cond_expr* e);
 
+struct ast_visitor;
+
+bool visit_cond_expr(struct ast_visitor* visitor, struct cond_expr* e);
+
 #include "ast/expr/expr.h"
 #include "ast/expr/log_or_expr.h"
 #include "ast/expr/cast_expr.h"
 
 #endif
+

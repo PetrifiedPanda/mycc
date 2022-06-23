@@ -83,12 +83,7 @@ static bool visit_children(struct ast_visitor* visitor,
         return false;
     }
     
-    /*
-    return visit_declaration_list(visitor, s->decl_list);
-    */
-    (void)visitor;
-    (void)s;
-    return false;
+    return visit_struct_declaration_list(visitor, &s->decl_list);
 }
 
 bool visit_struct_union_spec(struct ast_visitor* visitor,
