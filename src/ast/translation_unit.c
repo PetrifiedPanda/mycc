@@ -62,6 +62,9 @@ static bool visit_children(struct ast_visitor* visitor,
 
 bool visit_translation_unit(struct ast_visitor* visitor,
                             struct translation_unit* tl) {
-    AST_VISITOR_VISIT_TEMPLATE(visitor, tl, visit_children, visitor->visit_translation_unit);
+    AST_VISITOR_VISIT_TEMPLATE(visitor,
+                               tl,
+                               visit_children,
+                               visitor->visit_translation_unit);
 }
 
