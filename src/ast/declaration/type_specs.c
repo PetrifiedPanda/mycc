@@ -6,8 +6,6 @@
 
 #include "parser/parser_util.h"
 
-#include "ast/ast_visitor.h"
-
 static inline bool is_standalone_type_spec(enum token_type t) {
     switch (t) {
         case VOID:
@@ -216,38 +214,5 @@ bool is_valid_type_specs(const struct type_specs* s) {
     }
 
     return true;
-}
-
-static bool visit_children(struct ast_visitor* visitor, struct type_specs* s) {
-    if (s->has_specifier) {
-        switch (s->type) {
-            case TYPESPEC_PREDEF:
-                break; // needs to be handled by visitor itself
-            case TYPESPEC_ATOMIC:
-                return visit_atomic_type_spec(visitor, s->atomic_spec);
-            case TYPESPEC_STRUCT:
-                return visit_struct_union_spec(visitor, s->struct_union_spec);
-            // TODO:
-            /*
-            case TYPESPEC_ENUM:
-                return visit_enum_spec(visitor, s->enum_spec);
-            case TYPESPEC_TYPENAME:
-                return visit_identifier(visitor, s->typedef_name);
-            */
-
-            
-
-            default:
-                break;
-        }
-    }
-    return false;
-}
-
-bool visit_type_specs(struct ast_visitor* visitor, struct type_specs* s) {
-    AST_VISITOR_VISIT_TEMPLATE(visitor,
-                               s,
-                               visit_children,
-                               visitor->visit_type_specs);
 }
 

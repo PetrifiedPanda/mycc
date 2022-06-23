@@ -17,11 +17,6 @@ struct static_assert_declaration* parse_static_assert_declaration(
 
 void free_static_assert_declaration(struct static_assert_declaration* d);
 
-struct ast_visitor;
-
-bool visit_static_assert_declaration(struct ast_visitor* visitor,
-                                     struct static_assert_declaration* d);
-
 #include "ast/expr/const_expr.h"
 
 #endif

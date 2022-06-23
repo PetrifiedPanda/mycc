@@ -20,10 +20,6 @@ bool parse_align_spec_inplace(struct parser_state* s, struct align_spec* res);
 
 void free_align_spec_children(struct align_spec* s);
 
-struct ast_visitor;
-
-bool visit_align_spec(struct ast_visitor* visitor, struct align_spec* s);
-
 #include "ast/type_name.h"
 
 #include "ast/expr/const_expr.h"

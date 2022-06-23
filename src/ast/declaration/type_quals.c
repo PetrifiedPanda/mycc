@@ -4,8 +4,6 @@
 
 #include "parser/parser_util.h"
 
-#include "ast/ast_visitor.h"
-
 struct type_quals create_type_quals(void) {
     return (struct type_quals){
         .is_const = false,
@@ -58,10 +56,5 @@ struct type_quals parse_type_qual_list(struct parser_state* s) {
 
 bool is_valid_type_quals(const struct type_quals* q) {
     return q->is_const || q->is_volatile || q->is_restrict || q->is_atomic;
-}
-
-
-bool visit_type_quals(struct ast_visitor* visitor, struct type_quals* q) {
-    return visitor->visit_type_quals(visitor, q);
 }
 

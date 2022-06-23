@@ -6,8 +6,6 @@
 
 #include "parser/parser_util.h"
 
-#include "ast/ast_visitor.h"
-
 struct struct_union_spec* create_struct_union_spec(
     bool is_struct,
     struct identifier* identifier,
@@ -75,22 +73,5 @@ static void free_children(struct struct_union_spec* s) {
 void free_struct_union_spec(struct struct_union_spec* s) {
     free_children(s);
     free(s);
-}
-
-static bool visit_children(struct ast_visitor* visitor,
-                           struct struct_union_spec* s) {
-    if (s->identifier && !visit_identifier(visitor, s->identifier)) {
-        return false;
-    }
-    
-    return visit_struct_declaration_list(visitor, &s->decl_list);
-}
-
-bool visit_struct_union_spec(struct ast_visitor* visitor,
-                             struct struct_union_spec* s) {
-    AST_VISITOR_VISIT_TEMPLATE(visitor,
-                               s,
-                               visit_children,
-                               visitor->visit_struct_union_spec);
 }
 

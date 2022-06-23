@@ -7,8 +7,6 @@
 
 #include "parser/parser_util.h"
 
-#include "ast/ast_visitor.h"
-
 static bool current_is_type_qual(const struct parser_state* s) {
     if (is_type_qual(s->it->type)) {
         if (s->it->type == ATOMIC) {
@@ -164,37 +162,5 @@ void free_declaration_specs(struct declaration_specs* s) {
     free_children(s);
 
     free(s);
-}
-
-static bool visit_children(struct ast_visitor* visitor,
-                           struct declaration_specs* d) {
-    if (!visit_type_quals(visitor, &d->type_quals)) {
-        return false;
-    }
-
-    for (size_t i = 0; i < d->num_align_specs; ++i) {
-        if (!visit_align_spec(visitor, &d->align_specs[i])) {
-            return false;
-        }
-    }
-    
-    // TODO: 
-    /*
-    if (!visit_type_specs(visitor, d->type_specs)) {
-        return false;
-    }
-    return true;
-    */
-    (void)visitor;
-    (void)d;
-    return false;
-}
-
-bool visit_declaration_specs(struct ast_visitor* visitor,
-                             struct declaration_specs* s) {
-    AST_VISITOR_VISIT_TEMPLATE(visitor,
-                               s,
-                               visit_children,
-                               visitor->visit_declaration_specs);
 }
 

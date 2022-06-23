@@ -1,10 +1,10 @@
+#include "ast/spec_qual_list.h"
+
 #include <assert.h>
 
 #include "util/mem.h"
 
 #include "parser/parser_util.h"
-
-#include "ast/ast_visitor.h"
 
 static bool parse_spec_or_qual(struct parser_state* s,
                                struct spec_qual_list* res) {
@@ -53,25 +53,5 @@ void free_spec_qual_list(struct spec_qual_list* l) {
 
 bool is_valid_spec_qual_list(struct spec_qual_list* l) {
     return is_valid_type_quals(&l->quals) || is_valid_type_specs(&l->specs);
-}
-
-static bool visit_children(struct ast_visitor* visitor,
-                           struct spec_qual_list* l) {
-    if (!visit_type_quals(visitor, &l->quals)) {
-        return false;
-    }
-
-    if (!visit_type_specs(visitor, &l->specs)) {
-        return false;
-    }
-    return true;
-}
-
-bool visit_spec_qual_list(struct ast_visitor* visitor,
-                          struct spec_qual_list* l) {
-    AST_VISITOR_VISIT_TEMPLATE(visitor,
-                               l,
-                               visit_children,
-                               visitor->visit_spec_qual_list);
 }
 

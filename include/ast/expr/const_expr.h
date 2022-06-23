@@ -13,9 +13,5 @@ struct const_expr* parse_const_expr(struct parser_state* s);
 
 void free_const_expr(struct const_expr* e);
 
-struct ast_visitor;
-
-bool visit_const_expr(struct ast_visitor* visitor, struct const_expr* e);
-
 #endif
 

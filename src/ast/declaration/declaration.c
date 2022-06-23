@@ -5,8 +5,6 @@
 
 #include "util/mem.h"
 
-#include "ast/ast_visitor.h"
-
 bool parse_declaration_inplace(struct parser_state* s,
                                struct declaration* res) {
     assert(res);
@@ -72,15 +70,5 @@ void free_declaration_children(struct declaration* d) {
 void free_declaration(struct declaration* d) {
     free_declaration_children(d);
     free(d);
-}
-
-static bool visit_children(struct ast_visitor* visitor, struct declaration* d) {
-    (void)visitor;
-    (void)d;
-    return false;
-}
-
-bool visit_declaration(struct ast_visitor* visitor, struct declaration* d) {
-    AST_VISITOR_VISIT_TEMPLATE(visitor, d, visit_children, visitor->visit_declaration); 
 }
 

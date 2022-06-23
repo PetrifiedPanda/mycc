@@ -24,11 +24,6 @@ bool parse_struct_declaration_inplace(struct parser_state* s,
 
 void free_struct_declaration_children(struct struct_declaration* d);
 
-struct ast_visitor;
-
-bool visit_struct_declaration(struct ast_visitor* visitor,
-                              struct struct_declaration* d);
-
 #include "ast/declaration/declaration_specs.h"
 #include "ast/declaration/static_assert_declaration.h"
 

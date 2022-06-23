@@ -7,8 +7,6 @@
 
 #include "parser/parser_util.h"
 
-#include "ast/ast_visitor.h"
-
 static bool parse_cond_expr_conditionals(struct parser_state* s,
                                          struct cond_expr* res) {
     res->len = 0;
@@ -106,30 +104,5 @@ void free_cond_expr_children(struct cond_expr* e) {
 void free_cond_expr(struct cond_expr* e) {
     free_cond_expr_children(e);
     free(e);
-}
-
-static bool visit_children(struct ast_visitor* visitor, struct cond_expr* e) {
-    /*
-    for (size_t i = 0; i < e->len; ++i) {
-        struct log_or_and_expr* item = &e->conditionals[i];
-        if (!visit_log_or_expr(visitor, item->log_or)
-            || !visit_expr(visitor, item->expr)) {
-            return false;
-        }
-    }
-
-    return visit_log_or_expr(visitor, e->last_else);
-    */
-    // TODO:
-    (void)visitor;
-    (void)e;
-    return false;
-}
-
-bool visit_cond_expr(struct ast_visitor* visitor, struct cond_expr* e) {
-    AST_VISITOR_VISIT_TEMPLATE(visitor,
-                               e,
-                               visit_children,
-                               visitor->visit_cond_expr);
 }
 

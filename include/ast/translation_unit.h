@@ -16,10 +16,6 @@ struct translation_unit parse_translation_unit(struct parser_state* s);
 
 void free_translation_unit(struct translation_unit* u);
 
-struct ast_visitor;
-
-bool visit_translation_unit(struct ast_visitor* visitor, struct translation_unit* tl);
-
 #include "ast/declaration/external_declaration.h"
 
 #endif

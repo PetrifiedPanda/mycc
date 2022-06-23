@@ -16,11 +16,6 @@ struct declaration_list parse_declaration_list(struct parser_state* s);
 
 void free_declaration_list(struct declaration_list* l);
 
-struct ast_visitor;
-
-bool visit_declaration_list(struct ast_visitor* visitor,
-                            struct declaration_list* l);
-
 #include "ast/declaration/declaration.h"
 
 #endif

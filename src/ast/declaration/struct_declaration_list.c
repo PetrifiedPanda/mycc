@@ -6,8 +6,6 @@
 
 #include "parser/parser_util.h"
 
-#include "ast/ast_visitor.h"
-
 struct struct_declaration_list parse_struct_declaration_list(
     struct parser_state* s) {
     struct struct_declaration_list res = {
@@ -49,20 +47,3 @@ void free_struct_declaration_list(struct struct_declaration_list* l) {
     free(l->decls);
 }
 
-static bool visit_children(struct ast_visitor* visitor,
-                           struct struct_declaration_list* l) {
-    for (size_t i = 0; i < l->len; ++i) {
-        if (!visit_struct_declaration(visitor, &l->decls[i])) {
-            return false;
-        }
-    }
-    return true;
-}
-
-bool visit_struct_declaration_list(struct ast_visitor* visitor,
-                                   struct struct_declaration_list* l) {
-    AST_VISITOR_VISIT_TEMPLATE(visitor,
-                               l,
-                               visit_children,
-                               visitor->visit_struct_declaration_list);
-}

@@ -4,8 +4,6 @@
 
 #include "util/mem.h"
 
-#include "ast/ast_visitor.h"
-
 static bool parse_external_decl_normal_decl(struct parser_state* s,
                                             struct external_declaration* res,
                                             struct declaration_specs* decl_specs,
@@ -169,20 +167,5 @@ void free_external_declaration_children(struct external_declaration* d) {
     } else {
         free_declaration_children(&d->decl);
     }
-}
-
-static bool visit_children(struct ast_visitor* visitor,
-                           struct external_declaration* d) {
-    if (d->is_func_def) {
-        return visit_func_def(visitor, &d->func_def); 
-    } else {
-        // TODO: add in when implemented
-        return false/*visit_declaration(visitor, &d->decl)*/; 
-    }
-}
-
-bool visit_external_declaration(struct ast_visitor* visitor,
-                                struct external_declaration* d) {
-    AST_VISITOR_VISIT_TEMPLATE(visitor, d, visit_children, visitor->visit_external_declaration); 
 }
 
