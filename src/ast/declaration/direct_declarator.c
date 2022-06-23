@@ -69,7 +69,6 @@ static bool parse_arr_suffix(struct parser_state* s,
 
     if (s->it->type == STATIC) {
         if (suffix->is_static) { 
-            // TODO: maybe turn this into a warning
             set_parser_err(s->err,
                            PARSER_ERR_ARR_DOUBLE_STATIC,
                            s->it);
@@ -262,3 +261,4 @@ void free_direct_declarator(struct direct_declarator* d) {
     free_children(d);
     free(d);
 }
+

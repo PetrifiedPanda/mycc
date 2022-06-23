@@ -67,7 +67,6 @@ static bool parse_abs_arr_suffix(struct parser_state* s,
 
         if (s->it->type == STATIC) {
             if (res->is_static) {
-                // TODO: maybe turn this into a warning?
                 set_parser_err(s->err,
                                PARSER_ERR_ARR_DOUBLE_STATIC,
                                s->it);

@@ -234,7 +234,7 @@ static void copy_into_tokens(struct token* tokens,
     }
 }
 
-// TODO: stringification and concatenation and definitely some memory leaks
+// TODO: stringification and concatenation
 static bool expand_func_macro(struct preproc_state* state,
                               const struct preproc_macro* macro,
                               size_t macro_idx,
