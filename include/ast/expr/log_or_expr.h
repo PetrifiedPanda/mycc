@@ -21,7 +21,12 @@ struct log_or_expr* parse_log_or_expr_cast(struct parser_state* s,
 
 void free_log_or_expr(struct log_or_expr* e);
 
+struct ast_visitor;
+
+bool visit_log_or_expr(struct ast_visitor* visitor, struct log_or_expr* e);
+
 #include "ast/expr/log_and_expr.h"
 #include "ast/expr/cast_expr.h"
 
 #endif
+

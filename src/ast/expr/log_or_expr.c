@@ -7,6 +7,8 @@
 
 #include "parser/parser_util.h"
 
+#include "ast/ast_visitor.h"
+
 static void free_children(struct log_or_expr* e);
 
 static bool parse_log_or_expr_ops(struct parser_state* s,
@@ -91,3 +93,26 @@ void free_log_or_expr(struct log_or_expr* e) {
     free_children(e);
     free(e);
 }
+
+static bool visit_children(struct ast_visitor* visitor, struct log_or_expr* e) {
+    /*
+    for (size_t i = 0; i < e->len; ++i) {
+        if (!visit_log_and_expr(visitor, &e->log_ands[i])) {
+            return false;
+        }
+    }
+    return true;
+    */
+    // TODO:
+    (void)visitor;
+    (void)e;
+    return false;
+}
+
+bool visit_log_or_expr(struct ast_visitor* visitor, struct log_or_expr* e) {
+    AST_VISITOR_VISIT_TEMPLATE(visitor,
+                               e,
+                               visit_children,
+                               visitor->visit_log_or_expr);
+}
+
