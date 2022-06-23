@@ -4,6 +4,8 @@
 
 #include "util/mem.h"
 
+#include "ast/ast_visitor.h"
+
 struct translation_unit parse_translation_unit(struct parser_state* s) {
     struct translation_unit res;
     size_t alloc_num = 1;
@@ -46,3 +48,20 @@ static void free_children(struct translation_unit* u) {
 void free_translation_unit(struct translation_unit* u) {
     free_children(u);
 }
+
+static bool visit_children(struct ast_visitor* visitor,
+                           struct translation_unit* tl) {
+    for (size_t i = 0; i < tl->len; ++i) {
+        struct external_declaration* item = &tl->external_decls[i];
+        if (!visit_external_declaration(visitor, item)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool visit_translation_unit(struct ast_visitor* visitor,
+                            struct translation_unit* tl) {
+    AST_VISITOR_VISIT_TEMPLATE(visitor, tl, visit_children, visitor->visit_translation_unit);
+}
+

@@ -21,4 +21,10 @@ bool parse_external_declaration_inplace(struct parser_state* s,
 
 void free_external_declaration_children(struct external_declaration* d);
 
+struct ast_visitor;
+
+bool visit_external_declaration(struct ast_visitor* visitor,
+                                struct external_declaration* d);
+
 #endif
+

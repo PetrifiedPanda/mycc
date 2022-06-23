@@ -42,6 +42,10 @@ struct declaration_specs* parse_declaration_specs(struct parser_state* s,
 
 void free_declaration_specs(struct declaration_specs* s);
 
+struct ast_visitor;
+
+bool visit_declaration_specs(struct ast_visitor* visitor, struct declaration_specs* s);
+
 #include "ast/declaration/align_spec.h"
 
 #endif

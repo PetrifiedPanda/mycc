@@ -13,6 +13,12 @@ struct atomic_type_spec* parse_atomic_type_spec(struct parser_state* s);
 
 void free_atomic_type_spec(struct atomic_type_spec* s);
 
+struct ast_visitor;
+
+bool visit_atomic_type_spec(struct ast_visitor* visitor,
+                            struct atomic_type_spec* s);
+
 #include "ast/type_name.h"
 
 #endif
+

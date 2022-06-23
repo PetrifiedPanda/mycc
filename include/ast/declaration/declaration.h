@@ -26,7 +26,12 @@ struct declaration* parse_declaration(struct parser_state* s);
 void free_declaration_children(struct declaration* d);
 void free_declaration(struct declaration* d);
 
+struct ast_visitor;
+
+bool visit_declaration(struct ast_visitor* visitor, struct declaration* d);
+
 #include "ast/declaration/declaration_specs.h"
 #include "ast/declaration/static_assert_declaration.h"
 
 #endif
+

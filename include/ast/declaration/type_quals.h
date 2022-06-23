@@ -20,4 +20,9 @@ struct type_quals parse_type_qual_list(struct parser_state* s);
 
 bool is_valid_type_quals(const struct type_quals* q);
 
+struct ast_visitor;
+
+bool visit_type_quals(struct ast_visitor* visitor, struct type_quals* q);
+
 #endif
+

@@ -48,6 +48,10 @@ void free_type_specs_children(struct type_specs* s);
 
 bool is_valid_type_specs(const struct type_specs* s);
 
+struct ast_visitor;
+
+bool visit_type_specs(struct ast_visitor* visitor, struct type_specs* s);
+
 #include "ast/declaration/atomic_type_spec.h"
 #include "ast/declaration/struct_union_spec.h"
 #include "ast/declaration/enum_spec.h"
@@ -55,3 +59,4 @@ bool is_valid_type_specs(const struct type_specs* s);
 #include "ast/identifier.h"
 
 #endif
+

@@ -6,6 +6,8 @@
 
 #include "parser/parser_util.h"
 
+#include "ast/ast_visitor.h"
+
 static void free_align_spec(struct align_spec* s);
 
 bool parse_align_spec_inplace(struct parser_state* s, struct align_spec* res) {
@@ -50,3 +52,22 @@ static void free_align_spec(struct align_spec* s) {
     free_align_spec_children(s);
     free(s);
 }
+
+static bool visit_children(struct ast_visitor* visitor, struct align_spec* s) {
+    if (s->is_type_name) {
+        return visit_type_name(visitor, s->type_name);
+    } // TODO:
+    /*else {
+        return visit_const_expr(visitor, s->const_expr);
+    }
+    */
+    return false;
+}
+
+bool visit_align_spec(struct ast_visitor* visitor, struct align_spec* s) {
+    AST_VISITOR_VISIT_TEMPLATE(visitor,
+                               s,
+                               visit_children,
+                               visitor->visit_align_spec);
+}
+

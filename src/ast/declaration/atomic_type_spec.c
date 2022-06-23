@@ -4,6 +4,8 @@
 
 #include "parser/parser_util.h"
 
+#include "ast/ast_visitor.h"
+
 struct atomic_type_spec* parse_atomic_type_spec(struct parser_state* s) {
     if (!accept(s, ATOMIC)) {
         return NULL;
@@ -32,3 +34,13 @@ void free_atomic_type_spec(struct atomic_type_spec* s) {
     free_type_name(s->type_name);
     free(s);
 }
+
+static bool visit_children(struct ast_visitor* visitor, struct atomic_type_spec* s) {
+    return visit_type_name(visitor, s->type_name);
+}
+
+bool visit_atomic_type_spec(struct ast_visitor* visitor,
+                            struct atomic_type_spec* s) {
+    AST_VISITOR_VISIT_TEMPLATE(visitor, s, visit_children, visitor->visit_atomic_type_spec);
+}
+

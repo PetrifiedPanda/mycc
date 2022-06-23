@@ -6,6 +6,8 @@
 
 #include "parser/parser_util.h"
 
+#include "ast/ast_visitor.h"
+
 static inline bool is_standalone_type_spec(enum token_type t) {
     switch (t) {
         case VOID:
@@ -28,14 +30,15 @@ static inline bool is_standalone_type_spec(enum token_type t) {
 
 struct type_specs create_type_specs(void) {
     return (struct type_specs){
-        .mods = {
-            .is_unsigned = false,
-            .is_signed = false,
-            .is_short = false,
-            .num_long = 0,
-            .is_complex = false,
-            .is_imaginary = false,
-        },
+        .mods =
+            {
+                .is_unsigned = false,
+                .is_signed = false,
+                .is_short = false,
+                .num_long = 0,
+                .is_complex = false,
+                .is_imaginary = false,
+            },
         .has_specifier = false,
     };
 }
@@ -47,7 +50,8 @@ static void cannot_combine_with_spec_err(const struct parser_state* s,
     s->err->prev_type_spec = prev_spec;
 }
 
-static bool update_standalone_type_spec(struct parser_state* s, struct type_specs* res) {
+static bool update_standalone_type_spec(struct parser_state* s,
+                                        struct type_specs* res) {
     switch (s->it->type) {
         case VOID:
         case CHAR:
@@ -112,7 +116,8 @@ static bool update_standalone_type_spec(struct parser_state* s, struct type_spec
     return true;
 }
 
-static bool update_non_standalone_type_spec(struct parser_state* s, struct type_specs* res) {
+static bool update_non_standalone_type_spec(struct parser_state* s,
+                                            struct type_specs* res) {
     switch (s->it->type) {
         case ATOMIC: {
             res->type = TYPESPEC_ATOMIC;
@@ -212,3 +217,37 @@ bool is_valid_type_specs(const struct type_specs* s) {
 
     return true;
 }
+
+static bool visit_children(struct ast_visitor* visitor, struct type_specs* s) {
+    if (s->has_specifier) {
+        switch (s->type) {
+            case TYPESPEC_PREDEF:
+                break; // needs to be handled by visitor itself
+            case TYPESPEC_ATOMIC:
+                return visit_atomic_type_spec(visitor, s->atomic_spec);
+            case TYPESPEC_STRUCT:
+                return visit_struct_union_spec(visitor, s->struct_union_spec);
+            // TODO:
+            /*
+            case TYPESPEC_ENUM:
+                return visit_enum_spec(visitor, s->enum_spec);
+            case TYPESPEC_TYPENAME:
+                return visit_identifier(visitor, s->typedef_name);
+            */
+
+            
+
+            default:
+                break;
+        }
+    }
+    return false;
+}
+
+bool visit_type_specs(struct ast_visitor* visitor, struct type_specs* s) {
+    AST_VISITOR_VISIT_TEMPLATE(visitor,
+                               s,
+                               visit_children,
+                               visitor->visit_type_specs);
+}
+

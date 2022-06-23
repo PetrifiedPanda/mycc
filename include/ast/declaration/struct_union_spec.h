@@ -19,6 +19,12 @@ struct struct_union_spec* parse_struct_union_spec(struct parser_state* s);
 
 void free_struct_union_spec(struct struct_union_spec* s);
 
+struct ast_visitor;
+
+bool visit_struct_union_spec(struct ast_visitor* visitor,
+                             struct struct_union_spec* s);
+
 #include "ast/identifier.h"
 
 #endif
+

@@ -16,9 +16,15 @@ struct func_def {
 
 void free_func_def_children(struct func_def* d);
 
+struct ast_visitor;
+
+bool visit_func_def(struct ast_visitor* visitor, struct func_def* d);
+
 #include "ast/declaration/declaration_specs.h"
 #include "ast/declaration/declarator.h"
 
 #include "ast/statement/compound_statement.h"
+
+#include "ast/ast_visitor.h"
 
 #endif

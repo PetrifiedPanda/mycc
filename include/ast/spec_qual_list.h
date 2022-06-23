@@ -19,4 +19,9 @@ void free_spec_qual_list(struct spec_qual_list* l);
 
 bool is_valid_spec_qual_list(struct spec_qual_list* l);
 
+struct ast_visitor;
+
+bool visit_spec_qual_list(struct ast_visitor* visitor, struct spec_qual_list* l);
+
 #endif
+

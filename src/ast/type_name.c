@@ -7,6 +7,8 @@
 
 #include "parser/parser_util.h"
 
+#include "ast/ast_visitor.h"
+
 bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
     assert(res);
 
@@ -23,7 +25,8 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
             VOID,     CHAR,     SHORT,    INT,  LONG,         FLOAT,
             DOUBLE,   SIGNED,   UNSIGNED, BOOL, COMPLEX,      IMAGINARY,
             ATOMIC,   STRUCT,   UNION,    ENUM, TYPEDEF_NAME, CONST,
-            RESTRICT, VOLATILE, ATOMIC};
+            RESTRICT, VOLATILE, ATOMIC,
+        };
         expected_tokens_error(s,
                               expected,
                               sizeof expected / sizeof(enum token_type));
@@ -65,3 +68,25 @@ void free_type_name(struct type_name* n) {
     free_type_name_children(n);
     free(n);
 }
+
+static bool visit_children(struct ast_visitor* visitor, struct type_name* n) {
+    if (!visit_spec_qual_list(visitor, n->spec_qual_list)) {
+        return false;
+    }
+    // TODO: 
+    /*
+    if (n->abstract_decl) {
+        return visit_abs_declarator(visitor, n->abstract_decl);
+    }
+    return true;
+    */
+    return false;
+}
+
+bool visit_type_name(struct ast_visitor* visitor, struct type_name* n) {
+    AST_VISITOR_VISIT_TEMPLATE(visitor,
+                               n,
+                               visit_children,
+                               visitor->visit_type_name);
+}
+
