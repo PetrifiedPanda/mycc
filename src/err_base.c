@@ -2,6 +2,34 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
+
+#include "util/mem.h"
+
+struct err_base create_err_base(struct source_loc* loc) {
+    assert(loc);
+
+    char* file = loc->file;
+    loc->file = NULL;
+    return (struct err_base){
+        .loc = {
+            .file = file,
+            .file_loc = loc->file_loc,
+        },
+    };
+}
+
+struct err_base create_err_base_copy(const struct source_loc* loc) {
+    assert(loc);
+    assert(loc->file);
+
+    return (struct err_base){
+        .loc = {
+            .file = alloc_string_copy(loc->file),
+            .file_loc = loc->file_loc,
+        },
+    };
+}
 
 void print_err_base(const struct err_base* err) {
     printf("%s(%zu, %zu):\n",

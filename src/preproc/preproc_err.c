@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "err_base.h"
 #include "util/mem.h"
 
 struct preproc_err create_preproc_err(void) {
@@ -18,18 +19,10 @@ void set_preproc_err(struct preproc_err* err,
                      struct source_loc* loc) {
     assert(err);
     assert(type != PREPROC_ERR_NONE);
-    assert(err->type == PREPROC_ERR_NONE);
-    
-    char* file = loc->file;
-    loc->file = NULL;
+    assert(err->type == PREPROC_ERR_NONE); 
 
     err->type = type;
-    err->base = (struct err_base){
-        .loc = {
-            .file = file,
-            .file_loc = loc->file_loc,
-        },
-    };
+    err->base = create_err_base(loc);
 }
 
 void set_preproc_err_copy(struct preproc_err* err,
@@ -42,8 +35,7 @@ void set_preproc_err_copy(struct preproc_err* err,
     assert(loc->file);
 
     err->type = type;
-    err->base.loc.file = alloc_string_copy(loc->file);
-    err->base.loc.file_loc = loc->file_loc;
+    err->base = create_err_base_copy(loc);
 }
 
 void print_preproc_err(struct preproc_err* err) {
