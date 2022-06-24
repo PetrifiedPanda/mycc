@@ -6,15 +6,19 @@
 
 #include "token_type.h"
 
-struct source_location {
+struct file_loc {
     size_t line, index;
+};
+
+struct source_loc {
+    char* file;
+    struct file_loc file_loc;
 };
 
 struct token {
     enum token_type type;
     char* spelling;
-    char* file;
-    struct source_location source_loc;
+    struct source_loc loc;
 };
 
 /**
@@ -27,7 +31,7 @@ struct token {
  */
 struct token create_token(enum token_type type,
                           char* spelling,
-                          struct source_location loc,
+                          struct file_loc file_loc,
                           const char* filename);
 
 /**
@@ -40,8 +44,10 @@ struct token create_token(enum token_type type,
  */
 struct token create_token_copy(enum token_type type,
                                const char* spelling,
-                               struct source_location loc,
+                               struct file_loc file_loc,
                                const char* filename);
+
+void free_source_loc(struct source_loc* loc);
 
 void free_token(struct token* t);
 

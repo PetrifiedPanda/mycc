@@ -15,7 +15,7 @@ struct tokenizer_state {
     const char* it;
     char prev;
     char prev_prev;
-    struct source_location source_loc;
+    struct file_loc source_loc;
     const char* current_file;
 };
 
@@ -34,12 +34,12 @@ static void advance_newline(struct tokenizer_state* s);
 static void add_token_copy(struct preproc_state* res,
                            enum token_type type,
                            const char* spell,
-                           struct source_location loc,
+                           struct file_loc loc,
                            const char* filename);
 static void add_token(struct preproc_state* res,
                       enum token_type type,
                       char* spell,
-                      struct source_location loc,
+                      struct file_loc loc,
                       const char* filename);
 
 static void handle_comments(struct tokenizer_state* s,
@@ -338,7 +338,7 @@ static void realloc_tokens_if_needed(struct preproc_state* res) {
 static void add_token_copy(struct preproc_state* res,
                            enum token_type type,
                            const char* spell,
-                           struct source_location loc,
+                           struct file_loc loc,
                            const char* filename) {
     realloc_tokens_if_needed(res);
     res->tokens[res->len] = create_token_copy(type, spell, loc, filename);
@@ -348,7 +348,7 @@ static void add_token_copy(struct preproc_state* res,
 static void add_token(struct preproc_state* res,
                       enum token_type type,
                       char* spell,
-                      struct source_location loc,
+                      struct file_loc loc,
                       const char* filename) {
     realloc_tokens_if_needed(res);
     res->tokens[res->len] = create_token(type, spell, loc, filename);
@@ -404,7 +404,7 @@ static enum token_type get_char_lit_type(const char* buf,
 
 static void unterminated_literal_err(struct preproc_err* err,
                                      char terminator,
-                                     struct source_location start_loc,
+                                     struct file_loc start_loc,
                                      const char* filename) {
     const bool is_char_lit = terminator == '\'';
     set_preproc_err_copy(err,
@@ -422,7 +422,7 @@ static bool handle_character_literal(struct tokenizer_state* s,
     };
     char spell_buf[BUF_STRLEN + 1] = {0};
     size_t buf_idx = 0;
-    const struct source_location start_loc = s->source_loc;
+    const struct file_loc start_loc = s->source_loc;
 
     char terminator;
     if (*s->it == 'L') {
@@ -519,7 +519,7 @@ static bool handle_other(struct tokenizer_state* s, struct preproc_state* res) {
     };
     char spell_buf[BUF_STRLEN + 1] = {0};
     size_t buf_idx = 0;
-    struct source_location start_loc = s->source_loc;
+    struct file_loc start_loc = s->source_loc;
     while (!token_is_over(s) && buf_idx != BUF_STRLEN) {
         spell_buf[buf_idx] = *s->it;
         ++buf_idx;

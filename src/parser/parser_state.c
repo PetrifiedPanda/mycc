@@ -19,7 +19,7 @@ enum identifier_type {
  * as the parser_state
  */
 struct identifier_type_data {
-    struct source_location source_loc;
+    struct file_loc file_loc;
     const char* file;
     enum identifier_type type;
 };
@@ -109,8 +109,8 @@ static bool register_identifier(struct parser_state* s,
     // TODO: Add a warning when an identifier from a previous scope is shadowed
 
     struct identifier_type_data to_insert = {
-        .source_loc = token->source_loc,
-        .file = token->file,
+        .file_loc = token->loc.file_loc,
+        .file = token->loc.file,
         .type = type,
     };
     const struct identifier_type_data* item = string_hash_map_insert(
@@ -123,7 +123,7 @@ static bool register_identifier(struct parser_state* s,
         s->err->redefined_symbol = alloc_string_copy(token->spelling);
         s->err->was_typedef_name = item->type == ID_TYPE_TYPEDEF_NAME;
         s->err->prev_def_file = alloc_string_copy(item->file);
-        s->err->prev_def_loc = item->source_loc;
+        s->err->prev_def_loc = item->file_loc;
         return false;
     } else {
         return true;

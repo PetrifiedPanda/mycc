@@ -67,9 +67,9 @@ TEST(object_like) {
     char* macro_file = (char*)"macro_file.c";
     // #define MACRO 1 + 2
     struct token_or_arg expansion[] = {
-        {.is_arg = false, .token = {I_CONSTANT, "1", macro_file, {1, 15}}},
-        {.is_arg = false, .token = {ADD, NULL, macro_file, {1, 17}}},
-        {.is_arg = false, .token = {I_CONSTANT, "2", macro_file, {1, 19}}},
+        {.is_arg = false, .token = {I_CONSTANT, "1", {macro_file, {1, 15}}}},
+        {.is_arg = false, .token = {ADD, NULL, {macro_file, {1, 17}}}},
+        {.is_arg = false, .token = {I_CONSTANT, "2", {macro_file, {1, 19}}}},
     };
     enum { EXP_LEN = sizeof(expansion) / sizeof(struct token_or_arg) };
 
@@ -109,11 +109,11 @@ TEST(func_like) {
     // #define FUNC_LIKE_MACRO(x, y) x + y * 3 - y
     struct token_or_arg ex1[] = {
         {.is_arg = true, .arg_num = 0},
-        {.is_arg = false, .token = {ADD, NULL, macro_file, {1, 33}}},
+        {.is_arg = false, .token = {ADD, NULL, {macro_file, {1, 33}}}},
         {.is_arg = true, .arg_num = 1},
-        {.is_arg = false, .token = {ASTERISK, NULL, macro_file, {1, 37}}},
-        {.is_arg = false, .token = {I_CONSTANT, "3", macro_file, {1, 39}}},
-        {.is_arg = false, .token = {SUB, NULL, macro_file, {1, 41}}},
+        {.is_arg = false, .token = {ASTERISK, NULL, {macro_file, {1, 37}}}},
+        {.is_arg = false, .token = {I_CONSTANT, "3", {macro_file, {1, 39}}}},
+        {.is_arg = false, .token = {SUB, NULL, {macro_file, {1, 41}}}},
         {.is_arg = true, .arg_num = 1},
     };
 
@@ -150,9 +150,9 @@ TEST(func_like) {
 
     // #define YET_ANOTHER_FUNC_LIKE() 1 + 1
     struct token_or_arg ex3[] = {
-        {.is_arg = false, .token = {I_CONSTANT, "1", macro_file, {1, 33}}},
-        {.is_arg = false, .token = {ADD, NULL, macro_file, {1, 35}}},
-        {.is_arg = false, .token = {I_CONSTANT, "1", macro_file, {1, 37}}},
+        {.is_arg = false, .token = {I_CONSTANT, "1", {macro_file, {1, 33}}}},
+        {.is_arg = false, .token = {ADD, NULL, {macro_file, {1, 35}}}},
+        {.is_arg = false, .token = {I_CONSTANT, "1", {macro_file, {1, 37}}}},
     };
 
     const struct preproc_macro macro3 = {
@@ -174,9 +174,9 @@ TEST(func_like_variadic) {
     // #define CALL_FUNC(func, ...) func(__VA_ARGS__)
     struct token_or_arg ex1[] = {
         {.is_arg = true, .arg_num = 0},
-        {.is_arg = false, .token = {LBRACKET, NULL, macro_file, {1, 33}}},
+        {.is_arg = false, .token = {LBRACKET, NULL, {macro_file, {1, 33}}}},
         {.is_arg = true, .arg_num = 1},
-        {.is_arg = false, .token = {RBRACKET, NULL, macro_file, {1, 45}}},
+        {.is_arg = false, .token = {RBRACKET, NULL, {macro_file, {1, 45}}}},
     };
 
     const struct preproc_macro macro1 = {
@@ -194,10 +194,10 @@ TEST(func_like_variadic) {
     
     // #define ONLY_VARARGS(...) 1, 2, __VA_ARGS__
     struct token_or_arg ex2[] = {
-        {.is_arg = false, .token = {I_CONSTANT, "1", macro_file, {1, 27}}},
-        {.is_arg = false, .token = {COMMA, NULL, macro_file, {1, 28}}},
-        {.is_arg = false, .token = {I_CONSTANT, "2", macro_file, {1, 30}}},
-        {.is_arg = false, .token = {COMMA, NULL, macro_file, {1, 31}}},
+        {.is_arg = false, .token = {I_CONSTANT, "1", {macro_file, {1, 27}}}},
+        {.is_arg = false, .token = {COMMA, NULL, {macro_file, {1, 28}}}},
+        {.is_arg = false, .token = {I_CONSTANT, "2", {macro_file, {1, 30}}}},
+        {.is_arg = false, .token = {COMMA, NULL, {macro_file, {1, 31}}}},
         {.is_arg = true, .arg_num = 0},
     };
 

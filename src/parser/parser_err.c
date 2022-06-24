@@ -23,11 +23,11 @@ void set_parser_err(struct parser_err* err,
     assert(err->type == PARSER_ERR_NONE);
 
     err->type = type;
-    char* file = token->file;
-    token->file = NULL;
+    char* file = token->loc.file;
+    token->loc.file = NULL;
     err->base = (struct err_base){
         .file = file,
-        .loc = token->source_loc,
+        .loc = token->loc.file_loc,
     };
 }
 
@@ -40,8 +40,8 @@ void set_parser_err_copy(struct parser_err* err,
     assert(token->spelling);
 
     err->type = type;
-    err->base.file = alloc_string_copy(token->file);
-    err->base.loc = token->source_loc;
+    err->base.file = alloc_string_copy(token->loc.file);
+    err->base.loc = token->loc.file_loc;
 }
 
 void print_parser_err(const struct parser_err* err) {

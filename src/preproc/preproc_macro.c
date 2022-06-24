@@ -51,7 +51,7 @@ static void free_token_arr(struct token_arr* arr) {
 static struct token move_token(struct token* t) {
     struct token res = *t;
     t->spelling = NULL;
-    t->file = NULL;
+    t->loc.file = NULL;
     return res;
 }
 
@@ -164,17 +164,23 @@ struct macro_args collect_macro_args(struct token* args_start,
     }
 
     if (res.len < expected_args) {
-        char* file = it->file;
-        it->file = NULL;
-        set_preproc_err(err, PREPROC_ERR_MACRO_ARG_COUNT, file, it->source_loc);
+        char* file = it->loc.file;
+        it->loc.file = NULL;
+        set_preproc_err(err,
+                        PREPROC_ERR_MACRO_ARG_COUNT,
+                        file,
+                        it->loc.file_loc);
         err->expected_arg_count = expected_args;
         err->is_variadic = is_variadic;
         err->too_few_args = true;
         goto fail;
     } else if (it != limit_ptr) {
-        char* file = it->file;
-        it->file = NULL;
-        set_preproc_err(err, PREPROC_ERR_MACRO_ARG_COUNT, file, it->source_loc);
+        char* file = it->loc.file;
+        it->loc.file = NULL;
+        set_preproc_err(err,
+                        PREPROC_ERR_MACRO_ARG_COUNT,
+                        file,
+                        it->loc.file_loc);
         err->expected_arg_count = expected_args;
         err->is_variadic = is_variadic;
         err->too_few_args = false;
@@ -341,12 +347,11 @@ static struct token copy_token(const struct token* t) {
     return (struct token){
         .type = t->type,
         .spelling = t->spelling == NULL ? NULL : alloc_string_copy(t->spelling),
-        .file = alloc_string_copy(t->file),
-        .source_loc =
-            {
-                // TODO: identify as token from macro expansion
-                .line = t->source_loc.line,
-                .index = t->source_loc.index,
-            },
+        // TODO: identify as token from macro expansion
+        .loc = {
+            .file = alloc_string_copy(t->loc.file),
+            .file_loc = t->loc.file_loc,
+        },
     };
 }
+

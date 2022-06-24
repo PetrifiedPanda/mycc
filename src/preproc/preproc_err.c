@@ -16,7 +16,7 @@ struct preproc_err create_preproc_err(void) {
 void set_preproc_err(struct preproc_err* err,
                      enum preproc_err_type type,
                      char* file,
-                     struct source_location loc) {
+                     struct file_loc loc) {
     assert(err);
     assert(type != PREPROC_ERR_NONE);
     assert(err->type == PREPROC_ERR_NONE);
@@ -31,7 +31,7 @@ void set_preproc_err(struct preproc_err* err,
 void set_preproc_err_copy(struct preproc_err* err,
                           enum preproc_err_type type,
                           const char* file,
-                          struct source_location loc) {
+                          struct file_loc loc) {
     assert(err);
     assert(type != PREPROC_ERR_NONE);
     assert(err->type == PREPROC_ERR_NONE);

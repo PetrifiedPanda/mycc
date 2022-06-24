@@ -5,7 +5,7 @@
 
 struct err_base {
     char* file;
-    struct source_location loc;
+    struct file_loc loc;
 };
 
 void print_err_base(const struct err_base* err);

@@ -19,7 +19,7 @@ static void check_size(const struct token* tokens, size_t expected) {
 
 static void check_file(const struct token* tokens, const char* file) {
     for (const struct token* it = tokens; it->type != INVALID; ++it) {
-        ASSERT_STR(it->file, file);
+        ASSERT_STR(it->loc.file, file);
     }
 }
 
@@ -30,8 +30,10 @@ static struct token create(enum token_type type,
     return (struct token){
         .type = type,
         .spelling = (char*)spelling,
-        .file = NULL,
-        .source_loc = {line, index},
+        .loc = {
+            .file = NULL,
+            .file_loc = {line, index},
+        },
     };
 }
 
@@ -40,8 +42,8 @@ static void check_token(const struct token* t, const struct token* expected) {
 
     ASSERT_STR(t->spelling, expected->spelling);
 
-    ASSERT_SIZE_T(t->source_loc.line, expected->source_loc.line);
-    ASSERT_SIZE_T(t->source_loc.index, expected->source_loc.index);
+    ASSERT_SIZE_T(t->loc.file_loc.line, expected->loc.file_loc.line);
+    ASSERT_SIZE_T(t->loc.file_loc.index, expected->loc.file_loc.index);
 }
 
 static void compare_tokens(const struct token* got,

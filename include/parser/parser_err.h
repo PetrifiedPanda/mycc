@@ -34,7 +34,7 @@ struct parser_err {
             char* redefined_symbol;
             bool was_typedef_name;
             char* prev_def_file;
-            struct source_location prev_def_loc;
+            struct file_loc prev_def_loc;
         };
         struct { // incompatible type specs
             enum token_type type_spec, prev_type_spec;

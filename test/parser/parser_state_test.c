@@ -31,7 +31,7 @@ TEST(parser_state) {
         struct token* item = &dummy_string_tokens[i];
         *item = create_token_copy(IDENTIFIER,
                                   insert_string,
-                                  (struct source_location){0, 0},
+                                  (struct file_loc){0, 0},
                                   "file.c");
         if (i % 2 == 0) {
             ASSERT(register_enum_constant(&s, item));
@@ -94,8 +94,10 @@ TEST(parser_state) {
     struct token insert_test_token = {
         .type = IDENTIFIER,
         .spelling = "Test",
-        .file = "file.c",
-        .source_loc = {.line = 0, .index = 0},
+        .loc = {
+            .file = "file.c",
+            .file_loc = {.line = 0, .index = 0},
+        },
     };
     ASSERT(register_enum_constant(&s, &insert_test_token));
     ASSERT(!register_typedef_name(&s, &insert_test_token));

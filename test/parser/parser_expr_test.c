@@ -132,8 +132,10 @@ static void primary_expr_generic_sel_test(void) {
     struct token insert_token = {
         .type = IDENTIFIER,
         .spelling = "TypedefName",
-        .source_loc = {0, 0},
-        .file = "another_nonexistent_file.c",
+        .loc = {
+            .file = "another_nonexistent_file.c",
+            .file_loc = {0, 0},
+        },
     };
 
     register_typedef_name(&s, &insert_token);
