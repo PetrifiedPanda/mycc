@@ -12,9 +12,9 @@ TEST(unterminated_literal) {
         ASSERT_NULL(tokens);
         
         ASSERT(err.type == PREPROC_ERR_UNTERMINATED_LIT);
-        ASSERT_SIZE_T(err.base.loc.line, (size_t)1);
-        ASSERT_SIZE_T(err.base.loc.index, (size_t)1);
-        ASSERT_STR(err.base.file, "file.c");
+        ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
+        ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)1);
+        ASSERT_STR(err.base.loc.file, "file.c");
         ASSERT(!err.is_char_lit);
         
         free_preproc_err(&err);
@@ -28,9 +28,9 @@ TEST(unterminated_literal) {
         ASSERT_NULL(tokens);
         
         ASSERT(err.type == PREPROC_ERR_UNTERMINATED_LIT);
-        ASSERT_SIZE_T(err.base.loc.line, (size_t)2);
-        ASSERT_SIZE_T(err.base.loc.index, (size_t)10);
-        ASSERT_STR(err.base.file, "file.c");
+        ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)2);
+        ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)10);
+        ASSERT_STR(err.base.loc.file, "file.c");
         ASSERT(err.is_char_lit);
         
         free_preproc_err(&err);

@@ -86,9 +86,9 @@ TEST(jump_statement) {
         struct jump_statement* res = parse_jump_statement(&s);
         ASSERT_NULL(res);
         
-        ASSERT_STR(err.base.file, "a_file.c");
-        ASSERT_SIZE_T(err.base.loc.line, (size_t)1);
-        ASSERT_SIZE_T(err.base.loc.index, (size_t)1);
+        ASSERT_STR(err.base.loc.file, "a_file.c");
+        ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
+        ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)1);
 
         ASSERT_SIZE_T(err.num_expected, (size_t)4);
         ASSERT_TOKEN_TYPE(err.got, IDENTIFIER);

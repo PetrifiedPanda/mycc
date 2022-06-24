@@ -4,8 +4,7 @@
 #include "token.h"
 
 struct err_base {
-    char* file;
-    struct file_loc loc;
+    struct source_loc loc;
 };
 
 void print_err_base(const struct err_base* err);

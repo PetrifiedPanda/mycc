@@ -34,12 +34,12 @@ static void advance_newline(struct tokenizer_state* s);
 static void add_token_copy(struct preproc_state* res,
                            enum token_type type,
                            const char* spell,
-                           struct file_loc loc,
+                           struct file_loc file_loc,
                            const char* filename);
 static void add_token(struct preproc_state* res,
                       enum token_type type,
                       char* spell,
-                      struct file_loc loc,
+                      struct file_loc file_loc,
                       const char* filename);
 
 static void handle_comments(struct tokenizer_state* s,
@@ -338,20 +338,20 @@ static void realloc_tokens_if_needed(struct preproc_state* res) {
 static void add_token_copy(struct preproc_state* res,
                            enum token_type type,
                            const char* spell,
-                           struct file_loc loc,
+                           struct file_loc file_loc,
                            const char* filename) {
     realloc_tokens_if_needed(res);
-    res->tokens[res->len] = create_token_copy(type, spell, loc, filename);
+    res->tokens[res->len] = create_token_copy(type, spell, file_loc, filename);
     ++res->len;
 }
 
 static void add_token(struct preproc_state* res,
                       enum token_type type,
                       char* spell,
-                      struct file_loc loc,
+                      struct file_loc file_loc,
                       const char* filename) {
     realloc_tokens_if_needed(res);
-    res->tokens[res->len] = create_token(type, spell, loc, filename);
+    res->tokens[res->len] = create_token(type, spell, file_loc, filename);
     ++res->len;
 }
 

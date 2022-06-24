@@ -9,37 +9,39 @@
 struct preproc_err create_preproc_err(void) {
     return (struct preproc_err){
         .type = PREPROC_ERR_NONE,
-        .base.file = NULL,
+        .base.loc.file = NULL,
     };
 }
 
 void set_preproc_err(struct preproc_err* err,
                      enum preproc_err_type type,
                      char* file,
-                     struct file_loc loc) {
+                     struct file_loc file_loc) {
     assert(err);
     assert(type != PREPROC_ERR_NONE);
     assert(err->type == PREPROC_ERR_NONE);
 
     err->type = type;
     err->base = (struct err_base){
-        .file = file,
-        .loc = loc,
+        .loc = {
+            .file = file,
+            .file_loc = file_loc,
+        },
     };
 }
 
 void set_preproc_err_copy(struct preproc_err* err,
                           enum preproc_err_type type,
                           const char* file,
-                          struct file_loc loc) {
+                          struct file_loc file_loc) {
     assert(err);
     assert(type != PREPROC_ERR_NONE);
     assert(err->type == PREPROC_ERR_NONE);
     assert(file);
 
     err->type = type;
-    err->base.file = alloc_string_copy(file);
-    err->base.loc = loc;
+    err->base.loc.file = alloc_string_copy(file);
+    err->base.loc.file_loc = file_loc;
 }
 
 void print_preproc_err(struct preproc_err* err) {
@@ -50,7 +52,7 @@ void print_preproc_err(struct preproc_err* err) {
             assert(false);
             break;
         case PREPROC_ERR_FILE_FAIL:
-            if (err->base.file) {
+            if (err->base.loc.file) {
                 print_err_base(&err->base);
             }
             if (err->open_fail) {

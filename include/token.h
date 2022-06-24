@@ -25,8 +25,8 @@ struct token {
  *
  * @param type The type of the token
  * @param spelling The spelling of the token, or NULL if tokens of the given
- * type have only one spelling
- * @param loc The source location of the token
+ *        type have only one spelling
+ * @param file_loc The location of the token in the file
  * @param filename The file this token is in (This is copied into the token)
  */
 struct token create_token(enum token_type type,
@@ -38,8 +38,8 @@ struct token create_token(enum token_type type,
  *
  * @param type The type of the token
  * @param spelling The spelling of the token, which is to be copied, must not be
- * NULL
- * @param loc The source location of the token
+ *        NULL
+ * @param file_loc The location of the token in the file
  * @param filename The file this token is in (This is copied into the token)
  */
 struct token create_token_copy(enum token_type type,
