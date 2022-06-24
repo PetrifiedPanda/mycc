@@ -15,7 +15,7 @@ struct tokenizer_state {
     const char* it;
     char prev;
     char prev_prev;
-    struct file_loc source_loc;
+    struct file_loc file_loc;
     const char* current_file;
 };
 
@@ -64,7 +64,7 @@ bool tokenize_line(struct preproc_state* res,
         .it = line,
         .prev = '\0',
         .prev_prev = '\0',
-        .source_loc =
+        .file_loc =
             {
                 .line = line_num,
                 .index = 1,
@@ -96,7 +96,7 @@ bool tokenize_line(struct preproc_state* res,
                 type = check_next(type, s.it + 1);
             }
 
-            add_token(res, type, NULL, s.source_loc, s.current_file);
+            add_token(res, type, NULL, s.file_loc, s.current_file);
 
             size_t len = strlen(get_spelling(type));
             advance(&s, len);
@@ -300,7 +300,7 @@ static bool is_valid_singlec_token(enum token_type type,
 static void advance(struct tokenizer_state* s, size_t num) {
     assert(num > 0);
     s->it += num;
-    s->source_loc.index += num;
+    s->file_loc.index += num;
 
     if (num > 1 || s->prev != '\0') {
         s->prev = *(s->it - 1);
@@ -309,7 +309,7 @@ static void advance(struct tokenizer_state* s, size_t num) {
 }
 
 static void advance_one(struct tokenizer_state* s) {
-    ++s->source_loc.index;
+    ++s->file_loc.index;
     s->prev_prev = s->prev;
     s->prev = *s->it;
     ++s->it;
@@ -318,10 +318,10 @@ static void advance_one(struct tokenizer_state* s) {
 static void advance_newline(struct tokenizer_state* s) {
     if (*s->it == '\n') {
         assert(s->it[-1] == '\\');
-        s->source_loc.line += 1;
-        s->source_loc.index = 1;
+        s->file_loc.line += 1;
+        s->file_loc.index = 1;
     } else {
-        ++s->source_loc.index;
+        ++s->file_loc.index;
     }
 
     s->prev_prev = s->prev;
@@ -422,7 +422,7 @@ static bool handle_character_literal(struct tokenizer_state* s,
     };
     char spell_buf[BUF_STRLEN + 1] = {0};
     size_t buf_idx = 0;
-    const struct file_loc start_loc = s->source_loc;
+    const struct file_loc start_loc = s->file_loc;
 
     char terminator;
     if (*s->it == 'L') {
@@ -519,7 +519,7 @@ static bool handle_other(struct tokenizer_state* s, struct preproc_state* res) {
     };
     char spell_buf[BUF_STRLEN + 1] = {0};
     size_t buf_idx = 0;
-    struct file_loc start_loc = s->source_loc;
+    struct file_loc start_loc = s->file_loc;
     while (!token_is_over(s) && buf_idx != BUF_STRLEN) {
         spell_buf[buf_idx] = *s->it;
         ++buf_idx;
