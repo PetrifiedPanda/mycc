@@ -49,11 +49,11 @@ struct parser_err create_parser_err(void);
 
 void set_parser_err(struct parser_err* err,
                     enum parser_err_type type,
-                    struct token* token);
+                    struct source_loc* loc);
 
 void set_parser_err_copy(struct parser_err* err,
                          enum parser_err_type type,
-                         const struct token* token);
+                         const struct source_loc* loc);
 
 void print_parser_err(const struct parser_err* err);
 

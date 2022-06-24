@@ -15,8 +15,7 @@
 
 static bool preproc_file(struct preproc_state* state,
                          const char* path,
-                         const char* include_file,
-                         struct file_loc include_loc);
+                         struct source_loc* include_loc);
 
 static enum token_type keyword_type(const char* spelling);
 
@@ -32,8 +31,12 @@ struct token* preproc(const char* path, struct preproc_err* err) {
         .tokens = NULL,
         .err = err,
     };
-
-    if (!preproc_file(&state, path, NULL, (struct file_loc){0, 0})) {
+    
+    struct source_loc empty_source_loc = {
+        .file = NULL, 
+        .file_loc ={0, 0},
+    };
+    if (!preproc_file(&state, path, &empty_source_loc)) {
         for (size_t i = 0; i < state.len; ++i) {
             free_token(&state.tokens[i]);
         }
@@ -203,8 +206,7 @@ static const struct token* find_macro_end(struct preproc_state* state,
     if (it->type != RBRACKET) {
         set_preproc_err_copy(state->err,
                              PREPROC_ERR_UNTERMINATED_MACRO,
-                             macro_start->loc.file,
-                             macro_start->loc.file_loc);
+                             &macro_start->loc);
         return NULL;
     }
     return it;
@@ -305,17 +307,15 @@ struct token* preproc_string(const char* str,
 
 static void file_err(struct preproc_err* err,
                      const char* path,
-                     const char* include_file,
-                     struct file_loc include_loc,
+                     struct source_loc* include_loc,
                      bool open_fail);
 
 static bool preproc_file(struct preproc_state* state,
                          const char* path,
-                         const char* include_file,
-                         struct file_loc include_loc) {
+                         struct source_loc* include_loc) {
     FILE* file = fopen(path, "r");
     if (!file) {
-        file_err(state->err, path, include_file, include_loc, true);
+        file_err(state->err, path, include_loc, true);
         return false;
     }
 
@@ -339,13 +339,11 @@ static bool preproc_file(struct preproc_state* state,
 
 static void file_err(struct preproc_err* err,
                      const char* path,
-                     const char* include_file,
-                     struct file_loc include_loc,
+                     struct source_loc* include_loc,
                      bool open_fail) {
     assert(path);
 
-    char* file = include_file == NULL ? NULL : alloc_string_copy(include_file);
-    set_preproc_err(err, PREPROC_ERR_FILE_FAIL, file, include_loc);
+    set_preproc_err(err, PREPROC_ERR_FILE_FAIL, include_loc);
     err->fail_file = alloc_string_copy(path);
     err->open_fail = open_fail;
 }

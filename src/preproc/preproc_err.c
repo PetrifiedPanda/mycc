@@ -15,33 +15,35 @@ struct preproc_err create_preproc_err(void) {
 
 void set_preproc_err(struct preproc_err* err,
                      enum preproc_err_type type,
-                     char* file,
-                     struct file_loc file_loc) {
+                     struct source_loc* loc) {
     assert(err);
     assert(type != PREPROC_ERR_NONE);
     assert(err->type == PREPROC_ERR_NONE);
+    
+    char* file = loc->file;
+    loc->file = NULL;
 
     err->type = type;
     err->base = (struct err_base){
         .loc = {
             .file = file,
-            .file_loc = file_loc,
+            .file_loc = loc->file_loc,
         },
     };
 }
 
 void set_preproc_err_copy(struct preproc_err* err,
                           enum preproc_err_type type,
-                          const char* file,
-                          struct file_loc file_loc) {
+                          const struct source_loc* loc) {
     assert(err);
     assert(type != PREPROC_ERR_NONE);
     assert(err->type == PREPROC_ERR_NONE);
-    assert(file);
+    assert(loc);
+    assert(loc->file);
 
     err->type = type;
-    err->base.loc.file = alloc_string_copy(file);
-    err->base.loc.file_loc = file_loc;
+    err->base.loc.file = alloc_string_copy(loc->file);
+    err->base.loc.file_loc = loc->file_loc;
 }
 
 void print_preproc_err(struct preproc_err* err) {

@@ -69,7 +69,7 @@ static bool parse_abs_arr_suffix(struct parser_state* s,
             if (res->is_static) {
                 set_parser_err(s->err,
                                PARSER_ERR_ARR_DOUBLE_STATIC,
-                               s->it);
+                               &s->it->loc);
                 free_abs_arr_or_func_suffix(res);
                 return false;
             } else {
@@ -81,9 +81,7 @@ static bool parse_abs_arr_suffix(struct parser_state* s,
 
     if (s->it->type == RINDEX) {
         if (res->is_static) {
-            set_parser_err(s->err,
-                           PARSER_ERR_ARR_STATIC_NO_LEN,
-                           s->it);
+            set_parser_err(s->err, PARSER_ERR_ARR_STATIC_NO_LEN, &s->it->loc);
             free_abs_arr_or_func_suffix(res);
             return false;
         }
@@ -195,3 +193,4 @@ void free_direct_abs_declarator(struct direct_abs_declarator* d) {
     free_children(d);
     free(d);
 }
+

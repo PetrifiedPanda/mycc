@@ -27,7 +27,9 @@ bool parse_struct_declarator_inplace(struct parser_state* s,
     } else {
         res->bit_field = NULL;
         if (!res->decl) {
-            set_parser_err(s->err, PARSER_ERR_EMPTY_STRUCT_DECLARATOR, s->it);
+            set_parser_err(s->err,
+                           PARSER_ERR_EMPTY_STRUCT_DECLARATOR,
+                           &s->it->loc);
             return false;
         }
     }

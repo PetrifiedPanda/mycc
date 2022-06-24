@@ -53,7 +53,7 @@ static bool parse_arr_suffix(struct parser_state* s,
             if (suffix->is_static) {
                 set_parser_err(s->err,
                                PARSER_ERR_ARR_STATIC_ASTERISK,
-                               s->it);
+                               &s->it->loc);
                 free_arr_suffix(suffix);
                 return false;
             }
@@ -71,7 +71,7 @@ static bool parse_arr_suffix(struct parser_state* s,
         if (suffix->is_static) { 
             set_parser_err(s->err,
                            PARSER_ERR_ARR_DOUBLE_STATIC,
-                           s->it);
+                           &s->it->loc);
             free_arr_suffix(suffix);
             return false;
         }
@@ -83,7 +83,7 @@ static bool parse_arr_suffix(struct parser_state* s,
         if (suffix->is_static) {
             set_parser_err(s->err,
                            PARSER_ERR_ARR_STATIC_NO_LEN,
-                           s->it);
+                           &s->it->loc);
             free_arr_suffix(suffix);
             return false;
         }

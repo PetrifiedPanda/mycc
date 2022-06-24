@@ -34,13 +34,11 @@ struct preproc_err create_preproc_err(void);
 
 void set_preproc_err(struct preproc_err* err,
                      enum preproc_err_type type,
-                     char* file,
-                     struct file_loc file_loc);
+                     struct source_loc* loc);
 
 void set_preproc_err_copy(struct preproc_err* err,
                           enum preproc_err_type type,
-                          const char* file,
-                          struct file_loc file_loc);
+                          const struct source_loc* loc);
 
 void print_preproc_err(struct preproc_err* err);
 

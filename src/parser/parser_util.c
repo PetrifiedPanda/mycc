@@ -16,7 +16,7 @@ void expected_tokens_error(struct parser_state* s,
     assert(expected);
     assert(num_expected >= 1);
 
-    set_parser_err(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it);
+    set_parser_err(s->err, PARSER_ERR_EXPECTED_TOKENS, &s->it->loc);
 
     const size_t bytes = sizeof(enum token_type) * num_expected;
     s->err->expected = xmalloc(bytes);
@@ -78,3 +78,4 @@ char* take_spelling(struct token* t) {
     t->spelling = NULL;
     return spelling;
 }
+

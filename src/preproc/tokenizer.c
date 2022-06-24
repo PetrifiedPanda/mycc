@@ -407,10 +407,14 @@ static void unterminated_literal_err(struct preproc_err* err,
                                      struct file_loc start_loc,
                                      const char* filename) {
     const bool is_char_lit = terminator == '\'';
-    set_preproc_err_copy(err,
-                         PREPROC_ERR_UNTERMINATED_LIT,
-                         filename,
-                         start_loc);
+
+    struct source_loc loc = {
+        .file = alloc_string_copy(filename),
+        .file_loc = start_loc,
+    };
+    set_preproc_err(err, PREPROC_ERR_UNTERMINATED_LIT, &loc);
+    assert(loc.file == NULL);
+
     err->is_char_lit = is_char_lit;
 }
 
@@ -559,10 +563,13 @@ static bool handle_other(struct tokenizer_state* s, struct preproc_state* res) {
     } else if (is_valid_identifier(buf_to_check, buf_idx)) {
         type = IDENTIFIER;
     } else {
-        set_preproc_err_copy(res->err,
-                             PREPROC_ERR_INVALID_ID,
-                             s->current_file,
-                             start_loc);
+        struct source_loc loc = {
+            .file = alloc_string_copy(s->current_file),
+            .file_loc = start_loc,
+        };
+        set_preproc_err(res->err, PREPROC_ERR_INVALID_ID, &loc);
+        assert(loc.file == NULL);
+
         char* id_spell = buf_to_check != dyn_buf
                              ? alloc_string_copy(buf_to_check)
                              : dyn_buf;

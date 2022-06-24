@@ -118,7 +118,7 @@ static bool register_identifier(struct parser_state* s,
         token->spelling,
         &to_insert);
     if (item != &to_insert) {
-        set_parser_err_copy(s->err, PARSER_ERR_REDEFINED_SYMBOL, token);
+        set_parser_err_copy(s->err, PARSER_ERR_REDEFINED_SYMBOL, &token->loc);
 
         s->err->redefined_symbol = alloc_string_copy(token->spelling);
         s->err->was_typedef_name = item->type == ID_TYPE_TYPEDEF_NAME;
@@ -143,3 +143,4 @@ static enum identifier_type get_item(const struct parser_state* s,
 
     return ID_TYPE_NONE;
 }
+

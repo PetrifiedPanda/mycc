@@ -164,23 +164,17 @@ struct macro_args collect_macro_args(struct token* args_start,
     }
 
     if (res.len < expected_args) {
-        char* file = it->loc.file;
-        it->loc.file = NULL;
         set_preproc_err(err,
                         PREPROC_ERR_MACRO_ARG_COUNT,
-                        file,
-                        it->loc.file_loc);
+                        &it->loc);
         err->expected_arg_count = expected_args;
         err->is_variadic = is_variadic;
         err->too_few_args = true;
         goto fail;
     } else if (it != limit_ptr) {
-        char* file = it->loc.file;
-        it->loc.file = NULL;
         set_preproc_err(err,
                         PREPROC_ERR_MACRO_ARG_COUNT,
-                        file,
-                        it->loc.file_loc);
+                        &it->loc);
         err->expected_arg_count = expected_args;
         err->is_variadic = is_variadic;
         err->too_few_args = false;

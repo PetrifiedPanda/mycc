@@ -17,33 +17,33 @@ struct parser_err create_parser_err(void) {
 
 void set_parser_err(struct parser_err* err,
                     enum parser_err_type type,
-                    struct token* token) {
+                    struct source_loc* loc) {
     assert(err);
     assert(type != PARSER_ERR_NONE);
     assert(err->type == PARSER_ERR_NONE);
 
     err->type = type;
-    char* file = token->loc.file;
-    token->loc.file = NULL;
+    char* file = loc->file;
+    loc->file = NULL;
     err->base = (struct err_base){
         .loc = {
             .file = file,
-            .file_loc = token->loc.file_loc,
+            .file_loc = loc->file_loc,
         },
     };
 }
 
 void set_parser_err_copy(struct parser_err* err,
                          enum parser_err_type type,
-                         const struct token* token) {
+                         const struct source_loc* loc) {
     assert(err);
     assert(type != PARSER_ERR_NONE);
     assert(err->type == PARSER_ERR_NONE);
-    assert(token->spelling);
+    assert(loc);
 
     err->type = type;
-    err->base.loc.file = alloc_string_copy(token->loc.file);
-    err->base.loc.file_loc = token->loc.file_loc;
+    err->base.loc.file = alloc_string_copy(loc->file);
+    err->base.loc.file_loc = loc->file_loc;
 }
 
 void print_parser_err(const struct parser_err* err) {

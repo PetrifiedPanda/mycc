@@ -10,7 +10,7 @@ bool parse_init_declarator_typedef_inplace(struct parser_state* s,
     }
 
     if (s->it->type == ASSIGN) {
-        set_parser_err(s->err, PARSER_ERR_TYPEDEF_INIT, s->it);
+        set_parser_err(s->err, PARSER_ERR_TYPEDEF_INIT, &s->it->loc);
         return false;
     }
 
@@ -45,3 +45,4 @@ void free_init_declarator_children(struct init_declarator* d) {
         free_initializer(d->init);
     }
 }
+

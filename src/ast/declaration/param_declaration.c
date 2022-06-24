@@ -36,7 +36,7 @@ bool parse_param_declaration_inplace(struct parser_state* s,
     }
 
     if (found_typedef) {
-        set_parser_err(s->err, PARSER_ERR_TYPEDEF_PARAM_DECL, s->it);
+        set_parser_err(s->err, PARSER_ERR_TYPEDEF_PARAM_DECL, &s->it->loc);
         free_declaration_specs(res->decl_specs);
         return false;
     }
