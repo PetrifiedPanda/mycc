@@ -134,12 +134,136 @@ static void dump_identifier(struct ast_dumper* d, struct identifier* i) {
     dumper_println(d, "identifier: %s", i->spelling);
 }
 
+static void dump_constant(struct ast_dumper* d, const struct constant* c) {
+    assert(c);
+    
+    dumper_println(d, "constant:");
+
+    add_indent(d);
+    
+    switch (c->type) {
+        case ENUM:
+            dumper_println(d, "enum: %s", c->spelling);
+            break;
+        case F_CONSTANT:
+            dumper_println(d, "float_constant: %s", c->spelling);
+            break;
+        case I_CONSTANT:
+            dumper_println(d, "int_constant: %s", c->spelling);
+            break;
+        default:
+            UNREACHABLE();
+    }
+
+    remove_indent(d);
+}
+
+static void dump_string_literal(struct ast_dumper* d,
+                                const struct string_literal* l) {
+    assert(l);
+    dumper_println(d, "string_literal: %s", l->spelling);
+}
+
+static void dump_string_constant(struct ast_dumper* d,
+                                 const struct string_constant* c) {
+    assert(c);
+    
+    dumper_println(d, "string_constant:");
+
+    add_indent(d);
+    
+    if (c->is_func) {
+        dumper_println(d, "%s", get_spelling(FUNC_NAME));
+    } else {
+        dump_string_literal(d, &c->lit);
+    }
+
+    remove_indent(d);
+}
+
+static void dump_assign_expr(struct ast_dumper* d, const struct assign_expr* e);
+static void dump_type_name(struct ast_dumper* d, const struct type_name* n);
+
+static void dump_generic_assoc(struct ast_dumper* d,
+                               const struct generic_assoc* a) {
+    assert(a);
+
+    dumper_println(d, "generic_assoc:");
+
+    add_indent(d);
+
+    if (a->type_name) {
+        dump_type_name(d, a->type_name);
+    } else {
+        dumper_println(d, "default");
+    }
+
+    dump_assign_expr(d, a->assign);
+
+    remove_indent(d);
+}
+
+static void dump_generic_assoc_list(struct ast_dumper* d,
+                                    const struct generic_assoc_list* l) {
+    assert(l);
+
+    dumper_println(d, "generic_assoc_list:");
+
+    add_indent(d);
+
+    dumper_println(d, "len: %zu", l->len);
+
+    for (size_t i = 0; i < l->len; ++i) {
+        dump_generic_assoc(d, &l->assocs[i]);
+    }
+
+    remove_indent(d);
+}
+
+static void dump_generic_sel(struct ast_dumper* d,
+                             const struct generic_sel* s) {
+    assert(d);
+
+    dumper_println(d, "generic_sel:");
+
+    add_indent(d);
+
+    dump_assign_expr(d, s->assign);
+
+    dump_generic_assoc_list(d, &s->assocs);
+
+    remove_indent(d);
+}
+
+static void dump_expr(struct ast_dumper* d, const struct expr* e);
+
 static void dump_primary_expr(struct ast_dumper* d,
                               const struct primary_expr* e) {
     assert(e);
-    (void)d;
-    (void)e;
-    // TODO:
+
+    dumper_println(d, "primary_expr:");
+
+    add_indent(d);
+
+    switch (e->type) {
+        case PRIMARY_EXPR_IDENTIFIER:
+            dump_identifier(d, e->identifier);
+            break;
+        case PRIMARY_EXPR_CONSTANT:
+            dump_constant(d, &e->constant);
+            break;
+        case PRIMARY_EXPR_STRING_LITERAL:
+            dump_string_constant(d, &e->string);
+            break;
+        case PRIMARY_EXPR_BRACKET:
+            dump_expr(d, e->bracket_expr);
+            break;
+        case PRIMARY_EXPR_GENERIC:
+            dump_generic_sel(d, e->generic);
+            break;
+    }
+
+    remove_indent(d);
 }
 
 static void dump_type_name(struct ast_dumper* d, const struct type_name* n) {
@@ -156,8 +280,6 @@ static void dump_arg_expr_list(struct ast_dumper* d,
     (void)l;
     // TODO:
 }
-
-static void dump_expr(struct ast_dumper* d, const struct expr* e);
 
 static void dump_postfix_suffix(struct ast_dumper* d,
                                 const struct postfix_suffix* s) {
@@ -885,12 +1007,6 @@ static void dump_const_expr(struct ast_dumper* d, const struct const_expr* e) {
     dump_cond_expr(d, &e->expr);
 
     remove_indent(d);
-}
-
-static void dump_string_literal(struct ast_dumper* d,
-                                const struct string_literal* l) {
-    assert(l);
-    dumper_println(d, "string_literal: %s", l->spelling);
 }
 
 static void dump_static_assert_declaration(

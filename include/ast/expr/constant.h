@@ -13,3 +13,4 @@ struct constant create_constant(enum token_type, char* spelling);
 void free_constant(struct constant* c);
 
 #endif
+

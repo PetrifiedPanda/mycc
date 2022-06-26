@@ -17,3 +17,4 @@ struct string_constant create_func_name(void);
 void free_string_constant(struct string_constant* c);
 
 #endif
+

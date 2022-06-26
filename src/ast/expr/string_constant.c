@@ -12,7 +12,10 @@ struct string_constant create_string_constant(char* spelling) {
 }
 
 struct string_constant create_func_name(void) {
-    return (struct string_constant){.is_func = true, .lit = {.spelling = NULL}};
+    return (struct string_constant){
+        .is_func = true,
+        .lit = {.spelling = NULL},
+    };
 }
 
 void free_string_constant(struct string_constant* c) {
@@ -20,3 +23,4 @@ void free_string_constant(struct string_constant* c) {
         free_string_literal(&c->lit);
     }
 }
+
