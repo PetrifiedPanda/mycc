@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/annotations.h"
 
 #include "parser/parser_util.h"
 
@@ -77,7 +78,7 @@ static void free_children(struct labeled_statement* s) {
         case DEFAULT:
             break;
         default:
-            assert(false);
+            UNREACHABLE();
     }
     free_statement(s->stat);
 }

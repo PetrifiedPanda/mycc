@@ -3,6 +3,7 @@
 #include "token_type.h"
 
 #include "util/mem.h"
+#include "util/annotations.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,7 +45,7 @@ void print_parser_err(const struct parser_err* err) {
     print_err_base(&err->base);
     switch (err->type) {
         case PARSER_ERR_NONE:
-            assert(false);
+            UNREACHABLE();
         case PARSER_ERR_EXPECTED_TOKENS: {
             printf("Expected token of type %s", get_type_str(err->expected[0]));
             for (size_t i = 1; i < err->num_expected; ++i) {

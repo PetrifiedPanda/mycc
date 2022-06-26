@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/annotations.h"
 
 #include "parser/parser_util.h"
 
@@ -131,7 +132,7 @@ static bool parse_postfix_suffixes(struct parser_state* s,
                 break;
 
             default:
-                assert(false); // Unreachable
+                UNREACHABLE();
         }
 
         ++res->len;

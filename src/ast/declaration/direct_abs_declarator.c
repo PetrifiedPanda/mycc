@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/annotations.h"
 
 static void free_abs_arr_or_func_suffix(struct abs_arr_or_func_suffix* s);
 
@@ -108,7 +109,7 @@ static bool parse_abs_arr_or_func_suffix(struct parser_state* s,
         case LINDEX:
             return parse_abs_arr_suffix(s, res);
         default:
-            assert(false);
+            UNREACHABLE();
     }
 
     return false;

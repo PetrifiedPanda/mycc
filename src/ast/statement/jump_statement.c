@@ -19,7 +19,7 @@ static struct jump_statement* create_goto_statement(
     struct identifier* identifier) {
     assert(identifier);
     struct jump_statement* res = create(GOTO);
-    res->identifier = identifier;
+    res->goto_label = identifier;
 
     return res;
 }
@@ -89,7 +89,7 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
 static void free_children(struct jump_statement* s) {
     switch (s->type) {
         case GOTO:
-            free_identifier(s->identifier);
+            free_identifier(s->goto_label);
             break;
         case RETURN:
             if (s->ret_val) {

@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/annotations.h"
 
 #include "parser/parser_util.h"
 
@@ -214,7 +215,7 @@ static void free_children(struct iteration_statement* s) {
             break;
         }
         default:
-            assert(false);
+            UNREACHABLE();
     }
     free_statement(s->loop_body);
 }

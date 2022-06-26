@@ -60,7 +60,7 @@ TEST(jump_statement) {
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
         ASSERT_TOKEN_TYPE(res->type, GOTO);
 
-        check_identifier(res->identifier, "my_cool_label");
+        check_identifier(res->goto_label, "my_cool_label");
 
         free_jump_statement(res);
         free_parser_state(&s);

@@ -19,3 +19,4 @@ void free_param_list(struct param_list* l);
 #include "ast/declaration/param_declaration.h"
 
 #endif
+

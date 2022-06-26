@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/annotations.h"
 
 #include "parser/parser_util.h"
 
@@ -59,7 +60,7 @@ int parse_declaration_spec(struct parser_state* s,
                 sc->is_register = true;
                 break;
             default:
-                assert(false);
+                UNREACHABLE();
         }
         accept_it(s);
     } else if (current_is_type_qual(s)) {
@@ -78,7 +79,7 @@ int parse_declaration_spec(struct parser_state* s,
                 fs->is_noreturn = true;
                 break;
             default:
-                assert(false);
+                UNREACHABLE();
         }
         accept_it(s);
     } else if (s->it->type == ALIGNAS) {

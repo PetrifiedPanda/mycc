@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/annotations.h"
 
 #include "parser/parser_util.h"
 
@@ -146,8 +147,8 @@ static bool parse_arr_or_func_suffix(struct parser_state* s,
         case LBRACKET:
             return parse_func_suffix(s, res);
 
-        default: // UNREACHABLE
-            assert(false);
+        default:
+            UNREACHABLE();
     }
     return false;
 }
@@ -251,7 +252,7 @@ static void free_children(struct direct_declarator* d) {
             case ARR_OR_FUNC_FUN_EMPTY:
                 break;
             default:
-                assert(false);
+                UNREACHABLE();
         }
     }
     free(d->suffixes);

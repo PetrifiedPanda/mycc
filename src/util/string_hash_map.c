@@ -5,6 +5,7 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/annotations.h"
 
 struct string_hash_map create_string_hash_map(size_t elem_size) {
     enum {

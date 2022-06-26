@@ -24,3 +24,4 @@ void free_designator_children(struct designator* d);
 #include "ast/identifier.h"
 
 #endif
+

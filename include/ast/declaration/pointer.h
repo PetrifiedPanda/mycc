@@ -17,3 +17,4 @@ struct pointer* parse_pointer(struct parser_state* s);
 void free_pointer(struct pointer* p);
 
 #endif
+

@@ -5,12 +5,6 @@
 #include <stdbool.h>
 
 /**
- * This should be used when a variable is unused, not because something
- * is unimplemented, but by design
- */
-#define UNUSED(var) (void)var
-
-/**
  * @brief Calls malloc(), exiting when malloc() fails
  *
  * @param bytes Size of allocation

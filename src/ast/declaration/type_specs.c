@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/annotations.h"
 
 #include "parser/parser_util.h"
 
@@ -110,7 +111,7 @@ static bool update_standalone_type_spec(struct parser_state* s,
             break;
 
         default:
-            assert(false);
+            UNREACHABLE();
     }
     accept_it(s);
     return true;

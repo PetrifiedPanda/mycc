@@ -11,7 +11,7 @@ struct identifier;
 struct jump_statement {
     enum token_type type;
     union {
-        struct identifier* identifier;
+        struct identifier* goto_label;
         struct expr* ret_val;
     };
 };
@@ -25,3 +25,4 @@ void free_jump_statement(struct jump_statement* s);
 #include "ast/expr/expr.h"
 
 #endif
+

@@ -23,3 +23,4 @@ void free_init_declarator_children(struct init_declarator* d);
 #include "ast/initializer/initializer.h"
 
 #endif
+

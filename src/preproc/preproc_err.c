@@ -5,7 +5,9 @@
 #include <assert.h>
 
 #include "err_base.h"
+
 #include "util/mem.h"
+#include "util/annotations.h"
 
 struct preproc_err create_preproc_err(void) {
     return (struct preproc_err){
@@ -43,7 +45,7 @@ void print_preproc_err(struct preproc_err* err) {
 
     switch (err->type) {
         case PREPROC_ERR_NONE:
-            assert(false);
+            UNREACHABLE();
             break;
         case PREPROC_ERR_FILE_FAIL:
             if (err->base.loc.file) {

@@ -4,6 +4,8 @@
 
 #include "parser/parser_util.h"
 
+#include "util/annotations.h"
+
 struct type_quals create_type_quals(void) {
     return (struct type_quals){
         .is_const = false,
@@ -30,7 +32,7 @@ void update_type_quals(struct parser_state* s, struct type_quals* quals) {
             quals->is_atomic = true;
             break;
         default:
-            assert(false);
+            UNREACHABLE();
     }
     accept_it(s);
 }

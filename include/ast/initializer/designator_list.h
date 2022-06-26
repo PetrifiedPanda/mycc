@@ -19,3 +19,4 @@ void free_designator_list(struct designator_list* l);
 #include "ast/initializer/designator.h"
 
 #endif
+
