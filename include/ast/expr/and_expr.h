@@ -8,8 +8,8 @@
 struct eq_expr;
 
 struct and_expr {
-    struct eq_expr* eq_exprs;
     size_t len;
+    struct eq_expr* eq_exprs;
 };
 
 bool parse_and_expr_inplace(struct parser_state* s, struct and_expr* res);
@@ -25,3 +25,4 @@ void free_and_expr_children(struct and_expr* e);
 #include "ast/expr/cast_expr.h"
 
 #endif
+
