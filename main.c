@@ -1,7 +1,10 @@
 #include <stdio.h>
 
 #include "preproc/preproc.h"
+
 #include "parser/parser.h"
+
+#include "ast/ast_dumper.h"
 
 int main(int argc, char** argv) {
     if (argc < 2) {
@@ -30,7 +33,7 @@ int main(int argc, char** argv) {
             return EXIT_FAILURE;
         }
 
-        printf("Finished parsing %s successfully\n", filename);
+        dump_ast(&tl, stdout);
 
         free_translation_unit(&tl);
         free_tokens(tokens);
