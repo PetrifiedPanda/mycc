@@ -136,11 +136,11 @@ static void dump_identifier(struct ast_dumper* d, struct identifier* i) {
 
 static void dump_constant(struct ast_dumper* d, const struct constant* c) {
     assert(c);
-    
+
     dumper_println(d, "constant:");
 
     add_indent(d);
-    
+
     switch (c->type) {
         case ENUM:
             dumper_println(d, "enum: %s", c->spelling);
@@ -167,11 +167,11 @@ static void dump_string_literal(struct ast_dumper* d,
 static void dump_string_constant(struct ast_dumper* d,
                                  const struct string_constant* c) {
     assert(c);
-    
+
     dumper_println(d, "string_constant:");
 
     add_indent(d);
-    
+
     if (c->is_func) {
         dumper_println(d, "%s", get_spelling(FUNC_NAME));
     } else {
@@ -266,11 +266,104 @@ static void dump_primary_expr(struct ast_dumper* d,
     remove_indent(d);
 }
 
+static void dump_type_modifiers(struct ast_dumper* d, const struct type_modifiers* m) {
+    assert(m);
+
+    dumper_println(d, "type_modifiers:");
+
+    add_indent(d);
+    
+    dumper_println(d, "is_unsigned: %s", bool_to_str(m->is_unsigned));
+    dumper_println(d, "is_signed: %s", bool_to_str(m->is_signed));
+    dumper_println(d, "is_short: %s", bool_to_str(m->is_short));
+    dumper_println(d, "num_long: %d", m->num_long);
+    dumper_println(d, "is_complex: %s", bool_to_str(m->is_complex));
+    dumper_println(d, "is_imaginary: %s", bool_to_str(m->is_imaginary));
+
+    remove_indent(d);
+}
+
+static void dump_atomic_type_spec(struct ast_dumper* d, const struct atomic_type_spec* s) {
+    assert(s);
+    (void)d;
+    (void)s;
+    // TODO:
+}
+
+static void dump_struct_union_spec(struct ast_dumper* d, const struct struct_union_spec* s) {
+    assert(d);
+    (void)d;
+    (void)s;
+    // TODO:
+}
+
+static void dump_enum_spec(struct ast_dumper* d, const struct enum_spec* s) {
+    assert(s);
+    (void)d;
+    (void)s;
+    // TODO:
+}
+
+static void dump_type_specs(struct ast_dumper* d, const struct type_specs* s) {
+    assert(s);
+    
+    dumper_println(d, "type_specs:");
+
+    add_indent(d);
+    
+    dump_type_modifiers(d, &s->mods);
+
+    if (s->has_specifier) {
+        switch (s->type) {
+            case TYPESPEC_PREDEF:
+                dumper_println(d, "%s", get_spelling(s->type_spec));
+                break;
+            case TYPESPEC_ATOMIC:
+                dump_atomic_type_spec(d, s->atomic_spec);
+                break;
+            case TYPESPEC_STRUCT:
+                dump_struct_union_spec(d, s->struct_union_spec);
+                break;
+            case TYPESPEC_ENUM:
+                dump_enum_spec(d, s->enum_spec);
+                break;
+            case TYPESPEC_TYPENAME:
+                dump_identifier(d, s->typedef_name);
+                break;
+        }
+    }
+
+    remove_indent(d);
+}
+
+static void dump_spec_qual_list(struct ast_dumper* d,
+                                const struct spec_qual_list* l) {
+    assert(l);
+    
+    dumper_println(d, "spec_qual_list:");
+
+    add_indent(d);
+    
+    dump_type_quals(d, &l->quals);
+    dump_type_specs(d, &l->specs);
+
+    remove_indent(d);
+}
+
+static void dump_abs_declarator(struct ast_dumper* d,
+                                const struct abs_declarator* decl);
+
 static void dump_type_name(struct ast_dumper* d, const struct type_name* n) {
     assert(n);
-    (void)d;
-    (void)n;
-    // TODO:
+
+    dumper_println(d, "type_name:");
+
+    add_indent(d);
+
+    dump_spec_qual_list(d, n->spec_qual_list);
+    dump_abs_declarator(d, n->abstract_decl);
+
+    remove_indent(d);
 }
 
 static void dump_arg_expr_list(struct ast_dumper* d,
@@ -336,11 +429,23 @@ static void dump_postfix_expr(struct ast_dumper* d, struct postfix_expr* e) {
     remove_indent(d);
 }
 
+static void dump_unary_expr(struct ast_dumper* d, struct unary_expr* e);
+
 static void dump_cast_expr(struct ast_dumper* d, const struct cast_expr* e) {
     assert(e);
-    (void)d;
-    (void)e;
-    // TODO:
+
+    dumper_println(d, "cast_expr:");
+
+    add_indent(d);
+    
+    dumper_println(d, "len: %zu", e->len);
+    for (size_t i = 0; i < e->len; ++i) {
+        dump_type_name(d, &e->type_names[i]);
+    }
+
+    dump_unary_expr(d, e->rhs);
+
+    remove_indent(d);
 }
 
 static void dump_unary_expr(struct ast_dumper* d, struct unary_expr* e) {
@@ -433,9 +538,6 @@ static void dump_abs_arr_or_func_suffix(
 
     remove_indent(d);
 }
-
-static void dump_abs_declarator(struct ast_dumper* d,
-                                const struct abs_declarator* decl);
 
 static void dump_direct_abs_declarator(
     struct ast_dumper* d,
