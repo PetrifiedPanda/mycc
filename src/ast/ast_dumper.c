@@ -134,11 +134,124 @@ static void dump_identifier(struct ast_dumper* d, struct identifier* i) {
     dumper_println(d, "identifier: %s", i->spelling);
 }
 
-static void dump_unary_expr(struct ast_dumper* d, struct unary_expr* e) {
+static void dump_primary_expr(struct ast_dumper* d,
+                              const struct primary_expr* e) {
     assert(e);
     (void)d;
     (void)e;
     // TODO:
+}
+
+static void dump_type_name(struct ast_dumper* d, const struct type_name* n) {
+    assert(n);
+    (void)d;
+    (void)n;
+    // TODO:
+}
+
+static void dump_arg_expr_list(struct ast_dumper* d,
+                               const struct arg_expr_list* l) {
+    assert(l);
+    (void)d;
+    (void)l;
+    // TODO:
+}
+
+static void dump_expr(struct ast_dumper* d, const struct expr* e);
+
+static void dump_postfix_suffix(struct ast_dumper* d,
+                                const struct postfix_suffix* s) {
+    assert(s);
+
+    dumper_println(d, "postfix_suffix:");
+
+    add_indent(d);
+
+    switch (s->type) {
+        case POSTFIX_INDEX:
+            dump_expr(d, s->index_expr);
+            break;
+        case POSTFIX_BRACKET:
+            dump_arg_expr_list(d, &s->bracket_list);
+            break;
+        case POSTFIX_ACCESS:
+            dumper_println(d, "access");
+            dump_identifier(d, s->identifier);
+            break;
+        case POSTFIX_PTR_ACCESS:
+            dumper_println(d, "pointer_access");
+            dump_identifier(d, s->identifier);
+            break;
+        case POSTFIX_INC_DEC:
+            dumper_println(d, "%s", get_spelling(s->inc_dec));
+            break;
+    }
+
+    remove_indent(d);
+}
+
+static void dump_init_list(struct ast_dumper* d, const struct init_list* l);
+
+static void dump_postfix_expr(struct ast_dumper* d, struct postfix_expr* e) {
+    assert(e);
+
+    dumper_println(d, "postfix_expr:");
+
+    add_indent(d);
+
+    if (e->is_primary) {
+        dump_primary_expr(d, e->primary);
+    } else {
+        dump_type_name(d, e->type_name);
+        dump_init_list(d, &e->init_list);
+    }
+
+    dumper_println(d, "len: %zu", e->len);
+    for (size_t i = 0; i < e->len; ++i) {
+        dump_postfix_suffix(d, &e->suffixes[i]);
+    }
+
+    remove_indent(d);
+}
+
+static void dump_cast_expr(struct ast_dumper* d, const struct cast_expr* e) {
+    assert(e);
+    (void)d;
+    (void)e;
+    // TODO:
+}
+
+static void dump_unary_expr(struct ast_dumper* d, struct unary_expr* e) {
+    assert(e);
+
+    dumper_println(d, "unary_expr:");
+
+    add_indent(d);
+
+    dumper_println(d, "len: %zu", e->len);
+    for (size_t i = 0; i < e->len; ++i) {
+        dumper_println(d, "%s", get_spelling(e->operators_before[i]));
+    }
+
+    switch (e->type) {
+        case UNARY_POSTFIX:
+            dump_postfix_expr(d, e->postfix);
+            break;
+        case UNARY_UNARY_OP:
+            dumper_println(d, "%s", get_spelling(e->unary_op));
+            dump_cast_expr(d, e->cast_expr);
+            break;
+        case UNARY_SIZEOF_TYPE:
+            dumper_println(d, "sizeof");
+            dump_type_name(d, e->type_name);
+            break;
+        case UNARY_ALIGNOF_TYPE:
+            dumper_println(d, "_Alignof");
+            dump_type_name(d, e->type_name);
+            break;
+    }
+
+    remove_indent(d);
 }
 
 static void dump_cond_expr(struct ast_dumper* d, const struct cond_expr* e);
@@ -150,53 +263,17 @@ static void dump_assign_expr(struct ast_dumper* d,
     dumper_println(d, "assign_expr:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dumper_println(d, "unary_and_op:");
         add_indent(d);
-        
+
         struct unary_and_op* item = &e->assign_chain[i];
 
         dump_unary_expr(d, item->unary);
 
-        switch (item->assign_op) {
-            case ASSIGN:
-                dumper_println(d, "=");
-                break;
-            case MUL_ASSIGN:
-                dumper_println(d, "*=");
-                break;
-            case DIV_ASSIGN:
-                dumper_println(d, "/=");
-                break;
-            case MOD_ASSIGN:
-                dumper_println(d, "%=");
-                break;
-            case ADD_ASSIGN:
-                dumper_println(d, "+=");
-                break;
-            case SUB_ASSIGN:
-                dumper_println(d, "-=");
-                break;
-            case LEFT_ASSIGN:
-                dumper_println(d, "<<=");
-                break;
-            case RIGHT_ASSIGN:
-                dumper_println(d, ">>=");
-                break;
-            case AND_ASSIGN:
-                dumper_println(d, "&=");
-                break;
-            case XOR_ASSIGN:
-                dumper_println(d, "^=");
-                break;
-            case OR_ASSIGN:
-                dumper_println(d, "|=");
-                break;
-            default:
-                UNREACHABLE();
-        }
+        dumper_println(d, "%s", get_spelling(item->assign_op));
 
         remove_indent(d);
     }
@@ -465,11 +542,11 @@ static void dump_labeled_statement(struct ast_dumper* d,
 
 static void dump_expr(struct ast_dumper* d, const struct expr* e) {
     assert(e);
-    
+
     dumper_println(d, "expr:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_assign_expr(d, &e->assign_exprs[i]);
