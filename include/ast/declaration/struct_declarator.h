@@ -21,3 +21,4 @@ void free_struct_declarator_children(struct struct_declarator* d);
 #include "ast/expr/const_expr.h"
 
 #endif
+

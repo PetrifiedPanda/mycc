@@ -266,13 +266,14 @@ static void dump_primary_expr(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_type_modifiers(struct ast_dumper* d, const struct type_modifiers* m) {
+static void dump_type_modifiers(struct ast_dumper* d,
+                                const struct type_modifiers* m) {
     assert(m);
 
     dumper_println(d, "type_modifiers:");
 
     add_indent(d);
-    
+
     dumper_println(d, "is_unsigned: %s", bool_to_str(m->is_unsigned));
     dumper_println(d, "is_signed: %s", bool_to_str(m->is_signed));
     dumper_println(d, "is_short: %s", bool_to_str(m->is_short));
@@ -283,18 +284,117 @@ static void dump_type_modifiers(struct ast_dumper* d, const struct type_modifier
     remove_indent(d);
 }
 
-static void dump_atomic_type_spec(struct ast_dumper* d, const struct atomic_type_spec* s) {
+static void dump_atomic_type_spec(struct ast_dumper* d,
+                                  const struct atomic_type_spec* s) {
     assert(s);
-    (void)d;
-    (void)s;
-    // TODO:
+
+    dumper_println(d, "atomic_type_spec:");
+
+    add_indent(d);
+
+    dump_type_name(d, s->type_name);
+
+    remove_indent(d);
 }
 
-static void dump_struct_union_spec(struct ast_dumper* d, const struct struct_union_spec* s) {
+static void dump_const_expr(struct ast_dumper* d, const struct const_expr* e);
+static void dump_declarator(struct ast_dumper* d,
+                            const struct declarator* decl);
+
+static void dump_struct_declarator(struct ast_dumper* d,
+                                   struct struct_declarator* decl) {
+    assert(decl);
+
+    dumper_println(d, "struct_declarator:");
+
+    add_indent(d);
+
+    dump_declarator(d, decl->decl);
+    if (decl->bit_field) {
+        dump_const_expr(d, decl->bit_field);
+    }
+
+    remove_indent(d);
+}
+
+static void dump_struct_declarator_list(
+    struct ast_dumper* d,
+    const struct struct_declarator_list* l) {
+    assert(l);
+
+    dumper_println(d, "struct_declarator_list:");
+
+    add_indent(d);
+
+    dumper_println(d, "len: %zu", l->len);
+
+    for (size_t i = 0; i < l->len; ++i) {
+        dump_struct_declarator(d, &l->decls[i]);
+    }
+
+    remove_indent(d);
+}
+
+static void dump_static_assert_declaration(
+    struct ast_dumper* d,
+    const struct static_assert_declaration* decl);
+
+static void dump_struct_declaration(struct ast_dumper* d,
+                                    const struct struct_declaration* decl) {
+    assert(decl);
+
+    dumper_println(d, "struct_declaration");
+
+    add_indent(d);
+
+    if (decl->is_static_assert) {
+        dump_static_assert_declaration(d, decl->assert);
+    } else {
+        dump_declaration_specs(d, decl->decl_specs);
+        dump_struct_declarator_list(d, &decl->decls);
+    }
+
+    remove_indent(d);
+}
+
+static void dump_struct_declaration_list(
+    struct ast_dumper* d,
+    const struct struct_declaration_list* l) {
+    assert(l);
+
+    dumper_println(d, "struct_declaration_list:");
+
+    add_indent(d);
+
+    dumper_println(d, "len: %zu", l->len);
+    for (size_t i = 0; i < l->len; ++i) {
+        dump_struct_declaration(d, &l->decls[i]);
+    }
+
+    remove_indent(d);
+}
+
+static void dump_struct_union_spec(struct ast_dumper* d,
+                                   const struct struct_union_spec* s) {
     assert(d);
-    (void)d;
-    (void)s;
-    // TODO:
+
+    dumper_println(d, "struct_union_spec:");
+
+    add_indent(d);
+
+    if (s->is_struct) {
+        dumper_println(d, "struct");
+    } else {
+        dumper_println(d, "union");
+    }
+
+    if (s->identifier) {
+        dump_identifier(d, s->identifier);
+    }
+
+    dump_struct_declaration_list(d, &s->decl_list);
+
+    remove_indent(d);
 }
 
 static void dump_enum_spec(struct ast_dumper* d, const struct enum_spec* s) {
@@ -306,11 +406,11 @@ static void dump_enum_spec(struct ast_dumper* d, const struct enum_spec* s) {
 
 static void dump_type_specs(struct ast_dumper* d, const struct type_specs* s) {
     assert(s);
-    
+
     dumper_println(d, "type_specs:");
 
     add_indent(d);
-    
+
     dump_type_modifiers(d, &s->mods);
 
     if (s->has_specifier) {
@@ -339,11 +439,11 @@ static void dump_type_specs(struct ast_dumper* d, const struct type_specs* s) {
 static void dump_spec_qual_list(struct ast_dumper* d,
                                 const struct spec_qual_list* l) {
     assert(l);
-    
+
     dumper_println(d, "spec_qual_list:");
 
     add_indent(d);
-    
+
     dump_type_quals(d, &l->quals);
     dump_type_specs(d, &l->specs);
 
@@ -437,7 +537,7 @@ static void dump_cast_expr(struct ast_dumper* d, const struct cast_expr* e) {
     dumper_println(d, "cast_expr:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_type_name(d, &e->type_names[i]);
@@ -734,8 +834,6 @@ static void dump_declaration_list(struct ast_dumper* d,
 }
 
 static void dump_statement(struct ast_dumper* d, const struct statement* s);
-
-static void dump_const_expr(struct ast_dumper* d, const struct const_expr* e);
 
 static void dump_labeled_statement(struct ast_dumper* d,
                                    const struct labeled_statement* s) {
