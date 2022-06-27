@@ -8,6 +8,7 @@
 #include "token_type.h"
 
 #include "util/mem.h"
+#include "util/file.h"
 
 #include "preproc/preproc_macro.h"
 #include "preproc/preproc_state.h"
@@ -53,50 +54,6 @@ enum {
     PREPROC_LINE_BUF_LEN = 200
 };
 
-static char* file_read_line(FILE* file,
-                            char static_buf[PREPROC_LINE_BUF_LEN],
-                            bool* escaped_newline) {
-    assert(escaped_newline);
-
-    size_t i = 0;
-    int c;
-    while ((c = getc(file)) != '\n' && c != EOF) {
-        static_buf[i] = (char)c;
-        ++i;
-        if (i == PREPROC_LINE_BUF_LEN - 1) {
-            break;
-        }
-    }
-
-    if (i == 0 && c == EOF) { // only EOF read
-        return NULL;
-    }
-
-    char* res = static_buf;
-
-    if (c != '\n' && c != EOF) {
-        size_t len = PREPROC_LINE_BUF_LEN * 2;
-        char* dyn_buf = xmalloc(sizeof(char) * len);
-        memcpy(dyn_buf, static_buf, (PREPROC_LINE_BUF_LEN - 1) * sizeof(char));
-
-        while ((c = getc(file)) != '\n' && c != EOF) {
-            if (i == len - 1) {
-                grow_alloc((void**)&dyn_buf, &len, sizeof(char));
-            }
-
-            dyn_buf[i] = (char)c;
-            ++i;
-        }
-
-        res = dyn_buf;
-    }
-    if (i > 0) {
-        *escaped_newline = res[i - 1] == '\\';
-    }
-    res[i] = '\0';
-    return res;
-}
-
 struct code_source {
     bool is_file;
     union {
@@ -121,7 +78,11 @@ static char* code_source_read_line(struct code_source* src,
                                    bool* escaped_newline) {
     char* res;
     if (src->is_file) {
-        res = file_read_line(src->file, static_buf, escaped_newline);
+        size_t len = -1;
+        res = file_read_line(src->file, static_buf, PREPROC_LINE_BUF_LEN, &len);
+        if (res != NULL) {
+            *escaped_newline = res[len - 1] == '\\';
+        }
     } else {
         const char* start = src->str;
         const char* it = src->str;
