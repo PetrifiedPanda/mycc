@@ -20,7 +20,7 @@ static void remove_indent(struct ast_dumper* d) {
 
 static void print_indents(struct ast_dumper* d) {
     for (size_t i = 0; i < d->num_indents; ++i) {
-        fprintf(d->file, "    ");
+        fprintf(d->file, "  ");
     }
 }
 
@@ -97,6 +97,27 @@ static void dump_type_quals(struct ast_dumper* d, const struct type_quals* q) {
     remove_indent(d);
 }
 
+static void dump_type_name(struct ast_dumper* d, const struct type_name* n);
+static void dump_const_expr(struct ast_dumper* d, const struct const_expr* e);
+
+static void dump_align_spec(struct ast_dumper* d, const struct align_spec* s) {
+    assert(s);
+
+    dumper_println(d, "align_spec:");
+
+    add_indent(d);
+
+    if (s->is_type_name) {
+        dump_type_name(d, s->type_name);
+    } else {
+        dump_const_expr(d, s->const_expr);
+    }
+
+    remove_indent(d);
+}
+
+static void dump_type_specs(struct ast_dumper* d, const struct type_specs* s);
+
 static void dump_declaration_specs(struct ast_dumper* d,
                                    const struct declaration_specs* s) {
     assert(s);
@@ -109,6 +130,13 @@ static void dump_declaration_specs(struct ast_dumper* d,
     dump_storage_class(d, &s->storage_class);
 
     dump_type_quals(d, &s->type_quals);
+
+    dumper_println(d, "num_align_specs: %zu", s->num_align_specs);
+    for (size_t i = 0; i < s->num_align_specs; ++i) {
+        dump_align_spec(d, &s->align_specs[i]);
+    }
+
+    dump_type_specs(d, &s->type_specs);
 
     remove_indent(d);
 }
@@ -182,7 +210,6 @@ static void dump_string_constant(struct ast_dumper* d,
 }
 
 static void dump_assign_expr(struct ast_dumper* d, const struct assign_expr* e);
-static void dump_type_name(struct ast_dumper* d, const struct type_name* n);
 
 static void dump_generic_assoc(struct ast_dumper* d,
                                const struct generic_assoc* a) {
@@ -297,7 +324,6 @@ static void dump_atomic_type_spec(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_const_expr(struct ast_dumper* d, const struct const_expr* e);
 static void dump_declarator(struct ast_dumper* d,
                             const struct declarator* decl);
 
@@ -308,8 +334,10 @@ static void dump_struct_declarator(struct ast_dumper* d,
     dumper_println(d, "struct_declarator:");
 
     add_indent(d);
-
-    dump_declarator(d, decl->decl);
+    
+    if (decl->decl) {
+        dump_declarator(d, decl->decl);
+    }
     if (decl->bit_field) {
         dump_const_expr(d, decl->bit_field);
     }
@@ -401,9 +429,9 @@ static void dump_enumerator(struct ast_dumper* d, const struct enumerator* e) {
     assert(e);
 
     dumper_println(d, "enumerator:");
-    
+
     add_indent(d);
-    
+
     dump_identifier(d, e->identifier);
     if (e->enum_val) {
         dump_const_expr(d, e->enum_val);
@@ -418,7 +446,7 @@ static void dump_enum_list(struct ast_dumper* d, const struct enum_list* l) {
     dumper_println(d, "enum_list:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", l->len);
     for (size_t i = 0; i < l->len; ++i) {
         dump_enumerator(d, &l->enums[i]);
@@ -429,11 +457,11 @@ static void dump_enum_list(struct ast_dumper* d, const struct enum_list* l) {
 
 static void dump_enum_spec(struct ast_dumper* d, const struct enum_spec* s) {
     assert(s);
-    
+
     dumper_println(d, "enum_spec:");
 
     add_indent(d);
-    
+
     if (s->identifier) {
         dump_identifier(d, s->identifier);
     }
@@ -500,7 +528,9 @@ static void dump_type_name(struct ast_dumper* d, const struct type_name* n) {
     add_indent(d);
 
     dump_spec_qual_list(d, n->spec_qual_list);
-    dump_abs_declarator(d, n->abstract_decl);
+    if (n->abstract_decl) {
+        dump_abs_declarator(d, n->abstract_decl);
+    }
 
     remove_indent(d);
 }
@@ -508,11 +538,11 @@ static void dump_type_name(struct ast_dumper* d, const struct type_name* n) {
 static void dump_arg_expr_list(struct ast_dumper* d,
                                const struct arg_expr_list* l) {
     assert(l);
-    
+
     dumper_println(d, "arg_expr_list:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", l->len);
     for (size_t i = 0; i < l->len; ++i) {
         dump_assign_expr(d, &l->assign_exprs[i]);
@@ -1243,7 +1273,7 @@ static void dump_mul_expr(struct ast_dumper* d, const struct mul_expr* e) {
     dumper_println(d, "mul_expr:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", e->len);
     dump_cast_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
@@ -1261,7 +1291,7 @@ static void dump_add_expr(struct ast_dumper* d, const struct add_expr* e) {
     dumper_println(d, "add_expr:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", e->len);
     dump_mul_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
@@ -1279,7 +1309,7 @@ static void dump_shift_expr(struct ast_dumper* d, const struct shift_expr* e) {
     dumper_println(d, "shift_expr:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", e->len);
     dump_add_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
@@ -1297,7 +1327,7 @@ static void dump_rel_expr(struct ast_dumper* d, const struct rel_expr* e) {
     dumper_println(d, "rel_expr:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", e->len);
     dump_shift_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
@@ -1306,7 +1336,7 @@ static void dump_rel_expr(struct ast_dumper* d, const struct rel_expr* e) {
         dump_shift_expr(d, item->rhs);
     }
 
-    remove_indent(d);    
+    remove_indent(d);
 }
 
 static void dump_eq_expr(struct ast_dumper* d, const struct eq_expr* e) {
@@ -1315,7 +1345,7 @@ static void dump_eq_expr(struct ast_dumper* d, const struct eq_expr* e) {
     dumper_println(d, "eq_expr:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", e->len);
     dump_rel_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
@@ -1333,7 +1363,7 @@ static void dump_and_expr(struct ast_dumper* d, const struct and_expr* e) {
     dumper_println(d, "and_expr:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_eq_expr(d, &e->eq_exprs[i]);
@@ -1348,7 +1378,7 @@ static void dump_xor_expr(struct ast_dumper* d, const struct xor_expr* e) {
     dumper_println(d, "xor_expr:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_and_expr(d, &e->and_exprs[i]);
@@ -1359,11 +1389,11 @@ static void dump_xor_expr(struct ast_dumper* d, const struct xor_expr* e) {
 
 static void dump_or_expr(struct ast_dumper* d, const struct or_expr* e) {
     assert(e);
-    
+
     dumper_println(d, "or_expr:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_xor_expr(d, &e->xor_exprs[i]);
@@ -1372,13 +1402,14 @@ static void dump_or_expr(struct ast_dumper* d, const struct or_expr* e) {
     remove_indent(d);
 }
 
-static void dump_log_and_expr(struct ast_dumper* d, const struct log_and_expr* e) {
+static void dump_log_and_expr(struct ast_dumper* d,
+                              const struct log_and_expr* e) {
     assert(e);
-    
+
     dumper_println(d, "log_and_expr:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_or_expr(d, &e->or_exprs[i]);
@@ -1387,13 +1418,14 @@ static void dump_log_and_expr(struct ast_dumper* d, const struct log_and_expr* e
     remove_indent(d);
 }
 
-static void dump_log_or_expr(struct ast_dumper* d, const struct log_or_expr* e) {
+static void dump_log_or_expr(struct ast_dumper* d,
+                             const struct log_or_expr* e) {
     assert(e);
 
     dumper_println(d, "log_or_expr:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_log_and_expr(d, &e->log_ands[i]);
@@ -1404,17 +1436,18 @@ static void dump_log_or_expr(struct ast_dumper* d, const struct log_or_expr* e) 
 
 static void dump_cond_expr(struct ast_dumper* d, const struct cond_expr* e) {
     assert(e);
-    
+
     dumper_println(d, "cond_expr:");
 
     add_indent(d);
-    
+
     dumper_println(d, "len: %zu", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         struct log_or_and_expr* item = &e->conditionals[i];
         dump_log_or_expr(d, item->log_or);
         dump_expr(d, item->expr);
     }
+    dump_log_or_expr(d, e->last_else);
 
     remove_indent(d);
 }

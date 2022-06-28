@@ -37,3 +37,4 @@ void free_init_declarator_list(struct init_declarator_list* l);
 #include "ast/declaration/init_declarator.h"
 
 #endif
+
