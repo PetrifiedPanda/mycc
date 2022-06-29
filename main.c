@@ -9,12 +9,24 @@
 
 #include "util/mem.h"
 
+static bool is_file_sep(char c) {
+    switch (c) {
+        case '/':
+#ifdef WIN32
+        case '\\':
+#endif
+            return true;
+        default:
+            return false;
+    }
+}
+
 static const char* strip_file_location(const char* filename) {
     const char* res = filename;
     
     const char* it = filename;
     while (*it != '\0') {
-        if (*it == '/') {
+        if (is_file_sep(*it)) {
             res = it + 1;
         }
         ++it;
