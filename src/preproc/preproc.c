@@ -297,9 +297,7 @@ static bool preproc_file(struct preproc_state* state,
     }
 
     if (fclose(file) != 0) {
-        set_preproc_err_copy(state->err, PREPROC_ERR_FILE_FAIL, include_loc);
-        state->err->fail_file = alloc_string_copy(path);
-        state->err->open_fail = false;
+        file_err(state->err, path, include_loc, false);
         return false;
     }
 
