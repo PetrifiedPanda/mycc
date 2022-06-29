@@ -4,6 +4,8 @@
 
 #include "parser/parser.h"
 
+#include "ast/ast_dumper.h"
+
 #include "../test_asserts.h"
 #include "../test_helpers.h"
 
@@ -183,6 +185,19 @@ static void check_external_decl_func_def_typedef(
     ASSERT_STR(d->func_def.specs->type_specs.typedef_name->spelling, ret_type);
 }
 
+static void compare_with_ex_file(const struct translation_unit* tl, const char* ex_file) {
+    const char* tmp_filename = "tmp.ast";
+
+    FILE* tmp_file = fopen(tmp_filename, "w");
+    dump_ast(tl, tmp_file);
+
+    fclose(tmp_file);
+
+    test_compare_files(tmp_filename, ex_file);
+
+    remove(tmp_filename);
+}
+
 TEST(no_preproc) {
     const char* file = "../test/files/no_preproc.c";
     struct token* tokens = tokenize(file);
@@ -191,6 +206,8 @@ TEST(no_preproc) {
     struct translation_unit tl = parse_tokens(tokens, &err);
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)10);
+
+    compare_with_ex_file(&tl, "../test/files/no_preproc.c.ast");
 
     const struct storage_class sc = {false, false, false, false, false, false};
     const struct storage_class sc_static = {.is_static = true};
@@ -238,6 +255,17 @@ TEST(parser_testfile) {
     struct translation_unit tl = parse_tokens(tokens, &err);
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)15);
+    
+    compare_with_ex_file(&tl, "../test/files/parser_testfile.c.ast");
+
+    const char* tmp_filename = "tmp.ast";
+    FILE* tmp_file = fopen(tmp_filename, "w");
+
+    dump_ast(&tl, tmp_file);
+
+    fclose(tmp_file);
+
+    test_compare_files(tmp_filename, "../test/files/parser_testfile.c.ast");
 
     const struct storage_class sc = {false, false, false, false, false, false};
     const struct storage_class sc_static = {.is_static = true};
@@ -299,6 +327,8 @@ TEST(large_testfile) {
     struct translation_unit tl = parse_tokens(tokens, &err);
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)88);
+
+    compare_with_ex_file(&tl, "../test/files/large_testfile.c.ast");
 
     const struct storage_class sc = {false, false, false, false, false, false};
     const struct storage_class sc_static = {.is_static = true};
