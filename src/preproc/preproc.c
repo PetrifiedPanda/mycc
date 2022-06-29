@@ -289,9 +289,17 @@ static bool preproc_file(struct preproc_state* state,
     };
 
     const bool res = preproc_src(state, &src);
-    fclose(file);
 
     if (!res) {
+        // TODO: what to do if closing fails
+        fclose(file);
+        return false;
+    }
+
+    if (fclose(file) != 0) {
+        set_preproc_err_copy(state->err, PREPROC_ERR_FILE_FAIL, include_loc);
+        state->err->fail_file = alloc_string_copy(path);
+        state->err->open_fail = false;
         return false;
     }
 
