@@ -8,8 +8,8 @@
 char* file_read_line(FILE* file,
                      char* static_buf,
                      size_t static_buf_len,
-                     size_t* len) {
-    assert(len);
+                     size_t* res_len) {
+    assert(res_len);
 
     size_t i = 0;
     int c;
@@ -44,7 +44,7 @@ char* file_read_line(FILE* file,
         res = dyn_buf;
     }
     res[i] = '\0';
-    *len = i;
+    *res_len = i;
     return res;
 }
 
