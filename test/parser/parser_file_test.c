@@ -189,9 +189,9 @@ static void compare_with_ex_file(const struct translation_unit* tl, const char* 
     const char* tmp_filename = "tmp.ast";
 
     FILE* tmp_file = fopen(tmp_filename, "w");
-    dump_ast(tl, tmp_file);
+    ASSERT(dump_ast(tl, tmp_file));
 
-    fclose(tmp_file);
+    ASSERT_INT(fclose(tmp_file), 0);
 
     test_compare_files(tmp_filename, ex_file);
 

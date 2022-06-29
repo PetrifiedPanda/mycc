@@ -1,6 +1,7 @@
 #include "ast/ast_dumper.h"
 
 #include <stdarg.h>
+#include <setjmp.h>
 #include <assert.h>
 
 #include "util/annotations.h"
@@ -8,6 +9,7 @@
 struct ast_dumper {
     FILE* file;
     size_t num_indents;
+    jmp_buf err_buf;
 };
 
 static void add_indent(struct ast_dumper* d) {
@@ -20,7 +22,9 @@ static void remove_indent(struct ast_dumper* d) {
 
 static void print_indents(struct ast_dumper* d) {
     for (size_t i = 0; i < d->num_indents; ++i) {
-        fprintf(d->file, "  ");
+        if (fprintf(d->file, "  ") < 0) {
+            longjmp(d->err_buf, 0);
+        }
     }
 }
 
@@ -29,22 +33,34 @@ static void dumper_println(struct ast_dumper* d, const char* format, ...) {
 
     va_list args;
     va_start(args, format);
-    vfprintf(d->file, format, args);
+    int res = vfprintf(d->file, format, args);
     va_end(args);
 
-    fprintf(d->file, "\n");
+    if (res < 0) {
+        longjmp(d->err_buf, 0);
+    }
+    
+    if (fprintf(d->file, "\n") < 0) {
+        longjmp(d->err_buf, 0);
+    }
 }
 
 static void dump_translation_unit(struct ast_dumper* d,
                                   const struct translation_unit* tl);
 
-void dump_ast(const struct translation_unit* tl, FILE* f) {
+bool dump_ast(const struct translation_unit* tl, FILE* f) {
     struct ast_dumper d = {
         .file = f,
         .num_indents = 0,
     };
-
-    dump_translation_unit(&d, tl);
+    
+    if (setjmp(d.err_buf) == 0) {
+        dump_translation_unit(&d, tl);
+    } else {
+        return false;
+    }
+    
+    return true;
 }
 
 static const char* bool_to_str(bool b) {

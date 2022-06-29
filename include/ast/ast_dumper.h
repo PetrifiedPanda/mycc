@@ -5,7 +5,7 @@
 
 #include "ast/translation_unit.h"
 
-void dump_ast(const struct translation_unit* tl, FILE* f);
+bool dump_ast(const struct translation_unit* tl, FILE* f);
 
 #endif
 

@@ -79,14 +79,25 @@ int main(int argc, char** argv) {
 
         FILE* outfile = fopen(out_filename, "w");
         if (!outfile) {
-            printf("Could not open output file %s\n", out_filename);
+            printf("Failed to open output file %s\n", out_filename);
             free(out_filename);
             free_translation_unit(&tl);
             free_tokens(tokens);
             return EXIT_FAILURE;
         }
 
-        dump_ast(&tl, outfile);
+        if (!dump_ast(&tl, outfile)) {
+            printf("Failed to write ast to file %s\n", out_filename);
+
+            if (fclose(outfile) != 0) {
+                printf("Failed to close output file %s\n", out_filename);
+            }
+
+            free(out_filename);
+            free_translation_unit(&tl);
+            free_tokens(tokens);
+            return EXIT_FAILURE;
+        }
 
         fflush(outfile);
         if (fclose(outfile) != 0) {
