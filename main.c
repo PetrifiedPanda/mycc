@@ -48,7 +48,7 @@ static char* str_concat(const char* s1, const char* s2) {
 
 int main(int argc, char** argv) {
     if (argc < 2) {
-        fprintf(stderr, "%s: no input files\n", argv[0]);
+        printf("%s: no input files\n", argv[0]);
         return EXIT_FAILURE;
     }
 
