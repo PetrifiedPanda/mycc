@@ -1,6 +1,8 @@
 #ifndef PARSER_ERR_H
 #define PARSER_ERR_H
 
+#include <stdio.h>
+
 #include "err_base.h"
 #include "token.h"
 
@@ -55,7 +57,7 @@ void set_parser_err_copy(struct parser_err* err,
                          enum parser_err_type type,
                          const struct source_loc* loc);
 
-void print_parser_err(const struct parser_err* err);
+void print_parser_err(FILE* out, const struct parser_err* err);
 
 void free_parser_err(struct parser_err* err);
 

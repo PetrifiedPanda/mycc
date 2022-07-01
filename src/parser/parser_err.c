@@ -39,77 +39,85 @@ void set_parser_err_copy(struct parser_err* err,
     err->base = create_err_base_copy(loc);
 }
 
-void print_parser_err(const struct parser_err* err) {
+void print_parser_err(FILE* out, const struct parser_err* err) {
     assert(err->type != PARSER_ERR_NONE);
 
-    print_err_base(&err->base);
+    print_err_base(out, &err->base);
     switch (err->type) {
         case PARSER_ERR_NONE:
             UNREACHABLE();
         case PARSER_ERR_EXPECTED_TOKENS: {
-            printf("Expected token of type %s", get_type_str(err->expected[0]));
+            fprintf(out,
+                    "Expected token of type %s",
+                    get_type_str(err->expected[0]));
             for (size_t i = 1; i < err->num_expected; ++i) {
                 printf(", %s", get_type_str(err->expected[i]));
             }
 
             if (err->got == INVALID) {
-                printf(" but got to enf of file");
+                fprintf(out, " but got to enf of file");
             } else {
-                printf(" but got token of type %s", get_type_str(err->got));
+                fprintf(out,
+                        " but got token of type %s",
+                        get_type_str(err->got));
             }
             break;
         }
         case PARSER_ERR_REDEFINED_SYMBOL: {
             const char* type_str = err->was_typedef_name ? "typedef name"
                                                          : "enum constant";
-            printf("Redefined symbol %s that was already defined as %s in "
-                   "%s(%zu, %zu)",
-                   err->redefined_symbol,
-                   type_str,
-                   err->prev_def_file,
-                   err->prev_def_loc.line,
-                   err->prev_def_loc.index);
+            fprintf(out,
+                    "Redefined symbol %s that was already defined as %s in "
+                    "%s(%zu, %zu)",
+                    err->redefined_symbol,
+                    type_str,
+                    err->prev_def_file,
+                    err->prev_def_loc.line,
+                    err->prev_def_loc.index);
             break;
         }
         case PARSER_ERR_ARR_DOUBLE_STATIC:
-            printf("Expected only one use of static");
+            fprintf(out, "Expected only one use of static");
             break;
         case PARSER_ERR_ARR_STATIC_NO_LEN:
-            printf("Expected array length after use of static");
+            fprintf(out, "Expected array length after use of static");
             break;
         case PARSER_ERR_ARR_STATIC_ASTERISK:
-            printf("Asterisk cannot be used with static");
+            fprintf(out, "Asterisk cannot be used with static");
             break;
         case PARSER_ERR_TYPEDEF_INIT:
-            printf("Initializer not allowed in typedef");
+            fprintf(out, "Initializer not allowed in typedef");
             break;
         case PARSER_ERR_TYPEDEF_FUNC_DEF:
-            printf("Function definition declared typedef");
+            fprintf(out, "Function definition declared typedef");
             break;
         case PARSER_ERR_TYPEDEF_PARAM_DECL:
-            printf("typedef is not allowed in function declarator");
+            fprintf(out, "typedef is not allowed in function declarator");
             break;
         case PARSER_ERR_TYPEDEF_STRUCT:
-            printf("typedef is not allowed in struct declaration");
+            fprintf(out, "typedef is not allowed in struct declaration");
             break;
         case PARSER_ERR_EMPTY_STRUCT_DECLARATOR:
-            printf("Expected a declarator or a bit field specifier");
+            fprintf(out, "Expected a declarator or a bit field specifier");
             break;
         case PARSER_ERR_INCOMPATIBLE_TYPE_SPECS:
-            printf("Cannot combine %s with previous %s type specifier",
-                   get_type_str(err->type_spec),
-                   get_type_str(err->prev_type_spec));
+            fprintf(out,
+                    "Cannot combine %s with previous %s type specifier",
+                    get_type_str(err->type_spec),
+                    get_type_str(err->prev_type_spec));
             break;
         case PARSER_ERR_DISALLOWED_TYPE_QUALS:
-            printf("Cannot add qualifiers to type %s",
-                   get_type_str(err->incompatible_type));
+            fprintf(out,
+                    "Cannot add qualifiers to type %s",
+                    get_type_str(err->incompatible_type));
             break;
         case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
-            printf(
+            fprintf(
+                out,
                 "Expected a typedef name but got identifier with spelling %s",
                 err->non_typedef_spelling);
     }
-    printf("\n");
+    fprintf(out, "\n");
 }
 
 void free_parser_err(struct parser_err* err) {

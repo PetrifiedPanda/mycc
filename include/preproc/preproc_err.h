@@ -1,6 +1,8 @@
 #ifndef PREPROC_ERR_H
 #define PREPROC_ERR_H
 
+#include <stdio.h>
+
 #include "err_base.h"
 
 enum preproc_err_type {
@@ -40,7 +42,7 @@ void set_preproc_err_copy(struct preproc_err* err,
                           enum preproc_err_type type,
                           const struct source_loc* loc);
 
-void print_preproc_err(struct preproc_err* err);
+void print_preproc_err(FILE* out, struct preproc_err* err);
 
 void free_preproc_err(struct preproc_err* err);
 

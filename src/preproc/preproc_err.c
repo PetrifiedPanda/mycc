@@ -40,7 +40,7 @@ void set_preproc_err_copy(struct preproc_err* err,
     err->base = create_err_base_copy(loc);
 }
 
-void print_preproc_err(struct preproc_err* err) {
+void print_preproc_err(FILE* out, struct preproc_err* err) {
     assert(err->type != PREPROC_ERR_NONE);
 
     switch (err->type) {
@@ -49,42 +49,42 @@ void print_preproc_err(struct preproc_err* err) {
             break;
         case PREPROC_ERR_FILE_FAIL:
             if (err->base.loc.file) {
-                print_err_base(&err->base);
+                print_err_base(out, &err->base);
             }
             if (err->open_fail) {
-                printf("Failed to open file %s", err->fail_file);
+                fprintf(out, "Failed to open file %s", err->fail_file);
             } else {
-                printf("Failed to close file %s", err->fail_file);
+                fprintf(out, "Failed to close file %s", err->fail_file);
             }
             break;
         case PREPROC_ERR_UNTERMINATED_LIT:
-            print_err_base(&err->base);
-            printf("%s literal not properly terminated",
+            print_err_base(out, &err->base);
+            fprintf(out, "%s literal not properly terminated",
                    err->is_char_lit ? "Char" : "String");
             break;
         case PREPROC_ERR_INVALID_ID:
-            print_err_base(&err->base);
-            printf("Invalid identifier: %s", err->invalid_id);
+            print_err_base(out, &err->base);
+            fprintf(out, "Invalid identifier: %s", err->invalid_id);
             break;
         case PREPROC_ERR_MACRO_ARG_COUNT:
-            print_err_base(&err->base);
+            print_err_base(out, &err->base);
             if (err->too_few_args) {
-                printf("Too few arguments in function-like macro invocation: "
+                fprintf(out, "Too few arguments in function-like macro invocation: "
                        "Expected%s %zu arguments",
                        err->is_variadic ? " at least" : "",
                        err->expected_arg_count);
             } else {
-                printf("Too many arguments in function like macro invocation: "
+                fprintf(out, "Too many arguments in function like macro invocation: "
                        "Expected only %zu arguments",
                        err->expected_arg_count);
             }
             break;
         case PREPROC_ERR_UNTERMINATED_MACRO:
-            print_err_base(&err->base);
-            printf("Unterminated macro invocation");
+            print_err_base(out, &err->base);
+            fprintf(out, "Unterminated macro invocation");
             break;
     }
-    printf("\n");
+    fprintf(out, "\n");
 }
 
 void free_preproc_err(struct preproc_err* err) {
