@@ -14,7 +14,7 @@ TEST(parser_state) {
         STRLEN = NUM_STRINGS + 1,
         SCOPE_INTERVAL = 150
     };
-    _Static_assert(
+    static_assert(
         NUM_STRINGS % SCOPE_INTERVAL == 0,
         "Number of test strings must be divisible by the scope interval");
 
@@ -94,10 +94,11 @@ TEST(parser_state) {
     struct token insert_test_token = {
         .type = IDENTIFIER,
         .spelling = "Test",
-        .loc = {
-            .file = "file.c",
-            .file_loc = {.line = 0, .index = 0},
-        },
+        .loc =
+            {
+                .file = "file.c",
+                .file_loc = {.line = 0, .index = 0},
+            },
     };
     ASSERT(register_enum_constant(&s, &insert_test_token));
     ASSERT(!register_typedef_name(&s, &insert_test_token));
@@ -108,7 +109,7 @@ TEST(parser_state) {
     ASSERT_STR(err.prev_def_file, "file.c");
     ASSERT_SIZE_T(err.prev_def_loc.line, (size_t)0);
     ASSERT_SIZE_T(err.prev_def_loc.index, (size_t)0);
-    
+
     free_parser_err(&err);
     err = create_parser_err();
 
