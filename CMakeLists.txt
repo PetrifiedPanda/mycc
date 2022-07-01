@@ -36,7 +36,10 @@ target_link_libraries(${This} ${Lib})
 
 set(Test mycctest)
 
-file(GLOB TestSources test/*.c test/preproc/*.c test/parser/*.c)
+file(GLOB TestSources test/*.c
+                      test/util/*.c
+                      test/preproc/*.c
+                      test/parser/*.c)
 
 add_executable(${Test} ${TestSources})
 target_link_libraries(${Test} ${Lib})
