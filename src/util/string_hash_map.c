@@ -7,16 +7,13 @@
 #include "util/mem.h"
 #include "util/annotations.h"
 
-struct string_hash_map create_string_hash_map(size_t elem_size) {
-    enum {
-        INIT_LEN = 100
-    };
+struct string_hash_map create_string_hash_map(size_t elem_size, size_t init_cap) {
     return (struct string_hash_map){
         ._len = 0,
-        ._cap = INIT_LEN,
+        ._cap = init_cap,
         ._item_size = elem_size,
-        ._keys = xcalloc(INIT_LEN, sizeof(const char*)),
-        ._items = xcalloc(INIT_LEN, elem_size),
+        ._keys = xcalloc(init_cap, sizeof(const char*)),
+        ._items = xcalloc(init_cap, elem_size),
     };
 }
 

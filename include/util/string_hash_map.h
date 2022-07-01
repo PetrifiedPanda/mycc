@@ -11,7 +11,7 @@ struct string_hash_map {
     void* _items;
 };
 
-struct string_hash_map create_string_hash_map(size_t elem_size);
+struct string_hash_map create_string_hash_map(size_t elem_size, size_t init_cap);
 void free_string_hash_map(struct string_hash_map* map);
 
 /**

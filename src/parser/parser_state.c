@@ -24,6 +24,10 @@ struct identifier_type_data {
     enum identifier_type type;
 };
 
+enum {
+    SCOPE_MAP_INIT_CAP = 100
+};
+
 static bool register_identifier(struct parser_state* s,
                                 const struct token* token,
                                 enum identifier_type type);
@@ -42,7 +46,8 @@ struct parser_state create_parser_state(struct token* tokens,
         .err = err,
     };
     res._scope_maps[0] = create_string_hash_map(
-        sizeof(struct identifier_type_data));
+        sizeof(struct identifier_type_data),
+        SCOPE_MAP_INIT_CAP);
     return res;
 }
 
@@ -73,7 +78,8 @@ void parser_push_scope(struct parser_state* s) {
     s->_scope_maps = xrealloc(s->_scope_maps,
                               sizeof(struct string_hash_map) * s->_len);
     s->_scope_maps[s->_len - 1] = create_string_hash_map(
-        sizeof(struct identifier_type_data));
+        sizeof(struct identifier_type_data),
+        SCOPE_MAP_INIT_CAP);
 }
 
 void parser_pop_scope(struct parser_state* s) {
