@@ -12,7 +12,7 @@
 static bool is_file_sep(char c) {
     switch (c) {
         case '/':
-#ifdef WIN32
+#ifdef _WIN32
         case '\\':
 #endif
             return true;
