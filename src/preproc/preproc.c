@@ -111,7 +111,7 @@ static bool read_and_tokenize_line(struct preproc_state* state,
 
     // TODO: if an escaped newline separates a whole token this does not work
     bool escaped_newline = false;
-    //do {
+    do {
         char static_buf[PREPROC_LINE_BUF_LEN];
         char* line = code_source_read_line(src, static_buf, &escaped_newline);
         if (line == NULL) {
@@ -129,7 +129,7 @@ static bool read_and_tokenize_line(struct preproc_state* state,
             return false;
         }
         ++src->current_line;
-    //} while (escaped_newline);
+    } while (escaped_newline);
 
     return true;
 }
