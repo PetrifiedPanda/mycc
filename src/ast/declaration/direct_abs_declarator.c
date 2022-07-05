@@ -111,8 +111,6 @@ static bool parse_abs_arr_or_func_suffix(struct parser_state* s,
         default:
             UNREACHABLE();
     }
-
-    return false;
 }
 
 struct direct_abs_declarator* parse_direct_abs_declarator(

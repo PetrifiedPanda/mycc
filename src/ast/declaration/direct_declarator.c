@@ -150,7 +150,6 @@ static bool parse_arr_or_func_suffix(struct parser_state* s,
         default:
             UNREACHABLE();
     }
-    return false;
 }
 
 static struct direct_declarator* parse_direct_declarator_base(

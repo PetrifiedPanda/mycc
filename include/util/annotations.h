@@ -7,7 +7,7 @@
  */
 #define UNUSED(var) (void)var
 
-#ifdef _MSVC_VER
+#ifdef _MSC_VER
 
 #define UNREACHABLE() __assume(0)
 

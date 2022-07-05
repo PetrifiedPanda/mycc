@@ -78,7 +78,7 @@ static char* code_source_read_line(struct code_source* src,
                                    bool* escaped_newline) {
     char* res;
     if (src->is_file) {
-        size_t len = -1;
+        size_t len;
         res = file_read_line(src->file, static_buf, PREPROC_LINE_BUF_LEN, &len);
         if (res != NULL && len > 0) {
             *escaped_newline = res[len - 1] == '\\';
