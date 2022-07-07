@@ -209,20 +209,14 @@ static void shift_back(struct token* tokens,
                        size_t num,
                        size_t from,
                        size_t to) {
-    for (size_t i = to - 1; i > from; --i) {
-        tokens[i + num] = tokens[i];
-    }
-    tokens[from + num] = tokens[from];
+    memmove(tokens + from + num, tokens + from, (to - from) * sizeof(struct token));
 }
 
 static void shift_forward(struct token* tokens,
                           size_t num,
                           size_t from,
                           size_t to) {
-    const size_t limit = to - num;
-    for (size_t i = from; i < limit; ++i) {
-        tokens[i] = tokens[i + num];
-    }
+    memmove(tokens + from, tokens + from + num, (to - from - num) * sizeof(struct token));
 }
 
 static void copy_into_tokens(struct token* tokens,
