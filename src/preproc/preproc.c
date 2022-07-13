@@ -76,33 +76,48 @@ static bool code_source_over(struct code_source* src) {
     }
 }
 
-static char* code_source_read_line(struct code_source* src,
-                                   char static_buf[PREPROC_LINE_BUF_LEN],
-                                   bool* escaped_newline) {
-    char* res;
-    if (src->is_file) {
-        size_t len;
-        res = file_read_line(src->file, static_buf, PREPROC_LINE_BUF_LEN, &len);
-        if (res != NULL && len > 0) {
-            *escaped_newline = res[len - 1] == '\\';
-        }
-    } else {
-        const char* start = src->str;
-        const char* it = src->str;
-        while (*it != '\n' && *it != '\0') {
-            ++it;
-        }
-
-        src->str = *it == '\0' ? it : it + 1;
-
-        const size_t len = it - start;
-        res = len != 0 ? xmalloc(sizeof(char) * (len + 1)) : NULL;
-        memcpy(res, start, len * sizeof(char));
-        if (res != NULL) {
-            res[len] = '\0';
-            *escaped_newline = res[len - 1] == '\\';
-        }
+static void string_read_line(const char** str, char** res, size_t* res_len) {
+    const char* start = *str;
+    const char* it = *str;
+    while (*it != '\n' && *it != '\0') {
+        ++it;
     }
+
+    *str = *it == '\0' ? it : it + 1;
+    const size_t len = it - start;
+    const size_t prev_res_len = *res_len;
+    *res_len += len;
+    if (len == 0) {
+        return;
+    }
+    *res = xrealloc(*res, sizeof(char) * (*res_len + 1));
+    memcpy(*res + prev_res_len, start, len * sizeof(char));
+    (*res)[*res_len] = '\0';
+}
+
+static char* code_source_read_line(struct code_source* src,
+                                   char static_buf[PREPROC_LINE_BUF_LEN]) {
+    char* res = NULL;
+    bool escaped_newline = false;
+    size_t len = 0;
+    do {
+        if (src->is_file) {
+            // TODO: this needs to append to the existing line in the case of
+            // escaped newlines
+            res = file_read_line(src->file,
+                                 static_buf,
+                                 PREPROC_LINE_BUF_LEN,
+                                 &len);
+        } else {
+            string_read_line(&src->str, &res, &len);
+        }
+
+        if (res != NULL && len > 0) {
+            escaped_newline = res[len - 1] == '\\';
+            // TODO: newlines not contained when escaped newline is found
+        }
+    } while (escaped_newline);
+
     return res;
 }
 
@@ -112,29 +127,24 @@ static bool read_and_tokenize_line(struct preproc_state* state,
                                    struct code_source* src) {
     assert(src);
 
-    // TODO: if an escaped newline separates a whole token this does not work
-    bool escaped_newline = false;
-    do {
-        char static_buf[PREPROC_LINE_BUF_LEN];
-        char* line = code_source_read_line(src, static_buf, &escaped_newline);
-        if (line == NULL) {
-            return true;
-        }
-        bool res = tokenize_line(&state->res,
-                                 state->err,
-                                 line,
-                                 src->current_line,
-                                 src->path,
-                                 &src->comment_not_terminated);
-        if (line != static_buf) {
-            free(line);
-        }
-        if (!res) {
-            return false;
-        }
-        ++src->current_line;
-    } while (escaped_newline);
-
+    char static_buf[PREPROC_LINE_BUF_LEN];
+    char* line = code_source_read_line(src, static_buf);
+    if (line == NULL) {
+        return true;
+    }
+    bool res = tokenize_line(&state->res,
+                             state->err,
+                             line,
+                             src->current_line,
+                             src->path,
+                             &src->comment_not_terminated);
+    if (line != static_buf) {
+        free(line);
+    }
+    if (!res) {
+        return false;
+    }
+    ++src->current_line;
     return true;
 }
 
