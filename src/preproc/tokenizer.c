@@ -31,12 +31,12 @@ static void advance(struct tokenizer_state* s, size_t num);
 static void advance_one(struct tokenizer_state* s);
 static void advance_newline(struct tokenizer_state* s);
 
-static void add_token_copy(struct preproc_state* res,
+static void add_token_copy(struct token_arr* res,
                            enum token_type type,
                            const char* spell,
                            struct file_loc file_loc,
                            const char* filename);
-static void add_token(struct preproc_state* res,
+static void add_token(struct token_arr* res,
                       enum token_type type,
                       char* spell,
                       struct file_loc file_loc,
@@ -45,12 +45,16 @@ static void add_token(struct preproc_state* res,
 static void handle_comments(struct tokenizer_state* s,
                             bool* comment_not_terminated);
 static bool handle_character_literal(struct tokenizer_state* s,
-                                     struct preproc_state* res);
-static bool handle_other(struct tokenizer_state* s, struct preproc_state* res);
+                                     struct token_arr* res,
+                                     struct preproc_err* err);
+static bool handle_other(struct tokenizer_state* s,
+                         struct token_arr* res,
+                         struct preproc_err* err);
 static void handle_ongoing_comment(struct tokenizer_state* s,
                                    bool* comment_not_terminated);
 
-bool tokenize_line(struct preproc_state* res,
+bool tokenize_line(struct token_arr* res,
+                   struct preproc_err* err,
                    const char* line,
                    size_t line_num,
                    const char* file,
@@ -102,11 +106,11 @@ bool tokenize_line(struct preproc_state* res,
             advance(&s, len);
         } else if (*s.it == '\"' || *s.it == '\''
                    || (*s.it == 'L' && (s.it[1] == '\"' || s.it[1] == '\''))) {
-            if (!handle_character_literal(&s, res)) {
+            if (!handle_character_literal(&s, res, err)) {
                 return false;
             }
         } else {
-            if (!handle_other(&s, res)) {
+            if (!handle_other(&s, res, err)) {
                 return false;
             }
         }
@@ -329,13 +333,13 @@ static void advance_newline(struct tokenizer_state* s) {
     ++s->it;
 }
 
-static void realloc_tokens_if_needed(struct preproc_state* res) {
+static void realloc_tokens_if_needed(struct token_arr* res) {
     if (res->len == res->cap) {
         grow_alloc((void**)&res->tokens, &res->cap, sizeof(struct token));
     }
 }
 
-static void add_token_copy(struct preproc_state* res,
+static void add_token_copy(struct token_arr* res,
                            enum token_type type,
                            const char* spell,
                            struct file_loc file_loc,
@@ -345,7 +349,7 @@ static void add_token_copy(struct preproc_state* res,
     ++res->len;
 }
 
-static void add_token(struct preproc_state* res,
+static void add_token(struct token_arr* res,
                       enum token_type type,
                       char* spell,
                       struct file_loc file_loc,
@@ -419,7 +423,8 @@ static void unterminated_literal_err(struct preproc_err* err,
 }
 
 static bool handle_character_literal(struct tokenizer_state* s,
-                                     struct preproc_state* res) {
+                                     struct token_arr* res,
+                                     struct preproc_err* err) {
     assert(*s->it == '\'' || *s->it == '\"' || *s->it == 'L');
     enum {
         BUF_STRLEN = 512
@@ -478,10 +483,7 @@ static bool handle_character_literal(struct tokenizer_state* s,
         if (dyn_buf != NULL) {
             free(dyn_buf);
         }
-        unterminated_literal_err(res->err,
-                                 terminator,
-                                 start_loc,
-                                 s->current_file);
+        unterminated_literal_err(err, terminator, start_loc, s->current_file);
         return false;
     } else {
         bool is_dyn = dyn_buf != NULL;
@@ -517,7 +519,9 @@ static bool token_is_over(const struct tokenizer_state* s) {
                && is_valid_singlec_token(type, s->prev, s->prev_prev));
 }
 
-static bool handle_other(struct tokenizer_state* s, struct preproc_state* res) {
+static bool handle_other(struct tokenizer_state* s,
+                         struct token_arr* res,
+                         struct preproc_err* err) {
     enum {
         BUF_STRLEN = 512
     };
@@ -567,13 +571,13 @@ static bool handle_other(struct tokenizer_state* s, struct preproc_state* res) {
             .file = alloc_string_copy(s->current_file),
             .file_loc = start_loc,
         };
-        set_preproc_err(res->err, PREPROC_ERR_INVALID_ID, &loc);
+        set_preproc_err(err, PREPROC_ERR_INVALID_ID, &loc);
         assert(loc.file == NULL);
 
         char* id_spell = buf_to_check != dyn_buf
                              ? alloc_string_copy(buf_to_check)
                              : dyn_buf;
-        res->err->invalid_id = id_spell;
+        err->invalid_id = id_spell;
         if (buf_to_check == dyn_buf) {
             free(dyn_buf);
         }

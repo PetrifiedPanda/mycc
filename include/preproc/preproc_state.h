@@ -5,9 +5,13 @@
 
 #include "preproc/preproc_err.h"
 
-struct preproc_state {
+struct token_arr {
     size_t len, cap;
     struct token* tokens;
+};
+
+struct preproc_state {
+    struct token_arr res;
     struct preproc_err* err;
 };
 

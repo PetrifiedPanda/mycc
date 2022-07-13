@@ -14,7 +14,8 @@
  * @param comment_not_terminated A pointer to a boolean, that signifies whether
  *        a multi-line comment was started in a previous line
  */
-bool tokenize_line(struct preproc_state* res,
+bool tokenize_line(struct token_arr* res,
+                   struct preproc_err* err,
                    const char* line,
                    size_t line_num,
                    const char* file,

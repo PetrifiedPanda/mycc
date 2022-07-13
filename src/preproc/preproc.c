@@ -20,34 +20,37 @@ static bool preproc_file(struct preproc_state* state,
 
 static enum token_type keyword_type(const char* spelling);
 
-static void append_terminator_token(struct token** tokens, size_t len);
+static void append_terminator_token(struct token_arr* arr);
 void convert_preproc_tokens(struct token* tokens);
 
 struct token* preproc(const char* path, struct preproc_err* err) {
     assert(err);
 
     struct preproc_state state = {
-        .len = 0,
-        .cap = 0,
-        .tokens = NULL,
+        .res =
+            {
+                .len = 0,
+                .cap = 0,
+                .tokens = NULL,
+            },
         .err = err,
     };
-    
+
     struct source_loc empty_source_loc = {
-        .file = NULL, 
-        .file_loc ={0, 0},
+        .file = NULL,
+        .file_loc = {0, 0},
     };
     if (!preproc_file(&state, path, &empty_source_loc)) {
-        for (size_t i = 0; i < state.len; ++i) {
-            free_token(&state.tokens[i]);
+        for (size_t i = 0; i < state.res.len; ++i) {
+            free_token(&state.res.tokens[i]);
         }
-        free(state.tokens);
+        free(state.res.tokens);
         return NULL;
     }
 
-    append_terminator_token(&state.tokens, state.len);
+    append_terminator_token(&state.res);
 
-    return state.tokens;
+    return state.res.tokens;
 }
 
 enum {
@@ -117,7 +120,8 @@ static bool read_and_tokenize_line(struct preproc_state* state,
         if (line == NULL) {
             return true;
         }
-        bool res = tokenize_line(state,
+        bool res = tokenize_line(&state->res,
+                                 state->err,
                                  line,
                                  src->current_line,
                                  src->path,
@@ -146,13 +150,14 @@ static const struct token* find_macro_end(struct preproc_state* state,
     size_t open_bracket_count = 0;
     while (!code_source_over(src)
            && (open_bracket_count != 0 || it->type != RBRACKET)) {
-        while (!code_source_over(src) && it == state->tokens + state->len) {
+        while (!code_source_over(src)
+               && it == state->res.tokens + state->res.len) {
             if (!read_and_tokenize_line(state, src)) {
                 return NULL;
             }
         }
 
-        if (code_source_over(src) && it == state->tokens + state->len) {
+        if (code_source_over(src) && it == state->res.tokens + state->res.len) {
             break;
         }
 
@@ -177,13 +182,13 @@ static bool expand_all_macros(struct preproc_state* state,
                               size_t start,
                               struct code_source* src) {
     bool no_incr = false;
-    for (size_t i = start; i < state->len; ++i) {
+    for (size_t i = start; i < state->res.len; ++i) {
         if (no_incr) {
             --i;
             no_incr = false;
         }
 
-        const struct token* curr = &state->tokens[i];
+        const struct token* curr = &state->res.tokens[i];
         if (curr->type == IDENTIFIER) {
             const struct preproc_macro* macro = find_preproc_macro(
                 curr->spelling);
@@ -217,13 +222,13 @@ static bool preproc_statement(struct preproc_state* res,
 
 static bool preproc_src(struct preproc_state* state, struct code_source* src) {
     while (!code_source_over(src)) {
-        const size_t prev_len = state->len;
+        const size_t prev_len = state->res.len;
         if (!read_and_tokenize_line(state, src)) {
             return false;
         }
 
-        if (state->len != prev_len
-            && state->tokens[prev_len].type == STRINGIFY_OP
+        if (state->res.len != prev_len
+            && state->res.tokens[prev_len].type == STRINGIFY_OP
             && !preproc_statement(state, prev_len, src)) {
             return false;
         }
@@ -231,7 +236,7 @@ static bool preproc_src(struct preproc_state* state, struct code_source* src) {
         expand_all_macros(state, prev_len, src);
     }
 
-    append_terminator_token(&state->tokens, state->len);
+    append_terminator_token(&state->res);
     return true;
 }
 
@@ -241,9 +246,12 @@ struct token* preproc_string(const char* str,
     assert(err);
 
     struct preproc_state state = {
-        .len = 0,
-        .cap = 0,
-        .tokens = NULL,
+        .res =
+            {
+                .len = 0,
+                .cap = 0,
+                .tokens = NULL,
+            },
         .err = err,
     };
 
@@ -256,14 +264,14 @@ struct token* preproc_string(const char* str,
     };
 
     if (!preproc_src(&state, &src)) {
-        for (size_t i = 0; i < state.len; ++i) {
-            free_token(&state.tokens[i]);
+        for (size_t i = 0; i < state.res.len; ++i) {
+            free_token(&state.res.tokens[i]);
         }
-        free(state.tokens);
+        free(state.res.tokens);
         return NULL;
     }
 
-    return state.tokens;
+    return state.res.tokens;
 }
 
 static void file_err(struct preproc_err* err,
@@ -335,15 +343,16 @@ void convert_preproc_tokens(struct token* tokens) {
     }
 }
 
-static void append_terminator_token(struct token** tokens, size_t len) {
-    *tokens = xrealloc(*tokens, sizeof(struct token) * (len + 1));
-    (*tokens)[len] = (struct token){
+static void append_terminator_token(struct token_arr* arr) {
+    arr->tokens = xrealloc(arr->tokens, sizeof(struct token) * (arr->len + 1));
+    arr->tokens[arr->len] = (struct token){
         .type = INVALID,
         .spelling = NULL,
-        .loc = {
-            .file = NULL,
-            .file_loc = {(size_t)-1, (size_t)-1},
-        },
+        .loc =
+            {
+                .file = NULL,
+                .file_loc = {(size_t)-1, (size_t)-1},
+            },
     };
 }
 
@@ -351,7 +360,7 @@ static bool preproc_statement(struct preproc_state* state,
                               size_t line_start,
                               struct code_source* src) {
     assert(src != NULL);
-    assert(state->tokens[line_start].type == STRINGIFY_OP);
+    assert(state->res.tokens[line_start].type == STRINGIFY_OP);
     (void)state;
     (void)line_start;
     (void)src;

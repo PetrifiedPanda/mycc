@@ -36,9 +36,11 @@ static void test_preproc_macro(const struct preproc_macro* macro,
     
     struct preproc_err err = create_preproc_err();
     struct preproc_state state = {
-        .len = tokens_len,
-        .cap = tokens_len,
-        .tokens = tokens,
+        .res = {
+            .len = tokens_len,
+            .cap = tokens_len,
+            .tokens = tokens,
+        },
         .err = &err,
     };
     
@@ -52,14 +54,14 @@ static void test_preproc_macro(const struct preproc_macro* macro,
     struct token* expected = preproc_string(output, "source_file.c", &output_err);
     ASSERT(output_err.type == PREPROC_ERR_NONE);
     
-    ASSERT_SIZE_T(state.len, get_tokens_len(expected));
+    ASSERT_SIZE_T(state.res.len, get_tokens_len(expected));
 
-    for (size_t i = 0; i < state.len; ++i) {
-        ASSERT_TOKEN_TYPE(state.tokens[i].type, expected[i].type);
-        ASSERT_STR(state.tokens[i].spelling, expected[i].spelling);
-        free_token(&state.tokens[i]);
+    for (size_t i = 0; i < state.res.len; ++i) {
+        ASSERT_TOKEN_TYPE(state.res.tokens[i].type, expected[i].type);
+        ASSERT_STR(state.res.tokens[i].spelling, expected[i].spelling);
+        free_token(&state.res.tokens[i]);
     }
-    free(state.tokens);
+    free(state.res.tokens);
     free_tokens(expected);
 }
 
