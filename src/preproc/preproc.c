@@ -203,7 +203,7 @@ static bool expand_all_macros(struct preproc_state* state,
                     return false;
                 }
                 // need to continue at the start of the macro expansion
-                no_incr = false;
+                no_incr = true;
             }
         }
     }
