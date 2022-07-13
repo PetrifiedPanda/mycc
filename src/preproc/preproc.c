@@ -366,98 +366,12 @@ static inline bool is_spelling(const char* spelling, enum token_type type) {
 }
 
 static enum token_type keyword_type(const char* spell) {
-    if (is_spelling(spell, FUNC_NAME)) {
-        return FUNC_NAME;
-    } else if (is_spelling(spell, SIZEOF)) {
-        return SIZEOF;
-    } else if (is_spelling(spell, TYPEDEF)) {
-        return TYPEDEF;
-    } else if (is_spelling(spell, EXTERN)) {
-        return EXTERN;
-    } else if (is_spelling(spell, STATIC)) {
-        return STATIC;
-    } else if (is_spelling(spell, AUTO)) {
-        return AUTO;
-    } else if (is_spelling(spell, REGISTER)) {
-        return REGISTER;
-    } else if (is_spelling(spell, INLINE)) {
-        return INLINE;
-    } else if (is_spelling(spell, BOOL)) {
-        return BOOL;
-    } else if (is_spelling(spell, CHAR)) {
-        return CHAR;
-    } else if (is_spelling(spell, SHORT)) {
-        return SHORT;
-    } else if (is_spelling(spell, INT)) {
-        return INT;
-    } else if (is_spelling(spell, LONG)) {
-        return LONG;
-    } else if (is_spelling(spell, SIGNED)) {
-        return SIGNED;
-    } else if (is_spelling(spell, UNSIGNED)) {
-        return UNSIGNED;
-    } else if (is_spelling(spell, FLOAT)) {
-        return FLOAT;
-    } else if (is_spelling(spell, DOUBLE)) {
-        return DOUBLE;
-    } else if (is_spelling(spell, VOID)) {
-        return VOID;
-    } else if (is_spelling(spell, COMPLEX)) {
-        return COMPLEX;
-    } else if (is_spelling(spell, IMAGINARY)) {
-        return IMAGINARY;
-    } else if (is_spelling(spell, CONST)) {
-        return CONST;
-    } else if (is_spelling(spell, VOLATILE)) {
-        return VOLATILE;
-    } else if (is_spelling(spell, RESTRICT)) {
-        return RESTRICT;
-    } else if (is_spelling(spell, ATOMIC)) {
-        return ATOMIC;
-    } else if (is_spelling(spell, STRUCT)) {
-        return STRUCT;
-    } else if (is_spelling(spell, UNION)) {
-        return UNION;
-    } else if (is_spelling(spell, ENUM)) {
-        return ENUM;
-    } else if (is_spelling(spell, CASE)) {
-        return CASE;
-    } else if (is_spelling(spell, DEFAULT)) {
-        return DEFAULT;
-    } else if (is_spelling(spell, IF)) {
-        return IF;
-    } else if (is_spelling(spell, ELSE)) {
-        return ELSE;
-    } else if (is_spelling(spell, SWITCH)) {
-        return SWITCH;
-    } else if (is_spelling(spell, WHILE)) {
-        return WHILE;
-    } else if (is_spelling(spell, DO)) {
-        return DO;
-    } else if (is_spelling(spell, FOR)) {
-        return FOR;
-    } else if (is_spelling(spell, GOTO)) {
-        return GOTO;
-    } else if (is_spelling(spell, CONTINUE)) {
-        return CONTINUE;
-    } else if (is_spelling(spell, BREAK)) {
-        return BREAK;
-    } else if (is_spelling(spell, RETURN)) {
-        return RETURN;
-    } else if (is_spelling(spell, ALIGNAS)) {
-        return ALIGNAS;
-    } else if (is_spelling(spell, ALIGNOF)) {
-        return ALIGNOF;
-    } else if (is_spelling(spell, GENERIC)) {
-        return GENERIC;
-    } else if (is_spelling(spell, NORETURN)) {
-        return NORETURN;
-    } else if (is_spelling(spell, STATIC_ASSERT)) {
-        return STATIC_ASSERT;
-    } else if (is_spelling(spell, THREAD_LOCAL)) {
-        return THREAD_LOCAL;
-    } else {
-        return IDENTIFIER;
+    for (enum token_type e = KEYWORDS_START; e < KEYWORDS_END; ++e) {
+        if (is_spelling(spell, e)) {
+            return e;
+        }
     }
+
+    return IDENTIFIER;
 }
 

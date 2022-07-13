@@ -11,7 +11,8 @@ enum token_type {
     TYPEDEF_NAME,
 
     // Keywords
-    FUNC_NAME, // __func__
+    KEYWORDS_START,
+    FUNC_NAME = KEYWORDS_START, // __func__
     SIZEOF,
     TYPEDEF,
     EXTERN,
@@ -56,9 +57,10 @@ enum token_type {
     NORETURN,      // _Noreturn
     STATIC_ASSERT, // _Static_assert
     THREAD_LOCAL,  // _Thread_local
+    KEYWORDS_END,
 
     // Punctuation
-    SEMICOLON,
+    SEMICOLON = KEYWORDS_END,
     LBRACKET, // (
     RBRACKET, // )
     LBRACE,   // {
