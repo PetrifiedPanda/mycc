@@ -103,14 +103,6 @@ static char* code_source_read_line(struct code_source* src,
     do {
         if (src->is_file) {
             file_read_line(src->file, &res, &len, static_buf, PREPROC_LINE_BUF_LEN);
-            // TODO: this needs to append to the existing line in the case of
-            // escaped newlines
-            /*
-            res = file_read_line(src->file,
-                                 static_buf,
-                                 PREPROC_LINE_BUF_LEN,
-                                 &len);
-            */
         } else {
             string_read_line(&src->str, &res, &len);
         }
