@@ -76,9 +76,39 @@ static bool code_source_over(struct code_source* src) {
     }
 }
 
-static void string_read_line(const char** str, char** res, size_t* res_len) {
+static void string_read_line(const char** str,
+                             char** res,
+                             size_t* res_len,
+                             char* static_buf,
+                             size_t static_buf_len) {
+
     const char* start = *str;
     const char* it = *str;
+    if (*res_len < static_buf_len) {
+        *res = static_buf;
+        bool use_dyn_buf = false;
+        while (*it != '\n' && *it != '\0') {
+            ++it;
+            if (*res_len == static_buf_len - 1) {
+                use_dyn_buf = true;
+                break;
+            }
+        }
+
+        if (!use_dyn_buf) {
+            if (it == start && *res_len == 0) {
+                *res = NULL;
+            } else {
+                const size_t len = it - start;
+                *str = *it == '\0' ? it : it + 1;
+                memcpy(static_buf + *res_len, start, sizeof(char) * len);
+                *res_len += len;
+                static_buf[len] = '\0';
+            }
+            return;
+        }
+    }
+
     while (*it != '\n' && *it != '\0') {
         ++it;
     }
@@ -102,9 +132,17 @@ static char* code_source_read_line(struct code_source* src,
     size_t len = 0;
     do {
         if (src->is_file) {
-            file_read_line(src->file, &res, &len, static_buf, PREPROC_LINE_BUF_LEN);
+            file_read_line(src->file,
+                           &res,
+                           &len,
+                           static_buf,
+                           PREPROC_LINE_BUF_LEN);
         } else {
-            string_read_line(&src->str, &res, &len);
+            string_read_line(&src->str,
+                             &res,
+                             &len,
+                             static_buf,
+                             PREPROC_LINE_BUF_LEN);
         }
 
         if (res != NULL && len > 0) {
