@@ -24,6 +24,20 @@ struct token* tokenize_string(const char* str, const char* file) {
     return res;
 }
 
+/*
+ * read only one line, as we do not need the functionality of reading into an
+ * already existing string
+ */
+static char* file_read_single_line(FILE* file,
+                                   char* static_buf,
+                                   size_t static_buf_len,
+                                   size_t* res_len) {
+    char* res = NULL;
+    *res_len = 0;
+    file_read_line(file, &res, res_len, static_buf, static_buf_len);
+    return res;
+}
+
 void test_compare_files(const char* got_file, const char* ex_file) {
     FILE* got = fopen(got_file, "r");
     FILE* ex = fopen(ex_file, "r");
@@ -34,14 +48,12 @@ void test_compare_files(const char* got_file, const char* ex_file) {
     char got_buf[BUF_LEN];
     char ex_buf[BUF_LEN];
 
-    char* got_line;
-    char* ex_line;
-
     size_t got_len, ex_len;
 
     size_t line_counter = 1;
-    got_line = file_read_line(got, got_buf, BUF_LEN, &got_len);
-    ex_line = file_read_line(ex, ex_buf, BUF_LEN, &ex_len);
+
+    char* got_line = file_read_single_line(got, got_buf, BUF_LEN, &got_len);
+    char* ex_line = file_read_single_line(ex, ex_buf, BUF_LEN, &ex_len);
     while (got_line != NULL && ex_line != NULL) {
 
         if (strcmp(got_line, ex_line) != 0) {
@@ -66,15 +78,19 @@ void test_compare_files(const char* got_file, const char* ex_file) {
 
         ++line_counter;
 
-        got_line = file_read_line(got, got_buf, BUF_LEN, &got_len);
-        ex_line = file_read_line(ex, ex_buf, BUF_LEN, &ex_len);
+        got_line = file_read_single_line(got, got_buf, BUF_LEN, &got_len);
+        ex_line = file_read_single_line(ex, ex_buf, BUF_LEN, &ex_len);
     }
 
     if (got_line == NULL && ex_line != NULL) {
+        fclose(got);
+        fclose(ex);
         PRINT_ASSERT_ERR("Expected %s at line %zu but got to end of file",
                          ex_line,
                          line_counter);
     } else if (got_line != NULL && ex_line == NULL) {
+        fclose(got);
+        fclose(ex);
         PRINT_ASSERT_ERR("Expected end of file at line %zu but got %s",
                          line_counter,
                          got_line);

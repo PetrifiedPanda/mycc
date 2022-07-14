@@ -5,50 +5,59 @@
 
 #include "util/mem.h"
 
-char* file_read_line(FILE* file,
-                     char* static_buf,
-                     size_t static_buf_len,
-                     size_t* res_len) {
+void file_read_line(FILE* file,
+                      char** res,
+                      size_t* res_len,
+                      char* static_buf,
+                      size_t static_buf_len) {
+    assert(res);
     assert(res_len);
 
-    size_t i = 0;
     int c;
-    while ((c = getc(file)) != '\n' && c != EOF) {
-        static_buf[i] = (char)c;
-        ++i;
-        if (i == static_buf_len - 1) {
-            break;
-        }
-    }
-
-    if (i == 0 && c == EOF) { // only EOF read
-        return NULL;
-    }
-
-    char* res = static_buf;
-
-    if (c != '\n' && c != EOF) {
-        assert(i == static_buf_len - 1);
-
-        size_t len = static_buf_len * 2;
-        char* dyn_buf = xmalloc(sizeof(char) * len);
-        memcpy(dyn_buf, static_buf, (static_buf_len - 1) * sizeof(char));
-
+    size_t cap;
+    if (*res_len < static_buf_len) {
+        *res = static_buf;
+        bool copy_to_dyn_buf = false;
         while ((c = getc(file)) != '\n' && c != EOF) {
-            if (i == len - 1) {
-                grow_alloc((void**)&dyn_buf, &len, sizeof(char));
+            static_buf[*res_len] = (char)c;
+            ++*res_len;
+            if (*res_len == static_buf_len - 1) {
+                copy_to_dyn_buf = true;
+                break;
             }
-
-            dyn_buf[i] = (char)c;
-            ++i;
         }
-        
-        dyn_buf = xrealloc(dyn_buf, (i + 1) * sizeof(char));
 
-        res = dyn_buf;
+        if (copy_to_dyn_buf) {
+            cap = static_buf_len * 2;
+            *res = xmalloc(sizeof(char) * cap);
+            memcpy(*res, static_buf, sizeof(char) * (static_buf_len - 1));
+        } else if (*res_len == 0 && c == EOF) {
+            *res = NULL;
+            return;
+        } else { 
+            static_buf[*res_len] = '\0';
+            *res = static_buf;
+            return;
+        }
+    } else {
+        cap = *res_len;
     }
-    res[i] = '\0';
-    *res_len = i;
-    return res;
+
+    while ((c = getc(file)) != '\n' && c != EOF) {
+        if (*res_len == cap) {
+            grow_alloc((void**)res, &cap, sizeof(char));
+        }
+        (*res)[*res_len] = (char)c;
+
+        ++*res_len;
+    }
+
+    if (*res_len == 0 && c == EOF) {
+        assert(*res == NULL);
+        return;
+    }
+
+    *res = xrealloc(*res, sizeof(char) * (*res_len + 1));
+    (*res)[*res_len] = '\0';
 }
 
