@@ -21,7 +21,6 @@ static bool preproc_file(struct preproc_state* state,
 static enum token_type keyword_type(const char* spelling);
 
 static void append_terminator_token(struct token_arr* arr);
-void convert_preproc_tokens(struct token* tokens);
 
 struct token* preproc(const char* path, struct preproc_err* err) {
     assert(err);
@@ -372,6 +371,7 @@ void free_tokens(struct token* tokens) {
     }
     free(tokens);
 }
+
 void convert_preproc_tokens(struct token* tokens) {
     assert(tokens);
     for (struct token* t = tokens; t->type != INVALID; ++t) {
