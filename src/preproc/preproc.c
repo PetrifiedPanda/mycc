@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <assert.h>
 
 #include "token_type.h"
@@ -153,30 +154,74 @@ static char* code_source_read_line(struct code_source* src,
     return res;
 }
 
+static bool is_preproc_directive(const char* line) {
+    const char* it = line;
+    while (isspace(*it)) {
+        ++it;
+    }
+
+    return *it == '#';
+}
+
+static bool preproc_statement(struct preproc_state* state,
+                              struct token_arr arr);
+
 // TODO: what to do if the line is a preprocessor directive
 // Maybe just handle preprocessor directives until we reach an "actual" line
 static bool read_and_tokenize_line(struct preproc_state* state,
                                    struct code_source* src) {
     assert(src);
 
-    char static_buf[PREPROC_LINE_BUF_LEN];
-    char* line = code_source_read_line(src, static_buf);
-    if (line == NULL) {
-        return true;
+    while (true) {
+        char static_buf[PREPROC_LINE_BUF_LEN];
+        char* line = code_source_read_line(src, static_buf);
+        if (line == NULL) {
+            return true;
+        }
+
+        if (is_preproc_directive(line)) {
+            struct token_arr arr = {
+                .len = 0,
+                .cap = 0,
+                .tokens = NULL,
+            };
+
+            bool res = tokenize_line(&arr,
+                                     state->err,
+                                     line,
+                                     src->current_line,
+                                     src->path,
+                                     &src->comment_not_terminated);
+            if (line != static_buf) {
+                free(line);
+            }
+            if (!res) {
+                return false;
+            }
+            
+            if (!preproc_statement(state, arr)) {
+                return false;
+            }
+            ++src->current_line;
+        } else {
+            bool res = tokenize_line(&state->res,
+                                     state->err,
+                                     line,
+                                     src->current_line,
+                                     src->path,
+                                     &src->comment_not_terminated);
+            if (line != static_buf) {
+                free(line);
+            }
+            if (!res) {
+                return false;
+            }
+
+            ++src->current_line;
+            break;
+        }
     }
-    bool res = tokenize_line(&state->res,
-                             state->err,
-                             line,
-                             src->current_line,
-                             src->path,
-                             &src->comment_not_terminated);
-    if (line != static_buf) {
-        free(line);
-    }
-    if (!res) {
-        return false;
-    }
-    ++src->current_line;
+
     return true;
 }
 
@@ -258,20 +303,10 @@ static bool expand_all_macros(struct preproc_state* state,
     return true;
 }
 
-static bool preproc_statement(struct preproc_state* res,
-                              size_t line_start,
-                              struct code_source* src);
-
 static bool preproc_src(struct preproc_state* state, struct code_source* src) {
     while (!code_source_over(src)) {
         const size_t prev_len = state->res.len;
         if (!read_and_tokenize_line(state, src)) {
-            return false;
-        }
-
-        if (state->res.len != prev_len
-            && state->res.tokens[prev_len].type == STRINGIFY_OP
-            && !preproc_statement(state, prev_len, src)) {
             return false;
         }
 
@@ -400,13 +435,11 @@ static void append_terminator_token(struct token_arr* arr) {
 }
 
 static bool preproc_statement(struct preproc_state* state,
-                              size_t line_start,
-                              struct code_source* src) {
-    assert(src != NULL);
-    assert(state->res.tokens[line_start].type == STRINGIFY_OP);
+                              struct token_arr arr) {
+    assert(arr.tokens);
+    assert(arr.tokens[0].type == STRINGIFY_OP);
     (void)state;
-    (void)line_start;
-    (void)src;
+    (void)arr;
     // TODO:
     return false;
 }
