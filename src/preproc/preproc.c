@@ -164,6 +164,7 @@ static bool is_preproc_directive(const char* line) {
 }
 
 static bool preproc_statement(struct preproc_state* state,
+                              struct code_source* src,
                               struct token_arr arr);
 
 // TODO: what to do if the line is a preprocessor directive
@@ -199,7 +200,7 @@ static bool read_and_tokenize_line(struct preproc_state* state,
                 return false;
             }
             
-            if (!preproc_statement(state, arr)) {
+            if (!preproc_statement(state, src, arr)) {
                 return false;
             }
             ++src->current_line;
@@ -435,10 +436,12 @@ static void append_terminator_token(struct token_arr* arr) {
 }
 
 static bool preproc_statement(struct preproc_state* state,
+                              struct code_source* src,
                               struct token_arr arr) {
     assert(arr.tokens);
     assert(arr.tokens[0].type == STRINGIFY_OP);
     (void)state;
+    (void)src;
     (void)arr;
     // TODO:
     return false;
