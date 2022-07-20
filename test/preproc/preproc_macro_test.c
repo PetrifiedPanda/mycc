@@ -339,6 +339,7 @@ TEST(parse_object_like) {
         };
 
         compare_preproc_macros(&got, &ex);
+        free(got.expansion);
     }
     {
         // #define ANOTHER_MACRO 1 + 2 * 3 - func(a, b)
@@ -388,6 +389,7 @@ TEST(parse_object_like) {
         };
 
         compare_preproc_macros(&got, &ex);
+        free(got.expansion);
     }
 }
 
