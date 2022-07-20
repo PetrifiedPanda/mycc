@@ -42,18 +42,18 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr) {
     if (arr->len < 3) {
         // TODO: missing macro name
         return (struct preproc_macro){0};
-    } else if (arr->tokens[2].type == IDENTIFIER) {
+    } else if (arr->tokens[2].type != IDENTIFIER) {
         // TODO: expected macro name
         return (struct preproc_macro){0};
     }
 
     struct preproc_macro res;
 
-    res.spelling = arr->tokens[3].spelling;
-    arr->tokens[3].spelling = NULL;
+    res.spelling = arr->tokens[2].spelling;
+    arr->tokens[2].spelling = NULL;
     assert(res.spelling);
 
-    if (arr->tokens[3].type == LBRACKET) {
+    if (arr->len > 3 && arr->tokens[3].type == LBRACKET) {
         res.is_func_macro = true;
 
         size_t it = 4;
@@ -140,9 +140,12 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr) {
             curr_tok->spelling = NULL;
             curr_tok->loc.file = NULL;
         }
+
+        free(arg_spells);
     } else {
         res.is_func_macro = false;
         res.num_args = 0;
+        res.is_variadic = false;
 
         res.expansion_len = arr->len - 3;
         res.expansion = res.expansion_len == 0
@@ -151,10 +154,12 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr) {
                                       * res.expansion_len);
         for (size_t i = 3; i < arr->len; ++i) {
             const size_t res_idx = i - 3;
-            res.expansion[res_idx].is_arg = false;
-            res.expansion[res_idx].token = arr->tokens[i];
-            arr->tokens[i].spelling = NULL;
-            arr->tokens[i].loc.file = NULL;
+            struct token* curr_tok = &arr->tokens[i];
+            struct token_or_arg* res_curr = &res.expansion[res_idx];
+            res_curr->is_arg = false;
+            res_curr->token = arr->tokens[i];
+            curr_tok->spelling = NULL;
+            curr_tok->loc.file = NULL;
         }
     }
 
