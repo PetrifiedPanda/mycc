@@ -6,7 +6,6 @@
 
 #include "util/mem.h"
 
-
 static bool expand_func_macro(struct preproc_state* state,
                               const struct preproc_macro* macro,
                               size_t macro_idx,
@@ -34,15 +33,135 @@ bool expand_preproc_macro(struct preproc_state* state,
     }
 }
 
-static struct token copy_token(const struct token* t);
-
-static void free_token_arr(struct token_arr* arr) {
+struct preproc_macro parse_preproc_macro(struct token_arr* arr) {
     assert(arr);
-    for (size_t i = 0; i < arr->len; ++i) {
-        free_token(&arr->tokens[i]);
+    assert(arr->tokens[0].type == STRINGIFY_OP);
+    assert(arr->tokens[1].type == IDENTIFIER);
+    assert(strcmp(arr->tokens[1].spelling, "define") == 0);
+
+    if (arr->len < 3) {
+        // TODO: missing macro name
+        return (struct preproc_macro){0};
+    } else if (arr->tokens[2].type == IDENTIFIER) {
+        // TODO: expected macro name
+        return (struct preproc_macro){0};
     }
-    free(arr->tokens);
+
+    struct preproc_macro res;
+
+    res.spelling = arr->tokens[3].spelling;
+    arr->tokens[3].spelling = NULL;
+    assert(res.spelling);
+
+    if (arr->tokens[3].type == LBRACKET) {
+        res.is_func_macro = true;
+
+        size_t it = 4;
+        res.num_args = 0;
+
+        const char** arg_spells = NULL;
+        size_t arg_spells_cap = 0;
+        while (it < arr->len && arr->tokens[it].type != RBRACKET
+               && arr->tokens[it].type != ELLIPSIS) {
+            if (arr->tokens[it].type != IDENTIFIER) {
+                // TODO: unexpected token
+                return (struct preproc_macro){0};
+            }
+
+            if (arg_spells_cap == res.num_args) {
+                grow_alloc((void**)&arg_spells, &arg_spells_cap, sizeof(char*));
+            }
+            arg_spells[res.num_args] = arr->tokens[it].spelling;
+            assert(arg_spells[res.num_args]);
+
+            ++res.num_args;
+            ++it;
+
+            if (arr->tokens[it].type != RBRACKET) {
+                if (arr->tokens[it].type != COMMA) {
+                    // TODO: expected comma or rbracket
+                    return (struct preproc_macro){0};
+                }
+                ++it;
+            }
+        }
+
+        if (it == arr->len) {
+            // TODO: missing closing bracket
+            return (struct preproc_macro){0};
+        }
+
+        if (arr->tokens[it].type == ELLIPSIS) {
+            ++it;
+            res.is_variadic = true;
+            if (arr->tokens[it].type != RBRACKET) {
+                // TODO: error
+                return (struct preproc_macro){0};
+            }
+        }
+
+        assert(arr->tokens[it].type == RBRACKET);
+
+        res.expansion_len = arr->len - it - 1; // TODO: not sure about - 1
+        res.expansion = res.expansion_len == 0
+                            ? NULL
+                            : xmalloc(sizeof(struct token_or_arg));
+
+        for (size_t i = it + 1; i < arr->len; ++i) {
+            const size_t res_idx = i - it - 1;
+
+            struct token* curr_tok = &arr->tokens[i];
+            struct token_or_arg* res_curr = &res.expansion[res_idx];
+            if (curr_tok->type == IDENTIFIER) {
+                if (res.is_variadic
+                    && strcmp(curr_tok->spelling, "__VA_ARGS__") == 0) {
+                    res_curr->is_arg = true;
+                    res_curr->arg_num = res.num_args;
+                    continue;
+                }
+
+                size_t idx = (size_t)-1;
+                for (size_t j = 0; j < res.num_args; ++j) {
+                    if (strcmp(curr_tok->spelling, arg_spells[j]) == 0) {
+                        idx = j;
+                        break;
+                    }
+                }
+
+                if (idx != (size_t)-1) {
+                    res_curr->is_arg = true;
+                    res_curr->arg_num = idx;
+                    continue;
+                }
+            }
+
+            res_curr->is_arg = false;
+            res_curr->token = *curr_tok;
+            curr_tok->spelling = NULL;
+            curr_tok->loc.file = NULL;
+        }
+    } else {
+        res.is_func_macro = false;
+        res.num_args = 0;
+
+        res.expansion_len = arr->len - 3;
+        res.expansion = res.expansion_len == 0
+                            ? NULL
+                            : xmalloc(sizeof(struct token_or_arg)
+                                      * res.expansion_len);
+        for (size_t i = 3; i < arr->len; ++i) {
+            const size_t res_idx = i - 3;
+            res.expansion[res_idx].is_arg = false;
+            res.expansion[res_idx].token = arr->tokens[i];
+            arr->tokens[i].spelling = NULL;
+            arr->tokens[i].loc.file = NULL;
+        }
+    }
+
+    return res;
 }
+
+static struct token copy_token(const struct token* t);
 
 static struct token move_token(struct token* t) {
     struct token res = *t;
@@ -160,17 +279,13 @@ struct macro_args collect_macro_args(struct token* args_start,
     }
 
     if (res.len < expected_args) {
-        set_preproc_err(err,
-                        PREPROC_ERR_MACRO_ARG_COUNT,
-                        &it->loc);
+        set_preproc_err(err, PREPROC_ERR_MACRO_ARG_COUNT, &it->loc);
         err->expected_arg_count = expected_args;
         err->is_variadic = is_variadic;
         err->too_few_args = true;
         goto fail;
     } else if (it != limit_ptr) {
-        set_preproc_err(err,
-                        PREPROC_ERR_MACRO_ARG_COUNT,
-                        &it->loc);
+        set_preproc_err(err, PREPROC_ERR_MACRO_ARG_COUNT, &it->loc);
         err->expected_arg_count = expected_args;
         err->is_variadic = is_variadic;
         err->too_few_args = false;
@@ -205,14 +320,18 @@ static void shift_back(struct token* tokens,
                        size_t num,
                        size_t from,
                        size_t to) {
-    memmove(tokens + from + num, tokens + from, (to - from) * sizeof(struct token));
+    memmove(tokens + from + num,
+            tokens + from,
+            (to - from) * sizeof(struct token));
 }
 
 static void shift_forward(struct token* tokens,
                           size_t num,
                           size_t from,
                           size_t to) {
-    memmove(tokens + from, tokens + from + num, (to - from - num) * sizeof(struct token));
+    memmove(tokens + from,
+            tokens + from + num,
+            (to - from - num) * sizeof(struct token));
 }
 
 static void copy_into_tokens(struct token* tokens,
@@ -231,7 +350,8 @@ static bool expand_func_macro(struct preproc_state* state,
                               const struct token* macro_end) {
     assert(macro->is_func_macro);
     assert(state->res.tokens[macro_idx + 1].type == LBRACKET);
-    struct macro_args args = collect_macro_args(state->res.tokens + macro_idx + 1,
+    struct macro_args args = collect_macro_args(state->res.tokens + macro_idx
+                                                    + 1,
                                                 macro_end,
                                                 macro->num_args,
                                                 macro->is_variadic,
@@ -262,7 +382,7 @@ static bool expand_func_macro(struct preproc_state* state,
         state->res.len += alloc_change;
         state->res.cap += alloc_change;
         state->res.tokens = xrealloc(state->res.tokens,
-                                 sizeof(struct token) * state->res.cap);
+                                     sizeof(struct token) * state->res.cap);
 
         shift_back(state->res.tokens,
                    alloc_change,
@@ -309,7 +429,7 @@ static void expand_obj_macro(struct preproc_state* state,
         state->res.cap += exp_len - 1;
         state->res.len += exp_len - 1;
         state->res.tokens = xrealloc(state->res.tokens,
-                                 sizeof(struct token) * state->res.cap);
+                                     sizeof(struct token) * state->res.cap);
 
         shift_back(state->res.tokens, exp_len - 1, macro_idx, old_len);
     } else {
@@ -332,10 +452,11 @@ static struct token copy_token(const struct token* t) {
         .type = t->type,
         .spelling = t->spelling == NULL ? NULL : alloc_string_copy(t->spelling),
         // TODO: identify as token from macro expansion
-        .loc = {
-            .file = alloc_string_copy(t->loc.file),
-            .file_loc = t->loc.file_loc,
-        },
+        .loc =
+            {
+                .file = alloc_string_copy(t->loc.file),
+                .file_loc = t->loc.file_loc,
+            },
     };
 }
 

@@ -8,6 +8,7 @@
 
 #include "token_type.h"
 
+#include "util/annotations.h"
 #include "util/mem.h"
 #include "util/file.h"
 
@@ -49,7 +50,7 @@ struct token* preproc(const char* path, struct preproc_err* err) {
     }
 
     append_terminator_token(&state.res);
-
+    free_preproc_state(&state);
     return state.res.tokens;
 }
 
@@ -149,6 +150,7 @@ static char* code_source_read_line(struct code_source* src,
             escaped_newline = res[len - 1] == '\\';
             // TODO: newlines not contained when escaped newline is found
         }
+        ++src->current_line;
     } while (escaped_newline);
 
     return res;
@@ -165,7 +167,7 @@ static bool is_preproc_directive(const char* line) {
 
 static bool preproc_statement(struct preproc_state* state,
                               struct code_source* src,
-                              struct token_arr arr);
+                              struct token_arr* arr);
 
 // TODO: what to do if the line is a preprocessor directive
 // Maybe just handle preprocessor directives until we reach an "actual" line
@@ -175,6 +177,7 @@ static bool read_and_tokenize_line(struct preproc_state* state,
 
     while (true) {
         char static_buf[PREPROC_LINE_BUF_LEN];
+        const size_t prev_curr_line = src->current_line;
         char* line = code_source_read_line(src, static_buf);
         if (line == NULL) {
             return true;
@@ -187,28 +190,29 @@ static bool read_and_tokenize_line(struct preproc_state* state,
                 .tokens = NULL,
             };
 
-            bool res = tokenize_line(&arr,
-                                     state->err,
-                                     line,
-                                     src->current_line,
-                                     src->path,
-                                     &src->comment_not_terminated);
+            const bool res = tokenize_line(&arr,
+                                           state->err,
+                                           line,
+                                           prev_curr_line,
+                                           src->path,
+                                           &src->comment_not_terminated);
             if (line != static_buf) {
                 free(line);
             }
             if (!res) {
                 return false;
             }
-            
-            if (!preproc_statement(state, src, arr)) {
+
+            const bool stat_res = preproc_statement(state, src, &arr);
+            free_token_arr(&arr);
+            if (!stat_res) {
                 return false;
             }
-            ++src->current_line;
         } else {
             bool res = tokenize_line(&state->res,
                                      state->err,
                                      line,
-                                     src->current_line,
+                                     prev_curr_line,
                                      src->path,
                                      &src->comment_not_terminated);
             if (line != static_buf) {
@@ -218,7 +222,6 @@ static bool read_and_tokenize_line(struct preproc_state* state,
                 return false;
             }
 
-            ++src->current_line;
             break;
         }
     }
@@ -279,6 +282,7 @@ static bool expand_all_macros(struct preproc_state* state,
         const struct token* curr = &state->res.tokens[i];
         if (curr->type == IDENTIFIER) {
             const struct preproc_macro* macro = find_preproc_macro(
+                state,
                 curr->spelling);
             if (macro != NULL) {
                 const struct token* macro_end;
@@ -435,15 +439,207 @@ static void append_terminator_token(struct token_arr* arr) {
     };
 }
 
+static bool is_cond_directive(const char* line) {
+    const char* it = line;
+    while (*it != '\0' && isspace(*it)) {
+        ++it;
+    }
+
+    if (*it == '\0' || *it != '#') {
+        return false;
+    }
+
+    ++it;
+    while (*it != '\0' && isspace(*it)) {
+        ++it;
+    }
+
+    char else_dir[] = "else";
+    char elif_dir[] = "elif";
+    char endif_dir[] = "endif";
+
+    if (*it == '\0') {
+        return false;
+    } else if (strncmp(it, else_dir, sizeof(else_dir)) == 0
+               || strncmp(it, elif_dir, sizeof(elif_dir)) == 0
+               || strncmp(it, endif_dir, sizeof(endif_dir))) {
+        return true;
+    }
+
+    UNREACHABLE();
+}
+
+static bool skip_until_next_cond(struct preproc_state* state,
+                                 struct code_source* src) {
+    while (!code_source_over(src)) {
+        char static_buf[PREPROC_LINE_BUF_LEN];
+        const size_t prev_curr_line = src->current_line;
+        char* line = code_source_read_line(src, static_buf);
+        if (is_cond_directive(line)) {
+            struct token_arr arr = {
+                .len = 0,
+                .cap = 0,
+                .tokens = NULL,
+            };
+            const bool res = tokenize_line(&arr,
+                                           state->err,
+                                           line,
+                                           prev_curr_line,
+                                           src->path,
+                                           &src->comment_not_terminated);
+
+            if (line != static_buf) {
+                free(line);
+            }
+
+            if (!res) {
+                return false;
+            }
+
+            bool stat_res = preproc_statement(state, src, &arr);
+            free_token_arr(&arr);
+            return stat_res;
+        }
+
+        if (line != static_buf) {
+            free(line);
+        }
+    }
+
+    return true;
+}
+
+static bool handle_preproc_if(struct preproc_state* state,
+                              struct code_source* src,
+                              bool cond) {
+    struct source_loc loc = {
+        .file_loc = {src->current_line, 0}, // TODO: might be current_line - 1
+        .file = alloc_string_copy(src->path),
+    };
+    push_preproc_cond(state, loc, cond);
+
+    if (!cond) {
+        return skip_until_next_cond(state, src);
+    }
+
+    return true;
+}
+
+static bool handle_ifdef_ifndef(struct preproc_state* state,
+                                struct code_source* src,
+                                struct token_arr* arr,
+                                bool is_ifndef) {
+    assert(arr);
+    assert(arr->tokens[0].type == STRINGIFY_OP);
+    assert((!is_ifndef && strcmp(arr->tokens[1].spelling, "ifdef") == 0)
+           || (is_ifndef && strcmp(arr->tokens[1].spelling, "ifndef")));
+
+    if (arr->len < 3) {
+        // TODO: empty ifdef / ifndef error
+        return false;
+    } else if (arr->len > 3) {
+        // TODO: error extra tokens after ifdef / ifndef
+        return false;
+    }
+    if (arr->tokens[2].type != IDENTIFIER) {
+        // TODO: error
+        return false;
+    }
+
+    const char* macro_spell = arr->tokens[2].spelling;
+    assert(macro_spell);
+    const struct preproc_macro* macro = find_preproc_macro(state, macro_spell);
+
+    const bool cond = is_ifndef ? macro == NULL : macro != NULL;
+    return handle_preproc_if(state, src, cond);
+}
+
+static bool handle_else_elif(struct preproc_state* state,
+                             struct code_source* src,
+                             struct token_arr* arr,
+                             bool is_else) {
+    if (state->conds_len == 0) {
+        // TODO: error elif / else without if
+        return false;
+    }
+
+    struct preproc_cond* curr_if = peek_preproc_cond(state);
+    if (curr_if->had_else) {
+        // TODO: error elif / else after else
+        return false;
+    } else if (curr_if->had_true_branch) {
+        return skip_until_next_cond(state, src);
+    } else if (is_else) {
+        curr_if->had_else = true;
+        // TODO: just continue
+    } else {
+        // TODO: evaluate condition
+        (void)arr;
+    }
+
+    return false;
+}
+
 static bool preproc_statement(struct preproc_state* state,
                               struct code_source* src,
-                              struct token_arr arr) {
-    assert(arr.tokens);
-    assert(arr.tokens[0].type == STRINGIFY_OP);
-    (void)state;
-    (void)src;
-    (void)arr;
-    // TODO:
+                              struct token_arr* arr) {
+    assert(arr);
+    assert(arr->tokens);
+    assert(arr->tokens[0].type == STRINGIFY_OP);
+    if (arr->len < 1) {
+        // TODO: error
+        return false;
+    } else if (arr->tokens[1].type != IDENTIFIER) {
+        // TODO: error
+        return false;
+    }
+
+    const char* directive = arr->tokens[1].spelling;
+    assert(directive);
+
+    if (strcmp(directive, "if") == 0) {
+        // TODO:
+    } else if (strcmp(directive, "ifdef") == 0) {
+        return handle_ifdef_ifndef(state, src, arr, false);
+    } else if (strcmp(directive, "ifndef") == 0) {
+        return handle_ifdef_ifndef(state, src, arr, true);
+    } else if (strcmp(directive, "define") == 0) {
+        struct preproc_macro macro = parse_preproc_macro(arr);
+        if (macro.spelling == NULL) {
+            return false;
+        }
+        register_preproc_macro(state, &macro);
+    } else if (strcmp(directive, "undef") == 0) {
+        if (arr->len < 3) {
+            // TODO: error empty undef
+            return false;
+        } else if (arr->tokens[2].type != IDENTIFIER) {
+            // TODO: expected macro name
+            return false;
+        }
+
+        const char* macro_spell = arr->tokens[2].spelling;
+        remove_preproc_macro(state, macro_spell);
+    } else if (strcmp(directive, "include") == 0) {
+        // TODO:
+    } else if (strcmp(directive, "pragma") == 0) {
+        // TODO:
+    } else if (strcmp(directive, "elif") == 0) {
+        return handle_else_elif(state, src, arr, false);
+    } else if (strcmp(directive, "else") == 0) {
+        return handle_else_elif(state, src, arr, true);
+    } else if (strcmp(directive, "endif") == 0) {
+        if (state->conds_len == 0) {
+            // TODO: error endif without if
+            return false;
+        }
+
+        pop_preproc_cond(state);
+    } else {
+        // TODO: invalid preproc directive
+        return false;
+    }
+
     return false;
 }
 
