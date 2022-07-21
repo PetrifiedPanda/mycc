@@ -481,10 +481,10 @@ TEST(parse_func_like) {
             TOKENS_LEN = sizeof tokens / sizeof(struct token),
             EXPANSION_LEN = TOKENS_LEN - 5
         };
-    
+
         struct token_or_arg expansion[EXPANSION_LEN];
         for (size_t i = 0; i < EXPANSION_LEN; ++i) {
-            expansion[i] = (struct token_or_arg) {
+            expansion[i] = (struct token_or_arg){
                 .is_arg = false,
                 .token = tokens[i + 5],
             };
@@ -522,7 +522,7 @@ TEST(parse_func_like) {
 
         enum {
             TOKENS_LEN = sizeof tokens / sizeof(struct token),
-        }; 
+        };
 
         struct preproc_macro ex = {
             .spelling = "NO_PARAMS_EMPTY",
@@ -547,7 +547,146 @@ TEST(parse_func_like) {
 }
 
 TEST(parse_variadic) {
-    ASSERT(false);
+    {
+        // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name : c + a
+        struct token tokens[] = {
+            {STRINGIFY_OP, NULL, {"other_file.c", {1, 1}}},
+            {IDENTIFIER, "define", {"other_file.c", {1, 2}}},
+            {IDENTIFIER, "FUNC_LIKE", {"other_file.c", {1, 9}}},
+            {LBRACKET, NULL, {"other_file.c", {1, 18}}},
+            {IDENTIFIER, "a", {"other_file.c", {1, 19}}},
+            {COMMA, NULL, {"other_file.c", {1, 20}}},
+            {IDENTIFIER, "b", {"other_file.c", {1, 22}}},
+            {COMMA, NULL, {"other_file.c", {1, 23}}},
+            {IDENTIFIER, "c", {"other_file.c", {1, 25}}},
+            {COMMA, NULL, {"other_file.c", {1, 26}}},
+            {ELLIPSIS, NULL, {"other_file.c", {1, 28}}},
+            {RBRACKET, NULL, {"other_file.c", {1, 31}}},
+            {IDENTIFIER, "a", {"other_file.c", {1, 33}}},
+            {NE_OP, NULL, {"other_file.c", {1, 35}}},
+            {I_CONSTANT, "38", {"other_file.c", {1, 38}}},
+            {QMARK, NULL, {"other_file.c", {1, 41}}},
+            {IDENTIFIER, "b", {"other_file.c", {1, 43}}},
+            {ASTERISK, NULL, {"other_file.c", {1, 45}}},
+            {IDENTIFIER, "other_name", {"other_file.c", {1, 47}}},
+            {COLON, NULL, {"other_file.c", {1, 58}}},
+            {IDENTIFIER, "c", {"other_file.c", {1, 60}}},
+            {ADD, NULL, {"other_file.c", {1, 62}}},
+            {IDENTIFIER, "a", {"other_file.c", {1, 64}}},
+        };
+
+        enum {
+            TOKENS_LEN = sizeof tokens / sizeof(struct token),
+            EXPANSION_LEN = TOKENS_LEN - 12,
+        };
+
+        struct token_or_arg expansion[EXPANSION_LEN] = {
+            {.is_arg = true, .arg_num = 0},
+            {.is_arg = false, .token = tokens[13]},
+            {.is_arg = false, .token = tokens[14]},
+            {.is_arg = false, .token = tokens[15]},
+            {.is_arg = true, .arg_num = 1},
+            {.is_arg = false, .token = tokens[17]},
+            {.is_arg = false, .token = tokens[18]},
+            {.is_arg = false, .token = tokens[19]},
+            {.is_arg = true, .arg_num = 2},
+            {.is_arg = false, .token = tokens[21]},
+            {.is_arg = true, .arg_num = 0},
+        };
+
+        struct preproc_macro ex = {
+            .spelling = "FUNC_LIKE",
+            .is_func_macro = true,
+            .num_args = 3,
+            .is_variadic = true,
+
+            .expansion_len = EXPANSION_LEN,
+            .expansion = expansion,
+        };
+
+        struct token_arr arr = {
+            .len = TOKENS_LEN,
+            .cap = TOKENS_LEN,
+            .tokens = tokens,
+        };
+        struct preproc_macro got = parse_preproc_macro(&arr);
+
+        compare_preproc_macros(&got, &ex);
+        free(got.expansion);
+    }
+    {
+        // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name(__VA_ARGS__) : c + a
+        struct token tokens[] = {
+            {STRINGIFY_OP, NULL, {"other_file.c", {1, 1}}},
+            {IDENTIFIER, "define", {"other_file.c", {1, 2}}},
+            {IDENTIFIER, "FUNC_LIKE", {"other_file.c", {1, 9}}},
+            {LBRACKET, NULL, {"other_file.c", {1, 18}}},
+            {IDENTIFIER, "a", {"other_file.c", {1, 19}}},
+            {COMMA, NULL, {"other_file.c", {1, 20}}},
+            {IDENTIFIER, "b", {"other_file.c", {1, 22}}},
+            {COMMA, NULL, {"other_file.c", {1, 23}}},
+            {IDENTIFIER, "c", {"other_file.c", {1, 25}}},
+            {COMMA, NULL, {"other_file.c", {1, 26}}},
+            {ELLIPSIS, NULL, {"other_file.c", {1, 28}}},
+            {RBRACKET, NULL, {"other_file.c", {1, 31}}},
+            {IDENTIFIER, "a", {"other_file.c", {1, 33}}},
+            {NE_OP, NULL, {"other_file.c", {1, 35}}},
+            {I_CONSTANT, "38", {"other_file.c", {1, 38}}},
+            {QMARK, NULL, {"other_file.c", {1, 41}}},
+            {IDENTIFIER, "b", {"other_file.c", {1, 43}}},
+            {ASTERISK, NULL, {"other_file.c", {1, 45}}},
+            {IDENTIFIER, "other_name", {"other_file.c", {1, 47}}},
+            {LBRACKET, NULL, {"other_file.c", {1, 48}}},
+            {IDENTIFIER, "__VA_ARGS__", {"other_file.c", {1, 49}}},
+            {RBRACKET, NULL, {"other_file.c", {1, 60}}},
+            {COLON, NULL, {"other_file.c", {1, 62}}},
+            {IDENTIFIER, "c", {"other_file.c", {1, 64}}},
+            {ADD, NULL, {"other_file.c", {1, 66}}},
+            {IDENTIFIER, "a", {"other_file.c", {1, 68}}},
+        };
+
+        enum {
+            TOKENS_LEN = sizeof tokens / sizeof(struct token),
+            EXPANSION_LEN = TOKENS_LEN - 12,
+        };
+
+        struct token_or_arg expansion[EXPANSION_LEN] = {
+            {.is_arg = true, .arg_num = 0},
+            {.is_arg = false, .token = tokens[13]},
+            {.is_arg = false, .token = tokens[14]},
+            {.is_arg = false, .token = tokens[15]},
+            {.is_arg = true, .arg_num = 1},
+            {.is_arg = false, .token = tokens[17]},
+            {.is_arg = false, .token = tokens[18]},
+            {.is_arg = false, .token = tokens[19]},
+            {.is_arg = true, .arg_num = 3},
+            {.is_arg = false, .token = tokens[21]},
+            {.is_arg = false, .token = tokens[22]},
+            {.is_arg = true, .arg_num = 2},
+            {.is_arg = false, .token = tokens[24]},
+            {.is_arg = true, .arg_num = 0},
+        };
+
+        struct preproc_macro ex = {
+            .spelling = "FUNC_LIKE",
+            .is_func_macro = true,
+            .num_args = 3,
+            .is_variadic = true,
+
+            .expansion_len = EXPANSION_LEN,
+            .expansion = expansion,
+        };
+
+        struct token_arr arr = {
+            .len = TOKENS_LEN,
+            .cap = TOKENS_LEN,
+            .tokens = tokens,
+        };
+        struct preproc_macro got = parse_preproc_macro(&arr);
+
+        compare_preproc_macros(&got, &ex);
+        free(got.expansion);
+    }
 }
 
 TEST_SUITE_BEGIN(preproc_macro, 7) {
