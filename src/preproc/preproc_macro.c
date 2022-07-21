@@ -98,6 +98,8 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr) {
                 // TODO: error
                 return (struct preproc_macro){0};
             }
+        } else {
+            res.is_variadic = false;
         }
 
         assert(arr->tokens[it].type == RBRACKET);
@@ -105,7 +107,7 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr) {
         res.expansion_len = arr->len - it - 1; // TODO: not sure about - 1
         res.expansion = res.expansion_len == 0
                             ? NULL
-                            : xmalloc(sizeof(struct token_or_arg));
+                            : xmalloc(sizeof(struct token_or_arg) * res.expansion_len);
 
         for (size_t i = it + 1; i < arr->len; ++i) {
             const size_t res_idx = i - it - 1;
