@@ -1,7 +1,7 @@
 #include "preproc/preproc.h"
 
-#include "../test.h"
-#include "../test_asserts.h"
+#include "testing/testing.h"
+#include "testing/asserts.h"
 
 TEST(unterminated_literal) {
     {

@@ -1,5 +1,5 @@
-#ifndef TEST_H
-#define TEST_H
+#ifndef TESTING_H
+#define TESTING_H
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -104,6 +104,7 @@ test_failed:                                                                   \
  *                       must be a compile-time constant
  */
 #define TEST_MAIN_BEGIN(max_num_suites)                                        \
+    jmp_buf test_jump_buf;                                                     \
     int main(void) {                                                           \
         enum {                                                                 \
             MAX_NUM_SUITES = (max_num_suites)                                  \

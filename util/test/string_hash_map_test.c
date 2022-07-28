@@ -1,9 +1,7 @@
 #include "util/string_hash_map.h"
 
-#include "util/annotations.h"
-
-#include "../test.h"
-#include "../test_asserts.h"
+#include "testing/testing.h"
+#include "testing/asserts.h"
 
 enum {
     KEY_STR_LEN = 5,

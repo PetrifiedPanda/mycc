@@ -1,10 +1,10 @@
 #include "test_helpers.h"
 
+#include "testing/asserts.h"
+
 #include "util/file.h"
 
 #include "preproc/preproc.h"
-
-#include "test_asserts.h"
 
 struct token* tokenize(const char* file) {
     struct preproc_err err = create_preproc_err();

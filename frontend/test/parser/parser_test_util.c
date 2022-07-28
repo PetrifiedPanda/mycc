@@ -1,6 +1,8 @@
 #include "parser_test_util.h"
 
-#include "../test_asserts.h"
+#include "testing/asserts.h"
+
+#include "../test_helpers.h"
 
 void check_identifier(struct identifier* id, const char* spell) {
     if (spell != NULL) {

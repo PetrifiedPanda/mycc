@@ -5,9 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "token_type.h"
-
-#include "test.h"
+#include "testing/testing.h"
 
 #ifdef WIN32
 // warning for comparing string literal addresses
@@ -53,15 +51,6 @@
             if (strcmp(got, expected) != 0) {                                  \
                 PRINT_ASSERT_ERR("Expected %s but got %s", expected, got);     \
             }                                                                  \
-        }                                                                      \
-    } while (0)
-
-#define ASSERT_TOKEN_TYPE(got, expected)                                       \
-    do {                                                                       \
-        if ((got) != (expected)) {                                             \
-            PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             get_type_str(expected),                           \
-                             get_type_str(got));                               \
         }                                                                      \
     } while (0)
 

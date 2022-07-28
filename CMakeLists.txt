@@ -6,6 +6,8 @@ set(This mycc)
 
 project(${This} LANGUAGES C)
 
+include(CTest)
+
 if (WIN32)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
@@ -16,30 +18,17 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 endif()
 
-file(GLOB Sources src/*.c
-                  src/util/*.c
-                  src/preproc/*.c
-                  src/ast/*.c
-                  src/ast/expr/*.c
-                  src/ast/statement/*.c
-                  src/ast/declaration/*.c
-                  src/ast/initializer/*.c
-                  src/parser/*.c)
+set(TestWorkingDir ${CMAKE_CURRENT_BINARY_DIR})
 
-set(Lib mycclib)
+set(Util mycc-util)
+set(Frontend mycc-frontend)
+set(Testing mycc-testing)
 
-add_library(${Lib} OBJECT ${Sources})
-target_include_directories(${Lib} PUBLIC ./include)
+add_subdirectory(testing)
+add_subdirectory(util)
+add_subdirectory(frontend)
 
 add_executable(${This} main.c)
-target_link_libraries(${This} ${Lib})
+target_link_libraries(${This} ${Frontend})
+target_link_libraries(${This} ${Util})
 
-set(Test mycctest)
-
-file(GLOB TestSources test/*.c
-                      test/util/*.c
-                      test/preproc/*.c
-                      test/parser/*.c)
-
-add_executable(${Test} ${TestSources})
-target_link_libraries(${Test} ${Lib})

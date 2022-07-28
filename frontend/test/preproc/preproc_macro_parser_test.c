@@ -1,6 +1,8 @@
 #include "preproc/preproc_macro.h"
 
-#include "../test_asserts.h"
+#include "testing/asserts.h"
+
+#include "../test_helpers.h"
 
 static void compare_preproc_macros(const struct preproc_macro* got,
                                    const struct preproc_macro* ex) {

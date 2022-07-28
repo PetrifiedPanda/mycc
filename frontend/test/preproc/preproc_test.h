@@ -1,7 +1,7 @@
 #ifndef PREPROC_TEST_H
 #define PREPROC_TEST_H
 
-#include "../test.h"
+#include "testing/testing.h"
 
 TEST_SUITE_DECL(tokenizer);
 TEST_SUITE_DECL(tokenizer_error);

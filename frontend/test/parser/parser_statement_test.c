@@ -1,10 +1,11 @@
 #include "util/mem.h"
 
+#include "testing/asserts.h"
+
 #include "preproc/preproc.h"
 
 #include "parser/parser.h"
 
-#include "../test_asserts.h"
 #include "../test_helpers.h"
 
 #include "parser_test_util.h"

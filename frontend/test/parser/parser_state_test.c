@@ -1,8 +1,8 @@
 #include <stdio.h>
 
-#include "parser/parser_state.h"
+#include "testing/asserts.h"
 
-#include "../test_asserts.h"
+#include "parser/parser_state.h"
 
 TEST(parser_state) {
     struct token dummy = {.type = INVALID};

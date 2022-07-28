@@ -1,12 +1,13 @@
 #include <stdio.h>
 
+#include "testing/asserts.h"
+
 #include "preproc/preproc.h"
 
 #include "parser/parser.h"
 
 #include "ast/ast_dumper.h"
 
-#include "../test_asserts.h"
 #include "../test_helpers.h"
 
 #include "parser_test_util.h"
@@ -199,7 +200,7 @@ static void compare_with_ex_file(const struct translation_unit* tl, const char* 
 }
 
 TEST(no_preproc) {
-    const char* file = "../test/files/no_preproc.c";
+    const char* file = "../frontend/test/files/no_preproc.c";
     struct token* tokens = tokenize(file);
     
     struct parser_err err = create_parser_err();
@@ -207,7 +208,7 @@ TEST(no_preproc) {
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)10);
 
-    compare_with_ex_file(&tl, "../test/files/no_preproc.c.ast");
+    compare_with_ex_file(&tl, "../frontend/test/files/no_preproc.c.ast");
 
     const struct storage_class sc = {false, false, false, false, false, false};
     const struct storage_class sc_static = {.is_static = true};
@@ -248,7 +249,7 @@ TEST(no_preproc) {
 }
 
 TEST(parser_testfile) {
-    const char* file = "../test/files/parser_testfile.c";
+    const char* file = "../frontend/test/files/parser_testfile.c";
     struct token* tokens = tokenize(file);
     
     struct parser_err err = create_parser_err();
@@ -256,7 +257,7 @@ TEST(parser_testfile) {
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)15);
     
-    compare_with_ex_file(&tl, "../test/files/parser_testfile.c.ast");
+    compare_with_ex_file(&tl, "../frontend/test/files/parser_testfile.c.ast");
 
     const char* tmp_filename = "tmp.ast";
     FILE* tmp_file = fopen(tmp_filename, "w");
@@ -265,7 +266,7 @@ TEST(parser_testfile) {
 
     fclose(tmp_file);
 
-    test_compare_files(tmp_filename, "../test/files/parser_testfile.c.ast");
+    test_compare_files(tmp_filename, "../frontend/test/files/parser_testfile.c.ast");
 
     const struct storage_class sc = {false, false, false, false, false, false};
     const struct storage_class sc_static = {.is_static = true};
@@ -320,7 +321,7 @@ TEST(parser_testfile) {
 }
 
 TEST(large_testfile) {
-    const char* file = "../test/files/large_testfile.c";
+    const char* file = "../frontend/test/files/large_testfile.c";
     struct token* tokens = tokenize(file);
     
     struct parser_err err = create_parser_err();
@@ -328,7 +329,7 @@ TEST(large_testfile) {
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)88);
 
-    compare_with_ex_file(&tl, "../test/files/large_testfile.c.ast");
+    compare_with_ex_file(&tl, "../frontend/test/files/large_testfile.c.ast");
 
     const struct storage_class sc = {false, false, false, false, false, false};
     const struct storage_class sc_static = {.is_static = true};

@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "testing/asserts.h"
+
 #include "preproc/preproc.h"
 
-#include "../test_asserts.h"
 #include "../test_helpers.h"
 
 static void check_size(const struct token* tokens, size_t expected) {
@@ -148,7 +149,7 @@ TEST(simple) {
 }
 
 TEST(file) {
-    const char* filename = "../test/files/no_preproc.c";
+    const char* filename = "../frontend/test/files/no_preproc.c";
 
     struct token* tokens = tokenize(filename);
     ASSERT_NOT_NULL(tokens);

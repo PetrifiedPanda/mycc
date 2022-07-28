@@ -1,7 +1,9 @@
 #include "preproc/preproc.h"
 #include "preproc/preproc_macro.h"
 
-#include "../test_asserts.h"
+#include "testing/asserts.h"
+
+#include "../test_helpers.h"
 
 static size_t get_tokens_len(const struct token* tokens) {
     size_t len = 0;

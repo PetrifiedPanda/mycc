@@ -1,7 +1,7 @@
 #ifndef PARSER_TEST_H
 #define PARSER_TEST_H
 
-#include "../test.h"
+#include "testing/testing.h"
 
 TEST_SUITE_DECL(parser_expr);
 TEST_SUITE_DECL(parser_statement);
