@@ -1,4 +1,4 @@
-#include "ast/declaration/pointer.h"
+#include "frontend/ast/declaration/pointer.h"
 
 #include <stdlib.h>
 

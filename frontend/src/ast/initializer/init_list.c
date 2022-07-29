@@ -1,8 +1,8 @@
-#include "ast/initializer/init_list.h"
+#include "frontend/ast/initializer/init_list.h"
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static bool parse_designation_init(struct parser_state* s,
                                    struct designation_init* res) {

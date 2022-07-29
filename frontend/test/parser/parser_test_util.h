@@ -1,7 +1,7 @@
 #ifndef PARSER_TEST_UTIL_H
 #define PARSER_TEST_UTIL_H
 
-#include "parser/parser.h"
+#include "frontend/parser/parser.h"
 
 void check_identifier(struct identifier* id, const char* spell);
 

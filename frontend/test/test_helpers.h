@@ -1,7 +1,7 @@
 #ifndef TEST_HELPERS_H
 #define TEST_HELPERS_H
 
-#include "token_type.h"
+#include "frontend/token_type.h"
 
 #define ASSERT_TOKEN_TYPE(got, expected)                                       \
     do {                                                                       \

@@ -1,4 +1,4 @@
-#include "ast/declaration/direct_abs_declarator.h"
+#include "frontend/ast/declaration/direct_abs_declarator.h"
 
 #include <stdlib.h>
 #include <assert.h>

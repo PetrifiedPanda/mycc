@@ -1,4 +1,4 @@
-#include "token_type.h"
+#include "frontend/token_type.h"
 
 #include <stddef.h>
 

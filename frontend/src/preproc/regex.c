@@ -1,4 +1,4 @@
-#include "preproc/regex.h"
+#include "frontend/preproc/regex.h"
 
 #include <ctype.h>
 #include <stdbool.h>

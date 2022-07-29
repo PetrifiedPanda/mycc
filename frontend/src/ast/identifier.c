@@ -1,4 +1,4 @@
-#include "ast/identifier.h"
+#include "frontend/ast/identifier.h"
 
 #include <stdlib.h>
 #include <assert.h>

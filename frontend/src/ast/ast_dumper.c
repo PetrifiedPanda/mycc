@@ -1,4 +1,4 @@
-#include "ast/ast_dumper.h"
+#include "frontend/ast/ast_dumper.h"
 
 #include <stdarg.h>
 #include <setjmp.h>

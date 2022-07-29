@@ -1,4 +1,4 @@
-#include "ast/expr/string_constant.h"
+#include "frontend/ast/expr/string_constant.h"
 
 #include <stdlib.h>
 #include <assert.h>

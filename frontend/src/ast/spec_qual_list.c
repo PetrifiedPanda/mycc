@@ -1,10 +1,10 @@
-#include "ast/spec_qual_list.h"
+#include "frontend/ast/spec_qual_list.h"
 
 #include <assert.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static bool parse_spec_or_qual(struct parser_state* s,
                                struct spec_qual_list* res) {

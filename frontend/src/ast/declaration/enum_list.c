@@ -1,10 +1,10 @@
-#include "ast/declaration/enum_list.h"
+#include "frontend/ast/declaration/enum_list.h"
 
 #include <stdlib.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 struct enum_list parse_enum_list(struct parser_state* s) {
     struct enum_list res = {

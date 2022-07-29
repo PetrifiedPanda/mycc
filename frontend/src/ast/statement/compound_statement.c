@@ -1,4 +1,4 @@
-#include "ast/statement/compound_statement.h"
+#include "frontend/ast/statement/compound_statement.h"
 
 #include <stdlib.h>
 #include <assert.h>

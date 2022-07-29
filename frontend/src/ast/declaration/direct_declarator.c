@@ -1,4 +1,4 @@
-#include "ast/declaration/direct_declarator.h"
+#include "frontend/ast/declaration/direct_declarator.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -6,7 +6,7 @@
 #include "util/mem.h"
 #include "util/annotations.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static void free_arr_suffix(struct arr_suffix* s) {
     if (s->arr_len) {

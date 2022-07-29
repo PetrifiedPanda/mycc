@@ -1,8 +1,8 @@
-#include "ast/expr/generic_assoc.h"
+#include "frontend/ast/expr/generic_assoc.h"
 
 #include <assert.h>
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 bool parse_generic_assoc_inplace(struct parser_state* s,
                                  struct generic_assoc* res) {

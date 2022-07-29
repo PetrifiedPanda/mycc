@@ -1,4 +1,4 @@
-#include "parser/parser_state.h"
+#include "frontend/parser/parser_state.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -6,7 +6,7 @@
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 enum identifier_type {
     ID_TYPE_NONE,

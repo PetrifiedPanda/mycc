@@ -1,11 +1,11 @@
-#include "ast/expr/postfix_expr.h"
+#include "frontend/ast/expr/postfix_expr.h"
 
 #include <assert.h>
 
 #include "util/mem.h"
 #include "util/annotations.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static bool is_posfix_op(enum token_type t) {
     switch (t) {

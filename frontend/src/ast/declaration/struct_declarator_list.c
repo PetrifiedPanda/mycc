@@ -1,4 +1,4 @@
-#include "ast/declaration/struct_declarator_list.h"
+#include "frontend/ast/declaration/struct_declarator_list.h"
 
 #include <stdlib.h>
 

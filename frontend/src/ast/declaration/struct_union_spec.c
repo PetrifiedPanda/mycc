@@ -1,10 +1,10 @@
-#include "ast/declaration/struct_union_spec.h"
+#include "frontend/ast/declaration/struct_union_spec.h"
 
 #include <stdlib.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 struct struct_union_spec* create_struct_union_spec(
     bool is_struct,

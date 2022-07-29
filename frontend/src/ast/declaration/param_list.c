@@ -1,4 +1,4 @@
-#include "ast/declaration/param_list.h"
+#include "frontend/ast/declaration/param_list.h"
 
 #include <stdlib.h>
 

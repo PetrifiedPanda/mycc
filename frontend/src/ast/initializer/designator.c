@@ -1,6 +1,6 @@
-#include "ast/initializer/designator.h"
+#include "frontend/ast/initializer/designator.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 bool parse_designator_inplace(struct parser_state* s, struct designator* res) {
     switch (s->it->type) {

@@ -1,8 +1,8 @@
-#include "ast/declaration/atomic_type_spec.h"
+#include "frontend/ast/declaration/atomic_type_spec.h"
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 struct atomic_type_spec* parse_atomic_type_spec(struct parser_state* s) {
     if (!accept(s, ATOMIC)) {

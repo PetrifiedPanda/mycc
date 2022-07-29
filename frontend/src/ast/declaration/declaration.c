@@ -1,4 +1,4 @@
-#include "ast/declaration/declaration.h"
+#include "frontend/ast/declaration/declaration.h"
 
 #include <stdlib.h>
 #include <assert.h>

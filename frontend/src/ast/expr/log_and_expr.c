@@ -1,11 +1,11 @@
-#include "ast/expr/log_and_expr.h"
+#include "frontend/ast/expr/log_and_expr.h"
 
 #include <assert.h>
 #include <stdlib.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static bool parse_log_and_expr_rest(struct parser_state* s,
                                     struct log_and_expr* res) {

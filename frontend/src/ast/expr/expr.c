@@ -1,11 +1,11 @@
-#include "ast/expr/expr.h"
+#include "frontend/ast/expr/expr.h"
 
 #include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
     assert(res);

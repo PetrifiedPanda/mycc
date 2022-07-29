@@ -1,10 +1,10 @@
-#include "preproc/preproc_err.h"
+#include "frontend/preproc/preproc_err.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
-#include "err_base.h"
+#include "frontend/err_base.h"
 
 #include "util/mem.h"
 #include "util/annotations.h"

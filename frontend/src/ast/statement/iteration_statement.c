@@ -1,4 +1,4 @@
-#include "ast/statement/iteration_statement.h"
+#include "frontend/ast/statement/iteration_statement.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -6,7 +6,7 @@
 #include "util/mem.h"
 #include "util/annotations.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static inline void assign_do_or_while(struct iteration_statement* res,
                                       struct expr* while_cond,

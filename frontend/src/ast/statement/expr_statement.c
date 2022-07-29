@@ -1,10 +1,10 @@
-#include "ast/statement/expr_statement.h"
+#include "frontend/ast/statement/expr_statement.h"
 
 #include <stdlib.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 struct expr_statement* parse_expr_statement(struct parser_state* s) {
     struct expr_statement* res = xmalloc(sizeof(struct expr_statement));

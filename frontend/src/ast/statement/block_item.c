@@ -1,6 +1,6 @@
-#include "ast/statement/block_item.h"
+#include "frontend/ast/statement/block_item.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 bool parse_block_item_inplace(struct parser_state* s, struct block_item* res) {
     if (is_declaration(s)) {

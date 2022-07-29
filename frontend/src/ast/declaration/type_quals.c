@@ -1,10 +1,10 @@
-#include "ast/declaration/type_quals.h"
+#include "frontend/ast/declaration/type_quals.h"
 
 #include <assert.h>
 
-#include "parser/parser_util.h"
-
 #include "util/annotations.h"
+
+#include "frontend/parser/parser_util.h"
 
 struct type_quals create_type_quals(void) {
     return (struct type_quals){

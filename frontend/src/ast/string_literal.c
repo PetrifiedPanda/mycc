@@ -1,4 +1,4 @@
-#include "ast/string_literal.h"
+#include "frontend/ast/string_literal.h"
 
 #include <stdlib.h>
 

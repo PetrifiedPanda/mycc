@@ -1,8 +1,8 @@
-#include "ast/declaration/static_assert_declaration.h"
+#include "frontend/ast/declaration/static_assert_declaration.h"
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 struct static_assert_declaration* parse_static_assert_declaration(
     struct parser_state* s) {

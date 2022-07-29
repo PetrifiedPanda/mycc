@@ -1,11 +1,11 @@
-#include "ast/expr/xor_expr.h"
+#include "frontend/ast/expr/xor_expr.h"
 
 #include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static bool parse_xor_expr_rest(struct parser_state* s, struct xor_expr* res) {
     assert(res->and_exprs);

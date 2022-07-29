@@ -1,8 +1,8 @@
-#include "ast/expr/generic_assoc_list.h"
+#include "frontend/ast/expr/generic_assoc_list.h"
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 struct generic_assoc_list parse_generic_assoc_list(struct parser_state* s) {
     size_t alloc_len = 1;

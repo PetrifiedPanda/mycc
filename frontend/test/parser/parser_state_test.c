@@ -2,7 +2,7 @@
 
 #include "testing/asserts.h"
 
-#include "parser/parser_state.h"
+#include "frontend/parser/parser_state.h"
 
 TEST(parser_state) {
     struct token dummy = {.type = INVALID};

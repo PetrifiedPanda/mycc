@@ -1,11 +1,11 @@
-#include "ast/declaration/enum_spec.h"
+#include "frontend/ast/declaration/enum_spec.h"
 
 #include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static struct enum_spec* create_enum_spec(struct identifier* identifier,
                                           struct enum_list enum_list) {

@@ -1,4 +1,4 @@
-#include "ast/declaration/declaration_specs.h"
+#include "frontend/ast/declaration/declaration_specs.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -6,7 +6,7 @@
 #include "util/mem.h"
 #include "util/annotations.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static bool current_is_type_qual(const struct parser_state* s) {
     if (is_type_qual(s->it->type)) {

@@ -1,10 +1,10 @@
-#include "ast/declaration/struct_declaration_list.h"
+#include "frontend/ast/declaration/struct_declaration_list.h"
 
 #include <stdlib.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 struct struct_declaration_list parse_struct_declaration_list(
     struct parser_state* s) {

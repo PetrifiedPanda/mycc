@@ -1,4 +1,4 @@
-#include "ast/declaration/func_def.h"
+#include "frontend/ast/declaration/func_def.h"
 
 void free_func_def_children(struct func_def* d) {
     free_declaration_specs(d->specs);

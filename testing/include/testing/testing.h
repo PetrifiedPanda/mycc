@@ -9,7 +9,7 @@
 #include <setjmp.h>
 
 /**
- * Jump buffer for unit tests, defined in test_main.c
+ * Jump buffer for unit tests
  */
 extern jmp_buf test_jump_buf;
 

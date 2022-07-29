@@ -1,10 +1,10 @@
-#include "ast/declaration/identifier_list.h"
+#include "frontend/ast/declaration/identifier_list.h"
 
 #include <stdlib.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 struct identifier_list parse_identifier_list(struct parser_state* s) {
     if (s->it->type != IDENTIFIER) {

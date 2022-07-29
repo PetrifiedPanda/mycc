@@ -1,11 +1,11 @@
-#include "ast/declaration/enumerator.h"
+#include "frontend/ast/declaration/enumerator.h"
 
 #include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* res) {
     assert(res);

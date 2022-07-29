@@ -1,4 +1,4 @@
-#include "ast/statement/labeled_statement.h"
+#include "frontend/ast/statement/labeled_statement.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -6,7 +6,7 @@
 #include "util/mem.h"
 #include "util/annotations.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 struct labeled_statement* parse_labeled_statement(struct parser_state* s) {
     struct labeled_statement* res = xmalloc(sizeof(struct labeled_statement));

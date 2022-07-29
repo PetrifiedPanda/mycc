@@ -1,11 +1,11 @@
-#include "ast/expr/add_expr.h"
+#include "frontend/ast/expr/add_expr.h"
 
 #include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static bool parse_add_expr_add_chain(struct parser_state* s,
                                      struct add_expr* res) {

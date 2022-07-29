@@ -1,15 +1,15 @@
-#include "preproc/tokenizer.h"
+#include "frontend/preproc/tokenizer.h"
 
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
-#include "token.h"
-
 #include "util/mem.h"
 
-#include "preproc/regex.h"
+#include "frontend/token.h"
+
+#include "frontend/preproc/regex.h"
 
 struct tokenizer_state {
     const char* it;

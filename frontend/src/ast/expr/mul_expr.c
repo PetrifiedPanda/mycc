@@ -1,11 +1,11 @@
-#include "ast/expr/mul_expr.h"
+#include "frontend/ast/expr/mul_expr.h"
 
 #include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static bool parse_mul_expr_mul_chain(struct parser_state* s,
                                      struct mul_expr* res) {

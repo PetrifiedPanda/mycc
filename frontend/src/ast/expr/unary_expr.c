@@ -1,11 +1,11 @@
-#include "ast/expr/unary_expr.h"
+#include "frontend/ast/expr/unary_expr.h"
 
 #include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static inline void assign_operators_before(struct unary_expr* res,
                                            enum token_type* ops_before,

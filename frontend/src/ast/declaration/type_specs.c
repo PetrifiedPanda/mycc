@@ -1,11 +1,11 @@
-#include "ast/declaration/type_specs.h"
+#include "frontend/ast/declaration/type_specs.h"
 
 #include <assert.h>
 
 #include "util/mem.h"
 #include "util/annotations.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static inline bool is_standalone_type_spec(enum token_type t) {
     switch (t) {

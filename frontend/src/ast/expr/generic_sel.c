@@ -1,11 +1,11 @@
-#include "ast/expr/generic_sel.h"
+#include "frontend/ast/expr/generic_sel.h"
 
 #include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static struct generic_sel* create_generic_sel(
     struct assign_expr* assign,

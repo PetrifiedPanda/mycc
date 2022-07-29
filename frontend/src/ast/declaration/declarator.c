@@ -1,4 +1,4 @@
-#include "ast/declaration/declarator.h"
+#include "frontend/ast/declaration/declarator.h"
 
 #include <stdlib.h>
 

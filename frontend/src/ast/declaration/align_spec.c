@@ -1,10 +1,10 @@
-#include "ast/declaration/align_spec.h"
+#include "frontend/ast/declaration/align_spec.h"
 
 #include <assert.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static void free_align_spec(struct align_spec* s);
 

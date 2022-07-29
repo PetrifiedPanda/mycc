@@ -1,10 +1,10 @@
-#include "ast/initializer/designation.h"
+#include "frontend/ast/initializer/designation.h"
 
 #include <stdlib.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 struct designation* parse_designation(struct parser_state* s) {
     struct designator_list designators = parse_designator_list(s);

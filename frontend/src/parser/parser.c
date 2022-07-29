@@ -1,8 +1,8 @@
-#include "parser/parser.h"
+#include "frontend/parser/parser.h"
 
 #include <assert.h>
 
-#include "parser/parser_state.h"
+#include "frontend/parser/parser_state.h"
 
 struct translation_unit parse_tokens(struct token* tokens,
                                      struct parser_err* err) {

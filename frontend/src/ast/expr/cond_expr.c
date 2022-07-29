@@ -1,11 +1,11 @@
-#include "ast/expr/cond_expr.h"
+#include "frontend/ast/expr/cond_expr.h"
 
 #include <assert.h>
 #include <stdlib.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static bool parse_cond_expr_conditionals(struct parser_state* s,
                                          struct cond_expr* res) {

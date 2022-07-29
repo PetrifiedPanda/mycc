@@ -1,4 +1,4 @@
-#include "ast/declaration/struct_declarator.h"
+#include "frontend/ast/declaration/struct_declarator.h"
 
 #include <assert.h>
 

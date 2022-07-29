@@ -1,10 +1,10 @@
-#include "ast/statement/selection_statement.h"
+#include "frontend/ast/statement/selection_statement.h"
 
 #include <stdlib.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 struct selection_statement* parse_selection_statement(struct parser_state* s) {
     struct selection_statement* res = xmalloc(

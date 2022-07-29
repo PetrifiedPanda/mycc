@@ -1,0 +1,20 @@
+#ifndef POINTER_H
+#define POINTER_H
+
+#include <stddef.h>
+
+#include "type_quals.h"
+
+#include "frontend/parser/parser_state.h"
+
+struct pointer {
+    size_t num_indirs;
+    struct type_quals* quals_after_ptr;
+};
+
+struct pointer* parse_pointer(struct parser_state* s);
+
+void free_pointer(struct pointer* p);
+
+#endif
+

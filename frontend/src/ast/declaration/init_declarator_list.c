@@ -1,4 +1,4 @@
-#include "ast/declaration/init_declarator_list.h"
+#include "frontend/ast/declaration/init_declarator_list.h"
 
 #include <stdlib.h>
 #include <assert.h>

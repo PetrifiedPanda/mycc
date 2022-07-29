@@ -1,11 +1,11 @@
-#include "ast/expr/eq_expr.h"
+#include "frontend/ast/expr/eq_expr.h"
 
 #include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static bool parse_eq_expr_eq_chain(struct parser_state* s,
                                    struct eq_expr* res) {

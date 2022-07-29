@@ -1,4 +1,4 @@
-#include "preproc/preproc.h"
+#include "frontend/preproc/preproc.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,15 +6,15 @@
 #include <ctype.h>
 #include <assert.h>
 
-#include "token_type.h"
-
 #include "util/annotations.h"
 #include "util/mem.h"
 #include "util/file.h"
 
-#include "preproc/preproc_macro.h"
-#include "preproc/preproc_state.h"
-#include "preproc/tokenizer.h"
+#include "frontend/token_type.h"
+
+#include "frontend/preproc/preproc_macro.h"
+#include "frontend/preproc/preproc_state.h"
+#include "frontend/preproc/tokenizer.h"
 
 static bool preproc_file(struct preproc_state* state,
                          const char* path,

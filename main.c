@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "preproc/preproc.h"
+#include "frontend/preproc/preproc.h"
 
-#include "parser/parser.h"
+#include "frontend/parser/parser.h"
 
-#include "ast/ast_dumper.h"
+#include "frontend/ast/ast_dumper.h"
 
 #include "util/mem.h"
 

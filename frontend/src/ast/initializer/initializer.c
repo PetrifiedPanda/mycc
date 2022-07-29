@@ -1,11 +1,11 @@
-#include "ast/initializer/initializer.h"
+#include "frontend/ast/initializer/initializer.h"
 
 #include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static struct initializer* create_initializer_assign(
     struct assign_expr* assign) {

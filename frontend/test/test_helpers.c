@@ -4,7 +4,7 @@
 
 #include "util/file.h"
 
-#include "preproc/preproc.h"
+#include "frontend/preproc/preproc.h"
 
 struct token* tokenize(const char* file) {
     struct preproc_err err = create_preproc_err();

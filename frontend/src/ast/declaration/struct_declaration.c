@@ -1,4 +1,4 @@
-#include "ast/declaration/struct_declaration.h"
+#include "frontend/ast/declaration/struct_declaration.h"
 
 #include "util/mem.h"
 

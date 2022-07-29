@@ -1,4 +1,4 @@
-#include "ast/declaration/abs_declarator.h"
+#include "frontend/ast/declaration/abs_declarator.h"
 
 #include <stdlib.h>
 

@@ -2,9 +2,9 @@
 
 #include "testing/asserts.h"
 
-#include "preproc/preproc.h"
+#include "frontend/preproc/preproc.h"
 
-#include "parser/parser.h"
+#include "frontend/parser/parser.h"
 
 #include "../test_helpers.h"
 

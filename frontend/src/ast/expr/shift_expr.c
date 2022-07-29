@@ -1,11 +1,11 @@
-#include "ast/expr/shift_expr.h"
+#include "frontend/ast/expr/shift_expr.h"
 
 #include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
 
-#include "parser/parser_util.h"
+#include "frontend/parser/parser_util.h"
 
 static bool parse_shift_expr_shift_chain(struct parser_state* s,
                                          struct shift_expr* res) {

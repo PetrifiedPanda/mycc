@@ -1,5 +1,5 @@
-#include "preproc/preproc.h"
-#include "preproc/preproc_macro.h"
+#include "frontend/preproc/preproc.h"
+#include "frontend/preproc/preproc_macro.h"
 
 #include "testing/asserts.h"
 

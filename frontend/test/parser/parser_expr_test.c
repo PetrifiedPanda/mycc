@@ -4,13 +4,13 @@
 
 #include "testing/asserts.h"
 
-#include "parser/parser_state.h"
-#include "parser/parser.h"
+#include "frontend/parser/parser_state.h"
+#include "frontend/parser/parser.h"
 
-#include "token.h"
-#include "token_type.h"
+#include "frontend/token.h"
+#include "frontend/token_type.h"
 
-#include "preproc/preproc.h"
+#include "frontend/preproc/preproc.h"
 
 #include "../test_helpers.h"
 

@@ -1,4 +1,4 @@
-#include "ast/declaration/init_declarator.h"
+#include "frontend/ast/declaration/init_declarator.h"
 
 #include "util/mem.h"
 

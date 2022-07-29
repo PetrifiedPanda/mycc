@@ -1,4 +1,4 @@
-#include "ast/declaration/param_declaration.h"
+#include "frontend/ast/declaration/param_declaration.h"
 
 #include <assert.h>
 
