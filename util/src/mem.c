@@ -17,9 +17,8 @@ void* xmalloc(size_t bytes) {
 }
 
 void* xcalloc(size_t len, size_t elem_size) {
-    if (len == 0 || elem_size == 0) {
-        return NULL;
-    }
+    assert(len != 0);
+    assert(elem_size != 0);
 
     void* res = calloc(len, elem_size);
     if (!res) {
