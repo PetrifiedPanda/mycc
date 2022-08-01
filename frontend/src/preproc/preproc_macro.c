@@ -142,8 +142,9 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr) {
             curr_tok->spelling = NULL;
             curr_tok->loc.file = NULL;
         }
-
-        free(arg_spells);
+        
+        // cast to make msvc happy (though it shouldn't be like this)
+        free((void*)arg_spells);
     } else {
         res.is_func_macro = false;
         res.num_args = 0;
