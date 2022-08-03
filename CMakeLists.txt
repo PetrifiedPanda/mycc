@@ -20,13 +20,15 @@ endif()
 
 set(TestWorkingDir ${CMAKE_CURRENT_BINARY_DIR})
 
+set(Testing mycc-testing)
 set(Util mycc-util)
 set(Frontend mycc-frontend)
-set(Testing mycc-testing)
+set(Backend mycc-backend)
 
 add_subdirectory(testing)
 add_subdirectory(util)
 add_subdirectory(frontend)
+add_subdirectory(backend)
 
 add_executable(${This} main.c)
 target_link_libraries(${This} ${Frontend})
