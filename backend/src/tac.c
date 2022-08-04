@@ -85,15 +85,31 @@ struct tac tac_create(enum tac_op op,
                       const struct tac_reg* dest,
                       const struct tac_arg* arg1,
                       const struct tac_arg* arg2) {
-    assert(op != TAC_CALL);
-    assert(op != TAC_ASSIGN);
-    assert(op != TAC_ALLOCA);
     return (struct tac) {
         .op = op,
         .type = *type,
         .dest = *dest,
         .arg1 = *arg1,
         .arg2 = *arg2,
+    };
+}
+
+struct tac tac_create_store(const struct tac_arg* ptr,
+                            const struct tac_arg* to_store) {
+    return (struct tac) {
+        .op = TAC_STORE,
+        .arg1 = *ptr,
+        .arg2 = *to_store,
+    };
+}
+
+struct tac tac_create_load(const struct tac_reg* dest,
+                           const struct tac_arg* ptr) {
+    return (struct tac) {
+        .op = TAC_LOAD,
+        .dest = *dest,
+        .arg1 = *ptr,
+        .arg2.type = TAC_ARG_NONE,
     };
 }
 
@@ -109,6 +125,7 @@ struct tac tac_create_getelem(const struct tac_reg* dest,
         .accessed = *accessed,
         .num_accesses = num_accesses,
         .elems = elems,
+        .replacement.type = TAC_ARG_NONE,
     };
 }
 
@@ -124,6 +141,7 @@ struct tac tac_create_getelemptr(const struct tac_reg* dest,
         .accessed = *accessed,
         .num_accesses = num_accesses,
         .elems = elems,
+        .replacement.type = TAC_ARG_NONE,
     };
 }
 

@@ -101,8 +101,8 @@ enum tac_op {
     TAC_ASSIGN,
     TAC_CAST,
 
-    TAC_STORE, // *(dest + arg1) = arg2
-    TAC_LOAD, // dest = *(arg1 + arg2)
+    TAC_STORE, // *arg1 = arg2
+    TAC_LOAD, // dest = *arg1
     
     TAC_CALL, // dest = func(func_args)
     
@@ -163,6 +163,12 @@ struct tac tac_create(enum tac_op op,
                       const struct tac_reg* dest,
                       const struct tac_arg* arg1,
                       const struct tac_arg* arg2);
+
+struct tac tac_create_load(const struct tac_reg* dest,
+                           const struct tac_arg* ptr);
+
+struct tac tac_create_store(const struct tac_arg* ptr,
+                            const struct tac_arg* to_store);
 
 struct tac tac_create_getelem(const struct tac_reg* dest,
                               const struct tac_type* type,
