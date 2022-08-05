@@ -76,6 +76,7 @@ void free_token_arr(struct token_arr* arr) {
 }
 
 void free_preproc_state(struct preproc_state* state) {
+    free_token_arr(&state->res);
     free(state->conds);
     free_string_hash_map(&state->_macro_map);
 }

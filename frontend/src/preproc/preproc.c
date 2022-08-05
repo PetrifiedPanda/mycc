@@ -34,16 +34,18 @@ struct token* preproc(const char* path, struct preproc_err* err) {
         .file_loc = {0, 0},
     };
     if (!preproc_file(&state, path, &empty_source_loc)) {
-        for (size_t i = 0; i < state.res.len; ++i) {
-            free_token(&state.res.tokens[i]);
-        }
-        free(state.res.tokens);
+        free_preproc_state(&state);
         return NULL;
     }
-
-    append_terminator_token(&state.res);
+    
+    struct token_arr res = state.res;
+    state.res = (struct token_arr) {
+        .len = 0,
+        .cap = 0,
+        .tokens = NULL,
+    };
     free_preproc_state(&state);
-    return state.res.tokens;
+    return res.tokens;
 }
 
 enum {
@@ -330,14 +332,19 @@ struct token* preproc_string(const char* str,
     };
 
     if (!preproc_src(&state, &src)) {
-        for (size_t i = 0; i < state.res.len; ++i) {
-            free_token(&state.res.tokens[i]);
-        }
-        free(state.res.tokens);
+        free_preproc_state(&state);
         return NULL;
     }
+    
+    struct token_arr res = state.res;
+    state.res = (struct token_arr){
+        .len = 0,
+        .cap = 0,
+        .tokens = NULL,
+    };
+    free_preproc_state(&state);
 
-    return state.res.tokens;
+    return res.tokens;
 }
 
 static void file_err(struct preproc_err* err,
