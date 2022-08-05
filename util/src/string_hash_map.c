@@ -85,15 +85,19 @@ static size_t find_item_index(const struct string_hash_map* map,
     return i;
 }
 
+static void rehash_if_necessary(struct string_hash_map* map) {
+    if (map->_len == map->_cap) {
+        resize_map(map);
+    }
+}
+
 const void* string_hash_map_insert(struct string_hash_map* map,
                                    char* key,
                                    const void* item) {
     assert(key);
     assert(item);
 
-    if (map->_len == map->_cap) {
-        resize_map(map);
-    }
+    rehash_if_necessary(map);
 
     const size_t idx = find_item_index_insert(map, key);
 
@@ -116,10 +120,8 @@ void string_hash_map_insert_overwrite(struct string_hash_map* map,
                                       const void* item) {
     assert(key);
     assert(item);
-
-    if (map->_len == map->_cap) {
-        resize_map(map);
-    }
+    
+    rehash_if_necessary(map);
 
     const size_t idx = find_item_index_insert(map, key);
     
