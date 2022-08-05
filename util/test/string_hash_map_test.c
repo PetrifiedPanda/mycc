@@ -72,16 +72,13 @@ static void insert_items(struct string_hash_map* map,
 
 TEST(insert) {
     enum {
-        INIT_CAP = 20
+        INIT_CAP = 20,
+        NUM_INSERTS = INIT_CAP * 100,
     };
     struct string_hash_map map = create_string_hash_map(sizeof(size_t),
                                                         INIT_CAP,
                                                         false,
                                                         NULL);
-
-    enum {
-        NUM_INSERTS = INIT_CAP * 100
-    };
 
     char keys[NUM_INSERTS][KEY_CHAR_ARR_LEN];
 
@@ -106,8 +103,8 @@ TEST(insert) {
 
 TEST(remove) {
     enum {
-        NUM_INSERTS = 500,
-        INIT_CAP = NUM_INSERTS * 2
+        INIT_CAP = 250,
+        NUM_INSERTS = INIT_CAP * 2
     };
 
     struct string_hash_map map = create_string_hash_map(sizeof(size_t),
