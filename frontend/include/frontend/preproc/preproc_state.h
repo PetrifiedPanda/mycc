@@ -3,6 +3,8 @@
 
 #include <stddef.h>
 
+#include "util/string_hash_map.h"
+
 #include "preproc_err.h"
 
 struct token_arr {
@@ -21,12 +23,15 @@ struct preproc_state {
     size_t conds_len, conds_cap;
     struct preproc_cond* conds;
     struct preproc_err* err;
+    struct string_hash_map _macro_map;
 };
+
+struct preproc_state create_preproc_state(struct preproc_err* err);
 
 struct preproc_macro;
 
-struct preproc_macro* find_preproc_macro(struct preproc_state* state,
-                                         const char* spelling);
+const struct preproc_macro* find_preproc_macro(struct preproc_state* state,
+                                               const char* spelling);
 
 void register_preproc_macro(struct preproc_state* state,
                             const struct preproc_macro* macro);

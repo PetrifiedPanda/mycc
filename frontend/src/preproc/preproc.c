@@ -27,15 +27,7 @@ static void append_terminator_token(struct token_arr* arr);
 struct token* preproc(const char* path, struct preproc_err* err) {
     assert(err);
 
-    struct preproc_state state = {
-        .res =
-            {
-                .len = 0,
-                .cap = 0,
-                .tokens = NULL,
-            },
-        .err = err,
-    };
+    struct preproc_state state = create_preproc_state(err);
 
     struct source_loc empty_source_loc = {
         .file = NULL,
@@ -327,15 +319,7 @@ struct token* preproc_string(const char* str,
                              struct preproc_err* err) {
     assert(err);
 
-    struct preproc_state state = {
-        .res =
-            {
-                .len = 0,
-                .cap = 0,
-                .tokens = NULL,
-            },
-        .err = err,
-    };
+    struct preproc_state state = create_preproc_state(err);
 
     struct code_source src = {
         .is_file = false,

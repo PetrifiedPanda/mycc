@@ -37,6 +37,15 @@ const void* string_hash_map_insert(struct string_hash_map* map,
                                    const void* item);
 
 /**
+ * @brief Inserts item and key into this map, overwriting the key
+ *        if it is already present
+ *
+ */
+void string_hash_map_insert_overwrite(struct string_hash_map* map,
+                                      char* key,
+                                      const void* item);
+
+/**
  * @brief Gets the item with the given key
  *
  * @return A pointer to the item associated with key, or null, if key is not

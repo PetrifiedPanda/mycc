@@ -4,25 +4,41 @@
 
 #include "util/mem.h"
 
-struct preproc_macro* find_preproc_macro(struct preproc_state* state,
-                                         const char* spelling) {
-    // TODO: implement
-    (void)state;
-    (void)spelling;
-    return NULL;
+#include "frontend/preproc/preproc_macro.h"
+
+struct preproc_state create_preproc_state(struct preproc_err* err) {
+    return (struct preproc_state){
+        .res =
+            {
+                .len = 0,
+                .cap = 0,
+                .tokens = NULL,
+            },
+        .conds_len = 0,
+        .conds_cap = 0,
+        .conds = NULL,
+        .err = err,
+        ._macro_map = create_string_hash_map(
+            sizeof(struct preproc_macro),
+            100,
+            true,
+            (void (*)(void*))free_preproc_macro),
+    };
+}
+
+const struct preproc_macro* find_preproc_macro(struct preproc_state* state,
+                                               const char* spelling) {
+    return string_hash_map_get(&state->_macro_map, spelling);
 }
 
 void register_preproc_macro(struct preproc_state* state,
                             const struct preproc_macro* macro) {
-    // TODO: implement
-    (void)state;
-    (void)macro;
+    char* macro_name = alloc_string_copy(macro->spelling);
+    string_hash_map_insert_overwrite(&state->_macro_map, macro_name, macro);
 }
 
 void remove_preproc_macro(struct preproc_state* state, const char* spelling) {
-    // TODO: implement
-    (void)state;
-    (void)spelling;
+    string_hash_map_remove(&state->_macro_map, spelling);
 }
 
 void push_preproc_cond(struct preproc_state* state,
@@ -61,5 +77,6 @@ void free_token_arr(struct token_arr* arr) {
 
 void free_preproc_state(struct preproc_state* state) {
     free(state->conds);
+    free_string_hash_map(&state->_macro_map);
 }
 

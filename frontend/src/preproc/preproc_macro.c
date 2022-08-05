@@ -169,6 +169,17 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr) {
     return res;
 }
 
+void free_preproc_macro(struct preproc_macro* m) {
+    free(m->spelling);
+
+    for (size_t i = 0; i < m->expansion_len; ++i) {
+        if (!m->expansion[i].is_arg) {
+            free_token(&m->expansion[i].token); 
+        }
+    }
+    free(m->expansion);
+}
+
 static struct token copy_token(const struct token* t);
 
 static struct token move_token(struct token* t) {

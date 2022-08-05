@@ -34,5 +34,7 @@ bool expand_preproc_macro(struct preproc_state* state,
 
 struct preproc_macro parse_preproc_macro(struct token_arr* arr);
 
+void free_preproc_macro(struct preproc_macro* m);
+
 #endif
 

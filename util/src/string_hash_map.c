@@ -89,6 +89,7 @@ const void* string_hash_map_insert(struct string_hash_map* map,
                                    char* key,
                                    const void* item) {
     assert(key);
+    assert(item);
 
     if (map->_len == map->_cap) {
         resize_map(map);
@@ -109,6 +110,40 @@ const void* string_hash_map_insert(struct string_hash_map* map,
     ++map->_len;
     return item;
 }
+
+void string_hash_map_insert_overwrite(struct string_hash_map* map,
+                                      char* key,
+                                      const void* item) {
+    assert(key);
+    assert(item);
+
+    if (map->_len == map->_cap) {
+        resize_map(map);
+    }
+
+    const size_t idx = find_item_index_insert(map, key);
+    
+    void* curr_item = (char*)map->_items + idx * map->_item_size;
+    if (map->_keys[idx].str != NULL) {
+        if (map->_free_keys) {
+            free(key);
+        }
+        
+        if (map->_item_free) {
+            map->_item_free(curr_item);
+        }
+    } else {
+        map->_keys[idx] = (struct string_hash_map_key) {
+            .was_deleted = false,
+            .str = key,
+        };
+    }
+
+    memcpy(curr_item, item, map->_item_size);
+    ++map->_len;
+}
+
+
 
 const void* string_hash_map_get(const struct string_hash_map* map,
                                 const char* key) {
