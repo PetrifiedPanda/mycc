@@ -47,7 +47,9 @@ struct parser_state create_parser_state(struct token* tokens,
     };
     res._scope_maps[0] = create_string_hash_map(
         sizeof(struct identifier_type_data),
-        SCOPE_MAP_INIT_CAP);
+        SCOPE_MAP_INIT_CAP,
+        false,
+        NULL);
     return res;
 }
 
@@ -79,7 +81,9 @@ void parser_push_scope(struct parser_state* s) {
                               sizeof(struct string_hash_map) * s->_len);
     s->_scope_maps[s->_len - 1] = create_string_hash_map(
         sizeof(struct identifier_type_data),
-        SCOPE_MAP_INIT_CAP);
+        SCOPE_MAP_INIT_CAP,
+        false,
+        NULL);
 }
 
 void parser_pop_scope(struct parser_state* s) {
@@ -149,4 +153,3 @@ static enum identifier_type get_item(const struct parser_state* s,
 
     return ID_TYPE_NONE;
 }
-

@@ -2,16 +2,27 @@
 #define STRING_HASH_MAP_H
 
 #include <stddef.h>
+#include <stdbool.h>
+
+struct string_hash_map_key {
+    bool was_deleted;
+    char* str;
+};
 
 struct string_hash_map {
     size_t _len;
     size_t _cap;
     size_t _item_size;
-    const char** _keys;
+    bool _free_keys;
+    void (*_item_free)(void*);
+    struct string_hash_map_key* _keys;
     void* _items;
 };
 
-struct string_hash_map create_string_hash_map(size_t elem_size, size_t init_cap);
+struct string_hash_map create_string_hash_map(size_t elem_size,
+                                              size_t init_cap,
+                                              bool free_keys,
+                                              void (*item_free)(void*));
 void free_string_hash_map(struct string_hash_map* map);
 
 /**
@@ -22,7 +33,7 @@ void free_string_hash_map(struct string_hash_map* map);
  *         to the item associated with key
  */
 const void* string_hash_map_insert(struct string_hash_map* map,
-                                   const char* key,
+                                   char* key,
                                    const void* item);
 
 /**
@@ -33,5 +44,7 @@ const void* string_hash_map_insert(struct string_hash_map* map,
  */
 const void* string_hash_map_get(const struct string_hash_map* map,
                                 const char* key);
-#endif
 
+void string_hash_map_remove(struct string_hash_map* map, const char* key);
+
+#endif
