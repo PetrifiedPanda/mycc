@@ -21,7 +21,6 @@ bool expand_preproc_macro(struct preproc_state* state,
                           const struct token* macro_end) {
     assert(state);
     assert(macro);
-    assert(strcmp(state->res.tokens[macro_idx].spelling, macro->spelling) == 0);
 
     if (macro->is_func_macro) {
         assert(macro_end);
@@ -33,11 +32,13 @@ bool expand_preproc_macro(struct preproc_state* state,
     }
 }
 
-struct preproc_macro parse_preproc_macro(struct token_arr* arr) {
+struct preproc_macro parse_preproc_macro(struct token_arr* arr, struct preproc_err* err) {
     assert(arr);
     assert(arr->tokens[0].type == STRINGIFY_OP);
     assert(arr->tokens[1].type == IDENTIFIER);
     assert(strcmp(arr->tokens[1].spelling, "define") == 0);
+
+    (void)err; // TODO: remove
 
     if (arr->len < 3) {
         // TODO: missing macro name
@@ -48,10 +49,6 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr) {
     }
 
     struct preproc_macro res;
-
-    res.spelling = arr->tokens[2].spelling;
-    arr->tokens[2].spelling = NULL;
-    assert(res.spelling);
 
     if (arr->len > 3 && arr->tokens[3].type == LBRACKET) {
         res.is_func_macro = true;
@@ -170,8 +167,6 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr) {
 }
 
 void free_preproc_macro(struct preproc_macro* m) {
-    free(m->spelling);
-
     for (size_t i = 0; i < m->expansion_len; ++i) {
         if (!m->expansion[i].is_arg) {
             free_token(&m->expansion[i].token); 

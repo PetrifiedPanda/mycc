@@ -32,9 +32,10 @@ const struct preproc_macro* find_preproc_macro(struct preproc_state* state,
 }
 
 void register_preproc_macro(struct preproc_state* state,
+                            char* spelling,
                             const struct preproc_macro* macro) {
-    char* macro_name = alloc_string_copy(macro->spelling);
-    string_hash_map_insert_overwrite(&state->_macro_map, macro_name, macro);
+    bool overwritten = string_hash_map_insert_overwrite(&state->_macro_map, spelling, macro);
+    (void)overwritten; // TODO: warning if redefined
 }
 
 void remove_preproc_macro(struct preproc_state* state, const char* spelling) {

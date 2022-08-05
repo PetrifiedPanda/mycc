@@ -34,6 +34,7 @@ const struct preproc_macro* find_preproc_macro(struct preproc_state* state,
                                                const char* spelling);
 
 void register_preproc_macro(struct preproc_state* state,
+                            char* spelling,
                             const struct preproc_macro* macro);
 
 void remove_preproc_macro(struct preproc_state* state, const char* spelling);

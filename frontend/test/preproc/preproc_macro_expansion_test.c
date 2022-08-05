@@ -75,7 +75,6 @@ TEST(object_like) {
     };
 
     struct preproc_macro macro = {
-        .spelling = "MACRO",
         .is_func_macro = false,
         .num_args = 0,
         .expansion_len = EXP_LEN,
@@ -100,9 +99,7 @@ TEST(object_like) {
 }
 
 TEST(object_like_empty) {
-    const char* macro_name = "EMPTY_MACRO";
     const struct preproc_macro macro = {
-        .spelling = (char*)macro_name,
         .is_func_macro = false,
         .num_args = 0,
         .is_variadic = false,
@@ -143,7 +140,6 @@ TEST(func_like) {
     };
 
     const struct preproc_macro macro1 = {
-        .spelling = (char*)"FUNC_LIKE_MACRO",
         .is_func_macro = true,
         .num_args = 2,
         .is_variadic = false,
@@ -174,7 +170,6 @@ TEST(func_like) {
     };
 
     const struct preproc_macro macro2 = {
-        .spelling = (char*)"OTHER_FUNC_LIKE",
         .is_func_macro = true,
         .num_args = 6,
         .is_variadic = false,
@@ -197,7 +192,6 @@ TEST(func_like) {
     };
 
     const struct preproc_macro macro3 = {
-        .spelling = (char*)"YET_ANOTHER_FUNC_LIKE",
         .is_func_macro = true,
         .num_args = 0,
         .is_variadic = false,
@@ -225,7 +219,6 @@ TEST(func_like_variadic) {
     };
 
     const struct preproc_macro macro1 = {
-        .spelling = (char*)"CALL_FUNC",
         .is_func_macro = true,
         .num_args = 1,
         .is_variadic = true,
@@ -251,7 +244,6 @@ TEST(func_like_variadic) {
     };
 
     const struct preproc_macro macro2 = {
-        .spelling = (char*)"ONLY_VARARGS",
         .is_func_macro = true,
         .num_args = 0,
         .is_variadic = true,

@@ -40,8 +40,9 @@ const void* string_hash_map_insert(struct string_hash_map* map,
  * @brief Inserts item and key into this map, overwriting the key
  *        if it is already present
  *
+ * @return true if an existing entry was overwritten
  */
-void string_hash_map_insert_overwrite(struct string_hash_map* map,
+bool string_hash_map_insert_overwrite(struct string_hash_map* map,
                                       char* key,
                                       const void* item);
 

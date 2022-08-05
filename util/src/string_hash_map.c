@@ -115,7 +115,7 @@ const void* string_hash_map_insert(struct string_hash_map* map,
     return item;
 }
 
-void string_hash_map_insert_overwrite(struct string_hash_map* map,
+bool string_hash_map_insert_overwrite(struct string_hash_map* map,
                                       char* key,
                                       const void* item) {
     assert(key);
@@ -125,6 +125,7 @@ void string_hash_map_insert_overwrite(struct string_hash_map* map,
 
     const size_t idx = find_item_index_insert(map, key);
     
+    bool overwritten;
     void* curr_item = (char*)map->_items + idx * map->_item_size;
     if (map->_keys[idx].str != NULL) {
         if (map->_free_keys) {
@@ -134,15 +135,18 @@ void string_hash_map_insert_overwrite(struct string_hash_map* map,
         if (map->_item_free) {
             map->_item_free(curr_item);
         }
+        overwritten = true;
     } else {
         map->_keys[idx] = (struct string_hash_map_key) {
             .was_deleted = false,
             .str = key,
         };
+        overwritten = false;
     }
 
     memcpy(curr_item, item, map->_item_size);
     ++map->_len;
+    return overwritten;
 }
 
 

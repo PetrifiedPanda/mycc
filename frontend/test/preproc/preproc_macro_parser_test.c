@@ -6,8 +6,6 @@
 
 static void compare_preproc_macros(const struct preproc_macro* got,
                                    const struct preproc_macro* ex) {
-    ASSERT_STR(got->spelling, ex->spelling);
-
     ASSERT_BOOL(got->is_func_macro, ex->is_func_macro);
     ASSERT_SIZE_T(got->num_args, ex->num_args);
     ASSERT_BOOL(got->is_variadic, ex->is_variadic);
@@ -51,11 +49,12 @@ TEST(object_like) {
             .cap = arr.len,
             .tokens = tokens,
         };
-
-        struct preproc_macro got = parse_preproc_macro(&arr);
+        
+        struct preproc_err err = create_preproc_err();
+        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        ASSERT(err.type == PREPROC_ERR_NONE);
 
         struct preproc_macro ex = {
-            .spelling = "TEST_MACRO",
             .is_func_macro = false,
             .num_args = 0,
             .is_variadic = false,
@@ -104,11 +103,11 @@ TEST(object_like) {
             .cap = arr.len,
             .tokens = tokens,
         };
-
-        struct preproc_macro got = parse_preproc_macro(&arr);
+        
+        struct preproc_err err = create_preproc_err();
+        struct preproc_macro got = parse_preproc_macro(&arr, &err);
 
         struct preproc_macro ex = {
-            .spelling = "ANOTHER_MACRO",
             .is_func_macro = false,
             .num_args = 0,
             .is_variadic = false,
@@ -169,7 +168,6 @@ TEST(func_like) {
         };
 
         struct preproc_macro ex = {
-            .spelling = "FUNC_LIKE",
             .is_func_macro = true,
             .num_args = 3,
             .is_variadic = false,
@@ -183,7 +181,10 @@ TEST(func_like) {
             .cap = TOKENS_LEN,
             .tokens = tokens,
         };
-        struct preproc_macro got = parse_preproc_macro(&arr);
+
+        struct preproc_err err = create_preproc_err();
+        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
         free(got.expansion);
@@ -217,7 +218,6 @@ TEST(func_like) {
         }
 
         struct preproc_macro ex = {
-            .spelling = "NO_PARAMS",
             .is_func_macro = true,
             .num_args = 0,
             .is_variadic = false,
@@ -231,7 +231,10 @@ TEST(func_like) {
             .cap = TOKENS_LEN,
             .tokens = tokens,
         };
-        struct preproc_macro got = parse_preproc_macro(&arr);
+
+        struct preproc_err err = create_preproc_err();
+        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
         free(got.expansion);
@@ -251,7 +254,6 @@ TEST(func_like) {
         };
 
         struct preproc_macro ex = {
-            .spelling = "NO_PARAMS_EMPTY",
             .is_func_macro = true,
             .num_args = 0,
             .is_variadic = false,
@@ -265,7 +267,10 @@ TEST(func_like) {
             .cap = TOKENS_LEN,
             .tokens = tokens,
         };
-        struct preproc_macro got = parse_preproc_macro(&arr);
+
+        struct preproc_err err = create_preproc_err();
+        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
         free(got.expansion);
@@ -321,7 +326,6 @@ TEST(variadic) {
         };
 
         struct preproc_macro ex = {
-            .spelling = "FUNC_LIKE",
             .is_func_macro = true,
             .num_args = 3,
             .is_variadic = true,
@@ -335,7 +339,10 @@ TEST(variadic) {
             .cap = TOKENS_LEN,
             .tokens = tokens,
         };
-        struct preproc_macro got = parse_preproc_macro(&arr);
+
+        struct preproc_err err = create_preproc_err();
+        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
         free(got.expansion);
@@ -395,7 +402,6 @@ TEST(variadic) {
         };
 
         struct preproc_macro ex = {
-            .spelling = "FUNC_LIKE",
             .is_func_macro = true,
             .num_args = 3,
             .is_variadic = true,
@@ -409,7 +415,10 @@ TEST(variadic) {
             .cap = TOKENS_LEN,
             .tokens = tokens,
         };
-        struct preproc_macro got = parse_preproc_macro(&arr);
+
+        struct preproc_err err = create_preproc_err();
+        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
         free(got.expansion);
