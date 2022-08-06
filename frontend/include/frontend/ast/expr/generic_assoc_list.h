@@ -5,9 +5,12 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct generic_assoc;
 
 struct generic_assoc_list {
+    struct ast_node_info info;
     size_t len;
     struct generic_assoc* assocs;
 };

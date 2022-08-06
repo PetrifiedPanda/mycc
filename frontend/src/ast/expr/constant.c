@@ -15,5 +15,6 @@ struct constant create_constant(enum token_type type,
 }
 
 void free_constant(struct constant* c) {
+    free_ast_node_info(&c->info);
     free(c->spelling);
 }

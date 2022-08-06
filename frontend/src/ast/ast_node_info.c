@@ -5,3 +5,7 @@ struct ast_node_info create_ast_node_info(struct source_loc loc) {
         .loc = loc,
     };
 }
+
+void free_ast_node_info(struct ast_node_info* info) {
+    free_source_loc(&info->loc);
+}

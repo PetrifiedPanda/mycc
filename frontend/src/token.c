@@ -47,6 +47,13 @@ struct source_loc take_source_loc(struct token* t) {
     return res;
 }
 
+struct source_loc copy_source_loc(struct source_loc loc) {
+    return (struct source_loc) {
+        .file = alloc_string_copy(loc.file),
+        .file_loc = loc.file_loc,
+    };
+}
+
 void free_source_loc(struct source_loc* loc) {
     assert(loc);
     free(loc->file);

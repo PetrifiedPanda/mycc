@@ -51,6 +51,8 @@ char* take_spelling(struct token* t);
 
 struct source_loc take_source_loc(struct token* t);
 
+struct source_loc copy_source_loc(struct source_loc loc);
+
 void free_source_loc(struct source_loc* loc);
 
 void free_token(struct token* t);

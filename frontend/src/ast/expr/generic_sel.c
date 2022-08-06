@@ -9,11 +9,13 @@
 
 static struct generic_sel* create_generic_sel(
     struct assign_expr* assign,
-    struct generic_assoc_list assocs) {
+    struct generic_assoc_list assocs,
+    struct source_loc loc) {
     assert(assign);
     assert(assocs.len != 0);
     struct generic_sel* res = xmalloc(sizeof(struct generic_sel));
-
+    
+    res->info = create_ast_node_info(loc);
     res->assign = assign;
     res->assocs = assocs;
     return res;
@@ -21,6 +23,7 @@ static struct generic_sel* create_generic_sel(
 
 struct generic_sel* parse_generic_sel(struct parser_state* s) {
     assert(s->it->type == GENERIC);
+    struct token* start_tok = s->it;
     accept_it(s);
 
     if (!accept(s, LBRACKET)) {
@@ -46,7 +49,7 @@ struct generic_sel* parse_generic_sel(struct parser_state* s) {
         goto fail;
     }
 
-    return create_generic_sel(assign, assocs);
+    return create_generic_sel(assign, assocs, take_source_loc(start_tok));
 
 fail:
     free_assign_expr(assign);
@@ -54,6 +57,7 @@ fail:
 }
 
 static void free_children(struct generic_sel* s) {
+    free_ast_node_info(&s->info);
     free_assign_expr(s->assign);
     free_generic_assoc_list(&s->assocs);
 }

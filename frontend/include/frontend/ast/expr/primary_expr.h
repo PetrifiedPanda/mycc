@@ -26,7 +26,10 @@ struct primary_expr {
         struct constant constant;
         struct string_constant string;
         struct identifier* identifier;
-        struct expr* bracket_expr;
+        struct {
+            struct ast_node_info info;
+            struct expr* bracket_expr;
+        };
         struct generic_sel* generic;
     };
 };

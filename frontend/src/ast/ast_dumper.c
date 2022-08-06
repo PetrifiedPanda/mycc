@@ -270,7 +270,7 @@ static void dump_generic_assoc_list(struct ast_dumper* d,
                                     const struct generic_assoc_list* l) {
     assert(l);
 
-    dumper_println(d, "generic_assoc_list:");
+    dumper_print_node_head(d, "generic_assoc_list", &l->info);
 
     add_indent(d);
 
@@ -287,7 +287,7 @@ static void dump_generic_sel(struct ast_dumper* d,
                              const struct generic_sel* s) {
     assert(d);
 
-    dumper_println(d, "generic_sel:");
+    dumper_print_node_head(d, "generic_sel", &s->info);
 
     add_indent(d);
 
@@ -304,29 +304,49 @@ static void dump_primary_expr(struct ast_dumper* d,
                               const struct primary_expr* e) {
     assert(e);
 
-    dumper_println(d, "primary_expr:");
-
-    add_indent(d);
-
     switch (e->type) {
         case PRIMARY_EXPR_IDENTIFIER:
+            dumper_println(d, "primary_expr:");
+            add_indent(d);
+
             dump_identifier(d, e->identifier);
+
+            remove_indent(d);
             break;
         case PRIMARY_EXPR_CONSTANT:
+            dumper_println(d, "primary_expr:");
+            add_indent(d);
+
             dump_constant(d, &e->constant);
+
+            remove_indent(d);
             break;
         case PRIMARY_EXPR_STRING_LITERAL:
+            dumper_println(d, "primary_expr:");
+            add_indent(d);
+
             dump_string_constant(d, &e->string);
+
+            remove_indent(d);
             break;
         case PRIMARY_EXPR_BRACKET:
+            dumper_print_node_head(d, "primary_expr", &e->info);
+            
+            add_indent(d);
+
             dump_expr(d, e->bracket_expr);
+
+            remove_indent(d);
             break;
         case PRIMARY_EXPR_GENERIC:
+            dumper_println(d, "primary_expr:");
+            add_indent(d);
+
             dump_generic_sel(d, e->generic);
+
+            remove_indent(d);
             break;
     }
-
-    remove_indent(d);
 }
 
 static void dump_type_modifiers(struct ast_dumper* d,

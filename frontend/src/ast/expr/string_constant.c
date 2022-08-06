@@ -19,7 +19,9 @@ struct string_constant create_func_name(struct source_loc loc) {
 }
 
 void free_string_constant(struct string_constant* c) {
-    if (!c->is_func) {
+    if (c->is_func) {
+        free_ast_node_info(&c->info);
+    } else {
         free_string_literal(&c->lit);
     }
 }
