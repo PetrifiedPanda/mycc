@@ -35,6 +35,7 @@ struct token create_token_copy(enum token_type type,
 }
 
 char* take_spelling(struct token* t) {
+    assert(t->spelling);
     char* spelling = t->spelling;
     t->spelling = NULL;
     return spelling;
