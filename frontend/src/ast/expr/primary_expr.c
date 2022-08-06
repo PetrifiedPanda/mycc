@@ -62,29 +62,33 @@ struct primary_expr* parse_primary_expr(struct parser_state* s) {
     switch (s->it->type) {
         case IDENTIFIER: {
             char* spelling = take_spelling(s->it);
+            struct source_loc loc = take_source_loc(s->it);
             accept_it(s);
             if (is_enum_constant(s, spelling)) {
                 return create_primary_expr_constant(
-                    create_constant(ENUM, spelling));
+                    create_constant(ENUM, spelling, loc));
             }
-            return create_primary_expr_identifier(create_identifier(spelling));
+            return create_primary_expr_identifier(create_identifier(spelling, loc));
         }
         case F_CONSTANT:
         case I_CONSTANT: {
             enum token_type type = s->it->type;
             char* spelling = take_spelling(s->it);
+            struct source_loc loc = take_source_loc(s->it);
             accept_it(s);
             return create_primary_expr_constant(
-                create_constant(type, spelling));
+                create_constant(type, spelling, loc));
         }
         case STRING_LITERAL: {
             char* spelling = take_spelling(s->it);
+            struct source_loc loc = take_source_loc(s->it);
             accept_it(s);
-            return create_primary_expr_string(create_string_constant(spelling));
+            return create_primary_expr_string(create_string_constant(spelling, loc));
         }
         case FUNC_NAME: {
             accept_it(s);
-            return create_primary_expr_string(create_func_name());
+            struct source_loc loc = take_source_loc(s->it);
+            return create_primary_expr_string(create_func_name(loc));
         }
         case GENERIC: {
             struct generic_sel* generic = parse_generic_sel(s);

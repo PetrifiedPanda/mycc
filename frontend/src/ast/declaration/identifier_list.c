@@ -12,11 +12,12 @@ struct identifier_list parse_identifier_list(struct parser_state* s) {
     }
     struct identifier_list res = {
         .len = 1,
-        .identifiers = xmalloc(sizeof(struct identifier_list)),
+        .identifiers = xmalloc(sizeof(struct identifier)),
     };
     char* spell = take_spelling(s->it);
+    struct source_loc loc = take_source_loc(s->it);
     accept_it(s);
-    init_identifier(res.identifiers, spell);
+    init_identifier(res.identifiers, spell, loc);
 
     size_t alloc_len = res.len;
     while (s->it->type == COMMA) {
@@ -33,8 +34,9 @@ struct identifier_list parse_identifier_list(struct parser_state* s) {
             return (struct identifier_list){.len = 0, .identifiers = NULL};
         }
         spell = take_spelling(s->it);
+        loc = take_source_loc(s->it); 
         accept_it(s);
-        init_identifier(&res.identifiers[res.len], spell);
+        init_identifier(&res.identifiers[res.len], spell, loc);
 
         ++res.len;
     }

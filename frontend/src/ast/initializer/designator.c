@@ -23,9 +23,10 @@ bool parse_designator_inplace(struct parser_state* s, struct designator* res) {
             accept_it(s);
             if (s->it->type == IDENTIFIER) {
                 char* spell = take_spelling(s->it);
+                struct source_loc loc = take_source_loc(s->it);
                 accept_it(s);
                 res->is_index = false;
-                res->identifier = create_identifier(spell);
+                res->identifier = create_identifier(spell, loc);
                 return true;
             } else {
                 expected_token_error(s, IDENTIFIER);

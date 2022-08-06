@@ -39,10 +39,22 @@ static void dumper_println(struct ast_dumper* d, const char* format, ...) {
     if (res < 0) {
         longjmp(d->err_buf, 0);
     }
-    
+
     if (fprintf(d->file, "\n") < 0) {
         longjmp(d->err_buf, 0);
     }
+}
+
+static void dumper_print_node_head(struct ast_dumper* d,
+                                   const char* name,
+                                   const struct ast_node_info* node) {
+    const struct source_loc* loc = &node->loc;
+    dumper_println(d,
+                   "%s: %s:%zu,%zu",
+                   name,
+                   loc->file,
+                   loc->file_loc.line,
+                   loc->file_loc.index);
 }
 
 static void dump_translation_unit(struct ast_dumper* d,
@@ -53,13 +65,13 @@ bool dump_ast(const struct translation_unit* tl, FILE* f) {
         .file = f,
         .num_indents = 0,
     };
-    
+
     if (setjmp(d.err_buf) == 0) {
         dump_translation_unit(&d, tl);
     } else {
         return false;
     }
-    
+
     return true;
 }
 
@@ -175,13 +187,17 @@ static void dump_pointer(struct ast_dumper* d, const struct pointer* p) {
 static void dump_identifier(struct ast_dumper* d, struct identifier* i) {
     assert(i);
 
-    dumper_println(d, "identifier: %s", i->spelling);
+    dumper_print_node_head(d, "identifier", &i->info);
+    
+    add_indent(d);
+    dumper_println(d, "spelling: %s", i->spelling);
+    remove_indent(d);
 }
 
 static void dump_constant(struct ast_dumper* d, const struct constant* c) {
     assert(c);
 
-    dumper_println(d, "constant:");
+    dumper_print_node_head(d, "constant", &c->info);
 
     add_indent(d);
 
@@ -205,20 +221,24 @@ static void dump_constant(struct ast_dumper* d, const struct constant* c) {
 static void dump_string_literal(struct ast_dumper* d,
                                 const struct string_literal* l) {
     assert(l);
-    dumper_println(d, "string_literal: %s", l->spelling);
+    dumper_print_node_head(d, "string_literal", &l->info);
+
+    add_indent(d);
+    dumper_println(d, "%s", l->spelling);
+    remove_indent(d);
 }
 
 static void dump_string_constant(struct ast_dumper* d,
                                  const struct string_constant* c) {
     assert(c);
 
-    dumper_println(d, "string_constant:");
-
     add_indent(d);
 
     if (c->is_func) {
+        dumper_print_node_head(d, "string_constant", &c->info);
         dumper_println(d, "%s", get_spelling(FUNC_NAME));
     } else {
+        dumper_println(d, "string_constant:");
         dump_string_literal(d, &c->lit);
     }
 
@@ -350,7 +370,7 @@ static void dump_struct_declarator(struct ast_dumper* d,
     dumper_println(d, "struct_declarator:");
 
     add_indent(d);
-    
+
     if (decl->decl) {
         dump_declarator(d, decl->decl);
     }

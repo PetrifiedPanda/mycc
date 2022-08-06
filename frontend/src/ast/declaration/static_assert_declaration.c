@@ -27,6 +27,7 @@ struct static_assert_declaration* parse_static_assert_declaration(
     }
 
     char* spell = take_spelling(s->it);
+    struct source_loc loc = take_source_loc(s->it);
     accept_it(s);
 
     if (!(accept(s, RBRACKET) && accept(s, SEMICOLON))) {
@@ -38,7 +39,7 @@ struct static_assert_declaration* parse_static_assert_declaration(
     struct static_assert_declaration* res = xmalloc(
         sizeof(struct static_assert_declaration));
     res->const_expr = const_expr;
-    res->err_msg = (struct string_literal){.spelling = spell};
+    res->err_msg = create_string_literal(spell, loc); 
 
     return res;
 }

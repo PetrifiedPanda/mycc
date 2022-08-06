@@ -37,8 +37,9 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
             accept_it(s);
             if (s->it->type == IDENTIFIER) {
                 char* spell = take_spelling(s->it);
+                struct source_loc loc = take_source_loc(s->it);
                 accept_it(s);
-                res = create_goto_statement(create_identifier(spell));
+                res = create_goto_statement(create_identifier(spell, loc));
                 break;
             } else {
                 expected_token_error(s, IDENTIFIER);

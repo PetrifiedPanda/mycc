@@ -34,13 +34,5 @@ bool is_type_spec(const struct parser_state* s);
  */
 bool is_declaration(const struct parser_state* s);
 
-/**
- *
- * @param t A token with non-null spelling
- * @return Returns the spelling of the given token, setting it to NULL in the
- * token
- */
-char* take_spelling(struct token* t);
-
 #endif
 

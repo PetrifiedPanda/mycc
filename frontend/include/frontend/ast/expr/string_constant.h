@@ -7,12 +7,15 @@
 
 struct string_constant {
     bool is_func;
-    struct string_literal lit;
+    union {
+        struct string_literal lit;
+        struct ast_node_info info;
+    };
 };
 
-struct string_constant create_string_constant(char* spelling);
+struct string_constant create_string_constant(char* spelling, struct source_loc loc);
 
-struct string_constant create_func_name(void);
+struct string_constant create_func_name(struct source_loc loc);
 
 void free_string_constant(struct string_constant* c);
 

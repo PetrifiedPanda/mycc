@@ -34,6 +34,18 @@ struct token create_token_copy(enum token_type type,
     return create_token(type, alloc_string_copy(spelling), file_loc, filename);
 }
 
+char* take_spelling(struct token* t) {
+    char* spelling = t->spelling;
+    t->spelling = NULL;
+    return spelling;
+}
+
+struct source_loc take_source_loc(struct token* t) {
+    struct source_loc res = t->loc;
+    t->loc.file = NULL;
+    return res;
+}
+
 void free_source_loc(struct source_loc* loc) {
     assert(loc);
     free(loc->file);

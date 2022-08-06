@@ -74,9 +74,3 @@ bool is_declaration(const struct parser_state* s) {
     return is_declaration_spec(s) || s->it->type == STATIC_ASSERT;
 }
 
-char* take_spelling(struct token* t) {
-    char* spelling = t->spelling;
-    t->spelling = NULL;
-    return spelling;
-}
-

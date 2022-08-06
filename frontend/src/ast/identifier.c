@@ -5,14 +5,15 @@
 
 #include "util/mem.h"
 
-void init_identifier(struct identifier* res, char* spelling) {
+void init_identifier(struct identifier* res, char* spelling, struct source_loc loc) {
     assert(res);
+    res->info = create_ast_node_info(loc);
     res->spelling = spelling;
 }
 
-struct identifier* create_identifier(char* spelling) {
+struct identifier* create_identifier(char* spelling, struct source_loc loc) {
     struct identifier* res = xmalloc(sizeof(struct identifier));
-    init_identifier(res, spelling);
+    init_identifier(res, spelling, loc);
     return res;
 }
 

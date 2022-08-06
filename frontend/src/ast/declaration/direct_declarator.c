@@ -177,8 +177,9 @@ static struct direct_declarator* parse_direct_declarator_base(
             return NULL;
         }
         char* spelling = take_spelling(s->it);
+        struct source_loc loc = take_source_loc(s->it);
         accept_it(s);
-        res->id = create_identifier(spelling);
+        res->id = create_identifier(spelling, loc);
     } else {
         free(res);
         enum token_type expected[] = {LBRACKET, IDENTIFIER};
