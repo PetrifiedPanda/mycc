@@ -599,8 +599,7 @@ static bool preproc_statement(struct preproc_state* state,
         if (state->err->type != PREPROC_ERR_NONE) {
             return false;
         }
-        char* spelling = arr->tokens[2].spelling;
-        arr->tokens[2].spelling = NULL;
+        char* spelling = take_spelling(&arr->tokens[2]);
         register_preproc_macro(state, spelling, &macro);
     } else if (strcmp(directive, "undef") == 0) {
         if (arr->len < 3) {

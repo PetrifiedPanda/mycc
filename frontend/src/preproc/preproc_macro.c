@@ -32,6 +32,8 @@ bool expand_preproc_macro(struct preproc_state* state,
     }
 }
 
+static struct token move_token(struct token* t);
+
 struct preproc_macro parse_preproc_macro(struct token_arr* arr, struct preproc_err* err) {
     assert(arr);
     assert(arr->tokens[0].type == STRINGIFY_OP);
@@ -154,12 +156,9 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr, struct preproc_e
                                       * res.expansion_len);
         for (size_t i = 3; i < arr->len; ++i) {
             const size_t res_idx = i - 3;
-            struct token* curr_tok = &arr->tokens[i];
             struct token_or_arg* res_curr = &res.expansion[res_idx];
             res_curr->is_arg = false;
-            res_curr->token = arr->tokens[i];
-            curr_tok->spelling = NULL;
-            curr_tok->loc.file = NULL;
+            res_curr->token = move_token(&arr->tokens[i]);
         }
     }
 
