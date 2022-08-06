@@ -56,7 +56,7 @@ struct tac_literal {
 };
 
 struct tac_reg {
-    size_t var_id;
+    size_t reg_id;
 };
 
 struct tac_reg_info {
