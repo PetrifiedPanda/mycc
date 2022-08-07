@@ -5,10 +5,13 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct type_name;
 struct assign_expr;
 
 struct generic_assoc {
+    struct ast_node_info info;
     struct type_name* type_name; // if NULL this is the default case
     struct assign_expr* assign;
 };

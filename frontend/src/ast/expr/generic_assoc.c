@@ -7,7 +7,8 @@
 bool parse_generic_assoc_inplace(struct parser_state* s,
                                  struct generic_assoc* res) {
     assert(res);
-
+    
+    res->info = create_ast_node_info(s->it->loc);
     if (s->it->type == DEFAULT) {
         accept_it(s);
         res->type_name = NULL;
@@ -41,3 +42,4 @@ void free_generic_assoc_children(struct generic_assoc* a) {
     }
     free_assign_expr(a->assign);
 }
+

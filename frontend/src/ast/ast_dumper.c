@@ -255,7 +255,7 @@ static void dump_generic_assoc(struct ast_dumper* d,
                                const struct generic_assoc* a) {
     assert(a);
 
-    dumper_println(d, "generic_assoc:");
+    dumper_print_node_head(d, "generic_assoc", &a->info);
 
     add_indent(d);
 
@@ -583,7 +583,7 @@ static void dump_abs_declarator(struct ast_dumper* d,
 static void dump_type_name(struct ast_dumper* d, const struct type_name* n) {
     assert(n);
 
-    dumper_println(d, "type_name:");
+    dumper_print_node_head(d, "type_name", &n->info);
 
     add_indent(d);
 
@@ -647,7 +647,7 @@ static void dump_init_list(struct ast_dumper* d, const struct init_list* l);
 static void dump_postfix_expr(struct ast_dumper* d, struct postfix_expr* e) {
     assert(e);
 
-    dumper_println(d, "postfix_expr:");
+    dumper_print_node_head(d, "postfix_expr", &e->info);
 
     add_indent(d);
 

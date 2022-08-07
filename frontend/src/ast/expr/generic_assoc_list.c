@@ -7,11 +7,11 @@
 struct generic_assoc_list parse_generic_assoc_list(struct parser_state* s) {
     size_t alloc_len = 1;
     struct generic_assoc_list res = {
+        .info = create_ast_node_info(s->it->loc),
         .len = 1,
         .assocs = xmalloc(sizeof(struct generic_assoc) * alloc_len),
     };
     
-    res.info = create_ast_node_info(s->it->loc);
     if (!parse_generic_assoc_inplace(s, &res.assocs[0])) {
         free(res.assocs);
         return (struct generic_assoc_list){.len = 0, .assocs = NULL};
@@ -46,3 +46,4 @@ void free_generic_assoc_list(struct generic_assoc_list* l) {
     }
     free(l->assocs);
 }
+

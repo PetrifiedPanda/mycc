@@ -9,7 +9,8 @@
 
 bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
     assert(res);
-
+    
+    res->info = create_ast_node_info(s->it->loc);
     if (is_type_spec(s) || is_type_qual(s->it->type)) {
         res->spec_qual_list = xmalloc(sizeof(struct spec_qual_list));
         *res->spec_qual_list = parse_spec_qual_list(s);

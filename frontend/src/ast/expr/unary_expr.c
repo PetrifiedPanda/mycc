@@ -82,10 +82,11 @@ static struct unary_expr* create_unary_expr_alignof(
 struct unary_expr* parse_unary_expr_type_name(struct parser_state* s,
                                               enum token_type* ops_before,
                                               size_t len,
-                                              struct type_name* type_name) {
+                                              struct type_name* type_name,
+                                              struct source_loc start_bracket_loc) {
     assert(type_name);
 
-    struct postfix_expr* postfix = parse_postfix_expr_type_name(s, type_name);
+    struct postfix_expr* postfix = parse_postfix_expr_type_name(s, type_name, start_bracket_loc);
     if (!postfix) {
         return NULL;
     }
@@ -129,6 +130,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
             case SIZEOF: {
                 accept_it(s);
                 assert(s->it->type == LBRACKET);
+                struct source_loc start_bracket_loc = s->it->loc;
                 if (next_is_type_name(s)) {
                     accept_it(s);
 
@@ -150,7 +152,8 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
                             s,
                             ops_before,
                             len,
-                            type_name);
+                            type_name,
+                            start_bracket_loc);
                         if (!res) {
                             free_type_name(type_name);
                             goto fail;
@@ -224,3 +227,4 @@ void free_unary_expr(struct unary_expr* u) {
     free_unary_expr_children(u);
     free(u);
 }
+

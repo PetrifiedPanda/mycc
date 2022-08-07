@@ -30,6 +30,7 @@ struct postfix_suffix {
 };
 
 struct postfix_expr {
+    struct ast_node_info info;
     bool is_primary;
     union {
         struct primary_expr* primary;
@@ -44,8 +45,17 @@ struct postfix_expr {
 
 struct postfix_expr* parse_postfix_expr(struct parser_state* s);
 
+/**
+ *
+ * @param s current state
+ * @param type_name A type name that was already parsed by parse_unary_expr
+ * @param start_bracket_loc Location of the bracket starting this expr
+ *
+ * @return A postfix_expr that uses the given type_name
+ */
 struct postfix_expr* parse_postfix_expr_type_name(struct parser_state* s,
-                                                  struct type_name* type_name);
+                                                  struct type_name* type_name,
+                                                  struct source_loc start_bracket_loc);
 
 void free_postfix_expr(struct postfix_expr* p);
 
@@ -55,3 +65,4 @@ void free_postfix_expr(struct postfix_expr* p);
 #include "frontend/ast/identifier.h"
 
 #endif
+

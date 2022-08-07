@@ -5,9 +5,12 @@ struct spec_qual_list;
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct abs_declarator;
 
 struct type_name {
+    struct ast_node_info info;
     struct spec_qual_list* spec_qual_list;
     struct abs_declarator* abstract_decl;
 };

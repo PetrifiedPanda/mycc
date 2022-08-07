@@ -149,6 +149,7 @@ static bool parse_postfix_suffixes(struct parser_state* s,
 
 struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
     struct postfix_expr* res = xmalloc(sizeof(struct postfix_expr));
+    res->info = create_ast_node_info(s->it->loc);
     res->suffixes = NULL;
     res->len = 0;
 
@@ -208,11 +209,13 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
  * @return A postfix_expr that uses the given type_name
  */
 struct postfix_expr* parse_postfix_expr_type_name(struct parser_state* s,
-                                                  struct type_name* type_name) {
+                                                  struct type_name* type_name,
+                                                  struct source_loc start_bracket_loc) {
     assert(type_name);
     assert(s->it->type == LBRACE);
 
     struct postfix_expr* res = xmalloc(sizeof(struct postfix_expr));
+    res->info = create_ast_node_info(start_bracket_loc);
     res->len = 0;
     res->suffixes = NULL;
     res->is_primary = false;

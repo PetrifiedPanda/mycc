@@ -10,7 +10,12 @@
 static bool parse_cast_expr_rest(struct parser_state* s,
                                  struct cast_expr* res) {
     size_t alloc_len = res->len;
+    struct source_loc last_lbracket_loc = {
+        .file_idx = -1,
+        .file_loc = {0, 0},
+    };
     while (s->it->type == LBRACKET && next_is_type_name(s)) {
+        last_lbracket_loc = s->it->loc;
         accept_it(s);
 
         if (res->len == alloc_len) {
@@ -30,6 +35,7 @@ static bool parse_cast_expr_rest(struct parser_state* s,
     }
 
     if (s->it->type == LBRACE) {
+        assert(res->len > 0);
         struct type_name* type_name = xmalloc(sizeof(struct type_name));
 
         --res->len;
@@ -40,7 +46,7 @@ static bool parse_cast_expr_rest(struct parser_state* s,
                                        res->len * sizeof(struct type_name));
         }
 
-        res->rhs = parse_unary_expr_type_name(s, NULL, 0, type_name);
+        res->rhs = parse_unary_expr_type_name(s, NULL, 0, type_name, last_lbracket_loc);
     } else {
         if (res->type_names) {
             res->type_names = xrealloc(res->type_names,
