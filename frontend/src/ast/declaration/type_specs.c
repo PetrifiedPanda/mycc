@@ -44,7 +44,7 @@ struct type_specs create_type_specs(void) {
 
 static void cannot_combine_with_spec_err(const struct parser_state* s,
                                          enum token_type prev_spec) {
-    set_parser_err(s->err, PARSER_ERR_INCOMPATIBLE_TYPE_SPECS, &s->it->loc);
+    set_parser_err(s->err, PARSER_ERR_INCOMPATIBLE_TYPE_SPECS, s->it->loc);
     s->err->type_spec = s->it->type;
     s->err->prev_type_spec = prev_spec;
 }
@@ -61,7 +61,7 @@ static bool update_standalone_type_spec(struct parser_state* s,
             if (res->has_specifier) {
                 set_parser_err(s->err,
                                PARSER_ERR_DISALLOWED_TYPE_QUALS,
-                               &s->it->loc);
+                               s->it->loc);
                 s->err->incompatible_type = s->it->type;
                 free_type_specs_children(res);
                 return false;
@@ -148,13 +148,13 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
         case IDENTIFIER: {
             if (is_typedef_name(s, s->it->spelling)) {
                 res->type = TYPESPEC_TYPENAME;
-                res->typedef_name = create_identifier(take_spelling(s->it), take_source_loc(s->it));
+                res->typedef_name = create_identifier(take_spelling(s->it), s->it->loc);
                 accept_it(s);
                 break;
             } else {
                 set_parser_err(s->err,
                                PARSER_ERR_EXPECTED_TYPEDEF_NAME,
-                               &s->it->loc);
+                               s->it->loc);
                 s->err->non_typedef_spelling = take_spelling(s->it);
                 return false;
             }

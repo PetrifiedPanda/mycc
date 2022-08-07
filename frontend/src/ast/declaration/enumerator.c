@@ -23,14 +23,13 @@ bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* res) {
     }
 
     char* spell = take_spelling(id_token);
-    struct source_loc loc = take_source_loc(id_token);
+    struct source_loc loc = id_token->loc;
 
     struct const_expr* enum_val = NULL;
     if (s->it->type == ASSIGN) {
         accept_it(s);
         enum_val = parse_const_expr(s);
         if (!enum_val) {
-            free_source_loc(&loc);
             free(spell);
             return false;
         }

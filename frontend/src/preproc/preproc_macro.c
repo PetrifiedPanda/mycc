@@ -139,7 +139,6 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr, struct preproc_e
             res_curr->is_arg = false;
             res_curr->token = *curr_tok;
             curr_tok->spelling = NULL;
-            curr_tok->loc.file = NULL;
         }
         
         // cast to make msvc happy (though it shouldn't be like this)
@@ -179,7 +178,6 @@ static struct token copy_token(const struct token* t);
 static struct token move_token(struct token* t) {
     struct token res = *t;
     t->spelling = NULL;
-    t->loc.file = NULL;
     return res;
 }
 
@@ -292,13 +290,13 @@ struct macro_args collect_macro_args(struct token* args_start,
     }
 
     if (res.len < expected_args) {
-        set_preproc_err(err, PREPROC_ERR_MACRO_ARG_COUNT, &it->loc);
+        set_preproc_err(err, PREPROC_ERR_MACRO_ARG_COUNT, it->loc);
         err->expected_arg_count = expected_args;
         err->is_variadic = is_variadic;
         err->too_few_args = true;
         goto fail;
     } else if (it != limit_ptr) {
-        set_preproc_err(err, PREPROC_ERR_MACRO_ARG_COUNT, &it->loc);
+        set_preproc_err(err, PREPROC_ERR_MACRO_ARG_COUNT, it->loc);
         err->expected_arg_count = expected_args;
         err->is_variadic = is_variadic;
         err->too_few_args = false;
@@ -467,7 +465,7 @@ static struct token copy_token(const struct token* t) {
         // TODO: identify as token from macro expansion
         .loc =
             {
-                .file = alloc_string_copy(t->loc.file),
+                .file_idx = t->loc.file_idx,
                 .file_loc = t->loc.file_loc,
             },
     };

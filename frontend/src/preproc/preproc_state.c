@@ -6,7 +6,7 @@
 
 #include "frontend/preproc/preproc_macro.h"
 
-struct preproc_state create_preproc_state(struct preproc_err* err) {
+struct preproc_state create_preproc_state(const char* start_file, struct preproc_err* err) {
     return (struct preproc_state){
         .res =
             {
@@ -23,6 +23,7 @@ struct preproc_state create_preproc_state(struct preproc_err* err) {
             100,
             true,
             (void (*)(void*))free_preproc_macro),
+        .file_info = create_file_info(alloc_string_copy(start_file)),
     };
 }
 
@@ -61,7 +62,6 @@ void push_preproc_cond(struct preproc_state* state,
 }
 
 void pop_preproc_cond(struct preproc_state* state) {
-    free_source_loc(&state->conds[state->conds_len - 1].loc);
     --state->conds_len;
 }
 
@@ -80,5 +80,6 @@ void free_preproc_state(struct preproc_state* state) {
     free_token_arr(&state->res);
     free(state->conds);
     free_string_hash_map(&state->_macro_map);
+    free_file_info(&state->file_info);
 }
 

@@ -32,7 +32,7 @@ TEST(parser_state) {
         *item = create_token_copy(IDENTIFIER,
                                   insert_string,
                                   (struct file_loc){0, 0},
-                                  "file.c");
+                                  0);
         if (i % 2 == 0) {
             ASSERT(register_enum_constant(&s, item));
         } else {
@@ -96,7 +96,7 @@ TEST(parser_state) {
         .spelling = "Test",
         .loc =
             {
-                .file = "file.c",
+                .file_idx = 0,
                 .file_loc = {.line = 0, .index = 0},
             },
     };
@@ -106,7 +106,7 @@ TEST(parser_state) {
     ASSERT(err.type == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT_STR(err.redefined_symbol, "Test");
     ASSERT(!err.was_typedef_name);
-    ASSERT_STR(err.prev_def_file, "file.c");
+    ASSERT_SIZE_T(err.prev_def_file, (size_t)0);
     ASSERT_SIZE_T(err.prev_def_loc.line, (size_t)0);
     ASSERT_SIZE_T(err.prev_def_loc.index, (size_t)0);
 
@@ -118,7 +118,7 @@ TEST(parser_state) {
     ASSERT(err.type == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT_STR(err.redefined_symbol, "Test");
     ASSERT(!err.was_typedef_name);
-    ASSERT_STR(err.prev_def_file, "file.c");
+    ASSERT_SIZE_T(err.prev_def_file, (size_t)0);
     ASSERT_SIZE_T(err.prev_def_loc.line, (size_t)0);
     ASSERT_SIZE_T(err.prev_def_loc.index, (size_t)0);
 

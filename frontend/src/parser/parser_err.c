@@ -12,13 +12,12 @@
 struct parser_err create_parser_err(void) {
     return (struct parser_err){
         .type = PARSER_ERR_NONE,
-        .base.loc.file = NULL,
     };
 }
 
 void set_parser_err(struct parser_err* err,
                     enum parser_err_type type,
-                    struct source_loc* loc) {
+                    struct source_loc loc) {
     assert(err);
     assert(type != PARSER_ERR_NONE);
     assert(err->type == PARSER_ERR_NONE);
@@ -27,22 +26,10 @@ void set_parser_err(struct parser_err* err,
     err->base = create_err_base(loc);
 }
 
-void set_parser_err_copy(struct parser_err* err,
-                         enum parser_err_type type,
-                         const struct source_loc* loc) {
-    assert(err);
-    assert(type != PARSER_ERR_NONE);
-    assert(err->type == PARSER_ERR_NONE);
-    assert(loc);
-
-    err->type = type;
-    err->base = create_err_base_copy(loc);
-}
-
-void print_parser_err(FILE* out, const struct parser_err* err) {
+void print_parser_err(FILE* out, const struct file_info* file_info, const struct parser_err* err) {
     assert(err->type != PARSER_ERR_NONE);
 
-    print_err_base(out, &err->base);
+    print_err_base(out, file_info, &err->base);
     switch (err->type) {
         case PARSER_ERR_NONE:
             UNREACHABLE();
@@ -64,6 +51,8 @@ void print_parser_err(FILE* out, const struct parser_err* err) {
             break;
         }
         case PARSER_ERR_REDEFINED_SYMBOL: {
+            assert(err->prev_def_file < file_info->len);
+            const char* path = file_info->paths[err->prev_def_file];
             const char* type_str = err->was_typedef_name ? "typedef name"
                                                          : "enum constant";
             fprintf(out,
@@ -71,7 +60,7 @@ void print_parser_err(FILE* out, const struct parser_err* err) {
                     "%s(%zu, %zu)",
                     err->redefined_symbol,
                     type_str,
-                    err->prev_def_file,
+                    path,
                     err->prev_def_loc.line,
                     err->prev_def_loc.index);
             break;
@@ -121,15 +110,12 @@ void print_parser_err(FILE* out, const struct parser_err* err) {
 }
 
 void free_parser_err(struct parser_err* err) {
-    free_err_base(&err->base);
-
     switch (err->type) {
         case PARSER_ERR_EXPECTED_TOKENS:
             free(err->expected);
             break;
         case PARSER_ERR_REDEFINED_SYMBOL:
             free(err->redefined_symbol);
-            free(err->prev_def_file);
             break;
         case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
             free(err->non_typedef_spelling);

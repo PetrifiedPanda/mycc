@@ -35,7 +35,7 @@ struct parser_err {
         struct { // redefined symbol
             char* redefined_symbol;
             bool was_typedef_name;
-            char* prev_def_file;
+            size_t prev_def_file;
             struct file_loc prev_def_loc;
         };
         struct { // incompatible type specs
@@ -51,13 +51,11 @@ struct parser_err create_parser_err(void);
 
 void set_parser_err(struct parser_err* err,
                     enum parser_err_type type,
-                    struct source_loc* loc);
+                    struct source_loc loc);
 
-void set_parser_err_copy(struct parser_err* err,
-                         enum parser_err_type type,
-                         const struct source_loc* loc);
-
-void print_parser_err(FILE* out, const struct parser_err* err);
+void print_parser_err(FILE* out,
+                      const struct file_info* file_info,
+                      const struct parser_err* err);
 
 void free_parser_err(struct parser_err* err);
 

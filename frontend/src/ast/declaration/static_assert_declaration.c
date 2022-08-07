@@ -27,7 +27,7 @@ struct static_assert_declaration* parse_static_assert_declaration(
     }
 
     char* spell = take_spelling(s->it);
-    struct source_loc loc = take_source_loc(s->it);
+    struct source_loc loc = s->it->loc;
     accept_it(s);
 
     if (!(accept(s, RBRACKET) && accept(s, SEMICOLON))) {

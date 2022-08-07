@@ -6,21 +6,22 @@
 
 #include "frontend/preproc/preproc.h"
 
-struct token* tokenize(const char* file) {
+struct preproc_res tokenize(const char* file) {
     struct preproc_err err = create_preproc_err();
-    struct token* res = preproc(file, &err);
-    ASSERT_NOT_NULL(res);
+    struct preproc_res res = preproc(file, &err);
+    ASSERT_NOT_NULL(res.toks);
+    ASSERT_NOT_NULL(res.file_info.paths);
     ASSERT(err.type == PREPROC_ERR_NONE);
-    convert_preproc_tokens(res);
+    convert_preproc_tokens(res.toks);
     return res;
 }
 
-struct token* tokenize_string(const char* str, const char* file) {
+struct preproc_res tokenize_string(const char* str, const char* file) {
     struct preproc_err err = create_preproc_err();
-    struct token* res = preproc_string(str, file, &err);
-    ASSERT_NOT_NULL(res);
+    struct preproc_res res = preproc_string(str, file, &err);
+    ASSERT_NOT_NULL(res.toks);
     ASSERT(err.type == PREPROC_ERR_NONE);
-    convert_preproc_tokens(res);
+    convert_preproc_tokens(res.toks);
     return res;
 }
 

@@ -19,7 +19,7 @@ bool parse_struct_declaration_inplace(struct parser_state* s,
         }
 
         if (found_typedef) {
-            set_parser_err(s->err, PARSER_ERR_TYPEDEF_STRUCT, &s->it->loc);
+            set_parser_err(s->err, PARSER_ERR_TYPEDEF_STRUCT, s->it->loc);
         }
 
         if (s->it->type != SEMICOLON) {

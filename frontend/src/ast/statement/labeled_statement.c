@@ -26,7 +26,7 @@ struct labeled_statement* parse_labeled_statement(struct parser_state* s) {
         case IDENTIFIER: {
             res->type = IDENTIFIER;
             char* spelling = take_spelling(s->it);
-            struct source_loc loc = take_source_loc(s->it);
+            struct source_loc loc = s->it->loc;
             accept_it(s);
             res->identifier = create_identifier(spelling, loc);
             break;

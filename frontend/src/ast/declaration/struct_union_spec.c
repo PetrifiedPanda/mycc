@@ -37,7 +37,7 @@ struct struct_union_spec* parse_struct_union_spec(struct parser_state* s) {
     struct identifier* id = NULL;
     if (s->it->type == IDENTIFIER) {
         char* spell = take_spelling(s->it);
-        struct source_loc loc = take_source_loc(s->it);
+        struct source_loc loc = s->it->loc;
         accept_it(s);
         id = create_identifier(spell, loc);
     }

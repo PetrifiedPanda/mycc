@@ -15,7 +15,7 @@ struct identifier_list parse_identifier_list(struct parser_state* s) {
         .identifiers = xmalloc(sizeof(struct identifier)),
     };
     char* spell = take_spelling(s->it);
-    struct source_loc loc = take_source_loc(s->it);
+    struct source_loc loc = s->it->loc;
     accept_it(s);
     init_identifier(res.identifiers, spell, loc);
 
@@ -34,7 +34,7 @@ struct identifier_list parse_identifier_list(struct parser_state* s) {
             return (struct identifier_list){.len = 0, .identifiers = NULL};
         }
         spell = take_spelling(s->it);
-        loc = take_source_loc(s->it); 
+        loc = s->it->loc; 
         accept_it(s);
         init_identifier(&res.identifiers[res.len], spell, loc);
 

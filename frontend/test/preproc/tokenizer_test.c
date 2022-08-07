@@ -18,9 +18,9 @@ static void check_size(const struct token* tokens, size_t expected) {
     ASSERT_SIZE_T(size, expected);
 }
 
-static void check_file(const struct token* tokens, const char* file) {
+static void check_file(const struct token* tokens, size_t file_idx) {
     for (const struct token* it = tokens; it->type != INVALID; ++it) {
-        ASSERT_STR(it->loc.file, file);
+        ASSERT_SIZE_T(it->loc.file_idx, file_idx);
     }
 }
 
@@ -32,7 +32,7 @@ static struct token create(enum token_type type,
         .type = type,
         .spelling = (char*)spelling,
         .loc = {
-            .file = NULL,
+            .file_idx = 0,
             .file_loc = {line, index},
         },
     };
@@ -72,8 +72,8 @@ TEST(simple) {
                "int arr[1 ? 100 : 1000];\n";
 
     const char* filename = "not_a_file.c";
-    struct token* tokens = tokenize_string(code, filename);
-    ASSERT_NOT_NULL(tokens);
+    struct preproc_res preproc_res = tokenize_string(code, filename);
+    ASSERT_NOT_NULL(preproc_res.toks);
 
     struct token expected[] = {
         create(TYPEDEF, NULL, 1, 1),
@@ -140,19 +140,19 @@ TEST(simple) {
         EXPECTED_SIZE = sizeof expected / sizeof(struct token)
     };
 
-    check_size(tokens, EXPECTED_SIZE);
-    check_file(tokens, filename);
+    check_size(preproc_res.toks, EXPECTED_SIZE);
+    check_file(preproc_res.toks, 0);
 
-    compare_tokens(tokens, expected, EXPECTED_SIZE);
+    compare_tokens(preproc_res.toks, expected, EXPECTED_SIZE);
 
-    free_tokens(tokens);
+    free_preproc_res(&preproc_res);
 }
 
 TEST(file) {
     const char* filename = "../frontend/test/files/no_preproc.c";
 
-    struct token* tokens = tokenize(filename);
-    ASSERT_NOT_NULL(tokens);
+    struct preproc_res preproc_res = tokenize(filename);
+    ASSERT_NOT_NULL(preproc_res.toks);
 
     struct token expected[] = {
         create(TYPEDEF, NULL, 3, 1),
@@ -806,12 +806,12 @@ TEST(file) {
     enum {
         EXPECTED_SIZE = sizeof expected / sizeof(struct token)
     };
-    check_size(tokens, EXPECTED_SIZE);
-    check_file(tokens, filename);
+    check_size(preproc_res.toks, EXPECTED_SIZE);
+    check_file(preproc_res.toks, 0);
 
-    compare_tokens(tokens, expected, EXPECTED_SIZE);
+    compare_tokens(preproc_res.toks, expected, EXPECTED_SIZE);
 
-    free_tokens(tokens);
+    free_preproc_res(&preproc_res);
 }
 
 TEST_SUITE_BEGIN(tokenizer, 2) {

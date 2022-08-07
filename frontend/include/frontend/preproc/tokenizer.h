@@ -18,7 +18,7 @@ bool tokenize_line(struct token_arr* res,
                    struct preproc_err* err,
                    const char* line,
                    size_t line_num,
-                   const char* file,
+                   size_t file_idx,
                    bool* comment_not_terminated);
 
 #endif

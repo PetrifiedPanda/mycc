@@ -11,7 +11,7 @@ struct file_loc {
 };
 
 struct source_loc {
-    char* file;
+    size_t file_idx;
     struct file_loc file_loc;
 };
 
@@ -32,7 +32,7 @@ struct token {
 struct token create_token(enum token_type type,
                           char* spelling,
                           struct file_loc file_loc,
-                          const char* filename);
+                          size_t file_idx);
 
 /**
  *
@@ -45,15 +45,9 @@ struct token create_token(enum token_type type,
 struct token create_token_copy(enum token_type type,
                                const char* spelling,
                                struct file_loc file_loc,
-                               const char* filename);
+                               size_t file_idx);
 
 char* take_spelling(struct token* t);
-
-struct source_loc take_source_loc(struct token* t);
-
-struct source_loc copy_source_loc(struct source_loc loc);
-
-void free_source_loc(struct source_loc* loc);
 
 void free_token(struct token* t);
 

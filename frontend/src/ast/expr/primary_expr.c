@@ -64,7 +64,7 @@ struct primary_expr* parse_primary_expr(struct parser_state* s) {
     switch (s->it->type) {
         case IDENTIFIER: {
             char* spelling = take_spelling(s->it);
-            struct source_loc loc = take_source_loc(s->it);
+            struct source_loc loc = s->it->loc;
             accept_it(s);
             if (is_enum_constant(s, spelling)) {
                 return create_primary_expr_constant(
@@ -77,21 +77,21 @@ struct primary_expr* parse_primary_expr(struct parser_state* s) {
         case I_CONSTANT: {
             enum token_type type = s->it->type;
             char* spelling = take_spelling(s->it);
-            struct source_loc loc = take_source_loc(s->it);
+            struct source_loc loc = s->it->loc;
             accept_it(s);
             return create_primary_expr_constant(
                 create_constant(type, spelling, loc));
         }
         case STRING_LITERAL: {
             char* spelling = take_spelling(s->it);
-            struct source_loc loc = take_source_loc(s->it);
+            struct source_loc loc = s->it->loc;
             accept_it(s);
             return create_primary_expr_string(
                 create_string_constant(spelling, loc));
         }
         case FUNC_NAME: {
             accept_it(s);
-            struct source_loc loc = take_source_loc(s->it);
+            struct source_loc loc = s->it->loc;
             return create_primary_expr_string(create_func_name(loc));
         }
         case GENERIC: {
@@ -103,16 +103,14 @@ struct primary_expr* parse_primary_expr(struct parser_state* s) {
         }
 
         default: {
-            struct token* start_tok = s->it;
+            struct source_loc loc = s->it->loc;
             if (accept(s, LBRACKET)) {
                 struct expr* bracket_expr = parse_expr(s);
                 if (!bracket_expr) {
                     return NULL;
                 }
                 if (accept(s, RBRACKET)) {
-                    return create_primary_expr_bracket(
-                        bracket_expr,
-                        take_source_loc(start_tok));
+                    return create_primary_expr_bracket(bracket_expr, loc);
                 } else {
                     free_expr(bracket_expr);
                     return NULL;
@@ -139,7 +137,6 @@ static void free_children(struct primary_expr* e) {
             break;
 
         case PRIMARY_EXPR_BRACKET:
-            free_ast_node_info(&e->info);
             free_expr(e->bracket_expr);
             break;
 

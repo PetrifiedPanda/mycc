@@ -12,13 +12,12 @@
 struct preproc_err create_preproc_err(void) {
     return (struct preproc_err){
         .type = PREPROC_ERR_NONE,
-        .base.loc.file = NULL,
     };
 }
 
 void set_preproc_err(struct preproc_err* err,
                      enum preproc_err_type type,
-                     struct source_loc* loc) {
+                     struct source_loc loc) {
     assert(err);
     assert(type != PREPROC_ERR_NONE);
     assert(err->type == PREPROC_ERR_NONE); 
@@ -27,20 +26,7 @@ void set_preproc_err(struct preproc_err* err,
     err->base = create_err_base(loc);
 }
 
-void set_preproc_err_copy(struct preproc_err* err,
-                          enum preproc_err_type type,
-                          const struct source_loc* loc) {
-    assert(err);
-    assert(type != PREPROC_ERR_NONE);
-    assert(err->type == PREPROC_ERR_NONE);
-    assert(loc);
-    assert(loc->file);
-
-    err->type = type;
-    err->base = create_err_base_copy(loc);
-}
-
-void print_preproc_err(FILE* out, struct preproc_err* err) {
+void print_preproc_err(FILE* out, const struct file_info* file_info, struct preproc_err* err) {
     assert(err->type != PREPROC_ERR_NONE);
 
     switch (err->type) {
@@ -48,26 +34,29 @@ void print_preproc_err(FILE* out, struct preproc_err* err) {
             UNREACHABLE();
             break;
         case PREPROC_ERR_FILE_FAIL:
-            if (err->base.loc.file) {
-                print_err_base(out, &err->base);
+            if (err->base.loc.file_idx != (size_t)-1) {
+                print_err_base(out, file_info, &err->base);
             }
+            
+            assert(err->fail_file < file_info->len);
+            const char* fail_path = file_info->paths[err->fail_file];
             if (err->open_fail) {
-                fprintf(out, "Failed to open file %s", err->fail_file);
+                fprintf(out, "Failed to open file %s", fail_path);
             } else {
-                fprintf(out, "Failed to close file %s", err->fail_file);
+                fprintf(out, "Failed to close file %s", fail_path);
             }
             break;
         case PREPROC_ERR_UNTERMINATED_LIT:
-            print_err_base(out, &err->base);
+            print_err_base(out, file_info, &err->base);
             fprintf(out, "%s literal not properly terminated",
                    err->is_char_lit ? "Char" : "String");
             break;
         case PREPROC_ERR_INVALID_ID:
-            print_err_base(out, &err->base);
+            print_err_base(out, file_info, &err->base);
             fprintf(out, "Invalid identifier: %s", err->invalid_id);
             break;
         case PREPROC_ERR_MACRO_ARG_COUNT:
-            print_err_base(out, &err->base);
+            print_err_base(out, file_info, &err->base);
             if (err->too_few_args) {
                 fprintf(out, "Too few arguments in function-like macro invocation: "
                        "Expected%s %zu arguments",
@@ -80,7 +69,7 @@ void print_preproc_err(FILE* out, struct preproc_err* err) {
             }
             break;
         case PREPROC_ERR_UNTERMINATED_MACRO:
-            print_err_base(out, &err->base);
+            print_err_base(out, file_info, &err->base);
             fprintf(out, "Unterminated macro invocation");
             break;
     }
@@ -90,14 +79,11 @@ void print_preproc_err(FILE* out, struct preproc_err* err) {
 void free_preproc_err(struct preproc_err* err) {
     assert(err);
 
-    free_err_base(&err->base);
     switch (err->type) {
-        case PREPROC_ERR_FILE_FAIL:
-            free(err->fail_file);
-            break;
         case PREPROC_ERR_INVALID_ID:
             free(err->invalid_id);
             break;
+        case PREPROC_ERR_FILE_FAIL:
         case PREPROC_ERR_MACRO_ARG_COUNT:
         case PREPROC_ERR_NONE:
         case PREPROC_ERR_UNTERMINATED_LIT:

@@ -23,10 +23,10 @@ static void test_preproc_macro(const struct preproc_macro* macro,
                                const char* input,
                                const char* output) {
     struct preproc_err input_err = create_preproc_err();
-    struct token* tokens = preproc_string(input, "source_file.c", &input_err);
+    struct preproc_res res = preproc_string(input, "source_file.c", &input_err);
     ASSERT(input_err.type == PREPROC_ERR_NONE);
 
-    const size_t tokens_len = get_tokens_len(tokens);
+    const size_t tokens_len = get_tokens_len(res.toks);
 
     struct preproc_err err = create_preproc_err();
     struct preproc_state state = {
@@ -34,41 +34,41 @@ static void test_preproc_macro(const struct preproc_macro* macro,
             {
                 .len = tokens_len,
                 .cap = tokens_len,
-                .tokens = tokens,
+                .tokens = res.toks,
             },
         .err = &err,
     };
 
     const struct token* macro_end = macro_end_idx != (size_t)-1
-                                        ? tokens + macro_end_idx
+                                        ? res.toks + macro_end_idx
                                         : NULL;
     ASSERT(expand_preproc_macro(&state, macro, macro_idx, macro_end));
     ASSERT(err.type == PREPROC_ERR_NONE);
 
     struct preproc_err output_err = create_preproc_err();
-    struct token* expected = preproc_string(output,
+    struct preproc_res expected = preproc_string(output,
                                             "source_file.c",
                                             &output_err);
     ASSERT(output_err.type == PREPROC_ERR_NONE);
 
-    ASSERT_SIZE_T(state.res.len, get_tokens_len(expected));
+    ASSERT_SIZE_T(state.res.len, get_tokens_len(expected.toks));
 
     for (size_t i = 0; i < state.res.len; ++i) {
-        ASSERT_TOKEN_TYPE(state.res.tokens[i].type, expected[i].type);
-        ASSERT_STR(state.res.tokens[i].spelling, expected[i].spelling);
+        ASSERT_TOKEN_TYPE(state.res.tokens[i].type, expected.toks[i].type);
+        ASSERT_STR(state.res.tokens[i].spelling, expected.toks[i].spelling);
         free_token(&state.res.tokens[i]);
     }
     free(state.res.tokens);
-    free_tokens(expected);
+    free_file_info(&res.file_info);
+    free_preproc_res(&expected);
 }
 
 TEST(object_like) {
-    char* macro_file = (char*)"macro_file.c";
     // #define MACRO 1 + 2
     struct token_or_arg expansion[] = {
-        {.is_arg = false, .token = {I_CONSTANT, "1", {macro_file, {1, 15}}}},
-        {.is_arg = false, .token = {ADD, NULL, {macro_file, {1, 17}}}},
-        {.is_arg = false, .token = {I_CONSTANT, "2", {macro_file, {1, 19}}}},
+        {.is_arg = false, .token = {I_CONSTANT, "1", {0, {1, 15}}}},
+        {.is_arg = false, .token = {ADD, NULL, {0, {1, 17}}}},
+        {.is_arg = false, .token = {I_CONSTANT, "2", {0, {1, 19}}}},
     };
     enum {
         EXP_LEN = sizeof(expansion) / sizeof(struct token_or_arg)
@@ -126,16 +126,14 @@ TEST(object_like_empty) {
 }
 
 TEST(func_like) {
-    char* macro_file = "macro_file.c";
-
     // #define FUNC_LIKE_MACRO(x, y) x + y * 3 - y
     struct token_or_arg ex1[] = {
         {.is_arg = true, .arg_num = 0},
-        {.is_arg = false, .token = {ADD, NULL, {macro_file, {1, 33}}}},
+        {.is_arg = false, .token = {ADD, NULL, {0, {1, 33}}}},
         {.is_arg = true, .arg_num = 1},
-        {.is_arg = false, .token = {ASTERISK, NULL, {macro_file, {1, 37}}}},
-        {.is_arg = false, .token = {I_CONSTANT, "3", {macro_file, {1, 39}}}},
-        {.is_arg = false, .token = {SUB, NULL, {macro_file, {1, 41}}}},
+        {.is_arg = false, .token = {ASTERISK, NULL, {0, {1, 37}}}},
+        {.is_arg = false, .token = {I_CONSTANT, "3", {0, {1, 39}}}},
+        {.is_arg = false, .token = {SUB, NULL, {0, {1, 41}}}},
         {.is_arg = true, .arg_num = 1},
     };
 
@@ -186,9 +184,9 @@ TEST(func_like) {
 
     // #define YET_ANOTHER_FUNC_LIKE() 1 + 1
     struct token_or_arg ex3[] = {
-        {.is_arg = false, .token = {I_CONSTANT, "1", {macro_file, {1, 33}}}},
-        {.is_arg = false, .token = {ADD, NULL, {macro_file, {1, 35}}}},
-        {.is_arg = false, .token = {I_CONSTANT, "1", {macro_file, {1, 37}}}},
+        {.is_arg = false, .token = {I_CONSTANT, "1", {0, {1, 33}}}},
+        {.is_arg = false, .token = {ADD, NULL, {0, {1, 35}}}},
+        {.is_arg = false, .token = {I_CONSTANT, "1", {0, {1, 37}}}},
     };
 
     const struct preproc_macro macro3 = {
@@ -208,14 +206,12 @@ TEST(func_like) {
 }
 
 TEST(func_like_variadic) {
-    char* macro_file = "macro_file.c";
-
     // #define CALL_FUNC(func, ...) func(__VA_ARGS__)
     struct token_or_arg ex1[] = {
         {.is_arg = true, .arg_num = 0},
-        {.is_arg = false, .token = {LBRACKET, NULL, {macro_file, {1, 33}}}},
+        {.is_arg = false, .token = {LBRACKET, NULL, {0, {1, 33}}}},
         {.is_arg = true, .arg_num = 1},
-        {.is_arg = false, .token = {RBRACKET, NULL, {macro_file, {1, 45}}}},
+        {.is_arg = false, .token = {RBRACKET, NULL, {0, {1, 45}}}},
     };
 
     const struct preproc_macro macro1 = {
@@ -236,10 +232,10 @@ TEST(func_like_variadic) {
 
     // #define ONLY_VARARGS(...) 1, 2, __VA_ARGS__
     struct token_or_arg ex2[] = {
-        {.is_arg = false, .token = {I_CONSTANT, "1", {macro_file, {1, 27}}}},
-        {.is_arg = false, .token = {COMMA, NULL, {macro_file, {1, 28}}}},
-        {.is_arg = false, .token = {I_CONSTANT, "2", {macro_file, {1, 30}}}},
-        {.is_arg = false, .token = {COMMA, NULL, {macro_file, {1, 31}}}},
+        {.is_arg = false, .token = {I_CONSTANT, "1", {0, {1, 27}}}},
+        {.is_arg = false, .token = {COMMA, NULL, {0, {1, 28}}}},
+        {.is_arg = false, .token = {I_CONSTANT, "2", {0, {1, 30}}}},
+        {.is_arg = false, .token = {COMMA, NULL, {0, {1, 31}}}},
         {.is_arg = true, .arg_num = 0},
     };
 

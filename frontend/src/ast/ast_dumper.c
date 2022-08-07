@@ -9,6 +9,7 @@
 struct ast_dumper {
     FILE* file;
     size_t num_indents;
+    const struct file_info* file_info;
     jmp_buf err_buf;
 };
 
@@ -49,10 +50,12 @@ static void dumper_print_node_head(struct ast_dumper* d,
                                    const char* name,
                                    const struct ast_node_info* node) {
     const struct source_loc* loc = &node->loc;
+    assert(loc->file_idx < d->file_info->len);
+    const char* file_path = d->file_info->paths[loc->file_idx];
     dumper_println(d,
                    "%s: %s:%zu,%zu",
                    name,
-                   loc->file,
+                   file_path,
                    loc->file_loc.line,
                    loc->file_loc.index);
 }
@@ -60,9 +63,10 @@ static void dumper_print_node_head(struct ast_dumper* d,
 static void dump_translation_unit(struct ast_dumper* d,
                                   const struct translation_unit* tl);
 
-bool dump_ast(const struct translation_unit* tl, FILE* f) {
+bool dump_ast(const struct translation_unit* tl, const struct file_info* file_info, FILE* f) {
     struct ast_dumper d = {
         .file = f,
+        .file_info = file_info,
         .num_indents = 0,
     };
 

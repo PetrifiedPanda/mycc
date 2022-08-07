@@ -10,6 +10,5 @@ struct string_literal create_string_literal(char* spelling, struct source_loc lo
 }
 
 void free_string_literal(struct string_literal* l) {
-    free_ast_node_info(&l->info);
     free(l->spelling);
 }

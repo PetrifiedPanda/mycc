@@ -6,31 +6,35 @@
 TEST(unterminated_literal) {
     {
         struct preproc_err err = create_preproc_err();
-        struct token* tokens = preproc_string("\"this is a string literal",
+        struct preproc_res res = preproc_string("\"this is a string literal",
                                               "file.c",
                                               &err);
-        ASSERT_NULL(tokens);
+        ASSERT_NULL(res.toks);
+        ASSERT_SIZE_T(res.file_info.len, (size_t)0);
+        ASSERT_NULL(res.file_info.paths);
         
         ASSERT(err.type == PREPROC_ERR_UNTERMINATED_LIT);
         ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
         ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)1);
-        ASSERT_STR(err.base.loc.file, "file.c");
+        ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
         ASSERT(!err.is_char_lit);
         
         free_preproc_err(&err);
     }
     {
         struct preproc_err err = create_preproc_err();
-        struct token* tokens = preproc_string(
+        struct preproc_res res = preproc_string(
             "int n = 10;\nchar c = \'char literal that cannot exist",
             "file.c",
             &err);
-        ASSERT_NULL(tokens);
+        ASSERT_NULL(res.toks);
+        ASSERT_SIZE_T(res.file_info.len, (size_t)0);
+        ASSERT_NULL(res.file_info.paths);
         
         ASSERT(err.type == PREPROC_ERR_UNTERMINATED_LIT);
         ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)2);
         ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)10);
-        ASSERT_STR(err.base.loc.file, "file.c");
+        ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
         ASSERT(err.is_char_lit);
         
         free_preproc_err(&err);
@@ -40,8 +44,10 @@ TEST(unterminated_literal) {
 
 TEST(invalid_identifier) {
     struct preproc_err err = create_preproc_err();
-    struct token* tokens = preproc_string("int in$valid = 10;", "file.c", &err);
-    ASSERT_NULL(tokens);
+    struct preproc_res res = preproc_string("int in$valid = 10;", "file.c", &err);
+    ASSERT_NULL(res.toks);
+    ASSERT_SIZE_T(res.file_info.len, (size_t)0);
+    ASSERT_NULL(res.file_info.paths);
     
     ASSERT(err.type == PREPROC_ERR_INVALID_ID);
 

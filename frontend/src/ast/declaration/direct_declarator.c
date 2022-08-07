@@ -54,7 +54,7 @@ static bool parse_arr_suffix(struct parser_state* s,
             if (suffix->is_static) {
                 set_parser_err(s->err,
                                PARSER_ERR_ARR_STATIC_ASTERISK,
-                               &s->it->loc);
+                               s->it->loc);
                 free_arr_suffix(suffix);
                 return false;
             }
@@ -72,7 +72,7 @@ static bool parse_arr_suffix(struct parser_state* s,
         if (suffix->is_static) { 
             set_parser_err(s->err,
                            PARSER_ERR_ARR_DOUBLE_STATIC,
-                           &s->it->loc);
+                           s->it->loc);
             free_arr_suffix(suffix);
             return false;
         }
@@ -84,7 +84,7 @@ static bool parse_arr_suffix(struct parser_state* s,
         if (suffix->is_static) {
             set_parser_err(s->err,
                            PARSER_ERR_ARR_STATIC_NO_LEN,
-                           &s->it->loc);
+                           s->it->loc);
             free_arr_suffix(suffix);
             return false;
         }
@@ -177,7 +177,7 @@ static struct direct_declarator* parse_direct_declarator_base(
             return NULL;
         }
         char* spelling = take_spelling(s->it);
-        struct source_loc loc = take_source_loc(s->it);
+        struct source_loc loc = s->it->loc;
         accept_it(s);
         res->id = create_identifier(spelling, loc);
     } else {

@@ -6,42 +6,19 @@
 
 #include "util/mem.h"
 
-struct err_base create_err_base(struct source_loc* loc) {
-    assert(loc);
-
-    char* file = loc->file;
-    loc->file = NULL;
+struct err_base create_err_base(struct source_loc loc) {
     return (struct err_base){
-        .loc =
-            {
-                .file = file,
-                .file_loc = loc->file_loc,
-            },
+        .loc = loc
     };
 }
 
-struct err_base create_err_base_copy(const struct source_loc* loc) {
-    assert(loc);
-    assert(loc->file);
-
-    return (struct err_base){
-        .loc =
-            {
-                .file = alloc_string_copy(loc->file),
-                .file_loc = loc->file_loc,
-            },
-    };
-}
-
-void print_err_base(FILE* out, const struct err_base* err) {
+void print_err_base(FILE* out, const struct file_info* file_info, const struct err_base* err) {
+    assert(err->loc.file_idx < file_info->len);
+    const char* path = file_info->paths[err->loc.file_idx];
     fprintf(out,
             "%s(%zu, %zu):\n",
-            err->loc.file,
+            path,
             err->loc.file_loc.line,
             err->loc.file_loc.index);
-}
-
-void free_err_base(struct err_base* err) {
-    free_source_loc(&err->loc);
 }
 

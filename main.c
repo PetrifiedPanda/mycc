@@ -56,20 +56,20 @@ int main(int argc, char** argv) {
         const char* filename = argv[i];
 
         struct preproc_err preproc_err = create_preproc_err();
-        struct token* tokens = preproc(filename, &preproc_err);
+        struct preproc_res preproc_res = preproc(filename, &preproc_err);
         if (preproc_err.type != PREPROC_ERR_NONE) {
-            print_preproc_err(stderr, &preproc_err);
+            print_preproc_err(stderr, &preproc_res.file_info, &preproc_err);
             free_preproc_err(&preproc_err);
             return EXIT_FAILURE;
         }
-        convert_preproc_tokens(tokens);
+        convert_preproc_tokens(preproc_res.toks);
 
         struct parser_err parser_err = create_parser_err();
-        struct translation_unit tl = parse_tokens(tokens, &parser_err);
+        struct translation_unit tl = parse_tokens(preproc_res.toks, &parser_err);
         if (parser_err.type != PARSER_ERR_NONE) {
-            print_parser_err(stderr, &parser_err);
+            print_parser_err(stderr, &preproc_res.file_info, &parser_err);
             free_parser_err(&parser_err);
-            free_tokens(tokens);
+            free_preproc_res(&preproc_res);
             return EXIT_FAILURE;
         }
         
@@ -82,11 +82,11 @@ int main(int argc, char** argv) {
             fprintf(stderr, "Failed to open output file %s\n", out_filename);
             free(out_filename);
             free_translation_unit(&tl);
-            free_tokens(tokens);
+            free_preproc_res(&preproc_res);
             return EXIT_FAILURE;
         }
 
-        if (!dump_ast(&tl, outfile)) {
+        if (!dump_ast(&tl, &preproc_res.file_info, outfile)) {
             fprintf(stderr, "Failed to write ast to file %s\n", out_filename);
 
             if (fclose(outfile) != 0) {
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
 
             free(out_filename);
             free_translation_unit(&tl);
-            free_tokens(tokens);
+            free_preproc_res(&preproc_res);
             return EXIT_FAILURE;
         }
 
@@ -104,13 +104,13 @@ int main(int argc, char** argv) {
             fprintf(stderr, "Failed to close output file %s\n", out_filename);
             free(out_filename);
             free_translation_unit(&tl);
-            free_tokens(tokens);
+            free_preproc_res(&preproc_res);
             return EXIT_FAILURE;
         }
         free(out_filename);
 
         free_translation_unit(&tl);
-        free_tokens(tokens);
+        free_preproc_res(&preproc_res);
     }
 }
 

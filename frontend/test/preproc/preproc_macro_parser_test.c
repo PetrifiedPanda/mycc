@@ -26,7 +26,7 @@ static void compare_preproc_macros(const struct preproc_macro* got,
             ASSERT_TOKEN_TYPE(got_tok->type, ex_tok->type);
             ASSERT_STR(got_tok->spelling, ex_tok->spelling);
 
-            ASSERT_STR(got_tok->loc.file, ex_tok->loc.file);
+            ASSERT_SIZE_T(got_tok->loc.file_idx, ex_tok->loc.file_idx);
             ASSERT_SIZE_T(got_tok->loc.file_loc.line,
                           ex_tok->loc.file_loc.line);
             ASSERT_SIZE_T(got_tok->loc.file_loc.index,
@@ -39,9 +39,9 @@ TEST(object_like) {
     {
         // #define TEST_MACRO
         struct token tokens[] = {
-            {STRINGIFY_OP, NULL, {"file.c", {1, 1}}},
-            {IDENTIFIER, "define", {"file.c", {1, 2}}},
-            {IDENTIFIER, "TEST_MACRO", {"file.c", {1, 9}}},
+            {STRINGIFY_OP, NULL, {0, {1, 1}}},
+            {IDENTIFIER, "define", {0, {1, 2}}},
+            {IDENTIFIER, "TEST_MACRO", {0, {1, 9}}},
         };
 
         struct token_arr arr = {
@@ -69,21 +69,21 @@ TEST(object_like) {
     {
         // #define ANOTHER_MACRO 1 + 2 * 3 - func(a, b)
         struct token tokens[] = {
-            {STRINGIFY_OP, NULL, {"file.c", {1, 1}}},
-            {IDENTIFIER, "define", {"file.c", {1, 2}}},
-            {IDENTIFIER, "ANOTHER_MACRO", {"file.c", {1, 9}}},
-            {I_CONSTANT, "1", {"file.c", {1, 23}}},
-            {ADD, NULL, {"file.c", {1, 25}}},
-            {I_CONSTANT, "2", {"file.c", {1, 27}}},
-            {ASTERISK, NULL, {"file.c", {1, 29}}},
-            {I_CONSTANT, "3", {"file.c", {1, 31}}},
-            {SUB, NULL, {"file.c", {1, 33}}},
-            {IDENTIFIER, "func", {"file.c", {1, 35}}},
-            {LBRACKET, NULL, {"file.c", {1, 39}}},
-            {IDENTIFIER, "a", {"file.c", {1, 40}}},
-            {COMMA, NULL, {"file.c", {1, 41}}},
-            {IDENTIFIER, "b", {"file.c", {1, 43}}},
-            {RBRACKET, NULL, {"file.c", {1, 44}}},
+            {STRINGIFY_OP, NULL, {0, {1, 1}}},
+            {IDENTIFIER, "define", {0, {1, 2}}},
+            {IDENTIFIER, "ANOTHER_MACRO", {0, {1, 9}}},
+            {I_CONSTANT, "1", {0, {1, 23}}},
+            {ADD, NULL, {0, {1, 25}}},
+            {I_CONSTANT, "2", {0, {1, 27}}},
+            {ASTERISK, NULL, {0, {1, 29}}},
+            {I_CONSTANT, "3", {0, {1, 31}}},
+            {SUB, NULL, {0, {1, 33}}},
+            {IDENTIFIER, "func", {0, {1, 35}}},
+            {LBRACKET, NULL, {0, {1, 39}}},
+            {IDENTIFIER, "a", {0, {1, 40}}},
+            {COMMA, NULL, {0, {1, 41}}},
+            {IDENTIFIER, "b", {0, {1, 43}}},
+            {RBRACKET, NULL, {0, {1, 44}}},
         };
 
         enum {
@@ -125,27 +125,27 @@ TEST(func_like) {
     {
         // #define FUNC_LIKE(a, b, c) a != 38 ? b * other_name : c + a
         struct token tokens[] = {
-            {STRINGIFY_OP, NULL, {"other_file.c", {1, 1}}},
-            {IDENTIFIER, "define", {"other_file.c", {1, 2}}},
-            {IDENTIFIER, "FUNC_LIKE", {"other_file.c", {1, 9}}},
-            {LBRACKET, NULL, {"other_file.c", {1, 18}}},
-            {IDENTIFIER, "a", {"other_file.c", {1, 19}}},
-            {COMMA, NULL, {"other_file.c", {1, 20}}},
-            {IDENTIFIER, "b", {"other_file.c", {1, 22}}},
-            {COMMA, NULL, {"other_file.c", {1, 23}}},
-            {IDENTIFIER, "c", {"other_file.c", {1, 25}}},
-            {RBRACKET, NULL, {"other_file.c", {1, 26}}},
-            {IDENTIFIER, "a", {"other_file.c", {1, 28}}},
-            {NE_OP, NULL, {"other_file.c", {1, 30}}},
-            {I_CONSTANT, "38", {"other_file.c", {1, 33}}},
-            {QMARK, NULL, {"other_file.c", {1, 36}}},
-            {IDENTIFIER, "b", {"other_file.c", {1, 38}}},
-            {ASTERISK, NULL, {"other_file.c", {1, 40}}},
-            {IDENTIFIER, "other_name", {"other_file.c", {1, 42}}},
-            {COLON, NULL, {"other_file.c", {1, 53}}},
-            {IDENTIFIER, "c", {"other_file.c", {1, 55}}},
-            {ADD, NULL, {"other_file.c", {1, 57}}},
-            {IDENTIFIER, "a", {"other_file.c", {1, 59}}},
+            {STRINGIFY_OP, NULL, {0, {1, 1}}},
+            {IDENTIFIER, "define", {0, {1, 2}}},
+            {IDENTIFIER, "FUNC_LIKE", {0, {1, 9}}},
+            {LBRACKET, NULL, {0, {1, 18}}},
+            {IDENTIFIER, "a", {0, {1, 19}}},
+            {COMMA, NULL, {0, {1, 20}}},
+            {IDENTIFIER, "b", {0, {1, 22}}},
+            {COMMA, NULL, {0, {1, 23}}},
+            {IDENTIFIER, "c", {0, {1, 25}}},
+            {RBRACKET, NULL, {0, {1, 26}}},
+            {IDENTIFIER, "a", {0, {1, 28}}},
+            {NE_OP, NULL, {0, {1, 30}}},
+            {I_CONSTANT, "38", {0, {1, 33}}},
+            {QMARK, NULL, {0, {1, 36}}},
+            {IDENTIFIER, "b", {0, {1, 38}}},
+            {ASTERISK, NULL, {0, {1, 40}}},
+            {IDENTIFIER, "other_name", {0, {1, 42}}},
+            {COLON, NULL, {0, {1, 53}}},
+            {IDENTIFIER, "c", {0, {1, 55}}},
+            {ADD, NULL, {0, {1, 57}}},
+            {IDENTIFIER, "a", {0, {1, 59}}},
         };
 
         enum {
@@ -192,16 +192,16 @@ TEST(func_like) {
     {
         // #define NO_PARAMS() 1 + 2 + 3
         struct token tokens[] = {
-            {STRINGIFY_OP, NULL, {"other_file.c", {1, 1}}},
-            {IDENTIFIER, "define", {"other_file.c", {1, 2}}},
-            {IDENTIFIER, "NO_PARAMS", {"other_file.c", {1, 9}}},
-            {LBRACKET, NULL, {"other_file.c", {1, 18}}},
-            {RBRACKET, NULL, {"other_file.c", {1, 19}}},
-            {I_CONSTANT, "1", {"other_file.c", {1, 21}}},
-            {ADD, NULL, {"other_file.c", {1, 23}}},
-            {I_CONSTANT, "2", {"other_file.c", {1, 25}}},
-            {ADD, NULL, {"other_file.c", {1, 27}}},
-            {I_CONSTANT, "3", {"other_file.c", {1, 29}}},
+            {STRINGIFY_OP, NULL, {0, {1, 1}}},
+            {IDENTIFIER, "define", {0, {1, 2}}},
+            {IDENTIFIER, "NO_PARAMS", {0, {1, 9}}},
+            {LBRACKET, NULL, {0, {1, 18}}},
+            {RBRACKET, NULL, {0, {1, 19}}},
+            {I_CONSTANT, "1", {0, {1, 21}}},
+            {ADD, NULL, {0, {1, 23}}},
+            {I_CONSTANT, "2", {0, {1, 25}}},
+            {ADD, NULL, {0, {1, 27}}},
+            {I_CONSTANT, "3", {0, {1, 29}}},
         };
 
         enum {
@@ -242,11 +242,11 @@ TEST(func_like) {
     {
         // #define NO_PARAMS_EMPTY()
         struct token tokens[] = {
-            {STRINGIFY_OP, NULL, {"other_file.c", {1, 1}}},
-            {IDENTIFIER, "define", {"other_file.c", {1, 2}}},
-            {IDENTIFIER, "NO_PARAMS_EMPTY", {"other_file.c", {1, 9}}},
-            {LBRACKET, NULL, {"other_file.c", {1, 24}}},
-            {RBRACKET, NULL, {"other_file.c", {1, 25}}},
+            {STRINGIFY_OP, NULL, {0, {1, 1}}},
+            {IDENTIFIER, "define", {0, {1, 2}}},
+            {IDENTIFIER, "NO_PARAMS_EMPTY", {0, {1, 9}}},
+            {LBRACKET, NULL, {0, {1, 24}}},
+            {RBRACKET, NULL, {0, {1, 25}}},
         };
 
         enum {
@@ -281,29 +281,29 @@ TEST(variadic) {
     {
         // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name : c + a
         struct token tokens[] = {
-            {STRINGIFY_OP, NULL, {"other_file.c", {1, 1}}},
-            {IDENTIFIER, "define", {"other_file.c", {1, 2}}},
-            {IDENTIFIER, "FUNC_LIKE", {"other_file.c", {1, 9}}},
-            {LBRACKET, NULL, {"other_file.c", {1, 18}}},
-            {IDENTIFIER, "a", {"other_file.c", {1, 19}}},
-            {COMMA, NULL, {"other_file.c", {1, 20}}},
-            {IDENTIFIER, "b", {"other_file.c", {1, 22}}},
-            {COMMA, NULL, {"other_file.c", {1, 23}}},
-            {IDENTIFIER, "c", {"other_file.c", {1, 25}}},
-            {COMMA, NULL, {"other_file.c", {1, 26}}},
-            {ELLIPSIS, NULL, {"other_file.c", {1, 28}}},
-            {RBRACKET, NULL, {"other_file.c", {1, 31}}},
-            {IDENTIFIER, "a", {"other_file.c", {1, 33}}},
-            {NE_OP, NULL, {"other_file.c", {1, 35}}},
-            {I_CONSTANT, "38", {"other_file.c", {1, 38}}},
-            {QMARK, NULL, {"other_file.c", {1, 41}}},
-            {IDENTIFIER, "b", {"other_file.c", {1, 43}}},
-            {ASTERISK, NULL, {"other_file.c", {1, 45}}},
-            {IDENTIFIER, "other_name", {"other_file.c", {1, 47}}},
-            {COLON, NULL, {"other_file.c", {1, 58}}},
-            {IDENTIFIER, "c", {"other_file.c", {1, 60}}},
-            {ADD, NULL, {"other_file.c", {1, 62}}},
-            {IDENTIFIER, "a", {"other_file.c", {1, 64}}},
+            {STRINGIFY_OP, NULL, {0, {1, 1}}},
+            {IDENTIFIER, "define", {0, {1, 2}}},
+            {IDENTIFIER, "FUNC_LIKE", {0, {1, 9}}},
+            {LBRACKET, NULL, {0, {1, 18}}},
+            {IDENTIFIER, "a", {0, {1, 19}}},
+            {COMMA, NULL, {0, {1, 20}}},
+            {IDENTIFIER, "b", {0, {1, 22}}},
+            {COMMA, NULL, {0, {1, 23}}},
+            {IDENTIFIER, "c", {0, {1, 25}}},
+            {COMMA, NULL, {0, {1, 26}}},
+            {ELLIPSIS, NULL, {0, {1, 28}}},
+            {RBRACKET, NULL, {0, {1, 31}}},
+            {IDENTIFIER, "a", {0, {1, 33}}},
+            {NE_OP, NULL, {0, {1, 35}}},
+            {I_CONSTANT, "38", {0, {1, 38}}},
+            {QMARK, NULL, {0, {1, 41}}},
+            {IDENTIFIER, "b", {0, {1, 43}}},
+            {ASTERISK, NULL, {0, {1, 45}}},
+            {IDENTIFIER, "other_name", {0, {1, 47}}},
+            {COLON, NULL, {0, {1, 58}}},
+            {IDENTIFIER, "c", {0, {1, 60}}},
+            {ADD, NULL, {0, {1, 62}}},
+            {IDENTIFIER, "a", {0, {1, 64}}},
         };
 
         enum {
@@ -351,32 +351,32 @@ TEST(variadic) {
         // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name(__VA_ARGS__)
         // : c + a
         struct token tokens[] = {
-            {STRINGIFY_OP, NULL, {"other_file.c", {1, 1}}},
-            {IDENTIFIER, "define", {"other_file.c", {1, 2}}},
-            {IDENTIFIER, "FUNC_LIKE", {"other_file.c", {1, 9}}},
-            {LBRACKET, NULL, {"other_file.c", {1, 18}}},
-            {IDENTIFIER, "a", {"other_file.c", {1, 19}}},
-            {COMMA, NULL, {"other_file.c", {1, 20}}},
-            {IDENTIFIER, "b", {"other_file.c", {1, 22}}},
-            {COMMA, NULL, {"other_file.c", {1, 23}}},
-            {IDENTIFIER, "c", {"other_file.c", {1, 25}}},
-            {COMMA, NULL, {"other_file.c", {1, 26}}},
-            {ELLIPSIS, NULL, {"other_file.c", {1, 28}}},
-            {RBRACKET, NULL, {"other_file.c", {1, 31}}},
-            {IDENTIFIER, "a", {"other_file.c", {1, 33}}},
-            {NE_OP, NULL, {"other_file.c", {1, 35}}},
-            {I_CONSTANT, "38", {"other_file.c", {1, 38}}},
-            {QMARK, NULL, {"other_file.c", {1, 41}}},
-            {IDENTIFIER, "b", {"other_file.c", {1, 43}}},
-            {ASTERISK, NULL, {"other_file.c", {1, 45}}},
-            {IDENTIFIER, "other_name", {"other_file.c", {1, 47}}},
-            {LBRACKET, NULL, {"other_file.c", {1, 48}}},
-            {IDENTIFIER, "__VA_ARGS__", {"other_file.c", {1, 49}}},
-            {RBRACKET, NULL, {"other_file.c", {1, 60}}},
-            {COLON, NULL, {"other_file.c", {1, 62}}},
-            {IDENTIFIER, "c", {"other_file.c", {1, 64}}},
-            {ADD, NULL, {"other_file.c", {1, 66}}},
-            {IDENTIFIER, "a", {"other_file.c", {1, 68}}},
+            {STRINGIFY_OP, NULL, {0, {1, 1}}},
+            {IDENTIFIER, "define", {0, {1, 2}}},
+            {IDENTIFIER, "FUNC_LIKE", {0, {1, 9}}},
+            {LBRACKET, NULL, {0, {1, 18}}},
+            {IDENTIFIER, "a", {0, {1, 19}}},
+            {COMMA, NULL, {0, {1, 20}}},
+            {IDENTIFIER, "b", {0, {1, 22}}},
+            {COMMA, NULL, {0, {1, 23}}},
+            {IDENTIFIER, "c", {0, {1, 25}}},
+            {COMMA, NULL, {0, {1, 26}}},
+            {ELLIPSIS, NULL, {0, {1, 28}}},
+            {RBRACKET, NULL, {0, {1, 31}}},
+            {IDENTIFIER, "a", {0, {1, 33}}},
+            {NE_OP, NULL, {0, {1, 35}}},
+            {I_CONSTANT, "38", {0, {1, 38}}},
+            {QMARK, NULL, {0, {1, 41}}},
+            {IDENTIFIER, "b", {0, {1, 43}}},
+            {ASTERISK, NULL, {0, {1, 45}}},
+            {IDENTIFIER, "other_name", {0, {1, 47}}},
+            {LBRACKET, NULL, {0, {1, 48}}},
+            {IDENTIFIER, "__VA_ARGS__", {0, {1, 49}}},
+            {RBRACKET, NULL, {0, {1, 60}}},
+            {COLON, NULL, {0, {1, 62}}},
+            {IDENTIFIER, "c", {0, {1, 64}}},
+            {ADD, NULL, {0, {1, 66}}},
+            {IDENTIFIER, "a", {0, {1, 68}}},
         };
 
         enum {

@@ -11,10 +11,10 @@
 #include "parser_test_util.h"
 
 static void check_jump_statement(const char* spell, enum token_type t) {
-    struct token* tokens = tokenize_string(spell, "skfjlskf");
+    struct preproc_res preproc_res = tokenize_string(spell, "skfjlskf");
     
     struct parser_err err = create_parser_err();
-    struct parser_state s = create_parser_state(tokens, &err);
+    struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
     struct jump_statement* res = parse_jump_statement(&s);
     ASSERT(err.type == PARSER_ERR_NONE);
@@ -25,14 +25,14 @@ static void check_jump_statement(const char* spell, enum token_type t) {
 
     free_jump_statement(res);
     free_parser_state(&s);
-    free_tokens(tokens);
+    free_preproc_res(&preproc_res);
 }
 
 static void check_expected_semicolon_jump_statement(const char* spell) {
-    struct token* tokens = tokenize_string(spell, "file.c");
+    struct preproc_res preproc_res = tokenize_string(spell, "file.c");
 
     struct parser_err err = create_parser_err();
-    struct parser_state s = create_parser_state(tokens, &err);
+    struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
     struct jump_statement* res = parse_jump_statement(&s);
     ASSERT_NULL(res);
@@ -42,17 +42,17 @@ static void check_expected_semicolon_jump_statement(const char* spell) {
     ASSERT_TOKEN_TYPE(err.expected[0], SEMICOLON);
     ASSERT_TOKEN_TYPE(err.got, INVALID);
 
-    free_tokens(tokens);
+    free_preproc_res(&preproc_res);
     free_parser_err(&err);
     free_parser_state(&s);
 }
 
 TEST(jump_statement) {
     {
-        struct token* tokens = tokenize_string("goto my_cool_label;", "file");
+        struct preproc_res preproc_res = tokenize_string("goto my_cool_label;", "file");
 
         struct parser_err err = create_parser_err();
-        struct parser_state s = create_parser_state(tokens, &err);
+        struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
         struct jump_statement* res = parse_jump_statement(&s);
         ASSERT(err.type == PARSER_ERR_NONE);
@@ -65,7 +65,7 @@ TEST(jump_statement) {
 
         free_jump_statement(res);
         free_parser_state(&s);
-        free_tokens(tokens);
+        free_preproc_res(&preproc_res);
     }
 
     check_jump_statement("continue;", CONTINUE);
@@ -78,16 +78,16 @@ TEST(jump_statement) {
     check_expected_semicolon_jump_statement("return *id += (int)100");
 
     {
-        struct token* tokens = tokenize_string("not_what_was_expected;",
+        struct preproc_res preproc_res = tokenize_string("not_what_was_expected;",
                                               "a_file.c");
 
         struct parser_err err = create_parser_err();
-        struct parser_state s = create_parser_state(tokens, &err);
+        struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
         struct jump_statement* res = parse_jump_statement(&s);
         ASSERT_NULL(res);
         
-        ASSERT_STR(err.base.loc.file, "a_file.c");
+        ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
         ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
         ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)1);
 
@@ -98,16 +98,16 @@ TEST(jump_statement) {
         ASSERT_TOKEN_TYPE(err.expected[2], BREAK);
         ASSERT_TOKEN_TYPE(err.expected[3], RETURN);
 
-        free_tokens(tokens);
+        free_preproc_res(&preproc_res);
         free_parser_err(&err);
         free_parser_state(&s);
     }
 
     {
-        struct token* tokens = tokenize_string("return 600;", "file.c");
+        struct preproc_res preproc_res = tokenize_string("return 600;", "file.c");
 
         struct parser_err err = create_parser_err();
-        struct parser_state s = create_parser_state(tokens, &err);
+        struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
         struct jump_statement* res = parse_jump_statement(&s);
         ASSERT_NOT_NULL(res);
@@ -121,7 +121,7 @@ TEST(jump_statement) {
 
         free_jump_statement(res);
         free_parser_state(&s);
-        free_tokens(tokens);
+        free_preproc_res(&preproc_res);
     }
 }
 
@@ -138,10 +138,10 @@ TEST(statement) {
                        "        ; "
                        "    } else b = 0;"
                        "}";
-    struct token* tokens = tokenize_string(code, "file.c");
+    struct preproc_res preproc_res = tokenize_string(code, "file.c");
 
     struct parser_err err = create_parser_err();
-    struct parser_state s = create_parser_state(tokens, &err);
+    struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
     struct statement* res = parse_statement(&s);
     ASSERT(err.type == PARSER_ERR_NONE);
@@ -271,7 +271,7 @@ TEST(statement) {
 
     free_statement(res);
     free_parser_state(&s);
-    free_tokens(tokens);
+    free_preproc_res(&preproc_res);
 
     // TODO: Add tests with declarations when implemented
 }

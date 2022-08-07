@@ -18,34 +18,44 @@
 
 static bool preproc_file(struct preproc_state* state,
                          const char* path,
-                         struct source_loc* include_loc);
+                         struct source_loc include_loc);
 
 static enum token_type keyword_type(const char* spelling);
 
 static void append_terminator_token(struct token_arr* arr);
 
-struct token* preproc(const char* path, struct preproc_err* err) {
+struct preproc_res preproc(const char* path, struct preproc_err* err) {
     assert(err);
 
-    struct preproc_state state = create_preproc_state(err);
+    struct preproc_state state = create_preproc_state(path, err);
 
-    struct source_loc empty_source_loc = {
-        .file = NULL,
-        .file_loc = {0, 0},
-    };
-    if (!preproc_file(&state, path, &empty_source_loc)) {
+    if (!preproc_file(&state, path,  (struct source_loc){(size_t)-1, {0, 0}})) {
+        return (struct preproc_res) {
+            .toks = NULL,
+            .file_info = state.file_info,
+        };
+        state.file_info = (struct file_info) {
+            .len = 0,
+            .paths = NULL,
+        };
         free_preproc_state(&state);
-        return NULL;
     }
     
-    struct token_arr res = state.res;
+    struct preproc_res res = {
+        .toks = state.res.tokens,
+        .file_info = state.file_info,
+    };
     state.res = (struct token_arr) {
         .len = 0,
         .cap = 0,
         .tokens = NULL,
     };
+    state.file_info = (struct file_info) {
+        .len = 0,
+        .paths = NULL,
+    };
     free_preproc_state(&state);
-    return res.tokens;
+    return res;
 }
 
 enum {
@@ -188,7 +198,7 @@ static bool read_and_tokenize_line(struct preproc_state* state,
                                            state->err,
                                            line,
                                            prev_curr_line,
-                                           src->path,
+                                           state->file_info.len - 1,
                                            &src->comment_not_terminated);
             if (line != static_buf) {
                 free(line);
@@ -207,7 +217,7 @@ static bool read_and_tokenize_line(struct preproc_state* state,
                                      state->err,
                                      line,
                                      prev_curr_line,
-                                     src->path,
+                                     state->file_info.len - 1,
                                      &src->comment_not_terminated);
             if (line != static_buf) {
                 free(line);
@@ -255,9 +265,9 @@ static const struct token* find_macro_end(struct preproc_state* state,
     }
 
     if (it->type != RBRACKET) {
-        set_preproc_err_copy(state->err,
-                             PREPROC_ERR_UNTERMINATED_MACRO,
-                             &macro_start->loc);
+        set_preproc_err(state->err,
+                        PREPROC_ERR_UNTERMINATED_MACRO,
+                        macro_start->loc);
         return NULL;
     }
     return it;
@@ -316,12 +326,12 @@ static bool preproc_src(struct preproc_state* state, struct code_source* src) {
     return true;
 }
 
-struct token* preproc_string(const char* str,
+struct preproc_res preproc_string(const char* str,
                              const char* path,
                              struct preproc_err* err) {
     assert(err);
 
-    struct preproc_state state = create_preproc_state(err);
+    struct preproc_state state = create_preproc_state(path, err);
 
     struct code_source src = {
         .is_file = false,
@@ -333,31 +343,44 @@ struct token* preproc_string(const char* str,
 
     if (!preproc_src(&state, &src)) {
         free_preproc_state(&state);
-        return NULL;
+        return (struct preproc_res) {
+            .toks = NULL,
+            .file_info = {
+                .len = 0,
+                .paths = NULL,
+            },
+        };
     }
     
-    struct token_arr res = state.res;
+    struct preproc_res res = {
+        .toks = state.res.tokens,
+        .file_info = state.file_info,
+    };
     state.res = (struct token_arr){
         .len = 0,
         .cap = 0,
         .tokens = NULL,
     };
+    state.file_info = (struct file_info) {
+        .len = 0,
+        .paths = NULL,
+    };
     free_preproc_state(&state);
 
-    return res.tokens;
+    return res;
 }
 
 static void file_err(struct preproc_err* err,
-                     const char* path,
-                     struct source_loc* include_loc,
+                     size_t fail_file,
+                     struct source_loc include_loc,
                      bool open_fail);
 
 static bool preproc_file(struct preproc_state* state,
                          const char* path,
-                         struct source_loc* include_loc) {
+                         struct source_loc include_loc) {
     FILE* file = fopen(path, "r");
     if (!file) {
-        file_err(state->err, path, include_loc, true);
+        file_err(state->err, state->file_info.len - 1, include_loc, true);
         return false;
     }
 
@@ -378,7 +401,7 @@ static bool preproc_file(struct preproc_state* state,
     }
 
     if (fclose(file) != 0) {
-        file_err(state->err, path, include_loc, false);
+        file_err(state->err, state->file_info.len - 1, include_loc, false);
         return false;
     }
 
@@ -386,21 +409,26 @@ static bool preproc_file(struct preproc_state* state,
 }
 
 static void file_err(struct preproc_err* err,
-                     const char* path,
-                     struct source_loc* include_loc,
+                     size_t fail_file,
+                     struct source_loc include_loc,
                      bool open_fail) {
-    assert(path);
+    assert(fail_file != (size_t)-1);
 
     set_preproc_err(err, PREPROC_ERR_FILE_FAIL, include_loc);
-    err->fail_file = alloc_string_copy(path);
+    err->fail_file = fail_file;
     err->open_fail = open_fail;
 }
 
-void free_tokens(struct token* tokens) {
+static void free_tokens(struct token* tokens) {
     for (struct token* it = tokens; it->type != INVALID; ++it) {
         free_token(it);
     }
     free(tokens);
+}
+
+void free_preproc_res(struct preproc_res* res) {
+    free_tokens(res->toks);
+    free_file_info(&res->file_info);
 }
 
 void convert_preproc_tokens(struct token* tokens) {
@@ -424,7 +452,7 @@ static void append_terminator_token(struct token_arr* arr) {
         .spelling = NULL,
         .loc =
             {
-                .file = NULL,
+                .file_idx = (size_t)-1,
                 .file_loc = {(size_t)-1, (size_t)-1},
             },
     };
@@ -476,7 +504,7 @@ static bool skip_until_next_cond(struct preproc_state* state,
                                            state->err,
                                            line,
                                            prev_curr_line,
-                                           src->path,
+                                           state->file_info.len - 1,
                                            &src->comment_not_terminated);
 
             if (line != static_buf) {
@@ -505,7 +533,7 @@ static bool handle_preproc_if(struct preproc_state* state,
                               bool cond) {
     struct source_loc loc = {
         .file_loc = {src->current_line, 0}, // TODO: might be current_line - 1
-        .file = alloc_string_copy(src->path),
+        .file_idx = state->file_info.len - 1,
     };
     push_preproc_cond(state, loc, cond);
 

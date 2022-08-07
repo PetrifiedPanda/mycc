@@ -18,7 +18,6 @@ struct identifier* create_identifier(char* spelling, struct source_loc loc) {
 }
 
 void free_identifier_children(struct identifier* i) {
-    free_ast_node_info(&i->info);
     free(i->spelling);
 }
 

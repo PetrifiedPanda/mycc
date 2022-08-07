@@ -19,7 +19,7 @@ static bool parse_external_decl_normal_decl(struct parser_state* s,
     struct initializer* init = NULL;
     if (s->it->type == ASSIGN) {
         if (found_typedef) {
-            set_parser_err(s->err, PARSER_ERR_TYPEDEF_INIT, &s->it->loc);
+            set_parser_err(s->err, PARSER_ERR_TYPEDEF_INIT, s->it->loc);
             free_declaration_specs(decl_specs);
             free_declarator(first_decl);
             return false;
@@ -65,7 +65,7 @@ static bool parse_external_declaration_func_def(struct parser_state* s,
                                                 struct declarator* first_decl,
                                                 bool found_typedef) {
     if (found_typedef) {
-        set_parser_err(s->err, PARSER_ERR_TYPEDEF_FUNC_DEF, &s->it->loc);
+        set_parser_err(s->err, PARSER_ERR_TYPEDEF_FUNC_DEF, s->it->loc);
         free_declaration_specs(decl_specs);
         free_declarator(first_decl);
         return false;

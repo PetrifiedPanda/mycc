@@ -29,7 +29,7 @@ bool parse_struct_declarator_inplace(struct parser_state* s,
         if (!res->decl) {
             set_parser_err(s->err,
                            PARSER_ERR_EMPTY_STRUCT_DECLARATOR,
-                           &s->it->loc);
+                           s->it->loc);
             return false;
         }
     }

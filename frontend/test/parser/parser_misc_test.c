@@ -32,12 +32,12 @@ TEST(enum_list) {
     };
 
     {
-        struct token* tokens = tokenize_string(
+        struct preproc_res preproc_res = tokenize_string(
             "ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, baz, BAD",
             "saffds");
 
         struct parser_err err = create_parser_err();
-        struct parser_state s = create_parser_state(tokens, &err);
+        struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
         struct enum_list res = parse_enum_list(&s);
         ASSERT(err.type == PARSER_ERR_NONE);
@@ -59,17 +59,17 @@ TEST(enum_list) {
 
         free_enum_list(&res);
         free_parser_state(&s);
-        free_tokens(tokens);
+        free_preproc_res(&preproc_res);
     }
 
     {
-        struct token* tokens = tokenize_string(
+        struct preproc_res preproc_res = tokenize_string(
             "ENUM_VAL1 = 0, enum_VAl2 = 1000.0, enum_val_3 = n, enum_val_4 = "
             "test, foo, bar, baz, BAD",
             "saffds");
         
         struct parser_err err = create_parser_err();
-        struct parser_state s = create_parser_state(tokens, &err);
+        struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
         struct enum_list res = parse_enum_list(&s);
         ASSERT(err.type == PARSER_ERR_NONE);
@@ -105,19 +105,19 @@ TEST(enum_list) {
 
         free_enum_list(&res);
         free_parser_state(&s);
-        free_tokens(tokens);
+        free_preproc_res(&preproc_res);
     }
 }
 
 TEST(enum_spec) {
     const char* enum_constants[] = {"TEST1", "TEST2", "TEST3", "TEST4"};
     {
-        struct token* tokens = tokenize_string(
+        struct preproc_res preproc_res = tokenize_string(
             "enum my_enum { TEST1, TEST2, TEST3, TEST4 }",
             "sfjlfjk");
 
         struct parser_err err = create_parser_err();
-        struct parser_state s = create_parser_state(tokens, &err);
+        struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
         struct enum_spec* res = parse_enum_spec(&s);
         ASSERT(err.type == PARSER_ERR_NONE);
@@ -131,18 +131,18 @@ TEST(enum_spec) {
                             enum_constants,
                             sizeof enum_constants / sizeof(char*));
 
-        free_tokens(tokens);
+        free_preproc_res(&preproc_res);
         free_parser_state(&s);
         free_enum_spec(res);
     }
 
     {
-        struct token* tokens = tokenize_string(
+        struct preproc_res preproc_res = tokenize_string(
             "enum {TEST1, TEST2, TEST3, TEST4, }",
             "jsfjsf");
 
         struct parser_err err = create_parser_err();
-        struct parser_state s = create_parser_state(tokens, &err);
+        struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
         struct enum_spec* res = parse_enum_spec(&s);
         ASSERT(err.type == PARSER_ERR_NONE);
@@ -155,7 +155,7 @@ TEST(enum_spec) {
                             enum_constants,
                             sizeof enum_constants / sizeof(char*));
 
-        free_tokens(tokens);
+        free_preproc_res(&preproc_res);
         free_parser_state(&s);
         free_enum_spec(res);
     }
@@ -163,12 +163,12 @@ TEST(enum_spec) {
 
 TEST(designation) {
     {
-        struct token* tokens = tokenize_string(
+        struct preproc_res preproc_res = tokenize_string(
             ".test[19].what_is_this.another_one = ",
             "jsalkf");
 
         struct parser_err err = create_parser_err();
-        struct parser_state s = create_parser_state(tokens, &err);
+        struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
         struct designation* res = parse_designation(&s);
         ASSERT_NOT_NULL(res);
@@ -196,15 +196,15 @@ TEST(designation) {
 
         free_designation(res);
         free_parser_state(&s);
-        free_tokens(tokens);
+        free_preproc_res(&preproc_res);
     }
 
     {
-        struct token* tokens = tokenize_string("[0.5].blah[420].oof[2][10] =",
+        struct preproc_res preproc_res = tokenize_string("[0.5].blah[420].oof[2][10] =",
                                               "stetsd");
 
         struct parser_err err = create_parser_err();
-        struct parser_state s = create_parser_state(tokens, &err);
+        struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
         struct designation* res = parse_designation(&s);
         ASSERT(err.type == PARSER_ERR_NONE);
@@ -242,17 +242,17 @@ TEST(designation) {
 
         free_designation(res);
         free_parser_state(&s);
-        free_tokens(tokens);
+        free_preproc_res(&preproc_res);
     }
 }
 
 TEST(static_assert_declaration) {
-    struct token* tokens = tokenize_string(
+    struct preproc_res preproc_res = tokenize_string(
         "_Static_assert(12345, \"This is a string literal\");",
         "slkfjsak");
 
     struct parser_err err = create_parser_err();
-    struct parser_state s = create_parser_state(tokens, &err);
+    struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
     struct static_assert_declaration* res = parse_static_assert_declaration(&s);
     ASSERT_NOT_NULL(res);
@@ -262,7 +262,7 @@ TEST(static_assert_declaration) {
     ASSERT_STR(res->err_msg.spelling, "\"This is a string literal\"");
     check_const_expr_id_or_const(res->const_expr, "12345", I_CONSTANT);
 
-    free_tokens(tokens);
+    free_preproc_res(&preproc_res);
     free_parser_state(&s);
     free_static_assert_declaration(res);
 }

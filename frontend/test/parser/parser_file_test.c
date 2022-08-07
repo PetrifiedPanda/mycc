@@ -184,11 +184,11 @@ static void check_external_decl_func_def_typedef(
     ASSERT_STR(d->func_def.specs->type_specs.typedef_name->spelling, ret_type);
 }
 
-static void compare_with_ex_file(const struct translation_unit* tl, const char* ex_file) {
+static void compare_with_ex_file(const struct translation_unit* tl, const struct file_info* file_info, const char* ex_file) {
     const char* tmp_filename = "tmp.ast";
 
     FILE* tmp_file = fopen(tmp_filename, "w");
-    ASSERT(dump_ast(tl, tmp_file));
+    ASSERT(dump_ast(tl, file_info, tmp_file));
 
     ASSERT_INT(fclose(tmp_file), 0);
 
@@ -199,14 +199,14 @@ static void compare_with_ex_file(const struct translation_unit* tl, const char* 
 
 TEST(no_preproc) {
     const char* file = "../frontend/test/files/no_preproc.c";
-    struct token* tokens = tokenize(file);
+    struct preproc_res res = tokenize(file);
     
     struct parser_err err = create_parser_err();
-    struct translation_unit tl = parse_tokens(tokens, &err);
+    struct translation_unit tl = parse_tokens(res.toks, &err);
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)10);
 
-    compare_with_ex_file(&tl, "../frontend/test/files/no_preproc.c.ast");
+    compare_with_ex_file(&tl, &res.file_info, "../frontend/test/files/no_preproc.c.ast");
 
     const struct storage_class sc = {false, false, false, false, false, false};
     const struct storage_class sc_static = {.is_static = true};
@@ -243,24 +243,24 @@ TEST(no_preproc) {
         8);
 
     free_translation_unit(&tl);
-    free_tokens(tokens);
+    free_preproc_res(&res);
 }
 
 TEST(parser_testfile) {
     const char* file = "../frontend/test/files/parser_testfile.c";
-    struct token* tokens = tokenize(file);
+    struct preproc_res res = tokenize(file);
     
     struct parser_err err = create_parser_err();
-    struct translation_unit tl = parse_tokens(tokens, &err);
+    struct translation_unit tl = parse_tokens(res.toks, &err);
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)15);
     
-    compare_with_ex_file(&tl, "../frontend/test/files/parser_testfile.c.ast");
+    compare_with_ex_file(&tl, &res.file_info, "../frontend/test/files/parser_testfile.c.ast");
 
     const char* tmp_filename = "tmp.ast";
     FILE* tmp_file = fopen(tmp_filename, "w");
 
-    dump_ast(&tl, tmp_file);
+    dump_ast(&tl, &res.file_info, tmp_file);
 
     fclose(tmp_file);
 
@@ -315,19 +315,19 @@ TEST(parser_testfile) {
                                         2);
 
     free_translation_unit(&tl);
-    free_tokens(tokens);
+    free_preproc_res(&res);
 }
 
 TEST(large_testfile) {
     const char* file = "../frontend/test/files/large_testfile.c";
-    struct token* tokens = tokenize(file);
+    struct preproc_res res = tokenize(file);
     
     struct parser_err err = create_parser_err();
-    struct translation_unit tl = parse_tokens(tokens, &err);
+    struct translation_unit tl = parse_tokens(res.toks, &err);
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)88);
 
-    compare_with_ex_file(&tl, "../frontend/test/files/large_testfile.c.ast");
+    compare_with_ex_file(&tl, &res.file_info, "../frontend/test/files/large_testfile.c.ast");
 
     const struct storage_class sc = {false, false, false, false, false, false};
     const struct storage_class sc_static = {.is_static = true};
@@ -498,7 +498,7 @@ TEST(large_testfile) {
                                          11);
 
     free_translation_unit(&tl);
-    free_tokens(tokens);
+    free_preproc_res(&res);
 }
 
 TEST_SUITE_BEGIN(parser_file, 3) {

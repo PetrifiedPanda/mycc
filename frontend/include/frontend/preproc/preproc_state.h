@@ -5,6 +5,8 @@
 
 #include "util/string_hash_map.h"
 
+#include "frontend/file_info.h"
+
 #include "preproc_err.h"
 
 struct token_arr {
@@ -24,9 +26,11 @@ struct preproc_state {
     struct preproc_cond* conds;
     struct preproc_err* err;
     struct string_hash_map _macro_map;
+    struct file_info file_info;
 };
 
-struct preproc_state create_preproc_state(struct preproc_err* err);
+struct preproc_state create_preproc_state(const char* start_file,
+                                          struct preproc_err* err);
 
 struct preproc_macro;
 
