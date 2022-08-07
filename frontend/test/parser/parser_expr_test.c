@@ -73,7 +73,6 @@ static void check_primary_expr_func_name(void) {
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
     ASSERT(res->string.is_func == true);
-    ASSERT_NULL(res->string.lit.spelling);
 
     free_preproc_res(&preproc_res);
     free_parser_state(&s);
