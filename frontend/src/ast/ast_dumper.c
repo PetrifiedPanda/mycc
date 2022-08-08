@@ -646,8 +646,12 @@ static void dump_init_list(struct ast_dumper* d, const struct init_list* l);
 
 static void dump_postfix_expr(struct ast_dumper* d, struct postfix_expr* e) {
     assert(e);
-
-    dumper_print_node_head(d, "postfix_expr", &e->info);
+    
+    if (e->is_primary) {
+        dumper_println(d, "postfix_expr:");
+    } else {
+        dumper_print_node_head(d, "postfix_expr", &e->info);
+    }
 
     add_indent(d);
 
@@ -1330,7 +1334,7 @@ static void dump_init_declarator_list(struct ast_dumper* d,
 static void dump_mul_expr(struct ast_dumper* d, const struct mul_expr* e) {
     assert(e);
 
-    dumper_print_node_head(d, "mul_expr", &e->info);
+    dumper_println(d, "mul_expr:");
 
     add_indent(d);
 
@@ -1348,7 +1352,7 @@ static void dump_mul_expr(struct ast_dumper* d, const struct mul_expr* e) {
 static void dump_add_expr(struct ast_dumper* d, const struct add_expr* e) {
     assert(e);
 
-    dumper_print_node_head(d, "add_expr", &e->info);
+    dumper_println(d, "add_expr:");
 
     add_indent(d);
 

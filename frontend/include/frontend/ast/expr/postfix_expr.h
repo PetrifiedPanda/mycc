@@ -30,11 +30,11 @@ struct postfix_suffix {
 };
 
 struct postfix_expr {
-    struct ast_node_info info;
     bool is_primary;
     union {
         struct primary_expr* primary;
         struct {
+            struct ast_node_info info;
             struct type_name* type_name;
             struct init_list init_list;
         };

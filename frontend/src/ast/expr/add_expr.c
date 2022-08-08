@@ -42,14 +42,12 @@ static bool parse_add_expr_add_chain(struct parser_state* s,
 }
 
 struct add_expr* parse_add_expr(struct parser_state* s) {
-    const struct source_loc loc = s->it->loc;
     struct mul_expr* lhs = parse_mul_expr(s);
     if (!lhs) {
         return NULL;
     }
 
     struct add_expr* res = xmalloc(sizeof(struct add_expr));
-    res->info = create_ast_node_info(loc);
     res->lhs = lhs;
 
     if (!parse_add_expr_add_chain(s, res)) {
@@ -69,7 +67,6 @@ struct add_expr* parse_add_expr_cast(struct parser_state* s,
     }
 
     struct add_expr* res = xmalloc(sizeof(struct add_expr));
-    res->info = create_ast_node_info(start->info.loc);
     res->lhs = lhs;
 
     if (!parse_add_expr_add_chain(s, res)) {

@@ -17,7 +17,6 @@ struct cast_expr_and_op {
 };
 
 struct mul_expr {
-    struct ast_node_info info;
     struct cast_expr* lhs;
     size_t len;
     struct cast_expr_and_op* mul_chain;
