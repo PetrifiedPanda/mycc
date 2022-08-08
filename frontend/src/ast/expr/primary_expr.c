@@ -90,8 +90,8 @@ struct primary_expr* parse_primary_expr(struct parser_state* s) {
                 create_string_constant(spelling, loc));
         }
         case FUNC_NAME: {
-            accept_it(s);
             struct source_loc loc = s->it->loc;
+            accept_it(s);
             return create_primary_expr_string(create_func_name(loc));
         }
         case GENERIC: {

@@ -567,7 +567,7 @@ static void dump_spec_qual_list(struct ast_dumper* d,
                                 const struct spec_qual_list* l) {
     assert(l);
 
-    dumper_println(d, "spec_qual_list:");
+    dumper_print_node_head(d, "spec_qual_list", &l->info);
 
     add_indent(d);
 

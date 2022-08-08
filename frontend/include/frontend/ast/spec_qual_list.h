@@ -8,6 +8,7 @@
 #include "frontend/ast/declaration/type_specs.h"
 
 struct spec_qual_list {
+    struct ast_node_info info;
     struct type_quals quals;
     struct type_specs specs;
 };

@@ -21,6 +21,7 @@ static bool parse_spec_or_qual(struct parser_state* s,
 
 struct spec_qual_list parse_spec_qual_list(struct parser_state* s) {
     struct spec_qual_list res = {
+        .info = create_ast_node_info(s->it->loc),
         .quals = create_type_quals(),
         .specs = create_type_specs(),
     };
