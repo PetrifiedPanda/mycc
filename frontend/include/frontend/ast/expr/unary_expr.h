@@ -7,6 +7,8 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct postfix_expr;
 struct cast_expr;
 struct type_name;
@@ -19,6 +21,7 @@ enum unary_expr_type {
 };
 
 struct unary_expr {
+    struct ast_node_info info;
     size_t len;
     enum token_type* operators_before; // only SIZEOF INC_OP or DEC_OP
     enum unary_expr_type type;

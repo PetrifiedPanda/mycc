@@ -21,7 +21,7 @@ static struct unary_or_cond parse_unary_or_cond(struct parser_state* s) {
         .cond = NULL,
     };
     if (s->it->type == LBRACKET && next_is_type_name(s)) {
-        struct source_loc start_bracket_loc = s->it->loc;
+        const struct source_loc start_bracket_loc = s->it->loc;
         accept_it(s);
 
         struct type_name* type_name = parse_type_name(s);
@@ -38,7 +38,7 @@ static struct unary_or_cond parse_unary_or_cond(struct parser_state* s) {
             res.is_cond = false;
             res.unary = parse_unary_expr_type_name(s, NULL, 0, type_name, start_bracket_loc);
         } else {
-            struct cast_expr* cast_expr = parse_cast_expr_type_name(s, type_name);
+            struct cast_expr* cast_expr = parse_cast_expr_type_name(s, type_name, start_bracket_loc);
             if (!cast_expr) {
                 return res;
             }

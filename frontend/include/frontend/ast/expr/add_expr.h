@@ -7,6 +7,8 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct mul_expr;
 
 struct mul_expr_and_op {
@@ -15,6 +17,7 @@ struct mul_expr_and_op {
 };
 
 struct add_expr {
+    struct ast_node_info info;
     struct mul_expr* lhs;
     size_t len;
     struct mul_expr_and_op* add_chain;

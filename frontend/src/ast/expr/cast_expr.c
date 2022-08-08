@@ -70,6 +70,7 @@ fail:
 
 struct cast_expr* parse_cast_expr(struct parser_state* s) {
     struct cast_expr* res = xmalloc(sizeof(struct cast_expr));
+    res->info = create_ast_node_info(s->it->loc);
     res->type_names = NULL;
     res->len = 0;
 
@@ -82,10 +83,12 @@ struct cast_expr* parse_cast_expr(struct parser_state* s) {
 }
 
 struct cast_expr* parse_cast_expr_type_name(struct parser_state* s,
-                                            struct type_name* type_name) {
+                                            struct type_name* type_name,
+                                            struct source_loc start_bracket_loc) {
     assert(type_name);
 
     struct cast_expr* res = xmalloc(sizeof(struct cast_expr));
+    res->info = create_ast_node_info(start_bracket_loc);
     res->type_names = type_name;
     res->len = 1;
 
@@ -101,6 +104,7 @@ struct cast_expr* create_cast_expr_unary(struct unary_expr* start) {
     assert(start);
 
     struct cast_expr* res = xmalloc(sizeof(struct cast_expr));
+    res->info = create_ast_node_info(start->info.loc);
     res->type_names = NULL;
     res->len = 0;
     res->rhs = start;
