@@ -158,11 +158,11 @@ struct inst create_cast_inst(const struct inst_type* type,
 struct inst create_alloca_inst(const struct inst_reg* dest,
                                const struct inst_type* type);
 
-struct inst create_inst_inst(enum inst_op op,
-                             const struct inst_type* type,
-                             const struct inst_reg* dest,
-                             const struct inst_arg* arg1,
-                             const struct inst_arg* arg2);
+struct inst create_inst(enum inst_op op,
+                        const struct inst_type* type,
+                        const struct inst_reg* dest,
+                        const struct inst_arg* arg1,
+                        const struct inst_arg* arg2);
 
 struct inst create_load_inst(const struct inst_reg* dest,
                              const struct inst_arg* ptr);

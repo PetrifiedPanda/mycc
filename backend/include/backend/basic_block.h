@@ -1,9 +1,9 @@
 #ifndef BASIC_BLOCK_H
 #define BASIC_BLOCK_H
 
-#include "tac.h"
+#include "inst.h"
 
-enum inst_branch_type {
+enum branch_inst_type {
     BRANCH_OP_COND,
     BRANCH_OP_UNCOND,
     BRANCH_OP_SWITCH,
@@ -16,7 +16,7 @@ struct inst_switch_target {
 };
 
 struct branch_inst {
-    enum inst_branch_type type;
+    enum branch_inst_type type;
     union {
         struct {
             struct inst_arg br_cond;

@@ -6,6 +6,7 @@
 struct ssa_reg_info {
     size_t str_idx;
     size_t val_inst_num;
+    struct inst_type type;
 };
 
 struct ssa_cfg {

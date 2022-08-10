@@ -1,4 +1,4 @@
-#include "backend/tac.h"
+#include "backend/inst.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -33,11 +33,11 @@ void free_inst_literal(struct inst_literal* lit) {
 }
 
 struct inst create_call_inst(const struct inst_type* type,
-                           const struct inst_reg* dest,
-                           const struct inst_arg* func,
-                           size_t num_func_args,
-                           struct inst_arg* func_args) {
-    return (struct inst) {
+                             const struct inst_reg* dest,
+                             const struct inst_arg* func,
+                             size_t num_func_args,
+                             struct inst_arg* func_args) {
+    return (struct inst){
         .op = TAC_CALL,
         .type = *type,
         .dest = *dest,
@@ -48,9 +48,9 @@ struct inst create_call_inst(const struct inst_type* type,
 }
 
 struct inst create_assign_inst(const struct inst_type* type,
-                             const struct inst_reg* dest,
-                             const struct inst_arg* val) {
-    return (struct inst) {
+                               const struct inst_reg* dest,
+                               const struct inst_arg* val) {
+    return (struct inst){
         .op = TAC_ASSIGN,
         .type = *type,
         .dest = *dest,
@@ -60,9 +60,9 @@ struct inst create_assign_inst(const struct inst_type* type,
 }
 
 struct inst create_cast_inst(const struct inst_type* type,
-                           const struct inst_reg* dest,
-                           const struct inst_arg* val) {
-    return (struct inst) {
+                             const struct inst_reg* dest,
+                             const struct inst_arg* val) {
+    return (struct inst){
         .op = TAC_CAST,
         .type = *type,
         .dest = *dest,
@@ -70,7 +70,8 @@ struct inst create_cast_inst(const struct inst_type* type,
     };
 }
 
-struct inst create_alloca_inst(const struct inst_reg* dest, const struct inst_type* type) {
+struct inst create_alloca_inst(const struct inst_reg* dest,
+                               const struct inst_type* type) {
     return (struct inst){
         .op = TAC_ALLOCA,
         .type = *type,
@@ -80,12 +81,12 @@ struct inst create_alloca_inst(const struct inst_reg* dest, const struct inst_ty
     };
 }
 
-struct inst create_inst_inst(enum inst_op op,
-                      const struct inst_type* type,
-                      const struct inst_reg* dest,
-                      const struct inst_arg* arg1,
-                      const struct inst_arg* arg2) {
-    return (struct inst) {
+struct inst create_inst(enum inst_op op,
+                        const struct inst_type* type,
+                        const struct inst_reg* dest,
+                        const struct inst_arg* arg1,
+                        const struct inst_arg* arg2) {
+    return (struct inst){
         .op = op,
         .type = *type,
         .dest = *dest,
@@ -95,8 +96,8 @@ struct inst create_inst_inst(enum inst_op op,
 }
 
 struct inst create_store_inst(const struct inst_arg* ptr,
-                            const struct inst_arg* to_store) {
-    return (struct inst) {
+                              const struct inst_arg* to_store) {
+    return (struct inst){
         .op = TAC_STORE,
         .arg1 = *ptr,
         .arg2 = *to_store,
@@ -104,8 +105,8 @@ struct inst create_store_inst(const struct inst_arg* ptr,
 }
 
 struct inst create_load_inst(const struct inst_reg* dest,
-                           const struct inst_arg* ptr) {
-    return (struct inst) {
+                             const struct inst_arg* ptr) {
+    return (struct inst){
         .op = TAC_LOAD,
         .dest = *dest,
         .arg1 = *ptr,
@@ -114,11 +115,11 @@ struct inst create_load_inst(const struct inst_reg* dest,
 }
 
 struct inst create_getelem_inst(const struct inst_reg* dest,
-                              const struct inst_type* type,
-                              const struct inst_arg* accessed,
-                              size_t num_accesses,
-                              struct inst_arg* elems) {
-    return (struct inst) {
+                                const struct inst_type* type,
+                                const struct inst_arg* accessed,
+                                size_t num_accesses,
+                                struct inst_arg* elems) {
+    return (struct inst){
         .op = TAC_GETELEM,
         .type = *type,
         .dest = *dest,
@@ -130,11 +131,11 @@ struct inst create_getelem_inst(const struct inst_reg* dest,
 }
 
 struct inst create_getelemptr_inst(const struct inst_reg* dest,
-                                 const struct inst_type* type,
-                                 const struct inst_arg* accessed,
-                                 size_t num_accesses,
-                                 struct inst_arg* elems) {
-    return (struct inst) {
+                                   const struct inst_type* type,
+                                   const struct inst_arg* accessed,
+                                   size_t num_accesses,
+                                   struct inst_arg* elems) {
+    return (struct inst){
         .op = TAC_GETELEMPTR,
         .type = *type,
         .dest = *dest,
@@ -146,12 +147,12 @@ struct inst create_getelemptr_inst(const struct inst_reg* dest,
 }
 
 struct inst create_replace_elem_inst(const struct inst_reg* dest,
-                                   const struct inst_type* type,
-                                   const struct inst_arg* accessed,
-                                   size_t num_accesses,
-                                   struct inst_arg* elems,
-                                   const struct inst_arg* replacement) {
-    return (struct inst) {
+                                     const struct inst_type* type,
+                                     const struct inst_arg* accessed,
+                                     size_t num_accesses,
+                                     struct inst_arg* elems,
+                                     const struct inst_arg* replacement) {
+    return (struct inst){
         .op = TAC_REPLACEELEM,
         .type = *type,
         .dest = *dest,
