@@ -8,10 +8,10 @@ struct cfg {
     size_t len;
     struct basic_block* blocks;
     size_t num_regs;
-    struct tac_reg_info* regs;
+    struct inst_reg_info* regs;
 };
 
-void cfg_free(struct cfg* cfg);
+void free_cfg(struct cfg* cfg);
 
 #endif
 

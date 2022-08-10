@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-void tac_type_info_free(struct tac_type_info* t) {
+void free_inst_type_info(struct inst_type_info* t) {
     switch (t->type) {
         case TAC_TYPE_BUILTIN:
         case TAC_TYPE_ARR:
@@ -14,16 +14,16 @@ void tac_type_info_free(struct tac_type_info* t) {
     }
 }
 
-void tac_reg_info_free(struct tac_reg_info* reg) {
+void free_inst_reg_info(struct inst_reg_info* reg) {
     free(reg->name);
 }
 
-void tac_literal_free(struct tac_literal* lit) {
+void free_inst_literal(struct inst_literal* lit) {
     switch (lit->type) {
         case TAC_LITERAL_STRUCT:
         case TAC_LITERAL_ARR:
             for (size_t i = 0; i < lit->num_members; ++i) {
-                tac_literal_free(&lit->members[i]);
+                free_inst_literal(&lit->members[i]);
             }
             free(lit->members);
             break;
@@ -32,12 +32,12 @@ void tac_literal_free(struct tac_literal* lit) {
     }
 }
 
-struct tac tac_create_call(const struct tac_type* type,
-                           const struct tac_reg* dest,
-                           const struct tac_arg* func,
+struct inst create_call_inst(const struct inst_type* type,
+                           const struct inst_reg* dest,
+                           const struct inst_arg* func,
                            size_t num_func_args,
-                           struct tac_arg* func_args) {
-    return (struct tac) {
+                           struct inst_arg* func_args) {
+    return (struct inst) {
         .op = TAC_CALL,
         .type = *type,
         .dest = *dest,
@@ -47,10 +47,10 @@ struct tac tac_create_call(const struct tac_type* type,
     };
 }
 
-struct tac tac_create_assign(const struct tac_type* type,
-                             const struct tac_reg* dest,
-                             const struct tac_arg* val) {
-    return (struct tac) {
+struct inst create_assign_inst(const struct inst_type* type,
+                             const struct inst_reg* dest,
+                             const struct inst_arg* val) {
+    return (struct inst) {
         .op = TAC_ASSIGN,
         .type = *type,
         .dest = *dest,
@@ -59,10 +59,10 @@ struct tac tac_create_assign(const struct tac_type* type,
     };
 }
 
-struct tac tac_create_cast(const struct tac_type* type,
-                           const struct tac_reg* dest,
-                           const struct tac_arg* val) {
-    return (struct tac) {
+struct inst create_cast_inst(const struct inst_type* type,
+                           const struct inst_reg* dest,
+                           const struct inst_arg* val) {
+    return (struct inst) {
         .op = TAC_CAST,
         .type = *type,
         .dest = *dest,
@@ -70,8 +70,8 @@ struct tac tac_create_cast(const struct tac_type* type,
     };
 }
 
-struct tac tac_create_alloca(const struct tac_reg* dest, const struct tac_type* type) {
-    return (struct tac){
+struct inst create_alloca_inst(const struct inst_reg* dest, const struct inst_type* type) {
+    return (struct inst){
         .op = TAC_ALLOCA,
         .type = *type,
         .dest = *dest,
@@ -80,12 +80,12 @@ struct tac tac_create_alloca(const struct tac_reg* dest, const struct tac_type* 
     };
 }
 
-struct tac tac_create(enum tac_op op,
-                      const struct tac_type* type,
-                      const struct tac_reg* dest,
-                      const struct tac_arg* arg1,
-                      const struct tac_arg* arg2) {
-    return (struct tac) {
+struct inst create_inst_inst(enum inst_op op,
+                      const struct inst_type* type,
+                      const struct inst_reg* dest,
+                      const struct inst_arg* arg1,
+                      const struct inst_arg* arg2) {
+    return (struct inst) {
         .op = op,
         .type = *type,
         .dest = *dest,
@@ -94,18 +94,18 @@ struct tac tac_create(enum tac_op op,
     };
 }
 
-struct tac tac_create_store(const struct tac_arg* ptr,
-                            const struct tac_arg* to_store) {
-    return (struct tac) {
+struct inst create_store_inst(const struct inst_arg* ptr,
+                            const struct inst_arg* to_store) {
+    return (struct inst) {
         .op = TAC_STORE,
         .arg1 = *ptr,
         .arg2 = *to_store,
     };
 }
 
-struct tac tac_create_load(const struct tac_reg* dest,
-                           const struct tac_arg* ptr) {
-    return (struct tac) {
+struct inst create_load_inst(const struct inst_reg* dest,
+                           const struct inst_arg* ptr) {
+    return (struct inst) {
         .op = TAC_LOAD,
         .dest = *dest,
         .arg1 = *ptr,
@@ -113,12 +113,12 @@ struct tac tac_create_load(const struct tac_reg* dest,
     };
 }
 
-struct tac tac_create_getelem(const struct tac_reg* dest,
-                              const struct tac_type* type,
-                              const struct tac_arg* accessed,
+struct inst create_getelem_inst(const struct inst_reg* dest,
+                              const struct inst_type* type,
+                              const struct inst_arg* accessed,
                               size_t num_accesses,
-                              struct tac_arg* elems) {
-    return (struct tac) {
+                              struct inst_arg* elems) {
+    return (struct inst) {
         .op = TAC_GETELEM,
         .type = *type,
         .dest = *dest,
@@ -129,12 +129,12 @@ struct tac tac_create_getelem(const struct tac_reg* dest,
     };
 }
 
-struct tac tac_create_getelemptr(const struct tac_reg* dest,
-                                 const struct tac_type* type,
-                                 const struct tac_arg* accessed,
+struct inst create_getelemptr_inst(const struct inst_reg* dest,
+                                 const struct inst_type* type,
+                                 const struct inst_arg* accessed,
                                  size_t num_accesses,
-                                 struct tac_arg* elems) {
-    return (struct tac) {
+                                 struct inst_arg* elems) {
+    return (struct inst) {
         .op = TAC_GETELEMPTR,
         .type = *type,
         .dest = *dest,
@@ -145,13 +145,13 @@ struct tac tac_create_getelemptr(const struct tac_reg* dest,
     };
 }
 
-struct tac tac_create_replace_elem(const struct tac_reg* dest,
-                                   const struct tac_type* type,
-                                   const struct tac_arg* accessed,
+struct inst create_replace_elem_inst(const struct inst_reg* dest,
+                                   const struct inst_type* type,
+                                   const struct inst_arg* accessed,
                                    size_t num_accesses,
-                                   struct tac_arg* elems,
-                                   const struct tac_arg* replacement) {
-    return (struct tac) {
+                                   struct inst_arg* elems,
+                                   const struct inst_arg* replacement) {
+    return (struct inst) {
         .op = TAC_REPLACEELEM,
         .type = *type,
         .dest = *dest,
@@ -162,20 +162,20 @@ struct tac tac_create_replace_elem(const struct tac_reg* dest,
     };
 }
 
-void tac_arg_free(struct tac_arg* arg) {
+void free_inst_arg(struct inst_arg* arg) {
     if (arg->type == TAC_ARG_LITERAL) {
-        tac_literal_free(&arg->lit);
+        free_inst_literal(&arg->lit);
     }
 }
 
-static void free_args(struct tac_arg* args, size_t len) {
+static void free_args(struct inst_arg* args, size_t len) {
     for (size_t i = 0; i < len; ++i) {
-        tac_arg_free(&args[i]);
+        free_inst_arg(&args[i]);
     }
     free(args);
 }
 
-void tac_free(struct tac* tac) {
+void free_inst(struct inst* tac) {
     switch (tac->op) {
         case TAC_ADD:
         case TAC_SUB:
@@ -195,28 +195,28 @@ void tac_free(struct tac* tac) {
         case TAC_GE:
         case TAC_STORE:
         case TAC_LOAD:
-            tac_arg_free(&tac->arg1);
-            tac_arg_free(&tac->arg2);
+            free_inst_arg(&tac->arg1);
+            free_inst_arg(&tac->arg2);
             break;
         case TAC_CALL:
-            tac_arg_free(&tac->func);
+            free_inst_arg(&tac->func);
             free_args(tac->func_args, tac->num_func_args);
             break;
         case TAC_ASSIGN:
         case TAC_CAST:
-            tac_arg_free(&tac->arg1);
+            free_inst_arg(&tac->arg1);
             break;
         case TAC_ALLOCA:
             break;
         case TAC_GETELEMPTR:
         case TAC_GETELEM:
-            tac_arg_free(&tac->accessed);
+            free_inst_arg(&tac->accessed);
             free_args(tac->elems, tac->num_accesses);
             break;
         case TAC_REPLACEELEM:
-            tac_arg_free(&tac->accessed);
+            free_inst_arg(&tac->accessed);
             free_args(tac->elems, tac->num_accesses);
-            tac_arg_free(&tac->replacement);
+            free_inst_arg(&tac->replacement);
             break;
     }
 }

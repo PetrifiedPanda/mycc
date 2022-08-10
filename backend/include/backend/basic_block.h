@@ -3,49 +3,49 @@
 
 #include "tac.h"
 
-enum tac_branch_type {
+enum inst_branch_type {
     BRANCH_OP_COND,
     BRANCH_OP_UNCOND,
     BRANCH_OP_SWITCH,
     BRANCH_OP_RETURN,
 };
 
-struct tac_switch_target {
-    struct tac_literal val;
+struct inst_switch_target {
+    struct inst_literal val;
     size_t target;
 };
 
-struct tac_branch {
-    enum tac_branch_type type;
+struct branch_inst {
+    enum inst_branch_type type;
     union {
         struct {
-            struct tac_arg br_cond;
+            struct inst_arg br_cond;
             size_t true_target;
             size_t false_target;
         };
         size_t branch_target;
         struct {
-            struct tac_arg switch_cond;
+            struct inst_arg switch_cond;
             size_t default_target;
             size_t switch_len;
-            struct tac_switch_target* targets;
+            struct inst_switch_target* targets;
         };
-        struct tac_arg return_val;
+        struct inst_arg return_val;
     };
 };
 
 struct basic_block {
     char* name;
     size_t len;
-    struct tac* ops;
-    struct tac_branch branch;
+    struct inst* ops;
+    struct branch_inst branch;
     size_t num_preds;
     size_t* preds;
 };
 
-void tac_branch_free(struct tac_branch* b);
+void free_inst_branch(struct branch_inst* b);
 
-void basic_block_free(struct basic_block* bb);
+void free_basic_block(struct basic_block* bb);
 
 #endif
 
