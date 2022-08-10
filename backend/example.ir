@@ -1,0 +1,55 @@
+#not_ssa
+
+typedef int_arr, {u64, i32*}
+
+extern fn void* malloc(u64 bytes)
+
+fn i32 test(x: i32, y: i32) {
+entry:
+    add i32 z x y
+    ret i32 z
+}
+
+fn {u64, i32*} zeroed_arr(len: u64) {
+entry:
+    mul u64 bytes, len, 4
+    call void* res_void, malloc(bytes)
+    cast i32* res, res_void
+    mov u64 i, 0
+loop_cond:
+    ge bool cond, i, len
+    br cond, loop_end, loop_hook
+loop_hook:
+    str i32 res i, 0
+    add u64 i, i, 1
+    br loop_cond
+loop_end:
+    ret {u64, i32*} {len, res} 
+}
+
+fn u64 get_arr_len(arr: {u64, i32*}) {
+entry:
+    getelem u64 res, arr, 0
+    ret u64 res
+}
+
+fn int_arr copy_arr(arr: int_arr) {
+entry:
+    getelem u64 len, arr, 0
+    mul u64 bytes, len, 4
+    call void* res_void, malloc(bytes)
+    cast i32* res, res_void
+    mov u64 i, 0
+    getelem i32* to_copy, arr, 1
+loop_cond:
+    ge bool cond, i, len
+    br cond, loop_end, loop_hook
+loop_hook:
+    ldr i32, item, to_copy, i
+    str i32 res, item, i
+    br loop_cond
+loop_end:
+    replace int_arr res_struct, arr, 1, res
+    ret int_arr res_struct
+}
+

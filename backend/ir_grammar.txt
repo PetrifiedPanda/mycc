@@ -1,0 +1,20 @@
+br_inst: br type tac_arg, ident, ident 
+         | br ident
+         | switch type tac_arg, ident, [lit, ident]*
+         | ret type tac_arg
+base_type: i8 | i16 | i32 | i64 | u8 | u16 | u32 | u64 | f16 | f32 | f64 | bool 
+type: base_type 
+      | {[type,]*}
+lit: TODO:
+normal_inst => add | sub | mul | div | and | or | xor | shl | shr | mod | eq | neq | lt | le | gt | ge | str | ldr | getelem | getelemptr
+tac_arg => ident
+           | lit
+           | {[tac_arg,]*}
+tac_inst => normal_inst type ident, tac_arg, tac_arg 
+            | mov type ident, tac_arg 
+            | call type ident, ident([tac_arg,]*) 
+            | alloca type ident 
+basic_block => ident: tac_inst* br_inst
+cfg => fn type ident([type ident,]*) { basic_block* }
+// TODO: global definition
+tl => cfg* | 
