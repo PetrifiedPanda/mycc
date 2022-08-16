@@ -84,6 +84,7 @@ enum inst_op {
     TAC_SUB,
     TAC_MUL,
     TAC_DIV,
+    TAC_UDIV,
     TAC_AND,
     TAC_OR,
     TAC_XOR,

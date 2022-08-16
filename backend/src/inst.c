@@ -182,6 +182,7 @@ void free_inst(struct inst* tac) {
         case TAC_SUB:
         case TAC_MUL:
         case TAC_DIV:
+        case TAC_UDIV:
         case TAC_AND:
         case TAC_OR:
         case TAC_XOR:

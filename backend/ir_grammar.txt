@@ -2,11 +2,11 @@ br_inst: br type tac_arg, ident, ident
          | br ident
          | switch type tac_arg, ident, [lit, ident]*
          | ret type tac_arg
-base_type: i8 | i16 | i32 | i64 | u8 | u16 | u32 | u64 | f16 | f32 | f64 | bool 
+base_type: i8 | i16 | i32 | i64 | f16 | f32 | f64 | bool 
 type: base_type 
       | {[type,]*}
 lit: TODO:
-normal_inst => add | sub | mul | div | and | or | xor | shl | shr | mod | eq | neq | lt | le | gt | ge | str | ldr | getelem | getelemptr
+normal_inst => add | sub | mul | div | udiv | and | or | xor | shl | shr | mod | eq | neq | lt | le | gt | ge | str | ldr | getelem | getelemptr
 tac_arg => ident
            | lit
            | {[tac_arg,]*}
