@@ -19,7 +19,7 @@ inst => normal_inst type ident, inst_arg, inst_arg
             | alloca type ident
             | getelemptr type ident, inst_arg, inst_arg [, inst_arg]*
             | getelem type ident, inst_arg, inst_arg [, inst_arg,]*
-            | replaceelem type ident, inst_arg, inst_arg, inst_arg, [, inst_arg]*
+            | replaceelem type ident, inst_arg, inst_arg, inst_arg [, inst_arg]*
 basic_block => ident: inst* br_inst
 
 func_head => fn type ident([ident: type [, ident: type]*]?)
