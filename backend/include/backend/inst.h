@@ -7,7 +7,7 @@
 // TODO: pointer modifiers like restrict, volatile
 
 struct inst_type {
-    size_t type_id; // ID in LUT for types
+    size_t id; // ID in LUT for types
     size_t num_indirs;
 };
 
@@ -56,7 +56,11 @@ struct inst_literal {
 };
 
 struct inst_reg {
-    size_t reg_id;
+    size_t id;
+};
+
+struct inst_global {
+    size_t id;
 };
 
 struct inst_reg_info {
@@ -64,17 +68,25 @@ struct inst_reg_info {
     struct inst_type type;
 };
 
+struct inst_global_info {
+    char* name;
+    struct inst_type type;
+    // TODO: value (if known at compile time)
+};
+
 enum inst_arg_type {
     TAC_ARG_NONE,
     TAC_ARG_LITERAL,
-    TAC_ARG_VAR,
+    TAC_ARG_REG,
+    TAC_ARG_GLOBAL,
 };
 
 struct inst_arg {
     enum inst_arg_type type;
     union {
         struct inst_literal lit;
-        struct inst_reg var;
+        struct inst_reg reg;
+        struct inst_global global;
     };
 };
 
@@ -138,6 +150,7 @@ struct inst {
 };
 
 void free_inst_type_info(struct inst_type_info* t);
+void free_inst_global_info(struct inst_global_info* g);
 void free_inst_reg_info(struct inst_reg_info* reg);
 
 void free_inst_literal(struct inst_literal* lit);

@@ -14,6 +14,10 @@ void free_inst_type_info(struct inst_type_info* t) {
     }
 }
 
+void free_inst_global_info(struct inst_global_info* g) {
+    free(g->name);
+}
+
 void free_inst_reg_info(struct inst_reg_info* reg) {
     free(reg->name);
 }
