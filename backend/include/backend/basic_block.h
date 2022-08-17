@@ -43,7 +43,7 @@ struct basic_block {
     size_t* preds;
 };
 
-void free_inst_branch(struct branch_inst* b);
+void free_branch_inst(struct branch_inst* b);
 
 void free_basic_block(struct basic_block* bb);
 
