@@ -5,7 +5,7 @@ br_inst: br inst_arg, ident, ident
 base_type: i8 | i16 | i32 | i64 | f16 | f32 | f64 | bool 
 type: base_type 
       | {[type [, type]*]?}
-lit: TODO:
+lit: true | false | integer_literal | float_literal
 normal_inst => add | sub | mul | div | udiv | and | or | xor | shl | shr | mod | eq | neq | lt | le | gt | ge
 inst_arg => ident
            | lit
@@ -21,8 +21,15 @@ inst => normal_inst type ident, inst_arg, inst_arg
             | getelem type ident, inst_arg, inst_arg [, inst_arg,]*
             | replaceelem type ident, inst_arg, inst_arg, inst_arg, [, inst_arg]*
 basic_block => ident: inst* br_inst
-signature => 
-cfg => fn type ident([ident: type [, ident: type]*]?) { basic_block* }
+
+func_head => fn type ident([ident: type [, ident: type]*]?)
+
+cfg => func_head { basic_block* }
 extern_decl => extern type ident([type [, type]*]?)
 global_decl => global type ident, lit?
-tl => [cfg | extern_decl | global_decl]* 
+ir_module => [cfg | extern_decl | global_decl]*
+
+phi_func => phi type ident, (inst_arg, ident) [, (inst_arg, ident)]*
+ssa_basic_block => ident: phi_func* inst* br_inst
+ssa_cfg => func_head { ssa_basic_block*}
+ssa_module => [ssa_cfg | external_decl | global_decl]*
