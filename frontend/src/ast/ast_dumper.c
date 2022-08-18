@@ -7,10 +7,10 @@
 #include "util/annotations.h"
 
 struct ast_dumper {
+    jmp_buf err_buf;
     FILE* file;
     size_t num_indents;
     const struct file_info* file_info;
-    jmp_buf err_buf;
 };
 
 static void add_indent(struct ast_dumper* d) {

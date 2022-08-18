@@ -11,7 +11,7 @@ static bool parse_cast_expr_rest(struct parser_state* s,
                                  struct cast_expr* res) {
     size_t alloc_len = res->len;
     struct source_loc last_lbracket_loc = {
-        .file_idx = -1,
+        .file_idx = (size_t)-1,
         .file_loc = {0, 0},
     };
     while (s->it->type == LBRACKET && next_is_type_name(s)) {

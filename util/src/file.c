@@ -6,10 +6,10 @@
 #include "util/mem.h"
 
 void file_read_line(FILE* file,
-                      char** res,
-                      size_t* res_len,
-                      char* static_buf,
-                      size_t static_buf_len) {
+                    char** res,
+                    size_t* res_len,
+                    char* static_buf,
+                    size_t static_buf_len) {
     assert(res);
     assert(res_len);
 
@@ -34,7 +34,7 @@ void file_read_line(FILE* file,
         } else if (*res_len == 0 && c == EOF) {
             *res = NULL;
             return;
-        } else { 
+        } else {
             static_buf[*res_len] = '\0';
             *res = static_buf;
             return;

@@ -30,15 +30,16 @@ struct preproc_res preproc(const char* path, struct preproc_err* err) {
     struct preproc_state state = create_preproc_state(path, err);
 
     if (!preproc_file(&state, path,  (struct source_loc){(size_t)-1, {0, 0}})) {
-        return (struct preproc_res) {
-            .toks = NULL,
-            .file_info = state.file_info,
-        };
-        state.file_info = (struct file_info) {
+        struct file_info info = state.file_info;
+        state.file_info = (struct file_info){
             .len = 0,
             .paths = NULL,
         };
         free_preproc_state(&state);
+        return (struct preproc_res) {
+            .toks = NULL,
+            .file_info = info,
+        };
     }
     
     struct preproc_res res = {

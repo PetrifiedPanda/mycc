@@ -51,7 +51,7 @@ static size_t find_item_index_insert(const struct string_hash_map* map,
     const size_t hash = hash_string(key);
     size_t i = hash % map->_cap;
     bool found_deleted = false;
-    size_t deleted_idx;
+    size_t deleted_idx = (size_t)-1;
     size_t it_count = 0;
     while (it_count != map->_cap
            && (map->_keys[i].was_deleted
