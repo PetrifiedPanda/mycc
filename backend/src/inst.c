@@ -11,6 +11,9 @@ void free_inst_type_info(struct inst_type_info* t) {
         case TAC_TYPE_STRUCT:
             free(t->member_types);
             break;
+        case TAC_TYPE_FUNC:
+            free(t->arg_types);
+            break;
     }
 }
 

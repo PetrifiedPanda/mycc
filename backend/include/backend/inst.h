@@ -15,6 +15,7 @@ enum inst_type_type {
     TAC_TYPE_BUILTIN,
     TAC_TYPE_ARR,
     TAC_TYPE_STRUCT,
+    TAC_TYPE_FUNC,
 };
 
 // TODO: builtins (could just be in enum)
@@ -22,12 +23,17 @@ struct inst_type_info {
     enum inst_type_type type;
     union {
         struct {
+            struct inst_type arr_type;
+            size_t arr_len;
+        };
+        struct {
             size_t num_members;
             struct inst_type* member_types;
         };
         struct {
-            struct inst_type arr_type;
-            size_t arr_len;
+            struct inst_type ret_type;
+            size_t num_args;
+            struct inst_type* arg_types;
         };
     };
 };
