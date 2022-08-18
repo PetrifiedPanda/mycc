@@ -11,6 +11,8 @@ struct ir_module {
     struct cfg* funcs;
     size_t num_globals;
     struct inst_global_info* globals;
+    size_t num_types;
+    struct inst_type_info* types;
 };
 
 void free_ir_module(struct ir_module* mod);
