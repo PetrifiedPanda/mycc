@@ -466,7 +466,7 @@ static void dump_struct_union_spec(struct ast_dumper* d,
                                    const struct struct_union_spec* s) {
     assert(d);
 
-    dumper_println(d, "struct_union_spec:");
+    dumper_print_node_head(d, "struct_union_spec", &s->info);
 
     add_indent(d);
 
@@ -518,7 +518,7 @@ static void dump_enum_list(struct ast_dumper* d, const struct enum_list* l) {
 static void dump_enum_spec(struct ast_dumper* d, const struct enum_spec* s) {
     assert(s);
 
-    dumper_println(d, "enum_spec:");
+    dumper_print_node_head(d, "enum_spec", &s->info);
 
     add_indent(d);
 
@@ -980,7 +980,7 @@ static void dump_labeled_statement(struct ast_dumper* d,
                                    const struct labeled_statement* s) {
     assert(s);
 
-    dumper_println(d, "labeled_statement:");
+    dumper_print_node_head(d, "labeled_statement", &s->info);
 
     add_indent(d);
 
@@ -1177,7 +1177,7 @@ static void dump_compound_statement(struct ast_dumper* d,
                                     const struct compound_statement* s) {
     assert(s);
 
-    dumper_println(d, "compound_statement:");
+    dumper_print_node_head(d, "compound_statement", &s->info);
 
     add_indent(d);
 

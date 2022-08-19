@@ -6,6 +6,7 @@
 struct identifier;
 
 struct enum_spec {
+    struct ast_node_info info;
     struct identifier* identifier;
     struct enum_list enum_list;
 };

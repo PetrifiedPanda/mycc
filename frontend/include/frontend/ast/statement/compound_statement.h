@@ -5,9 +5,12 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct block_item;
 
 struct compound_statement {
+    struct ast_node_info info;
     size_t len;
     struct block_item* items;
 };

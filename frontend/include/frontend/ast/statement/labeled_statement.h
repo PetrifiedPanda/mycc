@@ -5,11 +5,14 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct const_expr;
 struct statement;
 struct identifier;
 
 struct labeled_statement {
+    struct ast_node_info info;
     enum token_type type;
     union {
         struct identifier* identifier;

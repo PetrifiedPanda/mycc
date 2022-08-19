@@ -6,6 +6,7 @@
 #include "util/mem.h"
 
 struct compound_statement* parse_compound_statement(struct parser_state* s) {
+    const struct source_loc loc = s->it->loc;
     if (!accept(s, LBRACE)) {
         return NULL;
     }
@@ -13,6 +14,7 @@ struct compound_statement* parse_compound_statement(struct parser_state* s) {
     parser_push_scope(s);
 
     struct compound_statement* res = xmalloc(sizeof(struct compound_statement));
+    res->info = create_ast_node_info(loc);
     res->items = NULL;
     res->len = 0;
 

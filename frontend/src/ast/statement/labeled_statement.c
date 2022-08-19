@@ -10,6 +10,7 @@
 
 struct labeled_statement* parse_labeled_statement(struct parser_state* s) {
     struct labeled_statement* res = xmalloc(sizeof(struct labeled_statement));
+    res->info = create_ast_node_info(s->it->loc);
     switch (s->it->type) {
         case CASE: {
             res->type = CASE;

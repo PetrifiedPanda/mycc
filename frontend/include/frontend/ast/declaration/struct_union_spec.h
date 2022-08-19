@@ -10,6 +10,7 @@
 struct identifier;
 
 struct struct_union_spec {
+    struct ast_node_info info;
     bool is_struct;
     struct identifier* identifier;
     struct struct_declaration_list decl_list;

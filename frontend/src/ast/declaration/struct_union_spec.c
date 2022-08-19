@@ -6,11 +6,13 @@
 
 #include "frontend/parser/parser_util.h"
 
-struct struct_union_spec* create_struct_union_spec(
+static struct struct_union_spec* create_struct_union(
+    struct source_loc loc,
     bool is_struct,
     struct identifier* identifier,
     struct struct_declaration_list decl_list) {
     struct struct_union_spec* res = xmalloc(sizeof(struct struct_union_spec));
+    res->info = create_ast_node_info(loc);
     res->is_struct = is_struct;
     res->identifier = identifier;
     res->decl_list = decl_list;
@@ -19,6 +21,7 @@ struct struct_union_spec* create_struct_union_spec(
 }
 
 struct struct_union_spec* parse_struct_union_spec(struct parser_state* s) {
+    const struct source_loc loc = s->it->loc;
     bool is_struct;
     if (s->it->type == STRUCT) {
         is_struct = true;
@@ -55,7 +58,7 @@ struct struct_union_spec* parse_struct_union_spec(struct parser_state* s) {
             goto fail;
         }
     }
-    return create_struct_union_spec(is_struct, id, list);
+    return create_struct_union(loc, is_struct, id, list);
 
 fail:
     if (id) {
