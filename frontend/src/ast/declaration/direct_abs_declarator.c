@@ -102,6 +102,7 @@ static bool parse_abs_arr_or_func_suffix(struct parser_state* s,
                                          struct abs_arr_or_func_suffix* res) {
     assert(res);
     assert(s->it->type == LBRACKET || s->it->type == LINDEX);
+    res->info = create_ast_node_info(s->it->loc);
 
     switch (s->it->type) {
         case LBRACKET:
@@ -117,6 +118,7 @@ struct direct_abs_declarator* parse_direct_abs_declarator(
     struct parser_state* s) {
     struct direct_abs_declarator* res = xmalloc(
         sizeof(struct direct_abs_declarator));
+    res->info = create_ast_node_info(s->it->loc);
     if (s->it->type == LBRACKET
         && (s->it[1].type == LBRACKET || s->it[1].type == LINDEX
             || s->it[1].type == ASTERISK)) {

@@ -7,7 +7,10 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct pointer {
+    struct ast_node_info info;
     size_t num_indirs;
     struct type_quals* quals_after_ptr;
 };

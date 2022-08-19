@@ -27,6 +27,7 @@ struct func_specs {
 };
 
 struct declaration_specs {
+    struct ast_node_info info;
     struct func_specs func_specs;
     struct storage_class storage_class;
     struct type_quals type_quals;

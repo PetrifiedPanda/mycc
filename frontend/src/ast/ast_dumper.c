@@ -63,7 +63,9 @@ static void dumper_print_node_head(struct ast_dumper* d,
 static void dump_translation_unit(struct ast_dumper* d,
                                   const struct translation_unit* tl);
 
-bool dump_ast(const struct translation_unit* tl, const struct file_info* file_info, FILE* f) {
+bool dump_ast(const struct translation_unit* tl,
+              const struct file_info* file_info,
+              FILE* f) {
     struct ast_dumper d = {
         .file = f,
         .file_info = file_info,
@@ -135,7 +137,7 @@ static void dump_const_expr(struct ast_dumper* d, const struct const_expr* e);
 static void dump_align_spec(struct ast_dumper* d, const struct align_spec* s) {
     assert(s);
 
-    dumper_println(d, "align_spec:");
+    dumper_print_node_head(d, "align_spec", &s->info);
 
     add_indent(d);
 
@@ -154,7 +156,7 @@ static void dump_declaration_specs(struct ast_dumper* d,
                                    const struct declaration_specs* s) {
     assert(s);
 
-    dumper_println(d, "declaration_specs:");
+    dumper_print_node_head(d, "declaration_specs", &s->info);
 
     add_indent(d);
 
@@ -176,7 +178,7 @@ static void dump_declaration_specs(struct ast_dumper* d,
 static void dump_pointer(struct ast_dumper* d, const struct pointer* p) {
     assert(p);
 
-    dumper_println(d, "pointer:");
+    dumper_print_node_head(d, "pointer", &p->info);
 
     add_indent(d);
 
@@ -192,7 +194,7 @@ static void dump_identifier(struct ast_dumper* d, struct identifier* i) {
     assert(i);
 
     dumper_print_node_head(d, "identifier", &i->info);
-    
+
     add_indent(d);
     dumper_println(d, "spelling: %s", i->spelling);
     remove_indent(d);
@@ -335,7 +337,7 @@ static void dump_primary_expr(struct ast_dumper* d,
             break;
         case PRIMARY_EXPR_BRACKET:
             dumper_print_node_head(d, "primary_expr", &e->info);
-            
+
             add_indent(d);
 
             dump_expr(d, e->bracket_expr);
@@ -375,7 +377,7 @@ static void dump_atomic_type_spec(struct ast_dumper* d,
                                   const struct atomic_type_spec* s) {
     assert(s);
 
-    dumper_println(d, "atomic_type_spec:");
+    dumper_print_node_head(d, "atomic_type_spec", &s->info);
 
     add_indent(d);
 
@@ -646,7 +648,7 @@ static void dump_init_list(struct ast_dumper* d, const struct init_list* l);
 
 static void dump_postfix_expr(struct ast_dumper* d, struct postfix_expr* e) {
     assert(e);
-    
+
     if (e->is_primary) {
         dumper_println(d, "postfix_expr:");
     } else {
@@ -757,7 +759,7 @@ static void dump_abs_arr_or_func_suffix(
     const struct abs_arr_or_func_suffix* s) {
     assert(s);
 
-    dumper_println(d, "abs_arr_or_func_suffix:");
+    dumper_print_node_head(d, "abs_arr_or_func_suffix", &s->info);
 
     add_indent(d);
 
@@ -785,7 +787,7 @@ static void dump_direct_abs_declarator(
     const struct direct_abs_declarator* decl) {
     assert(decl);
 
-    dumper_println(d, "direct_abs_declarator:");
+    dumper_print_node_head(d, "direct_abs_declarator", &decl->info);
 
     add_indent(d);
 
@@ -904,11 +906,35 @@ static void dump_arr_suffix(struct ast_dumper* d, const struct arr_suffix* s) {
     remove_indent(d);
 }
 
+static void dump_arr_or_func_suffix(struct ast_dumper* d,
+                                    const struct arr_or_func_suffix* s) {
+    dumper_print_node_head(d, "arr_or_func_suffix", &s->info);
+    
+    add_indent(d);
+
+    switch (s->type) {
+        case ARR_OR_FUNC_ARRAY:
+            dump_arr_suffix(d, &s->arr_suffix);
+            break;
+        case ARR_OR_FUNC_FUN_PARAMS:
+            dump_param_type_list(d, &s->fun_types);
+            break;
+        case ARR_OR_FUNC_FUN_OLD_PARAMS:
+            dump_identifier_list(d, &s->fun_params);
+            break;
+        case ARR_OR_FUNC_FUN_EMPTY:
+            dumper_println(d, "empty_func_suffix");
+            break;
+    }
+
+    remove_indent(d);
+}
+
 static void dump_direct_declarator(struct ast_dumper* d,
                                    struct direct_declarator* decl) {
     assert(decl);
 
-    dumper_println(d, "direct_declarator:");
+    dumper_print_node_head(d, "direct_declarator", &decl->info);
 
     add_indent(d);
 
@@ -920,20 +946,7 @@ static void dump_direct_declarator(struct ast_dumper* d,
 
     for (size_t i = 0; i < decl->len; ++i) {
         struct arr_or_func_suffix* item = &decl->suffixes[i];
-        switch (item->type) {
-            case ARR_OR_FUNC_ARRAY:
-                dump_arr_suffix(d, &item->arr_suffix);
-                break;
-            case ARR_OR_FUNC_FUN_PARAMS:
-                dump_param_type_list(d, &item->fun_types);
-                break;
-            case ARR_OR_FUNC_FUN_OLD_PARAMS:
-                dump_identifier_list(d, &item->fun_params);
-                break;
-            case ARR_OR_FUNC_FUN_EMPTY:
-                dumper_println(d, "empty_func_suffix");
-                break;
-        }
+        dump_arr_or_func_suffix(d, item);
     }
 
     remove_indent(d);
@@ -1207,7 +1220,7 @@ static void dump_func_def(struct ast_dumper* d, const struct func_def* f) {
 static void dump_designator(struct ast_dumper* d,
                             const struct designator* des) {
     assert(des);
-    dumper_println(d, "designator:");
+    dumper_print_node_head(d, "designator", &des->info);
 
     add_indent(d);
 
@@ -1286,7 +1299,7 @@ static void dump_initializer(struct ast_dumper* d,
                              const struct initializer* i) {
     assert(i);
 
-    dumper_println(d, "initializer:");
+    dumper_print_node_head(d, "initializer", &i->info);
 
     add_indent(d);
 

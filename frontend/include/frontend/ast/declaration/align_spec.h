@@ -5,10 +5,13 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct type_name;
 struct const_expr;
 
 struct align_spec {
+    struct ast_node_info info;
     bool is_type_name;
     union {
         struct type_name* type_name;

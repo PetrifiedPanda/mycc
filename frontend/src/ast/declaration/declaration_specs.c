@@ -109,6 +109,7 @@ struct declaration_specs* parse_declaration_specs(struct parser_state* s,
     assert(*found_typedef == false);
 
     struct declaration_specs* res = xmalloc(sizeof(struct declaration_specs));
+    res->info = create_ast_node_info(s->it->loc);
     res->func_specs = (struct func_specs){
         .is_inline = false,
         .is_noreturn = false,

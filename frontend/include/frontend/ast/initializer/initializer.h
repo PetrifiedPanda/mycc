@@ -7,9 +7,12 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct assign_expr;
 
 struct initializer {
+    struct ast_node_info info;
     bool is_assign;
     union {
         struct assign_expr* assign;

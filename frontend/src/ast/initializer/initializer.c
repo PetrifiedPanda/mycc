@@ -8,9 +8,11 @@
 #include "frontend/parser/parser_util.h"
 
 static struct initializer* create_initializer_assign(
+    struct source_loc loc,    
     struct assign_expr* assign) {
     assert(assign);
     struct initializer* res = xmalloc(sizeof(struct initializer));
+    res->info = create_ast_node_info(loc);
     res->is_assign = true;
     res->assign = assign;
 
@@ -18,8 +20,10 @@ static struct initializer* create_initializer_assign(
 }
 
 static struct initializer* create_initializer_init_list(
+    struct source_loc loc,
     struct init_list init_list) {
     struct initializer* res = xmalloc(sizeof(struct initializer));
+    res->info = create_ast_node_info(loc);
     res->is_assign = false;
     res->init_list = init_list;
 
@@ -27,6 +31,7 @@ static struct initializer* create_initializer_init_list(
 }
 
 struct initializer* parse_initializer(struct parser_state* s) {
+    const struct source_loc loc = s->it->loc;
     if (s->it->type == LBRACE) {
         accept_it(s);
         struct init_list init_list = parse_init_list(s);
@@ -41,13 +46,13 @@ struct initializer* parse_initializer(struct parser_state* s) {
         if (!accept(s, RBRACE)) {
             free_init_list_children(&init_list);
         }
-        return create_initializer_init_list(init_list);
+        return create_initializer_init_list(loc, init_list);
     } else {
         struct assign_expr* assign = parse_assign_expr(s);
         if (!assign) {
             return NULL;
         }
-        return create_initializer_assign(assign);
+        return create_initializer_assign(loc, assign);
     }
 }
 

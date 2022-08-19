@@ -5,10 +5,13 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct const_expr;
 struct identifier;
 
 struct designator {
+    struct ast_node_info info;
     bool is_index;
     union {
         struct const_expr* arr_index;

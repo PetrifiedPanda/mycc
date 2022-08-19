@@ -3,9 +3,12 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct type_name;
 
 struct atomic_type_spec {
+    struct ast_node_info info;
     struct type_name* type_name;
 };
 

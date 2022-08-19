@@ -139,7 +139,7 @@ static bool parse_arr_or_func_suffix(struct parser_state* s,
                                      struct arr_or_func_suffix* res) {
     assert(res);
     assert(s->it->type == LINDEX || s->it->type == LBRACKET);
-
+    res->info = create_ast_node_info(s->it->loc);
     switch (s->it->type) {
         case LINDEX:
             return parse_arr_suffix(s, res);
@@ -157,6 +157,7 @@ static struct direct_declarator* parse_direct_declarator_base(
     struct declarator* (*parse_func)(struct parser_state*),
     bool (*identifier_handler)(struct parser_state*, const struct token*)) {
     struct direct_declarator* res = xmalloc(sizeof(struct direct_declarator));
+    res->info = create_ast_node_info(s->it->loc);
     if (s->it->type == LBRACKET) {
         accept_it(s);
         res->is_id = false;

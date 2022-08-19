@@ -3,6 +3,7 @@
 #include "frontend/parser/parser_util.h"
 
 bool parse_designator_inplace(struct parser_state* s, struct designator* res) {
+    res->info = create_ast_node_info(s->it->loc);
     switch (s->it->type) {
         case LINDEX: {
             accept_it(s);

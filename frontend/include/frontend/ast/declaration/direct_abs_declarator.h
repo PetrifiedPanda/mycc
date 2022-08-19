@@ -18,6 +18,7 @@ enum abs_arr_or_func_suffix_type {
 };
 
 struct abs_arr_or_func_suffix {
+    struct ast_node_info info;
     enum abs_arr_or_func_suffix_type type;
     union {
         bool has_asterisk;
@@ -31,6 +32,7 @@ struct abs_arr_or_func_suffix {
 };
 
 struct direct_abs_declarator {
+    struct ast_node_info info;
     struct abs_declarator* bracket_decl;
 
     size_t len;

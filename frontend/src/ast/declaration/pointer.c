@@ -5,11 +5,13 @@
 #include "util/mem.h"
 
 struct pointer* parse_pointer(struct parser_state* s) {
+    const struct source_loc loc = s->it->loc;
     if (!accept(s, ASTERISK)) {
         return NULL;
     }
 
     struct pointer* res = xmalloc(sizeof(struct pointer));
+    res->info = create_ast_node_info(loc);
     res->num_indirs = 1;
     res->quals_after_ptr = xmalloc(sizeof(struct type_quals));
 

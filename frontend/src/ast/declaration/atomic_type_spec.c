@@ -5,6 +5,7 @@
 #include "frontend/parser/parser_util.h"
 
 struct atomic_type_spec* parse_atomic_type_spec(struct parser_state* s) {
+    const struct source_loc loc = s->it->loc;
     if (!accept(s, ATOMIC)) {
         return NULL;
     }
@@ -24,6 +25,7 @@ struct atomic_type_spec* parse_atomic_type_spec(struct parser_state* s) {
     }
 
     struct atomic_type_spec* res = xmalloc(sizeof(struct atomic_type_spec));
+    res->info = create_ast_node_info(loc);
     res->type_name = type_name;
     return res;
 }

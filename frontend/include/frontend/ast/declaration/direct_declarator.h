@@ -29,6 +29,7 @@ struct arr_suffix {
 };
 
 struct arr_or_func_suffix {
+    struct ast_node_info info;
     enum arr_or_func_suffix_type type;
     union {
         struct arr_suffix arr_suffix;
@@ -38,6 +39,7 @@ struct arr_or_func_suffix {
 };
 
 struct direct_declarator {
+    struct ast_node_info info;
     bool is_id;
     union {
         struct identifier* id;
