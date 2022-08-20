@@ -30,7 +30,8 @@ bool expand_preproc_macro(struct preproc_state* state,
                           size_t macro_idx,
                           const struct token* macro_end);
 
-struct preproc_macro parse_preproc_macro(struct token_arr* arr, struct preproc_err* err);
+struct preproc_macro parse_preproc_macro(struct token_arr* arr,
+                                         struct preproc_err* err);
 
 void free_preproc_macro(struct preproc_macro* m);
 

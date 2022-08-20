@@ -33,3 +33,4 @@ bool is_enum_constant(const struct parser_state* s, const char* spell);
 bool is_typedef_name(const struct parser_state* s, const char* spell);
 
 #endif
+

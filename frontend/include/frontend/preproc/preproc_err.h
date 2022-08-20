@@ -38,7 +38,9 @@ void set_preproc_err(struct preproc_err* err,
                      enum preproc_err_type type,
                      struct source_loc loc);
 
-void print_preproc_err(FILE* out, const struct file_info* file_info, struct preproc_err* err);
+void print_preproc_err(FILE* out,
+                       const struct file_info* file_info,
+                       struct preproc_err* err);
 
 void free_preproc_err(struct preproc_err* err);
 

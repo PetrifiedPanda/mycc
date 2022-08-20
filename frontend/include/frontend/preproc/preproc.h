@@ -27,8 +27,8 @@ struct preproc_res preproc(const char* path, struct preproc_err* err);
  *         note that these tokens still need to be converted
  */
 struct preproc_res preproc_string(const char* str,
-                             const char* path,
-                             struct preproc_err* err);
+                                  const char* path,
+                                  struct preproc_err* err);
 
 /**
  * Converts the given preprocessor tokens to parser tokens
