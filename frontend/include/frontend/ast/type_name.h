@@ -10,7 +10,6 @@ struct spec_qual_list;
 struct abs_declarator;
 
 struct type_name {
-    struct ast_node_info info;
     struct spec_qual_list* spec_qual_list;
     struct abs_declarator* abstract_decl;
 };

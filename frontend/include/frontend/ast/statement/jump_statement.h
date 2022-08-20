@@ -5,10 +5,13 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct expr;
 struct identifier;
 
 struct jump_statement {
+    struct ast_node_info info;
     enum token_type type;
     union {
         struct identifier* goto_label;

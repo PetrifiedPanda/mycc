@@ -5,6 +5,8 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct declaration;
 struct expr_statement;
 struct expr;
@@ -21,6 +23,7 @@ struct for_loop {
 };
 
 struct iteration_statement {
+    struct ast_node_info info;
     enum token_type type;
     struct statement* loop_body;
     union {

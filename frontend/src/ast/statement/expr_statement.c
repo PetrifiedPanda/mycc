@@ -8,6 +8,7 @@
 
 struct expr_statement* parse_expr_statement(struct parser_state* s) {
     struct expr_statement* res = xmalloc(sizeof(struct expr_statement));
+    res->info = create_ast_node_info(s->it->loc);
     if (s->it->type == SEMICOLON) {
         accept_it(s);
         res->expr.len = 0;

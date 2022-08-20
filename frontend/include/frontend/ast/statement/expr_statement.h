@@ -6,6 +6,7 @@
 #include "frontend/parser/parser_state.h"
 
 struct expr_statement {
+    struct ast_node_info info;
     struct expr expr;
 };
 

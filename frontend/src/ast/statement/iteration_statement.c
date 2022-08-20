@@ -8,38 +8,43 @@
 
 #include "frontend/parser/parser_util.h"
 
-static inline void assign_do_or_while(struct iteration_statement* res,
+static inline void assign_do_or_while(struct source_loc loc,
+                                      struct iteration_statement* res,
                                       struct expr* while_cond,
                                       struct statement* loop_body) {
     assert(res);
     assert(while_cond);
     assert(loop_body);
+    res->info = create_ast_node_info(loc);
     res->while_cond = while_cond;
     res->loop_body = loop_body;
 }
 
 static struct iteration_statement* create_while_loop(
+    struct source_loc loc,
     struct expr* while_cond,
     struct statement* loop_body) {
     struct iteration_statement* res = xmalloc(
         sizeof(struct iteration_statement));
     res->type = WHILE;
-    assign_do_or_while(res, while_cond, loop_body);
+    assign_do_or_while(loc, res, while_cond, loop_body);
 
     return res;
 }
 
-static struct iteration_statement* create_do_loop(struct expr* while_cond,
+static struct iteration_statement* create_do_loop(struct source_loc loc,
+                                                  struct expr* while_cond,
                                                   struct statement* loop_body) {
     struct iteration_statement* res = xmalloc(
         sizeof(struct iteration_statement));
     res->type = DO;
-    assign_do_or_while(res, while_cond, loop_body);
+    assign_do_or_while(loc, res, while_cond, loop_body);
 
     return res;
 }
 
 static struct iteration_statement* create_for_loop(
+    struct source_loc loc,
     struct for_loop for_loop,
     struct statement* loop_body) {
     if (for_loop.is_decl) {
@@ -51,6 +56,7 @@ static struct iteration_statement* create_for_loop(
     assert(loop_body);
     struct iteration_statement* res = xmalloc(
         sizeof(struct iteration_statement));
+    res->info = create_ast_node_info(loc);
     res->type = FOR;
     res->loop_body = loop_body;
     res->for_loop = for_loop;
@@ -59,7 +65,8 @@ static struct iteration_statement* create_for_loop(
 }
 
 static struct iteration_statement* parse_while_statement(
-    struct parser_state* s) {
+    struct parser_state* s,
+    struct source_loc loc) {
     assert(s->it->type == WHILE);
 
     accept_it(s);
@@ -84,10 +91,11 @@ static struct iteration_statement* parse_while_statement(
         return NULL;
     }
 
-    return create_while_loop(while_cond, loop_body);
+    return create_while_loop(loc, while_cond, loop_body);
 }
 
-static struct iteration_statement* parse_do_loop(struct parser_state* s) {
+static struct iteration_statement* parse_do_loop(struct parser_state* s,
+                                                 struct source_loc loc) {
     assert(s->it->type == DO);
 
     accept_it(s);
@@ -108,10 +116,11 @@ static struct iteration_statement* parse_do_loop(struct parser_state* s) {
         return NULL;
     }
 
-    return create_do_loop(while_cond, loop_body);
+    return create_do_loop(loc, while_cond, loop_body);
 }
 
-static struct iteration_statement* parse_for_loop(struct parser_state* s) {
+static struct iteration_statement* parse_for_loop(struct parser_state* s,
+                                                  struct source_loc loc) {
     assert(s->it->type == FOR);
 
     accept_it(s);
@@ -163,7 +172,7 @@ static struct iteration_statement* parse_for_loop(struct parser_state* s) {
         goto fail;
     }
 
-    return create_for_loop(loop, loop_body);
+    return create_for_loop(loc, loop, loop_body);
 fail:
     if (loop.is_decl) {
         free_declaration(loop.init_decl);
@@ -175,14 +184,15 @@ fail:
 }
 
 struct iteration_statement* parse_iteration_statement(struct parser_state* s) {
+    const struct source_loc loc = s->it->loc;
     switch (s->it->type) {
         case WHILE:
-            return parse_while_statement(s);
+            return parse_while_statement(s, loc);
         case DO:
-            return parse_do_loop(s);
+            return parse_do_loop(s, loc);
 
         case FOR: {
-            return parse_for_loop(s);
+            return parse_for_loop(s, loc);
         }
 
         default: {

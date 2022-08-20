@@ -9,6 +9,7 @@
 struct selection_statement* parse_selection_statement(struct parser_state* s) {
     struct selection_statement* res = xmalloc(
         sizeof(struct selection_statement));
+    res->info = create_ast_node_info(s->it->loc);
     if (s->it->type == IF) {
         res->is_if = true;
         accept_it(s);

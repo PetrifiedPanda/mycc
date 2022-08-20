@@ -7,30 +7,35 @@
 
 #include "frontend/parser/parser_util.h"
 
-static struct jump_statement* create(enum token_type type) {
+static struct jump_statement* create(struct source_loc loc,
+                                     enum token_type type) {
     assert(type == GOTO || type == CONTINUE || type == BREAK || type == RETURN);
     struct jump_statement* res = xmalloc(sizeof(struct jump_statement));
+    res->info = create_ast_node_info(loc);
     res->type = type;
 
     return res;
 }
 
 static struct jump_statement* create_goto_statement(
+    struct source_loc loc,
     struct identifier* identifier) {
     assert(identifier);
-    struct jump_statement* res = create(GOTO);
+    struct jump_statement* res = create(loc, GOTO);
     res->goto_label = identifier;
 
     return res;
 }
 
-static struct jump_statement* create_return_statement(struct expr* ret_val) {
-    struct jump_statement* res = create(RETURN);
+static struct jump_statement* create_return_statement(struct source_loc loc,
+                                                      struct expr* ret_val) {
+    struct jump_statement* res = create(loc, RETURN);
     res->ret_val = ret_val;
     return res;
 }
 
 struct jump_statement* parse_jump_statement(struct parser_state* s) {
+    const struct source_loc loc = s->it->loc;
     struct jump_statement* res = NULL;
     switch (s->it->type) {
         case GOTO: {
@@ -39,7 +44,7 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
                 char* spell = take_spelling(s->it);
                 struct source_loc loc = s->it->loc;
                 accept_it(s);
-                res = create_goto_statement(create_identifier(spell, loc));
+                res = create_goto_statement(loc, create_identifier(spell, loc));
                 break;
             } else {
                 expected_token_error(s, IDENTIFIER);
@@ -50,7 +55,7 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
         case BREAK: {
             enum token_type t = s->it->type;
             accept_it(s);
-            res = create(t);
+            res = create(loc, t);
             res->ret_val = NULL;
             break;
         }
@@ -66,7 +71,7 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
                 }
             }
 
-            res = create_return_statement(ret_val);
+            res = create_return_statement(loc, ret_val);
             break;
         }
 

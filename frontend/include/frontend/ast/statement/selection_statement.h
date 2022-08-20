@@ -5,10 +5,13 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "frontend/ast/ast_node_info.h"
+
 struct expr;
 struct statement;
 
 struct selection_statement {
+    struct ast_node_info info;
     bool is_if;
     struct expr* sel_expr;
     struct statement* sel_stat;

@@ -585,7 +585,7 @@ static void dump_abs_declarator(struct ast_dumper* d,
 static void dump_type_name(struct ast_dumper* d, const struct type_name* n) {
     assert(n);
 
-    dumper_print_node_head(d, "type_name", &n->info);
+    dumper_println(d, "type_name:");
 
     add_indent(d);
 
@@ -1037,7 +1037,7 @@ static void dump_compound_statement(struct ast_dumper* d,
 static void dump_expr_statement(struct ast_dumper* d,
                                 const struct expr_statement* s) {
     assert(s);
-    dumper_println(d, "expr_statement:");
+    dumper_print_node_head(d, "expr_statement", &s->info);
 
     add_indent(d);
 
@@ -1052,7 +1052,7 @@ static void dump_selection_statement(struct ast_dumper* d,
                                      const struct selection_statement* s) {
     assert(s);
 
-    dumper_println(d, "selection_statement:");
+    dumper_print_node_head(d, "selection_statement", &s->info);
 
     add_indent(d);
 
@@ -1072,7 +1072,7 @@ static void dump_iteration_statement(struct ast_dumper* d,
                                      const struct iteration_statement* s) {
     assert(s);
 
-    dumper_println(d, "iteration_statement:");
+    dumper_print_node_head(d, "iteration_statement", &s->info);
 
     add_indent(d);
 
@@ -1108,7 +1108,7 @@ static void dump_iteration_statement(struct ast_dumper* d,
 static void dump_jump_statement(struct ast_dumper* d,
                                 const struct jump_statement* s) {
     assert(s);
-    dumper_println(d, "jump_statement:");
+    dumper_print_node_head(d, "jump_statement", &s->info);
 
     add_indent(d);
 
