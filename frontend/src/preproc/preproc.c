@@ -29,29 +29,29 @@ struct preproc_res preproc(const char* path, struct preproc_err* err) {
 
     struct preproc_state state = create_preproc_state(path, err);
 
-    if (!preproc_file(&state, path,  (struct source_loc){(size_t)-1, {0, 0}})) {
+    if (!preproc_file(&state, path, (struct source_loc){(size_t)-1, {0, 0}})) {
         struct file_info info = state.file_info;
         state.file_info = (struct file_info){
             .len = 0,
             .paths = NULL,
         };
         free_preproc_state(&state);
-        return (struct preproc_res) {
+        return (struct preproc_res){
             .toks = NULL,
             .file_info = info,
         };
     }
-    
+
     struct preproc_res res = {
         .toks = state.res.tokens,
         .file_info = state.file_info,
     };
-    state.res = (struct token_arr) {
+    state.res = (struct token_arr){
         .len = 0,
         .cap = 0,
         .tokens = NULL,
     };
-    state.file_info = (struct file_info) {
+    state.file_info = (struct file_info){
         .len = 0,
         .paths = NULL,
     };
@@ -291,9 +291,15 @@ static bool expand_all_macros(struct preproc_state* state,
             if (macro != NULL) {
                 const struct token* macro_end;
                 if (macro->is_func_macro) {
-                    macro_end = find_macro_end(state, curr, src);
-                    if (state->err != PREPROC_ERR_NONE) {
-                        return false;
+                    const size_t next_idx = i + 1;
+                    if (next_idx < state->res.len
+                        && state->res.tokens[next_idx].type == LBRACKET) {
+                        macro_end = find_macro_end(state, curr, src);
+                        if (state->err != PREPROC_ERR_NONE) {
+                            return false;
+                        }
+                    } else {
+                        continue;
                     }
                 } else {
                     macro_end = NULL;
@@ -325,8 +331,8 @@ static bool preproc_src(struct preproc_state* state, struct code_source* src) {
 }
 
 struct preproc_res preproc_string(const char* str,
-                             const char* path,
-                             struct preproc_err* err) {
+                                  const char* path,
+                                  struct preproc_err* err) {
     assert(err);
 
     struct preproc_state state = create_preproc_state(path, err);
@@ -341,15 +347,16 @@ struct preproc_res preproc_string(const char* str,
 
     if (!preproc_src(&state, &src)) {
         free_preproc_state(&state);
-        return (struct preproc_res) {
+        return (struct preproc_res){
             .toks = NULL,
-            .file_info = {
-                .len = 0,
-                .paths = NULL,
-            },
+            .file_info =
+                {
+                    .len = 0,
+                    .paths = NULL,
+                },
         };
     }
-    
+
     struct preproc_res res = {
         .toks = state.res.tokens,
         .file_info = state.file_info,
@@ -359,7 +366,7 @@ struct preproc_res preproc_string(const char* str,
         .cap = 0,
         .tokens = NULL,
     };
-    state.file_info = (struct file_info) {
+    state.file_info = (struct file_info){
         .len = 0,
         .paths = NULL,
     };
