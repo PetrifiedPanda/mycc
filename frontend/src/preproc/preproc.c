@@ -304,7 +304,7 @@ static bool expand_all_macros(struct preproc_state* state,
                 } else {
                     macro_end = NULL;
                 }
-                if (!expand_preproc_macro(state, macro, i, macro_end)) {
+                if (!expand_preproc_macro(state, &state->res, macro, i, macro_end)) {
                     return false;
                 }
                 // need to continue at the start of the macro expansion
