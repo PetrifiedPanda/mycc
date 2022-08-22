@@ -27,7 +27,7 @@ struct preproc_state create_preproc_state(const char* start_file, struct preproc
     };
 }
 
-const struct preproc_macro* find_preproc_macro(struct preproc_state* state,
+const struct preproc_macro* find_preproc_macro(const struct preproc_state* state,
                                                const char* spelling) {
     return string_hash_map_get(&state->_macro_map, spelling);
 }

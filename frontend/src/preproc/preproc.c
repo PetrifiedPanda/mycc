@@ -283,7 +283,6 @@ static bool expand_all_macros(struct preproc_state* state,
             --i;
             no_incr = false;
         }
-
         const struct token* curr = &state->res.tokens[i];
         if (curr->type == IDENTIFIER) {
             const struct preproc_macro* macro = find_preproc_macro(
@@ -295,8 +294,6 @@ static bool expand_all_macros(struct preproc_state* state,
                     macro_end = find_macro_end(state, curr, src);
                     if (state->err != PREPROC_ERR_NONE) {
                         return false;
-                    } else if (macro_end == NULL) {
-                        continue;
                     }
                 } else {
                     macro_end = NULL;

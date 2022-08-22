@@ -34,7 +34,7 @@ struct preproc_state create_preproc_state(const char* start_file,
 
 struct preproc_macro;
 
-const struct preproc_macro* find_preproc_macro(struct preproc_state* state,
+const struct preproc_macro* find_preproc_macro(const struct preproc_state* state,
                                                const char* spelling);
 
 void register_preproc_macro(struct preproc_state* state,
