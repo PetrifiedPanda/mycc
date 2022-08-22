@@ -10,7 +10,7 @@ static bool expand_func_macro(struct preproc_state* state,
                               struct token_arr* res,
                               const struct preproc_macro* macro,
                               size_t macro_idx,
-                              const struct token* macro_end);
+                              size_t macro_end);
 
 static void expand_obj_macro(struct token_arr* res,
                              const struct preproc_macro* macro,
@@ -20,13 +20,13 @@ bool expand_preproc_macro(struct preproc_state* state,
                           struct token_arr* res,
                           const struct preproc_macro* macro,
                           size_t macro_idx,
-                          const struct token* macro_end) {
+                          size_t macro_end) {
     assert(state);
     assert(macro);
 
     if (macro->is_func_macro) {
-        assert(macro_end);
-        assert(macro_end->type == RBRACKET);
+        assert(macro_end < res->len);
+        assert(res->tokens[macro_end].type == RBRACKET);
         return expand_func_macro(state, res, macro, macro_idx, macro_end);
     } else {
         expand_obj_macro(res, macro, macro_idx);
@@ -363,11 +363,11 @@ static bool expand_func_macro(struct preproc_state* state,
                               struct token_arr* res,
                               const struct preproc_macro* macro,
                               size_t macro_idx,
-                              const struct token* macro_end) {
+                              size_t macro_end) {
     assert(macro->is_func_macro);
     assert(res->tokens[macro_idx + 1].type == LBRACKET);
     struct macro_args args = collect_macro_args(res->tokens + macro_idx + 1,
-                                                macro_end,
+                                                &res->tokens[macro_end],
                                                 macro->num_args,
                                                 macro->is_variadic,
                                                 state->err);
@@ -380,7 +380,7 @@ static bool expand_func_macro(struct preproc_state* state,
            || (!macro->is_variadic && args.len == macro->num_args));
 
     const size_t exp_len = get_expansion_len(macro, &args);
-    const size_t macro_call_len = macro_end - &res->tokens[macro_idx] + 1;
+    const size_t macro_call_len = macro_end - macro_idx + 1;
 
     const bool alloc_grows = exp_len > macro_call_len;
     const size_t alloc_change = alloc_grows ? exp_len - macro_call_len

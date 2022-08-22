@@ -39,10 +39,7 @@ static void test_preproc_macro(const struct preproc_macro* macro,
         .err = &err,
     };
 
-    const struct token* macro_end = macro_end_idx != (size_t)-1
-                                        ? res.toks + macro_end_idx
-                                        : NULL;
-    ASSERT(expand_preproc_macro(&state, &state.res, macro, macro_idx, macro_end));
+    ASSERT(expand_preproc_macro(&state, &state.res, macro, macro_idx, macro_end_idx));
     ASSERT(err.type == PREPROC_ERR_NONE);
 
     struct preproc_err output_err = create_preproc_err();

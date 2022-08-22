@@ -234,7 +234,7 @@ static bool read_and_tokenize_line(struct preproc_state* state,
     return true;
 }
 
-static const struct token* find_macro_end(struct preproc_state* state,
+static size_t find_macro_end(struct preproc_state* state,
                                           const struct token* macro_start,
                                           struct code_source* src) {
     const struct token* it = macro_start;
@@ -249,7 +249,7 @@ static const struct token* find_macro_end(struct preproc_state* state,
         while (!code_source_over(src)
                && it == state->res.tokens + state->res.len) {
             if (!read_and_tokenize_line(state, src)) {
-                return NULL;
+                return (size_t)-1;
             }
         }
 
@@ -269,9 +269,9 @@ static const struct token* find_macro_end(struct preproc_state* state,
         set_preproc_err(state->err,
                         PREPROC_ERR_UNTERMINATED_MACRO,
                         macro_start->loc);
-        return NULL;
+        return (size_t)-1;
     }
-    return it;
+    return it - state->res.tokens;
 }
 
 static bool expand_all_macros(struct preproc_state* state,
@@ -289,7 +289,7 @@ static bool expand_all_macros(struct preproc_state* state,
                 state,
                 curr->spelling);
             if (macro != NULL) {
-                const struct token* macro_end;
+                size_t macro_end;
                 if (macro->is_func_macro) {
                     const size_t next_idx = i + 1;
                     if (next_idx < state->res.len
@@ -302,7 +302,7 @@ static bool expand_all_macros(struct preproc_state* state,
                         continue;
                     }
                 } else {
-                    macro_end = NULL;
+                    macro_end = (size_t)-1;
                 }
                 if (!expand_preproc_macro(state, &state->res, macro, i, macro_end)) {
                     return false;
