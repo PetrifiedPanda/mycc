@@ -169,6 +169,8 @@ static enum token_type singlec_token_type(char c) {
             return ASSIGN;
         case ',':
             return COMMA;
+        case '#':
+            return STRINGIFY_OP;
         default:
             return INVALID;
     }
@@ -278,6 +280,12 @@ static enum token_type check_next(enum token_type type, const char* next) {
         case NOT:
             if (check_type(NE_OP, next)) {
                 return NE_OP;
+            } else {
+                break;
+            }
+        case STRINGIFY_OP:
+            if (check_type(CONCAT_OP, next)) {
+                return CONCAT_OP;
             } else {
                 break;
             }

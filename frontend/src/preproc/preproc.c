@@ -295,7 +295,7 @@ static bool expand_all_macros(struct preproc_state* state,
                     if (next_idx < state->res.len
                         && state->res.tokens[next_idx].type == LBRACKET) {
                         macro_end = find_macro_end(state, curr, src);
-                        if (state->err != PREPROC_ERR_NONE) {
+                        if (state->err == PREPROC_ERR_NONE) {
                             return false;
                         }
                     } else {
@@ -323,7 +323,9 @@ static bool preproc_src(struct preproc_state* state, struct code_source* src) {
             return false;
         }
 
-        expand_all_macros(state, prev_len, src);
+        if (!expand_all_macros(state, prev_len, src)) {
+            return false;
+        }
     }
 
     append_terminator_token(&state->res);
@@ -665,7 +667,7 @@ static bool preproc_statement(struct preproc_state* state,
         return false;
     }
 
-    return false;
+    return true;
 }
 
 static inline bool is_spelling(const char* spelling, enum token_type type) {

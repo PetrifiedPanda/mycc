@@ -186,6 +186,10 @@ const char* get_spelling(enum token_type type) {
             return "=";
         case COMMA:
             return ",";
+        case STRINGIFY_OP:
+            return "#";
+        case CONCAT_OP:
+            return "##";
 
         default:
             return NULL;
@@ -384,10 +388,14 @@ const char* get_type_str(enum token_type type) {
             return "COLON";
         case ASSIGN:
             return "ASSIGN";
+        case COMMA:
+            return "COMMA";
+        case STRINGIFY_OP:
+            return "STRINGIFY_OP";
+        case CONCAT_OP:
+            return "CONCAT_OP";
         case INVALID:
             return "INVALID";
-        default:
-            return "no applicable token type";
     }
 }
 
