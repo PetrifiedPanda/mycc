@@ -37,6 +37,7 @@ bool expand_preproc_macro(struct preproc_state* state,
 static struct token move_token(struct token* t);
 
 struct preproc_macro parse_preproc_macro(struct token_arr* arr,
+                                         const char* spell,
                                          struct preproc_err* err) {
     assert(arr);
     assert(arr->tokens[0].type == STRINGIFY_OP);
@@ -54,6 +55,7 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr,
     }
 
     struct preproc_macro res;
+    res.spell = spell;
 
     if (arr->len > 3 && arr->tokens[3].type == LBRACKET) {
         res.is_func_macro = true;

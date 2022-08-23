@@ -6,6 +6,7 @@
 
 static void compare_preproc_macros(const struct preproc_macro* got,
                                    const struct preproc_macro* ex) {
+    ASSERT(ex->spell == got->spell);
     ASSERT_BOOL(got->is_func_macro, ex->is_func_macro);
     ASSERT_SIZE_T(got->num_args, ex->num_args);
     ASSERT_BOOL(got->is_variadic, ex->is_variadic);
@@ -37,6 +38,7 @@ static void compare_preproc_macros(const struct preproc_macro* got,
 
 TEST(object_like) {
     {
+        const char* spell = "TEST_MACRO";
         // #define TEST_MACRO
         struct token tokens[] = {
             {STRINGIFY_OP, NULL, {0, {1, 1}}},
@@ -51,10 +53,11 @@ TEST(object_like) {
         };
         
         struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        struct preproc_macro got = parse_preproc_macro(&arr, spell, &err);
         ASSERT(err.type == PREPROC_ERR_NONE);
 
         struct preproc_macro ex = {
+            .spell = spell,
             .is_func_macro = false,
             .num_args = 0,
             .is_variadic = false,
@@ -67,6 +70,7 @@ TEST(object_like) {
         free(got.expansion);
     }
     {
+        const char* spell = "ANOTHER_MACRO";
         // #define ANOTHER_MACRO 1 + 2 * 3 - func(a, b)
         struct token tokens[] = {
             {STRINGIFY_OP, NULL, {0, {1, 1}}},
@@ -105,9 +109,10 @@ TEST(object_like) {
         };
         
         struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        struct preproc_macro got = parse_preproc_macro(&arr, spell, &err);
 
         struct preproc_macro ex = {
+            .spell = spell,
             .is_func_macro = false,
             .num_args = 0,
             .is_variadic = false,
@@ -123,6 +128,7 @@ TEST(object_like) {
 
 TEST(func_like) {
     {
+        const char* spell = "FUNC_LIKE";
         // #define FUNC_LIKE(a, b, c) a != 38 ? b * other_name : c + a
         struct token tokens[] = {
             {STRINGIFY_OP, NULL, {0, {1, 1}}},
@@ -168,6 +174,7 @@ TEST(func_like) {
         };
 
         struct preproc_macro ex = {
+            .spell = spell,
             .is_func_macro = true,
             .num_args = 3,
             .is_variadic = false,
@@ -183,13 +190,14 @@ TEST(func_like) {
         };
 
         struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        struct preproc_macro got = parse_preproc_macro(&arr, spell, &err);
         ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
         free(got.expansion);
     }
     {
+        const char* spell = "NO_PARAMS";
         // #define NO_PARAMS() 1 + 2 + 3
         struct token tokens[] = {
             {STRINGIFY_OP, NULL, {0, {1, 1}}},
@@ -218,6 +226,7 @@ TEST(func_like) {
         }
 
         struct preproc_macro ex = {
+            .spell = spell,
             .is_func_macro = true,
             .num_args = 0,
             .is_variadic = false,
@@ -233,13 +242,14 @@ TEST(func_like) {
         };
 
         struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        struct preproc_macro got = parse_preproc_macro(&arr, spell, &err);
         ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
         free(got.expansion);
     }
     {
+        const char* spell = "NO_PARAMS_EMPTY";
         // #define NO_PARAMS_EMPTY()
         struct token tokens[] = {
             {STRINGIFY_OP, NULL, {0, {1, 1}}},
@@ -254,6 +264,7 @@ TEST(func_like) {
         };
 
         struct preproc_macro ex = {
+            .spell = spell,
             .is_func_macro = true,
             .num_args = 0,
             .is_variadic = false,
@@ -269,7 +280,7 @@ TEST(func_like) {
         };
 
         struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        struct preproc_macro got = parse_preproc_macro(&arr, spell, &err);
         ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
@@ -279,6 +290,7 @@ TEST(func_like) {
 
 TEST(variadic) {
     {
+        const char* spell = "FUNC_LIKE";
         // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name : c + a
         struct token tokens[] = {
             {STRINGIFY_OP, NULL, {0, {1, 1}}},
@@ -326,6 +338,7 @@ TEST(variadic) {
         };
 
         struct preproc_macro ex = {
+            .spell = spell,
             .is_func_macro = true,
             .num_args = 3,
             .is_variadic = true,
@@ -341,13 +354,14 @@ TEST(variadic) {
         };
 
         struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        struct preproc_macro got = parse_preproc_macro(&arr, spell, &err);
         ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
         free(got.expansion);
     }
     {
+        const char* spell = "FUNC_LIKE";
         // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name(__VA_ARGS__)
         // : c + a
         struct token tokens[] = {
@@ -402,6 +416,7 @@ TEST(variadic) {
         };
 
         struct preproc_macro ex = {
+            .spell = spell,
             .is_func_macro = true,
             .num_args = 3,
             .is_variadic = true,
@@ -417,7 +432,7 @@ TEST(variadic) {
         };
 
         struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        struct preproc_macro got = parse_preproc_macro(&arr, spell, &err);
         ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);

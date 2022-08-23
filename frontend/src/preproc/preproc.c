@@ -630,11 +630,11 @@ static bool preproc_statement(struct preproc_state* state,
     } else if (strcmp(directive, "ifndef") == 0) {
         return handle_ifdef_ifndef(state, src, arr, true);
     } else if (strcmp(directive, "define") == 0) {
-        struct preproc_macro macro = parse_preproc_macro(arr, state->err);
+        char* spelling = take_spelling(&arr->tokens[2]);
+        struct preproc_macro macro = parse_preproc_macro(arr, spelling, state->err);
         if (state->err->type != PREPROC_ERR_NONE) {
             return false;
         }
-        char* spelling = take_spelling(&arr->tokens[2]);
         register_preproc_macro(state, spelling, &macro);
     } else if (strcmp(directive, "undef") == 0) {
         if (arr->len < 3) {
