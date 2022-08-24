@@ -480,9 +480,9 @@ static bool is_cond_directive(const char* line) {
         ++it;
     }
 
-    char else_dir[] = "else";
-    char elif_dir[] = "elif";
-    char endif_dir[] = "endif";
+    const char else_dir[] = "else";
+    const char elif_dir[] = "elif";
+    const char endif_dir[] = "endif";
 
     if (*it == '\0') {
         return false;
@@ -495,6 +495,7 @@ static bool is_cond_directive(const char* line) {
     UNREACHABLE();
 }
 
+// TODO: could probably be optimized
 static bool skip_until_next_cond(struct preproc_state* state,
                                  struct code_source* src) {
     while (!code_source_over(src)) {
@@ -558,7 +559,7 @@ static bool handle_ifdef_ifndef(struct preproc_state* state,
     assert(arr);
     assert(arr->tokens[0].type == STRINGIFY_OP);
     assert((!is_ifndef && strcmp(arr->tokens[1].spelling, "ifdef") == 0)
-           || (is_ifndef && strcmp(arr->tokens[1].spelling, "ifndef")));
+           || (is_ifndef && strcmp(arr->tokens[1].spelling, "ifndef") == 0));
 
     if (arr->len < 3) {
         // TODO: empty ifdef / ifndef error
