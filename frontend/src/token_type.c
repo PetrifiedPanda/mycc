@@ -397,6 +397,8 @@ const char* get_type_str(enum token_type type) {
         case INVALID:
             return "INVALID";
     }
+
+    return NULL;
 }
 
 bool is_unary_op(enum token_type t) {
