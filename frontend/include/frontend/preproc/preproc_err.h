@@ -12,6 +12,8 @@ enum preproc_err_type {
     PREPROC_ERR_INVALID_ID,
     PREPROC_ERR_MACRO_ARG_COUNT,
     PREPROC_ERR_UNTERMINATED_MACRO,
+    PREPROC_ERR_IFDEF_ARG_COUNT,
+    PREPROC_ERR_IFDEF_NOT_IDENTIFIER,
 };
 
 struct preproc_err {
@@ -28,6 +30,14 @@ struct preproc_err {
             size_t expected_arg_count;
             bool too_few_args;
             bool is_variadic;
+        };
+        struct {
+            bool count_is_ifndef;
+            bool ifdef_empty;
+        };
+        struct {
+            bool type_is_ifndef;
+            enum token_type ifdef_got_type;
         };
     };
 };

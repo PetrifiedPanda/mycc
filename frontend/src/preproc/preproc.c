@@ -562,14 +562,20 @@ static bool handle_ifdef_ifndef(struct preproc_state* state,
            || (is_ifndef && strcmp(arr->tokens[1].spelling, "ifndef") == 0));
 
     if (arr->len < 3) {
-        // TODO: empty ifdef / ifndef error
+        set_preproc_err(state->err, PREPROC_ERR_IFDEF_ARG_COUNT, arr->tokens[1].loc);
+        state->err->ifdef_empty = true;
+        state->err->count_is_ifndef = is_ifndef;
         return false;
     } else if (arr->len > 3) {
-        // TODO: error extra tokens after ifdef / ifndef
+        set_preproc_err(state->err, PREPROC_ERR_IFDEF_ARG_COUNT, arr->tokens[3].loc);
+        state->err->ifdef_empty = false;
+        state->err->count_is_ifndef = is_ifndef;
         return false;
     }
     if (arr->tokens[2].type != IDENTIFIER) {
-        // TODO: error
+        set_preproc_err(state->err, PREPROC_ERR_IFDEF_NOT_IDENTIFIER, arr->tokens[2].loc);
+        state->err->ifdef_got_type = arr->tokens[2].type;
+        state->err->type_is_ifndef = is_ifndef;
         return false;
     }
 

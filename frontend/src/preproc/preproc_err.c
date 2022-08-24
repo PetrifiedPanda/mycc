@@ -72,6 +72,22 @@ void print_preproc_err(FILE* out, const struct file_info* file_info, struct prep
             print_err_base(out, file_info, &err->base);
             fprintf(out, "Unterminated macro invocation");
             break;
+        case PREPROC_ERR_IFDEF_ARG_COUNT: {
+            print_err_base(out, file_info, &err->base);
+            const char* dir_str = err->count_is_ifndef ? "ifndef" : "ifdef";
+            if (err->ifdef_empty) {
+                fprintf(out, "Expected an identifier after %s directive", dir_str);
+            } else {
+                fprintf(out, "Excess tokens after %s directive", dir_str);
+            }
+            break;
+        }
+        case PREPROC_ERR_IFDEF_NOT_IDENTIFIER: {
+            print_err_base(out, file_info, &err->base);
+            const char* dir_str = err->type_is_ifndef ? "ifndef" : "ifdef";
+            fprintf(out, "Expected an identifier after %s directive, but got %s", dir_str, get_type_str(err->ifdef_got_type));
+            break;
+        }
     }
     fprintf(out, "\n");
 }
@@ -88,6 +104,8 @@ void free_preproc_err(struct preproc_err* err) {
         case PREPROC_ERR_NONE:
         case PREPROC_ERR_UNTERMINATED_LIT:
         case PREPROC_ERR_UNTERMINATED_MACRO:
+        case PREPROC_ERR_IFDEF_ARG_COUNT:
+        case PREPROC_ERR_IFDEF_NOT_IDENTIFIER:
             break;
     }
 }
