@@ -4,8 +4,26 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/annotations.h"
 
 #include "frontend/parser/parser_util.h"
+
+static enum rel_expr_op token_type_to_rel_op(enum token_type t) {
+    assert(is_rel_op(t));
+    switch (t) {
+        case LT:
+            return REL_EXPR_LT;
+        case GT:
+            return REL_EXPR_GT;
+        case LE_OP:
+            return REL_EXPR_LE;
+        case GE_OP:
+            return REL_EXPR_GE;
+        
+        default:
+            UNREACHABLE();
+    }
+}
 
 static bool parse_rel_expr_rel_chain(struct parser_state* s,
                                      struct rel_expr* res) {
@@ -30,7 +48,7 @@ static bool parse_rel_expr_rel_chain(struct parser_state* s,
         if (!curr->rhs) {
             goto fail;
         }
-        curr->rel_op = op;
+        curr->op = token_type_to_rel_op(op);
 
         ++res->len;
     }

@@ -163,7 +163,7 @@ TEST(statement) {
                                ->and_exprs->eq_exprs->lhs;
     ASSERT_SIZE_T(rel->len, (size_t)1);
     check_shift_expr_id_or_const(rel->lhs, "i", IDENTIFIER);
-    ASSERT_TOKEN_TYPE(rel->rel_chain[0].rel_op, LT);
+    ASSERT(rel->rel_chain[0].op == REL_EXPR_LT);
     check_shift_expr_id_or_const(rel->rel_chain[0].rhs, "100", I_CONSTANT);
 
     struct unary_expr* unary = iteration->for_loop.incr_expr->assign_exprs
@@ -247,7 +247,7 @@ TEST(statement) {
 
     ASSERT_SIZE_T(if_cond->len, (size_t)1);
     check_shift_expr_id_or_const(if_cond->lhs, "i", IDENTIFIER);
-    ASSERT_TOKEN_TYPE(if_cond->rel_chain[0].rel_op, GE_OP);
+    ASSERT(if_cond->rel_chain[0].op == REL_EXPR_GE);
     check_shift_expr_id_or_const(if_cond->rel_chain[0].rhs, "5", I_CONSTANT);
 
     ASSERT(if_stat->sel_stat->type == STATEMENT_COMPOUND);

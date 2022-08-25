@@ -9,8 +9,13 @@
 
 struct add_expr;
 
+enum shift_expr_op {
+    SHIFT_EXPR_LEFT,
+    SHIFT_EXPR_RIGHT,
+};
+
 struct add_expr_and_op {
-    enum token_type shift_op;
+    enum shift_expr_op op;
     struct add_expr* rhs;
 };
 

@@ -3,14 +3,19 @@
 
 #include <stddef.h>
 
-#include "frontend/token_type.h"
-
 #include "frontend/parser/parser_state.h"
 
 struct shift_expr;
 
+enum rel_expr_op {
+    REL_EXPR_LT,
+    REL_EXPR_GT,
+    REL_EXPR_LE,
+    REL_EXPR_GE,
+};
+
 struct shift_expr_and_op {
-    enum token_type rel_op;
+    enum rel_expr_op op;
     struct shift_expr* rhs;
 };
 

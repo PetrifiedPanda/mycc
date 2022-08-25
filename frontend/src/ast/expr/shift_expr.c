@@ -28,7 +28,7 @@ static bool parse_shift_expr_shift_chain(struct parser_state* s,
         if (!curr->rhs) {
             goto fail;
         }
-        curr->shift_op = op;
+        curr->op = op == LEFT_OP ? SHIFT_EXPR_LEFT : SHIFT_EXPR_RIGHT;
 
         ++res->len;
     }

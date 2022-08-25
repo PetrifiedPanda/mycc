@@ -1425,6 +1425,15 @@ static void dump_add_expr(struct ast_dumper* d, const struct add_expr* e) {
     remove_indent(d);
 }
 
+static const char* shift_expr_op_str(enum shift_expr_op o) {
+    switch (o) {
+        case SHIFT_EXPR_LEFT:
+            return get_spelling(LEFT_OP);
+        case SHIFT_EXPR_RIGHT:
+            return get_spelling(RIGHT_OP);
+    }
+}
+
 static void dump_shift_expr(struct ast_dumper* d, const struct shift_expr* e) {
     assert(e);
 
@@ -1436,11 +1445,24 @@ static void dump_shift_expr(struct ast_dumper* d, const struct shift_expr* e) {
     dump_add_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         struct add_expr_and_op* item = &e->shift_chain[i];
-        dumper_println(d, "shift_op: %s", get_spelling(item->shift_op));
+        dumper_println(d, "shift_op: %s", shift_expr_op_str(item->op));
         dump_add_expr(d, item->rhs);
     }
 
     remove_indent(d);
+}
+
+static const char* rel_expr_op_str(enum rel_expr_op o) {
+    switch (o) {
+        case REL_EXPR_LT:
+            return get_spelling(LT);
+        case REL_EXPR_GT:
+            return get_spelling(GT);
+        case REL_EXPR_LE:
+            return get_spelling(LE_OP);
+        case REL_EXPR_GE:
+            return get_spelling(GE_OP);
+    }
 }
 
 static void dump_rel_expr(struct ast_dumper* d, const struct rel_expr* e) {
@@ -1454,7 +1476,7 @@ static void dump_rel_expr(struct ast_dumper* d, const struct rel_expr* e) {
     dump_shift_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         struct shift_expr_and_op* item = &e->rel_chain[i];
-        dumper_println(d, "rel_op: %s", get_spelling(item->rel_op));
+        dumper_println(d, "rel_op: %s", rel_expr_op_str(item->op));
         dump_shift_expr(d, item->rhs);
     }
 
