@@ -209,7 +209,7 @@ TEST(unary_expr) {
         ASSERT_NOT_NULL(res);
         ASSERT(err.type == PARSER_ERR_NONE);
 
-        ASSERT(res->type == UNARY_UNARY_OP);
+        ASSERT(res->type == UNARY_DEREF);
 
         ASSERT_SIZE_T(res->len, (size_t)3);
 
@@ -217,7 +217,6 @@ TEST(unary_expr) {
         ASSERT_TOKEN_TYPE(res->operators_before[1], DEC_OP);
         ASSERT_TOKEN_TYPE(res->operators_before[2], SIZEOF);
 
-        ASSERT_TOKEN_TYPE(res->unary_op, ASTERISK);
         check_cast_expr_id_or_const(res->cast_expr, "name", IDENTIFIER);
 
         free_unary_expr(res);
@@ -282,15 +281,13 @@ TEST(unary_expr) {
         ASSERT_NOT_NULL(res);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
-        ASSERT(res->type == UNARY_UNARY_OP);
-        ASSERT_TOKEN_TYPE(res->unary_op, BNOT);
+        ASSERT(res->type == UNARY_BNOT);
 
         struct cast_expr* cast = res->cast_expr;
         ASSERT_SIZE_T(cast->len, (size_t)0);
         struct unary_expr* child_unary = cast->rhs;
 
-        ASSERT(child_unary->type == UNARY_UNARY_OP);
-        ASSERT_TOKEN_TYPE(child_unary->unary_op, ASTERISK);
+        ASSERT(child_unary->type == UNARY_DEREF);
         check_cast_expr_id_or_const(child_unary->cast_expr, "var", IDENTIFIER);
 
         free_unary_expr(res);

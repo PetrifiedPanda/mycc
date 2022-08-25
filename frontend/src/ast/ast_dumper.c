@@ -695,7 +695,7 @@ static void dump_postfix_expr(struct ast_dumper* d, struct postfix_expr* e) {
     remove_indent(d);
 }
 
-static void dump_unary_expr(struct ast_dumper* d, struct unary_expr* e);
+static void dump_unary_expr(struct ast_dumper* d, const struct unary_expr* e);
 
 static void dump_cast_expr(struct ast_dumper* d, const struct cast_expr* e) {
     assert(e);
@@ -714,7 +714,28 @@ static void dump_cast_expr(struct ast_dumper* d, const struct cast_expr* e) {
     remove_indent(d);
 }
 
-static void dump_unary_expr(struct ast_dumper* d, struct unary_expr* e) {
+static const char* unary_expr_type_str(enum unary_expr_type t) {
+    assert(t != UNARY_POSTFIX && t != UNARY_SIZEOF_TYPE && t != UNARY_ALIGNOF);
+    switch (t) {
+        case UNARY_ADDRESSOF:
+            return "&";
+        case UNARY_DEREF:
+            return "*";
+        case UNARY_PLUS:
+            return "+";
+        case UNARY_MINUS:
+            return "-";
+        case UNARY_BNOT:
+            return "~";
+        case UNARY_NOT:
+            return "!";
+
+        default:
+            UNREACHABLE();
+    }
+}
+
+static void dump_unary_expr(struct ast_dumper* d, const struct unary_expr* e) {
     assert(e);
 
     dumper_print_node_head(d, "unary_expr", &e->info);
@@ -730,15 +751,20 @@ static void dump_unary_expr(struct ast_dumper* d, struct unary_expr* e) {
         case UNARY_POSTFIX:
             dump_postfix_expr(d, e->postfix);
             break;
-        case UNARY_UNARY_OP:
-            dumper_println(d, "%s", get_spelling(e->unary_op));
+        case UNARY_ADDRESSOF:
+        case UNARY_DEREF:
+        case UNARY_PLUS:
+        case UNARY_MINUS:
+        case UNARY_BNOT:
+        case UNARY_NOT:
+            dumper_println(d, "%s", unary_expr_type_str(e->type));
             dump_cast_expr(d, e->cast_expr);
             break;
         case UNARY_SIZEOF_TYPE:
             dumper_println(d, "sizeof");
             dump_type_name(d, e->type_name);
             break;
-        case UNARY_ALIGNOF_TYPE:
+        case UNARY_ALIGNOF:
             dumper_println(d, "_Alignof");
             dump_type_name(d, e->type_name);
             break;

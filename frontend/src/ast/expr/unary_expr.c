@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/annotations.h"
 
 #include "frontend/parser/parser_util.h"
 
@@ -39,6 +40,26 @@ static struct unary_expr* create_unary_expr_postfix(
     return res;
 }
 
+static enum unary_expr_type token_type_to_unary_expr_type(enum token_type t) {
+    assert(is_unary_op(t));
+    switch (t) {
+        case AND:
+            return UNARY_ADDRESSOF;
+        case ASTERISK:
+            return UNARY_DEREF;
+        case ADD:
+            return UNARY_PLUS;
+        case SUB:
+            return UNARY_MINUS;
+        case BNOT:
+            return UNARY_BNOT;
+        case NOT:
+            return UNARY_NOT;
+        default:
+            UNREACHABLE();
+    }
+}
+
 static struct unary_expr* create_unary_expr_unary_op(
     enum token_type* operators_before,
     size_t len,
@@ -50,8 +71,7 @@ static struct unary_expr* create_unary_expr_unary_op(
     struct unary_expr* res = xmalloc(sizeof(struct unary_expr));
     res->info = create_ast_node_info(loc);
     assign_operators_before(res, operators_before, len);
-    res->type = UNARY_UNARY_OP;
-    res->unary_op = unary_op;
+    res->type = token_type_to_unary_expr_type(unary_op);
     res->cast_expr = cast_expr;
 
     return res;
@@ -81,7 +101,7 @@ static struct unary_expr* create_unary_expr_alignof(
     struct unary_expr* res = xmalloc(sizeof(struct unary_expr));
     res->info = create_ast_node_info(loc);
     assign_operators_before(res, operators_before, len);
-    res->type = UNARY_ALIGNOF_TYPE;
+    res->type = UNARY_ALIGNOF;
     res->type_name = type_name;
 
     return res;
@@ -233,11 +253,16 @@ void free_unary_expr_children(struct unary_expr* u) {
         case UNARY_POSTFIX:
             free_postfix_expr(u->postfix);
             break;
-        case UNARY_UNARY_OP:
+        case UNARY_ADDRESSOF:
+        case UNARY_DEREF:
+        case UNARY_PLUS:
+        case UNARY_MINUS:
+        case UNARY_BNOT:
+        case UNARY_NOT: 
             free_cast_expr(u->cast_expr);
             break;
         case UNARY_SIZEOF_TYPE:
-        case UNARY_ALIGNOF_TYPE:
+        case UNARY_ALIGNOF:
             free_type_name(u->type_name);
             break;
     }

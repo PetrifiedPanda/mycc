@@ -15,9 +15,14 @@ struct type_name;
 
 enum unary_expr_type {
     UNARY_POSTFIX,
-    UNARY_UNARY_OP,
+    UNARY_ADDRESSOF,
+    UNARY_DEREF,
+    UNARY_PLUS,
+    UNARY_MINUS,
+    UNARY_BNOT,
+    UNARY_NOT,
     UNARY_SIZEOF_TYPE,
-    UNARY_ALIGNOF_TYPE
+    UNARY_ALIGNOF,
 };
 
 struct unary_expr {
@@ -27,10 +32,7 @@ struct unary_expr {
     enum unary_expr_type type;
     union {
         struct postfix_expr* postfix;
-        struct {
-            enum token_type unary_op;
-            struct cast_expr* cast_expr;
-        };
+        struct cast_expr* cast_expr;
         struct type_name* type_name;
     };
 };
