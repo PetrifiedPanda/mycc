@@ -749,6 +749,33 @@ static void dump_unary_expr(struct ast_dumper* d, struct unary_expr* e) {
     remove_indent(d);
 }
 
+static const char* assign_expr_op_str(enum assign_expr_op o) {
+    switch (o) {
+        case ASSIGN_EXPR_ASSIGN:
+            return get_spelling(ASSIGN);
+        case ASSIGN_EXPR_MUL:
+            return get_spelling(MUL_ASSIGN);
+        case ASSIGN_EXPR_DIV:
+            return get_spelling(DIV_ASSIGN);
+        case ASSIGN_EXPR_MOD:
+            return get_spelling(MOD_ASSIGN);
+        case ASSIGN_EXPR_ADD:
+            return get_spelling(ADD_ASSIGN);
+        case ASSIGN_EXPR_SUB:
+            return get_spelling(SUB_ASSIGN);
+        case ASSIGN_EXPR_LSHIFT:
+            return get_spelling(LEFT_ASSIGN);
+        case ASSIGN_EXPR_RSHIFT:
+            return get_spelling(RIGHT_ASSIGN);
+        case ASSIGN_EXPR_AND:
+            return get_spelling(AND_ASSIGN);
+        case ASSIGN_EXPR_XOR:
+            return get_spelling(XOR_ASSIGN);
+        case ASSIGN_EXPR_OR:
+            return get_spelling(OR_ASSIGN);
+    };
+}
+
 static void dump_cond_expr(struct ast_dumper* d, const struct cond_expr* e);
 
 static void dump_assign_expr(struct ast_dumper* d,
@@ -768,7 +795,7 @@ static void dump_assign_expr(struct ast_dumper* d,
 
         dump_unary_expr(d, item->unary);
 
-        dumper_println(d, "%s", get_spelling(item->assign_op));
+        dumper_println(d, "%s", assign_expr_op_str(item->op));
 
         remove_indent(d);
     }

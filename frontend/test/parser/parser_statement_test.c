@@ -202,8 +202,7 @@ TEST(statement) {
         check_cond_expr_id_or_const(case_expr->assign_exprs->value,
                                     "5",
                                     I_CONSTANT);
-        ASSERT_TOKEN_TYPE(case_expr->assign_exprs->assign_chain[0].assign_op,
-                          SUB_ASSIGN);
+        ASSERT(case_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_SUB);
         check_unary_expr_id_or_const(
             case_expr->assign_exprs->assign_chain[0].unary,
             "d",
@@ -228,8 +227,7 @@ TEST(statement) {
         check_cond_expr_id_or_const(default_expr->assign_exprs->value,
                                     "5",
                                     I_CONSTANT);
-        ASSERT_TOKEN_TYPE(default_expr->assign_exprs->assign_chain[0].assign_op,
-                          ADD_ASSIGN);
+        ASSERT(default_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_ADD);
         check_unary_expr_id_or_const(
             default_expr->assign_exprs->assign_chain[0].unary,
             "d",
@@ -263,8 +261,7 @@ TEST(statement) {
                                 "0",
                                 I_CONSTANT);
     ASSERT_SIZE_T(else_expr->assign_exprs->len, (size_t)1);
-    ASSERT_TOKEN_TYPE(else_expr->assign_exprs->assign_chain[0].assign_op,
-                      ASSIGN);
+    ASSERT(else_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_ASSIGN);
     check_unary_expr_id_or_const(else_expr->assign_exprs->assign_chain[0].unary,
                                  "b",
                                  IDENTIFIER);

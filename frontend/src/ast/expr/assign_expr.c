@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "util/mem.h"
+#include "util/annotations.h"
 
 #include "frontend/parser/parser_util.h"
 
@@ -54,6 +55,37 @@ static struct unary_or_cond parse_unary_or_cond(struct parser_state* s) {
     return res;
 }
 
+static enum assign_expr_op token_type_to_assign_op(enum token_type t) {
+    assert(is_assign_op(t));
+    switch (t) {
+        case ASSIGN:
+            return ASSIGN_EXPR_ASSIGN;
+        case MUL_ASSIGN:
+            return ASSIGN_EXPR_MUL;
+        case DIV_ASSIGN:
+            return ASSIGN_EXPR_DIV;
+        case MOD_ASSIGN:
+            return ASSIGN_EXPR_MOD;
+        case ADD_ASSIGN:
+            return ASSIGN_EXPR_ADD;
+        case SUB_ASSIGN:
+            return ASSIGN_EXPR_SUB;
+        case LEFT_ASSIGN:
+            return ASSIGN_EXPR_LSHIFT;
+        case RIGHT_ASSIGN:
+            return ASSIGN_EXPR_RSHIFT;
+        case AND_ASSIGN:
+            return ASSIGN_EXPR_AND;
+        case XOR_ASSIGN:
+            return ASSIGN_EXPR_XOR;
+        case OR_ASSIGN:
+            return ASSIGN_EXPR_OR;
+
+        default:
+            UNREACHABLE();
+    }
+}
+
 bool parse_assign_expr_inplace(struct parser_state* s,
                                struct assign_expr* res) {
     assert(res);
@@ -87,7 +119,7 @@ bool parse_assign_expr_inplace(struct parser_state* s,
             res->assign_chain = xrealloc(res->assign_chain,
                                          sizeof(struct cond_expr) * res->len);
             res->assign_chain[res->len - 1] = (struct unary_and_op){
-                .assign_op = op,
+                .op = token_type_to_assign_op(op),
                 .unary = last_unary,
             };
             return true;
@@ -102,7 +134,7 @@ bool parse_assign_expr_inplace(struct parser_state* s,
         }
 
         res->assign_chain[res->len] = (struct unary_and_op){
-            .assign_op = op,
+            .op = token_type_to_assign_op(op),
             .unary = last_unary,
         };
         last_unary = new_last;
