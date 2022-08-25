@@ -660,7 +660,7 @@ static void dump_postfix_suffix(struct ast_dumper* d,
             dump_identifier(d, s->identifier);
             break;
         case POSTFIX_INC_DEC:
-            dumper_println(d, "%s", get_spelling(s->inc_dec));
+            dumper_println(d, "%s", s->is_inc ? "++" : "--");
             break;
     }
 

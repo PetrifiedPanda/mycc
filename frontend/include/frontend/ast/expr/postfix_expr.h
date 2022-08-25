@@ -1,8 +1,6 @@
 #ifndef POSTFIX_EXPR_H
 #define POSTFIX_EXPR_H
 
-#include "frontend/token_type.h"
-
 #include "arg_expr_list.h"
 
 #include "frontend/ast/initializer/init_list.h"
@@ -25,7 +23,7 @@ struct postfix_suffix {
         struct expr* index_expr;
         struct arg_expr_list bracket_list;
         struct identifier* identifier;
-        enum token_type inc_dec;
+        bool is_inc;
     };
 };
 

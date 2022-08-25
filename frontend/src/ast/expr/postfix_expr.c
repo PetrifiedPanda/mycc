@@ -89,11 +89,11 @@ static bool parse_postfix_access_suffix(struct parser_state* s,
 
 struct postfix_suffix parse_postfix_inc_dec_suffix(struct parser_state* s) {
     assert(s->it->type == INC_OP || s->it->type == DEC_OP);
-    enum token_type inc_dec = s->it->type;
+    const enum token_type op = s->it->type;
     accept_it(s);
     return (struct postfix_suffix){
         .type = POSTFIX_INC_DEC,
-        .inc_dec = inc_dec,
+        .is_inc = op == INC_OP,
     };
 }
 

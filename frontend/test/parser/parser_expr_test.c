@@ -359,13 +359,13 @@ TEST(postfix_expr) {
         ASSERT_STR(res->suffixes[1].identifier->spelling, "other");
 
         ASSERT(res->suffixes[2].type == POSTFIX_INC_DEC);
-        ASSERT_TOKEN_TYPE(res->suffixes[2].inc_dec, INC_OP);
+        ASSERT(res->suffixes[2].is_inc);
 
         ASSERT(res->suffixes[3].type == POSTFIX_INC_DEC);
-        ASSERT_TOKEN_TYPE(res->suffixes[3].inc_dec, DEC_OP);
+        ASSERT(!res->suffixes[3].is_inc);
 
         ASSERT(res->suffixes[4].type == POSTFIX_INC_DEC);
-        ASSERT_TOKEN_TYPE(res->suffixes[4].inc_dec, INC_OP);
+        ASSERT(res->suffixes[4].is_inc);
 
         free_postfix_expr(res);
         free_parser_state(&s);
