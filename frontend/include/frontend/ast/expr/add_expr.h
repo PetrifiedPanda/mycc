@@ -1,5 +1,5 @@
-#ifndef ADDITIVE_EXPR_H
-#define ADDITIVE_EXPR_H
+#ifndef ADD_EXPR_H
+#define ADD_EXPR_H
 
 #include <stddef.h>
 
