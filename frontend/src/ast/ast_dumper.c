@@ -1164,17 +1164,17 @@ static void dump_iteration_statement(struct ast_dumper* d,
     add_indent(d);
 
     switch (s->type) {
-        case WHILE:
+        case ITERATION_STATEMENT_WHILE:
             dumper_println(d, "type: while");
             dump_expr(d, s->while_cond);
             dump_statement(d, s->loop_body);
             break;
-        case DO:
+        case ITERATION_STATEMENT_DO:
             dumper_println(d, "type: do");
             dump_statement(d, s->loop_body);
             dump_expr(d, s->while_cond);
             break;
-        case FOR:
+        case ITERATION_STATEMENT_FOR:
             dumper_println(d, "type: for");
             if (s->for_loop.is_decl) {
                 dump_declaration(d, s->for_loop.init_decl);
@@ -1200,17 +1200,17 @@ static void dump_jump_statement(struct ast_dumper* d,
     add_indent(d);
 
     switch (s->type) {
-        case GOTO:
+        case JUMP_STATEMENT_GOTO:
             dumper_println(d, "type: goto");
             dump_identifier(d, s->goto_label);
             break;
-        case CONTINUE:
+        case JUMP_STATEMENT_CONTINUE:
             dumper_println(d, "type: continue");
             break;
-        case BREAK:
+        case JUMP_STATEMENT_BREAK:
             dumper_println(d, "type: break");
             break;
-        case RETURN:
+        case JUMP_STATEMENT_RETURN:
             dumper_println(d, "type: return");
             if (s->ret_val) {
                 dump_expr(d, s->ret_val);

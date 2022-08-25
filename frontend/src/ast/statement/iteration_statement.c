@@ -26,7 +26,7 @@ static struct iteration_statement* create_while_loop(
     struct statement* loop_body) {
     struct iteration_statement* res = xmalloc(
         sizeof(struct iteration_statement));
-    res->type = WHILE;
+    res->type = ITERATION_STATEMENT_WHILE;
     assign_do_or_while(loc, res, while_cond, loop_body);
 
     return res;
@@ -37,7 +37,7 @@ static struct iteration_statement* create_do_loop(struct source_loc loc,
                                                   struct statement* loop_body) {
     struct iteration_statement* res = xmalloc(
         sizeof(struct iteration_statement));
-    res->type = DO;
+    res->type = ITERATION_STATEMENT_DO;
     assign_do_or_while(loc, res, while_cond, loop_body);
 
     return res;
@@ -57,7 +57,7 @@ static struct iteration_statement* create_for_loop(
     struct iteration_statement* res = xmalloc(
         sizeof(struct iteration_statement));
     res->info = create_ast_node_info(loc);
-    res->type = FOR;
+    res->type = ITERATION_STATEMENT_FOR;
     res->loop_body = loop_body;
     res->for_loop = for_loop;
 
@@ -208,11 +208,11 @@ struct iteration_statement* parse_iteration_statement(struct parser_state* s) {
 
 static void free_children(struct iteration_statement* s) {
     switch (s->type) {
-        case WHILE:
-        case DO:
+        case ITERATION_STATEMENT_WHILE:
+        case ITERATION_STATEMENT_DO:
             free_expr(s->while_cond);
             break;
-        case FOR: {
+        case ITERATION_STATEMENT_FOR: {
             if (s->for_loop.is_decl) {
                 free_declaration(s->for_loop.init_decl);
             } else {

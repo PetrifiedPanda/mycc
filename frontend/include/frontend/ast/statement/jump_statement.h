@@ -10,9 +10,16 @@
 struct expr;
 struct identifier;
 
+enum jump_statement_type {
+    JUMP_STATEMENT_GOTO,
+    JUMP_STATEMENT_CONTINUE,
+    JUMP_STATEMENT_BREAK,
+    JUMP_STATEMENT_RETURN,
+};
+
 struct jump_statement {
     struct ast_node_info info;
-    enum token_type type;
+    enum jump_statement_type type;
     union {
         struct identifier* goto_label;
         struct expr* ret_val;

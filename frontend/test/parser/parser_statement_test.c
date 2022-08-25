@@ -10,7 +10,7 @@
 
 #include "parser_test_util.h"
 
-static void check_jump_statement(const char* spell, enum token_type t) {
+static void check_jump_statement(const char* spell, enum jump_statement_type t) {
     struct preproc_res preproc_res = tokenize_string(spell, "skfjlskf");
     
     struct parser_err err = create_parser_err();
@@ -21,7 +21,7 @@ static void check_jump_statement(const char* spell, enum token_type t) {
     ASSERT_NOT_NULL(res);
 
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
-    ASSERT_TOKEN_TYPE(res->type, t);
+    ASSERT(res->type == t);
 
     free_jump_statement(res);
     free_parser_state(&s);
@@ -59,7 +59,7 @@ TEST(jump_statement) {
         ASSERT_NOT_NULL(res);
 
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
-        ASSERT_TOKEN_TYPE(res->type, GOTO);
+        ASSERT(res->type == JUMP_STATEMENT_GOTO);
 
         check_identifier(res->goto_label, "my_cool_label");
 
@@ -68,9 +68,9 @@ TEST(jump_statement) {
         free_preproc_res(&preproc_res);
     }
 
-    check_jump_statement("continue;", CONTINUE);
-    check_jump_statement("break;", BREAK);
-    check_jump_statement("return;", RETURN);
+    check_jump_statement("continue;", JUMP_STATEMENT_CONTINUE);
+    check_jump_statement("break;", JUMP_STATEMENT_BREAK);
+    check_jump_statement("return;", JUMP_STATEMENT_RETURN);
 
     check_expected_semicolon_jump_statement("continue");
     check_expected_semicolon_jump_statement("break");
@@ -114,7 +114,7 @@ TEST(jump_statement) {
         ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
-        ASSERT_TOKEN_TYPE(res->type, RETURN);
+        ASSERT(res->type == JUMP_STATEMENT_RETURN);
         ASSERT_NOT_NULL(res->ret_val);
 
         check_expr_id_or_const(res->ret_val, "600", I_CONSTANT);
@@ -150,7 +150,7 @@ TEST(statement) {
 
     ASSERT(res->type == STATEMENT_ITERATION);
     struct iteration_statement* iteration = res->it;
-    ASSERT(iteration->type == FOR);
+    ASSERT(iteration->type == ITERATION_STATEMENT_FOR);
 
     ASSERT(iteration->for_loop.is_decl == false);
     ASSERT_SIZE_T(iteration->for_loop.cond->expr.len, (size_t)1);
@@ -210,7 +210,7 @@ TEST(statement) {
 
         ASSERT(switch_compound->items[1].stat.type == STATEMENT_JUMP);
         struct jump_statement* break_stat = switch_compound->items[1].stat.jmp;
-        ASSERT_TOKEN_TYPE(break_stat->type, BREAK);
+        ASSERT(break_stat->type == JUMP_STATEMENT_BREAK);
         ASSERT_NULL(break_stat->ret_val);
 
         ASSERT(switch_compound->items[2].stat.type == STATEMENT_LABELED);

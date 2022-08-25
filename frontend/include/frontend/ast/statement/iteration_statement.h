@@ -22,9 +22,15 @@ struct for_loop {
     struct expr* incr_expr;
 };
 
+enum iteration_statement_type {
+    ITERATION_STATEMENT_WHILE,
+    ITERATION_STATEMENT_DO,
+    ITERATION_STATEMENT_FOR,
+};
+
 struct iteration_statement {
     struct ast_node_info info;
-    enum token_type type;
+    enum iteration_statement_type type;
     struct statement* loop_body;
     union {
         struct expr* while_cond;

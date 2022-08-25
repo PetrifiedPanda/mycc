@@ -8,8 +8,7 @@
 #include "frontend/parser/parser_util.h"
 
 static struct jump_statement* create(struct source_loc loc,
-                                     enum token_type type) {
-    assert(type == GOTO || type == CONTINUE || type == BREAK || type == RETURN);
+                                     enum jump_statement_type type) {
     struct jump_statement* res = xmalloc(sizeof(struct jump_statement));
     res->info = create_ast_node_info(loc);
     res->type = type;
@@ -21,7 +20,7 @@ static struct jump_statement* create_goto_statement(
     struct source_loc loc,
     struct identifier* identifier) {
     assert(identifier);
-    struct jump_statement* res = create(loc, GOTO);
+    struct jump_statement* res = create(loc, JUMP_STATEMENT_GOTO);
     res->goto_label = identifier;
 
     return res;
@@ -29,7 +28,7 @@ static struct jump_statement* create_goto_statement(
 
 static struct jump_statement* create_return_statement(struct source_loc loc,
                                                       struct expr* ret_val) {
-    struct jump_statement* res = create(loc, RETURN);
+    struct jump_statement* res = create(loc, JUMP_STATEMENT_RETURN);
     res->ret_val = ret_val;
     return res;
 }
@@ -53,9 +52,9 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
         }
         case CONTINUE:
         case BREAK: {
-            enum token_type t = s->it->type;
+            const enum token_type t = s->it->type;
             accept_it(s);
-            res = create(loc, t);
+            res = create(loc, t == CONTINUE ? JUMP_STATEMENT_CONTINUE : JUMP_STATEMENT_BREAK);
             res->ret_val = NULL;
             break;
         }
@@ -94,10 +93,10 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
 
 static void free_children(struct jump_statement* s) {
     switch (s->type) {
-        case GOTO:
+        case JUMP_STATEMENT_GOTO:
             free_identifier(s->goto_label);
             break;
-        case RETURN:
+        case JUMP_STATEMENT_RETURN:
             if (s->ret_val) {
                 free_expr(s->ret_val);
             }
