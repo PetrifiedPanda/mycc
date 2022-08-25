@@ -533,6 +533,27 @@ static void dump_enum_spec(struct ast_dumper* d, const struct enum_spec* s) {
     remove_indent(d);
 }
 
+static const char* type_spec_type_str(enum type_spec_type t) {
+    switch (t) {
+        case TYPE_SPEC_NONE:
+            return "NO_TYPE_SPEC";
+        case TYPE_SPEC_VOID:
+            return "void";
+        case TYPE_SPEC_CHAR:
+            return "char";
+        case TYPE_SPEC_INT:
+            return "int";
+        case TYPE_SPEC_FLOAT:
+            return "float";
+        case TYPE_SPEC_DOUBLE:
+            return "double";
+        case TYPE_SPEC_BOOL:
+            return "_Bool";
+        default:
+            UNREACHABLE();
+    }
+}
+
 static void dump_type_specs(struct ast_dumper* d, const struct type_specs* s) {
     assert(s);
 
@@ -542,24 +563,28 @@ static void dump_type_specs(struct ast_dumper* d, const struct type_specs* s) {
 
     dump_type_modifiers(d, &s->mods);
 
-    if (s->has_specifier) {
-        switch (s->type) {
-            case TYPESPEC_PREDEF:
-                dumper_println(d, "%s", get_spelling(s->type_spec));
-                break;
-            case TYPESPEC_ATOMIC:
-                dump_atomic_type_spec(d, s->atomic_spec);
-                break;
-            case TYPESPEC_STRUCT:
-                dump_struct_union_spec(d, s->struct_union_spec);
-                break;
-            case TYPESPEC_ENUM:
-                dump_enum_spec(d, s->enum_spec);
-                break;
-            case TYPESPEC_TYPENAME:
-                dump_identifier(d, s->typedef_name);
-                break;
-        }
+    switch (s->type) {
+        case TYPE_SPEC_NONE:
+        case TYPE_SPEC_VOID:
+        case TYPE_SPEC_CHAR:
+        case TYPE_SPEC_INT:
+        case TYPE_SPEC_FLOAT:
+        case TYPE_SPEC_DOUBLE:
+        case TYPE_SPEC_BOOL:
+            dumper_println(d, "%s", type_spec_type_str(s->type));
+            break;
+        case TYPE_SPEC_ATOMIC:
+            dump_atomic_type_spec(d, s->atomic_spec);
+            break;
+        case TYPE_SPEC_STRUCT:
+            dump_struct_union_spec(d, s->struct_union_spec);
+            break;
+        case TYPE_SPEC_ENUM:
+            dump_enum_spec(d, s->enum_spec);
+            break;
+        case TYPE_SPEC_TYPENAME:
+            dump_identifier(d, s->typedef_name);
+            break;
     }
 
     remove_indent(d);
@@ -909,7 +934,7 @@ static void dump_arr_suffix(struct ast_dumper* d, const struct arr_suffix* s) {
 static void dump_arr_or_func_suffix(struct ast_dumper* d,
                                     const struct arr_or_func_suffix* s) {
     dumper_print_node_head(d, "arr_or_func_suffix", &s->info);
-    
+
     add_indent(d);
 
     switch (s->type) {

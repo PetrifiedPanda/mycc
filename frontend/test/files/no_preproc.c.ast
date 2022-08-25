@@ -1645,6 +1645,7 @@ translation_unit:
                                                     num_long: 1
                                                     is_complex: false
                                                     is_imaginary: false
+                                                  NO_TYPE_SPEC
         block_item:
           statement:
             labeled_statement: ../frontend/test/files/no_preproc.c:61,1

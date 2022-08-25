@@ -38,7 +38,7 @@ struct type_specs create_type_specs(void) {
                 .is_complex = false,
                 .is_imaginary = false,
             },
-        .has_specifier = false,
+        .type = TYPE_SPEC_NONE,
     };
 }
 
@@ -47,6 +47,26 @@ static void cannot_combine_with_spec_err(const struct parser_state* s,
     set_parser_err(s->err, PARSER_ERR_INCOMPATIBLE_TYPE_SPECS, s->it->loc);
     s->err->type_spec = s->it->type;
     s->err->prev_type_spec = prev_spec;
+}
+
+static enum type_spec_type get_predef_type_spec(enum token_type t) {
+    switch (t) {
+        case VOID:
+            return TYPE_SPEC_VOID;
+        case CHAR:
+            return TYPE_SPEC_CHAR;
+        case INT:
+            return TYPE_SPEC_INT;
+        case FLOAT:
+            return TYPE_SPEC_FLOAT;
+        case DOUBLE:
+            return TYPE_SPEC_DOUBLE;
+        case BOOL:
+            return TYPE_SPEC_BOOL;
+
+        default:
+            UNREACHABLE();
+    }
 }
 
 static bool update_standalone_type_spec(struct parser_state* s,
@@ -58,7 +78,7 @@ static bool update_standalone_type_spec(struct parser_state* s,
         case FLOAT:
         case DOUBLE:
         case BOOL:
-            if (res->has_specifier) {
+            if (res->type != TYPE_SPEC_NONE) {
                 set_parser_err(s->err,
                                PARSER_ERR_DISALLOWED_TYPE_QUALS,
                                s->it->loc);
@@ -66,9 +86,7 @@ static bool update_standalone_type_spec(struct parser_state* s,
                 free_type_specs_children(res);
                 return false;
             }
-            res->has_specifier = true;
-            res->type = TYPESPEC_PREDEF;
-            res->type_spec = s->it->type;
+            res->type = get_predef_type_spec(s->it->type);
             break;
         case SHORT:
             if (res->mods.num_long != 0) {
@@ -121,7 +139,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
                                             struct type_specs* res) {
     switch (s->it->type) {
         case ATOMIC: {
-            res->type = TYPESPEC_ATOMIC;
+            res->type = TYPE_SPEC_ATOMIC;
             res->atomic_spec = parse_atomic_type_spec(s);
             if (!res->atomic_spec) {
                 return false;
@@ -130,7 +148,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
         }
         case STRUCT:
         case UNION: {
-            res->type = TYPESPEC_STRUCT;
+            res->type = TYPE_SPEC_STRUCT;
             res->struct_union_spec = parse_struct_union_spec(s);
             if (!res->struct_union_spec) {
                 return false;
@@ -138,7 +156,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
             break;
         }
         case ENUM: {
-            res->type = TYPESPEC_ENUM;
+            res->type = TYPE_SPEC_ENUM;
             res->enum_spec = parse_enum_spec(s);
             if (!res->enum_spec) {
                 return false;
@@ -147,8 +165,9 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
         }
         case IDENTIFIER: {
             if (is_typedef_name(s, s->it->spelling)) {
-                res->type = TYPESPEC_TYPENAME;
-                res->typedef_name = create_identifier(take_spelling(s->it), s->it->loc);
+                res->type = TYPE_SPEC_TYPENAME;
+                res->typedef_name = create_identifier(take_spelling(s->it),
+                                                      s->it->loc);
                 accept_it(s);
                 break;
             } else {
@@ -174,7 +193,6 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
         }
     }
 
-    res->has_specifier = true;
     return true;
 }
 
@@ -189,30 +207,34 @@ bool update_type_specs(struct parser_state* s, struct type_specs* res) {
 }
 
 void free_type_specs_children(struct type_specs* s) {
-    if (s->has_specifier) {
-        switch (s->type) {
-            case TYPESPEC_PREDEF:
-                break;
-            case TYPESPEC_ATOMIC:
-                free_atomic_type_spec(s->atomic_spec);
-                break;
-            case TYPESPEC_STRUCT:
-                free_struct_union_spec(s->struct_union_spec);
-                break;
-            case TYPESPEC_ENUM:
-                free_enum_spec(s->enum_spec);
-                break;
-            case TYPESPEC_TYPENAME:
-                free_identifier(s->typedef_name);
-                break;
-        }
+    switch (s->type) {
+        case TYPE_SPEC_NONE:
+        case TYPE_SPEC_VOID:
+        case TYPE_SPEC_CHAR:
+        case TYPE_SPEC_INT:
+        case TYPE_SPEC_FLOAT:
+        case TYPE_SPEC_DOUBLE:
+        case TYPE_SPEC_BOOL:
+            break;
+        case TYPE_SPEC_ATOMIC:
+            free_atomic_type_spec(s->atomic_spec);
+            break;
+        case TYPE_SPEC_STRUCT:
+            free_struct_union_spec(s->struct_union_spec);
+            break;
+        case TYPE_SPEC_ENUM:
+            free_enum_spec(s->enum_spec);
+            break;
+        case TYPE_SPEC_TYPENAME:
+            free_identifier(s->typedef_name);
+            break;
     }
 }
 
 bool is_valid_type_specs(const struct type_specs* s) {
     assert(s);
 
-    if (!s->has_specifier) {
+    if (s->type == TYPE_SPEC_NONE) {
         const struct type_modifiers* mods = &s->mods;
         return mods->is_unsigned || mods->is_signed || mods->is_short
                || mods->num_long != 0 || mods->is_complex || mods->is_imaginary;

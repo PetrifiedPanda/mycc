@@ -11,11 +11,17 @@ struct enum_spec;
 struct identifier;
 
 enum type_spec_type {
-    TYPESPEC_PREDEF,
-    TYPESPEC_ATOMIC,
-    TYPESPEC_STRUCT,
-    TYPESPEC_ENUM,
-    TYPESPEC_TYPENAME
+    TYPE_SPEC_NONE,
+    TYPE_SPEC_VOID,
+    TYPE_SPEC_CHAR,
+    TYPE_SPEC_INT,
+    TYPE_SPEC_FLOAT,
+    TYPE_SPEC_DOUBLE,
+    TYPE_SPEC_BOOL,
+    TYPE_SPEC_ATOMIC,
+    TYPE_SPEC_STRUCT,
+    TYPE_SPEC_ENUM,
+    TYPE_SPEC_TYPENAME
 };
 
 struct type_modifiers {
@@ -29,10 +35,8 @@ struct type_modifiers {
 
 struct type_specs {
     struct type_modifiers mods;
-    bool has_specifier;
     enum type_spec_type type;
     union {
-        enum token_type type_spec;
         struct atomic_type_spec* atomic_spec;
         struct struct_union_spec* struct_union_spec;
         struct enum_spec* enum_spec;

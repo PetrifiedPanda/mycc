@@ -151,14 +151,13 @@ static void primary_expr_generic_sel_test(void) {
     struct generic_assoc* assoc = res->generic->assocs.assocs;
 
     ASSERT_NULL(assoc->type_name->abstract_decl);
-    ASSERT(assoc->type_name->spec_qual_list->specs.type == TYPESPEC_PREDEF);
-    ASSERT_TOKEN_TYPE(assoc->type_name->spec_qual_list->specs.type_spec, INT);
+    ASSERT(assoc->type_name->spec_qual_list->specs.type == TYPE_SPEC_INT);
     check_assign_expr_id_or_const(assoc->assign, "0", I_CONSTANT);
 
     ++assoc;
 
     ASSERT_NULL(assoc->type_name->abstract_decl);
-    ASSERT(assoc->type_name->spec_qual_list->specs.type == TYPESPEC_TYPENAME);
+    ASSERT(assoc->type_name->spec_qual_list->specs.type == TYPE_SPEC_TYPENAME);
     check_identifier(assoc->type_name->spec_qual_list->specs.typedef_name,
                      "TypedefName");
     check_assign_expr_id_or_const(assoc->assign, "oops", IDENTIFIER);
@@ -166,7 +165,7 @@ static void primary_expr_generic_sel_test(void) {
     ++assoc;
 
     ASSERT_NULL(assoc->type_name->abstract_decl);
-    ASSERT(assoc->type_name->spec_qual_list->specs.type == TYPESPEC_STRUCT);
+    ASSERT(assoc->type_name->spec_qual_list->specs.type == TYPE_SPEC_STRUCT);
     ASSERT(
         assoc->type_name->spec_qual_list->specs.struct_union_spec->is_struct);
     ASSERT_SIZE_T(assoc->type_name->spec_qual_list->specs.struct_union_spec
@@ -265,9 +264,7 @@ TEST(unary_expr) {
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
         ASSERT(res->type == UNARY_SIZEOF_TYPE);
-        ASSERT(res->type_name->spec_qual_list->specs.has_specifier);
-        ASSERT(res->type_name->spec_qual_list->specs.type == TYPESPEC_PREDEF);
-        ASSERT_TOKEN_TYPE(res->type_name->spec_qual_list->specs.type_spec, INT);
+        ASSERT(res->type_name->spec_qual_list->specs.type == TYPE_SPEC_INT);
 
         free_unary_expr(res);
         free_parser_state(&s);
@@ -427,15 +424,13 @@ TEST(postfix_expr) {
 }
 
 static void check_assign_expr_cast(struct cond_expr* expr,
-                                   enum token_type cast_type,
+                                   enum type_spec_type cast_type,
                                    const char* spell,
                                    enum token_type value_type) {
     struct cast_expr* cast = expr->last_else->log_ands->or_exprs->xor_exprs
                                  ->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs;
     ASSERT_SIZE_T(cast->len, (size_t)1);
-    ASSERT(cast->type_names[0].spec_qual_list->specs.type == TYPESPEC_PREDEF);
-    ASSERT_TOKEN_TYPE(cast->type_names[0].spec_qual_list->specs.type_spec,
-                      cast_type);
+    ASSERT(cast->type_names[0].spec_qual_list->specs.type == cast_type);
     check_unary_expr_id_or_const(cast->rhs, spell, value_type);
 }
 
@@ -518,7 +513,7 @@ TEST(assign_expr) {
         ASSERT_NOT_NULL(res);
 
         ASSERT_SIZE_T(res->len, (size_t)0);
-        check_assign_expr_cast(res->value, CHAR, "100", I_CONSTANT);
+        check_assign_expr_cast(res->value, TYPE_SPEC_CHAR, "100", I_CONSTANT);
 
         free_assign_expr(res);
         free_parser_state(&s);
@@ -584,7 +579,7 @@ TEST(assign_expr) {
                                      "var",
                                      IDENTIFIER);
 
-        check_assign_expr_cast(res->value, DOUBLE, "12", I_CONSTANT);
+        check_assign_expr_cast(res->value, TYPE_SPEC_DOUBLE, "12", I_CONSTANT);
 
         free_assign_expr(res);
         free_parser_state(&s);
