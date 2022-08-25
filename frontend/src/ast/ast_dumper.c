@@ -1085,13 +1085,13 @@ static void dump_labeled_statement(struct ast_dumper* d,
     add_indent(d);
 
     switch (s->type) {
-        case CASE:
+        case LABELED_STATEMENT_CASE:
             dump_const_expr(d, s->case_expr);
             break;
-        case IDENTIFIER:
-            dump_identifier(d, s->identifier);
+        case LABELED_STATEMENT_LABEL:
+            dump_identifier(d, s->label);
             break;
-        case DEFAULT:
+        case LABELED_STATEMENT_DEFAULT:
             dumper_println(d, "default");
             break;
         default:

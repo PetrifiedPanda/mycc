@@ -190,7 +190,7 @@ TEST(statement) {
         ASSERT(switch_compound->items[0].stat.type == STATEMENT_LABELED);
         struct labeled_statement* labeled = switch_compound->items[0]
                                                 .stat.labeled;
-        ASSERT_TOKEN_TYPE(labeled->type, CASE);
+        ASSERT(labeled->type == LABELED_STATEMENT_CASE);
 
         ASSERT_NOT_NULL(labeled->case_expr);
         check_const_expr_id_or_const(labeled->case_expr, "2", I_CONSTANT);
@@ -217,7 +217,7 @@ TEST(statement) {
         struct labeled_statement* default_stat = switch_compound->items[2]
                                                      .stat.labeled;
 
-        ASSERT_TOKEN_TYPE(default_stat->type, DEFAULT);
+        ASSERT(default_stat->type == LABELED_STATEMENT_DEFAULT);
         ASSERT_NULL(default_stat->case_expr);
 
         ASSERT(default_stat->stat->type == STATEMENT_EXPRESSION);

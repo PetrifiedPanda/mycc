@@ -1,8 +1,6 @@
 #ifndef JUMP_STATEMENT_H
 #define JUMP_STATEMENT_H
 
-#include "frontend/token_type.h"
-
 #include "frontend/parser/parser_state.h"
 
 #include "frontend/ast/ast_node_info.h"

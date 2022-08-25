@@ -13,7 +13,7 @@ struct labeled_statement* parse_labeled_statement(struct parser_state* s) {
     res->info = create_ast_node_info(s->it->loc);
     switch (s->it->type) {
         case CASE: {
-            res->type = CASE;
+            res->type = LABELED_STATEMENT_CASE;
             accept_it(s);
             struct const_expr* case_expr = parse_const_expr(s);
             if (!case_expr) {
@@ -25,16 +25,16 @@ struct labeled_statement* parse_labeled_statement(struct parser_state* s) {
         }
 
         case IDENTIFIER: {
-            res->type = IDENTIFIER;
+            res->type = LABELED_STATEMENT_LABEL;
             char* spelling = take_spelling(s->it);
             struct source_loc loc = s->it->loc;
             accept_it(s);
-            res->identifier = create_identifier(spelling, loc);
+            res->label = create_identifier(spelling, loc);
             break;
         }
 
         case DEFAULT: {
-            res->type = DEFAULT;
+            res->type = LABELED_STATEMENT_DEFAULT;
             accept_it(s);
             res->case_expr = NULL;
             break;
@@ -71,13 +71,13 @@ fail:
 
 static void free_children(struct labeled_statement* s) {
     switch (s->type) {
-        case IDENTIFIER:
-            free_identifier(s->identifier);
+        case LABELED_STATEMENT_LABEL:
+            free_identifier(s->label);
             break;
-        case CASE:
+        case LABELED_STATEMENT_CASE:
             free_const_expr(s->case_expr);
             break;
-        case DEFAULT:
+        case LABELED_STATEMENT_DEFAULT:
             break;
         default:
             UNREACHABLE();

@@ -1,8 +1,6 @@
 #ifndef LABELED_STATEMENT_H
 #define LABELED_STATEMENT_H
 
-#include "frontend/token_type.h"
-
 #include "frontend/parser/parser_state.h"
 
 #include "frontend/ast/ast_node_info.h"
@@ -11,11 +9,17 @@ struct const_expr;
 struct statement;
 struct identifier;
 
+enum labeled_statement_type {
+    LABELED_STATEMENT_CASE,
+    LABELED_STATEMENT_LABEL,
+    LABELED_STATEMENT_DEFAULT,
+};
+
 struct labeled_statement {
     struct ast_node_info info;
-    enum token_type type;
+    enum labeled_statement_type type;
     union {
-        struct identifier* identifier;
+        struct identifier* label;
         struct const_expr* case_expr;
     };
     struct statement* stat;
