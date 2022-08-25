@@ -4,8 +4,24 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/annotations.h"
 
 #include "frontend/parser/parser_util.h"
+
+static enum mul_expr_op token_type_to_mul_op(enum token_type t) {
+    assert(is_mul_op(t));
+    switch (t) {
+        case ASTERISK:
+            return MUL_EXPR_MUL;
+        case DIV:
+            return MUL_EXPR_DIV;
+        case MOD:
+            return MUL_EXPR_MOD;
+
+        default:
+            UNREACHABLE();
+    }
+}
 
 static bool parse_mul_expr_mul_chain(struct parser_state* s,
                                      struct mul_expr* res) {
@@ -29,7 +45,7 @@ static bool parse_mul_expr_mul_chain(struct parser_state* s,
             free_mul_expr(res);
             return false;
         }
-        curr->mul_op = op;
+        curr->op = token_type_to_mul_op(op);
 
         ++res->len;
     }

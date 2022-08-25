@@ -1369,6 +1369,17 @@ static void dump_init_declarator_list(struct ast_dumper* d,
     remove_indent(d);
 }
 
+static const char* mul_expr_op_str(enum mul_expr_op o) {
+    switch (o) {
+        case MUL_EXPR_MUL:
+            return get_spelling(ASTERISK);
+        case MUL_EXPR_DIV:
+            return get_spelling(DIV);
+        case MUL_EXPR_MOD:
+            return get_spelling(MOD);
+    }
+}
+
 static void dump_mul_expr(struct ast_dumper* d, const struct mul_expr* e) {
     assert(e);
 
@@ -1380,7 +1391,7 @@ static void dump_mul_expr(struct ast_dumper* d, const struct mul_expr* e) {
     dump_cast_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         struct cast_expr_and_op* item = &e->mul_chain[i];
-        dumper_println(d, "mul_op: %s", get_spelling(item->mul_op));
+        dumper_println(d, "mul_op: %s", mul_expr_op_str(item->op));
         dump_cast_expr(d, item->rhs);
     }
 

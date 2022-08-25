@@ -3,16 +3,20 @@
 
 #include <stddef.h>
 
-#include "frontend/token_type.h"
-
 #include "frontend/parser/parser_state.h"
 
 #include "frontend/ast/ast_node_info.h"
 
 struct cast_expr;
 
+enum mul_expr_op {
+    MUL_EXPR_MUL,
+    MUL_EXPR_DIV,
+    MUL_EXPR_MOD,
+};
+
 struct cast_expr_and_op {
-    enum token_type mul_op;
+    enum mul_expr_op op;
     struct cast_expr* rhs;
 };
 
