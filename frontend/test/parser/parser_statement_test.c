@@ -171,7 +171,7 @@ TEST(statement) {
                                    ->xor_exprs->and_exprs->eq_exprs->lhs->lhs
                                    ->lhs->lhs->lhs->rhs;
     ASSERT_SIZE_T(unary->len, (size_t)1);
-    ASSERT_TOKEN_TYPE(unary->operators_before[0], INC_OP);
+    ASSERT(unary->ops_before[0] == UNARY_OP_INC);
     ASSERT(unary->type == UNARY_POSTFIX);
     check_postfix_expr_id_or_const(unary->postfix, "i", IDENTIFIER);
 

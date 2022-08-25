@@ -718,20 +718,31 @@ static const char* unary_expr_type_str(enum unary_expr_type t) {
     assert(t != UNARY_POSTFIX && t != UNARY_SIZEOF_TYPE && t != UNARY_ALIGNOF);
     switch (t) {
         case UNARY_ADDRESSOF:
-            return "&";
+            return get_spelling(AND);
         case UNARY_DEREF:
-            return "*";
+            return get_spelling(ASTERISK);
         case UNARY_PLUS:
-            return "+";
+            return get_spelling(ADD);
         case UNARY_MINUS:
-            return "-";
+            return get_spelling(SUB);
         case UNARY_BNOT:
-            return "~";
+            return get_spelling(BNOT);
         case UNARY_NOT:
-            return "!";
+            return get_spelling(NOT);
 
         default:
             UNREACHABLE();
+    }
+}
+
+static const char* unary_expr_op_str(enum unary_expr_op o) {
+    switch (o) {
+        case UNARY_OP_INC:
+            return get_spelling(INC_OP);
+        case UNARY_OP_DEC:
+            return get_spelling(DEC_OP);
+        case UNARY_OP_SIZEOF:
+            return get_spelling(SIZEOF);
     }
 }
 
@@ -744,7 +755,7 @@ static void dump_unary_expr(struct ast_dumper* d, const struct unary_expr* e) {
 
     dumper_println(d, "len: %zu", e->len);
     for (size_t i = 0; i < e->len; ++i) {
-        dumper_println(d, "%s", get_spelling(e->operators_before[i]));
+        dumper_println(d, "%s", unary_expr_op_str(e->ops_before[i]));
     }
 
     switch (e->type) {

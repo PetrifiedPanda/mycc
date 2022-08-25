@@ -9,7 +9,7 @@
 #include "frontend/parser/parser_util.h"
 
 static inline void assign_operators_before(struct unary_expr* res,
-                                           enum token_type* ops_before,
+                                           enum unary_expr_op* ops_before,
                                            size_t len) {
     assert(res);
     if (len > 0) {
@@ -17,23 +17,19 @@ static inline void assign_operators_before(struct unary_expr* res,
     } else {
         assert(ops_before == NULL);
     }
-    for (size_t i = 0; i < len; ++i) {
-        assert(ops_before[i] == SIZEOF || ops_before[i] == INC_OP
-               || ops_before[i] == DEC_OP);
-    }
     res->len = len;
-    res->operators_before = ops_before;
+    res->ops_before = ops_before;
 }
 
 static struct unary_expr* create_unary_expr_postfix(
-    enum token_type* operators_before,
+    enum unary_expr_op* ops_before,
     size_t len,
     struct postfix_expr* postfix,
     struct source_loc loc) {
     assert(postfix);
     struct unary_expr* res = xmalloc(sizeof(struct unary_expr));
     res->info = create_ast_node_info(loc);
-    assign_operators_before(res, operators_before, len);
+    assign_operators_before(res, ops_before, len);
     res->type = UNARY_POSTFIX;
     res->postfix = postfix;
 
@@ -61,7 +57,7 @@ static enum unary_expr_type token_type_to_unary_expr_type(enum token_type t) {
 }
 
 static struct unary_expr* create_unary_expr_unary_op(
-    enum token_type* operators_before,
+    enum unary_expr_op* ops_before,
     size_t len,
     enum token_type unary_op,
     struct cast_expr* cast_expr,
@@ -70,7 +66,7 @@ static struct unary_expr* create_unary_expr_unary_op(
     assert(cast_expr);
     struct unary_expr* res = xmalloc(sizeof(struct unary_expr));
     res->info = create_ast_node_info(loc);
-    assign_operators_before(res, operators_before, len);
+    assign_operators_before(res, ops_before, len);
     res->type = token_type_to_unary_expr_type(unary_op);
     res->cast_expr = cast_expr;
 
@@ -78,14 +74,14 @@ static struct unary_expr* create_unary_expr_unary_op(
 }
 
 static struct unary_expr* create_unary_expr_sizeof_type(
-    enum token_type* operators_before,
+    enum unary_expr_op* ops_before,
     size_t len,
     struct type_name* type_name,
     struct source_loc loc) {
     assert(type_name);
     struct unary_expr* res = xmalloc(sizeof(struct unary_expr));
     res->info = create_ast_node_info(loc);
-    assign_operators_before(res, operators_before, len);
+    assign_operators_before(res, ops_before, len);
     res->type = UNARY_SIZEOF_TYPE;
     res->type_name = type_name;
 
@@ -93,14 +89,14 @@ static struct unary_expr* create_unary_expr_sizeof_type(
 }
 
 static struct unary_expr* create_unary_expr_alignof(
-    enum token_type* operators_before,
+    enum unary_expr_op* ops_before,
     size_t len,
     struct type_name* type_name,
     struct source_loc loc) {
     assert(type_name);
     struct unary_expr* res = xmalloc(sizeof(struct unary_expr));
     res->info = create_ast_node_info(loc);
-    assign_operators_before(res, operators_before, len);
+    assign_operators_before(res, ops_before, len);
     res->type = UNARY_ALIGNOF;
     res->type_name = type_name;
 
@@ -109,7 +105,7 @@ static struct unary_expr* create_unary_expr_alignof(
 
 struct unary_expr* parse_unary_expr_type_name(
     struct parser_state* s,
-    enum token_type* ops_before,
+    enum unary_expr_op* ops_before,
     size_t len,
     struct type_name* type_name,
     struct source_loc start_bracket_loc) {
@@ -129,9 +125,24 @@ struct unary_expr* parse_unary_expr_type_name(
                                      start_bracket_loc);
 }
 
+enum unary_expr_op token_type_to_unary_expr_op(enum token_type t) {
+    assert(t == INC_OP || t == DEC_OP || t == SIZEOF);
+    switch (t) {
+        case INC_OP:
+            return UNARY_OP_INC;
+        case DEC_OP:
+            return UNARY_OP_DEC;
+        case SIZEOF:
+            return UNARY_OP_SIZEOF;
+
+        default:
+            UNREACHABLE();
+    }
+}
+
 struct unary_expr* parse_unary_expr(struct parser_state* s) {
     size_t alloc_len = 0;
-    enum token_type* ops_before = NULL;
+    enum unary_expr_op* ops_before = NULL;
 
     const struct source_loc loc = s->it->loc;
     size_t len = 0;
@@ -143,7 +154,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
                        sizeof(enum token_type));
         }
 
-        ops_before[len] = s->it->type;
+        ops_before[len] = token_type_to_unary_expr_op(s->it->type);
 
         ++len;
         accept_it(s);
@@ -154,7 +165,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
     }
 
     if (is_unary_op(s->it->type)) {
-        enum token_type unary_op = s->it->type;
+        const enum token_type unary_op = s->it->type;
         accept_it(s);
         struct cast_expr* cast = parse_cast_expr(s);
         if (!cast) {
@@ -182,7 +193,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
                         ++len;
                         ops_before = xrealloc(ops_before,
                                               len * sizeof(enum token_type));
-                        ops_before[len - 1] = SIZEOF;
+                        ops_before[len - 1] = UNARY_OP_SIZEOF;
 
                         struct unary_expr* res = parse_unary_expr_type_name(
                             s,
@@ -205,7 +216,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
                     ++len;
                     ops_before = xrealloc(ops_before,
                                           len * sizeof(enum token_type));
-                    ops_before[len - 1] = SIZEOF;
+                    ops_before[len - 1] = UNARY_OP_SIZEOF;
 
                     struct postfix_expr* postfix = parse_postfix_expr(s);
                     if (!postfix) {
@@ -248,7 +259,7 @@ fail:
 }
 
 void free_unary_expr_children(struct unary_expr* u) {
-    free(u->operators_before);
+    free(u->ops_before);
     switch (u->type) {
         case UNARY_POSTFIX:
             free_postfix_expr(u->postfix);

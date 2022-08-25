@@ -213,9 +213,9 @@ TEST(unary_expr) {
 
         ASSERT_SIZE_T(res->len, (size_t)3);
 
-        ASSERT_TOKEN_TYPE(res->operators_before[0], INC_OP);
-        ASSERT_TOKEN_TYPE(res->operators_before[1], DEC_OP);
-        ASSERT_TOKEN_TYPE(res->operators_before[2], SIZEOF);
+        ASSERT(res->ops_before[0] == UNARY_OP_INC);
+        ASSERT(res->ops_before[1] == UNARY_OP_DEC);
+        ASSERT(res->ops_before[2] == UNARY_OP_SIZEOF);
 
         check_cast_expr_id_or_const(res->cast_expr, "name", IDENTIFIER);
 
@@ -235,11 +235,11 @@ TEST(unary_expr) {
         ASSERT_SIZE_T(res->len, (size_t)5);
         ASSERT(res->type == UNARY_POSTFIX);
 
-        ASSERT_TOKEN_TYPE(res->operators_before[0], INC_OP);
-        ASSERT_TOKEN_TYPE(res->operators_before[1], INC_OP);
-        ASSERT_TOKEN_TYPE(res->operators_before[2], DEC_OP);
-        ASSERT_TOKEN_TYPE(res->operators_before[3], INC_OP);
-        ASSERT_TOKEN_TYPE(res->operators_before[4], DEC_OP);
+        ASSERT(res->ops_before[0] == UNARY_OP_INC);
+        ASSERT(res->ops_before[1] == UNARY_OP_INC);
+        ASSERT(res->ops_before[2] == UNARY_OP_DEC);
+        ASSERT(res->ops_before[3] == UNARY_OP_INC);
+        ASSERT(res->ops_before[4] == UNARY_OP_DEC);
 
         ASSERT(res->postfix->is_primary);
         check_primary_expr_id_or_const(res->postfix->primary,

@@ -55,7 +55,7 @@ void check_unary_expr_id_or_const(struct unary_expr* unary,
                                   const char* spell,
                                   enum token_type type) {
     ASSERT_SIZE_T(unary->len, (size_t)0);
-    ASSERT_NULL(unary->operators_before);
+    ASSERT_NULL(unary->ops_before);
 
     ASSERT(unary->type == UNARY_POSTFIX);
     check_postfix_expr_id_or_const(unary->postfix, spell, type);

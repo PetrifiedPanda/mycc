@@ -3,8 +3,6 @@
 
 #include <stddef.h>
 
-#include "frontend/token_type.h"
-
 #include "frontend/parser/parser_state.h"
 
 #include "frontend/ast/ast_node_info.h"
@@ -25,10 +23,16 @@ enum unary_expr_type {
     UNARY_ALIGNOF,
 };
 
+enum unary_expr_op {
+    UNARY_OP_INC,
+    UNARY_OP_DEC,
+    UNARY_OP_SIZEOF,
+};
+
 struct unary_expr {
     struct ast_node_info info;
     size_t len;
-    enum token_type* operators_before; // only SIZEOF INC_OP or DEC_OP
+    enum unary_expr_op* ops_before; // only SIZEOF INC_OP or DEC_OP
     enum unary_expr_type type;
     union {
         struct postfix_expr* postfix;
@@ -51,7 +55,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s);
  *         NULL on fail This does not free any of the parameters
  */
 struct unary_expr* parse_unary_expr_type_name(struct parser_state* s,
-                                              enum token_type* ops_before,
+                                              enum unary_expr_op* ops_before,
                                               size_t len,
                                               struct type_name* type_name,
                                               struct source_loc start_bracket_loc);
