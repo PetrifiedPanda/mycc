@@ -12,8 +12,23 @@ enum preproc_err_type {
     PREPROC_ERR_INVALID_ID,
     PREPROC_ERR_MACRO_ARG_COUNT,
     PREPROC_ERR_UNTERMINATED_MACRO,
-    PREPROC_ERR_IFDEF_ARG_COUNT,
-    PREPROC_ERR_IFDEF_NOT_IDENTIFIER,
+    PREPROC_ERR_ARG_COUNT,
+    PREPROC_ERR_NOT_IDENTIFIER,
+    PREPROC_ERR_MISSING_IF,
+    PREPROC_ERR_INVALID_PREPROC_DIR,
+    PREPROC_ERR_ELIF_ELSE_AFTER_ELSE,
+};
+
+enum else_op_type {
+    ELSE_OP_ELIF,
+    ELSE_OP_ELSE,
+    ELSE_OP_ENDIF,
+};
+
+enum single_macro_op_type {
+    SINGLE_MACRO_OP_IFDEF,
+    SINGLE_MACRO_OP_IFNDEF,
+    SINGLE_MACRO_OP_UNDEF,
 };
 
 struct preproc_err {
@@ -32,12 +47,17 @@ struct preproc_err {
             bool is_variadic;
         };
         struct {
-            bool count_is_ifndef;
-            bool ifdef_empty;
+            enum single_macro_op_type count_dir_type;
+            bool count_empty;
         };
         struct {
-            bool type_is_ifndef;
-            enum token_type ifdef_got_type;
+            enum single_macro_op_type not_identifier_op;
+            enum token_type not_identifier_got;
+        };
+        enum else_op_type missing_if_op;
+        struct {
+            enum else_op_type elif_after_else_op;
+            struct source_loc prev_else_loc;
         };
     };
 };

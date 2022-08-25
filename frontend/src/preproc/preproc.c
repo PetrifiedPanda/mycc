@@ -235,8 +235,8 @@ static bool read_and_tokenize_line(struct preproc_state* state,
 }
 
 static size_t find_macro_end(struct preproc_state* state,
-                                          const struct token* macro_start,
-                                          struct code_source* src) {
+                             const struct token* macro_start,
+                             struct code_source* src) {
     const struct token* it = macro_start;
     assert(it->type == IDENTIFIER);
     ++it;
@@ -304,7 +304,11 @@ static bool expand_all_macros(struct preproc_state* state,
                 } else {
                     macro_end = (size_t)-1;
                 }
-                if (!expand_preproc_macro(state, &state->res, macro, i, macro_end)) {
+                if (!expand_preproc_macro(state,
+                                          &state->res,
+                                          macro,
+                                          i,
+                                          macro_end)) {
                     return false;
                 }
                 // need to continue at the start of the macro expansion
@@ -562,20 +566,25 @@ static bool handle_ifdef_ifndef(struct preproc_state* state,
            || (is_ifndef && strcmp(arr->tokens[1].spelling, "ifndef") == 0));
 
     if (arr->len < 3) {
-        set_preproc_err(state->err, PREPROC_ERR_IFDEF_ARG_COUNT, arr->tokens[1].loc);
-        state->err->ifdef_empty = true;
-        state->err->count_is_ifndef = is_ifndef;
+        set_preproc_err(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[1].loc);
+        state->err->count_empty = true;
+        state->err->count_dir_type = is_ifndef ? SINGLE_MACRO_OP_IFNDEF
+                                               : SINGLE_MACRO_OP_IFDEF;
         return false;
     } else if (arr->len > 3) {
-        set_preproc_err(state->err, PREPROC_ERR_IFDEF_ARG_COUNT, arr->tokens[3].loc);
-        state->err->ifdef_empty = false;
-        state->err->count_is_ifndef = is_ifndef;
+        set_preproc_err(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[3].loc);
+        state->err->count_empty = false;
+        state->err->count_dir_type = is_ifndef ? SINGLE_MACRO_OP_IFNDEF
+                                               : SINGLE_MACRO_OP_IFDEF;
         return false;
     }
     if (arr->tokens[2].type != IDENTIFIER) {
-        set_preproc_err(state->err, PREPROC_ERR_IFDEF_NOT_IDENTIFIER, arr->tokens[2].loc);
-        state->err->ifdef_got_type = arr->tokens[2].type;
-        state->err->type_is_ifndef = is_ifndef;
+        set_preproc_err(state->err,
+                        PREPROC_ERR_NOT_IDENTIFIER,
+                        arr->tokens[2].loc);
+        state->err->not_identifier_got = arr->tokens[2].type;
+        state->err->not_identifier_op = is_ifndef ? SINGLE_MACRO_OP_IFNDEF
+                                                  : SINGLE_MACRO_OP_IFDEF;
         return false;
     }
 
@@ -591,14 +600,20 @@ static bool handle_else_elif(struct preproc_state* state,
                              struct code_source* src,
                              struct token_arr* arr,
                              bool is_else) {
+    assert(arr->len > 1);
     if (state->conds_len == 0) {
-        // TODO: error elif / else without if
+        set_preproc_err(state->err, PREPROC_ERR_MISSING_IF, arr->tokens[1].loc);
+        state->err->missing_if_op = is_else ? ELSE_OP_ELSE : ELSE_OP_ELIF;
         return false;
     }
 
     struct preproc_cond* curr_if = peek_preproc_cond(state);
     if (curr_if->had_else) {
-        // TODO: error elif / else after else
+        set_preproc_err(state->err,
+                        PREPROC_ERR_ELIF_ELSE_AFTER_ELSE,
+                        arr->tokens[1].loc);
+        state->err->elif_after_else_op = is_else ? ELSE_OP_ELSE : ELSE_OP_ELIF;
+        state->err->prev_else_loc = curr_if->loc;
         return false;
     } else if (curr_if->had_true_branch) {
         return skip_until_next_cond(state, src);
@@ -619,11 +634,12 @@ static bool preproc_statement(struct preproc_state* state,
     assert(arr);
     assert(arr->tokens);
     assert(arr->tokens[0].type == STRINGIFY_OP);
-    if (arr->len < 1) {
-        // TODO: error
-        return false;
+    if (arr->len == 1) {
+        return true;
     } else if (arr->tokens[1].type != IDENTIFIER) {
-        // TODO: error
+        set_preproc_err(state->err,
+                        PREPROC_ERR_INVALID_PREPROC_DIR,
+                        arr->tokens[1].loc);
         return false;
     }
 
@@ -638,17 +654,34 @@ static bool preproc_statement(struct preproc_state* state,
         return handle_ifdef_ifndef(state, src, arr, true);
     } else if (strcmp(directive, "define") == 0) {
         char* spelling = take_spelling(&arr->tokens[2]);
-        struct preproc_macro macro = parse_preproc_macro(arr, spelling, state->err);
+        struct preproc_macro macro = parse_preproc_macro(arr,
+                                                         spelling,
+                                                         state->err);
         if (state->err->type != PREPROC_ERR_NONE) {
             return false;
         }
         register_preproc_macro(state, spelling, &macro);
     } else if (strcmp(directive, "undef") == 0) {
         if (arr->len < 3) {
-            // TODO: error empty undef
+            set_preproc_err(state->err,
+                            PREPROC_ERR_ARG_COUNT,
+                            arr->tokens[1].loc);
+            state->err->count_empty = true;
+            state->err->count_dir_type = SINGLE_MACRO_OP_UNDEF;
+            return false;
+        } else if (arr->len > 3) {
+            set_preproc_err(state->err,
+                            PREPROC_ERR_ARG_COUNT,
+                            arr->tokens[3].loc);
+            state->err->count_empty = false;
+            state->err->count_dir_type = SINGLE_MACRO_OP_UNDEF;
             return false;
         } else if (arr->tokens[2].type != IDENTIFIER) {
-            // TODO: expected macro name
+            set_preproc_err(state->err,
+                            PREPROC_ERR_NOT_IDENTIFIER,
+                            arr->tokens[2].loc);
+            state->err->not_identifier_got = arr->tokens[2].type;
+            state->err->not_identifier_op = SINGLE_MACRO_OP_UNDEF;
             return false;
         }
 
@@ -664,13 +697,18 @@ static bool preproc_statement(struct preproc_state* state,
         return handle_else_elif(state, src, arr, true);
     } else if (strcmp(directive, "endif") == 0) {
         if (state->conds_len == 0) {
-            // TODO: error endif without if
+            set_preproc_err(state->err,
+                            PREPROC_ERR_MISSING_IF,
+                            arr->tokens[1].loc);
+            state->err->missing_if_op = ELSE_OP_ENDIF;
             return false;
         }
 
         pop_preproc_cond(state);
     } else {
-        // TODO: invalid preproc directive
+        set_preproc_err(state->err,
+                        PREPROC_ERR_INVALID_PREPROC_DIR,
+                        arr->tokens[1].loc);
         return false;
     }
 
