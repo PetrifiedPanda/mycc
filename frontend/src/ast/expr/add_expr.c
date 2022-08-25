@@ -14,7 +14,7 @@ static bool parse_add_expr_add_chain(struct parser_state* s,
 
     size_t alloc_len = res->len;
     while (is_add_op(s->it->type)) {
-        enum token_type op = s->it->type;
+        const enum token_type op = s->it->type;
         accept_it(s);
 
         if (res->len == alloc_len) {
@@ -30,7 +30,7 @@ static bool parse_add_expr_add_chain(struct parser_state* s,
             return false;
         }
 
-        curr->add_op = op;
+        curr->op = op == ADD ? ADD_EXPR_ADD : ADD_EXPR_SUB;
 
         ++res->len;
     }

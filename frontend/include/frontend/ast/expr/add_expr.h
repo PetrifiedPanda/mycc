@@ -3,16 +3,19 @@
 
 #include <stddef.h>
 
-#include "frontend/token_type.h"
-
 #include "frontend/parser/parser_state.h"
 
 #include "frontend/ast/ast_node_info.h"
 
 struct mul_expr;
 
+enum add_expr_op {
+    ADD_EXPR_ADD,
+    ADD_EXPR_SUB,
+};
+
 struct mul_expr_and_op {
-    enum token_type add_op;
+    enum add_expr_op op;
     struct mul_expr* rhs;
 };
 

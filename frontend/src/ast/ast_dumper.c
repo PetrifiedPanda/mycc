@@ -538,17 +538,17 @@ static const char* type_spec_type_str(enum type_spec_type t) {
         case TYPE_SPEC_NONE:
             return "NO_TYPE_SPEC";
         case TYPE_SPEC_VOID:
-            return "void";
+            return get_spelling(VOID);
         case TYPE_SPEC_CHAR:
-            return "char";
+            return get_spelling(CHAR);
         case TYPE_SPEC_INT:
-            return "int";
+            return get_spelling(INT);
         case TYPE_SPEC_FLOAT:
-            return "float";
+            return get_spelling(FLOAT);
         case TYPE_SPEC_DOUBLE:
-            return "double";
+            return get_spelling(DOUBLE);
         case TYPE_SPEC_BOOL:
-            return "_Bool";
+            return get_spelling(BOOL);
         default:
             UNREACHABLE();
     }
@@ -1387,6 +1387,15 @@ static void dump_mul_expr(struct ast_dumper* d, const struct mul_expr* e) {
     remove_indent(d);
 }
 
+static const char* add_expr_op_str(enum add_expr_op op) {
+    switch (op) {
+        case ADD_EXPR_ADD:
+            return get_spelling(ADD);
+        case ADD_EXPR_SUB:
+            return get_spelling(SUB);
+    }
+}
+
 static void dump_add_expr(struct ast_dumper* d, const struct add_expr* e) {
     assert(e);
 
@@ -1398,7 +1407,7 @@ static void dump_add_expr(struct ast_dumper* d, const struct add_expr* e) {
     dump_mul_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         struct mul_expr_and_op* item = &e->add_chain[i];
-        dumper_println(d, "add_op: %s", get_spelling(item->add_op));
+        dumper_println(d, "add_op: %s", add_expr_op_str(item->op));
         dump_mul_expr(d, item->rhs);
     }
 
