@@ -68,14 +68,14 @@ struct primary_expr* parse_primary_expr(struct parser_state* s) {
             accept_it(s);
             if (is_enum_constant(s, spelling)) {
                 return create_primary_expr_constant(
-                    create_constant(ENUM, spelling, loc));
+                    create_constant(CONSTANT_ENUM, spelling, loc));
             }
             return create_primary_expr_identifier(
                 create_identifier(spelling, loc));
         }
         case F_CONSTANT:
         case I_CONSTANT: {
-            enum token_type type = s->it->type;
+            enum constant_type type = s->it->type == F_CONSTANT ? CONSTANT_FLOAT : CONSTANT_INT;
             char* spelling = take_spelling(s->it);
             struct source_loc loc = s->it->loc;
             accept_it(s);

@@ -1,5 +1,7 @@
 #include "parser_test_util.h"
 
+#include "util/annotations.h"
+
 #include "testing/asserts.h"
 
 #include "../test_helpers.h"
@@ -9,6 +11,20 @@ void check_identifier(struct identifier* id, const char* spell) {
         ASSERT_STR(id->spelling, spell);
     } else {
         ASSERT_NULL(id);
+    }
+}
+
+static enum constant_type token_type_to_constant_type(enum token_type t) {
+    assert(t == I_CONSTANT || t == F_CONSTANT || t == ENUM);
+    switch (t) {
+        case I_CONSTANT:
+            return CONSTANT_INT;
+        case F_CONSTANT:
+            return CONSTANT_FLOAT;
+        case ENUM:
+            return CONSTANT_ENUM;
+        default:
+            UNREACHABLE();
     }
 }
 
@@ -23,7 +39,7 @@ void check_primary_expr_id_or_const(struct primary_expr* e,
         ASSERT_NOT_NULL(e->identifier);
         ASSERT_STR(e->identifier->spelling, spell);
     } else {
-        ASSERT_TOKEN_TYPE(e->constant.type, type);
+        ASSERT(e->constant.type == token_type_to_constant_type(type));
         ASSERT_STR(e->constant.spelling, spell);
     }
 }

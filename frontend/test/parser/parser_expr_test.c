@@ -16,7 +16,7 @@
 
 #include "parser_test_util.h"
 
-static void check_primary_expr_constant(enum token_type type,
+static void check_primary_expr_constant(enum constant_type type,
                                         const char* spell) {
     struct preproc_res preproc_res = tokenize_string(
         spell,
@@ -31,7 +31,7 @@ static void check_primary_expr_constant(enum token_type type,
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
     ASSERT(res->type == PRIMARY_EXPR_CONSTANT);
-    ASSERT_TOKEN_TYPE(res->constant.type, type);
+    ASSERT(res->constant.type == type);
     ASSERT_STR(res->constant.spelling, spell);
 
     ASSERT_NULL(preproc_res.toks[0].spelling);
@@ -187,8 +187,8 @@ static void primary_expr_generic_sel_test(void) {
 }
 
 TEST(primary_expr) {
-    check_primary_expr_constant(F_CONSTANT, "3.1e-5f");
-    check_primary_expr_constant(I_CONSTANT, "0xdeadbeefl");
+    check_primary_expr_constant(CONSTANT_FLOAT, "3.1e-5f");
+    check_primary_expr_constant(CONSTANT_INT, "0xdeadbeefl");
     check_primary_expr_identifier("super_cool_identifier");
     check_primary_expr_identifier("another_cool_identifier");
     check_primary_expr_string("\"Test string it does not matter whether this "
@@ -464,11 +464,11 @@ TEST(assign_expr) {
         ASSERT_SIZE_T(res->len, (size_t)4);
         ASSERT(err.type == PARSER_ERR_NONE);
 
-        enum token_type expected_ops[] = {
-            ASSIGN,
-            ADD_ASSIGN,
-            MUL_ASSIGN,
-            DIV_ASSIGN,
+        enum assign_expr_op expected_ops[] = {
+            ASSIGN_EXPR_ASSIGN,
+            ASSIGN_EXPR_ADD,
+            ASSIGN_EXPR_MUL,
+            ASSIGN_EXPR_DIV,
         };
 
         enum token_type expected_types[] = {
@@ -483,14 +483,14 @@ TEST(assign_expr) {
         enum { SIZE = sizeof expected_ops / sizeof(enum token_type) };
 
         for (size_t i = 0; i < SIZE; ++i) {
-            ASSERT_TOKEN_TYPE(res->assign_chain[i].assign_op, expected_ops[i]);
+            ASSERT(res->assign_chain[i].op == expected_ops[i]);
 
             check_unary_expr_id_or_const(res->assign_chain[i].unary,
                                          expected_spellings[i],
                                          expected_types[i]);
         }
 
-        ASSERT_TOKEN_TYPE(res->assign_chain[0].assign_op, ASSIGN);
+        ASSERT(res->assign_chain[0].op == ASSIGN_EXPR_ASSIGN);
 
         check_unary_expr_id_or_const(res->assign_chain[0].unary,
                                      "x",
@@ -534,7 +534,7 @@ TEST(assign_expr) {
 
         ASSERT_SIZE_T(res->len, (size_t)1);
 
-        ASSERT_TOKEN_TYPE(res->assign_chain[0].assign_op, ASSIGN);
+        ASSERT(res->assign_chain[0].op == ASSIGN_EXPR_ASSIGN);
 
         struct unary_expr* unary = res->assign_chain[0].unary;
         ASSERT(unary->type == UNARY_POSTFIX);
@@ -574,7 +574,7 @@ TEST(assign_expr) {
 
         ASSERT_SIZE_T(res->len, (size_t)1);
 
-        ASSERT_TOKEN_TYPE(res->assign_chain[0].assign_op, MUL_ASSIGN);
+        ASSERT(res->assign_chain[0].op == ASSIGN_EXPR_MUL);
         check_unary_expr_id_or_const(res->assign_chain[0].unary,
                                      "var",
                                      IDENTIFIER);
@@ -601,7 +601,7 @@ TEST(assign_expr) {
 
         ASSERT_SIZE_T(res->len, (size_t)1);
 
-        ASSERT_TOKEN_TYPE(res->assign_chain[0].assign_op, XOR_ASSIGN);
+        ASSERT(res->assign_chain[0].op == ASSIGN_EXPR_XOR);
         check_unary_expr_id_or_const(res->assign_chain[0].unary,
                                      "var",
                                      IDENTIFIER);
@@ -636,11 +636,11 @@ TEST(assign_expr) {
 
 void check_assign_expr_single_assign(struct assign_expr* expr,
                                      const char* lhs,
-                                     enum token_type op,
+                                     enum assign_expr_op op,
                                      const char* rhs,
                                      enum token_type rhs_type) {
     ASSERT_SIZE_T(expr->len, (size_t)1);
-    ASSERT_TOKEN_TYPE(expr->assign_chain[0].assign_op, op);
+    ASSERT(expr->assign_chain[0].op == op);
     check_unary_expr_id_or_const(expr->assign_chain[0].unary, lhs, IDENTIFIER);
     check_cond_expr_id_or_const(expr->value, rhs, rhs_type);
 }
@@ -657,9 +657,9 @@ TEST(expr) {
     ASSERT(err.type == PARSER_ERR_NONE);
 
     ASSERT_SIZE_T(expr->len, (size_t)3);
-    check_assign_expr_single_assign(&expr->assign_exprs[0], "a", ASSIGN, "10", I_CONSTANT);
-    check_assign_expr_single_assign(&expr->assign_exprs[1], "b", MUL_ASSIGN, "x", IDENTIFIER);
-    check_assign_expr_single_assign(&expr->assign_exprs[2], "c", ADD_ASSIGN, "3.1", F_CONSTANT);
+    check_assign_expr_single_assign(&expr->assign_exprs[0], "a", ASSIGN_EXPR_ASSIGN, "10", I_CONSTANT);
+    check_assign_expr_single_assign(&expr->assign_exprs[1], "b", ASSIGN_EXPR_MUL, "x", IDENTIFIER);
+    check_assign_expr_single_assign(&expr->assign_exprs[2], "c", ASSIGN_EXPR_ADD, "3.1", F_CONSTANT);
 
     free_expr(expr);
     free_parser_state(&s);

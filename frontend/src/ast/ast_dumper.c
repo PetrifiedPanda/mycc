@@ -208,17 +208,15 @@ static void dump_constant(struct ast_dumper* d, const struct constant* c) {
     add_indent(d);
 
     switch (c->type) {
-        case ENUM:
+        case CONSTANT_ENUM:
             dumper_println(d, "enum: %s", c->spelling);
             break;
-        case F_CONSTANT:
+        case CONSTANT_FLOAT:
             dumper_println(d, "float_constant: %s", c->spelling);
             break;
-        case I_CONSTANT:
+        case CONSTANT_INT:
             dumper_println(d, "int_constant: %s", c->spelling);
             break;
-        default:
-            UNREACHABLE();
     }
 
     remove_indent(d);
