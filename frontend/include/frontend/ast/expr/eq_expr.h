@@ -3,14 +3,17 @@
 
 #include <stddef.h>
 
-#include "frontend/token_type.h"
-
 #include "frontend/parser/parser_state.h"
 
 struct rel_expr;
 
+enum eq_expr_op {
+    EQ_EXPR_EQ,
+    EQ_EXPR_NE,
+};
+
 struct rel_expr_and_op {
-    enum token_type eq_op;
+    enum eq_expr_op op;
     struct rel_expr* rhs;
 };
 
@@ -33,3 +36,4 @@ void free_eq_expr_children(struct eq_expr* e);
 #include "cast_expr.h"
 
 #endif
+

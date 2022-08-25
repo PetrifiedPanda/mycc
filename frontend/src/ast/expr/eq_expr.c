@@ -30,7 +30,7 @@ static bool parse_eq_expr_eq_chain(struct parser_state* s,
         if (!curr->rhs) {
             goto fail;
         }
-        curr->eq_op = op;
+        curr->op = op == EQ_OP ? EQ_EXPR_EQ : EQ_EXPR_NE;
 
         ++res->len;
     }

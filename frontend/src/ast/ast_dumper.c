@@ -1483,6 +1483,15 @@ static void dump_rel_expr(struct ast_dumper* d, const struct rel_expr* e) {
     remove_indent(d);
 }
 
+static const char* eq_expr_op_str(enum eq_expr_op o) {
+    switch (o) {
+        case EQ_EXPR_EQ:
+            return get_spelling(EQ_OP);
+        case EQ_EXPR_NE:
+            return get_spelling(NE_OP);
+    }
+}
+
 static void dump_eq_expr(struct ast_dumper* d, const struct eq_expr* e) {
     assert(e);
 
@@ -1494,7 +1503,7 @@ static void dump_eq_expr(struct ast_dumper* d, const struct eq_expr* e) {
     dump_rel_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         struct rel_expr_and_op* item = &e->eq_chain[i];
-        dumper_println(d, "eq_op: %s", get_spelling(item->eq_op));
+        dumper_println(d, "eq_op: %s", eq_expr_op_str(item->op));
         dump_rel_expr(d, item->rhs);
     }
 
