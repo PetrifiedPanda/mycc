@@ -8264,7 +8264,7 @@ translation_unit:
                                                     len: 1
                                                     block_item:
                                                       statement:
-                                                        jump_statement: ../frontend/test/files/large_testfile.c:369,26
+                                                        jump_statement: ../frontend/test/files/large_testfile.c:369,21
                                                           type: goto
                                                           identifier: ../frontend/test/files/large_testfile.c:369,26
                                                             spelling: fail
@@ -8895,7 +8895,7 @@ translation_unit:
                                           len: 1
                                           block_item:
                                             statement:
-                                              jump_statement: ../frontend/test/files/large_testfile.c:382,22
+                                              jump_statement: ../frontend/test/files/large_testfile.c:382,17
                                                 type: goto
                                                 identifier: ../frontend/test/files/large_testfile.c:382,22
                                                   spelling: fail
@@ -8911,7 +8911,7 @@ translation_unit:
                                           len: 1
                                           block_item:
                                             statement:
-                                              jump_statement: ../frontend/test/files/large_testfile.c:386,22
+                                              jump_statement: ../frontend/test/files/large_testfile.c:386,17
                                                 type: goto
                                                 identifier: ../frontend/test/files/large_testfile.c:386,22
                                                   spelling: fail

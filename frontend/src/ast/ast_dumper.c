@@ -744,6 +744,7 @@ static const char* unary_expr_op_str(enum unary_expr_op o) {
         case UNARY_OP_SIZEOF:
             return get_spelling(SIZEOF);
     }
+    UNREACHABLE();
 }
 
 static void dump_unary_expr(struct ast_dumper* d, const struct unary_expr* e) {
@@ -809,6 +810,8 @@ static const char* assign_expr_op_str(enum assign_expr_op o) {
         case ASSIGN_EXPR_OR:
             return get_spelling(OR_ASSIGN);
     };
+
+    UNREACHABLE();
 }
 
 static void dump_cond_expr(struct ast_dumper* d, const struct cond_expr* e);
@@ -1440,6 +1443,7 @@ static const char* mul_expr_op_str(enum mul_expr_op o) {
         case MUL_EXPR_MOD:
             return get_spelling(MOD);
     }
+    UNREACHABLE();
 }
 
 static void dump_mul_expr(struct ast_dumper* d, const struct mul_expr* e) {
@@ -1467,6 +1471,7 @@ static const char* add_expr_op_str(enum add_expr_op op) {
         case ADD_EXPR_SUB:
             return get_spelling(SUB);
     }
+    UNREACHABLE();
 }
 
 static void dump_add_expr(struct ast_dumper* d, const struct add_expr* e) {
@@ -1494,6 +1499,7 @@ static const char* shift_expr_op_str(enum shift_expr_op o) {
         case SHIFT_EXPR_RIGHT:
             return get_spelling(RIGHT_OP);
     }
+    UNREACHABLE();
 }
 
 static void dump_shift_expr(struct ast_dumper* d, const struct shift_expr* e) {
@@ -1525,6 +1531,7 @@ static const char* rel_expr_op_str(enum rel_expr_op o) {
         case REL_EXPR_GE:
             return get_spelling(GE_OP);
     }
+    UNREACHABLE();
 }
 
 static void dump_rel_expr(struct ast_dumper* d, const struct rel_expr* e) {
@@ -1552,6 +1559,7 @@ static const char* eq_expr_op_str(enum eq_expr_op o) {
         case EQ_EXPR_NE:
             return get_spelling(NE_OP);
     }
+    UNREACHABLE();
 }
 
 static void dump_eq_expr(struct ast_dumper* d, const struct eq_expr* e) {

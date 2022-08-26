@@ -28,9 +28,9 @@ struct enum_spec* parse_enum_spec(struct parser_state* s) {
     struct identifier* id = NULL;
     if (s->it->type == IDENTIFIER) {
         char* spell = take_spelling(s->it);
-        struct source_loc loc = s->it->loc;
+        const struct source_loc id_loc = s->it->loc;
         accept_it(s);
-        id = create_identifier(spell, loc);
+        id = create_identifier(spell, id_loc);
     }
 
     struct enum_list enums = {.len = 0, .enums = NULL};
@@ -71,3 +71,4 @@ void free_enum_spec(struct enum_spec* s) {
     free_children(s);
     free(s);
 }
+

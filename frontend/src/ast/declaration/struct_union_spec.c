@@ -40,9 +40,9 @@ struct struct_union_spec* parse_struct_union_spec(struct parser_state* s) {
     struct identifier* id = NULL;
     if (s->it->type == IDENTIFIER) {
         char* spell = take_spelling(s->it);
-        struct source_loc loc = s->it->loc;
+        const struct source_loc id_loc = s->it->loc;
         accept_it(s);
-        id = create_identifier(spell, loc);
+        id = create_identifier(spell, id_loc);
     }
 
     struct struct_declaration_list list = {.len = 0, .decls = NULL};

@@ -151,6 +151,8 @@ static const char* get_single_macro_op_str(enum single_macro_op_type type) {
         case SINGLE_MACRO_OP_UNDEF:
             return "undef";
     }
+    
+    UNREACHABLE();
 }
 
 static const char* get_else_op_str(enum else_op_type type) {
@@ -162,6 +164,8 @@ static const char* get_else_op_str(enum else_op_type type) {
         case ELSE_OP_ENDIF:
             return "endif";
     }
+
+    UNREACHABLE();
 }
 
 void free_preproc_err(struct preproc_err* err) {
