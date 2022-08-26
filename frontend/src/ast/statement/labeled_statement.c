@@ -62,7 +62,7 @@ struct labeled_statement* parse_labeled_statement(struct parser_state* s) {
 
     return res;
 fail:
-    if (res->type == CASE) {
+    if (res->type == LABELED_STATEMENT_CASE) {
         free_const_expr(res->case_expr);
     }
     free(res);
