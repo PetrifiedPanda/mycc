@@ -253,7 +253,10 @@ bool is_string_literal(const char* str, size_t num) {
 }
 
 bool is_valid_identifier(const char* str, size_t num) {
-    for (size_t i = 0; i != num; ++i) {
+    if (!isalpha(str[0]) && str[0] != '_') {
+        return false;
+    }
+    for (size_t i = 1; i != num; ++i) {
         if (!is_id_char(str[i])) {
             return false;
         }
