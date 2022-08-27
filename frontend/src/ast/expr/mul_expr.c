@@ -51,7 +51,7 @@ static bool parse_mul_expr_mul_chain(struct parser_state* s,
     }
 
     res->mul_chain = xrealloc(res->mul_chain,
-                              sizeof(struct mul_expr_and_op) * res->len);
+                              sizeof(struct cast_expr_and_op) * res->len);
 
     return true;
 }
