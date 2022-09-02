@@ -7,7 +7,7 @@
  */
 #define UNUSED(var) (void)var
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 
 #define UNREACHABLE() __assume(0)
 
@@ -17,9 +17,9 @@
 
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 
-#define FALLTHROUGH() [[fallthrough]]
+#define FALLTHROUGH()
 
 #else
 
