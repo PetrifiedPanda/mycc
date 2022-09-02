@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "testing/testing.h"
 
@@ -35,10 +36,24 @@
         }                                                                      \
     } while (0)
 
+#define ASSERT_UINTMAX_T(got, expected)                                        \
+    do {                                                                       \
+        if ((got) != (expected)) {                                             \
+            PRINT_ASSERT_ERR("Expected %llu but got %llu", expected, got);     \
+        }                                                                      \
+    } while (0)
+
 #define ASSERT_SIZE_T(got, expected)                                           \
     do {                                                                       \
         if ((got) != (expected)) {                                             \
             PRINT_ASSERT_ERR("Expected %zu but got %zu", expected, got);       \
+        }                                                                      \
+    } while (0)
+
+#define ASSERT_LONG_DOUBLE(got, expected, precision)                           \
+    do {                                                                       \
+        if (fabsl((got) - (expected)) > precision) {                           \
+            PRINT_ASSERT_ERR("Expected %.20Lf but got %.20Lf", expected, got); \
         }                                                                      \
     } while (0)
 
