@@ -7,7 +7,12 @@
         const char* const spell = #constant;                                   \
         const uintmax_t num = constant;                                        \
         struct preproc_err err = create_preproc_err();                         \
-        struct value val = parse_num_constant(spell, strlen(spell), &err);     \
+        const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);    \
+        const struct value val = parse_num_constant(spell,                     \
+                                                    strlen(spell),             \
+                                                    &err,                      \
+                                                    &info.int_info);           \
+        ASSERT(err.type == PREPROC_ERR_NONE);                                  \
         ASSERT_UINTMAX_T(num, val.int_val);                                    \
         ASSERT(val.type == expected_val_type);                                 \
     } while (0)
@@ -29,7 +34,12 @@ TEST(integer) {
         const char* const spell = #constant;                                   \
         const long double num = constant;                                      \
         struct preproc_err err = create_preproc_err();                         \
-        struct value val = parse_num_constant(spell, strlen(spell), &err);     \
+        const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);    \
+        const struct value val = parse_num_constant(spell,                     \
+                                                    strlen(spell),             \
+                                                    &err,                      \
+                                                    &info.int_info);           \
+        ASSERT(err.type == PREPROC_ERR_NONE);                                  \
         ASSERT_LONG_DOUBLE(num, val.float_val, 0.000000001l);                  \
         ASSERT(val.type == expected_val_type);                                 \
     } while (0)

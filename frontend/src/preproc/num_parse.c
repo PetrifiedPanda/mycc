@@ -18,11 +18,14 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
                                            size_t suffix_len,
                                            struct preproc_err* err);
 
-static enum value_type get_value_type(struct int_type_attrs attrs);
+static enum value_type get_value_type(struct int_type_attrs attrs,
+                                      uintmax_t val,
+                                      const struct arch_int_info* info);
 
 struct value parse_num_constant(const char* spell,
                                 size_t len,
-                                struct preproc_err* err) {
+                                struct preproc_err* err,
+                                const struct arch_int_info* int_info) {
     assert(err);
     assert(spell);
     assert(len > 0);
@@ -73,7 +76,7 @@ struct value parse_num_constant(const char* spell,
         if (err->type != PREPROC_ERR_NONE) {
             return (struct value){0};
         }
-        enum value_type type = get_value_type(attrs);
+        enum value_type type = get_value_type(attrs, val, int_info);
         // TODO: first integer type in which value can fit!!!
         return create_int_value(type, val);
     }
@@ -159,27 +162,97 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
     return res;
 }
 
-static enum value_type get_value_type(struct int_type_attrs attrs) {
+static uintmax_t int_pow(uintmax_t base, uintmax_t exp) {
+    uintmax_t res = 1;
+    while (true) {
+        if (exp & 1) {
+            res *= base;
+        }
+        exp >>= 1;
+        if (exp == 0) {
+            break;
+        }
+        base *= base;
+    }
+    return res;
+}
+
+static uintmax_t max_uint(uintmax_t num_bits) {
+    return int_pow(2, num_bits) - 1;
+}
+
+static uintmax_t max_int(uintmax_t num_bits) {
+    return int_pow(2, num_bits - 1);
+}
+
+static uintmax_t get_max_int(const struct arch_int_info* info,
+                             enum value_type type) {
+    assert(type == VALUE_UINT || type == VALUE_ULINT || type == VALUE_ULLINT
+           || type == VALUE_INT || type == VALUE_LINT || type == VALUE_LLINT);
+
+    enum {
+        CHAR_SIZE = 8
+    };
+    switch (type) {
+        case VALUE_INT:
+            return max_int(CHAR_SIZE * info->int_size);
+        case VALUE_UINT:
+            return max_uint(CHAR_SIZE * info->int_size);
+        case VALUE_LINT:
+            return max_int(CHAR_SIZE * info->lint_size);
+        case VALUE_ULINT:
+            return max_uint(CHAR_SIZE * info->lint_size);
+        case VALUE_LLINT:
+            return max_int(CHAR_SIZE * info->llint_size);
+        case VALUE_ULLINT:
+            return max_uint(CHAR_SIZE * info->llint_size);
+
+        default:
+            UNREACHABLE();
+    }
+}
+
+static enum value_type get_value_type(struct int_type_attrs attrs,
+                                      uintmax_t val,
+                                      const struct arch_int_info* info) {
     assert(attrs.num_long <= 2);
     if (attrs.is_unsigned) {
         switch (attrs.num_long) {
             case 0:
-                return VALUE_UINT;
+                if (val <= get_max_int(info, VALUE_UINT)) {
+                    return VALUE_UINT;
+                }
             case 1:
-                return VALUE_ULINT;
+                if (val <= get_max_int(info, VALUE_ULINT)) {
+                    return VALUE_ULINT;
+                }
             case 2:
-                return VALUE_ULLINT;
+                if (val <= get_max_int(info, VALUE_ULLINT)) {
+                    return VALUE_ULLINT;
+                } else {
+                    // TODO: error
+                    return VALUE_INT;
+                }
             default:
                 UNREACHABLE();
         }
     } else {
         switch (attrs.num_long) {
             case 0:
-                return VALUE_INT;
+                if (val <= get_max_int(info, VALUE_INT)) {
+                    return VALUE_INT;
+                }
             case 1:
-                return VALUE_LINT;
+                if (val <= get_max_int(info, VALUE_LINT)) {
+                    return VALUE_LINT;
+                }
             case 2:
-                return VALUE_LLINT;
+                if (val <= get_max_int(info, VALUE_LLINT)) {
+                    return VALUE_LLINT;
+                } else {
+                    // TODO: error
+                    return VALUE_UINT;
+                }
             default:
                 UNREACHABLE();
         }
