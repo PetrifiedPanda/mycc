@@ -46,7 +46,7 @@ TEST(floating) {
     TEST_FLOAT_LITERAL(0xdeadp+10f, VALUE_FLOAT);
 }
 
-TEST_SUITE_BEGIN(num_parser, 2) {
+TEST_SUITE_BEGIN(num_parse, 2) {
     REGISTER_TEST(integer);
     REGISTER_TEST(floating);
 }
