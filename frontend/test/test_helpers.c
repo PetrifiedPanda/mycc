@@ -12,7 +12,8 @@ struct preproc_res tokenize(const char* file) {
     ASSERT_NOT_NULL(res.toks);
     ASSERT_NOT_NULL(res.file_info.paths);
     ASSERT(err.type == PREPROC_ERR_NONE);
-    convert_preproc_tokens(res.toks);
+    ASSERT(convert_preproc_tokens(res.toks, &err));
+    ASSERT(err.type == PREPROC_ERR_NONE);
     return res;
 }
 
@@ -21,7 +22,8 @@ struct preproc_res tokenize_string(const char* str, const char* file) {
     struct preproc_res res = preproc_string(str, file, &err);
     ASSERT_NOT_NULL(res.toks);
     ASSERT(err.type == PREPROC_ERR_NONE);
-    convert_preproc_tokens(res.toks);
+    ASSERT(convert_preproc_tokens(res.toks, &err));
+    ASSERT(err.type == PREPROC_ERR_NONE);
     return res;
 }
 

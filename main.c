@@ -62,7 +62,12 @@ int main(int argc, char** argv) {
             free_preproc_err(&preproc_err);
             return EXIT_FAILURE;
         }
-        convert_preproc_tokens(preproc_res.toks);
+        if (!convert_preproc_tokens(preproc_res.toks, &preproc_err)) {
+            print_preproc_err(stderr, &preproc_res.file_info, &preproc_err);
+            free_preproc_err(&preproc_err);
+            free_preproc_res(&preproc_res);
+            return EXIT_FAILURE;
+        }
 
         struct parser_err parser_err = create_parser_err();
         struct translation_unit tl = parse_tokens(preproc_res.toks, &parser_err);

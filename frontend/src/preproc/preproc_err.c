@@ -137,7 +137,16 @@ void print_preproc_err(FILE* out,
                 default:
                     UNREACHABLE();
             }
+            break;
         }
+        case PREPROC_ERR_MISPLACED_PREPROC_TOKEN:
+            assert(err->misplaced_preproc_tok == STRINGIFY_OP
+                   || err->misplaced_preproc_tok == CONCAT_OP);
+            fprintf(
+                out,
+                "preprocessor token \"%s\" outside of preprocessor directive",
+                get_spelling(err->misplaced_preproc_tok));
+            break;
     }
     fprintf(out, "\n");
 }
@@ -151,7 +160,7 @@ static const char* get_single_macro_op_str(enum single_macro_op_type type) {
         case SINGLE_MACRO_OP_UNDEF:
             return "undef";
     }
-    
+
     UNREACHABLE();
 }
 
@@ -185,6 +194,7 @@ void free_preproc_err(struct preproc_err* err) {
         case PREPROC_ERR_MISSING_IF:
         case PREPROC_ERR_INVALID_PREPROC_DIR:
         case PREPROC_ERR_ELIF_ELSE_AFTER_ELSE:
+        case PREPROC_ERR_MISPLACED_PREPROC_TOKEN:
             break;
     }
 }

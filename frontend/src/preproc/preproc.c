@@ -442,18 +442,29 @@ void free_preproc_res(struct preproc_res* res) {
     free_file_info(&res->file_info);
 }
 
-void convert_preproc_tokens(struct token* tokens) {
+bool convert_preproc_tokens(struct token* tokens, struct preproc_err* err) {
     assert(tokens);
     for (struct token* t = tokens; t->type != INVALID; ++t) {
-        assert(t->type != STRINGIFY_OP && t->type != CONCAT_OP);
-        if (t->type == IDENTIFIER) {
-            t->type = keyword_type(t->spelling);
-            if (t->type != IDENTIFIER) {
-                free(t->spelling);
-                t->spelling = NULL;
-            }
+        switch (t->type) {
+            case IDENTIFIER:
+                t->type = keyword_type(t->spelling);
+                if (t->type != IDENTIFIER) {
+                    free(t->spelling);
+                    t->spelling = NULL;
+                }
+                break;
+            case STRINGIFY_OP:
+            case CONCAT_OP:
+                set_preproc_err(err,
+                                PREPROC_ERR_MISPLACED_PREPROC_TOKEN,
+                                t->loc);
+                err->misplaced_preproc_tok = t->type;
+                return false;
+            default:
+                break;
         }
     }
+    return true;
 }
 
 static void append_terminator_token(struct token_arr* arr) {

@@ -33,7 +33,7 @@ struct preproc_res preproc_string(const char* str,
 /**
  * Converts the given preprocessor tokens to parser tokens
  */
-void convert_preproc_tokens(struct token* tokens);
+bool convert_preproc_tokens(struct token* tokens, struct preproc_err* err);
 
 void free_preproc_res(struct preproc_res* res);
 

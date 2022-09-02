@@ -17,6 +17,7 @@ enum preproc_err_type {
     PREPROC_ERR_MISSING_IF,
     PREPROC_ERR_INVALID_PREPROC_DIR,
     PREPROC_ERR_ELIF_ELSE_AFTER_ELSE,
+    PREPROC_ERR_MISPLACED_PREPROC_TOKEN,
 };
 
 enum else_op_type {
@@ -59,6 +60,7 @@ struct preproc_err {
             enum else_op_type elif_after_else_op;
             struct source_loc prev_else_loc;
         };
+        enum token_type misplaced_preproc_tok;
     };
 };
 
