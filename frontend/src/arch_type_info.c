@@ -1,5 +1,7 @@
 #include "frontend/arch_type_info.h"
 
+#include "util/annotations.h"
+
 struct arch_type_info get_arch_type_info(enum arch a) {
     switch (a) {
         case ARCH_X86_64:
@@ -17,4 +19,5 @@ struct arch_type_info get_arch_type_info(enum arch a) {
                 },
             };
     }
+    UNREACHABLE();
 }

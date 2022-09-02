@@ -222,10 +222,12 @@ static enum value_type get_value_type(struct int_type_attrs attrs,
                 if (val <= get_max_int(info, VALUE_UINT)) {
                     return VALUE_UINT;
                 }
+                FALLTHROUGH();
             case 1:
                 if (val <= get_max_int(info, VALUE_ULINT)) {
                     return VALUE_ULINT;
                 }
+                FALLTHROUGH();
             case 2:
                 if (val <= get_max_int(info, VALUE_ULLINT)) {
                     return VALUE_ULLINT;
@@ -242,10 +244,12 @@ static enum value_type get_value_type(struct int_type_attrs attrs,
                 if (val <= get_max_int(info, VALUE_INT)) {
                     return VALUE_INT;
                 }
+                FALLTHROUGH();
             case 1:
                 if (val <= get_max_int(info, VALUE_LINT)) {
                     return VALUE_LINT;
                 }
+                FALLTHROUGH();
             case 2:
                 if (val <= get_max_int(info, VALUE_LLINT)) {
                     return VALUE_LLINT;

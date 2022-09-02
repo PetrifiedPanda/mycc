@@ -17,5 +17,15 @@
 
 #endif
 
+#ifdef _MSC_VER
+
+#define FALLTHROUGH() [[fallthrough]]
+
+#else
+
+#define FALLTHROUGH() __attribute__((__fallthrough__))
+
+#endif
+
 #endif
 
