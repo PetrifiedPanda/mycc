@@ -39,7 +39,7 @@
 #define ASSERT_UINTMAX_T(got, expected)                                        \
     do {                                                                       \
         if ((got) != (expected)) {                                             \
-            PRINT_ASSERT_ERR("Expected %llu but got %llu", expected, got);     \
+            PRINT_ASSERT_ERR("Expected %ju but got %ju", expected, got);     \
         }                                                                      \
     } while (0)
 

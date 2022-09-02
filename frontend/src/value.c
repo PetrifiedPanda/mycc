@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-struct value create_int_value(enum value_type t, unsigned long long val) {
+struct value create_int_value(enum value_type t, uintmax_t val) {
     assert(t == VALUE_SINT || t == VALUE_INT || t == VALUE_LINT
            || t == VALUE_LLINT || t == VALUE_USINT || t == VALUE_UINT
            || t == VALUE_ULINT || t == VALUE_ULLINT);
