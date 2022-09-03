@@ -182,7 +182,7 @@ static uintmax_t max_uint(uintmax_t num_bits) {
 }
 
 static uintmax_t max_int(uintmax_t num_bits) {
-    return int_pow(2, num_bits - 1);
+    return int_pow(2, num_bits - 1) - 1;
 }
 
 static uintmax_t get_max_int(const struct arch_int_info* info,
@@ -212,6 +212,7 @@ static uintmax_t get_max_int(const struct arch_int_info* info,
     }
 }
 
+// TODO: non decimal bases
 static enum value_type get_value_type(struct int_type_attrs attrs,
                                       uintmax_t val,
                                       const struct arch_int_info* info) {
