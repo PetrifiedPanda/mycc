@@ -94,7 +94,6 @@ struct value parse_num_constant(const char* spell,
                                          : get_value_type_other(attrs,
                                                                 val,
                                                                 int_info);
-        // TODO: first integer type in which value can fit!!!
         return create_int_value(type, val);
     }
 }
@@ -179,7 +178,17 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
     return res;
 }
 
-static uintmax_t int_pow(uintmax_t base, uintmax_t exp) {
+enum {
+    TARGET_CHAR_SIZE = 8,
+    THIS_CHAR_SIZE = TARGET_CHAR_SIZE,
+};
+
+static uintmax_t int_pow2(uintmax_t exp) {
+    if (exp < sizeof(uintmax_t) * THIS_CHAR_SIZE) {
+        uintmax_t res = 1ull << exp;
+        return res; 
+    }
+    uintmax_t base = 2;
     uintmax_t res = 1;
     while (true) {
         if (exp & 1) {
@@ -195,11 +204,11 @@ static uintmax_t int_pow(uintmax_t base, uintmax_t exp) {
 }
 
 static uintmax_t max_uint(uintmax_t num_bits) {
-    return int_pow(2, num_bits) - 1;
+    return int_pow2(num_bits) - 1;
 }
 
 static uintmax_t max_int(uintmax_t num_bits) {
-    return int_pow(2, num_bits - 1) - 1;
+    return int_pow2(num_bits - 1) - 1;
 }
 
 static uintmax_t get_max_int(const struct arch_int_info* info,
@@ -207,22 +216,19 @@ static uintmax_t get_max_int(const struct arch_int_info* info,
     assert(type == VALUE_UINT || type == VALUE_ULINT || type == VALUE_ULLINT
            || type == VALUE_INT || type == VALUE_LINT || type == VALUE_LLINT);
 
-    enum {
-        CHAR_SIZE = 8
-    };
     switch (type) {
         case VALUE_INT:
-            return max_int(CHAR_SIZE * info->int_size);
+            return max_int(TARGET_CHAR_SIZE * info->int_size);
         case VALUE_UINT:
-            return max_uint(CHAR_SIZE * info->int_size);
+            return max_uint(TARGET_CHAR_SIZE * info->int_size);
         case VALUE_LINT:
-            return max_int(CHAR_SIZE * info->lint_size);
+            return max_int(TARGET_CHAR_SIZE * info->lint_size);
         case VALUE_ULINT:
-            return max_uint(CHAR_SIZE * info->lint_size);
+            return max_uint(TARGET_CHAR_SIZE * info->lint_size);
         case VALUE_LLINT:
-            return max_int(CHAR_SIZE * info->llint_size);
+            return max_int(TARGET_CHAR_SIZE * info->llint_size);
         case VALUE_ULLINT:
-            return max_uint(CHAR_SIZE * info->llint_size);
+            return max_uint(TARGET_CHAR_SIZE * info->llint_size);
 
         default:
             UNREACHABLE();
@@ -251,8 +257,8 @@ static enum value_type get_value_type_unsigned(
             if (val <= get_max_int(info, VALUE_ULLINT)) {
                 return VALUE_ULLINT;
             } else {
-                // TODO: error
-                return VALUE_INT;
+                // unsigned will throw error in strotull
+                UNREACHABLE();
             }
         default:
             UNREACHABLE();
