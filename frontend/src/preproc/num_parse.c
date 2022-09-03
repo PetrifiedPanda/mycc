@@ -18,9 +18,13 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
                                            size_t suffix_len,
                                            struct preproc_err* err);
 
-static enum value_type get_value_type(struct int_type_attrs attrs,
-                                      uintmax_t val,
-                                      const struct arch_int_info* info);
+static enum value_type get_value_type_dec(struct int_type_attrs attrs,
+                                          uintmax_t val,
+                                          const struct arch_int_info* info);
+
+static enum value_type get_value_type_other(struct int_type_attrs attrs,
+                                            uintmax_t val,
+                                            const struct arch_int_info* info);
 
 struct value parse_num_constant(const char* spell,
                                 size_t len,
@@ -56,9 +60,16 @@ struct value parse_num_constant(const char* spell,
 
         return create_float_value(t, val);
     } else {
+        const enum {
+            DEC = 10,
+            HEX = 16,
+            OCT = 8
+        } base = spell[0] == '0'
+                     ? ((len > 1 && tolower(spell[1]) == 'x') ? HEX : OCT)
+                     : DEC;
         const char* suffix = spell;
         assert(errno == 0);
-        uintmax_t val = strtoull(spell, (char**)&suffix, 0);
+        uintmax_t val = strtoull(spell, (char**)&suffix, base);
         if (errno != 0) {
             // TODO: error
             errno = 0;
@@ -76,7 +87,13 @@ struct value parse_num_constant(const char* spell,
         if (err->type != PREPROC_ERR_NONE) {
             return (struct value){0};
         }
-        enum value_type type = get_value_type(attrs, val, int_info);
+        const enum value_type type = base == DEC
+                                         ? get_value_type_dec(attrs,
+                                                              val,
+                                                              int_info)
+                                         : get_value_type_other(attrs,
+                                                                val,
+                                                                int_info);
         // TODO: first integer type in which value can fit!!!
         return create_int_value(type, val);
     }
@@ -212,33 +229,42 @@ static uintmax_t get_max_int(const struct arch_int_info* info,
     }
 }
 
-// TODO: non decimal bases
-static enum value_type get_value_type(struct int_type_attrs attrs,
-                                      uintmax_t val,
-                                      const struct arch_int_info* info) {
+static enum value_type get_value_type_unsigned(
+    struct int_type_attrs attrs,
+    uintmax_t val,
+    const struct arch_int_info* info) {
+    assert(attrs.is_unsigned);
+    assert(attrs.num_long <= 2);
+
+    switch (attrs.num_long) {
+        case 0:
+            if (val <= get_max_int(info, VALUE_UINT)) {
+                return VALUE_UINT;
+            }
+            FALLTHROUGH();
+        case 1:
+            if (val <= get_max_int(info, VALUE_ULINT)) {
+                return VALUE_ULINT;
+            }
+            FALLTHROUGH();
+        case 2:
+            if (val <= get_max_int(info, VALUE_ULLINT)) {
+                return VALUE_ULLINT;
+            } else {
+                // TODO: error
+                return VALUE_INT;
+            }
+        default:
+            UNREACHABLE();
+    }
+}
+
+static enum value_type get_value_type_dec(struct int_type_attrs attrs,
+                                          uintmax_t val,
+                                          const struct arch_int_info* info) {
     assert(attrs.num_long <= 2);
     if (attrs.is_unsigned) {
-        switch (attrs.num_long) {
-            case 0:
-                if (val <= get_max_int(info, VALUE_UINT)) {
-                    return VALUE_UINT;
-                }
-                FALLTHROUGH();
-            case 1:
-                if (val <= get_max_int(info, VALUE_ULINT)) {
-                    return VALUE_ULINT;
-                }
-                FALLTHROUGH();
-            case 2:
-                if (val <= get_max_int(info, VALUE_ULLINT)) {
-                    return VALUE_ULLINT;
-                } else {
-                    // TODO: error
-                    return VALUE_INT;
-                }
-            default:
-                UNREACHABLE();
-        }
+        return get_value_type_unsigned(attrs, val, info);
     } else {
         switch (attrs.num_long) {
             case 0:
@@ -257,6 +283,44 @@ static enum value_type get_value_type(struct int_type_attrs attrs,
                 } else {
                     // TODO: error
                     return VALUE_UINT;
+                }
+            default:
+                UNREACHABLE();
+        }
+    }
+}
+
+static enum value_type get_value_type_other(struct int_type_attrs attrs,
+                                            uintmax_t val,
+                                            const struct arch_int_info* info) {
+    assert(attrs.num_long <= 2);
+
+    if (attrs.is_unsigned) {
+        return get_value_type_unsigned(attrs, val, info);
+    } else {
+        switch (attrs.num_long) {
+            case 0:
+                if (val <= get_max_int(info, VALUE_INT)) {
+                    return VALUE_INT;
+                } else if (val <= get_max_int(info, VALUE_UINT)) {
+                    return VALUE_UINT;
+                }
+                FALLTHROUGH();
+            case 1:
+                if (val <= get_max_int(info, VALUE_LINT)) {
+                    return VALUE_LINT;
+                } else if (val <= get_max_int(info, VALUE_ULINT)) {
+                    return VALUE_ULINT;
+                }
+                FALLTHROUGH();
+            case 2:
+                if (val <= get_max_int(info, VALUE_LLINT)) {
+                    return VALUE_LLINT;
+                } else if (val <= get_max_int(info, VALUE_ULLINT)) {
+                    return VALUE_ULLINT;
+                } else {
+                    // TODO: error
+                    return VALUE_INT;
                 }
             default:
                 UNREACHABLE();
