@@ -185,8 +185,7 @@ enum {
 
 static uintmax_t int_pow2(uintmax_t exp) {
     if (exp < sizeof(uintmax_t) * THIS_CHAR_SIZE) {
-        uintmax_t res = 1ull << exp;
-        return res; 
+        return 1ull << exp; 
     }
     uintmax_t base = 2;
     uintmax_t res = 1;
