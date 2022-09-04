@@ -33,6 +33,7 @@ struct value parse_num_constant(const char* spell,
     assert(err);
     assert(spell);
     assert(len > 0);
+    assert(isdigit(spell[0]) || spell[0] == '.');
 
     if (must_be_float_const(spell, len)) {
         const char* end = spell; // so end is set
