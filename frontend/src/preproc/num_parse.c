@@ -1,6 +1,7 @@
 #include "frontend/preproc/num_parse.h"
 
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <assert.h>
@@ -16,7 +17,7 @@ struct int_type_attrs {
 
 static struct int_type_attrs get_int_attrs(const char* suffix,
                                            size_t suffix_len,
-                                           struct preproc_err* err);
+                                           struct num_constant_err* err);
 
 static enum value_type get_value_type_dec(struct int_type_attrs attrs,
                                           uintmax_t val,
@@ -26,11 +27,10 @@ static enum value_type get_value_type_other(struct int_type_attrs attrs,
                                             uintmax_t val,
                                             const struct arch_int_info* info);
 
-struct value parse_num_constant(const char* spell,
-                                size_t len,
-                                struct preproc_err* err,
-                                const struct arch_int_info* int_info) {
-    assert(err);
+struct parse_num_constant_res parse_num_constant(
+    const char* spell,
+    size_t len,
+    const struct arch_int_info* int_info) {
     assert(spell);
     assert(len > 0);
     assert(isdigit(spell[0]) || spell[0] == '.');
@@ -42,7 +42,7 @@ struct value parse_num_constant(const char* spell,
         if (errno != 0) {
             // TODO: error
             errno = 0;
-            return (struct value){0};
+            return (struct parse_num_constant_res){0};
         }
         enum value_type t = VALUE_DOUBLE;
         assert(spell <= end);
@@ -55,11 +55,14 @@ struct value parse_num_constant(const char* spell,
             ++end;
             if ((size_t)(end - spell) < len) {
                 // TODO: error (suffix too long)
-                return (struct value){0};
+                return (struct parse_num_constant_res){0};
             }
         }
 
-        return create_float_value(t, val);
+        return (struct parse_num_constant_res){
+            .err.type = NUM_CONSTANT_ERR_NONE,
+            .res = create_float_value(t, val),
+        };
     } else {
         const enum {
             DEC = 10,
@@ -74,7 +77,7 @@ struct value parse_num_constant(const char* spell,
         if (errno != 0) {
             // TODO: error
             errno = 0;
-            return (struct value){0};
+            return (struct parse_num_constant_res){0};
         }
 
         assert(spell <= suffix);
@@ -82,12 +85,14 @@ struct value parse_num_constant(const char* spell,
         const size_t suffix_len = len - (suffix - spell);
         if (suffix_len > 3) {
             // TODO: error suffix too long
-            return (struct value){0};
+            return (struct parse_num_constant_res){0};
         }
-        struct int_type_attrs attrs = get_int_attrs(suffix, suffix_len, err);
-        if (err->type != PREPROC_ERR_NONE) {
-            return (struct value){0};
-        }
+
+        struct num_constant_err err = {
+            .type = NUM_CONSTANT_ERR_NONE,
+        };
+        struct int_type_attrs attrs = get_int_attrs(suffix, suffix_len, &err);
+        // TODO: check err
         const enum value_type type = base == DEC
                                          ? get_value_type_dec(attrs,
                                                               val,
@@ -95,7 +100,19 @@ struct value parse_num_constant(const char* spell,
                                          : get_value_type_other(attrs,
                                                                 val,
                                                                 int_info);
-        return create_int_value(type, val);
+        // TODO: check err
+        return (struct parse_num_constant_res){
+            .err.type = NUM_CONSTANT_ERR_NONE,
+            .res = create_int_value(type, val)};
+    }
+}
+
+void print_num_constant_err(const struct num_constant_err* err) {
+    assert(err->type != NUM_CONSTANT_ERR_NONE);
+
+    switch (err->type) {
+        case NUM_CONSTANT_ERR_NONE:
+            UNREACHABLE();
     }
 }
 
@@ -125,7 +142,7 @@ static bool must_be_float_const(const char* spell, size_t len) {
 
 static struct int_type_attrs get_int_attrs(const char* suffix,
                                            size_t suffix_len,
-                                           struct preproc_err* err) {
+                                           struct num_constant_err* err) {
     assert(suffix_len <= 3);
     (void)err; // TODO: remove
     struct int_type_attrs res = {
@@ -186,7 +203,7 @@ enum {
 
 static uintmax_t int_pow2(uintmax_t exp) {
     if (exp < sizeof(uintmax_t) * THIS_CHAR_SIZE) {
-        return 1ull << exp; 
+        return 1ull << exp;
     }
     uintmax_t base = 2;
     uintmax_t res = 1;

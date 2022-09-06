@@ -6,15 +6,14 @@
     do {                                                                       \
         const char* const spell = #constant;                                   \
         const uintmax_t num = constant;                                        \
-        struct preproc_err err = create_preproc_err();                         \
         const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);    \
-        const struct value val = parse_num_constant(spell,                     \
-                                                    strlen(spell),             \
-                                                    &err,                      \
-                                                    &info.int_info);           \
-        ASSERT(err.type == PREPROC_ERR_NONE);                                  \
-        ASSERT_UINTMAX_T(num, val.int_val);                                    \
-        ASSERT(val.type == expected_val_type);                                 \
+        const struct parse_num_constant_res res = parse_num_constant(          \
+            spell,                                                             \
+            strlen(spell),                                                     \
+            &info.int_info);                                                   \
+        ASSERT(res.err.type == NUM_CONSTANT_ERR_NONE);                         \
+        ASSERT_UINTMAX_T(num, res.res.int_val);                                \
+        ASSERT(res.res.type == expected_val_type);                             \
     } while (0)
 
 TEST(integer) {
@@ -33,15 +32,14 @@ TEST(integer) {
     do {                                                                       \
         const char* const spell = #constant;                                   \
         const long double num = constant;                                      \
-        struct preproc_err err = create_preproc_err();                         \
         const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);    \
-        const struct value val = parse_num_constant(spell,                     \
-                                                    strlen(spell),             \
-                                                    &err,                      \
-                                                    &info.int_info);           \
-        ASSERT(err.type == PREPROC_ERR_NONE);                                  \
-        ASSERT_LONG_DOUBLE(num, val.float_val, 0.000000001l);                  \
-        ASSERT(val.type == expected_val_type);                                 \
+        const struct parse_num_constant_res res = parse_num_constant(          \
+            spell,                                                             \
+            strlen(spell),                                                     \
+            &info.int_info);                                                   \
+        ASSERT(res.err.type == NUM_CONSTANT_ERR_NONE);                         \
+        ASSERT_LONG_DOUBLE(num, res.res.float_val, 0.000000001l);              \
+        ASSERT(res.res.type == expected_val_type);                             \
     } while (0)
 
 TEST(floating) {
@@ -86,7 +84,7 @@ TEST(int_min_fitting_type_hex) {
     TEST_INT_LITERAL(0xFFFFFFFFFFFFFFFFu, VALUE_ULINT);
 }
 
-TEST(int_min_fitting_type_oct) { 
+TEST(int_min_fitting_type_oct) {
     TEST_INT_LITERAL(012, VALUE_INT);
     TEST_INT_LITERAL(017777777777, VALUE_INT);
     TEST_INT_LITERAL(020000000000, VALUE_UINT);
