@@ -4,12 +4,12 @@
 
 #define TEST_INT_LITERAL(constant, expected_val_type)                          \
     do {                                                                       \
-        const char* const spell = #constant;                                   \
+        const char spell[] = #constant;                                        \
         const uintmax_t num = constant;                                        \
         const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);    \
         const struct parse_num_constant_res res = parse_num_constant(          \
             spell,                                                             \
-            strlen(spell),                                                     \
+            (sizeof spell) - 1,                                                \
             &info.int_info);                                                   \
         ASSERT(res.err.type == NUM_CONSTANT_ERR_NONE);                         \
         ASSERT_UINTMAX_T(num, res.res.int_val);                                \
@@ -30,12 +30,12 @@ TEST(integer) {
 // TODO: weirdly different values
 #define TEST_FLOAT_LITERAL(constant, expected_val_type)                        \
     do {                                                                       \
-        const char* const spell = #constant;                                   \
+        const char spell[] = #constant;                                        \
         const long double num = constant;                                      \
         const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);    \
         const struct parse_num_constant_res res = parse_num_constant(          \
             spell,                                                             \
-            strlen(spell),                                                     \
+            (sizeof spell) - 1,                                                \
             &info.int_info);                                                   \
         ASSERT(res.err.type == NUM_CONSTANT_ERR_NONE);                         \
         ASSERT_LONG_DOUBLE(num, res.res.float_val, 0.000000001l);              \
@@ -54,7 +54,6 @@ TEST(floating) {
     TEST_FLOAT_LITERAL(0xdeadp+10f, VALUE_FLOAT);
 }
 
-// TODO: too large error
 TEST(int_min_fitting_type_decimal) {
     TEST_INT_LITERAL(10, VALUE_INT);
     TEST_INT_LITERAL(2147483647, VALUE_INT);
@@ -67,7 +66,6 @@ TEST(int_min_fitting_type_decimal) {
     TEST_INT_LITERAL(18446744073709551615u, VALUE_ULINT);
 }
 
-// TODO: too large error
 TEST(int_min_fitting_type_hex) {
     TEST_INT_LITERAL(0xa, VALUE_INT);
     TEST_INT_LITERAL(0x7FFFFFFF, VALUE_INT);
@@ -100,12 +98,37 @@ TEST(int_min_fitting_type_oct) {
     TEST_INT_LITERAL(01777777777777777777777u, VALUE_ULINT);
 }
 
-TEST_SUITE_BEGIN(num_parse, 5) {
+#define TEST_TOO_LARGE(str)                                                    \
+    do {                                                                       \
+        const char spell[] = str;                                              \
+        const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);    \
+        const struct parse_num_constant_res res = parse_num_constant(          \
+            spell,                                                             \
+            (sizeof spell) - 1,                                                \
+            &info.int_info);                                                   \
+        ASSERT(res.err.type == NUM_CONSTANT_ERR_TOO_LARGE);                    \
+    } while (0)
+
+TEST(int_too_large) {
+    TEST_TOO_LARGE("18446744073709551616u");
+    TEST_TOO_LARGE("9223372036854775808");
+
+    TEST_TOO_LARGE("0xffffffffffffffff0");
+    TEST_TOO_LARGE("0xffffffffffffffff0U");
+
+    TEST_TOO_LARGE("017777777777777777777770");
+    TEST_TOO_LARGE("017777777777777777777770u");
+}
+
+// TODO: float too large and other errors
+
+TEST_SUITE_BEGIN(num_parse, 6) {
     REGISTER_TEST(integer);
     REGISTER_TEST(floating);
     REGISTER_TEST(int_min_fitting_type_decimal);
     REGISTER_TEST(int_min_fitting_type_hex);
     REGISTER_TEST(int_min_fitting_type_oct);
+    REGISTER_TEST(int_too_large);
 }
 TEST_SUITE_END()
 
