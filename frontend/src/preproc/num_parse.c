@@ -1,7 +1,6 @@
 #include "frontend/preproc/num_parse.h"
 
 #include <ctype.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <assert.h>
@@ -21,11 +20,13 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
 
 static enum value_type get_value_type_dec(struct int_type_attrs attrs,
                                           uintmax_t val,
-                                          const struct arch_int_info* info);
+                                          const struct arch_int_info* info,
+                                          struct num_constant_err* err);
 
 static enum value_type get_value_type_other(struct int_type_attrs attrs,
                                             uintmax_t val,
-                                            const struct arch_int_info* info);
+                                            const struct arch_int_info* info,
+                                            struct num_constant_err* err);
 
 struct parse_num_constant_res parse_num_constant(
     const char* spell,
@@ -40,9 +41,15 @@ struct parse_num_constant_res parse_num_constant(
         assert(errno == 0);
         long double val = strtold(spell, (char**)&end);
         if (errno != 0) {
-            // TODO: error
+            assert(errno == ERANGE);
             errno = 0;
-            return (struct parse_num_constant_res){0};
+            return (struct parse_num_constant_res){
+                .err =
+                    {
+                        .type = NUM_CONSTANT_ERR_TOO_LARGE,
+                        .is_int_lit = false,
+                    },
+            };
         }
         enum value_type t = VALUE_DOUBLE;
         assert(spell <= end);
@@ -54,8 +61,13 @@ struct parse_num_constant_res parse_num_constant(
             }
             ++end;
             if ((size_t)(end - spell) < len) {
-                // TODO: error (suffix too long)
-                return (struct parse_num_constant_res){0};
+                return (struct parse_num_constant_res){
+                    .err =
+                        {
+                            .type = NUM_CONSTANT_ERR_SUFFIX_TOO_LONG,
+                            .is_int_lit = false,
+                        },
+                };
             }
         }
 
@@ -75,45 +87,86 @@ struct parse_num_constant_res parse_num_constant(
         assert(errno == 0);
         uintmax_t val = strtoull(spell, (char**)&suffix, base);
         if (errno != 0) {
-            // TODO: error
+            assert(errno == ERANGE);
             errno = 0;
-            return (struct parse_num_constant_res){0};
+            return (struct parse_num_constant_res){
+                .err =
+                    {
+                        .type = NUM_CONSTANT_ERR_TOO_LARGE,
+                        .is_int_lit = true,
+                    },
+            };
         }
 
         assert(spell <= suffix);
 
         const size_t suffix_len = len - (suffix - spell);
         if (suffix_len > 3) {
-            // TODO: error suffix too long
-            return (struct parse_num_constant_res){0};
+            return (struct parse_num_constant_res){
+                .err =
+                    {
+                        .type = NUM_CONSTANT_ERR_SUFFIX_TOO_LONG,
+                        .is_int_lit = true,
+                    },
+            };
         }
 
         struct num_constant_err err = {
             .type = NUM_CONSTANT_ERR_NONE,
         };
         struct int_type_attrs attrs = get_int_attrs(suffix, suffix_len, &err);
-        // TODO: check err
-        const enum value_type type = base == DEC
-                                         ? get_value_type_dec(attrs,
-                                                              val,
-                                                              int_info)
-                                         : get_value_type_other(attrs,
-                                                                val,
-                                                                int_info);
-        // TODO: check err
+        if (err.type != NUM_CONSTANT_ERR_NONE) {
+            return (struct parse_num_constant_res){
+                .err = err,
+            };
+        }
+        const enum value_type
+            type = base == DEC
+                       ? get_value_type_dec(attrs, val, int_info, &err)
+                       : get_value_type_other(attrs, val, int_info, &err);
+        if (err.type != NUM_CONSTANT_ERR_NONE) {
+            return (struct parse_num_constant_res){
+                .err = err,
+            };
+        }
         return (struct parse_num_constant_res){
             .err.type = NUM_CONSTANT_ERR_NONE,
             .res = create_int_value(type, val)};
     }
 }
 
-void print_num_constant_err(const struct num_constant_err* err) {
+void print_num_constant_err(FILE* out, const struct num_constant_err* err) {
     assert(err->type != NUM_CONSTANT_ERR_NONE);
 
     switch (err->type) {
         case NUM_CONSTANT_ERR_NONE:
             UNREACHABLE();
+        case NUM_CONSTANT_ERR_SUFFIX_TOO_LONG:
+            fprintf(out,
+                    "%s literal suffix too long",
+                    err->is_int_lit ? "integer" : "floating point");
+            break;
+        case NUM_CONSTANT_ERR_CASE_MIXING:
+            fprintf(out, "L in interger suffix must be the same case");
+            break;
+        case NUM_CONSTANT_ERR_DOUBLE_U:
+            fprintf(out, "u specifier can only appear once in integer suffix");
+            break;
+        case NUM_CONSTANT_ERR_U_BETWEEN_LS:
+            fprintf(out,
+                    "u specifier may not be between long specifiers in integer "
+                    "suffix");
+            break;
+        case NUM_CONSTANT_ERR_INVALID_CHAR:
+            fprintf(out, "invalid character in integer suffix");
+            break;
+        case NUM_CONSTANT_ERR_TOO_LARGE:
+            fprintf(out,
+                    "%s literal too large",
+                    err->is_int_lit ? "integer" : "floating point");
+            break;
     }
+    fprintf(out, "\n");
 }
 
 static bool must_be_float_const(const char* spell, size_t len) {
@@ -144,7 +197,6 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
                                            size_t suffix_len,
                                            struct num_constant_err* err) {
     assert(suffix_len <= 3);
-    (void)err; // TODO: remove
     struct int_type_attrs res = {
         .num_long = 0,
         .is_unsigned = false,
@@ -155,10 +207,10 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
         switch (suffix[i]) {
             case 'l':
                 if (res.num_long > 0 && l_is_upper) {
-                    // TODO: err case mixing
+                    err->type = NUM_CONSTANT_ERR_CASE_MIXING;
                     return (struct int_type_attrs){0};
                 } else if (res.num_long > 0 && last_was_u) {
-                    // TODO: err
+                    err->type = NUM_CONSTANT_ERR_U_BETWEEN_LS;
                     return (struct int_type_attrs){0};
                 } else {
                     ++res.num_long;
@@ -167,10 +219,10 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
                 break;
             case 'L':
                 if (res.num_long > 0 && !l_is_upper) {
-                    // TODO: err case mixing
+                    err->type = NUM_CONSTANT_ERR_CASE_MIXING;
                     return (struct int_type_attrs){0};
                 } else if (res.num_long > 0 && last_was_u) {
-                    // TODO: err
+                    err->type = NUM_CONSTANT_ERR_U_BETWEEN_LS;
                     return (struct int_type_attrs){0};
                 } else {
                     ++res.num_long;
@@ -181,7 +233,7 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
             case 'u':
             case 'U':
                 if (res.is_unsigned) {
-                    // TODO: err double u
+                    err->type = NUM_CONSTANT_ERR_DOUBLE_U;
                     return (struct int_type_attrs){0};
                 } else {
                     res.is_unsigned = true;
@@ -189,7 +241,7 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
                 }
                 break;
             default:
-                // TODO: err
+                err->type = NUM_CONSTANT_ERR_INVALID_CHAR;
                 return (struct int_type_attrs){0};
         }
     }
@@ -284,7 +336,8 @@ static enum value_type get_value_type_unsigned(
 
 static enum value_type get_value_type_dec(struct int_type_attrs attrs,
                                           uintmax_t val,
-                                          const struct arch_int_info* info) {
+                                          const struct arch_int_info* info,
+                                          struct num_constant_err* err) {
     assert(attrs.num_long <= 2);
     if (attrs.is_unsigned) {
         return get_value_type_unsigned(attrs, val, info);
@@ -304,7 +357,7 @@ static enum value_type get_value_type_dec(struct int_type_attrs attrs,
                 if (val <= get_max_int(info, VALUE_LLINT)) {
                     return VALUE_LLINT;
                 } else {
-                    // TODO: error
+                    err->type = NUM_CONSTANT_ERR_TOO_LARGE;
                     return VALUE_UINT;
                 }
             default:
@@ -315,7 +368,8 @@ static enum value_type get_value_type_dec(struct int_type_attrs attrs,
 
 static enum value_type get_value_type_other(struct int_type_attrs attrs,
                                             uintmax_t val,
-                                            const struct arch_int_info* info) {
+                                            const struct arch_int_info* info,
+                                            struct num_constant_err* err) {
     assert(attrs.num_long <= 2);
 
     if (attrs.is_unsigned) {
@@ -342,7 +396,7 @@ static enum value_type get_value_type_other(struct int_type_attrs attrs,
                 } else if (val <= get_max_int(info, VALUE_ULLINT)) {
                     return VALUE_ULLINT;
                 } else {
-                    // TODO: error
+                    err->type = NUM_CONSTANT_ERR_TOO_LARGE;
                     return VALUE_INT;
                 }
             default:
