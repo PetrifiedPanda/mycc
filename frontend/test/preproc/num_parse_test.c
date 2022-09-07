@@ -98,26 +98,21 @@ TEST(int_min_fitting_type_oct) {
     TEST_INT_LITERAL(01777777777777777777777u, VALUE_ULINT);
 }
 
-#define TEST_TOO_LARGE(str)                                                    \
-    do {                                                                       \
-        const char spell[] = str;                                              \
-        const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);    \
-        const struct parse_num_constant_res res = parse_num_constant(          \
-            spell,                                                             \
-            (sizeof spell) - 1,                                                \
-            &info.int_info);                                                   \
-        ASSERT(res.err.type == NUM_CONSTANT_ERR_TOO_LARGE);                    \
-    } while (0)
+static void test_parse_error(const char* spell, enum num_constant_err_type err) {
+    const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);
+    const struct parse_num_constant_res res = parse_num_constant(spell, strlen(spell), &info.int_info);
+    ASSERT(res.err.type == err);
+}
 
 TEST(int_too_large) {
-    TEST_TOO_LARGE("18446744073709551616u");
-    TEST_TOO_LARGE("9223372036854775808");
+    test_parse_error("18446744073709551616u", NUM_CONSTANT_ERR_TOO_LARGE);
+    test_parse_error("9223372036854775808", NUM_CONSTANT_ERR_TOO_LARGE);
 
-    TEST_TOO_LARGE("0xffffffffffffffff0");
-    TEST_TOO_LARGE("0xffffffffffffffff0U");
+    test_parse_error("0xffffffffffffffff0", NUM_CONSTANT_ERR_TOO_LARGE);
+    test_parse_error("0xffffffffffffffff0U", NUM_CONSTANT_ERR_TOO_LARGE);
 
-    TEST_TOO_LARGE("017777777777777777777770");
-    TEST_TOO_LARGE("017777777777777777777770u");
+    test_parse_error("017777777777777777777770", NUM_CONSTANT_ERR_TOO_LARGE);
+    test_parse_error("017777777777777777777770u", NUM_CONSTANT_ERR_TOO_LARGE);
 }
 
 // TODO: float too large and other errors
