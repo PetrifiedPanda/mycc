@@ -15,6 +15,7 @@ enum num_constant_err_type {
     NUM_CONSTANT_ERR_U_BETWEEN_LS,
     NUM_CONSTANT_ERR_INVALID_CHAR,
     NUM_CONSTANT_ERR_TOO_LARGE,
+    NUM_CONSTANT_ERR_TRIPLE_LONG,
 };
 
 struct num_constant_err {

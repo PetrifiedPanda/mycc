@@ -115,15 +115,43 @@ TEST(int_too_large) {
     test_parse_error("017777777777777777777770u", NUM_CONSTANT_ERR_TOO_LARGE);
 }
 
-// TODO: float too large and other errors
+TEST(int_suffix_error) {
+    test_parse_error("10lul", NUM_CONSTANT_ERR_U_BETWEEN_LS);
+    test_parse_error("10lUl", NUM_CONSTANT_ERR_U_BETWEEN_LS);
 
-TEST_SUITE_BEGIN(num_parse, 6) {
+    test_parse_error("0x12lL", NUM_CONSTANT_ERR_CASE_MIXING);
+    test_parse_error("0x12lLU", NUM_CONSTANT_ERR_CASE_MIXING);
+    test_parse_error("0x12uLl", NUM_CONSTANT_ERR_CASE_MIXING);
+    
+    test_parse_error("0234234luu", NUM_CONSTANT_ERR_DOUBLE_U);
+    test_parse_error("0234234UUl", NUM_CONSTANT_ERR_DOUBLE_U);
+
+    test_parse_error("420ub", NUM_CONSTANT_ERR_INVALID_CHAR);
+    test_parse_error("420ld", NUM_CONSTANT_ERR_INVALID_CHAR);
+
+    test_parse_error("69lll", NUM_CONSTANT_ERR_TRIPLE_LONG);
+    test_parse_error("69LLL", NUM_CONSTANT_ERR_TRIPLE_LONG);
+    
+    test_parse_error("69jdksaflajsdflk", NUM_CONSTANT_ERR_SUFFIX_TOO_LONG);
+    test_parse_error("69ullabcdefghi", NUM_CONSTANT_ERR_SUFFIX_TOO_LONG);
+}
+
+TEST(float_suffix_error) {
+    test_parse_error("0xabcdefp-10ll", NUM_CONSTANT_ERR_SUFFIX_TOO_LONG);
+    test_parse_error("0xabcdefp-10fl", NUM_CONSTANT_ERR_SUFFIX_TOO_LONG);
+}
+
+// TODO: float too large
+
+TEST_SUITE_BEGIN(num_parse, 8) {
     REGISTER_TEST(integer);
     REGISTER_TEST(floating);
     REGISTER_TEST(int_min_fitting_type_decimal);
     REGISTER_TEST(int_min_fitting_type_hex);
     REGISTER_TEST(int_min_fitting_type_oct);
     REGISTER_TEST(int_too_large);
+    REGISTER_TEST(int_suffix_error);
+    REGISTER_TEST(float_suffix_error);
 }
 TEST_SUITE_END()
 

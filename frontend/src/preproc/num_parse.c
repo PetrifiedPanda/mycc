@@ -165,6 +165,11 @@ void print_num_constant_err(FILE* out, const struct num_constant_err* err) {
                     "%s literal too large",
                     err->is_int_lit ? "integer" : "floating point");
             break;
+        case NUM_CONSTANT_ERR_TRIPLE_LONG:
+            fprintf(out,
+                    "integer literal suffix has too many long specifiers. The "
+                    "maximum is 2");
+            break;
     }
     fprintf(out, "\n");
 }
@@ -212,6 +217,9 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
                 } else if (res.num_long > 0 && last_was_u) {
                     err->type = NUM_CONSTANT_ERR_U_BETWEEN_LS;
                     return (struct int_type_attrs){0};
+                } else if (res.num_long == 2) {
+                    err->type = NUM_CONSTANT_ERR_TRIPLE_LONG;
+                    return (struct int_type_attrs){0};
                 } else {
                     ++res.num_long;
                     last_was_u = false;
@@ -223,6 +231,9 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
                     return (struct int_type_attrs){0};
                 } else if (res.num_long > 0 && last_was_u) {
                     err->type = NUM_CONSTANT_ERR_U_BETWEEN_LS;
+                    return (struct int_type_attrs){0};
+                } else if (res.num_long == 2) {
+                    err->type = NUM_CONSTANT_ERR_TRIPLE_LONG;
                     return (struct int_type_attrs){0};
                 } else {
                     ++res.num_long;
