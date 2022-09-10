@@ -29,6 +29,13 @@
         }                                                                      \
     } while (0)
 
+#define ASSERT_CHAR(got, expected)                                             \
+    do {                                                                       \
+        if ((got) != (expected)) {                                             \
+            PRINT_ASSERT_ERR("Expected %c but got %c", expected, got);         \
+        }                                                                      \
+    } while (0)
+
 #define ASSERT_INT(got, expected)                                              \
     do {                                                                       \
         if ((got) != (expected)) {                                             \
@@ -39,7 +46,7 @@
 #define ASSERT_UINTMAX_T(got, expected)                                        \
     do {                                                                       \
         if ((got) != (expected)) {                                             \
-            PRINT_ASSERT_ERR("Expected %ju but got %ju", expected, got);     \
+            PRINT_ASSERT_ERR("Expected %ju but got %ju", expected, got);       \
         }                                                                      \
     } while (0)
 

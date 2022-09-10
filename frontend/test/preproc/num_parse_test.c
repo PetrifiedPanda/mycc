@@ -7,11 +7,11 @@
         const char spell[] = #constant;                                        \
         const uintmax_t num = constant;                                        \
         const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);    \
-        const struct parse_int_const_res res = parse_int_const(          \
+        const struct parse_int_const_res res = parse_int_const(                \
             spell,                                                             \
             (sizeof spell) - 1,                                                \
             &info.int_info);                                                   \
-        ASSERT(res.err.type == INT_CONST_ERR_NONE);                         \
+        ASSERT(res.err.type == INT_CONST_ERR_NONE);                            \
         ASSERT_UINTMAX_T(num, res.res.int_val);                                \
         ASSERT(res.res.type == expected_val_type);                             \
     } while (0)
@@ -32,10 +32,10 @@ TEST(integer) {
     do {                                                                       \
         const char spell[] = #constant;                                        \
         const long double num = constant;                                      \
-        const struct parse_float_const_res res = parse_float_const(          \
+        const struct parse_float_const_res res = parse_float_const(            \
             spell,                                                             \
-            (sizeof spell) - 1);                                                \
-        ASSERT(res.err.type == FLOAT_CONST_ERR_NONE);                         \
+            (sizeof spell) - 1);                                               \
+        ASSERT(res.err.type == FLOAT_CONST_ERR_NONE);                          \
         ASSERT_LONG_DOUBLE(num, res.res.float_val, 0.000000001l);              \
         ASSERT(res.res.type == expected_val_type);                             \
     } while (0)
@@ -98,12 +98,33 @@ TEST(int_min_fitting_type_oct) {
 
 static void test_parse_int_err(const char* spell, enum int_const_err_type err) {
     const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);
-    const struct parse_int_const_res res = parse_int_const(spell, strlen(spell), &info.int_info);
+    const struct parse_int_const_res res = parse_int_const(spell,
+                                                           strlen(spell),
+                                                           &info.int_info);
     ASSERT(res.err.type == err);
 }
-static void test_parse_float_err(const char* spell, enum float_const_err_type err) {
-    const struct parse_float_const_res res = parse_float_const(spell, strlen(spell));
+static void test_parse_float_err(const char* spell,
+                                 enum float_const_err_type err) {
+    const struct parse_float_const_res res = parse_float_const(spell,
+                                                               strlen(spell));
     ASSERT(res.err.type == err);
+}
+
+static void test_parse_int_invalid_char(const char* spell, char invalid_char) {
+    const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);
+    const struct parse_int_const_res res = parse_int_const(spell,
+                                                           strlen(spell),
+                                                           &info.int_info);
+    ASSERT(res.err.type == INT_CONST_ERR_INVALID_CHAR);
+    ASSERT_CHAR(res.err.invalid_char, invalid_char);
+}
+
+static void test_parse_float_invalid_char(const char* spell,
+                                          char invalid_char) {
+    const struct parse_float_const_res res = parse_float_const(spell,
+                                                               strlen(spell));
+    ASSERT(res.err.type == FLOAT_CONST_ERR_INVALID_CHAR);
+    ASSERT_CHAR(res.err.invalid_char, invalid_char);
 }
 
 TEST(int_too_large) {
@@ -124,25 +145,26 @@ TEST(int_suffix_error) {
     test_parse_int_err("0x12lL", INT_CONST_ERR_CASE_MIXING);
     test_parse_int_err("0x12lLU", INT_CONST_ERR_CASE_MIXING);
     test_parse_int_err("0x12uLl", INT_CONST_ERR_CASE_MIXING);
-    
+
     test_parse_int_err("0234234luu", INT_CONST_ERR_DOUBLE_U);
     test_parse_int_err("0234234UUl", INT_CONST_ERR_DOUBLE_U);
 
-    test_parse_int_err("420ub", INT_CONST_ERR_INVALID_CHAR);
-    test_parse_int_err("420ld", INT_CONST_ERR_INVALID_CHAR);
-
     test_parse_int_err("69lll", INT_CONST_ERR_TRIPLE_LONG);
     test_parse_int_err("69LLL", INT_CONST_ERR_TRIPLE_LONG);
-    
+
     test_parse_int_err("69jdksaflajsdflk", INT_CONST_ERR_SUFFIX_TOO_LONG);
     test_parse_int_err("69ullabcdefghi", INT_CONST_ERR_SUFFIX_TOO_LONG);
+
+    test_parse_int_invalid_char("420ub", 'b');
+    test_parse_int_invalid_char("420ld", 'd');
 }
 
 TEST(float_suffix_error) {
     test_parse_float_err("0xabcdefp-10ll", FLOAT_CONST_ERR_SUFFIX_TOO_LONG);
     test_parse_float_err("0xabcdefp-10fl", FLOAT_CONST_ERR_SUFFIX_TOO_LONG);
 
-    test_parse_float_err("12.5g", FLOAT_CONST_ERR_INVALID_CHAR);
+    test_parse_float_invalid_char("12.5g", 'g');
+    test_parse_float_invalid_char("12.5r", 'r');
 }
 
 // TODO: float too large
