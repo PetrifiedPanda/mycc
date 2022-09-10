@@ -7,11 +7,11 @@
         const char spell[] = #constant;                                        \
         const uintmax_t num = constant;                                        \
         const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);    \
-        const struct parse_num_constant_res res = parse_num_constant(          \
+        const struct parse_int_const_res res = parse_int_const(          \
             spell,                                                             \
             (sizeof spell) - 1,                                                \
             &info.int_info);                                                   \
-        ASSERT(res.err.type == NUM_CONSTANT_ERR_NONE);                         \
+        ASSERT(res.err.type == INT_CONST_ERR_NONE);                         \
         ASSERT_UINTMAX_T(num, res.res.int_val);                                \
         ASSERT(res.res.type == expected_val_type);                             \
     } while (0)
@@ -32,12 +32,10 @@ TEST(integer) {
     do {                                                                       \
         const char spell[] = #constant;                                        \
         const long double num = constant;                                      \
-        const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);    \
-        const struct parse_num_constant_res res = parse_num_constant(          \
+        const struct parse_float_const_res res = parse_float_const(          \
             spell,                                                             \
-            (sizeof spell) - 1,                                                \
-            &info.int_info);                                                   \
-        ASSERT(res.err.type == NUM_CONSTANT_ERR_NONE);                         \
+            (sizeof spell) - 1);                                                \
+        ASSERT(res.err.type == FLOAT_CONST_ERR_NONE);                         \
         ASSERT_LONG_DOUBLE(num, res.res.float_val, 0.000000001l);              \
         ASSERT(res.res.type == expected_val_type);                             \
     } while (0)
@@ -98,47 +96,53 @@ TEST(int_min_fitting_type_oct) {
     TEST_INT_LITERAL(01777777777777777777777u, VALUE_ULINT);
 }
 
-static void test_parse_error(const char* spell, enum num_constant_err_type err) {
+static void test_parse_int_err(const char* spell, enum int_const_err_type err) {
     const struct arch_type_info info = get_arch_type_info(ARCH_X86_64);
-    const struct parse_num_constant_res res = parse_num_constant(spell, strlen(spell), &info.int_info);
+    const struct parse_int_const_res res = parse_int_const(spell, strlen(spell), &info.int_info);
+    ASSERT(res.err.type == err);
+}
+static void test_parse_float_err(const char* spell, enum float_const_err_type err) {
+    const struct parse_float_const_res res = parse_float_const(spell, strlen(spell));
     ASSERT(res.err.type == err);
 }
 
 TEST(int_too_large) {
-    test_parse_error("18446744073709551616u", NUM_CONSTANT_ERR_TOO_LARGE);
-    test_parse_error("9223372036854775808", NUM_CONSTANT_ERR_TOO_LARGE);
+    test_parse_int_err("18446744073709551616u", INT_CONST_ERR_TOO_LARGE);
+    test_parse_int_err("9223372036854775808", INT_CONST_ERR_TOO_LARGE);
 
-    test_parse_error("0xffffffffffffffff0", NUM_CONSTANT_ERR_TOO_LARGE);
-    test_parse_error("0xffffffffffffffff0U", NUM_CONSTANT_ERR_TOO_LARGE);
+    test_parse_int_err("0xffffffffffffffff0", INT_CONST_ERR_TOO_LARGE);
+    test_parse_int_err("0xffffffffffffffff0U", INT_CONST_ERR_TOO_LARGE);
 
-    test_parse_error("017777777777777777777770", NUM_CONSTANT_ERR_TOO_LARGE);
-    test_parse_error("017777777777777777777770u", NUM_CONSTANT_ERR_TOO_LARGE);
+    test_parse_int_err("017777777777777777777770", INT_CONST_ERR_TOO_LARGE);
+    test_parse_int_err("017777777777777777777770u", INT_CONST_ERR_TOO_LARGE);
 }
 
 TEST(int_suffix_error) {
-    test_parse_error("10lul", NUM_CONSTANT_ERR_U_BETWEEN_LS);
-    test_parse_error("10lUl", NUM_CONSTANT_ERR_U_BETWEEN_LS);
+    test_parse_int_err("10lul", INT_CONST_ERR_U_BETWEEN_LS);
+    test_parse_int_err("10lUl", INT_CONST_ERR_U_BETWEEN_LS);
 
-    test_parse_error("0x12lL", NUM_CONSTANT_ERR_CASE_MIXING);
-    test_parse_error("0x12lLU", NUM_CONSTANT_ERR_CASE_MIXING);
-    test_parse_error("0x12uLl", NUM_CONSTANT_ERR_CASE_MIXING);
+    test_parse_int_err("0x12lL", INT_CONST_ERR_CASE_MIXING);
+    test_parse_int_err("0x12lLU", INT_CONST_ERR_CASE_MIXING);
+    test_parse_int_err("0x12uLl", INT_CONST_ERR_CASE_MIXING);
     
-    test_parse_error("0234234luu", NUM_CONSTANT_ERR_DOUBLE_U);
-    test_parse_error("0234234UUl", NUM_CONSTANT_ERR_DOUBLE_U);
+    test_parse_int_err("0234234luu", INT_CONST_ERR_DOUBLE_U);
+    test_parse_int_err("0234234UUl", INT_CONST_ERR_DOUBLE_U);
 
-    test_parse_error("420ub", NUM_CONSTANT_ERR_INVALID_CHAR);
-    test_parse_error("420ld", NUM_CONSTANT_ERR_INVALID_CHAR);
+    test_parse_int_err("420ub", INT_CONST_ERR_INVALID_CHAR);
+    test_parse_int_err("420ld", INT_CONST_ERR_INVALID_CHAR);
 
-    test_parse_error("69lll", NUM_CONSTANT_ERR_TRIPLE_LONG);
-    test_parse_error("69LLL", NUM_CONSTANT_ERR_TRIPLE_LONG);
+    test_parse_int_err("69lll", INT_CONST_ERR_TRIPLE_LONG);
+    test_parse_int_err("69LLL", INT_CONST_ERR_TRIPLE_LONG);
     
-    test_parse_error("69jdksaflajsdflk", NUM_CONSTANT_ERR_SUFFIX_TOO_LONG);
-    test_parse_error("69ullabcdefghi", NUM_CONSTANT_ERR_SUFFIX_TOO_LONG);
+    test_parse_int_err("69jdksaflajsdflk", INT_CONST_ERR_SUFFIX_TOO_LONG);
+    test_parse_int_err("69ullabcdefghi", INT_CONST_ERR_SUFFIX_TOO_LONG);
 }
 
 TEST(float_suffix_error) {
-    test_parse_error("0xabcdefp-10ll", NUM_CONSTANT_ERR_SUFFIX_TOO_LONG);
-    test_parse_error("0xabcdefp-10fl", NUM_CONSTANT_ERR_SUFFIX_TOO_LONG);
+    test_parse_float_err("0xabcdefp-10ll", FLOAT_CONST_ERR_SUFFIX_TOO_LONG);
+    test_parse_float_err("0xabcdefp-10fl", FLOAT_CONST_ERR_SUFFIX_TOO_LONG);
+
+    test_parse_float_err("12.5g", FLOAT_CONST_ERR_INVALID_CHAR);
 }
 
 // TODO: float too large

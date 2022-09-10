@@ -7,33 +7,51 @@
 #include "frontend/value.h"
 #include "frontend/arch_type_info.h"
 
-enum num_constant_err_type {
-    NUM_CONSTANT_ERR_NONE,
-    NUM_CONSTANT_ERR_SUFFIX_TOO_LONG,
-    NUM_CONSTANT_ERR_CASE_MIXING,
-    NUM_CONSTANT_ERR_DOUBLE_U,
-    NUM_CONSTANT_ERR_U_BETWEEN_LS,
-    NUM_CONSTANT_ERR_INVALID_CHAR,
-    NUM_CONSTANT_ERR_TOO_LARGE,
-    NUM_CONSTANT_ERR_TRIPLE_LONG,
+enum float_const_err_type {
+    FLOAT_CONST_ERR_NONE,
+    FLOAT_CONST_ERR_TOO_LARGE,
+    FLOAT_CONST_ERR_SUFFIX_TOO_LONG,
+    FLOAT_CONST_ERR_INVALID_CHAR,
 };
 
-struct num_constant_err {
-    enum num_constant_err_type type;
-    bool is_int_lit;
+struct float_const_err {
+    enum float_const_err_type type;
+    char invalid_char;
 };
 
-struct parse_num_constant_res {
-    struct num_constant_err err;
+struct parse_float_const_res {
+    struct float_const_err err;
     struct value res;
 };
 
-struct parse_num_constant_res parse_num_constant(
-    const char* spell,
-    size_t len,
-    const struct arch_int_info* int_info);
+struct parse_float_const_res parse_float_const(const char* spell, size_t len);
 
-void print_num_constant_err(FILE* out, const struct num_constant_err* err);
+void print_float_const_err(FILE* out, const struct float_const_err* err);
+
+enum int_const_err_type {
+    INT_CONST_ERR_NONE,
+    INT_CONST_ERR_TOO_LARGE,
+    INT_CONST_ERR_SUFFIX_TOO_LONG,
+    INT_CONST_ERR_CASE_MIXING,
+    INT_CONST_ERR_U_BETWEEN_LS,
+    INT_CONST_ERR_TRIPLE_LONG,
+    INT_CONST_ERR_DOUBLE_U,
+    INT_CONST_ERR_INVALID_CHAR,
+};
+
+struct int_const_err {
+    enum int_const_err_type type;
+    char invalid_char;
+};
+
+struct parse_int_const_res {
+    struct int_const_err err; 
+    struct value res;
+};
+
+struct parse_int_const_res parse_int_const(const char* spell, size_t len, const struct arch_int_info* info);
+
+void print_int_const_err(FILE* out, const struct int_const_err* err);
 
 #endif
 
