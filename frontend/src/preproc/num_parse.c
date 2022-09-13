@@ -164,6 +164,7 @@ void print_int_const_err(FILE* out, const struct int_const_err* err) {
             break;
         case INT_CONST_ERR_DOUBLE_U:
             fprintf(out, "u may only appear once in suffix");
+            break;
         case INT_CONST_ERR_INVALID_CHAR:
             fprintf(out, "invalid character %c in integer literal", err->invalid_char);
             break;
