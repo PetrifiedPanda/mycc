@@ -10,9 +10,9 @@
 
 #include "parser_test_util.h"
 
-static void check_jump_statement(const char* spell, enum jump_statement_type t) {
-    struct preproc_res preproc_res = tokenize_string(spell, "skfjlskf");
-    
+static struct jump_statement* parse_jump_statement_helper(const char* code) {
+    struct preproc_res preproc_res = tokenize_string(code, "skfjlskf");
+
     struct parser_err err = create_parser_err();
     struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
@@ -21,11 +21,20 @@ static void check_jump_statement(const char* spell, enum jump_statement_type t) 
     ASSERT_NOT_NULL(res);
 
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+
+    free_parser_state(&s);
+    free_preproc_res(&preproc_res);
+
+    return res;
+}
+
+static void check_jump_statement(const char* spell,
+                                 enum jump_statement_type t) {
+    struct jump_statement* res = parse_jump_statement_helper(spell);
+
     ASSERT(res->type == t);
 
     free_jump_statement(res);
-    free_parser_state(&s);
-    free_preproc_res(&preproc_res);
 }
 
 static void check_expected_semicolon_jump_statement(const char* spell) {
@@ -49,23 +58,14 @@ static void check_expected_semicolon_jump_statement(const char* spell) {
 
 TEST(jump_statement) {
     {
-        struct preproc_res preproc_res = tokenize_string("goto my_cool_label;", "file");
+        struct jump_statement* res = parse_jump_statement_helper(
+            "goto my_cool_label;");
 
-        struct parser_err err = create_parser_err();
-        struct parser_state s = create_parser_state(preproc_res.toks, &err);
-
-        struct jump_statement* res = parse_jump_statement(&s);
-        ASSERT(err.type == PARSER_ERR_NONE);
-        ASSERT_NOT_NULL(res);
-
-        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
         ASSERT(res->type == JUMP_STATEMENT_GOTO);
 
         check_identifier(res->goto_label, "my_cool_label");
 
         free_jump_statement(res);
-        free_parser_state(&s);
-        free_preproc_res(&preproc_res);
     }
 
     check_jump_statement("continue;", JUMP_STATEMENT_CONTINUE);
@@ -78,15 +78,16 @@ TEST(jump_statement) {
     check_expected_semicolon_jump_statement("return *id += (int)100");
 
     {
-        struct preproc_res preproc_res = tokenize_string("not_what_was_expected;",
-                                              "a_file.c");
+        struct preproc_res preproc_res = tokenize_string(
+            "not_what_was_expected;",
+            "a_file.c");
 
         struct parser_err err = create_parser_err();
         struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
         struct jump_statement* res = parse_jump_statement(&s);
         ASSERT_NULL(res);
-        
+
         ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
         ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
         ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)1);
@@ -104,15 +105,7 @@ TEST(jump_statement) {
     }
 
     {
-        struct preproc_res preproc_res = tokenize_string("return 600;", "file.c");
-
-        struct parser_err err = create_parser_err();
-        struct parser_state s = create_parser_state(preproc_res.toks, &err);
-
-        struct jump_statement* res = parse_jump_statement(&s);
-        ASSERT_NOT_NULL(res);
-        ASSERT(err.type == PARSER_ERR_NONE);
-        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+        struct jump_statement* res = parse_jump_statement_helper("return 600;");
 
         ASSERT(res->type == JUMP_STATEMENT_RETURN);
         ASSERT_NOT_NULL(res->ret_val);
@@ -120,8 +113,6 @@ TEST(jump_statement) {
         check_expr_const(res->ret_val, create_int_value(VALUE_INT, 600));
 
         free_jump_statement(res);
-        free_parser_state(&s);
-        free_preproc_res(&preproc_res);
     }
 }
 
@@ -164,7 +155,8 @@ TEST(statement) {
     ASSERT_SIZE_T(rel->len, (size_t)1);
     check_shift_expr_id(rel->lhs, "i");
     ASSERT(rel->rel_chain[0].op == REL_EXPR_LT);
-    check_shift_expr_const(rel->rel_chain[0].rhs, create_int_value(VALUE_INT, 100));
+    check_shift_expr_const(rel->rel_chain[0].rhs,
+                           create_int_value(VALUE_INT, 100));
 
     struct unary_expr* unary = iteration->for_loop.incr_expr->assign_exprs
                                    ->value->last_else->log_ands->or_exprs
@@ -193,18 +185,18 @@ TEST(statement) {
         ASSERT(labeled->type == LABELED_STATEMENT_CASE);
 
         ASSERT_NOT_NULL(labeled->case_expr);
-        check_const_expr_const(labeled->case_expr, create_int_value(VALUE_INT, 2));
+        check_const_expr_const(labeled->case_expr,
+                               create_int_value(VALUE_INT, 2));
 
         ASSERT(labeled->stat->type == STATEMENT_EXPRESSION);
         struct expr* case_expr = &labeled->stat->expr->expr;
         ASSERT_SIZE_T(case_expr->assign_exprs->len, (size_t)1);
 
         check_cond_expr_const(case_expr->assign_exprs->value,
-                                    create_int_value(VALUE_INT, 5));
+                              create_int_value(VALUE_INT, 5));
         ASSERT(case_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_SUB);
-        check_unary_expr_id(
-            case_expr->assign_exprs->assign_chain[0].unary,
-            "d");
+        check_unary_expr_id(case_expr->assign_exprs->assign_chain[0].unary,
+                            "d");
 
         ASSERT(switch_compound->items[1].stat.type == STATEMENT_JUMP);
         struct jump_statement* break_stat = switch_compound->items[1].stat.jmp;
@@ -223,11 +215,11 @@ TEST(statement) {
 
         ASSERT_SIZE_T(default_expr->assign_exprs->len, (size_t)1);
         check_cond_expr_const(default_expr->assign_exprs->value,
-                                    create_int_value(VALUE_INT, 5));
-        ASSERT(default_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_ADD);
-        check_unary_expr_id(
-            default_expr->assign_exprs->assign_chain[0].unary,
-            "d");
+                              create_int_value(VALUE_INT, 5));
+        ASSERT(default_expr->assign_exprs->assign_chain[0].op
+               == ASSIGN_EXPR_ADD);
+        check_unary_expr_id(default_expr->assign_exprs->assign_chain[0].unary,
+                            "d");
     }
 
     ASSERT(compound->items[1].stat.type == STATEMENT_SELECTION);
@@ -242,7 +234,8 @@ TEST(statement) {
     ASSERT_SIZE_T(if_cond->len, (size_t)1);
     check_shift_expr_id(if_cond->lhs, "i");
     ASSERT(if_cond->rel_chain[0].op == REL_EXPR_GE);
-    check_shift_expr_const(if_cond->rel_chain[0].rhs, create_int_value(VALUE_INT, 5));
+    check_shift_expr_const(if_cond->rel_chain[0].rhs,
+                           create_int_value(VALUE_INT, 5));
 
     ASSERT(if_stat->sel_stat->type == STATEMENT_COMPOUND);
     ASSERT_SIZE_T(if_stat->sel_stat->comp->len, (size_t)1);
@@ -254,7 +247,7 @@ TEST(statement) {
     ASSERT(if_stat->else_stat->type == STATEMENT_EXPRESSION);
     struct expr* else_expr = &if_stat->else_stat->expr->expr;
     check_cond_expr_const(else_expr->assign_exprs->value,
-                                create_int_value(VALUE_INT, 0));
+                          create_int_value(VALUE_INT, 0));
     ASSERT_SIZE_T(else_expr->assign_exprs->len, (size_t)1);
     ASSERT(else_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_ASSIGN);
     check_unary_expr_id(else_expr->assign_exprs->assign_chain[0].unary, "b");
