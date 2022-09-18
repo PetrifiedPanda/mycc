@@ -9,8 +9,6 @@
 
 static struct primary_expr* create_primary_expr_constant(
     struct constant constant) {
-    assert(constant.spelling);
-
     struct primary_expr* res = xmalloc(sizeof(struct primary_expr));
     res->type = PRIMARY_EXPR_CONSTANT;
     res->constant = constant;
@@ -68,19 +66,17 @@ struct primary_expr* parse_primary_expr(struct parser_state* s) {
             accept_it(s);
             if (is_enum_constant(s, spelling)) {
                 return create_primary_expr_constant(
-                    create_constant(CONSTANT_ENUM, spelling, loc));
+                    create_enum_constant(spelling, loc));
             }
             return create_primary_expr_identifier(
                 create_identifier(spelling, loc));
         }
         case F_CONSTANT:
         case I_CONSTANT: {
-            enum constant_type type = s->it->type == F_CONSTANT ? CONSTANT_FLOAT : CONSTANT_INT;
-            char* spelling = take_spelling(s->it);
             struct source_loc loc = s->it->loc;
+            struct value val = s->it->val;
             accept_it(s);
-            return create_primary_expr_constant(
-                create_constant(type, spelling, loc));
+            return create_primary_expr_constant(create_constant(val, loc));
         }
         case STRING_LITERAL: {
             char* spelling = take_spelling(s->it);

@@ -5,6 +5,7 @@
 #include <stddef.h>
 
 #include "token_type.h"
+#include "value.h"
 
 struct file_loc {
     size_t line, index;
@@ -17,7 +18,10 @@ struct source_loc {
 
 struct token {
     enum token_type type;
-    char* spelling;
+    union {
+        char* spelling;
+        struct value val;
+    };
     struct source_loc loc;
 };
 

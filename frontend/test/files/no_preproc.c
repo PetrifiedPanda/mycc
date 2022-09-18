@@ -116,7 +116,7 @@ _Noreturn static void variadic(int m, ...) {
     _Static_assert(1, "Something is wrong");
     return;
     char d = '\\', e = '\'', f = '"', g = '\0';
-    int h = 'sfss';
+    int h = 's';
 }
 
 _Thread_local int g_thread;

@@ -5,6 +5,8 @@
 
 #include "frontend/err_base.h"
 
+#include "frontend/preproc/num_parse.h"
+
 enum preproc_err_type {
     PREPROC_ERR_NONE = 0,
     PREPROC_ERR_FILE_FAIL,
@@ -18,6 +20,9 @@ enum preproc_err_type {
     PREPROC_ERR_INVALID_PREPROC_DIR,
     PREPROC_ERR_ELIF_ELSE_AFTER_ELSE,
     PREPROC_ERR_MISPLACED_PREPROC_TOKEN,
+    PREPROC_ERR_INT_CONST,
+    PREPROC_ERR_FLOAT_CONST,
+    PREPROC_ERR_CHAR_CONST,
 };
 
 enum else_op_type {
@@ -61,6 +66,14 @@ struct preproc_err {
             struct source_loc prev_else_loc;
         };
         enum token_type misplaced_preproc_tok;
+        struct {
+            char* constant_spell;
+            union {
+                struct int_const_err int_const_err;
+                struct float_const_err float_const_err;
+                struct char_const_err char_const_err;
+            };
+        };
     };
 };
 

@@ -43,6 +43,13 @@
         }                                                                      \
     } while (0)
 
+#define ASSERT_INTMAX_T(got, expected)                                         \
+    do {                                                                       \
+        if ((got) != (expected)) {                                             \
+            PRINT_ASSERT_ERR("Expected %jd but got %jd", expected, got);       \
+        }                                                                      \
+    } while (0)
+
 #define ASSERT_UINTMAX_T(got, expected)                                        \
     do {                                                                       \
         if ((got) != (expected)) {                                             \

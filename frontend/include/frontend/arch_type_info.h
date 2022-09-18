@@ -1,6 +1,7 @@
 #ifndef ARCH_TYPE_INFO_H
 #define ARCH_TYPE_INFO_H
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include "util/arch.h"
@@ -23,7 +24,7 @@ struct arch_type_info {
     struct arch_float_info float_info;
 };
 
-struct arch_type_info get_arch_type_info(enum arch a);
+struct arch_type_info get_arch_type_info(enum arch a, bool is_windows);
 
 #endif
 

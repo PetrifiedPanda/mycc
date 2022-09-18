@@ -24,7 +24,7 @@ struct parse_float_const_res {
     struct value res;
 };
 
-struct parse_float_const_res parse_float_const(const char* spell, size_t len);
+struct parse_float_const_res parse_float_const(const char* spell);
 
 void print_float_const_err(FILE* out, const struct float_const_err* err);
 
@@ -45,13 +45,42 @@ struct int_const_err {
 };
 
 struct parse_int_const_res {
-    struct int_const_err err; 
+    struct int_const_err err;
     struct value res;
 };
 
-struct parse_int_const_res parse_int_const(const char* spell, size_t len, const struct arch_int_info* info);
+struct parse_int_const_res parse_int_const(const char* spell,
+                                           const struct arch_int_info* info);
 
 void print_int_const_err(FILE* out, const struct int_const_err* err);
+
+enum char_const_err_type {
+    CHAR_CONST_ERR_NONE,
+    CHAR_CONST_ERR_EXPECTED_CHAR,
+    CHAR_CONST_ERR_INVALID_ESCAPE,
+};
+
+struct char_const_err {
+    enum char_const_err_type type;
+    union {
+        struct {
+            uint8_t num_expected;
+            char expected_chars[4];
+            char got_char;
+        };
+        char invalid_escape;
+    };
+};
+
+struct parse_char_const_res {
+    struct char_const_err err;
+    struct value res;
+};
+
+struct parse_char_const_res parse_char_const(const char* spell,
+                                             const struct arch_int_info* info);
+
+void print_char_const_err(FILE* out, const struct char_const_err* err);
 
 #endif
 

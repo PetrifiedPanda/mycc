@@ -15,6 +15,7 @@
 #include "frontend/preproc/preproc_macro.h"
 #include "frontend/preproc/preproc_state.h"
 #include "frontend/preproc/tokenizer.h"
+#include "frontend/preproc/num_parse.h"
 
 static bool preproc_file(struct preproc_state* state,
                          const char* path,
@@ -442,10 +443,52 @@ void free_preproc_res(struct preproc_res* res) {
     free_file_info(&res->file_info);
 }
 
-bool convert_preproc_tokens(struct token* tokens, struct preproc_err* err) {
+bool convert_preproc_tokens(struct token* tokens,
+                            const struct arch_int_info* info,
+                            struct preproc_err* err) {
     assert(tokens);
+    assert(info);
     for (struct token* t = tokens; t->type != INVALID; ++t) {
         switch (t->type) {
+            case I_CONSTANT: {
+                if (t->spelling[0] == '\'') {
+                    struct parse_char_const_res res = parse_char_const(t->spelling, info);
+                    if (res.err.type != CHAR_CONST_ERR_NONE) {
+                        set_preproc_err(err, PREPROC_ERR_CHAR_CONST, t->loc);
+                        err->char_const_err = res.err;
+                        err->constant_spell = t->spelling;
+                        return false;
+                    }
+                    free(t->spelling);
+                    t->val = res.res;
+                } else {
+                    struct parse_int_const_res res = parse_int_const(
+                        t->spelling,
+                        info);
+                    if (res.err.type != INT_CONST_ERR_NONE) {
+                        set_preproc_err(err, PREPROC_ERR_INT_CONST, t->loc);
+                        err->int_const_err = res.err;
+                        err->constant_spell = t->spelling;
+                        return false;
+                    }
+                    free(t->spelling);
+                    t->val = res.res;
+                }
+                break;
+            }
+            case F_CONSTANT: {
+                struct parse_float_const_res res = parse_float_const(
+                    t->spelling);
+                if (res.err.type != FLOAT_CONST_ERR_NONE) {
+                    set_preproc_err(err, PREPROC_ERR_FLOAT_CONST, t->loc);
+                    err->float_const_err = res.err;
+                    err->constant_spell = t->spelling;
+                    return false;
+                }
+                free(t->spelling);
+                t->val = res.res;
+                break;
+            }
             case IDENTIFIER:
                 t->type = keyword_type(t->spelling);
                 if (t->type != IDENTIFIER) {

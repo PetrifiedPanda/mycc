@@ -11,13 +11,16 @@ enum constant_type {
 
 struct constant {
     struct ast_node_info info;
-    enum constant_type type; // ENUM, F_CONSTANT or I_CONSTANT
-    char* spelling;
+    enum constant_type type;
+    union {
+        char* spelling;
+        struct value val;
+    };
 };
 
-struct constant create_constant(enum constant_type,
-                                char* spelling,
-                                struct source_loc loc);
+struct constant create_constant(struct value val, struct source_loc loc);
+
+struct constant create_enum_constant(char* spelling, struct source_loc loc);
 
 void free_constant(struct constant* c);
 

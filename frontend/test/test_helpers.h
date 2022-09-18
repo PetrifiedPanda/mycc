@@ -12,6 +12,14 @@
         }                                                                      \
     } while (0)
 
+#define ASSERT_VALUE_TYPE(got, expected)                                       \
+    do {                                                                       \
+        if ((got) != (expected)) {                                             \
+            PRINT_ASSERT_ERR("Expected %s but got %s",                         \
+                             get_value_type_str(expected),                     \
+                             get_value_type_str(got));                         \
+        }                                                                      \
+    } while (0)
 
 struct preproc_res tokenize(const char* file);
 struct preproc_res tokenize_string(const char* str, const char* file);

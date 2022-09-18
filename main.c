@@ -52,6 +52,14 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
+#ifdef _WIN32
+    const bool is_windows = true;
+#else
+    const bool is_windows = false;
+#endif
+
+    const struct arch_type_info type_info = get_arch_type_info(ARCH_X86_64, is_windows);
+
     for (int i = 1; i < argc; ++i) {
         const char* filename = argv[i];
 
@@ -62,7 +70,7 @@ int main(int argc, char** argv) {
             free_preproc_err(&preproc_err);
             return EXIT_FAILURE;
         }
-        if (!convert_preproc_tokens(preproc_res.toks, &preproc_err)) {
+        if (!convert_preproc_tokens(preproc_res.toks, &type_info.int_info, &preproc_err)) {
             print_preproc_err(stderr, &preproc_res.file_info, &preproc_err);
             free_preproc_err(&preproc_err);
             free_preproc_res(&preproc_res);

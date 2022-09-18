@@ -43,6 +43,8 @@ char* take_spelling(struct token* t) {
 
 void free_token(struct token* t) {
     assert(t);
-    free(t->spelling);
+    if (t->type != I_CONSTANT && t->type != F_CONSTANT) {
+        free(t->spelling);
+    }
 }
 
