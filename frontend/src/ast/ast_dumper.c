@@ -211,7 +211,7 @@ static void dump_value(struct ast_dumper* d, struct value val) {
     } else if (value_is_uint(val.type)) {
         dumper_println(d, "uint_val: %ju", val.uint_val);
     } else {
-        dumper_println(d, "float_val: %lf", val.float_val);
+        dumper_println(d, "float_val: %Lg", val.float_val);
     }
 
     remove_indent(d);

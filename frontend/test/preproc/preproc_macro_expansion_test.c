@@ -53,11 +53,11 @@ static void test_preproc_macro(const struct preproc_macro* macro,
     for (size_t i = 0; i < state.res.len; ++i) {
         ASSERT_TOKEN_TYPE(state.res.tokens[i].type, expected.toks[i].type);
         ASSERT_STR(state.res.tokens[i].spelling, expected.toks[i].spelling);
-        free_token(&state.res.tokens[i]);
+        free(state.res.tokens[i].spelling);
     }
     free(state.res.tokens);
     free_file_info(&res.file_info);
-    free_preproc_res(&expected);
+    free_preproc_res_preproc_tokens(&expected);
 }
 
 TEST(object_like) {
@@ -68,7 +68,7 @@ TEST(object_like) {
         {.is_arg = false, .token = {I_CONSTANT, .spelling = "2", {0, {1, 19}}}},
     };
     enum {
-        EXP_LEN = sizeof(expansion) / sizeof(struct token_or_arg)
+        EXP_LEN = sizeof(expansion) / sizeof *expansion
     };
 
     struct preproc_macro macro = {
@@ -139,7 +139,7 @@ TEST(func_like) {
         .num_args = 2,
         .is_variadic = false,
 
-        .expansion_len = sizeof(ex1) / sizeof(struct token_or_arg),
+        .expansion_len = sizeof(ex1) / sizeof *ex1,
         .expansion = ex1,
     };
 
@@ -169,7 +169,7 @@ TEST(func_like) {
         .num_args = 6,
         .is_variadic = false,
 
-        .expansion_len = sizeof(ex2) / sizeof(struct token_or_arg),
+        .expansion_len = sizeof(ex2) / sizeof *ex2,
         .expansion = ex2,
     };
 
@@ -191,7 +191,7 @@ TEST(func_like) {
         .num_args = 0,
         .is_variadic = false,
 
-        .expansion_len = sizeof(ex3) / sizeof(struct token_or_arg),
+        .expansion_len = sizeof(ex3) / sizeof *ex3,
         .expansion = ex3,
     };
 
@@ -216,7 +216,7 @@ TEST(func_like_variadic) {
         .num_args = 1,
         .is_variadic = true,
 
-        .expansion_len = sizeof(ex1) / sizeof(struct token_or_arg),
+        .expansion_len = sizeof(ex1) / sizeof *ex1,
         .expansion = ex1,
     };
 
@@ -241,7 +241,7 @@ TEST(func_like_variadic) {
         .num_args = 0,
         .is_variadic = true,
 
-        .expansion_len = sizeof(ex2) / sizeof(struct token_or_arg),
+        .expansion_len = sizeof(ex2) / sizeof *ex2,
         .expansion = ex2,
     };
 

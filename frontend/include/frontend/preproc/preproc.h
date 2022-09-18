@@ -35,6 +35,14 @@ struct preproc_res preproc_string(const char* str,
  */
 bool convert_preproc_tokens(struct token* tokens, const struct arch_int_info* info, struct preproc_err* err);
 
+/**
+ * Frees tokens before calling convert_preproc_tokens
+ */
+void free_preproc_res_preproc_tokens(struct preproc_res* res);
+
+/**
+ * Frees tokens after calling convert_preproc_tokens
+ */
 void free_preproc_res(struct preproc_res* res);
 
 #endif

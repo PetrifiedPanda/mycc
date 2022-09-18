@@ -117,7 +117,7 @@ TEST(jump_statement) {
         ASSERT(res->type == JUMP_STATEMENT_RETURN);
         ASSERT_NOT_NULL(res->ret_val);
 
-        check_expr_id_or_const(res->ret_val, "600", I_CONSTANT);
+        check_expr_const(res->ret_val, create_int_value(VALUE_INT, 600));
 
         free_jump_statement(res);
         free_parser_state(&s);
@@ -162,9 +162,9 @@ TEST(statement) {
                                .value->last_else->log_ands->or_exprs->xor_exprs
                                ->and_exprs->eq_exprs->lhs;
     ASSERT_SIZE_T(rel->len, (size_t)1);
-    check_shift_expr_id_or_const(rel->lhs, "i", IDENTIFIER);
+    check_shift_expr_id(rel->lhs, "i");
     ASSERT(rel->rel_chain[0].op == REL_EXPR_LT);
-    check_shift_expr_id_or_const(rel->rel_chain[0].rhs, "100", I_CONSTANT);
+    check_shift_expr_const(rel->rel_chain[0].rhs, create_int_value(VALUE_INT, 100));
 
     struct unary_expr* unary = iteration->for_loop.incr_expr->assign_exprs
                                    ->value->last_else->log_ands->or_exprs
@@ -173,7 +173,7 @@ TEST(statement) {
     ASSERT_SIZE_T(unary->len, (size_t)1);
     ASSERT(unary->ops_before[0] == UNARY_OP_INC);
     ASSERT(unary->type == UNARY_POSTFIX);
-    check_postfix_expr_id_or_const(unary->postfix, "i", IDENTIFIER);
+    check_postfix_expr_id(unary->postfix, "i");
 
     ASSERT(iteration->loop_body->type == STATEMENT_COMPOUND);
     struct compound_statement* compound = iteration->loop_body->comp;
@@ -181,7 +181,7 @@ TEST(statement) {
 
     struct selection_statement* switch_stat = compound->items[0].stat.sel;
     ASSERT(switch_stat->is_if == false);
-    check_expr_id_or_const(switch_stat->sel_expr, "c", IDENTIFIER);
+    check_expr_id(switch_stat->sel_expr, "c");
     ASSERT(switch_stat->sel_stat->type == STATEMENT_COMPOUND);
     {
         struct compound_statement* switch_compound = switch_stat->sel_stat
@@ -193,20 +193,18 @@ TEST(statement) {
         ASSERT(labeled->type == LABELED_STATEMENT_CASE);
 
         ASSERT_NOT_NULL(labeled->case_expr);
-        check_const_expr_id_or_const(labeled->case_expr, "2", I_CONSTANT);
+        check_const_expr_const(labeled->case_expr, create_int_value(VALUE_INT, 2));
 
         ASSERT(labeled->stat->type == STATEMENT_EXPRESSION);
         struct expr* case_expr = &labeled->stat->expr->expr;
         ASSERT_SIZE_T(case_expr->assign_exprs->len, (size_t)1);
 
-        check_cond_expr_id_or_const(case_expr->assign_exprs->value,
-                                    "5",
-                                    I_CONSTANT);
+        check_cond_expr_const(case_expr->assign_exprs->value,
+                                    create_int_value(VALUE_INT, 5));
         ASSERT(case_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_SUB);
-        check_unary_expr_id_or_const(
+        check_unary_expr_id(
             case_expr->assign_exprs->assign_chain[0].unary,
-            "d",
-            IDENTIFIER);
+            "d");
 
         ASSERT(switch_compound->items[1].stat.type == STATEMENT_JUMP);
         struct jump_statement* break_stat = switch_compound->items[1].stat.jmp;
@@ -224,14 +222,12 @@ TEST(statement) {
         struct expr* default_expr = &default_stat->stat->expr->expr;
 
         ASSERT_SIZE_T(default_expr->assign_exprs->len, (size_t)1);
-        check_cond_expr_id_or_const(default_expr->assign_exprs->value,
-                                    "5",
-                                    I_CONSTANT);
+        check_cond_expr_const(default_expr->assign_exprs->value,
+                                    create_int_value(VALUE_INT, 5));
         ASSERT(default_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_ADD);
-        check_unary_expr_id_or_const(
+        check_unary_expr_id(
             default_expr->assign_exprs->assign_chain[0].unary,
-            "d",
-            IDENTIFIER);
+            "d");
     }
 
     ASSERT(compound->items[1].stat.type == STATEMENT_SELECTION);
@@ -244,9 +240,9 @@ TEST(statement) {
                                    ->eq_exprs->lhs;
 
     ASSERT_SIZE_T(if_cond->len, (size_t)1);
-    check_shift_expr_id_or_const(if_cond->lhs, "i", IDENTIFIER);
+    check_shift_expr_id(if_cond->lhs, "i");
     ASSERT(if_cond->rel_chain[0].op == REL_EXPR_GE);
-    check_shift_expr_id_or_const(if_cond->rel_chain[0].rhs, "5", I_CONSTANT);
+    check_shift_expr_const(if_cond->rel_chain[0].rhs, create_int_value(VALUE_INT, 5));
 
     ASSERT(if_stat->sel_stat->type == STATEMENT_COMPOUND);
     ASSERT_SIZE_T(if_stat->sel_stat->comp->len, (size_t)1);
@@ -257,14 +253,11 @@ TEST(statement) {
     ASSERT_NOT_NULL(if_stat->else_stat);
     ASSERT(if_stat->else_stat->type == STATEMENT_EXPRESSION);
     struct expr* else_expr = &if_stat->else_stat->expr->expr;
-    check_cond_expr_id_or_const(else_expr->assign_exprs->value,
-                                "0",
-                                I_CONSTANT);
+    check_cond_expr_const(else_expr->assign_exprs->value,
+                                create_int_value(VALUE_INT, 0));
     ASSERT_SIZE_T(else_expr->assign_exprs->len, (size_t)1);
     ASSERT(else_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_ASSIGN);
-    check_unary_expr_id_or_const(else_expr->assign_exprs->assign_chain[0].unary,
-                                 "b",
-                                 IDENTIFIER);
+    check_unary_expr_id(else_expr->assign_exprs->assign_chain[0].unary, "b");
 
     free_statement(res);
     free_parser_state(&s);

@@ -438,6 +438,18 @@ static void free_tokens(struct token* tokens) {
     free(tokens);
 }
 
+static void free_preproc_tokens(struct token* tokens) {
+    for (struct token* it = tokens; it->type != INVALID; ++it) {
+        free(it->spelling);
+    }
+    free(tokens);
+}
+
+void free_preproc_res_preproc_tokens(struct preproc_res* res) {
+    free_preproc_tokens(res->toks);
+    free_file_info(&res->file_info);
+}
+
 void free_preproc_res(struct preproc_res* res) {
     free_tokens(res->toks);
     free_file_info(&res->file_info);

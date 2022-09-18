@@ -71,7 +71,7 @@ struct preproc_cond* peek_preproc_cond(struct preproc_state* state) {
 
 void free_token_arr(struct token_arr* arr) {
     for (size_t i = 0; i < arr->len; ++i) {
-        free_token(&arr->tokens[i]);
+        free(arr->tokens[i].spelling);
     }
     free(arr->tokens);
 }

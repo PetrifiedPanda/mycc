@@ -22,5 +22,7 @@ struct constant create_enum_constant(char* spelling, struct source_loc loc) {
 }
 
 void free_constant(struct constant* c) {
-    free(c->spelling);
+    if (c->type == CONSTANT_ENUM) {
+        free(c->spelling);
+    }
 }

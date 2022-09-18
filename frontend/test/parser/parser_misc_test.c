@@ -51,7 +51,7 @@ TEST(enum_list) {
         }
         check_enum_list_ids(&res,
                             enum_constants,
-                            sizeof enum_constants / sizeof(char*));
+                            sizeof enum_constants / sizeof *enum_constants);
 
         for (size_t i = 0; i < EXPECTED_LEN; ++i) {
             ASSERT(is_enum_constant(&s, enum_constants[i]));
@@ -82,18 +82,16 @@ TEST(enum_list) {
         }
 
         ASSERT_NOT_NULL(res.enums[0].enum_val);
-        check_const_expr_id_or_const(res.enums[0].enum_val, "0", I_CONSTANT);
+        check_const_expr_const(res.enums[0].enum_val, create_int_value(VALUE_INT, 0));
 
         ASSERT_NOT_NULL(res.enums[1].enum_val);
-        check_const_expr_id_or_const(res.enums[1].enum_val,
-                                     "1000.0",
-                                     F_CONSTANT);
+        check_const_expr_const(res.enums[1].enum_val, create_float_value(VALUE_DOUBLE, 1000.0));
 
         ASSERT_NOT_NULL(res.enums[2].enum_val);
-        check_const_expr_id_or_const(res.enums[2].enum_val, "n", IDENTIFIER);
+        check_const_expr_id(res.enums[2].enum_val, "n");
 
         ASSERT_NOT_NULL(res.enums[3].enum_val);
-        check_const_expr_id_or_const(res.enums[3].enum_val, "test", IDENTIFIER);
+        check_const_expr_id(res.enums[3].enum_val, "test");
 
         for (size_t i = 4; i < EXPECTED_LEN; ++i) {
             ASSERT_NULL(res.enums[i].enum_val);
@@ -129,7 +127,7 @@ TEST(enum_spec) {
 
         check_enum_list_ids(&res->enum_list,
                             enum_constants,
-                            sizeof enum_constants / sizeof(char*));
+                            sizeof enum_constants / sizeof *enum_constants);
 
         free_preproc_res(&preproc_res);
         free_parser_state(&s);
@@ -153,7 +151,7 @@ TEST(enum_spec) {
 
         check_enum_list_ids(&res->enum_list,
                             enum_constants,
-                            sizeof enum_constants / sizeof(char*));
+                            sizeof enum_constants / sizeof *enum_constants);
 
         free_preproc_res(&preproc_res);
         free_parser_state(&s);
@@ -184,9 +182,7 @@ TEST(designation) {
         check_identifier(designators[0].identifier, "test");
 
         ASSERT(designators[1].is_index == true);
-        check_cond_expr_id_or_const(&designators[1].arr_index->expr,
-                                    "19",
-                                    I_CONSTANT);
+        check_cond_expr_const(&designators[1].arr_index->expr, create_int_value(VALUE_INT, 19));
 
         ASSERT(designators[2].is_index == false);
         check_identifier(designators[2].identifier, "what_is_this");
@@ -215,30 +211,22 @@ TEST(designation) {
 
         struct designator* designators = res->designators.designators;
         ASSERT(designators[0].is_index == true);
-        check_cond_expr_id_or_const(&designators[0].arr_index->expr,
-                                    "0.5",
-                                    F_CONSTANT);
+        check_cond_expr_const(&designators[0].arr_index->expr, create_float_value(VALUE_DOUBLE, 0.5));
 
         ASSERT(designators[1].is_index == false);
         check_identifier(designators[1].identifier, "blah");
 
         ASSERT(designators[2].is_index == true);
-        check_cond_expr_id_or_const(&designators[2].arr_index->expr,
-                                    "420",
-                                    I_CONSTANT);
+        check_cond_expr_const(&designators[2].arr_index->expr, create_int_value(VALUE_INT, 420));
 
         ASSERT(designators[3].is_index == false);
         check_identifier(designators[3].identifier, "oof");
 
         ASSERT(designators[4].is_index == true);
-        check_cond_expr_id_or_const(&designators[4].arr_index->expr,
-                                    "2",
-                                    I_CONSTANT);
+        check_cond_expr_const(&designators[4].arr_index->expr, create_int_value(VALUE_INT, 2));
 
         ASSERT(designators[5].is_index == true);
-        check_cond_expr_id_or_const(&designators[5].arr_index->expr,
-                                    "10",
-                                    I_CONSTANT);
+        check_cond_expr_const(&designators[5].arr_index->expr, create_int_value(VALUE_INT, 10));
 
         free_designation(res);
         free_parser_state(&s);
@@ -260,7 +248,7 @@ TEST(static_assert_declaration) {
     ASSERT(err.type == PARSER_ERR_NONE);
 
     ASSERT_STR(res->err_msg.spelling, "\"This is a string literal\"");
-    check_const_expr_id_or_const(res->const_expr, "12345", I_CONSTANT);
+    check_const_expr_const(res->const_expr, create_int_value(VALUE_INT, 12345));
 
     free_preproc_res(&preproc_res);
     free_parser_state(&s);
