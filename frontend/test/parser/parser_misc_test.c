@@ -19,7 +19,9 @@ static void check_enum_list_ids(struct enum_list* l,
 }
 
 TEST(enum_list) {
-    enum { EXPECTED_LEN = 8 };
+    enum {
+        EXPECTED_LEN = 8
+    };
     const char* enum_constants[EXPECTED_LEN] = {
         "ENUM_VAL1",
         "enum_VAl2",
@@ -67,7 +69,7 @@ TEST(enum_list) {
             "ENUM_VAL1 = 0, enum_VAl2 = 1000.0, enum_val_3 = n, enum_val_4 = "
             "test, foo, bar, baz, BAD",
             "saffds");
-        
+
         struct parser_err err = create_parser_err();
         struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
@@ -82,10 +84,12 @@ TEST(enum_list) {
         }
 
         ASSERT_NOT_NULL(res.enums[0].enum_val);
-        check_const_expr_const(res.enums[0].enum_val, create_int_value(VALUE_INT, 0));
+        check_const_expr_const(res.enums[0].enum_val,
+                               create_int_value(VALUE_INT, 0));
 
         ASSERT_NOT_NULL(res.enums[1].enum_val);
-        check_const_expr_const(res.enums[1].enum_val, create_float_value(VALUE_DOUBLE, 1000.0));
+        check_const_expr_const(res.enums[1].enum_val,
+                               create_float_value(VALUE_DOUBLE, 1000.0));
 
         ASSERT_NOT_NULL(res.enums[2].enum_val);
         check_const_expr_id(res.enums[2].enum_val, "n");
@@ -159,21 +163,30 @@ TEST(enum_spec) {
     }
 }
 
+static struct designation* parse_designation_helper(const char* code) {
+    struct preproc_res preproc_res = tokenize_string(
+        code,
+        "jsalkf");
+
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(preproc_res.toks, &err);
+
+    struct designation* res = parse_designation(&s);
+    ASSERT_NOT_NULL(res);
+    ASSERT_NOT_NULL(res->designators.designators);
+    ASSERT(err.type == PARSER_ERR_NONE);
+
+    ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+
+    free_parser_state(&s);
+    free_preproc_res(&preproc_res);
+    
+    return res;
+}
+
 TEST(designation) {
     {
-        struct preproc_res preproc_res = tokenize_string(
-            ".test[19].what_is_this.another_one = ",
-            "jsalkf");
-
-        struct parser_err err = create_parser_err();
-        struct parser_state s = create_parser_state(preproc_res.toks, &err);
-
-        struct designation* res = parse_designation(&s);
-        ASSERT_NOT_NULL(res);
-        ASSERT_NOT_NULL(res->designators.designators);
-        ASSERT(err.type == PARSER_ERR_NONE);
-
-        ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+        struct designation* res = parse_designation_helper(".test[19].what_is_this.another_one = ");
 
         ASSERT_SIZE_T(res->designators.len, (size_t)4);
 
@@ -182,7 +195,8 @@ TEST(designation) {
         check_identifier(designators[0].identifier, "test");
 
         ASSERT(designators[1].is_index == true);
-        check_cond_expr_const(&designators[1].arr_index->expr, create_int_value(VALUE_INT, 19));
+        check_cond_expr_const(&designators[1].arr_index->expr,
+                              create_int_value(VALUE_INT, 19));
 
         ASSERT(designators[2].is_index == false);
         check_identifier(designators[2].identifier, "what_is_this");
@@ -191,46 +205,37 @@ TEST(designation) {
         check_identifier(designators[3].identifier, "another_one");
 
         free_designation(res);
-        free_parser_state(&s);
-        free_preproc_res(&preproc_res);
     }
 
     {
-        struct preproc_res preproc_res = tokenize_string("[0.5].blah[420].oof[2][10] =",
-                                              "stetsd");
-
-        struct parser_err err = create_parser_err();
-        struct parser_state s = create_parser_state(preproc_res.toks, &err);
-
-        struct designation* res = parse_designation(&s);
-        ASSERT(err.type == PARSER_ERR_NONE);
-        ASSERT_NOT_NULL(res);
-        ASSERT_NOT_NULL(res->designators.designators);
+        struct designation* res = parse_designation_helper("[0.5].blah[420].oof[2][10] =");
 
         ASSERT_SIZE_T(res->designators.len, (size_t)6);
 
         struct designator* designators = res->designators.designators;
         ASSERT(designators[0].is_index == true);
-        check_cond_expr_const(&designators[0].arr_index->expr, create_float_value(VALUE_DOUBLE, 0.5));
+        check_cond_expr_const(&designators[0].arr_index->expr,
+                              create_float_value(VALUE_DOUBLE, 0.5));
 
         ASSERT(designators[1].is_index == false);
         check_identifier(designators[1].identifier, "blah");
 
         ASSERT(designators[2].is_index == true);
-        check_cond_expr_const(&designators[2].arr_index->expr, create_int_value(VALUE_INT, 420));
+        check_cond_expr_const(&designators[2].arr_index->expr,
+                              create_int_value(VALUE_INT, 420));
 
         ASSERT(designators[3].is_index == false);
         check_identifier(designators[3].identifier, "oof");
 
         ASSERT(designators[4].is_index == true);
-        check_cond_expr_const(&designators[4].arr_index->expr, create_int_value(VALUE_INT, 2));
+        check_cond_expr_const(&designators[4].arr_index->expr,
+                              create_int_value(VALUE_INT, 2));
 
         ASSERT(designators[5].is_index == true);
-        check_cond_expr_const(&designators[5].arr_index->expr, create_int_value(VALUE_INT, 10));
+        check_cond_expr_const(&designators[5].arr_index->expr,
+                              create_int_value(VALUE_INT, 10));
 
         free_designation(res);
-        free_parser_state(&s);
-        free_preproc_res(&preproc_res);
     }
 }
 
