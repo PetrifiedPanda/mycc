@@ -21,6 +21,8 @@ struct tokenizer_state {
 
 static enum token_type singlec_token_type(char c);
 static enum token_type check_next(enum token_type type, const char* next);
+static bool is_singlec_token(const struct tokenizer_state* s,
+                             enum token_type t);
 
 static void advance(struct tokenizer_state* s, size_t num);
 static void advance_one(struct tokenizer_state* s);
@@ -85,7 +87,7 @@ bool tokenize_line(struct token_arr* res,
         }
 
         enum token_type type = singlec_token_type(*s.it);
-        if (type != INVALID) {
+        if (type != INVALID && is_singlec_token(&s, type)) {
             if (type == DIV && (s.it[1] == '/' || s.it[1] == '*')) {
                 handle_comments(&s, comment_not_terminated);
                 continue;
@@ -288,6 +290,16 @@ static enum token_type check_next(enum token_type type, const char* next) {
     }
 
     return type;
+}
+
+static bool is_singlec_token(const struct tokenizer_state* s,
+                             enum token_type t) {
+    switch (t) {
+        case DOT:
+            return !isdigit(s->it[1]);
+        default:
+            return true;
+    }
 }
 
 static void advance(struct tokenizer_state* s, size_t num) {
@@ -507,7 +519,7 @@ static bool handle_character_literal(struct tokenizer_state* s,
     return true;
 }
 
-static bool token_is_over2(const struct tokenizer_state* s, bool is_num) {
+static bool token_is_over(const struct tokenizer_state* s, bool is_num) {
     if (*s->it == '\0' || isspace(*s->it)) {
         return true;
     }
@@ -518,7 +530,7 @@ static bool token_is_over2(const struct tokenizer_state* s, bool is_num) {
         switch (type) {
             case SUB:
             case ADD: {
-                char prev = tolower((unsigned char)s->prev);
+                char prev = (char)tolower((unsigned char)s->prev);
                 return (prev != 'e' && prev != 'p');
             }
             case DOT:
@@ -538,11 +550,11 @@ static bool handle_other(struct tokenizer_state* s,
         BUF_STRLEN = 512
     };
 
-    const bool is_num = isdigit(*s->it);
+    const bool is_num = isdigit(*s->it) || *s->it == '.';
     char spell_buf[BUF_STRLEN + 1] = {0};
     size_t buf_idx = 0;
     struct file_loc start_loc = s->file_loc;
-    while (!token_is_over2(s, is_num) && buf_idx != BUF_STRLEN) {
+    while (!token_is_over(s, is_num) && buf_idx != BUF_STRLEN) {
         spell_buf[buf_idx] = *s->it;
         ++buf_idx;
 
@@ -550,12 +562,12 @@ static bool handle_other(struct tokenizer_state* s,
     }
 
     char* dyn_buf = NULL;
-    if (!token_is_over2(s, is_num)) {
+    if (!token_is_over(s, is_num)) {
         size_t buf_len = BUF_STRLEN + BUF_STRLEN / 2;
         dyn_buf = xmalloc(buf_len * sizeof(char));
         strcpy(dyn_buf, spell_buf);
 
-        while (!token_is_over2(s, is_num)) {
+        while (!token_is_over(s, is_num)) {
             if (buf_idx == buf_len - 1) {
                 grow_alloc((void**)&dyn_buf, &buf_len, sizeof(char));
             }
@@ -583,12 +595,14 @@ static bool handle_other(struct tokenizer_state* s,
                 .file_loc = start_loc,
             };
             set_preproc_err(err, PREPROC_ERR_INVALID_NUMBER, loc);
-            char* num_spell = buf_to_check != dyn_buf ? alloc_string_copy(buf_to_check) : dyn_buf;
+            char* num_spell = buf_to_check != dyn_buf
+                                  ? alloc_string_copy(buf_to_check)
+                                  : dyn_buf;
             err->invalid_num = num_spell;
             return false;
         }
     } else if (is_valid_identifier(buf_to_check, buf_idx)) {
-        type = IDENTIFIER;    
+        type = IDENTIFIER;
     } else {
         struct source_loc loc = {
             .file_idx = s->current_file_idx,

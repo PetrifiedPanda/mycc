@@ -7,11 +7,18 @@
 
 #include "../test_helpers.h"
 
-static struct token create(enum token_type type, const char* spelling, size_t line, size_t index);
+static struct token create(enum token_type type,
+                           const char* spelling,
+                           size_t line,
+                           size_t index);
 static struct token create_value(struct value val, size_t line, size_t index);
 
-static void check_token_arr_file(const char* filename, const struct token* expected, size_t expected_len);
-static void check_token_arr_str(const char* code, const struct token* expected, size_t expected_len);
+static void check_token_arr_file(const char* filename,
+                                 const struct token* expected,
+                                 size_t expected_len);
+static void check_token_arr_str(const char* code,
+                                const struct token* expected,
+                                size_t expected_len);
 
 TEST(simple) {
     const char*
@@ -745,7 +752,9 @@ TEST(file) {
         create(IDENTIFIER, "g_thread", 122, 19),
         create(SEMICOLON, NULL, 122, 27),
     };
-    check_token_arr_file(filename, expected, sizeof expected / sizeof *expected);
+    check_token_arr_file(filename,
+                         expected,
+                         sizeof expected / sizeof *expected);
 }
 
 TEST(hex_literal_or_var) {
@@ -781,10 +790,25 @@ TEST(hex_literal_or_var) {
     }
 }
 
-TEST_SUITE_BEGIN(tokenizer, 3) {
+TEST(dot_float_literal_or_op) {
+    {
+        const char* code = "int n = .001";
+
+        const struct token expected[] = {
+            create(INT, NULL, 1, 1),
+            create(IDENTIFIER, "n", 1, 5),
+            create(ASSIGN, NULL, 1, 7),
+            create_value(create_float_value(VALUE_DOUBLE, .001), 1, 9),
+        };
+        check_token_arr_str(code, expected, sizeof expected / sizeof *expected);
+    }
+}
+
+TEST_SUITE_BEGIN(tokenizer, 4) {
     REGISTER_TEST(simple);
     REGISTER_TEST(file);
     REGISTER_TEST(hex_literal_or_var);
+    REGISTER_TEST(dot_float_literal_or_op);
 }
 TEST_SUITE_END()
 
@@ -866,7 +890,10 @@ static void compare_tokens(const struct token* got,
     }
 }
 
-static void check_token_arr_helper(const char* file_or_code, const struct token* expected, size_t expected_len, struct preproc_res(*func)(const char*)) {
+static void check_token_arr_helper(const char* file_or_code,
+                                   const struct token* expected,
+                                   size_t expected_len,
+                                   struct preproc_res (*func)(const char*)) {
     struct preproc_res preproc_res = func(file_or_code);
     ASSERT_NOT_NULL(preproc_res.toks);
     check_size(preproc_res.toks, expected_len);
@@ -877,7 +904,9 @@ static void check_token_arr_helper(const char* file_or_code, const struct token*
     free_preproc_res(&preproc_res);
 }
 
-static void check_token_arr_file(const char* filename, const struct token* expected, size_t expected_len) {
+static void check_token_arr_file(const char* filename,
+                                 const struct token* expected,
+                                 size_t expected_len) {
     check_token_arr_helper(filename, expected, expected_len, tokenize);
 }
 
@@ -885,6 +914,11 @@ static struct preproc_res tokenize_string_wrapper(const char* code) {
     return tokenize_string(code, "code.c");
 }
 
-static void check_token_arr_str(const char* code, const struct token* expected, size_t expected_len) {
-    check_token_arr_helper(code, expected, expected_len, tokenize_string_wrapper);
+static void check_token_arr_str(const char* code,
+                                const struct token* expected,
+                                size_t expected_len) {
+    check_token_arr_helper(code,
+                           expected,
+                           expected_len,
+                           tokenize_string_wrapper);
 }

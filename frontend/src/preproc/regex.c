@@ -172,8 +172,7 @@ static bool is_float_const_no_dec_point(const char* str, size_t num) {
         ++i;
     }
 
-    if ((is_float_suffix(str[num - 1])
-         && is_exp_suffix(str + i, num - i - 1, false))
+    if (is_exp_suffix(str + i, num - i - 1, false)
         || is_exp_suffix(str + i, num - i, false)) {
         return true;
     } else {
@@ -187,41 +186,6 @@ static bool is_after_decimal_float_const(const char* str, size_t num) {
     }
 
     size_t i = 0;
-    while (i != num && isdigit(str[i])) {
-        ++i;
-    }
-
-    if (i == num || str[i] != '.') {
-        return false;
-    }
-    ++i;
-
-    if (!isdigit(str[i])) {
-        return false;
-    }
-
-    while (i != num && isdigit(str[i])) {
-        ++i;
-    }
-
-    if (i == num || (i == num - 1 && is_float_suffix(str[num - 1]))
-        || (is_float_suffix(str[num - 1])
-            && is_exp_suffix(str + i, num - i - 1, false))
-        || is_exp_suffix(str + i, num - i, false)) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-static bool is_before_decimal_float_const(const char* str, size_t num) {
-    size_t i = 0;
-    if (num < 2 || !isdigit(str[i])) {
-        return false;
-    }
-
-    ++i;
-
     while (i != num && isdigit(str[i])) {
         ++i;
     }
@@ -250,12 +214,10 @@ static bool is_hex_float_const(const char* str, size_t num);
 bool is_float_const(const char* str, size_t num) {
     assert(num > 0);
     if (str[0] == '0' && num >= 2 && tolower(str[1]) == 'x') {
-        bool res = is_hex_float_const(str, num);
-        return res;
+        return is_hex_float_const(str, num);
     } else {
         return is_float_const_no_dec_point(str, num)
-               || is_after_decimal_float_const(str, num)
-               || is_before_decimal_float_const(str, num);
+               || is_after_decimal_float_const(str, num);
     }
 }
 
