@@ -63,7 +63,7 @@ my_cool_label:
 }
 
 static int do_shit(n, m) int n; int m; { // this syntax exists I guess
-    double d = 1e-10 - 1e10;
+    double d = 1e-10 - 0xabecp10;
     int type_size = sizeof(double);
     int size = sizeof d;
 
@@ -112,7 +112,7 @@ _Noreturn static void variadic(int m, ...) {
 
     const char* func_name = __func__;
     double _Complex comp_d = 0;
-    double _Imaginary im_d = _Generic(1.0, float: 10, double: 12.0);
+    double _Imaginary im_d = _Generic(1.0, float: 0x1p+2f, double: 0X12.0P-10L);
     _Static_assert(1, "Something is wrong");
     return;
     char d = '\\', e = '\'', f = '"', g = '\0';

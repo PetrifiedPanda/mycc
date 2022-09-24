@@ -301,7 +301,9 @@ static bool is_valid_singlec_token(enum token_type type,
                                    char prev_prev) {
     assert(type != INVALID);
     if ((type == DOT && isdigit(prev))
-        || ((type == SUB || type == ADD) && tolower((unsigned char)prev) == 'e'
+        || ((type == SUB || type == ADD)
+            && (tolower((unsigned char)prev) == 'e'
+                || tolower((unsigned char)prev) == 'p')
             && isdigit(prev_prev))) {
         return false;
     } else {
@@ -490,7 +492,10 @@ static bool handle_character_literal(struct tokenizer_state* s,
         if (dyn_buf != NULL) {
             free(dyn_buf);
         }
-        unterminated_literal_err(err, terminator, start_loc, s->current_file_idx);
+        unterminated_literal_err(err,
+                                 terminator,
+                                 start_loc,
+                                 s->current_file_idx);
         return false;
     } else {
         bool is_dyn = dyn_buf != NULL;
@@ -512,7 +517,11 @@ static bool handle_character_literal(struct tokenizer_state* s,
         if (is_dyn) {
             add_token(res, type, dyn_buf, start_loc, s->current_file_idx);
         } else {
-            add_token_copy(res, type, spell_buf, start_loc, s->current_file_idx);
+            add_token_copy(res,
+                           type,
+                           spell_buf,
+                           start_loc,
+                           s->current_file_idx);
         }
     }
 

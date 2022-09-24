@@ -1933,7 +1933,7 @@ translation_unit:
                                                   constant: ../frontend/test/files/no_preproc.c:66,24
                                                     value:
                                                       type: VALUE_DOUBLE
-                                                      float_val: 1e+10
+                                                      float_val: 4.50683e+07
                                                 len: 0
         block_item:
           declaration:
@@ -5036,12 +5036,12 @@ translation_unit:
                                                                                       primary_expr:
                                                                                         constant: ../frontend/test/files/no_preproc.c:115,51
                                                                                           value:
-                                                                                            type: VALUE_INT
-                                                                                            int_val: 10
+                                                                                            type: VALUE_FLOAT
+                                                                                            float_val: 4
                                                                                       len: 0
-                                                      generic_assoc: ../frontend/test/files/no_preproc.c:115,55
+                                                      generic_assoc: ../frontend/test/files/no_preproc.c:115,60
                                                         type_name:
-                                                          spec_qual_list: ../frontend/test/files/no_preproc.c:115,55
+                                                          spec_qual_list: ../frontend/test/files/no_preproc.c:115,60
                                                             type_quals:
                                                               is_const: false
                                                               is_restrict: false
@@ -5080,16 +5080,16 @@ translation_unit:
                                                                               len: 0
                                                                               mul_expr:
                                                                                 len: 0
-                                                                                cast_expr: ../frontend/test/files/no_preproc.c:115,63
+                                                                                cast_expr: ../frontend/test/files/no_preproc.c:115,68
                                                                                   len: 0
-                                                                                  unary_expr: ../frontend/test/files/no_preproc.c:115,63
+                                                                                  unary_expr: ../frontend/test/files/no_preproc.c:115,68
                                                                                     len: 0
                                                                                     postfix_expr:
                                                                                       primary_expr:
-                                                                                        constant: ../frontend/test/files/no_preproc.c:115,63
+                                                                                        constant: ../frontend/test/files/no_preproc.c:115,68
                                                                                           value:
-                                                                                            type: VALUE_DOUBLE
-                                                                                            float_val: 12
+                                                                                            type: VALUE_LDOUBLE
+                                                                                            float_val: 0.0175781
                                                                                       len: 0
                                                 len: 0
         block_item:
