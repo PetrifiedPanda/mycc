@@ -12,6 +12,7 @@ enum preproc_err_type {
     PREPROC_ERR_FILE_FAIL,
     PREPROC_ERR_UNTERMINATED_LIT,
     PREPROC_ERR_INVALID_ID,
+    PREPROC_ERR_INVALID_NUMBER,
     PREPROC_ERR_MACRO_ARG_COUNT,
     PREPROC_ERR_UNTERMINATED_MACRO,
     PREPROC_ERR_ARG_COUNT,
@@ -47,6 +48,7 @@ struct preproc_err {
         };
         bool is_char_lit;
         char* invalid_id;
+        char* invalid_num;
         struct {
             size_t expected_arg_count;
             bool too_few_args;

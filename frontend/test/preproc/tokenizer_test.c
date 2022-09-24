@@ -31,31 +31,34 @@ static struct token create(enum token_type type,
     return (struct token){
         .type = type,
         .spelling = (char*)spelling,
-        .loc = {
-            .file_idx = 0,
-            .file_loc = {line, index},
-        },
+        .loc =
+            {
+                .file_idx = 0,
+                .file_loc = {line, index},
+            },
     };
 }
 
 static struct token create_value(struct value val, size_t line, size_t index) {
     enum token_type type = I_CONSTANT;
-    if (val.type == VALUE_FLOAT || val.type == VALUE_DOUBLE || val.type == VALUE_LDOUBLE) {
+    if (val.type == VALUE_FLOAT || val.type == VALUE_DOUBLE
+        || val.type == VALUE_LDOUBLE) {
         type = F_CONSTANT;
     }
-    return (struct token) {
+    return (struct token){
         .type = type,
         .val = val,
-        .loc = {
-            .file_idx = 0,
-            .file_loc = {line, index},
-        },
+        .loc =
+            {
+                .file_idx = 0,
+                .file_loc = {line, index},
+            },
     };
 }
 
 static void check_token(const struct token* t, const struct token* expected) {
     ASSERT_TOKEN_TYPE(t->type, expected->type);
-    
+
     if (t->type == I_CONSTANT) {
         ASSERT_VALUE_TYPE(t->val.type, expected->val.type);
         if (value_is_int(t->val.type)) {
@@ -63,7 +66,7 @@ static void check_token(const struct token* t, const struct token* expected) {
         } else {
             ASSERT_UINTMAX_T(t->val.uint_val, expected->val.uint_val);
         }
-    } else if  (t->type == F_CONSTANT) {
+    } else if (t->type == F_CONSTANT) {
         ASSERT(t->val.type == expected->val.type);
         ASSERT_LONG_DOUBLE(t->val.float_val, expected->val.float_val, 0.0001);
     } else {
@@ -102,7 +105,7 @@ TEST(simple) {
     struct preproc_res preproc_res = tokenize_string(code, filename);
     ASSERT_NOT_NULL(preproc_res.toks);
 
-    struct token expected[] = {
+    const struct token expected[] = {
         create(TYPEDEF, NULL, 1, 1),
         create(STRUCT, NULL, 1, 9),
         create(IDENTIFIER, "typedeftest", 1, 16),
@@ -164,13 +167,13 @@ TEST(simple) {
         create(RINDEX, NULL, 13, 23),
         create(SEMICOLON, NULL, 13, 24)};
     enum {
-        EXPECTED_SIZE = sizeof expected / sizeof(struct token)
+        EXPECTED_LEN = sizeof expected / sizeof *expected
     };
 
-    check_size(preproc_res.toks, EXPECTED_SIZE);
+    check_size(preproc_res.toks, EXPECTED_LEN);
     check_file(preproc_res.toks, 0);
 
-    compare_tokens(preproc_res.toks, expected, EXPECTED_SIZE);
+    compare_tokens(preproc_res.toks, expected, EXPECTED_LEN);
 
     free_preproc_res(&preproc_res);
 }
@@ -181,7 +184,7 @@ TEST(file) {
     struct preproc_res preproc_res = tokenize(filename);
     ASSERT_NOT_NULL(preproc_res.toks);
 
-    struct token expected[] = {
+    const struct token expected[] = {
         create(TYPEDEF, NULL, 3, 1),
         create(STRUCT, NULL, 3, 9),
         create(LBRACE, NULL, 3, 16),
@@ -829,20 +832,89 @@ TEST(file) {
         create(IDENTIFIER, "g_thread", 122, 19),
         create(SEMICOLON, NULL, 122, 27),
     };
- 
+
     enum {
-        EXPECTED_SIZE = sizeof expected / sizeof(struct token)
+        EXPECTED_LEN = sizeof expected / sizeof *expected
     };
-    check_size(preproc_res.toks, EXPECTED_SIZE);
+    check_size(preproc_res.toks, EXPECTED_LEN);
     check_file(preproc_res.toks, 0);
 
-    compare_tokens(preproc_res.toks, expected, EXPECTED_SIZE);
+    compare_tokens(preproc_res.toks, expected, EXPECTED_LEN);
 
     free_preproc_res(&preproc_res);
 }
 
-TEST_SUITE_BEGIN(tokenizer, 2) {
+TEST(hex_literal_or_var) {
+    {
+        const char* code = "vare-10";
+        struct preproc_res preproc_res = tokenize_string(code, "file.c");
+        ASSERT_NOT_NULL(preproc_res.toks);
+
+        const struct token expected[] = {
+            create(IDENTIFIER, "vare", 1, 1),
+            create(SUB, NULL, 1, 5),
+            create_value(create_int_value(VALUE_INT, 10), 1, 6),
+        };
+
+        enum {
+            EXPECTED_LEN = sizeof expected / sizeof *expected
+        };
+        check_size(preproc_res.toks, EXPECTED_LEN);
+        check_file(preproc_res.toks, 0);
+
+        compare_tokens(preproc_res.toks, expected, EXPECTED_LEN);
+
+        free_preproc_res(&preproc_res);
+    }
+    printf("1\n");
+    {
+        const char* code = "var2e-10";
+        struct preproc_res preproc_res = tokenize_string(code, "file.c");
+        ASSERT_NOT_NULL(preproc_res.toks);
+
+        const struct token expected[] = {
+            create(IDENTIFIER, "var2e", 1, 1),
+            create(SUB, NULL, 1, 6),
+            create_value(create_int_value(VALUE_INT, 10), 1, 7),
+        };
+
+        enum {
+            EXPECTED_LEN = sizeof expected / sizeof *expected
+        };
+        check_size(preproc_res.toks, EXPECTED_LEN);
+        check_file(preproc_res.toks, 0);
+
+        compare_tokens(preproc_res.toks, expected, EXPECTED_LEN);
+
+        free_preproc_res(&preproc_res);
+    }
+    printf("2\n");
+    {
+        const char* code = "var2p-10";
+        struct preproc_res preproc_res = tokenize_string(code, "file.c");
+        ASSERT_NOT_NULL(preproc_res.toks);
+
+        const struct token expected[] = {
+            create(IDENTIFIER, "var2p", 1, 1),
+            create(SUB, NULL, 1, 6),
+            create_value(create_int_value(VALUE_INT, 10), 1, 7),
+        };
+
+        enum {
+            EXPECTED_LEN = sizeof expected / sizeof *expected
+        };
+        check_size(preproc_res.toks, EXPECTED_LEN);
+        check_file(preproc_res.toks, 0);
+
+        compare_tokens(preproc_res.toks, expected, EXPECTED_LEN);
+
+        free_preproc_res(&preproc_res);
+    }
+}
+
+TEST_SUITE_BEGIN(tokenizer, 3) {
     REGISTER_TEST(simple);
     REGISTER_TEST(file);
+    REGISTER_TEST(hex_literal_or_var);
 }
 TEST_SUITE_END()

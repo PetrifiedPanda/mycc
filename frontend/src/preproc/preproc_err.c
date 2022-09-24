@@ -61,6 +61,9 @@ void print_preproc_err(FILE* out,
             print_err_base(out, file_info, &err->base);
             fprintf(out, "Invalid identifier: %s", err->invalid_id);
             break;
+        case PREPROC_ERR_INVALID_NUMBER:
+            print_err_base(out, file_info, &err->base);
+            fprintf(out, "Invalid number: %s", err->invalid_num);
         case PREPROC_ERR_MACRO_ARG_COUNT:
             print_err_base(out, file_info, &err->base);
             if (err->too_few_args) {
@@ -201,6 +204,9 @@ void free_preproc_err(struct preproc_err* err) {
     switch (err->type) {
         case PREPROC_ERR_INVALID_ID:
             free(err->invalid_id);
+            break;
+        case PREPROC_ERR_INVALID_NUMBER:
+            free(err->invalid_num);
             break;
         case PREPROC_ERR_INT_CONST:
         case PREPROC_ERR_FLOAT_CONST:
