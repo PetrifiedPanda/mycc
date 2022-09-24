@@ -4,9 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-bool is_hex_const(const char* str, size_t num);
-bool is_oct_const(const char* str, size_t num);
-bool is_dec_const(const char* str, size_t num);
+bool is_int_const(const char* str, size_t num);
 bool is_char_const(const char* str, size_t num);
 bool is_float_const(const char* str, size_t num);
 bool is_string_literal(const char* str, size_t num);

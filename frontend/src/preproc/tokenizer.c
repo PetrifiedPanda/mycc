@@ -565,9 +565,7 @@ static bool handle_other(struct tokenizer_state* s,
 
     char* buf_to_check = dyn_buf != NULL ? dyn_buf : spell_buf;
     enum token_type type;
-    if (is_dec_const(buf_to_check, buf_idx)
-        || is_hex_const(buf_to_check, buf_idx)
-        || is_oct_const(buf_to_check, buf_idx)) {
+    if (is_int_const(buf_to_check, buf_idx)) {
         type = I_CONSTANT;
     } else if (is_float_const(buf_to_check, buf_idx)) {
         type = F_CONSTANT;

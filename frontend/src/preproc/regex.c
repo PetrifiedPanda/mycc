@@ -7,6 +7,14 @@ static bool is_id_char(char c) {
     return isalpha(c) || isdigit(c) || c == '_';
 }
 
+static bool is_dec_const(const char* str, size_t num);
+static bool is_hex_const(const char* str, size_t num);
+static bool is_oct_const(const char* str, size_t num);
+
+bool is_int_const(const char* str, size_t num) {
+    return is_dec_const(str, num) || is_hex_const(str, num) || is_oct_const(str, num);
+}
+
 static bool is_hex_digit(char c) {
     unsigned char uc = (unsigned char)c;
     return isdigit(c) || (tolower(uc) >= 'a' && tolower(uc) <= 'f');
@@ -49,7 +57,7 @@ static bool is_int_suffix(const char* str, size_t num) {
     return true;
 }
 
-bool is_hex_const(const char* str, size_t num) {
+static bool is_hex_const(const char* str, size_t num) {
     size_t i = 0;
     if (num < 3 || str[i] != '0') {
         return false;
@@ -80,7 +88,7 @@ static bool is_oct_const_start(const char* str, size_t num) {
     return num >= 2 && str[0] == '0';
 }
 
-bool is_oct_const(const char* str, size_t num) {
+static bool is_oct_const(const char* str, size_t num) {
     size_t i = 0;
     if (!is_oct_const_start(str, num)) {
         return false;
@@ -98,7 +106,7 @@ bool is_oct_const(const char* str, size_t num) {
     }
 }
 
-bool is_dec_const(const char* str, size_t num) {
+static bool is_dec_const(const char* str, size_t num) {
     size_t i = 0;
     if (num < 1 || !isdigit(str[i]) || is_oct_const_start(str, num)) {
         return false;
