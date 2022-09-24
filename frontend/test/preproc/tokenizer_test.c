@@ -866,7 +866,6 @@ TEST(hex_literal_or_var) {
 
         free_preproc_res(&preproc_res);
     }
-    printf("1\n");
     {
         const char* code = "var2e-10";
         struct preproc_res preproc_res = tokenize_string(code, "file.c");
@@ -888,7 +887,6 @@ TEST(hex_literal_or_var) {
 
         free_preproc_res(&preproc_res);
     }
-    printf("2\n");
     {
         const char* code = "var2p-10";
         struct preproc_res preproc_res = tokenize_string(code, "file.c");
