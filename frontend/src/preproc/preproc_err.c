@@ -64,6 +64,7 @@ void print_preproc_err(FILE* out,
         case PREPROC_ERR_INVALID_NUMBER:
             print_err_base(out, file_info, &err->base);
             fprintf(out, "Invalid number: %s", err->invalid_num);
+            break;
         case PREPROC_ERR_MACRO_ARG_COUNT:
             print_err_base(out, file_info, &err->base);
             if (err->too_few_args) {
