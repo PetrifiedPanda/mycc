@@ -8,13 +8,18 @@ static bool is_dec_const(const char* str, size_t len);
 static bool is_hex_const(const char* str, size_t len);
 static bool is_oct_const(const char* str, size_t len);
 
-bool is_int_const(const char* str, size_t len) {
-    return is_dec_const(str, len) || is_hex_const(str, len)
-           || is_oct_const(str, len);
-}
+static bool is_oct_or_hex_const_start(const char* str, size_t len);
 
-static bool is_id_char(char c) {
-    return isalpha(c) || isdigit(c) || c == '_';
+bool is_int_const(const char* str, size_t len) {
+    if (is_oct_or_hex_const_start(str, len)) {
+        if (len >= 2 && tolower((unsigned char)str[1]) == 'x') {
+            return is_hex_const(str, len);
+        } else {
+            return is_oct_const(str, len);
+        }
+    } else {
+        return is_dec_const(str, len);
+    }
 }
 
 static bool is_hex_digit(char c) {
@@ -33,16 +38,9 @@ static bool is_int_suffix(const char* str, size_t len) {
 }
 
 static bool is_hex_const(const char* str, size_t len) {
-    size_t i = 0;
-    if (len < 3 || str[i] != '0') {
-        return false;
-    }
-    ++i;
-    if (tolower((unsigned char)str[i]) != 'x') {
-        return false;
-    }
-    ++i;
+    assert(len > 2 && str[0] == '0' && tolower((unsigned char)str[1]) == 'x');
 
+    size_t i = 2;
     if (!is_hex_digit(str[i])) {
         return false;
     }
@@ -59,16 +57,14 @@ static bool is_hex_const(const char* str, size_t len) {
     }
 }
 
-static bool is_oct_const_start(const char* str, size_t len) {
+static bool is_oct_or_hex_const_start(const char* str, size_t len) {
     return len >= 2 && str[0] == '0';
 }
 
 static bool is_oct_const(const char* str, size_t len) {
-    size_t i = 0;
-    if (!is_oct_const_start(str, len)) {
-        return false;
-    }
-    ++i;
+    assert(is_oct_or_hex_const_start(str, len)
+           && tolower((unsigned char)str[1]) != 'x');
+    size_t i = 1;
 
     while (i != len && isdigit(str[i])) {
         ++i;
@@ -82,11 +78,11 @@ static bool is_oct_const(const char* str, size_t len) {
 }
 
 static bool is_dec_const(const char* str, size_t len) {
-    size_t i = 0;
-    if (len < 1 || !isdigit(str[i]) || is_oct_const_start(str, len)) {
+    assert(len > 0 && !is_oct_or_hex_const_start(str, len));
+    if (!isdigit(str[0])) {
         return false;
     }
-    ++i;
+    size_t i = 1;
 
     while (i != len && isdigit(str[i])) {
         ++i;
@@ -160,7 +156,7 @@ static bool is_exp_suffix(const char* str, size_t len, bool is_hex) {
         if (!isdigit(str[i])) {
             return false;
         }
-        ++i; 
+        ++i;
     }
 
     if (i != len) {
@@ -174,12 +170,12 @@ static bool is_exp_suffix(const char* str, size_t len, bool is_hex) {
 }
 
 static bool is_dec_float_const(const char* str, size_t len) {
-    
+
     size_t i = 0;
     while (i != len && isdigit(str[i])) {
         ++i;
     }
-    
+
     if (i == len) {
         return false;
     } else if (str[i] == '.') {
@@ -187,7 +183,8 @@ static bool is_dec_float_const(const char* str, size_t len) {
         while (i != len && isdigit(str[i])) {
             ++i;
         }
-        if (i == len || (i == len - 1 && is_float_suffix(str[len - 1])) || is_exp_suffix(str + i, len - i, false)) {
+        if (i == len || (i == len - 1 && is_float_suffix(str[len - 1]))
+            || is_exp_suffix(str + i, len - i, false)) {
             return true;
         } else {
             return false;
@@ -240,6 +237,10 @@ bool is_string_literal(const char* str, size_t len) {
     return true;
 }
 
+static bool is_id_char(char c) {
+    return isalpha(c) || isdigit(c) || c == '_';
+}
+
 bool is_valid_identifier(const char* str, size_t len) {
     if (!isalpha(str[0]) && str[0] != '_') {
         return false;
@@ -252,3 +253,4 @@ bool is_valid_identifier(const char* str, size_t len) {
 
     return true;
 }
+
