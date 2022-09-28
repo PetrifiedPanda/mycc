@@ -10,12 +10,15 @@ enum {
 #define PUSH_BACK_TEST_HELPER(str_lit, create_empty)                           \
     {                                                                          \
         const char raw_str[] = str_lit;                                        \
+        static_assert(!create_empty || sizeof raw_str == 1,                    \
+                      "If create_empty is true str_lit must be empty");        \
         enum {                                                                 \
             RAW_STR_STRLEN = sizeof raw_str - 1                                \
         };                                                                     \
         struct string str = create_empty                                       \
                                 ? create_empty_string()                        \
                                 : create_string(RAW_STR_STRLEN, raw_str);      \
+        ASSERT_STR(raw_str, string_get_data(&str));                            \
                                                                                \
         char expected[RAW_STR_STRLEN + INSERTION_NUM + 1] = {0};               \
         memcpy(expected, raw_str, RAW_STR_STRLEN);                             \
