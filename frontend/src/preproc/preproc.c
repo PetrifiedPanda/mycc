@@ -541,7 +541,7 @@ static bool is_cond_directive(const char* line) {
         ++it;
     }
 
-    if (*it == '\0' || *it != '#') {
+    if (*it != '#') {
         return false;
     }
 

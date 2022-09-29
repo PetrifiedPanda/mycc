@@ -140,7 +140,7 @@ static struct iteration_statement* parse_for_loop(struct parser_state* s,
         loop.is_decl = false;
         loop.init_expr = parse_expr_statement(s);
         if (!loop.init_expr) {
-            return false;
+            return NULL;
         }
     }
 

@@ -202,7 +202,7 @@ static struct direct_declarator* parse_direct_declarator_base(
 
         if (!parse_arr_or_func_suffix(s, &res->suffixes[res->len])) {
             free_direct_declarator(res);
-            return false;
+            return NULL;
         }
 
         ++res->len;
