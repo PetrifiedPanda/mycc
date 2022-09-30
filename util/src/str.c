@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "util/mem.h"
 
@@ -17,22 +18,36 @@ enum {
                      / sizeof *(struct str){0}._static_buf
 };
 
-struct str create_str(size_t len, const char* str) {
+static struct str create_str_with_len(size_t len) {
     struct str res;
     res._len = len;
     if (len < STATIC_BUF_LEN) {
-        memcpy(res._static_buf, str, len * sizeof *res._static_buf);
         res._static_buf[len] = '\0';
     } else {
         res._cap = len + 1;
         res._data = xmalloc(sizeof *res._data * res._cap);
-        memcpy(res._data, str, len * sizeof *res._data);
         res._data[len] = '\0';
     }
+
+    return res;
+}
+
+struct str create_str(size_t len, const char* str) {
+    struct str res = create_str_with_len(len);
+    char* res_data = str_get_data(&res);
+    memcpy(res_data, str, len * sizeof *res_data);
     return res;
 }
 
 char* str_get_data(struct str* str) {
+    if (str->_len < STATIC_BUF_LEN) {
+        return str->_static_buf;
+    } else {
+        return str->_data;
+    }
+}
+
+const char* str_get_const_data(const struct str* str) {
     if (str->_len < STATIC_BUF_LEN) {
         return str->_static_buf;
     } else {
@@ -63,7 +78,21 @@ void str_push_back(struct str* str, char c) {
     }
 }
 
-void free_str(struct str* str) {
+struct str str_concat(size_t len1,
+                      const char* s1,
+                      size_t len2,
+                      const char* s2) {
+    const size_t len = len1 + len2;
+    struct str res = create_str_with_len(len);
+    char* res_data = str_get_data(&res);
+    memcpy(res_data, s1, len1 * sizeof *res_data);
+    memcpy(res_data + len1, s2, len2 * sizeof *res_data);
+    res_data[len] = '\0';
+    res._len = len;
+    return res;
+}
+
+void free_str(const struct str* str) {
     if (str->_len >= STATIC_BUF_LEN) {
         free(str->_data);
     }
