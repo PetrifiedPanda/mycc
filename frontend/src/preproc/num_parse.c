@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <limits.h>
 #include <assert.h>
 
 #include "util/annotations.h"
@@ -234,12 +235,11 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
 }
 
 enum {
-    TARGET_CHAR_SIZE = 8,
-    THIS_CHAR_SIZE = TARGET_CHAR_SIZE,
+    TARGET_CHAR_SIZE = CHAR_BIT,
 };
 
 static uintmax_t int_pow2(uintmax_t exp) {
-    if (exp < sizeof(uintmax_t) * THIS_CHAR_SIZE) {
+    if (exp < sizeof(uintmax_t) * CHAR_BIT) {
         return 1ull << exp;
     }
     uintmax_t base = 2;
