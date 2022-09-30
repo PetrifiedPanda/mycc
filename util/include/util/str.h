@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-struct string {
+struct str {
     size_t _len;
     union {
         struct {
@@ -15,15 +15,15 @@ struct string {
     };
 };
 
-struct string create_empty_string(void);
+struct str create_empty_str(void);
 
-struct string create_string(size_t len, const char* str);
+struct str create_str(size_t len, const char* str);
 
-char* string_get_data(struct string* str);
+char* str_get_data(struct str* str);
 
-void string_push_back(struct string* str, char c);
+void str_push_back(struct str* str, char c);
 
-void free_string(struct string* str);
+void free_str(struct str* str);
 
 #endif
 

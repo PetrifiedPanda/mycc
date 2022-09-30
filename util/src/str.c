@@ -1,24 +1,24 @@
-#include "util/string.h"
+#include "util/str.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 #include "util/mem.h"
 
-struct string create_empty_string(void) {
-    return (struct string){
+struct str create_empty_str(void) {
+    return (struct str){
         ._len = 0,
         ._static_buf = {0},
     };
 }
 
 enum {
-    STATIC_BUF_LEN = sizeof(struct string){0}._static_buf
-                     / sizeof *(struct string){0}._static_buf
+    STATIC_BUF_LEN = sizeof(struct str){0}._static_buf
+                     / sizeof *(struct str){0}._static_buf
 };
 
-struct string create_string(size_t len, const char* str) {
-    struct string res;
+struct str create_str(size_t len, const char* str) {
+    struct str res;
     res._len = len;
     if (len < STATIC_BUF_LEN) {
         memcpy(res._static_buf, str, len * sizeof *res._static_buf);
@@ -32,7 +32,7 @@ struct string create_string(size_t len, const char* str) {
     return res;
 }
 
-char* string_get_data(struct string* str) {
+char* str_get_data(struct str* str) {
     if (str->_len < STATIC_BUF_LEN) {
         return str->_static_buf;
     } else {
@@ -40,7 +40,7 @@ char* string_get_data(struct string* str) {
     }
 }
 
-void string_push_back(struct string* str, char c) {
+void str_push_back(struct str* str, char c) {
     if (str->_len < STATIC_BUF_LEN - 1) {
         str->_static_buf[str->_len] = c;
         ++str->_len;
@@ -63,7 +63,7 @@ void string_push_back(struct string* str, char c) {
     }
 }
 
-void free_string(struct string* str) {
+void free_str(struct str* str) {
     if (str->_len >= STATIC_BUF_LEN) {
         free(str->_data);
     }
