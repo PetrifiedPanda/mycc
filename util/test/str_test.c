@@ -24,7 +24,7 @@ enum {
         for (size_t i = 0; i < INSERTION_NUM; ++i) {                           \
             ASSERT_STR(str_get_data(&str), expected);                          \
             const size_t expected_len = i + RAW_STR_STRLEN;                    \
-            ASSERT_SIZE_T(str._len, expected_len);                             \
+            ASSERT_SIZE_T(str_len(&str), expected_len);                        \
             const char to_insert = 'a' + i;                                    \
             str_push_back(&str, to_insert);                                    \
             expected[i + RAW_STR_STRLEN] = to_insert;                          \
@@ -57,7 +57,7 @@ TEST(push_back_to_nonempty) {
                       (size_t)S1_LEN + S2_LEN);                                \
                                                                                \
         struct str res = str_concat(S1_LEN, s1, S2_LEN, s2);                   \
-        ASSERT_SIZE_T(res._len, (size_t)S1_LEN + S2_LEN);                      \
+        ASSERT_SIZE_T(str_len(&res), (size_t)S1_LEN + S2_LEN);                 \
         ASSERT_STR(str_get_data(&res), expected);                              \
                                                                                \
         free_str(&res);                                                        \
@@ -65,7 +65,10 @@ TEST(push_back_to_nonempty) {
 
 TEST(concat) {
     CONCAT_TEST_HELPER("Hello, ", "World", "Hello, World");
-    CONCAT_TEST_HELPER("Hello, ", "World, and others, I don't know who but someone else", "Hello, World, and others, I don't know who but someone else");
+    CONCAT_TEST_HELPER(
+        "Hello, ",
+        "World, and others, I don't know who but someone else",
+        "Hello, World, and others, I don't know who but someone else");
     CONCAT_TEST_HELPER("aaaaaaa", "bbbbbbbb", "aaaaaaabbbbbbbb");
 }
 

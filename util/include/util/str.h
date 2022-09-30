@@ -2,16 +2,23 @@
 #define STRING_H
 
 #include <stddef.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <limits.h>
 
 struct str {
-    size_t _len;
     union {
         struct {
-            // capacity including '\0'
+            bool _is_dyn : 1;
+            size_t _len : sizeof(size_t) * CHAR_BIT - 1;
             size_t _cap;
             char* _data;
         };
-        char _static_buf[sizeof(size_t) + sizeof(char*)];
+        struct {
+            bool _is_dyn_dup : 1;
+            uint8_t _small_len : sizeof(uint8_t) * CHAR_BIT - 1;
+            char _static_buf[sizeof(size_t) * 2 - sizeof(uint8_t) + sizeof(char*)];
+        };
     };
 };
 
@@ -19,6 +26,7 @@ struct str create_empty_str(void);
 
 struct str create_str(size_t len, const char* str);
 
+size_t str_len(const struct str* str);
 char* str_get_data(struct str* str);
 const char* str_get_const_data(const struct str* str);
 
