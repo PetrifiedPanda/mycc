@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
                                                        sizeof suffix_str
                                                            / sizeof *suffix_str,
                                                        suffix_str);
-        const char* out_filename = str_get_const_data(&out_filename_str);
+        const char* out_filename = str_get_data(&out_filename_str);
         FILE* outfile = fopen(out_filename, "w");
         if (!outfile) {
             fprintf(stderr, "Failed to open output file %s\n", out_filename);

@@ -49,7 +49,7 @@ size_t str_len(const struct str* str) {
     }
 }
 
-char* str_get_data(struct str* str) {
+static char* str_get_mut_data(struct str* str) {
     if (str->_is_dyn) {
         return str->_data;
     } else {
@@ -57,7 +57,7 @@ char* str_get_data(struct str* str) {
     }
 }
 
-const char* str_get_const_data(const struct str* str) {
+const char* str_get_data(const struct str* str) {
     if (str->_is_dyn) {
         return str->_data;
     } else {
@@ -100,7 +100,7 @@ struct str str_concat(size_t len1,
                       const char* s2) {
     const size_t len = len1 + len2;
     struct str res = create_str_with_cap(len1, s1, len);
-    char* res_data = str_get_data(&res);
+    char* res_data = str_get_mut_data(&res);
     memcpy(res_data + len1, s2, len2 * sizeof *res_data);
     res_data[len] = '\0';
     if (res._is_dyn) {

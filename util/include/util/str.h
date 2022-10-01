@@ -27,8 +27,8 @@ struct str create_empty_str(void);
 struct str create_str(size_t len, const char* str);
 
 size_t str_len(const struct str* str);
-char* str_get_data(struct str* str);
-const char* str_get_const_data(const struct str* str);
+
+const char* str_get_data(const struct str* str);
 
 void str_push_back(struct str* str, char c);
 
