@@ -10,7 +10,7 @@ struct ssa_reg_info {
 };
 
 struct ssa_cfg {
-    char* name;
+    struct str name;
     size_t len;
     struct ssa_basic_block* blocks;
 
@@ -19,7 +19,7 @@ struct ssa_cfg {
     struct ssa_reg_info* regs;
     
     size_t num_val_names;
-    char** val_names;
+    struct str* val_names;
 };
 
 void free_ssa_cfg(struct ssa_cfg* cfg);

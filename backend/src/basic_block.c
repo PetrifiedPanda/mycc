@@ -15,7 +15,7 @@ void free_branch_inst(struct branch_inst* b) {
 }
 
 void free_basic_block(struct basic_block* bb) {
-    free(bb->name);
+    free_str(&bb->name);
     for (size_t i = 0; i < bb->len; ++i) {
         free_inst(&bb->ops[i]);
     }

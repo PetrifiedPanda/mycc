@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "util/str.h"
+
 // TODO: pointer modifiers like restrict, volatile
 
 struct inst_type {
@@ -70,12 +72,12 @@ struct inst_global {
 };
 
 struct inst_reg_info {
-    char* name;
+    struct str name;
     struct inst_type type;
 };
 
 struct inst_global_info {
-    char* name;
+    struct str name;
     struct inst_type type;
     // TODO: value (if known at compile time)
 };

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 void free_cfg(struct cfg* cfg) {
-    free(cfg->name);
+    free_str(&cfg->name);
 
     for (size_t i = 0; i < cfg->len; ++i) {
         free_basic_block(&cfg->blocks[i]);

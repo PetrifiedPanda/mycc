@@ -1,6 +1,8 @@
 #ifndef BASIC_BLOCK_H
 #define BASIC_BLOCK_H
 
+#include "util/str.h"
+
 #include "inst.h"
 
 enum branch_inst_type {
@@ -35,7 +37,7 @@ struct branch_inst {
 };
 
 struct basic_block {
-    char* name;
+    struct str name;
     size_t len;
     struct inst* ops;
     struct branch_inst branch;

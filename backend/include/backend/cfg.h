@@ -1,10 +1,12 @@
 #ifndef CFG_H
 #define CFG_H
 
+#include "util/str.h"
+
 #include "basic_block.h"
 
 struct cfg {
-    char* name;
+    struct str name;
     size_t len;
     struct basic_block* blocks;
     size_t num_func_args; // first n regs are args
