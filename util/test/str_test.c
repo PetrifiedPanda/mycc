@@ -72,10 +72,49 @@ TEST(concat) {
     CONCAT_TEST_HELPER("aaaaaaa", "bbbbbbbb", "aaaaaaabbbbbbbb");
 }
 
-TEST_SUITE_BEGIN(str, 3) {
+static void copy_test_helper(size_t len, const char* s) {
+    struct str original = create_str(len, s);
+    const char* orig_data = str_get_data(&original);
+    ASSERT_STR(orig_data, s);
+    struct str copy = str_copy(&original);
+    ASSERT_STR(orig_data, s);
+    const char* copy_data = str_get_data(&copy);
+    ASSERT_STR(copy_data, s);
+    ASSERT_STR(copy_data, orig_data);
+    free_str(&original);
+    free_str(&copy);
+}
+
+static void move_test_helper(size_t len, const char* s) {
+    struct str original = create_str(len, s);
+    const char* orig_data = str_get_data(&original);
+    ASSERT_STR(orig_data, s);
+    struct str moved = str_move(&original);
+    ASSERT(str_is_null(&original));
+    const char* moved_data = str_get_data(&moved);
+    ASSERT_STR(moved_data, s);
+    free_str(&original);
+    free_str(&moved);
+}
+
+TEST(copy_move) {
+    const char small_str[] = "Small string";
+    const char long_str[] = "Not so small string, that is very long";
+    enum {
+        SMALL_LEN = sizeof small_str / sizeof *small_str - 1,
+        LONG_LEN = sizeof long_str / sizeof *long_str - 1,
+    };
+    copy_test_helper(SMALL_LEN, small_str);
+    copy_test_helper(LONG_LEN, long_str);
+    move_test_helper(SMALL_LEN, small_str);
+    move_test_helper(LONG_LEN, long_str);
+}
+
+TEST_SUITE_BEGIN(str, 4) {
     REGISTER_TEST(push_back_to_empty);
     REGISTER_TEST(push_back_to_nonempty);
     REGISTER_TEST(concat);
+    REGISTER_TEST(copy_move);
 }
 TEST_SUITE_END()
 

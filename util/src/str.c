@@ -6,6 +6,15 @@
 
 #include "util/mem.h"
 
+struct str create_null_str(void) {
+    return (struct str){
+        ._is_dyn = true,
+        ._len = 0,
+        ._cap = 0,
+        ._data = NULL,
+    };
+}
+
 struct str create_empty_str(void) {
     return (struct str){
         ._is_dyn = false,
@@ -20,6 +29,8 @@ enum {
 };
 
 static struct str create_str_with_cap(size_t len, const char* str, size_t cap) {
+    assert(cap >= len);
+    assert(len == 0 || str);
     struct str res;
     if (cap < STATIC_BUF_LEN) {
         res._is_dyn = false;
@@ -38,10 +49,16 @@ static struct str create_str_with_cap(size_t len, const char* str, size_t cap) {
 }
 
 struct str create_str(size_t len, const char* str) {
+    assert(len == 0 || str);
     return create_str_with_cap(len, str, len);
 }
 
+bool str_is_null(const struct str* str) {
+    assert(str);
+    return str->_is_dyn && str->_data == NULL;
+}
 size_t str_len(const struct str* str) {
+    assert(!str_is_null(str));
     if (str->_is_dyn) {
         return str->_len;
     } else {
@@ -50,6 +67,8 @@ size_t str_len(const struct str* str) {
 }
 
 static char* str_get_mut_data(struct str* str) {
+    assert(str);
+    assert(!str_is_null(str));
     if (str->_is_dyn) {
         return str->_data;
     } else {
@@ -58,6 +77,8 @@ static char* str_get_mut_data(struct str* str) {
 }
 
 const char* str_get_data(const struct str* str) {
+    assert(str);
+    assert(!str_is_null(str));
     if (str->_is_dyn) {
         return str->_data;
     } else {
@@ -111,7 +132,29 @@ struct str str_concat(size_t len1,
     return res;
 }
 
+struct str str_move(struct str* str) {
+    assert(str);
+    assert(!str_is_null(str));
+    struct str res = *str;
+    str->_is_dyn = true;
+    str->_len = 0;
+    str->_cap = 0;
+    str->_data = NULL;
+    return res;
+}
+
+struct str str_copy(const struct str* str) {
+    assert(str);
+    assert(!str_is_null(str));
+    if (str->_is_dyn) {
+        return create_str_with_cap(str->_len, str->_data, str->_cap - 1);
+    } else {
+        return *str;
+    }
+}
+
 void free_str(const struct str* str) {
+    assert(str);
     if (str->_is_dyn) {
         free(str->_data);
     }

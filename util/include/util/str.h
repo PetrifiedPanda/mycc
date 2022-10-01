@@ -22,10 +22,11 @@ struct str {
     };
 };
 
+struct str create_null_str(void);
 struct str create_empty_str(void);
-
 struct str create_str(size_t len, const char* str);
 
+bool str_is_null(const struct str* str);
 size_t str_len(const struct str* str);
 
 const char* str_get_data(const struct str* str);
@@ -33,6 +34,9 @@ const char* str_get_data(const struct str* str);
 void str_push_back(struct str* str, char c);
 
 struct str str_concat(size_t len1, const char* s1, size_t len2, const char* s2);
+
+struct str str_move(struct str* str);
+struct str str_copy(const struct str* str);
 
 void free_str(const struct str* str);
 
