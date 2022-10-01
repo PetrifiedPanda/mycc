@@ -35,7 +35,7 @@ void str_push_back(struct str* str, char c);
 
 struct str str_concat(size_t len1, const char* s1, size_t len2, const char* s2);
 
-struct str str_move(struct str* str);
+struct str str_take(struct str* str);
 struct str str_copy(const struct str* str);
 
 void free_str(const struct str* str);

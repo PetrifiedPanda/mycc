@@ -85,16 +85,16 @@ static void copy_test_helper(size_t len, const char* s) {
     free_str(&copy);
 }
 
-static void move_test_helper(size_t len, const char* s) {
+static void take_test_helper(size_t len, const char* s) {
     struct str original = create_str(len, s);
     const char* orig_data = str_get_data(&original);
     ASSERT_STR(orig_data, s);
-    struct str moved = str_move(&original);
+    struct str taken = str_take(&original);
     ASSERT(str_is_null(&original));
-    const char* moved_data = str_get_data(&moved);
-    ASSERT_STR(moved_data, s);
+    const char* taken_data = str_get_data(&taken);
+    ASSERT_STR(taken_data, s);
     free_str(&original);
-    free_str(&moved);
+    free_str(&taken);
 }
 
 TEST(copy_move) {
@@ -106,8 +106,8 @@ TEST(copy_move) {
     };
     copy_test_helper(SMALL_LEN, small_str);
     copy_test_helper(LONG_LEN, long_str);
-    move_test_helper(SMALL_LEN, small_str);
-    move_test_helper(LONG_LEN, long_str);
+    take_test_helper(SMALL_LEN, small_str);
+    take_test_helper(LONG_LEN, long_str);
 }
 
 TEST_SUITE_BEGIN(str, 4) {

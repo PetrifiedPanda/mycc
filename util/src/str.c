@@ -132,7 +132,7 @@ struct str str_concat(size_t len1,
     return res;
 }
 
-struct str str_move(struct str* str) {
+struct str str_take(struct str* str) {
     assert(str);
     assert(!str_is_null(str));
     struct str res = *str;
