@@ -30,6 +30,7 @@ bool str_is_null(const struct str* str);
 size_t str_len(const struct str* str);
 
 const char* str_get_data(const struct str* str);
+char str_char_at(const struct str* str, size_t i);
 
 void str_push_back(struct str* str, char c);
 

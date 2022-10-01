@@ -57,6 +57,7 @@ bool str_is_null(const struct str* str) {
     assert(str);
     return str->_is_dyn && str->_data == NULL;
 }
+
 size_t str_len(const struct str* str) {
     assert(!str_is_null(str));
     if (str->_is_dyn) {
@@ -83,6 +84,18 @@ const char* str_get_data(const struct str* str) {
         return str->_data;
     } else {
         return str->_static_buf;
+    }
+}
+
+char str_char_at(const struct str* str, size_t i) {
+    assert(str);
+    assert(!str_is_null(str));
+    if (str->_is_dyn) {
+        assert(i < str->_len);
+        return str->_data[i];
+    } else {
+        assert(i < str->_small_len);
+        return str->_static_buf[i];
     }
 }
 

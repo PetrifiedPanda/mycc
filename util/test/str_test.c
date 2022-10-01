@@ -27,7 +27,8 @@ enum {
             ASSERT_SIZE_T(str_len(&str), expected_len);                        \
             const char to_insert = 'a' + i;                                    \
             str_push_back(&str, to_insert);                                    \
-            expected[i + RAW_STR_STRLEN] = to_insert;                          \
+            ASSERT_CHAR(str_char_at(&str, expected_len), to_insert);           \
+            expected[expected_len] = to_insert;                                \
         }                                                                      \
         ASSERT_STR(str_get_data(&str), expected);                              \
         free_str(&str);                                                        \
