@@ -1,5 +1,5 @@
-#ifndef TAC_H
-#define TAC_H
+#ifndef INST_H
+#define INST_H
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -14,10 +14,10 @@ struct inst_type {
 };
 
 enum inst_type_type {
-    TAC_TYPE_BUILTIN,
-    TAC_TYPE_ARR,
-    TAC_TYPE_STRUCT,
-    TAC_TYPE_FUNC,
+    INST_TYPE_BUILTIN,
+    INST_TYPE_ARR,
+    INST_TYPE_STRUCT,
+    INST_TYPE_FUNC,
 };
 
 // TODO: builtins (could just be in enum)
@@ -41,12 +41,12 @@ struct inst_type_info {
 };
 
 enum inst_literal_type {
-    TAC_LITERAL_BOOL,
-    TAC_LITERAL_UINT,
-    TAC_LITERAL_INT,
-    TAC_LITERAL_FLOAT,
-    TAC_LITERAL_STRUCT,
-    TAC_LITERAL_ARR,
+    INST_LITERAL_BOOL,
+    INST_LITERAL_UINT,
+    INST_LITERAL_INT,
+    INST_LITERAL_FLOAT,
+    INST_LITERAL_STRUCT,
+    INST_LITERAL_ARR,
 };
 
 struct inst_literal {
@@ -83,10 +83,10 @@ struct inst_global_info {
 };
 
 enum inst_arg_type {
-    TAC_ARG_NONE,
-    TAC_ARG_LITERAL,
-    TAC_ARG_REG,
-    TAC_ARG_GLOBAL,
+    INST_ARG_NONE,
+    INST_ARG_LITERAL,
+    INST_ARG_REG,
+    INST_ARG_GLOBAL,
 };
 
 struct inst_arg {
@@ -100,38 +100,38 @@ struct inst_arg {
 
 enum inst_op {
     // dest = arg1 op arg2
-    TAC_ADD,
-    TAC_SUB,
-    TAC_MUL,
-    TAC_DIV,
-    TAC_UDIV,
-    TAC_AND,
-    TAC_OR,
-    TAC_XOR,
-    TAC_LSHIFT,
-    TAC_RSHIFT,
-    TAC_MOD,
-    TAC_EQ,
-    TAC_NEQ,
-    TAC_LT,
-    TAC_LE,
-    TAC_GT,
-    TAC_GE,
+    INST_ADD,
+    INST_SUB,
+    INST_MUL,
+    INST_DIV,
+    INST_UDIV,
+    INST_AND,
+    INST_OR,
+    INST_XOR,
+    INST_LSHIFT,
+    INST_RSHIFT,
+    INST_MOD,
+    INST_EQ,
+    INST_NEQ,
+    INST_LT,
+    INST_LE,
+    INST_GT,
+    INST_GE,
 
     // dest = arg1
-    TAC_ASSIGN,
-    TAC_CAST,
+    INST_ASSIGN,
+    INST_CAST,
 
-    TAC_STORE, // *arg1 = arg2
-    TAC_LOAD,  // dest = *arg1
+    INST_STORE, // *arg1 = arg2
+    INST_LOAD,  // dest = *arg1
 
-    TAC_CALL, // dest = func(func_args)
+    INST_CALL, // dest = func(func_args)
 
-    TAC_ALLOCA, // dest = alloca(sizeof(type))
+    INST_ALLOCA, // dest = alloca(sizeof(type))
 
-    TAC_GETELEMPTR,
-    TAC_GETELEM,
-    TAC_REPLACEELEM,
+    INST_GETELEMPTR,
+    INST_GETELEM,
+    INST_REPLACEELEM,
 };
 
 struct inst {
