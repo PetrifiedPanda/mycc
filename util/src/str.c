@@ -17,10 +17,10 @@ struct str create_null_str(void) {
 
 struct str create_empty_str(void) {
     struct str res = {
+        ._is_static_buf_dup = true,
         ._small_len = 0,
         ._static_buf = {0},
     };
-    res._is_static_buf = true;
     return res;
 }
 
