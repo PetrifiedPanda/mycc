@@ -7,13 +7,13 @@
 
 struct identifier {
     struct ast_node_info info;
-    char* spelling;
+    struct str spelling;
 };
 
 void init_identifier(struct identifier* res,
-                     char* spelling,
+                     const struct str* spelling,
                      struct source_loc loc);
-struct identifier* create_identifier(char* spelling, struct source_loc loc);
+struct identifier* create_identifier(const struct str* spelling, struct source_loc loc);
 
 void free_identifier_children(struct identifier* i);
 

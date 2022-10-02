@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "util/str.h"
+
 #include "token_type.h"
 #include "value.h"
 
@@ -19,7 +21,7 @@ struct source_loc {
 struct token {
     enum token_type type;
     union {
-        char* spelling;
+        struct str spelling;
         struct value val;
     };
     struct source_loc loc;
@@ -34,7 +36,7 @@ struct token {
  * @param filename The file this token is in (This is copied into the token)
  */
 struct token create_token(enum token_type type,
-                          char* spelling,
+                          const struct str* spelling,
                           struct file_loc file_loc,
                           size_t file_idx);
 
@@ -47,11 +49,11 @@ struct token create_token(enum token_type type,
  * @param filename The file this token is in (This is copied into the token)
  */
 struct token create_token_copy(enum token_type type,
-                               const char* spelling,
+                               const struct str* spelling,
                                struct file_loc file_loc,
                                size_t file_idx);
 
-char* take_spelling(struct token* t);
+struct str take_spelling(struct token* t);
 
 void free_token(struct token* t);
 

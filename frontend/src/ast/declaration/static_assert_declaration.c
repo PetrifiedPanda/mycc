@@ -26,20 +26,20 @@ struct static_assert_declaration* parse_static_assert_declaration(
         return NULL;
     }
 
-    char* spell = take_spelling(s->it);
+    const struct str spell = take_spelling(s->it);
     struct source_loc loc = s->it->loc;
     accept_it(s);
 
     if (!(accept(s, RBRACKET) && accept(s, SEMICOLON))) {
         free_const_expr(const_expr);
-        free(spell);
+        free_str(&spell);
         return NULL;
     }
 
     struct static_assert_declaration* res = xmalloc(
         sizeof(struct static_assert_declaration));
     res->const_expr = const_expr;
-    res->err_msg = create_string_literal(spell, loc); 
+    res->err_msg = create_string_literal(&spell, loc); 
 
     return res;
 }

@@ -35,13 +35,13 @@ struct preproc_state create_preproc_state(const char* start_file,
 struct preproc_macro;
 
 const struct preproc_macro* find_preproc_macro(const struct preproc_state* state,
-                                               const char* spelling);
+                                               const struct str* spelling);
 
 void register_preproc_macro(struct preproc_state* state,
-                            char* spelling,
+                            const struct str* spelling,
                             const struct preproc_macro* macro);
 
-void remove_preproc_macro(struct preproc_state* state, const char* spelling);
+void remove_preproc_macro(struct preproc_state* state, const struct str* spelling);
 
 void push_preproc_cond(struct preproc_state* state,
                        struct source_loc loc,

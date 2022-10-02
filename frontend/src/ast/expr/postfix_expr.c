@@ -78,10 +78,10 @@ static bool parse_postfix_access_suffix(struct parser_state* s,
     if (s->it->type != IDENTIFIER) {
         return false;
     }
-    char* spelling = take_spelling(s->it);
+    const struct str spelling = take_spelling(s->it);
     struct source_loc loc = s->it->loc;
     accept_it(s);
-    struct identifier* identifier = create_identifier(spelling, loc);
+    struct identifier* identifier = create_identifier(&spelling, loc);
     res->type = type;
     res->identifier = identifier;
     return true;

@@ -33,7 +33,7 @@ struct parser_err {
             enum token_type* expected;
         };
         struct { // redefined symbol
-            char* redefined_symbol;
+            struct str redefined_symbol;
             bool was_typedef_name;
             size_t prev_def_file;
             struct file_loc prev_def_loc;
@@ -43,7 +43,7 @@ struct parser_err {
         };
         // disallowed type specs
         enum token_type incompatible_type;
-        char* non_typedef_spelling;
+        struct str non_typedef_spelling;
     };
 };
 

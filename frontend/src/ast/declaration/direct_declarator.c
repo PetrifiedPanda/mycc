@@ -106,7 +106,7 @@ static bool parse_func_suffix(struct parser_state* s,
 
     accept_it(s);
     if (s->it->type == IDENTIFIER
-        && !is_typedef_name(s, s->it->spelling)) {
+        && !is_typedef_name(s, &s->it->spelling)) {
         res->type = ARR_OR_FUNC_FUN_OLD_PARAMS;
         res->fun_params = parse_identifier_list(s);
         if (res->fun_params.len == 0) {
@@ -177,10 +177,10 @@ static struct direct_declarator* parse_direct_declarator_base(
         if (!identifier_handler(s, s->it)) {
             return NULL;
         }
-        char* spelling = take_spelling(s->it);
+        const struct str spelling = take_spelling(s->it);
         struct source_loc loc = s->it->loc;
         accept_it(s);
-        res->id = create_identifier(spelling, loc);
+        res->id = create_identifier(&spelling, loc);
     } else {
         free(res);
         enum token_type expected[] = {LBRACKET, IDENTIFIER};

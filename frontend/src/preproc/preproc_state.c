@@ -1,12 +1,14 @@
 #include "frontend/preproc/preproc_state.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "util/mem.h"
 
 #include "frontend/preproc/preproc_macro.h"
 
 struct preproc_state create_preproc_state(const char* start_file, struct preproc_err* err) {
+    struct str file_name = create_str(strlen(start_file), start_file);
     return (struct preproc_state){
         .res =
             {
@@ -23,23 +25,23 @@ struct preproc_state create_preproc_state(const char* start_file, struct preproc
             100,
             true,
             (void (*)(void*))free_preproc_macro),
-        .file_info = create_file_info(alloc_string_copy(start_file)),
+        .file_info = create_file_info(&file_name),
     };
 }
 
 const struct preproc_macro* find_preproc_macro(const struct preproc_state* state,
-                                               const char* spelling) {
+                                               const struct str* spelling) {
     return string_hash_map_get(&state->_macro_map, spelling);
 }
 
 void register_preproc_macro(struct preproc_state* state,
-                            char* spelling,
+                            const struct str* spelling,
                             const struct preproc_macro* macro) {
     bool overwritten = string_hash_map_insert_overwrite(&state->_macro_map, spelling, macro);
     (void)overwritten; // TODO: warning if redefined
 }
 
-void remove_preproc_macro(struct preproc_state* state, const char* spelling) {
+void remove_preproc_macro(struct preproc_state* state, const struct str* spelling) {
     string_hash_map_remove(&state->_macro_map, spelling);
 }
 
@@ -71,7 +73,7 @@ struct preproc_cond* peek_preproc_cond(struct preproc_state* state) {
 
 void free_token_arr(struct token_arr* arr) {
     for (size_t i = 0; i < arr->len; ++i) {
-        free(arr->tokens[i].spelling);
+        free_str(&arr->tokens[i].spelling);
     }
     free(arr->tokens);
 }

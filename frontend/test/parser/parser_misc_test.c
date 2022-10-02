@@ -8,13 +8,15 @@
 
 #include "parser_test_util.h"
 
-static void check_enum_list_ids(struct enum_list* l,
-                                const char** enum_constants,
+static void check_enum_list_ids(const struct enum_list* l,
+                                const struct str* enum_constants,
                                 size_t len) {
     ASSERT_SIZE_T(l->len, len);
     for (size_t i = 0; i < len; ++i) {
-        ASSERT_NOT_NULL(l->enums[i].identifier);
-        ASSERT_STR(l->enums[i].identifier->spelling, enum_constants[i]);
+        const struct identifier* id = l->enums[i].identifier;
+        ASSERT_NOT_NULL(id);
+        ASSERT_STR(str_get_data(&id->spelling),
+                   str_get_data(&enum_constants[i]));
     }
 }
 
@@ -22,15 +24,15 @@ TEST(enum_list) {
     enum {
         EXPECTED_LEN = 8
     };
-    const char* enum_constants[EXPECTED_LEN] = {
-        "ENUM_VAL1",
-        "enum_VAl2",
-        "enum_val_3",
-        "enum_val_4",
-        "foo",
-        "bar",
-        "baz",
-        "BAD",
+    const struct str enum_constants[EXPECTED_LEN] = {
+        STR_NON_HEAP("ENUM_VAL1"),
+        STR_NON_HEAP("enum_VAl2"),
+        STR_NON_HEAP("enum_val_3"),
+        STR_NON_HEAP("enum_val_4"),
+        STR_NON_HEAP("foo"),
+        STR_NON_HEAP("bar"),
+        STR_NON_HEAP("baz"),
+        STR_NON_HEAP("BAD"),
     };
 
     {
@@ -56,7 +58,7 @@ TEST(enum_list) {
                             sizeof enum_constants / sizeof *enum_constants);
 
         for (size_t i = 0; i < EXPECTED_LEN; ++i) {
-            ASSERT(is_enum_constant(&s, enum_constants[i]));
+            ASSERT(is_enum_constant(&s, &enum_constants[i]));
         }
 
         free_enum_list(&res);
@@ -102,7 +104,7 @@ TEST(enum_list) {
         }
 
         for (size_t i = 0; i < EXPECTED_LEN; ++i) {
-            ASSERT(is_enum_constant(&s, enum_constants[i]));
+            ASSERT(is_enum_constant(&s, &enum_constants[i]));
         }
 
         free_enum_list(&res);
@@ -112,7 +114,12 @@ TEST(enum_list) {
 }
 
 TEST(enum_spec) {
-    const char* enum_constants[] = {"TEST1", "TEST2", "TEST3", "TEST4"};
+    const struct str enum_constants[] = {
+        STR_NON_HEAP("TEST1"),
+        STR_NON_HEAP("TEST2"),
+        STR_NON_HEAP("TEST3"),
+        STR_NON_HEAP("TEST4"),
+    };
     {
         struct preproc_res preproc_res = tokenize_string(
             "enum my_enum { TEST1, TEST2, TEST3, TEST4 }",
@@ -127,7 +134,7 @@ TEST(enum_spec) {
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
         ASSERT_NOT_NULL(res->identifier);
-        ASSERT_STR(res->identifier->spelling, "my_enum");
+        ASSERT_STR(str_get_data(&res->identifier->spelling), "my_enum");
 
         check_enum_list_ids(&res->enum_list,
                             enum_constants,
@@ -164,9 +171,7 @@ TEST(enum_spec) {
 }
 
 static struct designation* parse_designation_helper(const char* code) {
-    struct preproc_res preproc_res = tokenize_string(
-        code,
-        "jsalkf");
+    struct preproc_res preproc_res = tokenize_string(code, "jsalkf");
 
     struct parser_err err = create_parser_err();
     struct parser_state s = create_parser_state(preproc_res.toks, &err);
@@ -180,13 +185,14 @@ static struct designation* parse_designation_helper(const char* code) {
 
     free_parser_state(&s);
     free_preproc_res(&preproc_res);
-    
+
     return res;
 }
 
 TEST(designation) {
     {
-        struct designation* res = parse_designation_helper(".test[19].what_is_this.another_one = ");
+        struct designation* res = parse_designation_helper(
+            ".test[19].what_is_this.another_one = ");
 
         ASSERT_SIZE_T(res->designators.len, (size_t)4);
 
@@ -208,7 +214,8 @@ TEST(designation) {
     }
 
     {
-        struct designation* res = parse_designation_helper("[0.5].blah[420].oof[2][10] =");
+        struct designation* res = parse_designation_helper(
+            "[0.5].blah[420].oof[2][10] =");
 
         ASSERT_SIZE_T(res->designators.len, (size_t)6);
 
@@ -252,7 +259,7 @@ TEST(static_assert_declaration) {
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
     ASSERT(err.type == PARSER_ERR_NONE);
 
-    ASSERT_STR(res->err_msg.spelling, "\"This is a string literal\"");
+    ASSERT_STR(str_get_data(&res->err_msg.spelling), "\"This is a string literal\"");
     check_const_expr_const(res->const_expr, create_int_value(VALUE_INT, 12345));
 
     free_preproc_res(&preproc_res);

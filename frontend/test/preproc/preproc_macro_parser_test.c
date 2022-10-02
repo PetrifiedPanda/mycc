@@ -25,7 +25,7 @@ static void compare_preproc_macros(const struct preproc_macro* got,
             const struct token* ex_tok = &ex_item->token;
 
             ASSERT_TOKEN_TYPE(got_tok->type, ex_tok->type);
-            ASSERT_STR(got_tok->spelling, ex_tok->spelling);
+            ASSERT_STR(str_get_data(&got_tok->spelling), str_get_data(&ex_tok->spelling));
 
             ASSERT_SIZE_T(got_tok->loc.file_idx, ex_tok->loc.file_idx);
             ASSERT_SIZE_T(got_tok->loc.file_loc.line,
@@ -41,9 +41,9 @@ TEST(object_like) {
         const char* spell = "TEST_MACRO";
         // #define TEST_MACRO
         struct token tokens[] = {
-            {STRINGIFY_OP, .spelling = NULL, {0, {1, 1}}},
-            {IDENTIFIER, .spelling = "define", {0, {1, 2}}},
-            {IDENTIFIER, .spelling = "TEST_MACRO", {0, {1, 9}}},
+            {STRINGIFY_OP, .spelling = create_null_str(), {0, {1, 1}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("TEST_MACRO"), {0, {1, 9}}},
         };
 
         struct token_arr arr = {
@@ -73,21 +73,21 @@ TEST(object_like) {
         const char* spell = "ANOTHER_MACRO";
         // #define ANOTHER_MACRO 1 + 2 * 3 - func(a, b)
         struct token tokens[] = {
-            {STRINGIFY_OP, .spelling = NULL, {0, {1, 1}}},
-            {IDENTIFIER, .spelling = "define", {0, {1, 2}}},
-            {IDENTIFIER, .spelling = "ANOTHER_MACRO", {0, {1, 9}}},
-            {I_CONSTANT, .spelling = "1", {0, {1, 23}}},
-            {ADD, .spelling = NULL, {0, {1, 25}}},
-            {I_CONSTANT, .spelling = "2", {0, {1, 27}}},
-            {ASTERISK, .spelling = NULL, {0, {1, 29}}},
-            {I_CONSTANT, .spelling = "3", {0, {1, 31}}},
-            {SUB, .spelling = NULL, {0, {1, 33}}},
-            {IDENTIFIER, .spelling = "func", {0, {1, 35}}},
-            {LBRACKET, .spelling = NULL, {0, {1, 39}}},
-            {IDENTIFIER, .spelling = "a", {0, {1, 40}}},
-            {COMMA, .spelling = NULL, {0, {1, 41}}},
-            {IDENTIFIER, .spelling = "b", {0, {1, 43}}},
-            {RBRACKET, .spelling = NULL, {0, {1, 44}}},
+            {STRINGIFY_OP, .spelling = create_null_str(), {0, {1, 1}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("ANOTHER_MACRO"), {0, {1, 9}}},
+            {I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 23}}},
+            {ADD, .spelling = create_null_str(), {0, {1, 25}}},
+            {I_CONSTANT, .spelling = STR_NON_HEAP("2"), {0, {1, 27}}},
+            {ASTERISK, .spelling = create_null_str(), {0, {1, 29}}},
+            {I_CONSTANT, .spelling = STR_NON_HEAP("3"), {0, {1, 31}}},
+            {SUB, .spelling = create_null_str(), {0, {1, 33}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("func"), {0, {1, 35}}},
+            {LBRACKET, .spelling = create_null_str(), {0, {1, 39}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 40}}},
+            {COMMA, .spelling = create_null_str(), {0, {1, 41}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("b"), {0, {1, 43}}},
+            {RBRACKET, .spelling = create_null_str(), {0, {1, 44}}},
         };
 
         enum {
@@ -131,27 +131,27 @@ TEST(func_like) {
         const char* spell = "FUNC_LIKE";
         // #define FUNC_LIKE(a, b, c) a != 38 ? b * other_name : c + a
         struct token tokens[] = {
-            {STRINGIFY_OP, .spelling = NULL, {0, {1, 1}}},
-            {IDENTIFIER, .spelling = "define", {0, {1, 2}}},
-            {IDENTIFIER, .spelling = "FUNC_LIKE", {0, {1, 9}}},
-            {LBRACKET, .spelling = NULL, {0, {1, 18}}},
-            {IDENTIFIER, .spelling = "a", {0, {1, 19}}},
-            {COMMA, .spelling = NULL, {0, {1, 20}}},
-            {IDENTIFIER, .spelling = "b", {0, {1, 22}}},
-            {COMMA, .spelling = NULL, {0, {1, 23}}},
-            {IDENTIFIER, .spelling = "c", {0, {1, 25}}},
-            {RBRACKET, .spelling = NULL, {0, {1, 26}}},
-            {IDENTIFIER, .spelling = "a", {0, {1, 28}}},
-            {NE_OP, .spelling = NULL, {0, {1, 30}}},
-            {I_CONSTANT, .spelling = "38", {0, {1, 33}}},
-            {QMARK, .spelling = NULL, {0, {1, 36}}},
-            {IDENTIFIER, .spelling = "b", {0, {1, 38}}},
-            {ASTERISK, .spelling = NULL, {0, {1, 40}}},
-            {IDENTIFIER, .spelling = "other_name", {0, {1, 42}}},
-            {COLON, .spelling = NULL, {0, {1, 53}}},
-            {IDENTIFIER, .spelling = "c", {0, {1, 55}}},
-            {ADD, .spelling = NULL, {0, {1, 57}}},
-            {IDENTIFIER, .spelling = "a", {0, {1, 59}}},
+            {STRINGIFY_OP, .spelling = create_null_str(), {0, {1, 1}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("FUNC_LIKE"), {0, {1, 9}}},
+            {LBRACKET, .spelling = create_null_str(), {0, {1, 18}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 19}}},
+            {COMMA, .spelling = create_null_str(), {0, {1, 20}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("b"), {0, {1, 22}}},
+            {COMMA, .spelling = create_null_str(), {0, {1, 23}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("c"), {0, {1, 25}}},
+            {RBRACKET, .spelling = create_null_str(), {0, {1, 26}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 28}}},
+            {NE_OP, .spelling = create_null_str(), {0, {1, 30}}},
+            {I_CONSTANT, .spelling = STR_NON_HEAP("38"), {0, {1, 33}}},
+            {QMARK, .spelling = create_null_str(), {0, {1, 36}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("b"), {0, {1, 38}}},
+            {ASTERISK, .spelling = create_null_str(), {0, {1, 40}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("other_name"), {0, {1, 42}}},
+            {COLON, .spelling = create_null_str(), {0, {1, 53}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("c"), {0, {1, 55}}},
+            {ADD, .spelling = create_null_str(), {0, {1, 57}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 59}}},
         };
 
         enum {
@@ -200,16 +200,16 @@ TEST(func_like) {
         const char* spell = "NO_PARAMS";
         // #define NO_PARAMS() 1 + 2 + 3
         struct token tokens[] = {
-            {STRINGIFY_OP, .spelling = NULL, {0, {1, 1}}},
-            {IDENTIFIER, .spelling = "define", {0, {1, 2}}},
-            {IDENTIFIER, .spelling = "NO_PARAMS", {0, {1, 9}}},
-            {LBRACKET, .spelling = NULL, {0, {1, 18}}},
-            {RBRACKET, .spelling = NULL, {0, {1, 19}}},
-            {I_CONSTANT, .spelling = "1", {0, {1, 21}}},
-            {ADD, .spelling = NULL, {0, {1, 23}}},
-            {I_CONSTANT, .spelling = "2", {0, {1, 25}}},
-            {ADD, .spelling = NULL, {0, {1, 27}}},
-            {I_CONSTANT, .spelling = "3", {0, {1, 29}}},
+            {STRINGIFY_OP, .spelling = create_null_str(), {0, {1, 1}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("NO_PARAMS"), {0, {1, 9}}},
+            {LBRACKET, .spelling = create_null_str(), {0, {1, 18}}},
+            {RBRACKET, .spelling = create_null_str(), {0, {1, 19}}},
+            {I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 21}}},
+            {ADD, .spelling = create_null_str(), {0, {1, 23}}},
+            {I_CONSTANT, .spelling = STR_NON_HEAP("2"), {0, {1, 25}}},
+            {ADD, .spelling = create_null_str(), {0, {1, 27}}},
+            {I_CONSTANT, .spelling = STR_NON_HEAP("3"), {0, {1, 29}}},
         };
 
         enum {
@@ -252,11 +252,11 @@ TEST(func_like) {
         const char* spell = "NO_PARAMS_EMPTY";
         // #define NO_PARAMS_EMPTY()
         struct token tokens[] = {
-            {STRINGIFY_OP, .spelling = NULL, {0, {1, 1}}},
-            {IDENTIFIER, .spelling = "define", {0, {1, 2}}},
-            {IDENTIFIER, .spelling = "NO_PARAMS_EMPTY", {0, {1, 9}}},
-            {LBRACKET, .spelling = NULL, {0, {1, 24}}},
-            {RBRACKET, .spelling = NULL, {0, {1, 25}}},
+            {STRINGIFY_OP, .spelling = create_null_str(), {0, {1, 1}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("NO_PARAMS_EMPTY"), {0, {1, 9}}},
+            {LBRACKET, .spelling = create_null_str(), {0, {1, 24}}},
+            {RBRACKET, .spelling = create_null_str(), {0, {1, 25}}},
         };
 
         enum {
@@ -293,29 +293,29 @@ TEST(variadic) {
         const char* spell = "FUNC_LIKE";
         // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name : c + a
         struct token tokens[] = {
-            {STRINGIFY_OP, .spelling = NULL, {0, {1, 1}}},
-            {IDENTIFIER, .spelling = "define", {0, {1, 2}}},
-            {IDENTIFIER, .spelling = "FUNC_LIKE", {0, {1, 9}}},
-            {LBRACKET, .spelling = NULL, {0, {1, 18}}},
-            {IDENTIFIER, .spelling = "a", {0, {1, 19}}},
-            {COMMA, .spelling = NULL, {0, {1, 20}}},
-            {IDENTIFIER, .spelling = "b", {0, {1, 22}}},
-            {COMMA, .spelling = NULL, {0, {1, 23}}},
-            {IDENTIFIER, .spelling = "c", {0, {1, 25}}},
-            {COMMA, .spelling = NULL, {0, {1, 26}}},
-            {ELLIPSIS, .spelling = NULL, {0, {1, 28}}},
-            {RBRACKET, .spelling = NULL, {0, {1, 31}}},
-            {IDENTIFIER, .spelling = "a", {0, {1, 33}}},
-            {NE_OP, .spelling = NULL, {0, {1, 35}}},
-            {I_CONSTANT, .spelling = "38", {0, {1, 38}}},
-            {QMARK, .spelling = NULL, {0, {1, 41}}},
-            {IDENTIFIER, .spelling = "b", {0, {1, 43}}},
-            {ASTERISK, .spelling = NULL, {0, {1, 45}}},
-            {IDENTIFIER, .spelling = "other_name", {0, {1, 47}}},
-            {COLON, .spelling = NULL, {0, {1, 58}}},
-            {IDENTIFIER, .spelling = "c", {0, {1, 60}}},
-            {ADD, .spelling = NULL, {0, {1, 62}}},
-            {IDENTIFIER, .spelling = "a", {0, {1, 64}}},
+            {STRINGIFY_OP, .spelling = create_null_str(), {0, {1, 1}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("FUNC_LIKE"), {0, {1, 9}}},
+            {LBRACKET, .spelling = create_null_str(), {0, {1, 18}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 19}}},
+            {COMMA, .spelling = create_null_str(), {0, {1, 20}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("b"), {0, {1, 22}}},
+            {COMMA, .spelling = create_null_str(), {0, {1, 23}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("c"), {0, {1, 25}}},
+            {COMMA, .spelling = create_null_str(), {0, {1, 26}}},
+            {ELLIPSIS, .spelling = create_null_str(), {0, {1, 28}}},
+            {RBRACKET, .spelling = create_null_str(), {0, {1, 31}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 33}}},
+            {NE_OP, .spelling = create_null_str(), {0, {1, 35}}},
+            {I_CONSTANT, .spelling = STR_NON_HEAP("38"), {0, {1, 38}}},
+            {QMARK, .spelling = create_null_str(), {0, {1, 41}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("b"), {0, {1, 43}}},
+            {ASTERISK, .spelling = create_null_str(), {0, {1, 45}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("other_name"), {0, {1, 47}}},
+            {COLON, .spelling = create_null_str(), {0, {1, 58}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("c"), {0, {1, 60}}},
+            {ADD, .spelling = create_null_str(), {0, {1, 62}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 64}}},
         };
 
         enum {
@@ -365,32 +365,32 @@ TEST(variadic) {
         // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name(__VA_ARGS__)
         // : c + a
         struct token tokens[] = {
-            {STRINGIFY_OP, .spelling = NULL, {0, {1, 1}}},
-            {IDENTIFIER, .spelling = "define", {0, {1, 2}}},
-            {IDENTIFIER, .spelling = "FUNC_LIKE", {0, {1, 9}}},
-            {LBRACKET, .spelling = NULL, {0, {1, 18}}},
-            {IDENTIFIER, .spelling = "a", {0, {1, 19}}},
-            {COMMA, .spelling = NULL, {0, {1, 20}}},
-            {IDENTIFIER, .spelling = "b", {0, {1, 22}}},
-            {COMMA, .spelling = NULL, {0, {1, 23}}},
-            {IDENTIFIER, .spelling = "c", {0, {1, 25}}},
-            {COMMA, .spelling = NULL, {0, {1, 26}}},
-            {ELLIPSIS, .spelling = NULL, {0, {1, 28}}},
-            {RBRACKET, .spelling = NULL, {0, {1, 31}}},
-            {IDENTIFIER, .spelling = "a", {0, {1, 33}}},
-            {NE_OP, .spelling = NULL, {0, {1, 35}}},
-            {I_CONSTANT, .spelling = "38", {0, {1, 38}}},
-            {QMARK, .spelling = NULL, {0, {1, 41}}},
-            {IDENTIFIER, .spelling = "b", {0, {1, 43}}},
-            {ASTERISK, .spelling = NULL, {0, {1, 45}}},
-            {IDENTIFIER, .spelling = "other_name", {0, {1, 47}}},
-            {LBRACKET, .spelling = NULL, {0, {1, 48}}},
-            {IDENTIFIER, .spelling = "__VA_ARGS__", {0, {1, 49}}},
-            {RBRACKET, .spelling = NULL, {0, {1, 60}}},
-            {COLON, .spelling = NULL, {0, {1, 62}}},
-            {IDENTIFIER, .spelling = "c", {0, {1, 64}}},
-            {ADD, .spelling = NULL, {0, {1, 66}}},
-            {IDENTIFIER, .spelling = "a", {0, {1, 68}}},
+            {STRINGIFY_OP, .spelling = create_null_str(), {0, {1, 1}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("FUNC_LIKE"), {0, {1, 9}}},
+            {LBRACKET, .spelling = create_null_str(), {0, {1, 18}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 19}}},
+            {COMMA, .spelling = create_null_str(), {0, {1, 20}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("b"), {0, {1, 22}}},
+            {COMMA, .spelling = create_null_str(), {0, {1, 23}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("c"), {0, {1, 25}}},
+            {COMMA, .spelling = create_null_str(), {0, {1, 26}}},
+            {ELLIPSIS, .spelling = create_null_str(), {0, {1, 28}}},
+            {RBRACKET, .spelling = create_null_str(), {0, {1, 31}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 33}}},
+            {NE_OP, .spelling = create_null_str(), {0, {1, 35}}},
+            {I_CONSTANT, .spelling = STR_NON_HEAP("38"), {0, {1, 38}}},
+            {QMARK, .spelling = create_null_str(), {0, {1, 41}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("b"), {0, {1, 43}}},
+            {ASTERISK, .spelling = create_null_str(), {0, {1, 45}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("other_name"), {0, {1, 47}}},
+            {LBRACKET, .spelling = create_null_str(), {0, {1, 48}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("__VA_ARGS__"), {0, {1, 49}}},
+            {RBRACKET, .spelling = create_null_str(), {0, {1, 60}}},
+            {COLON, .spelling = create_null_str(), {0, {1, 62}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("c"), {0, {1, 64}}},
+            {ADD, .spelling = create_null_str(), {0, {1, 66}}},
+            {IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 68}}},
         };
 
         enum {

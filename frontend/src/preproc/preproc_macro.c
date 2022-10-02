@@ -42,7 +42,7 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr,
     assert(arr);
     assert(arr->tokens[0].type == STRINGIFY_OP);
     assert(arr->tokens[1].type == IDENTIFIER);
-    assert(strcmp(arr->tokens[1].spelling, "define") == 0);
+    assert(strcmp(str_get_data(&arr->tokens[1].spelling), "define") == 0);
 
     (void)err; // TODO: remove
 
@@ -75,7 +75,7 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr,
             if (arg_spells_cap == res.num_args) {
                 grow_alloc((void**)&arg_spells, &arg_spells_cap, sizeof(char*));
             }
-            arg_spells[res.num_args] = arr->tokens[it].spelling;
+            arg_spells[res.num_args] = str_get_data(&arr->tokens[it].spelling);
             assert(arg_spells[res.num_args]);
 
             ++res.num_args;
@@ -121,7 +121,7 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr,
             struct token_or_arg* res_curr = &res.expansion[res_idx];
             if (curr_tok->type == IDENTIFIER) {
                 if (res.is_variadic
-                    && strcmp(curr_tok->spelling, "__VA_ARGS__") == 0) {
+                    && strcmp(str_get_data(&curr_tok->spelling), "__VA_ARGS__") == 0) {
                     res_curr->is_arg = true;
                     res_curr->arg_num = res.num_args;
                     continue;
@@ -129,7 +129,7 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr,
 
                 size_t idx = (size_t)-1;
                 for (size_t j = 0; j < res.num_args; ++j) {
-                    if (strcmp(curr_tok->spelling, arg_spells[j]) == 0) {
+                    if (strcmp(str_get_data(&curr_tok->spelling), arg_spells[j]) == 0) {
                         idx = j;
                         break;
                     }
@@ -144,7 +144,7 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr,
 
             res_curr->is_arg = false;
             res_curr->token = *curr_tok;
-            curr_tok->spelling = NULL;
+            curr_tok->spelling = create_null_str();
         }
 
         // cast to make msvc happy (though it shouldn't be like this)
@@ -183,7 +183,7 @@ static struct token copy_token(const struct token* t);
 
 static struct token move_token(struct token* t) {
     struct token res = *t;
-    t->spelling = NULL;
+    t->spelling = create_null_str();
     return res;
 }
 
@@ -461,7 +461,7 @@ static struct token copy_token(const struct token* t) {
     assert(t);
     return (struct token){
         .type = t->type,
-        .spelling = t->spelling == NULL ? NULL : alloc_string_copy(t->spelling),
+        .spelling = str_copy(&t->spelling),
         // TODO: identify as token from macro expansion
         .loc =
             {

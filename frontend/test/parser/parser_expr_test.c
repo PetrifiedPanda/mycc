@@ -51,7 +51,7 @@ static void check_primary_expr_string(const char* spell) {
 
     ASSERT(res->type == PRIMARY_EXPR_STRING_LITERAL);
     ASSERT(res->string.is_func == false);
-    ASSERT_STR(res->string.lit.spelling, spell);
+    ASSERT_STR(str_get_data(&res->string.lit.spelling), spell);
 
     free_primary_expr(res);
 }
@@ -68,7 +68,7 @@ static void check_primary_expr_identifier(const char* spell) {
     struct primary_expr* res = parse_primary_helper(spell);
 
     ASSERT(res->type == PRIMARY_EXPR_IDENTIFIER);
-    ASSERT_STR(res->identifier->spelling, spell);
+    ASSERT_STR(str_get_data(&res->identifier->spelling), spell);
 
     free_primary_expr(res);
 }
@@ -99,9 +99,9 @@ static void primary_expr_generic_sel_test(void) {
 
     struct parser_err err = create_parser_err();
     struct parser_state s = create_parser_state(preproc_res.toks, &err);
-    struct token insert_token = {
+    const struct token insert_token = {
         .type = IDENTIFIER,
-        .spelling = "TypedefName",
+        .spelling = STR_NON_HEAP("TypedefName"),
         .loc =
             {
                 .file_idx = 0,
@@ -302,10 +302,12 @@ TEST(postfix_expr) {
         check_primary_expr_id(res->primary, "test");
 
         ASSERT(res->suffixes[0].type == POSTFIX_ACCESS);
-        ASSERT_STR(res->suffixes[0].identifier->spelling, "ident");
+        ASSERT_STR(str_get_data(&res->suffixes[0].identifier->spelling),
+                   "ident");
 
         ASSERT(res->suffixes[1].type == POSTFIX_PTR_ACCESS);
-        ASSERT_STR(res->suffixes[1].identifier->spelling, "other");
+        ASSERT_STR(str_get_data(&res->suffixes[1].identifier->spelling),
+                   "other");
 
         ASSERT(res->suffixes[2].type == POSTFIX_INC_DEC);
         ASSERT(res->suffixes[2].is_inc);

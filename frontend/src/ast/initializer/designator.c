@@ -23,11 +23,11 @@ bool parse_designator_inplace(struct parser_state* s, struct designator* res) {
         case DOT: {
             accept_it(s);
             if (s->it->type == IDENTIFIER) {
-                char* spell = take_spelling(s->it);
+                const struct str spell = take_spelling(s->it);
                 struct source_loc loc = s->it->loc;
                 accept_it(s);
                 res->is_index = false;
-                res->identifier = create_identifier(spell, loc);
+                res->identifier = create_identifier(&spell, loc);
                 return true;
             } else {
                 expected_token_error(s, IDENTIFIER);

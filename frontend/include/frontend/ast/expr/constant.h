@@ -13,14 +13,15 @@ struct constant {
     struct ast_node_info info;
     enum constant_type type;
     union {
-        char* spelling;
+        struct str spelling;
         struct value val;
     };
 };
 
 struct constant create_constant(struct value val, struct source_loc loc);
 
-struct constant create_enum_constant(char* spelling, struct source_loc loc);
+struct constant create_enum_constant(const struct str* spelling,
+                                     struct source_loc loc);
 
 void free_constant(struct constant* c);
 

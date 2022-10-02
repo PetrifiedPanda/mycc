@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+#include "util/str.h"
+
 #include "frontend/err_base.h"
 
 #include "frontend/preproc/num_parse.h"
@@ -47,8 +49,8 @@ struct preproc_err {
             size_t fail_file;
         };
         bool is_char_lit;
-        char* invalid_id;
-        char* invalid_num;
+        struct str invalid_id;
+        struct str invalid_num;
         struct {
             size_t expected_arg_count;
             bool too_few_args;
@@ -69,7 +71,7 @@ struct preproc_err {
         };
         enum token_type misplaced_preproc_tok;
         struct {
-            char* constant_spell;
+            struct str constant_spell;
             union {
                 struct int_const_err int_const_err;
                 struct float_const_err float_const_err;

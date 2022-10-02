@@ -44,7 +44,7 @@ void print_preproc_err(FILE* out,
             }
 
             assert(err->fail_file < file_info->len);
-            const char* fail_path = file_info->paths[err->fail_file];
+            const char* fail_path = str_get_data(&file_info->paths[err->fail_file]);
             if (err->open_fail) {
                 fprintf(out, "Failed to open file %s", fail_path);
             } else {
@@ -59,11 +59,11 @@ void print_preproc_err(FILE* out,
             break;
         case PREPROC_ERR_INVALID_ID:
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Invalid identifier: %s", err->invalid_id);
+            fprintf(out, "Invalid identifier: %s", str_get_data(&err->invalid_id));
             break;
         case PREPROC_ERR_INVALID_NUMBER:
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Invalid number: %s", err->invalid_num);
+            fprintf(out, "Invalid number: %s", str_get_data(&err->invalid_num));
             break;
         case PREPROC_ERR_MACRO_ARG_COUNT:
             print_err_base(out, file_info, &err->base);
@@ -120,7 +120,7 @@ void print_preproc_err(FILE* out,
             assert(err->elif_after_else_op != ELSE_OP_ENDIF);
             print_err_base(out, file_info, &err->base);
             const char*
-                prev_else_file = file_info->paths[err->prev_else_loc.file_idx];
+                prev_else_file = str_get_data(&file_info->paths[err->prev_else_loc.file_idx]);
             const struct file_loc loc = err->prev_else_loc.file_loc;
             switch (err->elif_after_else_op) {
                 case ELSE_OP_ELIF:
@@ -152,21 +152,21 @@ void print_preproc_err(FILE* out,
                 get_spelling(err->misplaced_preproc_tok));
             break;
         case PREPROC_ERR_INT_CONST:
-            assert(err->constant_spell);
+            assert(str_is_valid(&err->constant_spell));
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Integer constant %s is not a valid integer constant", err->constant_spell);
+            fprintf(out, "Integer constant %s is not a valid integer constant", str_get_data(&err->constant_spell));
             print_int_const_err(out, &err->int_const_err);
             break;
         case PREPROC_ERR_FLOAT_CONST:
-            assert(err->constant_spell);
+            assert(str_is_valid(&err->constant_spell));
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Floating constant %s is not a valid integer constant", err->constant_spell);
+            fprintf(out, "Floating constant %s is not a valid integer constant", str_get_data(&err->constant_spell));
             print_float_const_err(out, &err->float_const_err);
             break;
         case PREPROC_ERR_CHAR_CONST:
-            assert(err->constant_spell);
+            assert(str_is_valid(&err->constant_spell));
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Character constant %s is not a valid character constant", err->constant_spell);
+            fprintf(out, "Character constant %s is not a valid character constant", str_get_data(&err->constant_spell));
             print_char_const_err(out, &err->char_const_err);
             break;
     }
@@ -204,15 +204,15 @@ void free_preproc_err(struct preproc_err* err) {
 
     switch (err->type) {
         case PREPROC_ERR_INVALID_ID:
-            free(err->invalid_id);
+            free_str(&err->invalid_id);
             break;
         case PREPROC_ERR_INVALID_NUMBER:
-            free(err->invalid_num);
+            free_str(&err->invalid_num);
             break;
         case PREPROC_ERR_INT_CONST:
         case PREPROC_ERR_FLOAT_CONST:
         case PREPROC_ERR_CHAR_CONST:
-            free(err->constant_spell);
+            free_str(&err->constant_spell);
             break;
         case PREPROC_ERR_FILE_FAIL:
         case PREPROC_ERR_MACRO_ARG_COUNT:

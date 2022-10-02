@@ -28,14 +28,9 @@ static void advance(struct tokenizer_state* s, size_t num);
 static void advance_one(struct tokenizer_state* s);
 static void advance_newline(struct tokenizer_state* s);
 
-static void add_token_copy(struct token_arr* res,
-                           enum token_type type,
-                           const char* spell,
-                           struct file_loc file_loc,
-                           size_t file_idx);
 static void add_token(struct token_arr* res,
                       enum token_type type,
-                      char* spell,
+                      struct str* spell,
                       struct file_loc file_loc,
                       size_t file_idx);
 
@@ -95,8 +90,9 @@ bool tokenize_line(struct token_arr* res,
             if (s.it[1] != '\0') {
                 type = check_next(type, s.it + 1);
             }
-
-            add_token(res, type, NULL, s.file_loc, s.current_file_idx);
+            
+            struct str null_str = create_null_str();
+            add_token(res, type, &null_str, s.file_loc, s.current_file_idx);
 
             size_t len = strlen(get_spelling(type));
             advance(&s, len);
@@ -340,19 +336,9 @@ static void realloc_tokens_if_needed(struct token_arr* res) {
     }
 }
 
-static void add_token_copy(struct token_arr* res,
-                           enum token_type type,
-                           const char* spell,
-                           struct file_loc file_loc,
-                           size_t file_idx) {
-    realloc_tokens_if_needed(res);
-    res->tokens[res->len] = create_token_copy(type, spell, file_loc, file_idx);
-    ++res->len;
-}
-
 static void add_token(struct token_arr* res,
                       enum token_type type,
-                      char* spell,
+                      struct str* spell,
                       struct file_loc file_loc,
                       size_t file_idx) {
     realloc_tokens_if_needed(res);
@@ -457,63 +443,38 @@ static bool handle_character_literal(struct tokenizer_state* s,
         advance_newline(s);
     }
 
-    char* dyn_buf = NULL;
+    struct str spell = create_str(buf_idx, spell_buf);
     if (buf_idx == BUF_STRLEN) {
-        size_t buf_len = BUF_STRLEN + BUF_STRLEN / 2;
-        dyn_buf = xmalloc(buf_len * sizeof(char));
-        strcpy(dyn_buf, spell_buf);
-
         while (*s->it != '\0'
                && ((s->prev_prev != '\\' && s->prev == '\\')
                    || *s->it != terminator)) {
-            if (buf_idx == buf_len - 1) {
-                grow_alloc((void**)&dyn_buf, &buf_len, sizeof(char));
-            }
-
-            dyn_buf[buf_idx] = *s->it;
-            ++buf_idx;
+            
+            str_push_back(&spell, *s->it);
 
             advance_newline(s);
         }
-
-        dyn_buf = xrealloc(dyn_buf, (buf_idx + 2) * sizeof(char));
+        
+        str_shrink_to_fit(&spell);
     }
 
     if (*s->it == '\0') {
-        if (dyn_buf != NULL) {
-            free(dyn_buf);
-        }
+        free_str(&spell);
         unterminated_literal_err(err,
                                  terminator,
                                  start_loc,
                                  s->current_file_idx);
         return false;
     } else {
-        bool is_dyn = dyn_buf != NULL;
-        if (is_dyn) {
-            dyn_buf[buf_idx] = *s->it;
-            dyn_buf[buf_idx + 1] = '\0';
-        } else {
-            spell_buf[buf_idx] = *s->it;
-        }
-        ++buf_idx;
+        str_push_back(&spell, *s->it);
 
         advance_one(s);
 
-        enum token_type type = get_char_lit_type(is_dyn ? dyn_buf : spell_buf,
-                                                 buf_idx,
+        enum token_type type = get_char_lit_type(str_get_data(&spell),
+                                                 str_len(&spell),
                                                  terminator);
         assert(type != INVALID);
 
-        if (is_dyn) {
-            add_token(res, type, dyn_buf, start_loc, s->current_file_idx);
-        } else {
-            add_token_copy(res,
-                           type,
-                           spell_buf,
-                           start_loc,
-                           s->current_file_idx);
-        }
+        add_token(res, type, &spell, start_loc, s->current_file_idx);
     }
 
     return true;
@@ -561,33 +522,26 @@ static bool handle_other(struct tokenizer_state* s,
         advance_one(s);
     }
 
-    char* dyn_buf = NULL;
+    struct str spell = create_str(buf_idx, spell_buf);
     if (!token_is_over(s, is_num)) {
-        size_t buf_len = BUF_STRLEN + BUF_STRLEN / 2;
-        dyn_buf = xmalloc(buf_len * sizeof(char));
-        strcpy(dyn_buf, spell_buf);
 
         while (!token_is_over(s, is_num)) {
-            if (buf_idx == buf_len - 1) {
-                grow_alloc((void**)&dyn_buf, &buf_len, sizeof(char));
-            }
-
-            dyn_buf[buf_idx] = *s->it;
-            ++buf_idx;
+            
+            str_push_back(&spell, *s->it);
 
             advance_one(s);
         }
-
-        dyn_buf = xrealloc(dyn_buf, (buf_idx + 1) * sizeof(char));
-        dyn_buf[buf_idx] = '\0';
+        
+        str_shrink_to_fit(&spell);
     }
 
-    char* buf_to_check = dyn_buf != NULL ? dyn_buf : spell_buf;
     enum token_type type;
+    const char* spell_data = str_get_data(&spell);
+    const size_t spell_len = str_len(&spell);
     if (is_num) {
-        if (is_int_const(buf_to_check, buf_idx)) {
+        if (is_int_const(spell_data, spell_len)) {
             type = I_CONSTANT;
-        } else if (is_float_const(buf_to_check, buf_idx)) {
+        } else if (is_float_const(spell_data, spell_len)) {
             type = F_CONSTANT;
         } else {
             struct source_loc loc = {
@@ -595,13 +549,10 @@ static bool handle_other(struct tokenizer_state* s,
                 .file_loc = start_loc,
             };
             set_preproc_err(err, PREPROC_ERR_INVALID_NUMBER, loc);
-            char* num_spell = buf_to_check != dyn_buf
-                                  ? alloc_string_copy(buf_to_check)
-                                  : dyn_buf;
-            err->invalid_num = num_spell;
+            err->invalid_num = spell;
             return false;
         }
-    } else if (is_valid_identifier(buf_to_check, buf_idx)) {
+    } else if (is_valid_identifier(spell_data, spell_len)) {
         type = IDENTIFIER;
     } else {
         struct source_loc loc = {
@@ -610,18 +561,11 @@ static bool handle_other(struct tokenizer_state* s,
         };
         set_preproc_err(err, PREPROC_ERR_INVALID_ID, loc);
 
-        char* id_spell = buf_to_check != dyn_buf
-                             ? alloc_string_copy(buf_to_check)
-                             : dyn_buf;
-        err->invalid_id = id_spell;
+        err->invalid_id = spell;
         return false;
     }
 
-    if (buf_to_check == dyn_buf) {
-        add_token(res, type, dyn_buf, start_loc, s->current_file_idx);
-    } else {
-        add_token_copy(res, type, spell_buf, start_loc, s->current_file_idx);
-    }
+    add_token(res, type, &spell, start_loc, s->current_file_idx);
 
     return true;
 }

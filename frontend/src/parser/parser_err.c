@@ -52,13 +52,13 @@ void print_parser_err(FILE* out, const struct file_info* file_info, const struct
         }
         case PARSER_ERR_REDEFINED_SYMBOL: {
             assert(err->prev_def_file < file_info->len);
-            const char* path = file_info->paths[err->prev_def_file];
+            const char* path = str_get_data(&file_info->paths[err->prev_def_file]);
             const char* type_str = err->was_typedef_name ? "typedef name"
                                                          : "enum constant";
             fprintf(out,
                     "Redefined symbol %s that was already defined as %s in "
                     "%s(%zu, %zu)",
-                    err->redefined_symbol,
+                    str_get_data(&err->redefined_symbol),
                     type_str,
                     path,
                     err->prev_def_loc.line,
@@ -104,7 +104,7 @@ void print_parser_err(FILE* out, const struct file_info* file_info, const struct
             fprintf(
                 out,
                 "Expected a typedef name but got identifier with spelling %s",
-                err->non_typedef_spelling);
+                str_get_data(&err->non_typedef_spelling));
     }
     fprintf(out, "\n");
 }
@@ -115,10 +115,10 @@ void free_parser_err(struct parser_err* err) {
             free(err->expected);
             break;
         case PARSER_ERR_REDEFINED_SYMBOL:
-            free(err->redefined_symbol);
+            free_str(&err->redefined_symbol);
             break;
         case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
-            free(err->non_typedef_spelling);
+            free_str(&err->non_typedef_spelling);
             break;
         default:
             break;

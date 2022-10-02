@@ -4,6 +4,8 @@
 
 #include "frontend/parser/parser_state.h"
 
+#include "../test_helpers.h"
+
 TEST(parser_state) {
     struct token dummy = {.type = INVALID};
     struct parser_err err = create_parser_err();
@@ -27,10 +29,11 @@ TEST(parser_state) {
         }
 
         insert_string[i] = 'a';
+        const struct str to_insert = str_non_heap(i + 1, insert_string);
 
         struct token* item = &dummy_string_tokens[i];
         *item = create_token_copy(IDENTIFIER,
-                                  insert_string,
+                                  &to_insert,
                                   (struct file_loc){0, 0},
                                   0);
         if (i % 2 == 0) {
@@ -45,12 +48,13 @@ TEST(parser_state) {
     for (size_t i = 0; i < NUM_STRINGS; ++i) {
         test_string[i] = 'a';
 
+        const struct str test_string_str = str_non_heap(i + 1, test_string);
         if (i % 2 == 0) {
-            ASSERT(is_enum_constant(&s, test_string));
-            ASSERT(!is_typedef_name(&s, test_string));
+            ASSERT(is_enum_constant(&s, &test_string_str));
+            ASSERT(!is_typedef_name(&s, &test_string_str));
         } else {
-            ASSERT(is_typedef_name(&s, test_string));
-            ASSERT(!is_enum_constant(&s, test_string));
+            ASSERT(is_typedef_name(&s, &test_string_str));
+            ASSERT(!is_enum_constant(&s, &test_string_str));
         }
         ASSERT(err.type == PARSER_ERR_NONE);
     }
@@ -61,13 +65,14 @@ TEST(parser_state) {
         size_t j;
         for (j = 0; j < NUM_STRINGS - i * SCOPE_INTERVAL; ++j) {
             pop_test_string[j] = 'a';
+            const struct str pop_test_str = str_non_heap(j + 1, pop_test_string);
 
             if (j % 2 == 0) {
-                ASSERT(is_enum_constant(&s, pop_test_string));
-                ASSERT(!is_typedef_name(&s, pop_test_string));
+                ASSERT(is_enum_constant(&s, &pop_test_str));
+                ASSERT(!is_typedef_name(&s, &pop_test_str));
             } else {
-                ASSERT(is_typedef_name(&s, pop_test_string));
-                ASSERT(!is_enum_constant(&s, pop_test_string));
+                ASSERT(is_typedef_name(&s, &pop_test_str));
+                ASSERT(!is_enum_constant(&s, &pop_test_str));
             }
             ASSERT(err.type == PARSER_ERR_NONE);
         }
@@ -75,9 +80,10 @@ TEST(parser_state) {
         // test if values from popped scopes are not present anymore
         for (; j < NUM_STRINGS; ++j) {
             pop_test_string[j] = 'a';
+            const struct str pop_test_str = str_non_heap(j + 1, pop_test_string);
 
-            ASSERT(!is_enum_constant(&s, pop_test_string));
-            ASSERT(!is_typedef_name(&s, pop_test_string));
+            ASSERT(!is_enum_constant(&s, &pop_test_str));
+            ASSERT(!is_typedef_name(&s, &pop_test_str));
 
             ASSERT(err.type == PARSER_ERR_NONE);
         }
@@ -93,7 +99,7 @@ TEST(parser_state) {
 
     struct token insert_test_token = {
         .type = IDENTIFIER,
-        .spelling = "Test",
+        .spelling = STR_NON_HEAP("Test"),
         .loc =
             {
                 .file_idx = 0,
@@ -104,7 +110,7 @@ TEST(parser_state) {
     ASSERT(!register_typedef_name(&s, &insert_test_token));
 
     ASSERT(err.type == PARSER_ERR_REDEFINED_SYMBOL);
-    ASSERT_STR(err.redefined_symbol, "Test");
+    ASSERT_STR(str_get_data(&err.redefined_symbol), "Test");
     ASSERT(!err.was_typedef_name);
     ASSERT_SIZE_T(err.prev_def_file, (size_t)0);
     ASSERT_SIZE_T(err.prev_def_loc.line, (size_t)0);
@@ -116,7 +122,7 @@ TEST(parser_state) {
     ASSERT(!register_enum_constant(&s, &insert_test_token));
 
     ASSERT(err.type == PARSER_ERR_REDEFINED_SYMBOL);
-    ASSERT_STR(err.redefined_symbol, "Test");
+    ASSERT_STR(str_get_data(&err.redefined_symbol), "Test");
     ASSERT(!err.was_typedef_name);
     ASSERT_SIZE_T(err.prev_def_file, (size_t)0);
     ASSERT_SIZE_T(err.prev_def_loc.line, (size_t)0);

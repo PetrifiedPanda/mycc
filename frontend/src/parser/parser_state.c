@@ -32,7 +32,7 @@ static bool register_identifier(struct parser_state* s,
                                 enum identifier_type type);
 
 static enum identifier_type get_item(const struct parser_state* s,
-                                     const char* spell);
+                                     const struct str* spell);
 
 struct parser_state create_parser_state(struct token* tokens,
                                         struct parser_err* err) {
@@ -101,11 +101,11 @@ bool register_typedef_name(struct parser_state* s, const struct token* token) {
     return register_identifier(s, token, ID_TYPE_TYPEDEF_NAME);
 }
 
-bool is_enum_constant(const struct parser_state* s, const char* spell) {
+bool is_enum_constant(const struct parser_state* s, const struct str* spell) {
     return get_item(s, spell) == ID_TYPE_ENUM_CONSTANT;
 }
 
-bool is_typedef_name(const struct parser_state* s, const char* spell) {
+bool is_typedef_name(const struct parser_state* s, const struct str* spell) {
     return get_item(s, spell) == ID_TYPE_TYPEDEF_NAME;
 }
 
@@ -123,12 +123,12 @@ static bool register_identifier(struct parser_state* s,
     };
     const struct identifier_type_data* item = string_hash_map_insert(
         &s->_scope_maps[s->_len - 1],
-        token->spelling,
+        &token->spelling,
         &to_insert);
     if (item != &to_insert) {
         set_parser_err(s->err, PARSER_ERR_REDEFINED_SYMBOL, token->loc);
 
-        s->err->redefined_symbol = alloc_string_copy(token->spelling);
+        s->err->redefined_symbol = str_copy(&token->spelling);
         s->err->was_typedef_name = item->type == ID_TYPE_TYPEDEF_NAME;
         s->err->prev_def_file = item->loc.file_idx;
         s->err->prev_def_loc = item->loc.file_loc;
@@ -139,7 +139,7 @@ static bool register_identifier(struct parser_state* s,
 }
 
 static enum identifier_type get_item(const struct parser_state* s,
-                                     const char* spell) {
+                                     const struct str* spell) {
     for (size_t i = 0; i < s->_len; ++i) {
         const struct identifier_type_data* data = string_hash_map_get(
             &s->_scope_maps[i],

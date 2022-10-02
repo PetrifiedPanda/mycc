@@ -176,7 +176,7 @@ static void check_external_decl_func_def_typedef(
                                  body_len);
 
     ASSERT(d->func_def.specs->type_specs.type == TYPE_SPEC_TYPENAME);
-    ASSERT_STR(d->func_def.specs->type_specs.typedef_name->spelling, ret_type);
+    ASSERT_STR(str_get_data(&d->func_def.specs->type_specs.typedef_name->spelling), ret_type);
 }
 
 static void compare_with_ex_file(const struct translation_unit* tl, const struct file_info* file_info, const char* ex_file) {

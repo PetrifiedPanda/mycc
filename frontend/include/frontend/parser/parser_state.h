@@ -29,8 +29,8 @@ void parser_pop_scope(struct parser_state* s);
 bool register_enum_constant(struct parser_state* s, const struct token* token);
 bool register_typedef_name(struct parser_state* s, const struct token* token);
 
-bool is_enum_constant(const struct parser_state* s, const char* spell);
-bool is_typedef_name(const struct parser_state* s, const char* spell);
+bool is_enum_constant(const struct parser_state* s, const struct str* spell);
+bool is_typedef_name(const struct parser_state* s, const struct str* spell);
 
 #endif
 

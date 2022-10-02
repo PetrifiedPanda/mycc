@@ -164,9 +164,10 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
             break;
         }
         case IDENTIFIER: {
-            if (is_typedef_name(s, s->it->spelling)) {
+            if (is_typedef_name(s, &s->it->spelling)) {
                 res->type = TYPE_SPEC_TYPENAME;
-                res->typedef_name = create_identifier(take_spelling(s->it),
+                const struct str spell = take_spelling(s->it);
+                res->typedef_name = create_identifier(&spell,
                                                       s->it->loc);
                 accept_it(s);
                 break;

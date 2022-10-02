@@ -19,7 +19,7 @@ void check_value(struct value got, struct value expected) {
 
 void check_identifier(struct identifier* id, const char* spell) {
     if (spell != NULL) {
-        ASSERT_STR(id->spelling, spell);
+        ASSERT_STR(str_get_data(&id->spelling), spell);
     } else {
         ASSERT_NULL(id);
     }
@@ -28,7 +28,7 @@ void check_identifier(struct identifier* id, const char* spell) {
 void check_primary_expr_id(const struct primary_expr* e, const char* spell) {
     ASSERT(e->type == PRIMARY_EXPR_IDENTIFIER);
     ASSERT_NOT_NULL(e->identifier);
-    ASSERT_STR(e->identifier->spelling, spell);
+    ASSERT_STR(str_get_data(&e->identifier->spelling), spell);
 }
 
 void check_primary_expr_const(const struct primary_expr* e, struct value val) {

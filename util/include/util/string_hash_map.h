@@ -4,10 +4,9 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-struct string_hash_map_key {
-    bool was_deleted;
-    char* str;
-};
+#include "util/str.h"
+
+struct string_hash_map_key;
 
 struct string_hash_map {
     size_t _len;
@@ -33,7 +32,7 @@ void free_string_hash_map(struct string_hash_map* map);
  *         to the item associated with key
  */
 const void* string_hash_map_insert(struct string_hash_map* map,
-                                   char* key,
+                                   const struct str* key,
                                    const void* item);
 
 /**
@@ -43,7 +42,7 @@ const void* string_hash_map_insert(struct string_hash_map* map,
  * @return true if an existing entry was overwritten
  */
 bool string_hash_map_insert_overwrite(struct string_hash_map* map,
-                                      char* key,
+                                      const struct str* key,
                                       const void* item);
 
 /**
@@ -53,8 +52,8 @@ bool string_hash_map_insert_overwrite(struct string_hash_map* map,
  *         present
  */
 const void* string_hash_map_get(const struct string_hash_map* map,
-                                const char* key);
+                                const struct str* key);
 
-void string_hash_map_remove(struct string_hash_map* map, const char* key);
+void string_hash_map_remove(struct string_hash_map* map, const struct str* key);
 
 #endif

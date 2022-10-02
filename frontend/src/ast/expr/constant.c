@@ -4,7 +4,8 @@
 #include <assert.h>
 
 struct constant create_constant(struct value val, struct source_loc loc) {
-    enum constant_type t = value_is_float(val.type) ? CONSTANT_FLOAT : CONSTANT_INT;
+    enum constant_type t = value_is_float(val.type) ? CONSTANT_FLOAT
+                                                    : CONSTANT_INT;
     return (struct constant){
         .info = create_ast_node_info(loc),
         .type = t,
@@ -12,17 +13,18 @@ struct constant create_constant(struct value val, struct source_loc loc) {
     };
 }
 
-struct constant create_enum_constant(char* spelling, struct source_loc loc) {
+struct constant create_enum_constant(const struct str* spelling,
+                                     struct source_loc loc) {
     assert(spelling);
     return (struct constant){
         .info = create_ast_node_info(loc),
         .type = CONSTANT_ENUM,
-        .spelling = spelling,
+        .spelling = *spelling,
     };
 }
 
 void free_constant(struct constant* c) {
     if (c->type == CONSTANT_ENUM) {
-        free(c->spelling);
+        free_str(&c->spelling);
     }
 }

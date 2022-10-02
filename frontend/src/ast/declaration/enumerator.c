@@ -22,7 +22,7 @@ bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* res) {
         return false;
     }
 
-    char* spell = take_spelling(id_token);
+    const struct str spell = take_spelling(id_token);
     struct source_loc loc = id_token->loc;
 
     struct const_expr* enum_val = NULL;
@@ -30,12 +30,12 @@ bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* res) {
         accept_it(s);
         enum_val = parse_const_expr(s);
         if (!enum_val) {
-            free(spell);
+            free_str(&spell);
             return false;
         }
     }
     
-    res->identifier = create_identifier(spell, loc);
+    res->identifier = create_identifier(&spell, loc);
     res->enum_val = enum_val;
 
     return true;

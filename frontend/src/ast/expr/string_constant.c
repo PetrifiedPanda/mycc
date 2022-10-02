@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-struct string_constant create_string_constant(char* spelling, struct source_loc loc) {
+struct string_constant create_string_constant(const struct str* spelling, struct source_loc loc) {
     assert(spelling);
     return (struct string_constant){
         .is_func = false,

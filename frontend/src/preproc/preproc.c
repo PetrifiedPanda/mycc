@@ -288,7 +288,7 @@ static bool expand_all_macros(struct preproc_state* state,
         if (curr->type == IDENTIFIER) {
             const struct preproc_macro* macro = find_preproc_macro(
                 state,
-                curr->spelling);
+                &curr->spelling);
             if (macro != NULL) {
                 size_t macro_end;
                 if (macro->is_func_macro) {
@@ -440,7 +440,7 @@ static void free_tokens(struct token* tokens) {
 
 static void free_preproc_tokens(struct token* tokens) {
     for (struct token* it = tokens; it->type != INVALID; ++it) {
-        free(it->spelling);
+        free_str(&it->spelling);
     }
     free(tokens);
 }
@@ -463,19 +463,19 @@ bool convert_preproc_tokens(struct token* tokens,
     for (struct token* t = tokens; t->type != INVALID; ++t) {
         switch (t->type) {
             case I_CONSTANT: {
-                if (t->spelling[0] == '\'') {
-                    struct parse_char_const_res res = parse_char_const(t->spelling, info);
+                if (str_char_at(&t->spelling, 0) == '\'') {
+                    struct parse_char_const_res res = parse_char_const(str_get_data(&t->spelling), info);
                     if (res.err.type != CHAR_CONST_ERR_NONE) {
                         set_preproc_err(err, PREPROC_ERR_CHAR_CONST, t->loc);
                         err->char_const_err = res.err;
                         err->constant_spell = t->spelling;
                         return false;
                     }
-                    free(t->spelling);
+                    free_str(&t->spelling);
                     t->val = res.res;
                 } else {
                     struct parse_int_const_res res = parse_int_const(
-                        t->spelling,
+                        str_get_data(&t->spelling),
                         info);
                     if (res.err.type != INT_CONST_ERR_NONE) {
                         set_preproc_err(err, PREPROC_ERR_INT_CONST, t->loc);
@@ -483,29 +483,29 @@ bool convert_preproc_tokens(struct token* tokens,
                         err->constant_spell = t->spelling;
                         return false;
                     }
-                    free(t->spelling);
+                    free_str(&t->spelling);
                     t->val = res.res;
                 }
                 break;
             }
             case F_CONSTANT: {
                 struct parse_float_const_res res = parse_float_const(
-                    t->spelling);
+                    str_get_data(&t->spelling));
                 if (res.err.type != FLOAT_CONST_ERR_NONE) {
                     set_preproc_err(err, PREPROC_ERR_FLOAT_CONST, t->loc);
                     err->float_const_err = res.err;
                     err->constant_spell = t->spelling;
                     return false;
                 }
-                free(t->spelling);
+                free_str(&t->spelling);
                 t->val = res.res;
                 break;
             }
             case IDENTIFIER:
-                t->type = keyword_type(t->spelling);
+                t->type = keyword_type(str_get_data(&t->spelling));
                 if (t->type != IDENTIFIER) {
-                    free(t->spelling);
-                    t->spelling = NULL;
+                    free_str(&t->spelling);
+                    t->spelling = create_null_str();
                 }
                 break;
             case STRINGIFY_OP:
@@ -526,7 +526,7 @@ static void append_terminator_token(struct token_arr* arr) {
     arr->tokens = xrealloc(arr->tokens, sizeof(struct token) * (arr->len + 1));
     arr->tokens[arr->len] = (struct token){
         .type = INVALID,
-        .spelling = NULL,
+        .spelling = create_null_str(),
         .loc =
             {
                 .file_idx = (size_t)-1,
@@ -628,8 +628,8 @@ static bool handle_ifdef_ifndef(struct preproc_state* state,
                                 bool is_ifndef) {
     assert(arr);
     assert(arr->tokens[0].type == STRINGIFY_OP);
-    assert((!is_ifndef && strcmp(arr->tokens[1].spelling, "ifdef") == 0)
-           || (is_ifndef && strcmp(arr->tokens[1].spelling, "ifndef") == 0));
+    assert((!is_ifndef && strcmp(str_get_data(&arr->tokens[1].spelling), "ifdef") == 0)
+           || (is_ifndef && strcmp(str_get_data(&arr->tokens[1].spelling), "ifndef") == 0));
 
     if (arr->len < 3) {
         set_preproc_err(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[1].loc);
@@ -654,8 +654,9 @@ static bool handle_ifdef_ifndef(struct preproc_state* state,
         return false;
     }
 
-    const char* macro_spell = arr->tokens[2].spelling;
+    const struct str* macro_spell = &arr->tokens[2].spelling;
     assert(macro_spell);
+    assert(str_is_valid(macro_spell));
     const struct preproc_macro* macro = find_preproc_macro(state, macro_spell);
 
     const bool cond = is_ifndef ? macro == NULL : macro != NULL;
@@ -709,7 +710,7 @@ static bool preproc_statement(struct preproc_state* state,
         return false;
     }
 
-    const char* directive = arr->tokens[1].spelling;
+    const char* directive = str_get_data(&arr->tokens[1].spelling);
     assert(directive);
 
     if (strcmp(directive, "if") == 0) {
@@ -719,14 +720,14 @@ static bool preproc_statement(struct preproc_state* state,
     } else if (strcmp(directive, "ifndef") == 0) {
         return handle_ifdef_ifndef(state, src, arr, true);
     } else if (strcmp(directive, "define") == 0) {
-        char* spelling = take_spelling(&arr->tokens[2]);
+        const struct str spell = take_spelling(&arr->tokens[2]);
         struct preproc_macro macro = parse_preproc_macro(arr,
-                                                         spelling,
+                                                         str_get_data(&spell),
                                                          state->err);
         if (state->err->type != PREPROC_ERR_NONE) {
             return false;
         }
-        register_preproc_macro(state, spelling, &macro);
+        register_preproc_macro(state, &spell, &macro);
     } else if (strcmp(directive, "undef") == 0) {
         if (arr->len < 3) {
             set_preproc_err(state->err,
@@ -751,8 +752,7 @@ static bool preproc_statement(struct preproc_state* state,
             return false;
         }
 
-        const char* macro_spell = arr->tokens[2].spelling;
-        remove_preproc_macro(state, macro_spell);
+        remove_preproc_macro(state, &arr->tokens[2].spelling);
     } else if (strcmp(directive, "include") == 0) {
         // TODO:
     } else if (strcmp(directive, "pragma") == 0) {

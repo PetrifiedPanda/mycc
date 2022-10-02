@@ -113,3 +113,12 @@ void test_compare_files(const char* got_file, const char* ex_file) {
     fclose(ex);
 }
 
+struct str str_non_heap(size_t len, const char* str) {
+    return (struct str){
+        ._is_static_buf = false,
+        ._cap = len + 1,
+        ._len = len,
+        ._data = (char*)str,
+    };
+}
+

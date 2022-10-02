@@ -5,10 +5,11 @@
 
 struct string_literal {
     struct ast_node_info info;
-    char* spelling;
+    struct str spelling;
 };
 
-struct string_literal create_string_literal(char* spelling, struct source_loc loc);
+struct string_literal create_string_literal(const struct str* spelling,
+                                            struct source_loc loc);
 
 void free_string_literal(struct string_literal* l);
 
