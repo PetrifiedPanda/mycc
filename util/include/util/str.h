@@ -26,7 +26,7 @@ struct str create_null_str(void);
 struct str create_empty_str(void);
 struct str create_str(size_t len, const char* str);
 
-bool str_is_null(const struct str* str);
+bool str_is_valid(const struct str* str);
 size_t str_len(const struct str* str);
 
 const char* str_get_data(const struct str* str);

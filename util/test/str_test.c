@@ -91,7 +91,7 @@ static void take_test_helper(size_t len, const char* s) {
     const char* orig_data = str_get_data(&original);
     ASSERT_STR(orig_data, s);
     struct str taken = str_take(&original);
-    ASSERT(str_is_null(&original));
+    ASSERT(!str_is_valid(&original));
     const char* taken_data = str_get_data(&taken);
     ASSERT_STR(taken_data, s);
     free_str(&original);
@@ -111,8 +111,9 @@ TEST(copy_move) {
     take_test_helper(LONG_LEN, long_str);
 
     struct str null_str = create_null_str();
+    ASSERT(!str_is_valid(&null_str));
     struct str copy = str_copy(&null_str);
-    ASSERT(str_is_null(&copy));
+    ASSERT(!str_is_valid(&copy));
 }
 
 TEST_SUITE_BEGIN(str, 4) {

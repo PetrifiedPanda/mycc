@@ -54,13 +54,13 @@ struct str create_str(size_t len, const char* str) {
     return create_str_with_cap(len, str, len);
 }
 
-bool str_is_null(const struct str* str) {
+bool str_is_valid(const struct str* str) {
     assert(str);
-    return !str->_is_static_buf && str->_data == NULL;
+    return str->_is_static_buf || str->_data != NULL;
 }
 
 size_t str_len(const struct str* str) {
-    assert(!str_is_null(str));
+    assert(str_is_valid(str));
     if (str->_is_static_buf) {
         return str->_small_len;
     } else {
@@ -70,7 +70,7 @@ size_t str_len(const struct str* str) {
 
 static char* str_get_mut_data(struct str* str) {
     assert(str);
-    assert(!str_is_null(str));
+    assert(str_is_valid(str));
     if (str->_is_static_buf) {
         return str->_static_buf;
     } else {
@@ -89,7 +89,7 @@ const char* str_get_data(const struct str* str) {
 
 char str_char_at(const struct str* str, size_t i) {
     assert(str);
-    assert(!str_is_null(str));
+    assert(str_is_valid(str));
     if (str->_is_static_buf) {
         assert(i < str->_small_len);
         return str->_static_buf[i];
@@ -100,6 +100,8 @@ char str_char_at(const struct str* str, size_t i) {
 }
 
 void str_push_back(struct str* str, char c) {
+    assert(str);
+    assert(str_is_valid(str));
     if (str->_is_static_buf) {
         if (str->_small_len == STATIC_BUF_LEN - 1) {
             size_t len = str->_small_len;
@@ -128,6 +130,8 @@ void str_push_back(struct str* str, char c) {
 }
 
 void str_shrink_to_fit(struct str* str) {
+    assert(str);
+    assert(str_is_valid(str));
     if (!str->_is_static_buf && str->_len + 1 != str->_cap) {
         str->_cap = str->_len + 1;
         str->_data = xrealloc(str->_data, sizeof *str->_data * str->_cap);
@@ -153,7 +157,7 @@ struct str str_concat(size_t len1,
 
 struct str str_take(struct str* str) {
     assert(str);
-    assert(!str_is_null(str));
+    assert(str_is_valid(str));
     struct str res = *str;
     str->_is_static_buf = false;
     str->_len = 0;
@@ -167,10 +171,10 @@ struct str str_copy(const struct str* str) {
     if (str->_is_static_buf) {
         return *str;
     } else {
-        if (str_is_null(str)) {
-            return create_null_str();
-        } else {
+        if (str_is_valid(str)) {
             return create_str_with_cap(str->_len, str->_data, str->_cap - 1);
+        } else {
+            return create_null_str();
         }
     }
 }
