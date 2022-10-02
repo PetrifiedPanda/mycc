@@ -8,7 +8,7 @@
 
 struct str create_null_str(void) {
     return (struct str){
-        ._is_dyn = true,
+        ._is_static_buf = false,
         ._len = 0,
         ._cap = 0,
         ._data = NULL,
@@ -16,11 +16,12 @@ struct str create_null_str(void) {
 }
 
 struct str create_empty_str(void) {
-    return (struct str){
-        ._is_dyn = false,
+    struct str res = {
         ._small_len = 0,
         ._static_buf = {0},
     };
+    res._is_static_buf = true;
+    return res;
 }
 
 enum {
@@ -33,12 +34,12 @@ static struct str create_str_with_cap(size_t len, const char* str, size_t cap) {
     assert(len == 0 || str);
     struct str res;
     if (cap < STATIC_BUF_LEN) {
-        res._is_dyn = false;
+        res._is_static_buf = true;
         res._small_len = len;
         memcpy(res._static_buf, str, sizeof *res._static_buf * len);
         res._static_buf[len] = '\0';
     } else {
-        res._is_dyn = true;
+        res._is_static_buf = false;
         res._len = len;
         res._cap = cap + 1;
         res._data = xmalloc(sizeof *res._data * res._cap);
@@ -55,59 +56,51 @@ struct str create_str(size_t len, const char* str) {
 
 bool str_is_null(const struct str* str) {
     assert(str);
-    return str->_is_dyn && str->_data == NULL;
+    return !str->_is_static_buf && str->_data == NULL;
 }
 
 size_t str_len(const struct str* str) {
     assert(!str_is_null(str));
-    if (str->_is_dyn) {
-        return str->_len;
-    } else {
+    if (str->_is_static_buf) {
         return str->_small_len;
+    } else {
+        return str->_len;
     }
 }
 
 static char* str_get_mut_data(struct str* str) {
     assert(str);
     assert(!str_is_null(str));
-    if (str->_is_dyn) {
-        return str->_data;
-    } else {
+    if (str->_is_static_buf) {
         return str->_static_buf;
+    } else {
+        return str->_data;
     }
 }
 
 const char* str_get_data(const struct str* str) {
     assert(str);
-    assert(!str_is_null(str));
-    if (str->_is_dyn) {
-        return str->_data;
-    } else {
+    if (str->_is_static_buf) {
         return str->_static_buf;
+    } else {
+        return str->_data;
     }
 }
 
 char str_char_at(const struct str* str, size_t i) {
     assert(str);
     assert(!str_is_null(str));
-    if (str->_is_dyn) {
-        assert(i < str->_len);
-        return str->_data[i];
-    } else {
+    if (str->_is_static_buf) {
         assert(i < str->_small_len);
         return str->_static_buf[i];
+    } else {
+        assert(i < str->_len);
+        return str->_data[i];
     }
 }
 
 void str_push_back(struct str* str, char c) {
-    if (str->_is_dyn) {
-        if (str->_len == str->_cap - 1) {
-            grow_alloc((void**)&str->_data, &str->_cap, sizeof *str->_data);
-        }
-        str->_data[str->_len] = c;
-        ++str->_len;
-        str->_data[str->_len] = '\0';
-    } else {
+    if (str->_is_static_buf) {
         if (str->_small_len == STATIC_BUF_LEN - 1) {
             size_t len = str->_small_len;
             char* data = xmalloc(sizeof *data * (STATIC_BUF_LEN + 1));
@@ -118,13 +111,26 @@ void str_push_back(struct str* str, char c) {
             str->_cap = len + 1;
             str->_len = len;
             str->_data = data;
-            str->_is_dyn = true;
+            str->_is_static_buf = false;
         } else {
             str->_static_buf[str->_small_len] = c;
             ++str->_small_len;
             str->_static_buf[str->_small_len] = '\0';
         }
+    } else {
+        if (str->_len == str->_cap - 1) {
+            grow_alloc((void**)&str->_data, &str->_cap, sizeof *str->_data);
+        }
+        str->_data[str->_len] = c;
+        ++str->_len;
+        str->_data[str->_len] = '\0';
+    }
+}
 
+void str_shrink_to_fit(struct str* str) {
+    if (!str->_is_static_buf && str->_len + 1 != str->_cap) {
+        str->_cap = str->_len + 1;
+        str->_data = xrealloc(str->_data, sizeof *str->_data * str->_cap);
     }
 }
 
@@ -137,10 +143,10 @@ struct str str_concat(size_t len1,
     char* res_data = str_get_mut_data(&res);
     memcpy(res_data + len1, s2, len2 * sizeof *res_data);
     res_data[len] = '\0';
-    if (res._is_dyn) {
-        res._len = len;
-    } else {
+    if (res._is_static_buf) {
         res._small_len = len;
+    } else {
+        res._len = len;
     }
     return res;
 }
@@ -149,7 +155,7 @@ struct str str_take(struct str* str) {
     assert(str);
     assert(!str_is_null(str));
     struct str res = *str;
-    str->_is_dyn = true;
+    str->_is_static_buf = false;
     str->_len = 0;
     str->_cap = 0;
     str->_data = NULL;
@@ -158,17 +164,20 @@ struct str str_take(struct str* str) {
 
 struct str str_copy(const struct str* str) {
     assert(str);
-    assert(!str_is_null(str));
-    if (str->_is_dyn) {
-        return create_str_with_cap(str->_len, str->_data, str->_cap - 1);
-    } else {
+    if (str->_is_static_buf) {
         return *str;
+    } else {
+        if (str_is_null(str)) {
+            return create_null_str();
+        } else {
+            return create_str_with_cap(str->_len, str->_data, str->_cap - 1);
+        }
     }
 }
 
 void free_str(const struct str* str) {
     assert(str);
-    if (str->_is_dyn) {
+    if (!str->_is_static_buf) {
         free(str->_data);
     }
 }

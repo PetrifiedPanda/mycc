@@ -9,13 +9,13 @@
 struct str {
     union {
         struct {
-            bool _is_dyn : 1;
+            bool _is_static_buf : 1;
             size_t _len : sizeof(size_t) * CHAR_BIT - 1;
             size_t _cap;
             char* _data;
         };
         struct {
-            bool _is_dyn_dup : 1;
+            bool _is_static_buf_dup : 1;
             uint8_t _small_len : sizeof(uint8_t) * CHAR_BIT - 1;
             char _static_buf[sizeof(size_t) * 2 - sizeof(uint8_t) + sizeof(char*)];
         };
@@ -33,6 +33,7 @@ const char* str_get_data(const struct str* str);
 char str_char_at(const struct str* str, size_t i);
 
 void str_push_back(struct str* str, char c);
+void str_shrink_to_fit(struct str* str);
 
 struct str str_concat(size_t len1, const char* s1, size_t len2, const char* s2);
 

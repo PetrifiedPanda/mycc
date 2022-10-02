@@ -109,6 +109,10 @@ TEST(copy_move) {
     copy_test_helper(LONG_LEN, long_str);
     take_test_helper(SMALL_LEN, small_str);
     take_test_helper(LONG_LEN, long_str);
+
+    struct str null_str = create_null_str();
+    struct str copy = str_copy(&null_str);
+    ASSERT(str_is_null(&copy));
 }
 
 TEST_SUITE_BEGIN(str, 4) {
