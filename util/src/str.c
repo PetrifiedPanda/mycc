@@ -35,7 +35,7 @@ static struct str create_str_with_cap(size_t len, const char* str, size_t cap) {
     struct str res;
     if (cap < STATIC_BUF_LEN) {
         res._is_static_buf = true;
-        res._small_len = len;
+        res._small_len = (uint8_t)len;
         memcpy(res._static_buf, str, sizeof *res._static_buf * len);
         res._static_buf[len] = '\0';
     } else {
@@ -148,7 +148,7 @@ struct str str_concat(size_t len1,
     memcpy(res_data + len1, s2, len2 * sizeof *res_data);
     res_data[len] = '\0';
     if (res._is_static_buf) {
-        res._small_len = len;
+        res._small_len = (uint8_t)len;
     } else {
         res._len = len;
     }
