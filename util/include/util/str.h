@@ -5,11 +5,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <limits.h>
+#include <assert.h>
 
 struct str {
     union {
         struct {
-            bool _is_static_buf : 1;
+            size_t _is_static_buf : 1;
             size_t _len : sizeof(size_t) * CHAR_BIT - 1;
             size_t _cap;
             char* _data;
@@ -17,10 +18,14 @@ struct str {
         struct {
             bool _is_static_buf_dup : 1;
             uint8_t _small_len : sizeof(uint8_t) * CHAR_BIT - 1;
-            char _static_buf[sizeof(size_t) * 2 - sizeof(uint8_t) + sizeof(char*)];
+            char _static_buf[sizeof(size_t) * 2 - sizeof(uint8_t)
+                             + sizeof(char*)];
         };
     };
 };
+
+static_assert(sizeof(struct str) == sizeof(size_t) * 2 + sizeof(char*),
+              "Size of string does not match contents");
 
 struct str create_null_str(void);
 struct str create_empty_str(void);
