@@ -3,26 +3,27 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #include "util/str.h"
 
 #include "backend/ir_type.h"
 
 enum ir_literal_type {
-    INST_LITERAL_BOOL,
-    INST_LITERAL_UINT,
-    INST_LITERAL_INT,
-    INST_LITERAL_FLOAT,
-    INST_LITERAL_STRUCT,
-    INST_LITERAL_ARR,
+    IR_LITERAL_BOOL,
+    IR_LITERAL_UINT,
+    IR_LITERAL_INT,
+    IR_LITERAL_FLOAT,
+    IR_LITERAL_STRUCT,
+    IR_LITERAL_ARR,
 };
 
 struct ir_literal {
     enum ir_literal_type type;
     union {
         bool bool_val;
-        unsigned long long uint_val;
-        signed long long int_val;
+        uintmax_t uint_val;
+        intmax_t int_val;
         long double float_val;
         struct { // struct, array
             size_t num_members;
@@ -51,10 +52,10 @@ struct ir_global {
 };
 
 enum ir_inst_arg_type {
-    INST_ARG_NONE,
-    INST_ARG_LITERAL,
-    INST_ARG_REG,
-    INST_ARG_GLOBAL,
+    IR_INST_ARG_NONE,
+    IR_INST_ARG_LITERAL,
+    IR_INST_ARG_REG,
+    IR_INST_ARG_GLOBAL,
 };
 
 struct ir_inst_arg {
@@ -68,38 +69,38 @@ struct ir_inst_arg {
 
 enum ir_inst_op {
     // dest = arg1 op arg2
-    INST_ADD,
-    INST_SUB,
-    INST_MUL,
-    INST_DIV,
-    INST_UDIV,
-    INST_AND,
-    INST_OR,
-    INST_XOR,
-    INST_LSHIFT,
-    INST_RSHIFT,
-    INST_MOD,
-    INST_EQ,
-    INST_NEQ,
-    INST_LT,
-    INST_LE,
-    INST_GT,
-    INST_GE,
+    IR_INST_ADD,
+    IR_INST_SUB,
+    IR_INST_MUL,
+    IR_INST_DIV,
+    IR_INST_UDIV,
+    IR_INST_AND,
+    IR_INST_OR,
+    IR_INST_XOR,
+    IR_INST_LSHIFT,
+    IR_INST_RSHIFT,
+    IR_INST_MOD,
+    IR_INST_EQ,
+    IR_INST_NEQ,
+    IR_INST_LT,
+    IR_INST_LE,
+    IR_INST_GT,
+    IR_INST_GE,
 
     // dest = arg1
-    INST_ASSIGN,
-    INST_CAST,
+    IR_INST_ASSIGN,
+    IR_INST_CAST,
 
-    INST_STORE, // *arg1 = arg2
-    INST_LOAD,  // dest = *arg1
+    IR_INST_STORE, // *arg1 = arg2
+    IR_INST_LOAD,  // dest = *arg1
 
-    INST_CALL, // dest = func(func_args)
+    IR_INST_CALL, // dest = func(func_args)
 
-    INST_ALLOCA, // dest = alloca(sizeof(type))
+    IR_INST_ALLOCA, // dest = alloca(sizeof(type))
 
-    INST_GETELEMPTR,
-    INST_GETELEM,
-    INST_REPLACEELEM,
+    IR_INST_GETELEMPTR,
+    IR_INST_GETELEM,
+    IR_INST_REPLACEELEM,
 };
 
 struct ir_inst {

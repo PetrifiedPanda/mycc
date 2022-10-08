@@ -13,8 +13,8 @@ void free_ir_reg(struct ir_reg* reg) {
 
 void free_ir_literal(struct ir_literal* lit) {
     switch (lit->type) {
-        case INST_LITERAL_STRUCT:
-        case INST_LITERAL_ARR:
+        case IR_LITERAL_STRUCT:
+        case IR_LITERAL_ARR:
             for (size_t i = 0; i < lit->num_members; ++i) {
                 free_ir_literal(&lit->members[i]);
             }
@@ -31,7 +31,7 @@ struct ir_inst create_call_inst(const struct ir_type* type,
                              size_t num_func_args,
                              struct ir_inst_arg* func_args) {
     return (struct ir_inst){
-        .op = INST_CALL,
+        .op = IR_INST_CALL,
         .type = *type,
         .dest = *dest,
         .func = *func,
@@ -44,11 +44,11 @@ struct ir_inst create_assign_inst(const struct ir_type* type,
                                const struct ir_reg_ref* dest,
                                const struct ir_inst_arg* val) {
     return (struct ir_inst){
-        .op = INST_ASSIGN,
+        .op = IR_INST_ASSIGN,
         .type = *type,
         .dest = *dest,
         .arg1 = *val,
-        .arg2.type = INST_ARG_NONE,
+        .arg2.type = IR_INST_ARG_NONE,
     };
 }
 
@@ -56,7 +56,7 @@ struct ir_inst create_cast_inst(const struct ir_type* type,
                              const struct ir_reg_ref* dest,
                              const struct ir_inst_arg* val) {
     return (struct ir_inst){
-        .op = INST_CAST,
+        .op = IR_INST_CAST,
         .type = *type,
         .dest = *dest,
         .arg1 = *val,
@@ -66,11 +66,11 @@ struct ir_inst create_cast_inst(const struct ir_type* type,
 struct ir_inst create_alloca_inst(const struct ir_reg_ref* dest,
                                const struct ir_type* type) {
     return (struct ir_inst){
-        .op = INST_ALLOCA,
+        .op = IR_INST_ALLOCA,
         .type = *type,
         .dest = *dest,
-        .arg1.type = INST_ARG_NONE,
-        .arg2.type = INST_ARG_NONE,
+        .arg1.type = IR_INST_ARG_NONE,
+        .arg2.type = IR_INST_ARG_NONE,
     };
 }
 
@@ -91,7 +91,7 @@ struct ir_inst create_inst(enum ir_inst_op op,
 struct ir_inst create_store_inst(const struct ir_inst_arg* ptr,
                               const struct ir_inst_arg* to_store) {
     return (struct ir_inst){
-        .op = INST_STORE,
+        .op = IR_INST_STORE,
         .arg1 = *ptr,
         .arg2 = *to_store,
     };
@@ -100,10 +100,10 @@ struct ir_inst create_store_inst(const struct ir_inst_arg* ptr,
 struct ir_inst create_load_inst(const struct ir_reg_ref* dest,
                              const struct ir_inst_arg* ptr) {
     return (struct ir_inst){
-        .op = INST_LOAD,
+        .op = IR_INST_LOAD,
         .dest = *dest,
         .arg1 = *ptr,
-        .arg2.type = INST_ARG_NONE,
+        .arg2.type = IR_INST_ARG_NONE,
     };
 }
 
@@ -113,13 +113,13 @@ struct ir_inst create_getelem_inst(const struct ir_reg_ref* dest,
                                 size_t num_accesses,
                                 struct ir_inst_arg* elems) {
     return (struct ir_inst){
-        .op = INST_GETELEM,
+        .op = IR_INST_GETELEM,
         .type = *type,
         .dest = *dest,
         .accessed = *accessed,
         .num_accesses = num_accesses,
         .elems = elems,
-        .replacement.type = INST_ARG_NONE,
+        .replacement.type = IR_INST_ARG_NONE,
     };
 }
 
@@ -129,13 +129,13 @@ struct ir_inst create_getelemptr_inst(const struct ir_reg_ref* dest,
                                    size_t num_accesses,
                                    struct ir_inst_arg* elems) {
     return (struct ir_inst){
-        .op = INST_GETELEMPTR,
+        .op = IR_INST_GETELEMPTR,
         .type = *type,
         .dest = *dest,
         .accessed = *accessed,
         .num_accesses = num_accesses,
         .elems = elems,
-        .replacement.type = INST_ARG_NONE,
+        .replacement.type = IR_INST_ARG_NONE,
     };
 }
 
@@ -146,7 +146,7 @@ struct ir_inst create_replace_elem_inst(const struct ir_reg_ref* dest,
                                      struct ir_inst_arg* elems,
                                      const struct ir_inst_arg* replacement) {
     return (struct ir_inst){
-        .op = INST_REPLACEELEM,
+        .op = IR_INST_REPLACEELEM,
         .type = *type,
         .dest = *dest,
         .accessed = *accessed,
@@ -157,7 +157,7 @@ struct ir_inst create_replace_elem_inst(const struct ir_reg_ref* dest,
 }
 
 void free_inst_arg(struct ir_inst_arg* arg) {
-    if (arg->type == INST_ARG_LITERAL) {
+    if (arg->type == IR_INST_ARG_LITERAL) {
         free_ir_literal(&arg->lit);
     }
 }
@@ -171,44 +171,44 @@ static void free_args(struct ir_inst_arg* args, size_t len) {
 
 void free_ir_inst(struct ir_inst* tac) {
     switch (tac->op) {
-        case INST_ADD:
-        case INST_SUB:
-        case INST_MUL:
-        case INST_DIV:
-        case INST_UDIV:
-        case INST_AND:
-        case INST_OR:
-        case INST_XOR:
-        case INST_LSHIFT:
-        case INST_RSHIFT:
-        case INST_MOD:
-        case INST_EQ:
-        case INST_NEQ:
-        case INST_LT:
-        case INST_LE:
-        case INST_GT:
-        case INST_GE:
-        case INST_STORE:
-        case INST_LOAD:
+        case IR_INST_ADD:
+        case IR_INST_SUB:
+        case IR_INST_MUL:
+        case IR_INST_DIV:
+        case IR_INST_UDIV:
+        case IR_INST_AND:
+        case IR_INST_OR:
+        case IR_INST_XOR:
+        case IR_INST_LSHIFT:
+        case IR_INST_RSHIFT:
+        case IR_INST_MOD:
+        case IR_INST_EQ:
+        case IR_INST_NEQ:
+        case IR_INST_LT:
+        case IR_INST_LE:
+        case IR_INST_GT:
+        case IR_INST_GE:
+        case IR_INST_STORE:
+        case IR_INST_LOAD:
             free_inst_arg(&tac->arg1);
             free_inst_arg(&tac->arg2);
             break;
-        case INST_CALL:
+        case IR_INST_CALL:
             free_inst_arg(&tac->func);
             free_args(tac->func_args, tac->num_func_args);
             break;
-        case INST_ASSIGN:
-        case INST_CAST:
+        case IR_INST_ASSIGN:
+        case IR_INST_CAST:
             free_inst_arg(&tac->arg1);
             break;
-        case INST_ALLOCA:
+        case IR_INST_ALLOCA:
             break;
-        case INST_GETELEMPTR:
-        case INST_GETELEM:
+        case IR_INST_GETELEMPTR:
+        case IR_INST_GETELEM:
             free_inst_arg(&tac->accessed);
             free_args(tac->elems, tac->num_accesses);
             break;
-        case INST_REPLACEELEM:
+        case IR_INST_REPLACEELEM:
             free_inst_arg(&tac->accessed);
             free_args(tac->elems, tac->num_accesses);
             free_inst_arg(&tac->replacement);
