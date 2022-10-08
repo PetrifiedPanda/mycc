@@ -1,36 +1,22 @@
-#include "backend/inst.h"
+#include "backend/ir_inst.h"
 
 #include <stdlib.h>
 #include <assert.h>
 
-void free_inst_type_info(struct inst_type_info* t) {
-    switch (t->type) {
-        case INST_TYPE_BUILTIN:
-        case INST_TYPE_ARR:
-            break;
-        case INST_TYPE_STRUCT:
-            free(t->member_types);
-            break;
-        case INST_TYPE_FUNC:
-            free(t->arg_types);
-            break;
-    }
-}
-
-void free_inst_global_info(struct inst_global_info* g) {
+void free_ir_global(struct ir_global* g) {
     free_str(&g->name);
 }
 
-void free_inst_reg_info(struct inst_reg_info* reg) {
+void free_ir_reg(struct ir_reg* reg) {
     free_str(&reg->name);
 }
 
-void free_inst_literal(struct inst_literal* lit) {
+void free_ir_literal(struct ir_literal* lit) {
     switch (lit->type) {
         case INST_LITERAL_STRUCT:
         case INST_LITERAL_ARR:
             for (size_t i = 0; i < lit->num_members; ++i) {
-                free_inst_literal(&lit->members[i]);
+                free_ir_literal(&lit->members[i]);
             }
             free(lit->members);
             break;
@@ -39,12 +25,12 @@ void free_inst_literal(struct inst_literal* lit) {
     }
 }
 
-struct inst create_call_inst(const struct inst_type* type,
-                             const struct inst_reg* dest,
-                             const struct inst_arg* func,
+struct ir_inst create_call_inst(const struct ir_type* type,
+                             const struct ir_reg_ref* dest,
+                             const struct ir_inst_arg* func,
                              size_t num_func_args,
-                             struct inst_arg* func_args) {
-    return (struct inst){
+                             struct ir_inst_arg* func_args) {
+    return (struct ir_inst){
         .op = INST_CALL,
         .type = *type,
         .dest = *dest,
@@ -54,10 +40,10 @@ struct inst create_call_inst(const struct inst_type* type,
     };
 }
 
-struct inst create_assign_inst(const struct inst_type* type,
-                               const struct inst_reg* dest,
-                               const struct inst_arg* val) {
-    return (struct inst){
+struct ir_inst create_assign_inst(const struct ir_type* type,
+                               const struct ir_reg_ref* dest,
+                               const struct ir_inst_arg* val) {
+    return (struct ir_inst){
         .op = INST_ASSIGN,
         .type = *type,
         .dest = *dest,
@@ -66,10 +52,10 @@ struct inst create_assign_inst(const struct inst_type* type,
     };
 }
 
-struct inst create_cast_inst(const struct inst_type* type,
-                             const struct inst_reg* dest,
-                             const struct inst_arg* val) {
-    return (struct inst){
+struct ir_inst create_cast_inst(const struct ir_type* type,
+                             const struct ir_reg_ref* dest,
+                             const struct ir_inst_arg* val) {
+    return (struct ir_inst){
         .op = INST_CAST,
         .type = *type,
         .dest = *dest,
@@ -77,9 +63,9 @@ struct inst create_cast_inst(const struct inst_type* type,
     };
 }
 
-struct inst create_alloca_inst(const struct inst_reg* dest,
-                               const struct inst_type* type) {
-    return (struct inst){
+struct ir_inst create_alloca_inst(const struct ir_reg_ref* dest,
+                               const struct ir_type* type) {
+    return (struct ir_inst){
         .op = INST_ALLOCA,
         .type = *type,
         .dest = *dest,
@@ -88,12 +74,12 @@ struct inst create_alloca_inst(const struct inst_reg* dest,
     };
 }
 
-struct inst create_inst(enum inst_op op,
-                        const struct inst_type* type,
-                        const struct inst_reg* dest,
-                        const struct inst_arg* arg1,
-                        const struct inst_arg* arg2) {
-    return (struct inst){
+struct ir_inst create_inst(enum ir_inst_op op,
+                        const struct ir_type* type,
+                        const struct ir_reg_ref* dest,
+                        const struct ir_inst_arg* arg1,
+                        const struct ir_inst_arg* arg2) {
+    return (struct ir_inst){
         .op = op,
         .type = *type,
         .dest = *dest,
@@ -102,18 +88,18 @@ struct inst create_inst(enum inst_op op,
     };
 }
 
-struct inst create_store_inst(const struct inst_arg* ptr,
-                              const struct inst_arg* to_store) {
-    return (struct inst){
+struct ir_inst create_store_inst(const struct ir_inst_arg* ptr,
+                              const struct ir_inst_arg* to_store) {
+    return (struct ir_inst){
         .op = INST_STORE,
         .arg1 = *ptr,
         .arg2 = *to_store,
     };
 }
 
-struct inst create_load_inst(const struct inst_reg* dest,
-                             const struct inst_arg* ptr) {
-    return (struct inst){
+struct ir_inst create_load_inst(const struct ir_reg_ref* dest,
+                             const struct ir_inst_arg* ptr) {
+    return (struct ir_inst){
         .op = INST_LOAD,
         .dest = *dest,
         .arg1 = *ptr,
@@ -121,12 +107,12 @@ struct inst create_load_inst(const struct inst_reg* dest,
     };
 }
 
-struct inst create_getelem_inst(const struct inst_reg* dest,
-                                const struct inst_type* type,
-                                const struct inst_arg* accessed,
+struct ir_inst create_getelem_inst(const struct ir_reg_ref* dest,
+                                const struct ir_type* type,
+                                const struct ir_inst_arg* accessed,
                                 size_t num_accesses,
-                                struct inst_arg* elems) {
-    return (struct inst){
+                                struct ir_inst_arg* elems) {
+    return (struct ir_inst){
         .op = INST_GETELEM,
         .type = *type,
         .dest = *dest,
@@ -137,12 +123,12 @@ struct inst create_getelem_inst(const struct inst_reg* dest,
     };
 }
 
-struct inst create_getelemptr_inst(const struct inst_reg* dest,
-                                   const struct inst_type* type,
-                                   const struct inst_arg* accessed,
+struct ir_inst create_getelemptr_inst(const struct ir_reg_ref* dest,
+                                   const struct ir_type* type,
+                                   const struct ir_inst_arg* accessed,
                                    size_t num_accesses,
-                                   struct inst_arg* elems) {
-    return (struct inst){
+                                   struct ir_inst_arg* elems) {
+    return (struct ir_inst){
         .op = INST_GETELEMPTR,
         .type = *type,
         .dest = *dest,
@@ -153,13 +139,13 @@ struct inst create_getelemptr_inst(const struct inst_reg* dest,
     };
 }
 
-struct inst create_replace_elem_inst(const struct inst_reg* dest,
-                                     const struct inst_type* type,
-                                     const struct inst_arg* accessed,
+struct ir_inst create_replace_elem_inst(const struct ir_reg_ref* dest,
+                                     const struct ir_type* type,
+                                     const struct ir_inst_arg* accessed,
                                      size_t num_accesses,
-                                     struct inst_arg* elems,
-                                     const struct inst_arg* replacement) {
-    return (struct inst){
+                                     struct ir_inst_arg* elems,
+                                     const struct ir_inst_arg* replacement) {
+    return (struct ir_inst){
         .op = INST_REPLACEELEM,
         .type = *type,
         .dest = *dest,
@@ -170,20 +156,20 @@ struct inst create_replace_elem_inst(const struct inst_reg* dest,
     };
 }
 
-void free_inst_arg(struct inst_arg* arg) {
+void free_inst_arg(struct ir_inst_arg* arg) {
     if (arg->type == INST_ARG_LITERAL) {
-        free_inst_literal(&arg->lit);
+        free_ir_literal(&arg->lit);
     }
 }
 
-static void free_args(struct inst_arg* args, size_t len) {
+static void free_args(struct ir_inst_arg* args, size_t len) {
     for (size_t i = 0; i < len; ++i) {
         free_inst_arg(&args[i]);
     }
     free(args);
 }
 
-void free_inst(struct inst* tac) {
+void free_ir_inst(struct ir_inst* tac) {
     switch (tac->op) {
         case INST_ADD:
         case INST_SUB:

@@ -3,7 +3,7 @@
 
 #include "util/str.h"
 
-#include "inst.h"
+#include "ir_inst.h"
 
 enum branch_inst_type {
     BRANCH_OP_COND,
@@ -13,7 +13,7 @@ enum branch_inst_type {
 };
 
 struct inst_switch_target {
-    struct inst_literal val;
+    struct ir_literal val;
     size_t target;
 };
 
@@ -21,25 +21,25 @@ struct branch_inst {
     enum branch_inst_type type;
     union {
         struct {
-            struct inst_arg br_cond;
+            struct ir_inst_arg br_cond;
             size_t true_target;
             size_t false_target;
         };
         size_t branch_target;
         struct {
-            struct inst_arg switch_cond;
+            struct ir_inst_arg switch_cond;
             size_t default_target;
             size_t switch_len;
             struct inst_switch_target* targets;
         };
-        struct inst_arg return_val;
+        struct ir_inst_arg return_val;
     };
 };
 
 struct basic_block {
     struct str name;
     size_t len;
-    struct inst* ops;
+    struct ir_inst* ops;
     struct branch_inst branch;
     size_t num_preds;
     size_t* preds;

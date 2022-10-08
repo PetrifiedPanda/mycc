@@ -6,7 +6,7 @@ void free_branch_inst(struct branch_inst* b) {
     switch (b->type) {
         case BRANCH_OP_SWITCH:
             for (size_t i = 0; i < b->switch_len; ++i) {
-                free_inst_literal(&b->targets[i].val);
+                free_ir_literal(&b->targets[i].val);
             }
             break;
         default:
@@ -17,7 +17,7 @@ void free_branch_inst(struct branch_inst* b) {
 void free_basic_block(struct basic_block* bb) {
     free_str(&bb->name);
     for (size_t i = 0; i < bb->len; ++i) {
-        free_inst(&bb->ops[i]);
+        free_ir_inst(&bb->ops[i]);
     }
     free(bb->ops);
     

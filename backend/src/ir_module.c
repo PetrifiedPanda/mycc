@@ -10,12 +10,12 @@ void free_ir_module(struct ir_module* mod) {
     free(mod->funcs);
 
     for (size_t i = 0; i < mod->num_globals; ++i) {
-        free_inst_global_info(&mod->globals[i]);
+        free_ir_global(&mod->globals[i]);
     }
     free(mod->globals);
 
     for (size_t i = 0; i < mod->num_types; ++i) {
-        free_inst_type_info(&mod->types[i]);
+        free_ir_type_info(&mod->types[i]);
     }
     free(mod->types);
 }

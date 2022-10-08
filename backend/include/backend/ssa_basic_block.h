@@ -5,10 +5,10 @@
 
 // TODO: may be better to make this more like a struct of arrays
 struct phi_inst {
-    struct inst_reg dest;
+    struct ir_reg_ref dest;
     
     size_t len;
-    struct inst_reg* options;
+    struct ir_reg_ref* options;
 };
 
 struct ssa_basic_block {
