@@ -1,5 +1,5 @@
-#ifndef INST_H
-#define INST_H
+#ifndef IR_INST_H
+#define IR_INST_H
 
 #include <stdbool.h>
 #include <stdio.h>
