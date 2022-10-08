@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-void free_ir_type_info(struct ir_type_info* t) {
+void free_ir_type(struct ir_type* t) {
     switch (t->type) {
         case INST_TYPE_BUILTIN:
         case INST_TYPE_ARR:

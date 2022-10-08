@@ -5,7 +5,7 @@
 
 // TODO: pointer modifiers like restrict, volatile
 
-struct ir_type {
+struct ir_type_ref {
     size_t id; // ID in LUT for types
     size_t num_indirs;
 };
@@ -18,26 +18,26 @@ enum ir_type_type {
 };
 
 // TODO: builtins (could just be in enum)
-struct ir_type_info {
+struct ir_type {
     enum ir_type_type type;
     union {
         struct {
-            struct ir_type type;
+            struct ir_type_ref type;
             size_t len;
         } arr_type;
         struct {
             size_t num_members;
-            struct ir_type* member_types;
+            struct ir_type_ref* member_types;
         } struct_type;
         struct {
-            struct ir_type ret_type;
+            struct ir_type_ref ret_type;
             size_t num_args;
-            struct ir_type* arg_types;
+            struct ir_type_ref* arg_types;
         } func_type;
     };
 };
 
-void free_ir_type_info(struct ir_type_info* t);
+void free_ir_type(struct ir_type* t);
 
 #endif
 

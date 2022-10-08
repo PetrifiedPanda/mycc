@@ -42,12 +42,12 @@ struct ir_global_ref {
 
 struct ir_reg {
     struct str name;
-    struct ir_type type;
+    struct ir_type_ref type;
 };
 
 struct ir_global {
     struct str name;
-    struct ir_type type;
+    struct ir_type_ref type;
     // TODO: value (if known at compile time)
 };
 
@@ -105,7 +105,7 @@ enum ir_inst_op {
 
 struct ir_inst {
     enum ir_inst_op op;
-    struct ir_type type;
+    struct ir_type_ref type;
     struct ir_reg_ref dest;
     union {
         struct {
@@ -131,25 +131,25 @@ void free_ir_reg(struct ir_reg* reg);
 
 void free_ir_literal(struct ir_literal* lit);
 
-struct ir_inst create_call_inst(const struct ir_type* type,
+struct ir_inst create_call_inst(const struct ir_type_ref* type,
                                 const struct ir_reg_ref* dest,
                                 const struct ir_inst_arg* func,
                                 size_t num_args,
                                 struct ir_inst_arg* func_args);
 
-struct ir_inst create_assign_inst(const struct ir_type* type,
+struct ir_inst create_assign_inst(const struct ir_type_ref* type,
                                   const struct ir_reg_ref* dest,
                                   const struct ir_inst_arg* val);
 
-struct ir_inst create_cast_inst(const struct ir_type* type,
+struct ir_inst create_cast_inst(const struct ir_type_ref* type,
                                 const struct ir_reg_ref* dest,
                                 const struct ir_inst_arg* val);
 
 struct ir_inst create_alloca_inst(const struct ir_reg_ref* dest,
-                                  const struct ir_type* type);
+                                  const struct ir_type_ref* type);
 
 struct ir_inst create_inst(enum ir_inst_op op,
-                           const struct ir_type* type,
+                           const struct ir_type_ref* type,
                            const struct ir_reg_ref* dest,
                            const struct ir_inst_arg* arg1,
                            const struct ir_inst_arg* arg2);
@@ -161,19 +161,19 @@ struct ir_inst create_store_inst(const struct ir_inst_arg* ptr,
                                  const struct ir_inst_arg* to_store);
 
 struct ir_inst create_getelem_inst(const struct ir_reg_ref* dest,
-                                   const struct ir_type* type,
+                                   const struct ir_type_ref* type,
                                    const struct ir_inst_arg* accessed,
                                    size_t num_accesses,
                                    struct ir_inst_arg* elems);
 
 struct ir_inst create_getelemptr_inst(const struct ir_reg_ref* dest,
-                                      const struct ir_type* type,
+                                      const struct ir_type_ref* type,
                                       const struct ir_inst_arg* accessed,
                                       size_t num_accesses,
                                       struct ir_inst_arg* elems);
 
 struct ir_inst create_replace_elem_inst(const struct ir_reg_ref* dest,
-                                        const struct ir_type* type,
+                                        const struct ir_type_ref* type,
                                         const struct ir_inst_arg* accessed,
                                         size_t num_accesses,
                                         struct ir_inst_arg* elems,

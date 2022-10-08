@@ -15,7 +15,7 @@ void free_ir_module(struct ir_module* mod) {
     free(mod->globals);
 
     for (size_t i = 0; i < mod->num_types; ++i) {
-        free_ir_type_info(&mod->types[i]);
+        free_ir_type(&mod->types[i]);
     }
     free(mod->types);
 }
