@@ -38,3 +38,4 @@ struct arch_type_info get_arch_type_info(enum arch a, bool is_windows) {
     }
     UNREACHABLE();
 }
+

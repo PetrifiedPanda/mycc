@@ -28,6 +28,11 @@ bool parse_struct_declaration_inplace(struct parser_state* s,
                 free_declaration_specs(res->decl_specs);
                 return false;
             }
+        } else {
+            res->decls = (struct struct_declarator_list){
+                .len = 0,
+                .decls = NULL,
+            };
         }
 
         if (!accept(s, SEMICOLON)) {

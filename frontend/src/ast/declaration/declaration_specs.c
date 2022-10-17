@@ -20,6 +20,13 @@ static bool current_is_type_qual(const struct parser_state* s) {
     }
 }
 
+
+enum parse_declaration_spec_res {
+    DECL_SPEC_ERROR,
+    DECL_SPEC_SUCCESS,
+    DECL_SPEC_LAST, // if this is the last declaration spec
+};
+
 /**
  *
  * @param s The current parser_state
@@ -32,7 +39,7 @@ static bool current_is_type_qual(const struct parser_state* s) {
  * @return 0 for an error, 1 for success and 2 if the next token is not a
  * declaration_spec
  */
-int parse_declaration_spec(struct parser_state* s,
+static enum parse_declaration_spec_res parse_declaration_spec(struct parser_state* s,
                            struct declaration_specs* res,
                            size_t* alloc_len_align_specs) {
     assert(res);
@@ -67,7 +74,7 @@ int parse_declaration_spec(struct parser_state* s,
         update_type_quals(s, &res->type_quals);
     } else if (is_type_spec(s)) {
         if (!update_type_specs(s, &res->type_specs)) {
-            return 0;
+            return DECL_SPEC_ERROR;
         }
     } else if (is_func_spec(s->it->type)) {
         struct func_specs* fs = &res->func_specs;
@@ -92,15 +99,15 @@ int parse_declaration_spec(struct parser_state* s,
         if (!parse_align_spec_inplace(
                 s,
                 &res->align_specs[res->num_align_specs])) {
-            return 0;
+            return DECL_SPEC_ERROR;
         }
 
         ++res->num_align_specs;
     } else {
-        return 2;
+        return DECL_SPEC_LAST;
     }
 
-    return 1;
+    return DECL_SPEC_SUCCESS;
 }
 
 struct declaration_specs* parse_declaration_specs(struct parser_state* s,
@@ -133,12 +140,12 @@ struct declaration_specs* parse_declaration_specs(struct parser_state* s,
     res->type_specs = create_type_specs();
 
     while (true) {
-        int success = parse_declaration_spec(s, res, &alloc_len_align_specs);
+        enum parse_declaration_spec_res success = parse_declaration_spec(s, res, &alloc_len_align_specs);
 
-        if (success == 0) {
+        if (success == DECL_SPEC_ERROR) {
             free_declaration_specs(res);
             return NULL;
-        } else if (success == 2) {
+        } else if (success == DECL_SPEC_LAST) {
             break;
         }
     }

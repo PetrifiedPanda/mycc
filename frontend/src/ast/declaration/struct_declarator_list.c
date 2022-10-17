@@ -8,7 +8,7 @@ struct struct_declarator_list parse_struct_declarator_list(
     struct parser_state* s) {
     struct struct_declarator_list res = {
         .len = 1,
-        .decls = xmalloc(sizeof(struct struct_declarator_list)),
+        .decls = xmalloc(sizeof *res.decls),
     };
 
     if (!parse_struct_declarator_inplace(s, &res.decls[0])) {
@@ -22,7 +22,7 @@ struct struct_declarator_list parse_struct_declarator_list(
         if (res.len == alloc_len) {
             grow_alloc((void**)&res.decls,
                        &alloc_len,
-                       sizeof(struct struct_declarator));
+                       sizeof *res.decls);
         }
 
         if (!parse_struct_declarator_inplace(s, &res.decls[res.len])) {
@@ -33,7 +33,7 @@ struct struct_declarator_list parse_struct_declarator_list(
         ++res.len;
     }
 
-    res.decls = xrealloc(res.decls, sizeof(struct struct_declarator) * res.len);
+    res.decls = xrealloc(res.decls, sizeof *res.decls * res.len);
 
     return res;
 }

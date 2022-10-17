@@ -42,6 +42,7 @@ fail:
     free_shift_expr(res);
     return false;
 }
+
 struct shift_expr* parse_shift_expr(struct parser_state* s) {
     struct add_expr* lhs = parse_add_expr(s);
     if (!lhs) {
