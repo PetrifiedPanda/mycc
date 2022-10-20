@@ -305,7 +305,11 @@ TEST(struct_declaration_list) {
     check_struct_declaration_non_static_assert(&res.decls[0], TYPE_SPEC_INT, "n", 20);
     check_struct_declaration_non_static_assert(&res.decls[1], TYPE_SPEC_INT, NULL, 10);
     check_struct_declaration_non_static_assert(&res.decls[2], TYPE_SPEC_DOUBLE, "a_double", -1);
-    check_struct_declaration_non_static_assert(&res.decls[3], TYPE_SPEC_INT, NULL, -1);
+    check_struct_declaration_non_static_assert(&res.decls[3], TYPE_SPEC_INT, NULL, -1);  
+
+    free_preproc_res(&preproc_res);
+    free_parser_state(&s);
+    free_struct_declaration_list(&res);
 }
 
 TEST_SUITE_BEGIN(parser_misc, 5) {
