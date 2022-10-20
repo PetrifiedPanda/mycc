@@ -312,11 +312,33 @@ TEST(struct_declaration_list) {
     free_struct_declaration_list(&res);
 }
 
-TEST_SUITE_BEGIN(parser_misc, 5) {
+TEST(redefine_typedef) {
+    struct preproc_res preproc_res = tokenize_string("typedef int MyInt;", "a file");
+
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(preproc_res.toks, &err);
+    
+    const struct str spell = STR_NON_HEAP("MyInt");
+    const struct token dummy_token = create_token(IDENTIFIER, &spell, (struct file_loc){0, 0}, 0);
+    register_typedef_name(&s, &dummy_token);
+    
+    bool found_typedef = false;
+    struct declaration_specs* res = parse_declaration_specs(&s, &found_typedef);
+    ASSERT_NULL(res);
+    ASSERT(err.type == PARSER_ERR_REDEFINED_SYMBOL);
+    ASSERT(err.was_typedef_name);
+    ASSERT_STR(str_get_data(&err.redefined_symbol), "MyInt");
+
+    free_parser_state(&s);
+    free_preproc_res(&preproc_res);
+}
+
+TEST_SUITE_BEGIN(parser_misc, 6) {
     REGISTER_TEST(enum_list);
     REGISTER_TEST(enum_spec);
     REGISTER_TEST(designation);
     REGISTER_TEST(static_assert_declaration);
     REGISTER_TEST(struct_declaration_list);
+    REGISTER_TEST(redefine_typedef);
 }
 TEST_SUITE_END()

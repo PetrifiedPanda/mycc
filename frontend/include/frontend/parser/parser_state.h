@@ -31,6 +31,7 @@ bool register_typedef_name(struct parser_state* s, const struct token* token);
 
 bool is_enum_constant(const struct parser_state* s, const struct str* spell);
 bool is_typedef_name(const struct parser_state* s, const struct str* spell);
+bool is_defined_in_current_scope(const struct parser_state* s, const struct str* spell);
 
 #endif
 

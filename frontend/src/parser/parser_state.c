@@ -109,6 +109,14 @@ bool is_typedef_name(const struct parser_state* s, const struct str* spell) {
     return get_item(s, spell) == ID_TYPE_TYPEDEF_NAME;
 }
 
+bool is_defined_in_current_scope(const struct parser_state* s,
+                                   const struct str* spell) {
+    const struct string_hash_map* current_map = &s->_scope_maps[s->_len - 1];
+    const struct identifier_type_data* data = string_hash_map_get(current_map,
+                                                                  spell);
+    return data;
+}
+
 static bool register_identifier(struct parser_state* s,
                                 const struct token* token,
                                 enum identifier_type type) {

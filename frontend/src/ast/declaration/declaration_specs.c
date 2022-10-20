@@ -20,7 +20,6 @@ static bool current_is_type_qual(const struct parser_state* s) {
     }
 }
 
-
 enum parse_declaration_spec_res {
     DECL_SPEC_ERROR,
     DECL_SPEC_SUCCESS,
@@ -39,9 +38,10 @@ enum parse_declaration_spec_res {
  * @return 0 for an error, 1 for success and 2 if the next token is not a
  * declaration_spec
  */
-static enum parse_declaration_spec_res parse_declaration_spec(struct parser_state* s,
-                           struct declaration_specs* res,
-                           size_t* alloc_len_align_specs) {
+static enum parse_declaration_spec_res parse_declaration_spec(
+    struct parser_state* s,
+    struct declaration_specs* res,
+    size_t* alloc_len_align_specs) {
     assert(res);
     assert(alloc_len_align_specs);
 
@@ -73,6 +73,19 @@ static enum parse_declaration_spec_res parse_declaration_spec(struct parser_stat
     } else if (current_is_type_qual(s)) {
         update_type_quals(s, &res->type_quals);
     } else if (is_type_spec(s)) {
+        if (res->storage_class.is_typedef && s->it->type == IDENTIFIER
+            && is_defined_in_current_scope(s, &s->it->spelling)) {
+            const struct token* next = s->it + 1;
+            if (!is_storage_class_spec(next->type) && !is_type_qual(next->type)
+                && !is_type_spec_token(s, next) && !is_func_spec(next->type)
+                && next->type != ALIGNAS) {
+                // This will throw the error
+                bool ret = register_typedef_name(s, s->it);
+                assert(ret == false);
+                UNUSED(ret);
+                return DECL_SPEC_ERROR;
+            }
+        }
         if (!update_type_specs(s, &res->type_specs)) {
             return DECL_SPEC_ERROR;
         }
@@ -140,7 +153,10 @@ struct declaration_specs* parse_declaration_specs(struct parser_state* s,
     res->type_specs = create_type_specs();
 
     while (true) {
-        enum parse_declaration_spec_res success = parse_declaration_spec(s, res, &alloc_len_align_specs);
+        enum parse_declaration_spec_res success = parse_declaration_spec(
+            s,
+            res,
+            &alloc_len_align_specs);
 
         if (success == DECL_SPEC_ERROR) {
             free_declaration_specs(res);

@@ -22,6 +22,14 @@ bool next_is_type_name(const struct parser_state* s);
 
 /**
  *
+ * @param s current state
+ * @param token token to check
+ * @return whether token is a type specifier
+ */
+bool is_type_spec_token(const struct parser_state* s,
+                        const struct token* token);
+/**
+ *
  * @param s The current parser_state
  * @return Whether the current token is a type specifier
  */

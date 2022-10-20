@@ -26,7 +26,7 @@ void expected_tokens_error(struct parser_state* s,
     s->err->got = s->it->type;
 }
 
-static bool is_type_spec_token(const struct parser_state* s,
+bool is_type_spec_token(const struct parser_state* s,
                                const struct token* token) {
     switch (token->type) {
         case VOID:
