@@ -267,10 +267,52 @@ TEST(static_assert_declaration) {
     free_static_assert_declaration(res);
 }
 
-TEST_SUITE_BEGIN(parser_misc, 4) {
+static void check_struct_declaration_non_static_assert(const struct struct_declaration* decl, enum type_spec_type type, const char* identifier, int bit_field) {
+    ASSERT(decl->decl_specs->type_specs.type == type);
+    if (identifier == NULL && bit_field < 0) {
+        ASSERT_SIZE_T(decl->decls.len, (size_t)0);
+        return;
+    } else {
+        ASSERT_SIZE_T(decl->decls.len, (size_t)1);
+    }
+    const struct struct_declarator* declarator = &decl->decls.decls[0];
+    if (bit_field > 0) {
+        check_const_expr_const(declarator->bit_field, create_int_value(VALUE_INT, bit_field));
+    }
+    if (identifier) {
+        const struct declarator* inner_decl = declarator->decl;
+        ASSERT_NOT_NULL(inner_decl);
+        ASSERT_NOT_NULL(inner_decl->direct_decl);
+        ASSERT_NULL(inner_decl->ptr);
+        ASSERT_SIZE_T(inner_decl->direct_decl->len, (size_t)0);
+        ASSERT(inner_decl->direct_decl->is_id);
+        ASSERT_NOT_NULL(inner_decl->direct_decl->id);
+        ASSERT_STR(str_get_data(&inner_decl->direct_decl->id->spelling), identifier);
+    } else {
+        ASSERT_NULL(declarator->decl);
+    }
+}
+
+TEST(struct_declaration_list) {
+    struct preproc_res preproc_res = tokenize_string("int n: 20; int: 10; double a_double; int;", "maybe_a_file.c");
+    
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(preproc_res.toks, &err);
+
+    struct struct_declaration_list res = parse_struct_declaration_list(&s);
+    ASSERT_SIZE_T(res.len, (size_t)4);
+
+    check_struct_declaration_non_static_assert(&res.decls[0], TYPE_SPEC_INT, "n", 20);
+    check_struct_declaration_non_static_assert(&res.decls[1], TYPE_SPEC_INT, NULL, 10);
+    check_struct_declaration_non_static_assert(&res.decls[2], TYPE_SPEC_DOUBLE, "a_double", -1);
+    check_struct_declaration_non_static_assert(&res.decls[3], TYPE_SPEC_INT, NULL, -1);
+}
+
+TEST_SUITE_BEGIN(parser_misc, 5) {
     REGISTER_TEST(enum_list);
     REGISTER_TEST(enum_spec);
     REGISTER_TEST(designation);
     REGISTER_TEST(static_assert_declaration);
+    REGISTER_TEST(struct_declaration_list);
 }
 TEST_SUITE_END()
