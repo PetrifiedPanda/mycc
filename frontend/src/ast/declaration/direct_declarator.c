@@ -175,6 +175,7 @@ static struct direct_declarator* parse_direct_declarator_base(
     } else if (s->it->type == IDENTIFIER) {
         res->is_id = true;
         if (!identifier_handler(s, s->it)) {
+            free(res);
             return NULL;
         }
         const struct str spelling = take_spelling(s->it);
