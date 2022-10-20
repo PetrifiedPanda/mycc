@@ -142,6 +142,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
             res->type = TYPE_SPEC_ATOMIC;
             res->atomic_spec = parse_atomic_type_spec(s);
             if (!res->atomic_spec) {
+                res->type = TYPE_SPEC_NONE;
                 return false;
             }
             break;
@@ -151,6 +152,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
             res->type = TYPE_SPEC_STRUCT;
             res->struct_union_spec = parse_struct_union_spec(s);
             if (!res->struct_union_spec) {
+                res->type = TYPE_SPEC_NONE;
                 return false;
             }
             break;
@@ -159,6 +161,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
             res->type = TYPE_SPEC_ENUM;
             res->enum_spec = parse_enum_spec(s);
             if (!res->enum_spec) {
+                res->type = TYPE_SPEC_NONE;
                 return false;
             }
             break;
@@ -167,8 +170,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
             if (is_typedef_name(s, &s->it->spelling)) {
                 res->type = TYPE_SPEC_TYPENAME;
                 const struct str spell = take_spelling(s->it);
-                res->typedef_name = create_identifier(&spell,
-                                                      s->it->loc);
+                res->typedef_name = create_identifier(&spell, s->it->loc);
                 accept_it(s);
                 break;
             } else {
@@ -176,6 +178,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
                                PARSER_ERR_EXPECTED_TYPEDEF_NAME,
                                s->it->loc);
                 s->err->non_typedef_spelling = take_spelling(s->it);
+                res->type = TYPE_SPEC_NONE;
                 return false;
             }
         }
@@ -186,10 +189,23 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
                 UNION,
                 ENUM,
                 TYPEDEF_NAME,
+                VOID,
+                CHAR,
+                SHORT,
+                INT,
+                LONG,
+                FLOAT,
+                DOUBLE,
+                SIGNED,
+                UNSIGNED,
+                BOOL,
+                COMPLEX,
+                IMAGINARY,
             };
             expected_tokens_error(s,
                                   expected,
                                   sizeof(expected) / sizeof(enum token_type));
+            res->type = TYPE_SPEC_NONE;
             return false;
         }
     }
@@ -243,4 +259,3 @@ bool is_valid_type_specs(const struct type_specs* s) {
 
     return true;
 }
-
