@@ -31,7 +31,15 @@ bool register_typedef_name(struct parser_state* s, const struct token* token);
 
 bool is_enum_constant(const struct parser_state* s, const struct str* spell);
 bool is_typedef_name(const struct parser_state* s, const struct str* spell);
-bool is_defined_in_current_scope(const struct parser_state* s, const struct str* spell);
 
+struct parser_identifier_data;
+
+const struct parser_identifier_data* parser_get_prev_definition(
+    const struct parser_state* s,
+    const struct str* spell);
+
+void parser_set_redefinition_err(struct parser_state* s,
+                                 const struct parser_identifier_data* prev_def,
+                                 const struct token* redef_tok);
 #endif
 

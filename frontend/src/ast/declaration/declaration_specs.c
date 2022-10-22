@@ -73,16 +73,14 @@ static enum parse_declaration_spec_res parse_declaration_spec(
     } else if (current_is_type_qual(s)) {
         update_type_quals(s, &res->type_quals);
     } else if (is_type_spec(s)) {
-        if (res->storage_class.is_typedef && s->it->type == IDENTIFIER
-            && is_defined_in_current_scope(s, &s->it->spelling)) {
+        if (res->storage_class.is_typedef && s->it->type == IDENTIFIER) {
+            const struct parser_identifier_data*
+                prev_def = parser_get_prev_definition(s, &s->it->spelling);
             const struct token* next = s->it + 1;
-            if (!is_storage_class_spec(next->type) && !is_type_qual(next->type)
-                && !is_type_spec_token(s, next) && !is_func_spec(next->type)
-                && next->type != ALIGNAS) {
-                // This will throw the error
-                bool ret = register_typedef_name(s, s->it);
-                assert(ret == false);
-                UNUSED(ret);
+            if (prev_def != NULL && !is_storage_class_spec(next->type)
+                && !is_type_qual(next->type) && !is_type_spec_token(s, next)
+                && !is_func_spec(next->type) && next->type != ALIGNAS) {
+                parser_set_redefinition_err(s, prev_def, s->it);
                 return DECL_SPEC_ERROR;
             }
         }

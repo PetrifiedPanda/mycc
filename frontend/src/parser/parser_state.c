@@ -14,7 +14,7 @@ enum identifier_type {
     ID_TYPE_ENUM_CONSTANT
 };
 
-struct identifier_type_data {
+struct parser_identifier_data {
     struct source_loc loc;
     enum identifier_type type;
 };
@@ -41,7 +41,7 @@ struct parser_state create_parser_state(struct token* tokens,
         .err = err,
     };
     res._scope_maps[0] = create_string_hash_map(
-        sizeof(struct identifier_type_data),
+        sizeof(struct parser_identifier_data),
         SCOPE_MAP_INIT_CAP,
         false,
         NULL);
@@ -75,7 +75,7 @@ void parser_push_scope(struct parser_state* s) {
     s->_scope_maps = xrealloc(s->_scope_maps,
                               sizeof(struct string_hash_map) * s->_len);
     s->_scope_maps[s->_len - 1] = create_string_hash_map(
-        sizeof(struct identifier_type_data),
+        sizeof(struct parser_identifier_data),
         SCOPE_MAP_INIT_CAP,
         false,
         NULL);
@@ -105,12 +105,22 @@ bool is_typedef_name(const struct parser_state* s, const struct str* spell) {
     return get_item(s, spell) == ID_TYPE_TYPEDEF_NAME;
 }
 
-bool is_defined_in_current_scope(const struct parser_state* s,
-                                   const struct str* spell) {
+const struct parser_identifier_data* parser_get_prev_definition(
+    const struct parser_state* s,
+    const struct str* spell) {
     const struct string_hash_map* current_map = &s->_scope_maps[s->_len - 1];
-    const struct identifier_type_data* data = string_hash_map_get(current_map,
-                                                                  spell);
-    return data;
+    return string_hash_map_get(current_map, spell);
+}
+
+void parser_set_redefinition_err(struct parser_state* s,
+                                 const struct parser_identifier_data* prev_def,
+                                 const struct token* redef_tok) {
+    set_parser_err(s->err, PARSER_ERR_REDEFINED_SYMBOL, redef_tok->loc);
+
+    s->err->redefined_symbol = str_copy(&redef_tok->spelling);
+    s->err->was_typedef_name = prev_def->type == ID_TYPE_TYPEDEF_NAME;
+    s->err->prev_def_file = prev_def->loc.file_idx;
+    s->err->prev_def_loc = prev_def->loc.file_loc;
 }
 
 static bool register_identifier(struct parser_state* s,
@@ -121,21 +131,16 @@ static bool register_identifier(struct parser_state* s,
 
     // TODO: Add a warning when an identifier from a previous scope is shadowed
 
-    struct identifier_type_data to_insert = {
+    struct parser_identifier_data to_insert = {
         .loc = token->loc,
         .type = type,
     };
-    const struct identifier_type_data* item = string_hash_map_insert(
+    const struct parser_identifier_data* item = string_hash_map_insert(
         &s->_scope_maps[s->_len - 1],
         &token->spelling,
         &to_insert);
     if (item != &to_insert) {
-        set_parser_err(s->err, PARSER_ERR_REDEFINED_SYMBOL, token->loc);
-
-        s->err->redefined_symbol = str_copy(&token->spelling);
-        s->err->was_typedef_name = item->type == ID_TYPE_TYPEDEF_NAME;
-        s->err->prev_def_file = item->loc.file_idx;
-        s->err->prev_def_loc = item->loc.file_loc;
+        parser_set_redefinition_err(s, item, token);
         return false;
     } else {
         return true;
@@ -145,7 +150,7 @@ static bool register_identifier(struct parser_state* s,
 static enum identifier_type get_item(const struct parser_state* s,
                                      const struct str* spell) {
     for (size_t i = 0; i < s->_len; ++i) {
-        const struct identifier_type_data* data = string_hash_map_get(
+        const struct parser_identifier_data* data = string_hash_map_get(
             &s->_scope_maps[i],
             spell);
         if (data != NULL) {
