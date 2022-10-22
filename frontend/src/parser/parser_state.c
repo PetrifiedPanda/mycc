@@ -14,10 +14,6 @@ enum identifier_type {
     ID_TYPE_ENUM_CONSTANT
 };
 
-/**
- * The pointers stored in this need to be valid at least as long
- * as the parser_state
- */
 struct identifier_type_data {
     struct source_loc loc;
     enum identifier_type type;
