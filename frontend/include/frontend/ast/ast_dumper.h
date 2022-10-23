@@ -7,7 +7,9 @@
 
 #include "translation_unit.h"
 
-bool dump_ast(const struct translation_unit* tl, const struct file_info* file_info, FILE* f);
+bool dump_ast(const struct translation_unit* tl,
+              const struct file_info* file_info,
+              FILE* f);
 
 #endif
 

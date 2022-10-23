@@ -29,7 +29,9 @@ static void print_indents(struct ast_dumper* d) {
     }
 }
 
-static PRINTF_FORMAT(2, 3) void dumper_println(struct ast_dumper* d, const char* format, ...) {
+static PRINTF_FORMAT(2, 3) void dumper_println(struct ast_dumper* d,
+                                               const char* format,
+                                               ...) {
     print_indents(d);
 
     va_list args;
@@ -204,7 +206,7 @@ static void dump_value(struct ast_dumper* d, struct value val) {
     dumper_println(d, "value:");
 
     add_indent(d);
-    
+
     dumper_println(d, "type: %s", get_value_type_str(val.type));
     if (value_is_int(val.type)) {
         dumper_println(d, "int_val: %jd", val.int_val);
