@@ -1,5 +1,5 @@
-#ifndef UTIL_DIAG_H
-#define UTIL_DIAG_H
+#ifndef UTIL_ANNOTATIONS_H
+#define UTIL_ANNOTATIONS_H
 
 /**
  * This should be used when a variable is unused, not because something
@@ -24,6 +24,16 @@
 #else
 
 #define FALLTHROUGH() __attribute__((__fallthrough__))
+
+#endif
+
+#if defined(_MSC_VER) && !defined(__clang__)
+
+#define PRINTF_FORMAT(format_idx, params_index) 
+
+#else
+
+#define PRINTF_FORMAT(format_idx, params_index) __attribute__((format (printf, format_idx, params_index)))
 
 #endif
 

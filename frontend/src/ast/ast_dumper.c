@@ -29,7 +29,7 @@ static void print_indents(struct ast_dumper* d) {
     }
 }
 
-static void dumper_println(struct ast_dumper* d, const char* format, ...) {
+static PRINTF_FORMAT(2, 3) void dumper_println(struct ast_dumper* d, const char* format, ...) {
     print_indents(d);
 
     va_list args;
