@@ -405,6 +405,7 @@ TEST(type_spec_error) {
     check_cannot_combine_type_specs("short long", SHORT, LONG, (struct source_loc){0, {1, 7}});
     check_cannot_combine_type_specs("unsigned signed", UNSIGNED, SIGNED, (struct source_loc){0, {1, 10}});
     check_cannot_combine_type_specs("signed unsigned", SIGNED, UNSIGNED, (struct source_loc){0, {1, 8}});
+    // TODO: DISALLOWED_TYPE_QUALS
 }
 
 TEST_SUITE_BEGIN(parser_misc, 7) {
