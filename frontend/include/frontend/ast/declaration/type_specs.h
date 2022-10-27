@@ -28,7 +28,7 @@ struct type_modifiers {
     bool is_unsigned;
     bool is_signed;
     bool is_short;
-    int num_long;
+    unsigned int num_long;
     bool is_complex;
     bool is_imaginary;
 };
