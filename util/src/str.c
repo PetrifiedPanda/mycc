@@ -25,8 +25,8 @@ struct str create_empty_str(void) {
 }
 
 enum {
-    STATIC_BUF_LEN = sizeof(struct str){0}._static_buf
-                     / sizeof *(struct str){0}._static_buf
+    STATIC_BUF_LEN = sizeof(struct str){{{0}}}._static_buf
+                     / sizeof *(struct str){{{0}}}._static_buf
 };
 
 static struct str create_str_with_cap(size_t len, const char* str, size_t cap) {
@@ -52,6 +52,22 @@ static struct str create_str_with_cap(size_t len, const char* str, size_t cap) {
 struct str create_str(size_t len, const char* str) {
     assert(len == 0 || str);
     return create_str_with_cap(len, str, len);
+}
+
+struct str create_empty_str_with_cap(size_t cap) {
+    struct str res;
+    if (cap < STATIC_BUF_LEN) {
+        res._is_static_buf = true;
+        res._small_len = 0;
+        res._static_buf[0] = '\0';
+    } else {
+        res._is_static_buf = false;
+        res._len = 0;
+        res._cap = cap + 1;
+        res._data = xmalloc(sizeof *res._data * res._cap);
+        res._data[0] = '\0';
+    }
+    return res;
 }
 
 bool str_is_valid(const struct str* str) {

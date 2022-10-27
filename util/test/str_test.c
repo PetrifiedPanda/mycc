@@ -8,19 +8,19 @@ enum {
 };
 
 static void insert_test_helper(struct str* str,
-                               char* expected,
+                               char* expected_buf,
                                size_t initial_len) {
-    ASSERT_STR(str_get_data(str), expected);
+    ASSERT_STR(str_get_data(str), expected_buf);
     for (size_t i = 0; i < INSERTION_NUM; ++i) {
-        ASSERT_STR(str_get_data(str), expected);
+        ASSERT_STR(str_get_data(str), expected_buf);
         const size_t expected_len = i + initial_len;
         ASSERT_SIZE_T(str_len(str), expected_len);
         const char to_insert = 'a' + (char)i;
         str_push_back(str, to_insert);
         ASSERT_CHAR(str_char_at(str, expected_len), to_insert);
-        expected[expected_len] = to_insert;
+        expected_buf[expected_len] = to_insert;
     }
-    ASSERT_STR(str_get_data(str), expected);
+    ASSERT_STR(str_get_data(str), expected_buf);
     free_str(str);
 }
 
@@ -29,6 +29,25 @@ TEST(push_back_to_empty) {
 
     char expected[INSERTION_NUM + 1] = {0};
     insert_test_helper(&str, expected, 0);
+}
+
+TEST(push_back_to_empty_with_cap) {
+    struct str str1 = create_empty_str_with_cap(200);
+    
+    char expected_buf[INSERTION_NUM + 1] = {0};
+    insert_test_helper(&str1, expected_buf, 0);
+
+    struct str str2 = create_empty_str_with_cap(4);
+    memset(expected_buf, 0, sizeof expected_buf);
+    insert_test_helper(&str2, expected_buf, 0);
+    
+    struct str str3 = create_empty_str_with_cap(23);
+    memset(expected_buf, 0, sizeof expected_buf);
+    insert_test_helper(&str3, expected_buf, 0);
+
+    struct str str4 = create_empty_str_with_cap(0);
+    memset(expected_buf, 0, sizeof expected_buf);
+    insert_test_helper(&str4, expected_buf, 0);
 }
 
 #define PUSH_BACK_TEST_HELPER(str_lit)                                         \
@@ -107,7 +126,7 @@ static void take_test_helper(size_t len, const char* s) {
     free_str(&taken);
 }
 
-TEST(copy_move) {
+TEST(copy_take) {
     const char small_str[] = "Small string";
     const char long_str[] = "Not so small string, that is very long";
     enum {
@@ -125,11 +144,12 @@ TEST(copy_move) {
     ASSERT(!str_is_valid(&copy));
 }
 
-TEST_SUITE_BEGIN(str, 4) {
+TEST_SUITE_BEGIN(str, 5) {
     REGISTER_TEST(push_back_to_empty);
+    REGISTER_TEST(push_back_to_empty_with_cap);
     REGISTER_TEST(push_back_to_nonempty);
     REGISTER_TEST(concat);
-    REGISTER_TEST(copy_move);
+    REGISTER_TEST(copy_take);
 }
 TEST_SUITE_END()
 

@@ -30,6 +30,7 @@ static_assert(sizeof(struct str) == sizeof(size_t) * 2 + sizeof(char*),
 struct str create_null_str(void);
 struct str create_empty_str(void);
 struct str create_str(size_t len, const char* str);
+struct str create_empty_str_with_cap(size_t cap);
 
 bool str_is_valid(const struct str* str);
 size_t str_len(const struct str* str);
