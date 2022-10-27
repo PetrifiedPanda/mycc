@@ -95,6 +95,9 @@ void print_parser_err(FILE* out, const struct file_info* file_info, const struct
                     get_type_str(err->type_spec),
                     get_type_str(err->prev_type_spec));
             break;
+        case PARSER_ERR_TOO_MUCH_LONG:
+            fprintf(out, "More than 2 long specifiers are not allowed");
+            break;
         case PARSER_ERR_DISALLOWED_TYPE_QUALS:
             fprintf(out,
                     "Cannot add qualifiers to type %s",

@@ -259,7 +259,8 @@ TEST(static_assert_declaration) {
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
     ASSERT(err.type == PARSER_ERR_NONE);
 
-    ASSERT_STR(str_get_data(&res->err_msg.spelling), "\"This is a string literal\"");
+    ASSERT_STR(str_get_data(&res->err_msg.spelling),
+               "\"This is a string literal\"");
     check_const_expr_const(res->const_expr, create_int_value(VALUE_INT, 12345));
 
     free_preproc_res(&preproc_res);
@@ -267,7 +268,11 @@ TEST(static_assert_declaration) {
     free_static_assert_declaration(res);
 }
 
-static void check_struct_declaration_non_static_assert(const struct struct_declaration* decl, enum type_spec_type type, const char* identifier, int bit_field) {
+static void check_struct_declaration_non_static_assert(
+    const struct struct_declaration* decl,
+    enum type_spec_type type,
+    const char* identifier,
+    int bit_field) {
     ASSERT(decl->decl_specs->type_specs.type == type);
     if (identifier == NULL && bit_field < 0) {
         ASSERT_SIZE_T(decl->decls.len, (size_t)0);
@@ -277,7 +282,8 @@ static void check_struct_declaration_non_static_assert(const struct struct_decla
     }
     const struct struct_declarator* declarator = &decl->decls.decls[0];
     if (bit_field > 0) {
-        check_const_expr_const(declarator->bit_field, create_int_value(VALUE_INT, bit_field));
+        check_const_expr_const(declarator->bit_field,
+                               create_int_value(VALUE_INT, bit_field));
     }
     if (identifier) {
         const struct declarator* inner_decl = declarator->decl;
@@ -287,25 +293,40 @@ static void check_struct_declaration_non_static_assert(const struct struct_decla
         ASSERT_SIZE_T(inner_decl->direct_decl->len, (size_t)0);
         ASSERT(inner_decl->direct_decl->is_id);
         ASSERT_NOT_NULL(inner_decl->direct_decl->id);
-        ASSERT_STR(str_get_data(&inner_decl->direct_decl->id->spelling), identifier);
+        ASSERT_STR(str_get_data(&inner_decl->direct_decl->id->spelling),
+                   identifier);
     } else {
         ASSERT_NULL(declarator->decl);
     }
 }
 
 TEST(struct_declaration_list) {
-    struct preproc_res preproc_res = tokenize_string("int n: 20; int: 10; double a_double; int;", "maybe_a_file.c");
-    
+    struct preproc_res preproc_res = tokenize_string(
+        "int n: 20; int: 10; double a_double; int;",
+        "maybe_a_file.c");
+
     struct parser_err err = create_parser_err();
     struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
     struct struct_declaration_list res = parse_struct_declaration_list(&s);
     ASSERT_SIZE_T(res.len, (size_t)4);
 
-    check_struct_declaration_non_static_assert(&res.decls[0], TYPE_SPEC_INT, "n", 20);
-    check_struct_declaration_non_static_assert(&res.decls[1], TYPE_SPEC_INT, NULL, 10);
-    check_struct_declaration_non_static_assert(&res.decls[2], TYPE_SPEC_DOUBLE, "a_double", -1);
-    check_struct_declaration_non_static_assert(&res.decls[3], TYPE_SPEC_INT, NULL, -1);  
+    check_struct_declaration_non_static_assert(&res.decls[0],
+                                               TYPE_SPEC_INT,
+                                               "n",
+                                               20);
+    check_struct_declaration_non_static_assert(&res.decls[1],
+                                               TYPE_SPEC_INT,
+                                               NULL,
+                                               10);
+    check_struct_declaration_non_static_assert(&res.decls[2],
+                                               TYPE_SPEC_DOUBLE,
+                                               "a_double",
+                                               -1);
+    check_struct_declaration_non_static_assert(&res.decls[3],
+                                               TYPE_SPEC_INT,
+                                               NULL,
+                                               -1);
 
     free_preproc_res(&preproc_res);
     free_parser_state(&s);
@@ -313,15 +334,19 @@ TEST(struct_declaration_list) {
 }
 
 TEST(redefine_typedef) {
-    struct preproc_res preproc_res = tokenize_string("typedef int MyInt;", "a file");
+    struct preproc_res preproc_res = tokenize_string("typedef int MyInt;",
+                                                     "a file");
 
     struct parser_err err = create_parser_err();
     struct parser_state s = create_parser_state(preproc_res.toks, &err);
-    
+
     const struct str spell = STR_NON_HEAP("MyInt");
-    const struct token dummy_token = create_token(IDENTIFIER, &spell, (struct file_loc){0, 0}, 0);
+    const struct token dummy_token = create_token(IDENTIFIER,
+                                                  &spell,
+                                                  (struct file_loc){0, 0},
+                                                  0);
     register_typedef_name(&s, &dummy_token);
-    
+
     bool found_typedef = false;
     struct declaration_specs* res = parse_declaration_specs(&s, &found_typedef);
     ASSERT_NULL(res);
@@ -333,12 +358,62 @@ TEST(redefine_typedef) {
     free_preproc_res(&preproc_res);
 }
 
-TEST_SUITE_BEGIN(parser_misc, 6) {
+static struct parser_err parse_type_specs_until_fail(const char* code) {
+    struct preproc_res preproc_res = tokenize_string(code, "file.c");
+
+    struct parser_err err = create_parser_err();
+    struct parser_state s = create_parser_state(preproc_res.toks, &err);
+
+    struct type_specs specs = create_type_specs();
+
+    while (update_type_specs(&s, &specs))
+        ;
+
+    free_parser_state(&s);
+    free_preproc_res(&preproc_res);
+    free_type_specs_children(&specs);
+    return err;
+}
+
+static void check_too_many_long(const char* code) {
+    struct parser_err err = parse_type_specs_until_fail(code);
+
+    ASSERT(err.type == PARSER_ERR_TOO_MUCH_LONG);
+}
+
+static void check_cannot_combine_type_specs(const char* code,
+                                           enum token_type prev_spec,
+                                           enum token_type type_spec,
+                                           struct source_loc loc) {
+
+    struct parser_err err = parse_type_specs_until_fail(code);
+
+    ASSERT(err.type == PARSER_ERR_INCOMPATIBLE_TYPE_SPECS);
+    ASSERT_TOKEN_TYPE(err.prev_type_spec, prev_spec);
+    ASSERT_TOKEN_TYPE(err.type_spec, type_spec);
+    ASSERT_SIZE_T(loc.file_idx, err.base.loc.file_idx);
+    ASSERT_SIZE_T(loc.file_loc.line, err.base.loc.file_loc.line);
+    ASSERT_SIZE_T(loc.file_loc.index, err.base.loc.file_loc.index);
+}
+
+TEST(type_spec_error) {
+    check_too_many_long("long long long");
+    check_too_many_long("int long long long");
+    check_too_many_long("long long int long");
+    check_cannot_combine_type_specs("long short", LONG, SHORT, (struct source_loc){0, {1, 6}});
+    check_cannot_combine_type_specs("long short long", LONG, SHORT, (struct source_loc){0, {1, 6}});
+    check_cannot_combine_type_specs("short long", SHORT, LONG, (struct source_loc){0, {1, 7}});
+    check_cannot_combine_type_specs("unsigned signed", UNSIGNED, SIGNED, (struct source_loc){0, {1, 10}});
+    check_cannot_combine_type_specs("signed unsigned", SIGNED, UNSIGNED, (struct source_loc){0, {1, 8}});
+}
+
+TEST_SUITE_BEGIN(parser_misc, 7) {
     REGISTER_TEST(enum_list);
     REGISTER_TEST(enum_spec);
     REGISTER_TEST(designation);
     REGISTER_TEST(static_assert_declaration);
     REGISTER_TEST(struct_declaration_list);
     REGISTER_TEST(redefine_typedef);
+    REGISTER_TEST(type_spec_error);
 }
 TEST_SUITE_END()

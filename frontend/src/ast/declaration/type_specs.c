@@ -102,6 +102,9 @@ static bool update_standalone_type_spec(struct parser_state* s,
                 cannot_combine_with_spec_err(s, SHORT);
                 free_type_specs_children(res);
                 return false;
+            } else if (res->mods.num_long == 2) {
+                set_parser_err(s->err, PARSER_ERR_TOO_MUCH_LONG, s->it->loc);
+                return false;
             }
             res->mods.num_long += 1;
             break;
