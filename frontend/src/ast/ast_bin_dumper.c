@@ -91,14 +91,45 @@ static void bin_dump_identifier(struct ast_bin_dumper* d,
     bin_dump_str(d, &id->spelling);
 }
 
-static void bin_dump_const_expr(struct ast_bin_dumper* d,
-                                const struct const_expr* expr) {
+static void bin_dump_log_and_expr(struct ast_bin_dumper* d,
+                                  const struct log_and_expr* expr) {
     (void)d;
     (void)expr;
     // TODO:
 }
 
-static void bin_dump_string_literal(struct ast_bin_dumper* d, const struct string_literal* lit) {
+static void bin_dump_log_or_expr(struct ast_bin_dumper* d,
+                                 const struct log_or_expr* expr) {
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        bin_dump_log_and_expr(d, &expr->log_ands[i]);
+    }
+}
+
+static void bin_dump_expr(struct ast_bin_dumper* d, const struct expr* expr) {
+    (void)d;
+    (void)expr;
+    // TODO:
+}
+
+static void bin_dump_cond_expr(struct ast_bin_dumper* d,
+                               const struct cond_expr* expr) {
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        const struct log_or_and_expr* item = &expr->conditionals[i];
+        bin_dump_log_or_expr(d, item->log_or);
+        bin_dump_expr(d, item->expr);
+    }
+    bin_dump_log_or_expr(d, expr->last_else);
+}
+
+static void bin_dump_const_expr(struct ast_bin_dumper* d,
+                                const struct const_expr* expr) {
+    bin_dump_cond_expr(d, &expr->expr);
+}
+
+static void bin_dump_string_literal(struct ast_bin_dumper* d,
+                                    const struct string_literal* lit) {
     bin_dump_ast_node_info(d, &lit->info);
     bin_dump_str(d, &lit->spelling);
 }

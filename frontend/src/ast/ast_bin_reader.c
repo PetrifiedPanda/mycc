@@ -1,8 +1,5 @@
 #include "frontend/ast/ast_bin_reader.h"
 
-#include <limits.h>
-#include <assert.h>
-
 #include "util/mem.h"
 #include "util/annotations.h"
 
@@ -192,13 +189,101 @@ static struct identifier* bin_read_identifier(struct ast_bin_reader* r) {
     return res;
 }
 
-static struct const_expr* bin_read_const_expr(struct ast_bin_reader* r) {
+static bool bin_read_log_and_expr(struct ast_bin_reader* r,
+                                  struct log_and_expr* res) {
+    (void)r;
+    (void)res;
+    // TODO:
+    return false;
+}
+
+static struct log_or_expr* bin_read_log_or_expr(struct ast_bin_reader* r) {
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return NULL;
+    }
+
+    struct log_and_expr* log_ands = xmalloc(sizeof *log_ands * len);
+    for (size_t i = 0; i < len; ++i) {
+        if (!bin_read_log_and_expr(r, &log_ands[i])) {
+            for (size_t j = 0; j < i; ++j) {
+                free_log_and_expr_children(&log_ands[j]);
+            }
+            free(log_ands);
+            return false;
+        }
+    }
+
+    struct log_or_expr* res = xmalloc(sizeof *res);
+    *res = (struct log_or_expr){
+        .len = len,
+        .log_ands = log_ands,
+    };
+    return res;
+}
+
+static struct expr* bin_read_expr(struct ast_bin_reader* r) {
     (void)r;
     // TODO:
     return NULL;
 }
 
-static bool bin_read_string_literal(struct ast_bin_reader* r, struct string_literal* res) {
+static void free_cond_expr_conds(struct cond_expr* cond, size_t len) {
+    for (size_t i = 0; i < len; ++i) {
+        struct log_or_and_expr* item = &cond->conditionals[i];
+        free_log_or_expr(item->log_or);
+        free_expr(item->expr);
+    }
+    free(cond->conditionals);
+}
+
+static bool bin_read_cond_expr(struct ast_bin_reader* r,
+                               struct cond_expr* res) {
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return false;
+    }
+
+    res->len = len;
+    res->conditionals = xmalloc(sizeof *res->conditionals * res->len);
+    for (size_t i = 0; i < res->len; ++i) {
+        struct log_or_and_expr* item = &res->conditionals[i];
+        item->log_or = bin_read_log_or_expr(r);
+        if (!item->log_or) {
+            free_cond_expr_conds(res, i);
+            return false;
+        }
+
+        item->expr = bin_read_expr(r);
+        if (!item->expr) {
+            free_log_or_expr(item->log_or);
+            free_cond_expr_conds(res, i);
+            return false;
+        }
+    }
+
+    res->last_else = bin_read_log_or_expr(r);
+    if (!res->last_else) {
+        free_cond_expr_conds(res, res->len);
+        return false;
+    }
+
+    return true;
+}
+
+static struct const_expr* bin_read_const_expr(struct ast_bin_reader* r) {
+    struct cond_expr cond;
+    if (!bin_read_cond_expr(r, &cond)) {
+        return NULL;
+    }
+
+    struct const_expr* res = xmalloc(sizeof *res);
+    res->expr = cond;
+    return res;
+}
+
+static bool bin_read_string_literal(struct ast_bin_reader* r,
+                                    struct string_literal* res) {
     if (!bin_read_ast_node_info(r, &res->info)) {
         return false;
     }
@@ -213,15 +298,15 @@ static struct static_assert_declaration* bin_read_static_assert_declaration(
     if (!expr) {
         return NULL;
     }
-    
+
     struct string_literal lit;
     if (!bin_read_string_literal(r, &lit)) {
         free_const_expr(expr);
         return NULL;
     }
-    
+
     struct static_assert_declaration* res = xmalloc(sizeof *res);
-    *res = (struct static_assert_declaration) {
+    *res = (struct static_assert_declaration){
         .const_expr = expr,
         .err_msg = lit,
     };
