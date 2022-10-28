@@ -91,10 +91,73 @@ static void bin_dump_identifier(struct ast_bin_dumper* d,
     bin_dump_str(d, &id->spelling);
 }
 
-static void bin_dump_rel_expr(struct ast_bin_dumper* d, const struct rel_expr* expr) {
+static void bin_dump_unary_expr(struct ast_bin_dumper* d,
+                                const struct unary_expr* expr) {
     (void)d;
     (void)expr;
     // TODO:
+}
+
+static void bin_dump_cast_expr(struct ast_bin_dumper* d,
+                               const struct cast_expr* expr) {
+    bin_dump_ast_node_info(d, &expr->info);
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        bin_dump_type_name(d, &expr->type_names[i]);
+    }
+    bin_dump_unary_expr(d, expr->rhs);
+}
+
+static void bin_dump_mul_expr(struct ast_bin_dumper* d,
+                              const struct mul_expr* expr) {
+    bin_dump_cast_expr(d, expr->lhs);
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        const struct cast_expr_and_op* item = &expr->mul_chain[i];
+        const uint64_t mul_op = item->op;
+        assert((enum mul_expr_op)mul_op == item->op);
+        bin_dump_uint(d, mul_op);
+        bin_dump_cast_expr(d, item->rhs);
+    }
+}
+
+static void bin_dump_add_expr(struct ast_bin_dumper* d,
+                              const struct add_expr* expr) {
+    bin_dump_mul_expr(d, expr->lhs);
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        const struct mul_expr_and_op* item = &expr->add_chain[i];
+        const uint64_t add_op = item->op;
+        assert((enum add_expr_op)add_op == item->op);
+        bin_dump_uint(d, add_op);
+        bin_dump_mul_expr(d, item->rhs);
+    }
+}
+
+static void bin_dump_shift_expr(struct ast_bin_dumper* d,
+                                const struct shift_expr* expr) {
+    bin_dump_add_expr(d, expr->lhs);
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        const struct add_expr_and_op* item = &expr->shift_chain[i];
+        const uint64_t shift_op = item->op;
+        assert((enum shift_expr_op)shift_op == item->op);
+        bin_dump_uint(d, shift_op);
+        bin_dump_add_expr(d, item->rhs);
+    }
+}
+
+static void bin_dump_rel_expr(struct ast_bin_dumper* d,
+                              const struct rel_expr* expr) {
+    bin_dump_shift_expr(d, expr->lhs);
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        const struct shift_expr_and_op* item = &expr->rel_chain[i];
+        const uint64_t rel_op = item->op;
+        assert((enum rel_expr_op)rel_op == item->op);
+        bin_dump_uint(d, rel_op);
+        bin_dump_shift_expr(d, item->rhs);
+    }
 }
 
 static void bin_dump_eq_expr(struct ast_bin_dumper* d,
