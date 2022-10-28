@@ -2,6 +2,7 @@
 #define TEST_HELPERS_H
 
 #include <stddef.h>
+#include <stdio.h>
 
 #include "frontend/token_type.h"
 

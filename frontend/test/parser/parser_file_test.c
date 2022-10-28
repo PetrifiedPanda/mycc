@@ -182,11 +182,10 @@ static void check_external_decl_func_def_typedef(
 static void compare_with_ex_file(const struct translation_unit* tl, const struct file_info* file_info, const char* ex_file) {
     const char* tmp_filename = "tmp.ast";
 
-    FILE* tmp_file = fopen(tmp_filename, "w");
+    FILE* tmp_file = fopen(tmp_filename, "wr");
     ASSERT(dump_ast(tl, file_info, tmp_file));
 
     ASSERT_INT(fclose(tmp_file), 0);
-
     test_compare_files(tmp_filename, ex_file);
 
     remove(tmp_filename);
@@ -257,7 +256,7 @@ TEST(parser_testfile) {
 
     dump_ast(&tl, &res.file_info, tmp_file);
 
-    fclose(tmp_file);
+    ASSERT_INT(fclose(tmp_file), 0);
 
     test_compare_files(tmp_filename, "../frontend/test/files/parser_testfile.c.ast");
 
