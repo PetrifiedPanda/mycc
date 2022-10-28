@@ -87,7 +87,7 @@ is_stat_expr:
 }
 
 struct statement* parse_statement(struct parser_state* s) {
-    struct statement* res = xmalloc(sizeof(struct statement));
+    struct statement* res = xmalloc(sizeof *res);
     if (!parse_statement_inplace(s, res)) {
         free(res);
         return NULL;

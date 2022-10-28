@@ -268,7 +268,7 @@ static struct postfix_expr* parse_postfix_helper(const char* code) {
 }
 
 static void test_postfix_expr_intializer(bool tailing_comma) {
-    char* code = alloc_string_copy("(struct a_struct_name){1, test }");
+    char code[] = "(struct a_struct_name){1, test }";
     if (tailing_comma) {
         code[30] = ',';
     }
@@ -286,7 +286,6 @@ static void test_postfix_expr_intializer(bool tailing_comma) {
     ASSERT(res->init_list.inits[1].init->is_assign);
     check_assign_expr_id(res->init_list.inits[1].init->assign, "test");
 
-    free(code);
     free_postfix_expr(res);
 }
 

@@ -20,7 +20,7 @@ static bool parse_shift_expr_shift_chain(struct parser_state* s,
         if (res->len == alloc_len) {
             grow_alloc((void**)&res->shift_chain,
                        &alloc_len,
-                       sizeof(struct add_expr_and_op));
+                       sizeof *res->shift_chain);
         }
 
         struct add_expr_and_op* curr = &res->shift_chain[res->len];
@@ -34,7 +34,7 @@ static bool parse_shift_expr_shift_chain(struct parser_state* s,
     }
 
     res->shift_chain = xrealloc(res->shift_chain,
-                                sizeof(struct add_expr_and_op) * res->len);
+                                sizeof *res->shift_chain * res->len);
 
     return true;
 
@@ -49,7 +49,7 @@ struct shift_expr* parse_shift_expr(struct parser_state* s) {
         return NULL;
     }
 
-    struct shift_expr* res = xmalloc(sizeof(struct shift_expr));
+    struct shift_expr* res = xmalloc(sizeof *res);
     res->lhs = lhs;
 
     if (!parse_shift_expr_shift_chain(s, res)) {
@@ -68,7 +68,7 @@ struct shift_expr* parse_shift_expr_cast(struct parser_state* s,
         return NULL;
     }
 
-    struct shift_expr* res = xmalloc(sizeof(struct shift_expr));
+    struct shift_expr* res = xmalloc(sizeof *res);
     res->lhs = lhs;
 
     if (!parse_shift_expr_shift_chain(s, res)) {

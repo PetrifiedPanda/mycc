@@ -9,9 +9,9 @@
 
 bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
     assert(res);
-    
+
     if (is_type_spec(s) || is_type_qual(s->it->type)) {
-        res->spec_qual_list = xmalloc(sizeof(struct spec_qual_list));
+        res->spec_qual_list = xmalloc(sizeof *res->spec_qual_list);
         *res->spec_qual_list = parse_spec_qual_list(s);
         if (!is_valid_spec_qual_list(res->spec_qual_list)) {
             return false;
@@ -25,9 +25,7 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
             ATOMIC,   STRUCT,   UNION,    ENUM, TYPEDEF_NAME, CONST,
             RESTRICT, VOLATILE, ATOMIC,
         };
-        expected_tokens_error(s,
-                              expected,
-                              sizeof expected / sizeof(enum token_type));
+        expected_tokens_error(s, expected, sizeof expected / sizeof *expected);
         return false;
     }
 
@@ -46,7 +44,7 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
 }
 
 struct type_name* parse_type_name(struct parser_state* s) {
-    struct type_name* res = xmalloc(sizeof(struct type_name));
+    struct type_name* res = xmalloc(sizeof *res);
     if (!parse_type_name_inplace(s, res)) {
         free(res);
         return NULL;

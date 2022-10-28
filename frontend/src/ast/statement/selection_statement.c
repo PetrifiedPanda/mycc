@@ -7,8 +7,7 @@
 #include "frontend/parser/parser_util.h"
 
 struct selection_statement* parse_selection_statement(struct parser_state* s) {
-    struct selection_statement* res = xmalloc(
-        sizeof(struct selection_statement));
+    struct selection_statement* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
     if (s->it->type == IF) {
         res->is_if = true;
@@ -20,7 +19,7 @@ struct selection_statement* parse_selection_statement(struct parser_state* s) {
 
             expected_tokens_error(s,
                                   expected,
-                                  sizeof expected / sizeof(enum token_type));
+                                  sizeof expected / sizeof *expected);
             return NULL;
         }
         res->is_if = false;

@@ -10,7 +10,7 @@ struct struct_declaration_list parse_struct_declaration_list(
     struct parser_state* s) {
     struct struct_declaration_list res = {
         .len = 1,
-        .decls = xmalloc(sizeof(struct struct_declaration)),
+        .decls = xmalloc(sizeof *res.decls),
     };
 
     if (!parse_struct_declaration_inplace(s, &res.decls[0])) {
@@ -21,9 +21,7 @@ struct struct_declaration_list parse_struct_declaration_list(
     size_t alloc_len = res.len;
     while (is_declaration(s) || s->it->type == STATIC_ASSERT) {
         if (res.len == alloc_len) {
-            grow_alloc((void**)&res.decls,
-                       &alloc_len,
-                       sizeof(struct struct_declaration));
+            grow_alloc((void**)&res.decls, &alloc_len, sizeof *res.decls);
         }
 
         if (!parse_struct_declaration_inplace(s, &res.decls[res.len])) {
@@ -34,8 +32,7 @@ struct struct_declaration_list parse_struct_declaration_list(
         ++res.len;
     }
 
-    res.decls = xrealloc(res.decls,
-                         sizeof(struct struct_declaration) * res.len);
+    res.decls = xrealloc(res.decls, sizeof *res.decls * res.len);
 
     return res;
 }

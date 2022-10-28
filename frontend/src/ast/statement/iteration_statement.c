@@ -24,8 +24,7 @@ static struct iteration_statement* create_while_loop(
     struct source_loc loc,
     struct expr* while_cond,
     struct statement* loop_body) {
-    struct iteration_statement* res = xmalloc(
-        sizeof(struct iteration_statement));
+    struct iteration_statement* res = xmalloc(sizeof *res);
     res->type = ITERATION_STATEMENT_WHILE;
     assign_do_or_while(loc, res, while_cond, loop_body);
 
@@ -35,8 +34,7 @@ static struct iteration_statement* create_while_loop(
 static struct iteration_statement* create_do_loop(struct source_loc loc,
                                                   struct expr* while_cond,
                                                   struct statement* loop_body) {
-    struct iteration_statement* res = xmalloc(
-        sizeof(struct iteration_statement));
+    struct iteration_statement* res = xmalloc(sizeof *res);
     res->type = ITERATION_STATEMENT_DO;
     assign_do_or_while(loc, res, while_cond, loop_body);
 
@@ -54,8 +52,7 @@ static struct iteration_statement* create_for_loop(
     }
     assert(for_loop.cond);
     assert(loop_body);
-    struct iteration_statement* res = xmalloc(
-        sizeof(struct iteration_statement));
+    struct iteration_statement* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->type = ITERATION_STATEMENT_FOR;
     res->loop_body = loop_body;
@@ -200,7 +197,7 @@ struct iteration_statement* parse_iteration_statement(struct parser_state* s) {
 
             expected_tokens_error(s,
                                   expected,
-                                  sizeof expected / sizeof(enum token_type));
+                                  sizeof expected / sizeof *expected);
             return NULL;
         }
     }

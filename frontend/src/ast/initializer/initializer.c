@@ -11,7 +11,7 @@ static struct initializer* create_initializer_assign(
     struct source_loc loc,    
     struct assign_expr* assign) {
     assert(assign);
-    struct initializer* res = xmalloc(sizeof(struct initializer));
+    struct initializer* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->is_assign = true;
     res->assign = assign;
@@ -22,7 +22,7 @@ static struct initializer* create_initializer_assign(
 static struct initializer* create_initializer_init_list(
     struct source_loc loc,
     struct init_list init_list) {
-    struct initializer* res = xmalloc(sizeof(struct initializer));
+    struct initializer* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->is_assign = false;
     res->init_list = init_list;

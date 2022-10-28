@@ -9,7 +9,7 @@ struct generic_assoc_list parse_generic_assoc_list(struct parser_state* s) {
     struct generic_assoc_list res = {
         .info = create_ast_node_info(s->it->loc),
         .len = 1,
-        .assocs = xmalloc(sizeof(struct generic_assoc) * alloc_len),
+        .assocs = xmalloc(sizeof *res.assocs * alloc_len),
     };
     
     if (!parse_generic_assoc_inplace(s, &res.assocs[0])) {
@@ -21,9 +21,7 @@ struct generic_assoc_list parse_generic_assoc_list(struct parser_state* s) {
         accept_it(s);
 
         if (res.len == alloc_len) {
-            grow_alloc((void**)&res.assocs,
-                       &alloc_len,
-                       sizeof(struct generic_assoc));
+            grow_alloc((void**)&res.assocs, &alloc_len, sizeof *res.assocs);
         }
 
         if (!parse_generic_assoc_inplace(s, &res.assocs[res.len])) {
@@ -32,7 +30,7 @@ struct generic_assoc_list parse_generic_assoc_list(struct parser_state* s) {
 
         ++res.len;
     }
-    res.assocs = xrealloc(res.assocs, res.len * sizeof(struct generic_assoc));
+    res.assocs = xrealloc(res.assocs, sizeof *res.assocs * res.len);
     return res;
 
 fail:

@@ -18,7 +18,7 @@ static bool parse_log_and_expr_rest(struct parser_state* s,
         if (res->len == alloc_len) {
             grow_alloc((void**)&res->or_exprs,
                        &alloc_len,
-                       sizeof(struct or_expr));
+                       sizeof *res->or_exprs);
         }
 
         if (!parse_or_expr_inplace(s, &res->or_exprs[res->len])) {
@@ -28,7 +28,7 @@ static bool parse_log_and_expr_rest(struct parser_state* s,
         ++res->len;
     }
 
-    res->or_exprs = xrealloc(res->or_exprs, sizeof(struct or_expr) * res->len);
+    res->or_exprs = xrealloc(res->or_exprs, sizeof *res->or_exprs * res->len);
     return true;
 fail:
     free_log_and_expr_children(res);
@@ -39,7 +39,7 @@ bool parse_log_and_expr_inplace(struct parser_state* s,
                                 struct log_and_expr* res) {
     assert(res);
 
-    res->or_exprs = xmalloc(sizeof(struct or_expr));
+    res->or_exprs = xmalloc(sizeof *res->or_exprs);
     if (!parse_or_expr_inplace(s, res->or_exprs)) {
         free(res->or_exprs);
         return false;
@@ -61,7 +61,7 @@ struct log_and_expr* parse_log_and_expr_cast(struct parser_state* s,
         return NULL;
     }
 
-    struct log_and_expr* res = xmalloc(sizeof(struct log_and_expr));
+    struct log_and_expr* res = xmalloc(sizeof *res);
     res->or_exprs = or_exprs;
 
     if (!parse_log_and_expr_rest(s, res)) {

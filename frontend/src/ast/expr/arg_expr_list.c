@@ -9,7 +9,7 @@
 struct arg_expr_list parse_arg_expr_list(struct parser_state* s) {
     struct arg_expr_list res = {
         .len = 1,
-        .assign_exprs = xmalloc(sizeof(struct assign_expr)),
+        .assign_exprs = xmalloc(sizeof *res.assign_exprs),
     };
     if (!parse_assign_expr_inplace(s, &res.assign_exprs[0])) {
         free(res.assign_exprs);
@@ -22,7 +22,7 @@ struct arg_expr_list parse_arg_expr_list(struct parser_state* s) {
         if (res.len == alloc_len) {
             grow_alloc((void**)&res.assign_exprs,
                        &alloc_len,
-                       sizeof(struct assign_expr));
+                       sizeof *res.assign_exprs);
         }
 
         if (!parse_assign_expr_inplace(s, &res.assign_exprs[res.len])) {
@@ -34,7 +34,7 @@ struct arg_expr_list parse_arg_expr_list(struct parser_state* s) {
     }
 
     res.assign_exprs = xrealloc(res.assign_exprs,
-                                sizeof(struct assign_expr) * res.len);
+                                sizeof *res.assign_exprs * res.len);
     return res;
 }
 

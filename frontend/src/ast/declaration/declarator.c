@@ -7,7 +7,7 @@
 static struct declarator* parse_declarator_base(
     struct parser_state* s,
     struct direct_declarator* (*parse_func)(struct parser_state* s)) {
-    struct declarator* res = xmalloc(sizeof(struct declarator));
+    struct declarator* res = xmalloc(sizeof *res);
     if (s->it->type == ASTERISK) {
         res->ptr = parse_pointer(s);
         if (!res->ptr) {

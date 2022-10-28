@@ -12,7 +12,7 @@ struct identifier_list parse_identifier_list(struct parser_state* s) {
     }
     struct identifier_list res = {
         .len = 1,
-        .identifiers = xmalloc(sizeof(struct identifier)),
+        .identifiers = xmalloc(sizeof *res.identifiers),
     };
     struct str spell = take_spelling(s->it);
     struct source_loc loc = s->it->loc;
@@ -26,7 +26,7 @@ struct identifier_list parse_identifier_list(struct parser_state* s) {
         if (res.len == alloc_len) {
             grow_alloc((void**)&res.identifiers,
                        &alloc_len,
-                       sizeof(struct identifier));
+                       sizeof *res.identifiers);
         }
 
         if (s->it->type != IDENTIFIER) {
@@ -34,7 +34,7 @@ struct identifier_list parse_identifier_list(struct parser_state* s) {
             return (struct identifier_list){.len = 0, .identifiers = NULL};
         }
         spell = take_spelling(s->it);
-        loc = s->it->loc; 
+        loc = s->it->loc;
         accept_it(s);
         init_identifier(&res.identifiers[res.len], &spell, loc);
 
@@ -42,7 +42,7 @@ struct identifier_list parse_identifier_list(struct parser_state* s) {
     }
 
     res.identifiers = xrealloc(res.identifiers,
-                               sizeof(struct identifier) * res.len);
+                               sizeof *res.identifiers * res.len);
 
     return res;
 }

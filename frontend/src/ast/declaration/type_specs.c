@@ -207,7 +207,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
             };
             expected_tokens_error(s,
                                   expected,
-                                  sizeof(expected) / sizeof(enum token_type));
+                                  sizeof expected / sizeof *expected);
             res->type = TYPE_SPEC_NONE;
             return false;
         }

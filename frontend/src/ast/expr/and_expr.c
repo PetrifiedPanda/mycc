@@ -16,9 +16,7 @@ static bool parse_and_expr_rest(struct parser_state* s, struct and_expr* res) {
     while (s->it->type == AND) {
         accept_it(s);
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->eq_exprs,
-                       &alloc_len,
-                       sizeof(struct eq_expr));
+            grow_alloc((void**)&res->eq_exprs, &alloc_len, sizeof *res->eq_exprs);
         }
         if (!parse_eq_expr_inplace(s, &res->eq_exprs[res->len])) {
             goto fail;
@@ -27,7 +25,7 @@ static bool parse_and_expr_rest(struct parser_state* s, struct and_expr* res) {
         ++res->len;
     }
 
-    res->eq_exprs = xrealloc(res->eq_exprs, sizeof(struct eq_expr) * res->len);
+    res->eq_exprs = xrealloc(res->eq_exprs, sizeof *res->eq_exprs * res->len);
 
     return true;
 fail:
@@ -36,7 +34,7 @@ fail:
 }
 
 bool parse_and_expr_inplace(struct parser_state* s, struct and_expr* res) {
-    res->eq_exprs = xmalloc(sizeof(struct eq_expr));
+    res->eq_exprs = xmalloc(sizeof *res->eq_exprs);
     if (!parse_eq_expr_inplace(s, res->eq_exprs)) {
         free(res->eq_exprs);
         return false;
@@ -57,7 +55,7 @@ struct and_expr* parse_and_expr_cast(struct parser_state* s,
         return NULL;
     }
 
-    struct and_expr* res = xmalloc(sizeof(struct and_expr));
+    struct and_expr* res = xmalloc(sizeof *res);
     res->eq_exprs = eq_exprs;
 
     if (!parse_and_expr_rest(s, res)) {

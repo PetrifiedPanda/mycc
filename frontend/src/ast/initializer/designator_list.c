@@ -7,7 +7,7 @@
 struct designator_list parse_designator_list(struct parser_state* s) {
     struct designator_list res = {
         .len = 1,
-        .designators = xmalloc(sizeof(struct designator)),
+        .designators = xmalloc(sizeof *res.designators),
     };
 
     if (!parse_designator_inplace(s, &res.designators[0])) {
@@ -20,7 +20,7 @@ struct designator_list parse_designator_list(struct parser_state* s) {
         if (res.len == alloc_len) {
             grow_alloc((void**)&res.designators,
                        &alloc_len,
-                       sizeof(struct designator));
+                       sizeof *res.designators);
         }
 
         if (!parse_designator_inplace(s, &res.designators[res.len])) {
@@ -30,7 +30,7 @@ struct designator_list parse_designator_list(struct parser_state* s) {
         ++res.len;
     }
     res.designators = xrealloc(res.designators,
-                               res.len * sizeof(struct designator));
+                               res.len * sizeof *res.designators);
 
     return res;
 

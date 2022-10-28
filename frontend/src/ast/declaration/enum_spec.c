@@ -11,7 +11,7 @@ static struct enum_spec* create_enum_spec(struct source_loc loc,
                                           struct identifier* identifier,
                                           struct enum_list enum_list) {
     assert(identifier || enum_list.len > 0);
-    struct enum_spec* res = xmalloc(sizeof(struct enum_spec));
+    struct enum_spec* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->identifier = identifier;
     res->enum_list = enum_list;

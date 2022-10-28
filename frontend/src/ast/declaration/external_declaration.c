@@ -4,11 +4,12 @@
 
 #include "util/mem.h"
 
-static bool parse_external_decl_normal_decl(struct parser_state* s,
-                                            struct external_declaration* res,
-                                            struct declaration_specs* decl_specs,
-                                            struct declarator* first_decl,
-                                            bool found_typedef) {
+static bool parse_external_decl_normal_decl(
+    struct parser_state* s,
+    struct external_declaration* res,
+    struct declaration_specs* decl_specs,
+    struct declarator* first_decl,
+    bool found_typedef) {
     res->is_func_def = false;
 
     struct declaration* decl = &res->decl;
@@ -33,15 +34,13 @@ static bool parse_external_decl_normal_decl(struct parser_state* s,
         }
     }
 
-    struct init_declarator* init_decl = xmalloc(
-        sizeof(struct init_declarator));
+    struct init_declarator* init_decl = xmalloc(sizeof *init_decl);
     init_decl->decl = first_decl;
     init_decl->init = init;
 
     if (found_typedef) {
-        decl->init_decls = parse_init_declarator_list_typedef_first(
-            s,
-            init_decl);
+        decl->init_decls = parse_init_declarator_list_typedef_first(s,
+                                                                    init_decl);
     } else {
         decl->init_decls = parse_init_declarator_list_first(s, init_decl);
     }
@@ -59,11 +58,12 @@ static bool parse_external_decl_normal_decl(struct parser_state* s,
     return true;
 }
 
-static bool parse_external_declaration_func_def(struct parser_state* s,
-                                                struct external_declaration* res,
-                                                struct declaration_specs* decl_specs,
-                                                struct declarator* first_decl,
-                                                bool found_typedef) {
+static bool parse_external_declaration_func_def(
+    struct parser_state* s,
+    struct external_declaration* res,
+    struct declaration_specs* decl_specs,
+    struct declarator* first_decl,
+    bool found_typedef) {
     if (found_typedef) {
         set_parser_err(s->err, PARSER_ERR_TYPEDEF_FUNC_DEF, s->it->loc);
         free_declaration_specs(decl_specs);
@@ -146,18 +146,19 @@ bool parse_external_declaration_inplace(struct parser_state* s,
         return false;
     }
 
-    if (s->it->type == ASSIGN || s->it->type == COMMA || s->it->type == SEMICOLON) {
+    if (s->it->type == ASSIGN || s->it->type == COMMA
+        || s->it->type == SEMICOLON) {
         return parse_external_decl_normal_decl(s,
                                                res,
                                                decl_specs,
                                                first_decl,
                                                found_typedef);
     } else {
-       return parse_external_declaration_func_def(s,
-                                                  res,
-                                                  decl_specs,
-                                                  first_decl,
-                                                  found_typedef);
+        return parse_external_declaration_func_def(s,
+                                                   res,
+                                                   decl_specs,
+                                                   first_decl,
+                                                   found_typedef);
     }
 }
 

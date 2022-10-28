@@ -116,8 +116,7 @@ bool parse_assign_expr_inplace(struct parser_state* s,
         } else if (opt.is_cond) {
             res->value = opt.cond;
             ++res->len;
-            res->assign_chain = xrealloc(res->assign_chain,
-                                         sizeof(struct cond_expr) * res->len);
+            res->assign_chain = xrealloc(res->assign_chain, sizeof *res->assign_chain * res->len);
             res->assign_chain[res->len - 1] = (struct unary_and_op){
                 .op = token_type_to_assign_op(op),
                 .unary = last_unary,
@@ -128,9 +127,7 @@ bool parse_assign_expr_inplace(struct parser_state* s,
         struct unary_expr* new_last = opt.unary;
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->assign_chain,
-                       &alloc_len,
-                       sizeof(struct unary_and_op));
+            grow_alloc((void**)&res->assign_chain, &alloc_len, sizeof *res->assign_chain);
         }
 
         res->assign_chain[res->len] = (struct unary_and_op){
@@ -142,8 +139,7 @@ bool parse_assign_expr_inplace(struct parser_state* s,
         ++res->len;
     }
 
-    res->assign_chain = xrealloc(res->assign_chain,
-                                 sizeof(struct unary_and_op) * res->len);
+    res->assign_chain = xrealloc(res->assign_chain, sizeof *res->assign_chain * res->len);
 
     res->value = parse_cond_expr_cast(s, create_cast_expr_unary(last_unary));
     if (!res->value) {
@@ -161,7 +157,7 @@ fail:
 }
 
 struct assign_expr* parse_assign_expr(struct parser_state* s) {
-    struct assign_expr* res = xmalloc(sizeof(struct assign_expr));
+    struct assign_expr* res = xmalloc(sizeof *res);
     if (!parse_assign_expr_inplace(s, res)) {
         free(res);
         return NULL;

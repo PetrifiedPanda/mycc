@@ -18,9 +18,7 @@ static bool parse_add_expr_add_chain(struct parser_state* s,
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->add_chain,
-                       &alloc_len,
-                       sizeof(struct mul_expr_and_op));
+            grow_alloc((void**)&res->add_chain, &alloc_len, sizeof *res->add_chain);
         }
 
         struct mul_expr_and_op* curr = &res->add_chain[res->len];
@@ -35,8 +33,7 @@ static bool parse_add_expr_add_chain(struct parser_state* s,
         ++res->len;
     }
 
-    res->add_chain = xrealloc(res->add_chain,
-                              sizeof(struct mul_expr_and_op) * res->len);
+    res->add_chain = xrealloc(res->add_chain, sizeof *res->add_chain * res->len);
 
     return true;
 }
@@ -47,7 +44,7 @@ struct add_expr* parse_add_expr(struct parser_state* s) {
         return NULL;
     }
 
-    struct add_expr* res = xmalloc(sizeof(struct add_expr));
+    struct add_expr* res = xmalloc(sizeof *res);
     res->lhs = lhs;
 
     if (!parse_add_expr_add_chain(s, res)) {
@@ -66,7 +63,7 @@ struct add_expr* parse_add_expr_cast(struct parser_state* s,
         return NULL;
     }
 
-    struct add_expr* res = xmalloc(sizeof(struct add_expr));
+    struct add_expr* res = xmalloc(sizeof *res);
     res->lhs = lhs;
 
     if (!parse_add_expr_add_chain(s, res)) {

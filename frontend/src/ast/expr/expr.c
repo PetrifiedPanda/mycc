@@ -10,7 +10,7 @@
 bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
     assert(res);
 
-    res->assign_exprs = xmalloc(sizeof(struct assign_expr));
+    res->assign_exprs = xmalloc(sizeof *res->assign_exprs);
 
     if (!parse_assign_expr_inplace(s, &res->assign_exprs[0])) {
         free(res->assign_exprs);
@@ -23,7 +23,7 @@ bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
         if (alloc_len == res->len) {
             grow_alloc((void**)&res->assign_exprs,
                        &alloc_len,
-                       sizeof(struct assign_expr));
+                       sizeof *res->assign_exprs);
         }
 
         if (!parse_assign_expr_inplace(s, &res->assign_exprs[res->len])) {
@@ -36,14 +36,14 @@ bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
 
     if (alloc_len != res->len) {
         res->assign_exprs = xrealloc(res->assign_exprs,
-                                     sizeof(struct assign_expr) * res->len);
+                                     sizeof *res->assign_exprs * res->len);
     }
 
     return true;
 }
 
 struct expr* parse_expr(struct parser_state* s) {
-    struct expr* res = xmalloc(sizeof(struct expr));
+    struct expr* res = xmalloc(sizeof *res);
     if (!parse_expr_inplace(s, res)) {
         free(res);
         return NULL;

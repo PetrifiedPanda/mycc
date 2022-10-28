@@ -27,7 +27,7 @@ static struct unary_expr* create_unary_expr_postfix(
     struct postfix_expr* postfix,
     struct source_loc loc) {
     assert(postfix);
-    struct unary_expr* res = xmalloc(sizeof(struct unary_expr));
+    struct unary_expr* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     assign_operators_before(res, ops_before, len);
     res->type = UNARY_POSTFIX;
@@ -64,7 +64,7 @@ static struct unary_expr* create_unary_expr_unary_op(
     struct source_loc loc) {
     assert(is_unary_op(unary_op));
     assert(cast_expr);
-    struct unary_expr* res = xmalloc(sizeof(struct unary_expr));
+    struct unary_expr* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     assign_operators_before(res, ops_before, len);
     res->type = token_type_to_unary_expr_type(unary_op);
@@ -79,7 +79,7 @@ static struct unary_expr* create_unary_expr_sizeof_type(
     struct type_name* type_name,
     struct source_loc loc) {
     assert(type_name);
-    struct unary_expr* res = xmalloc(sizeof(struct unary_expr));
+    struct unary_expr* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     assign_operators_before(res, ops_before, len);
     res->type = UNARY_SIZEOF_TYPE;
@@ -94,7 +94,7 @@ static struct unary_expr* create_unary_expr_alignof(
     struct type_name* type_name,
     struct source_loc loc) {
     assert(type_name);
-    struct unary_expr* res = xmalloc(sizeof(struct unary_expr));
+    struct unary_expr* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     assign_operators_before(res, ops_before, len);
     res->type = UNARY_ALIGNOF;
@@ -149,9 +149,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
     while (s->it->type == INC_OP || s->it->type == DEC_OP
            || (s->it->type == SIZEOF && (s->it + 1)->type != LBRACKET)) {
         if (len == alloc_len) {
-            grow_alloc((void**)&ops_before,
-                       &alloc_len,
-                       sizeof(enum token_type));
+            grow_alloc((void**)&ops_before, &alloc_len, sizeof *ops_before);
         }
 
         ops_before[len] = token_type_to_unary_expr_op(s->it->type);
@@ -161,7 +159,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
     }
 
     if (ops_before) {
-        ops_before = xrealloc(ops_before, len * sizeof(enum token_type));
+        ops_before = xrealloc(ops_before, len * sizeof *ops_before);
     }
 
     if (is_unary_op(s->it->type)) {
@@ -192,7 +190,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
                     if (s->it->type == LBRACE) {
                         ++len;
                         ops_before = xrealloc(ops_before,
-                                              len * sizeof(enum token_type));
+                                              len * sizeof *ops_before);
                         ops_before[len - 1] = UNARY_OP_SIZEOF;
 
                         struct unary_expr* res = parse_unary_expr_type_name(
@@ -214,8 +212,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
                     }
                 } else {
                     ++len;
-                    ops_before = xrealloc(ops_before,
-                                          len * sizeof(enum token_type));
+                    ops_before = xrealloc(ops_before, sizeof *ops_before * len);
                     ops_before[len - 1] = UNARY_OP_SIZEOF;
 
                     struct postfix_expr* postfix = parse_postfix_expr(s);
@@ -242,7 +239,10 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
                 if (!accept(s, RBRACKET)) {
                     goto fail;
                 }
-                return create_unary_expr_alignof(ops_before, len, type_name, loc);
+                return create_unary_expr_alignof(ops_before,
+                                                 len,
+                                                 type_name,
+                                                 loc);
             }
             default: {
                 struct postfix_expr* postfix = parse_postfix_expr(s);
@@ -269,7 +269,7 @@ void free_unary_expr_children(struct unary_expr* u) {
         case UNARY_PLUS:
         case UNARY_MINUS:
         case UNARY_BNOT:
-        case UNARY_NOT: 
+        case UNARY_NOT:
             free_cast_expr(u->cast_expr);
             break;
         case UNARY_SIZEOF_TYPE:

@@ -34,9 +34,7 @@ static bool parse_mul_expr_mul_chain(struct parser_state* s,
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->mul_chain,
-                       &alloc_len,
-                       sizeof(struct cast_expr_and_op));
+            grow_alloc((void**)&res->mul_chain, &alloc_len, sizeof *res->mul_chain);
         }
 
         struct cast_expr_and_op* curr = &res->mul_chain[res->len];
@@ -50,8 +48,7 @@ static bool parse_mul_expr_mul_chain(struct parser_state* s,
         ++res->len;
     }
 
-    res->mul_chain = xrealloc(res->mul_chain,
-                              sizeof(struct cast_expr_and_op) * res->len);
+    res->mul_chain = xrealloc(res->mul_chain, sizeof *res->mul_chain * res->len);
 
     return true;
 }
@@ -62,7 +59,7 @@ struct mul_expr* parse_mul_expr(struct parser_state* s) {
         return NULL;
     }
 
-    struct mul_expr* res = xmalloc(sizeof(struct mul_expr));
+    struct mul_expr* res = xmalloc(sizeof *res);
     
     res->lhs = lhs;
 
@@ -77,7 +74,7 @@ struct mul_expr* parse_mul_expr_cast(struct parser_state* s,
                                      struct cast_expr* start) {
     assert(start);
 
-    struct mul_expr* res = xmalloc(sizeof(struct mul_expr));
+    struct mul_expr* res = xmalloc(sizeof *res);
     res->lhs = start;
 
     if (!parse_mul_expr_mul_chain(s, res)) {

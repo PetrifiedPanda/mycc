@@ -200,7 +200,7 @@ static void resize_map(struct string_hash_map* map) {
 
     map->_len = 0;
     map->_cap += map->_cap / 2 + 1;
-    map->_keys = xcalloc(map->_cap, sizeof(struct string_hash_map_key));
+    map->_keys = xcalloc(map->_cap, sizeof *map->_keys);
     map->_items = xcalloc(map->_cap, map->_item_size);
 
     for (size_t i = 0; i < prev_cap; ++i) {

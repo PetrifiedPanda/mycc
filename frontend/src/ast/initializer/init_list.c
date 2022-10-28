@@ -28,7 +28,7 @@ static bool parse_designation_init(struct parser_state* s,
 struct init_list parse_init_list(struct parser_state* s) {
     struct init_list res = {
         .len = 1,
-        .inits = xmalloc(sizeof(struct designation_init)),
+        .inits = xmalloc(sizeof *res.inits),
     };
     if (!parse_designation_init(s, &res.inits[0])) {
         free(res.inits);
@@ -40,9 +40,7 @@ struct init_list parse_init_list(struct parser_state* s) {
         accept_it(s);
 
         if (res.len == alloc_len) {
-            grow_alloc((void**)&res.inits,
-                       &alloc_len,
-                       sizeof(struct designation_init));
+            grow_alloc((void**)&res.inits, &alloc_len, sizeof *res.inits);
         }
 
         if (!parse_designation_init(s, &res.inits[res.len])) {
@@ -52,7 +50,7 @@ struct init_list parse_init_list(struct parser_state* s) {
         ++res.len;
     }
 
-    res.inits = xrealloc(res.inits, res.len * sizeof(struct designation_init));
+    res.inits = xrealloc(res.inits, sizeof *res.inits * res.len);
 
     return res;
 fail:

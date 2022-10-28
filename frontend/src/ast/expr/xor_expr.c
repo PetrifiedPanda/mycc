@@ -17,9 +17,7 @@ static bool parse_xor_expr_rest(struct parser_state* s, struct xor_expr* res) {
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->and_exprs,
-                       &alloc_len,
-                       sizeof(struct and_expr));
+            grow_alloc((void**)&res->and_exprs, &alloc_len, sizeof *res->and_exprs); 
         }
 
         if (!parse_and_expr_inplace(s, &res->and_exprs[res->len])) {
@@ -29,8 +27,7 @@ static bool parse_xor_expr_rest(struct parser_state* s, struct xor_expr* res) {
         ++res->len;
     }
 
-    res->and_exprs = xrealloc(res->and_exprs,
-                              sizeof(struct and_expr) * res->len);
+    res->and_exprs = xrealloc(res->and_exprs, sizeof *res->and_exprs * res->len);
     return true;
 
 fail:
@@ -41,7 +38,7 @@ fail:
 bool parse_xor_expr_inplace(struct parser_state* s, struct xor_expr* res) {
     assert(res);
 
-    res->and_exprs = xmalloc(sizeof(struct and_expr));
+    res->and_exprs = xmalloc(sizeof *res->and_exprs);
     if (!parse_and_expr_inplace(s, res->and_exprs)) {
         free(res->and_exprs);
         return false;
@@ -63,7 +60,7 @@ struct xor_expr* parse_xor_expr_cast(struct parser_state* s,
         return NULL;
     }
 
-    struct xor_expr* res = xmalloc(sizeof(struct xor_expr));
+    struct xor_expr* res = xmalloc(sizeof *res);
     res->and_exprs = and_exprs;
 
     if (!parse_xor_expr_rest(s, res)) {

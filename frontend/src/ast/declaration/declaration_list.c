@@ -9,7 +9,8 @@
 struct declaration_list parse_declaration_list(struct parser_state* s) {
     struct declaration_list res = {
         .len = 1,
-        .decls = xmalloc(sizeof(struct declaration))};
+        .decls = xmalloc(sizeof *res.decls),
+    };
 
     if (!parse_declaration_inplace(s, res.decls)) {
         free(res.decls);
@@ -19,9 +20,7 @@ struct declaration_list parse_declaration_list(struct parser_state* s) {
     size_t alloc_size = res.len;
     while (is_declaration(s)) {
         if (res.len == alloc_size) {
-            grow_alloc((void**)&res.decls,
-                       &alloc_size,
-                       sizeof(struct declaration));
+            grow_alloc((void**)&res.decls, &alloc_size, sizeof *res.decls);
         }
 
         if (!parse_declaration_inplace(s, &res.decls[res.len])) {

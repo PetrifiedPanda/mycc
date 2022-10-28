@@ -10,10 +10,10 @@ struct pointer* parse_pointer(struct parser_state* s) {
         return NULL;
     }
 
-    struct pointer* res = xmalloc(sizeof(struct pointer));
+    struct pointer* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->num_indirs = 1;
-    res->quals_after_ptr = xmalloc(sizeof(struct type_quals));
+    res->quals_after_ptr = xmalloc(sizeof *res->quals_after_ptr);
 
     if (is_type_qual(s->it->type)) {
         res->quals_after_ptr[0] = parse_type_qual_list(s);
@@ -33,7 +33,7 @@ struct pointer* parse_pointer(struct parser_state* s) {
         if (res->num_indirs == alloc_size) {
             grow_alloc((void**)&res->quals_after_ptr,
                        &alloc_size,
-                       sizeof(struct type_quals));
+                       sizeof *res->quals_after_ptr);
         }
 
         if (is_type_qual(s->it->type)) {
@@ -50,7 +50,7 @@ struct pointer* parse_pointer(struct parser_state* s) {
     }
 
     res->quals_after_ptr = xrealloc(res->quals_after_ptr,
-                                    sizeof(struct type_quals)
+                                    sizeof *res->quals_after_ptr
                                         * res->num_indirs);
 
     return res;

@@ -11,7 +11,7 @@ static struct struct_union_spec* create_struct_union(
     bool is_struct,
     struct identifier* identifier,
     struct struct_declaration_list decl_list) {
-    struct struct_union_spec* res = xmalloc(sizeof(struct struct_union_spec));
+    struct struct_union_spec* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->is_struct = is_struct;
     res->identifier = identifier;
@@ -31,9 +31,7 @@ struct struct_union_spec* parse_struct_union_spec(struct parser_state* s) {
         accept_it(s);
     } else {
         enum token_type expected[] = {STRUCT, UNION};
-        expected_tokens_error(s,
-                              expected,
-                              sizeof expected / sizeof(enum token_type));
+        expected_tokens_error(s, expected, sizeof expected / sizeof *expected);
         return NULL;
     }
 

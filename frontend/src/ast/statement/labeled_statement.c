@@ -9,7 +9,7 @@
 #include "frontend/parser/parser_util.h"
 
 struct labeled_statement* parse_labeled_statement(struct parser_state* s) {
-    struct labeled_statement* res = xmalloc(sizeof(struct labeled_statement));
+    struct labeled_statement* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
     switch (s->it->type) {
         case CASE: {
@@ -46,7 +46,7 @@ struct labeled_statement* parse_labeled_statement(struct parser_state* s) {
 
             expected_tokens_error(s,
                                   expected,
-                                  sizeof expected / sizeof(enum token_type));
+                                  sizeof expected / sizeof *expected);
             return NULL;
         }
     }

@@ -19,7 +19,7 @@ static enum rel_expr_op token_type_to_rel_op(enum token_type t) {
             return REL_EXPR_LE;
         case GE_OP:
             return REL_EXPR_GE;
-        
+
         default:
             UNREACHABLE();
     }
@@ -40,7 +40,7 @@ static bool parse_rel_expr_rel_chain(struct parser_state* s,
         if (res->len == alloc_len) {
             grow_alloc((void**)&res->rel_chain,
                        &alloc_len,
-                       sizeof(struct shift_expr_and_op));
+                       sizeof *res->rel_chain);
         }
 
         struct shift_expr_and_op* curr = &res->rel_chain[res->len];
@@ -54,7 +54,7 @@ static bool parse_rel_expr_rel_chain(struct parser_state* s,
     }
 
     res->rel_chain = xrealloc(res->rel_chain,
-                              sizeof(struct shift_expr_and_op) * res->len);
+                              sizeof *res->rel_chain * res->len);
 
     return true;
 fail:
@@ -68,7 +68,7 @@ struct rel_expr* parse_rel_expr(struct parser_state* s) {
         return NULL;
     }
 
-    struct rel_expr* res = xmalloc(sizeof(struct rel_expr));
+    struct rel_expr* res = xmalloc(sizeof *res);
     res->lhs = lhs;
 
     if (!parse_rel_expr_rel_chain(s, res)) {
@@ -87,7 +87,7 @@ struct rel_expr* parse_rel_expr_cast(struct parser_state* s,
         return NULL;
     }
 
-    struct rel_expr* res = xmalloc(sizeof(struct rel_expr));
+    struct rel_expr* res = xmalloc(sizeof *res);
     res->lhs = lhs;
 
     if (!parse_rel_expr_rel_chain(s, res)) {

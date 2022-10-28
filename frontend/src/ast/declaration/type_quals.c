@@ -43,9 +43,7 @@ struct type_quals parse_type_qual_list(struct parser_state* s) {
     if (!is_type_qual(s->it->type)) {
         enum token_type expected[] = {CONST, RESTRICT, VOLATILE, ATOMIC};
 
-        expected_tokens_error(s,
-                              expected,
-                              sizeof expected / sizeof(enum token_type));
+        expected_tokens_error(s, expected, sizeof expected / sizeof *expected);
         return create_type_quals();
     }
 

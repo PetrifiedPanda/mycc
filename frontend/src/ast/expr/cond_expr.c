@@ -33,9 +33,7 @@ static bool parse_cond_expr_conditionals(struct parser_state* s,
         }
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->conditionals,
-                       &alloc_len,
-                       sizeof(struct log_or_and_expr));
+            grow_alloc((void**)&res->conditionals, &alloc_len, sizeof *res->conditionals);
         }
 
         res->conditionals[res->len] = (struct log_or_and_expr){
@@ -48,8 +46,7 @@ static bool parse_cond_expr_conditionals(struct parser_state* s,
         ++res->len;
     }
 
-    res->conditionals = xrealloc(res->conditionals,
-                                 sizeof(struct log_or_and_expr) * res->len);
+    res->conditionals = xrealloc(res->conditionals, sizeof *res->conditionals * res->len);
     return true;
 
 fail:
@@ -76,7 +73,7 @@ struct cond_expr* parse_cond_expr_cast(struct parser_state* s,
                                        struct cast_expr* start) {
     assert(start);
 
-    struct cond_expr* res = xmalloc(sizeof(struct cond_expr));
+    struct cond_expr* res = xmalloc(sizeof *res);
     res->last_else = parse_log_or_expr_cast(s, start);
     if (!res->last_else) {
         free(res);

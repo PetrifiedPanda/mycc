@@ -51,7 +51,7 @@ void push_preproc_cond(struct preproc_state* state,
     if (state->conds_len == state->conds_cap) {
         grow_alloc((void**)&state->conds,
                    &state->conds_cap,
-                   sizeof(struct preproc_cond));
+                   sizeof *state->conds);
     }
 
     struct preproc_cond c = {

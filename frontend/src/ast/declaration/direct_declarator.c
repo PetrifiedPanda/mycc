@@ -69,10 +69,8 @@ static bool parse_arr_suffix(struct parser_state* s,
     }
 
     if (s->it->type == STATIC) {
-        if (suffix->is_static) { 
-            set_parser_err(s->err,
-                           PARSER_ERR_ARR_DOUBLE_STATIC,
-                           s->it->loc);
+        if (suffix->is_static) {
+            set_parser_err(s->err, PARSER_ERR_ARR_DOUBLE_STATIC, s->it->loc);
             free_arr_suffix(suffix);
             return false;
         }
@@ -82,9 +80,7 @@ static bool parse_arr_suffix(struct parser_state* s,
 
     if (s->it->type == RINDEX) {
         if (suffix->is_static) {
-            set_parser_err(s->err,
-                           PARSER_ERR_ARR_STATIC_NO_LEN,
-                           s->it->loc);
+            set_parser_err(s->err, PARSER_ERR_ARR_STATIC_NO_LEN, s->it->loc);
             free_arr_suffix(suffix);
             return false;
         }
@@ -105,8 +101,7 @@ static bool parse_func_suffix(struct parser_state* s,
     assert(s->it->type == LBRACKET);
 
     accept_it(s);
-    if (s->it->type == IDENTIFIER
-        && !is_typedef_name(s, &s->it->spelling)) {
+    if (s->it->type == IDENTIFIER && !is_typedef_name(s, &s->it->spelling)) {
         res->type = ARR_OR_FUNC_FUN_OLD_PARAMS;
         res->fun_params = parse_identifier_list(s);
         if (res->fun_params.len == 0) {
@@ -156,7 +151,7 @@ static struct direct_declarator* parse_direct_declarator_base(
     struct parser_state* s,
     struct declarator* (*parse_func)(struct parser_state*),
     bool (*identifier_handler)(struct parser_state*, const struct token*)) {
-    struct direct_declarator* res = xmalloc(sizeof(struct direct_declarator));
+    struct direct_declarator* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
     if (s->it->type == LBRACKET) {
         accept_it(s);
@@ -185,9 +180,7 @@ static struct direct_declarator* parse_direct_declarator_base(
     } else {
         free(res);
         enum token_type expected[] = {LBRACKET, IDENTIFIER};
-        expected_tokens_error(s,
-                              expected,
-                              sizeof expected / sizeof(enum token_type));
+        expected_tokens_error(s, expected, sizeof expected / sizeof *expected);
         return NULL;
     }
 
@@ -198,7 +191,7 @@ static struct direct_declarator* parse_direct_declarator_base(
         if (alloc_len == res->len) {
             grow_alloc((void**)&res->suffixes,
                        &alloc_len,
-                       sizeof(struct arr_or_func_suffix));
+                       sizeof *res->suffixes);
         }
 
         if (!parse_arr_or_func_suffix(s, &res->suffixes[res->len])) {
@@ -209,13 +202,13 @@ static struct direct_declarator* parse_direct_declarator_base(
         ++res->len;
     }
 
-    res->suffixes = xrealloc(res->suffixes,
-                             sizeof(struct arr_or_func_suffix) * res->len);
+    res->suffixes = xrealloc(res->suffixes, sizeof *res->suffixes * res->len);
 
     return res;
 }
 
-static bool empty_id_handler(struct parser_state* s, const struct token* token) {
+static bool empty_id_handler(struct parser_state* s,
+                             const struct token* token) {
     UNUSED(s);
     UNUSED(token);
     return true;

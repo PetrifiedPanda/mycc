@@ -31,7 +31,7 @@ struct parser_err {
         struct { // expected tokens
             enum token_type got;
             size_t num_expected;
-            enum token_type* expected;
+            enum token_type expected[21]; 
         };
         struct { // redefined symbol
             struct str redefined_symbol;

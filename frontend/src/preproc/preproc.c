@@ -108,7 +108,7 @@ static void string_read_line(const char** str,
             } else {
                 const size_t len = it - start;
                 *str = *it == '\0' ? it : it + 1;
-                memcpy(static_buf + *res_len, start, sizeof(char) * len);
+                memcpy(static_buf + *res_len, start, sizeof *static_buf * len);
                 *res_len += len;
                 static_buf[len] = '\0';
             }
@@ -127,8 +127,8 @@ static void string_read_line(const char** str,
     if (len == 0) {
         return;
     }
-    *res = xrealloc(*res, sizeof(char) * (*res_len + 1));
-    memcpy(*res + prev_res_len, start, len * sizeof(char));
+    *res = xrealloc(*res, sizeof **res * (*res_len + 1));
+    memcpy(*res + prev_res_len, start, sizeof **res * len);
     (*res)[*res_len] = '\0';
 }
 
@@ -523,7 +523,7 @@ bool convert_preproc_tokens(struct token* tokens,
 }
 
 static void append_terminator_token(struct token_arr* arr) {
-    arr->tokens = xrealloc(arr->tokens, sizeof(struct token) * (arr->len + 1));
+    arr->tokens = xrealloc(arr->tokens, sizeof *arr->tokens * (arr->len + 1));
     arr->tokens[arr->len] = (struct token){
         .type = INVALID,
         .spelling = create_null_str(),
@@ -556,9 +556,9 @@ static bool is_cond_directive(const char* line) {
 
     if (*it == '\0') {
         return false;
-    } else if (strncmp(it, else_dir, sizeof(else_dir)) == 0
-               || strncmp(it, elif_dir, sizeof(elif_dir)) == 0
-               || strncmp(it, endif_dir, sizeof(endif_dir))) {
+    } else if (strncmp(it, else_dir, sizeof else_dir) == 0
+               || strncmp(it, elif_dir, sizeof elif_dir) == 0
+               || strncmp(it, endif_dir, sizeof endif_dir)) {
         return true;
     }
 

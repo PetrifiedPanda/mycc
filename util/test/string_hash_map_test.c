@@ -24,7 +24,7 @@ static size_t write_str_combos_rec(char strs[][KEY_CHAR_ARR_LEN],
         return current_idx + 1;
     } else {
         char tmp_str[KEY_CHAR_ARR_LEN] = {0};
-        memcpy(tmp_str, strs[current_idx], sizeof(char) * (str_idx));
+        memcpy(tmp_str, strs[current_idx], sizeof *tmp_str * (str_idx));
         size_t child_idx = current_idx;
         for (char i = START_CHAR; i < END_CHAR; ++i) {
             if (child_idx == num) {
@@ -32,7 +32,7 @@ static size_t write_str_combos_rec(char strs[][KEY_CHAR_ARR_LEN],
             }
             tmp_str[str_idx] = i;
 
-            memcpy(strs[child_idx], tmp_str, sizeof(char) * (str_idx + 1));
+            memcpy(strs[child_idx], tmp_str, sizeof *tmp_str * (str_idx + 1));
             child_idx = write_str_combos_rec(strs,
                                              num,
                                              str_len,

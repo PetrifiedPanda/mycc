@@ -116,8 +116,7 @@ static bool parse_abs_arr_or_func_suffix(struct parser_state* s,
 
 struct direct_abs_declarator* parse_direct_abs_declarator(
     struct parser_state* s) {
-    struct direct_abs_declarator* res = xmalloc(
-        sizeof(struct direct_abs_declarator));
+    struct direct_abs_declarator* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
     if (s->it->type == LBRACKET
         && (s->it[1].type == LBRACKET || s->it[1].type == LINDEX
@@ -145,7 +144,7 @@ struct direct_abs_declarator* parse_direct_abs_declarator(
         if (res->len == alloc_len) {
             grow_alloc((void**)&res->following_suffixes,
                        &alloc_len,
-                       sizeof(struct abs_arr_or_func_suffix));
+                       sizeof *res->following_suffixes);
         }
 
         if (!parse_abs_arr_or_func_suffix(s,
@@ -158,7 +157,7 @@ struct direct_abs_declarator* parse_direct_abs_declarator(
     }
 
     res->following_suffixes = xrealloc(res->following_suffixes,
-                                       sizeof(struct abs_arr_or_func_suffix)
+                                       sizeof *res->following_suffixes
                                            * res->len);
 
     return res;

@@ -43,12 +43,4 @@ void* xrealloc(void* alloc, size_t bytes);
  */
 void grow_alloc(void** alloc, size_t* alloc_len, size_t elem_size);
 
-/**
- * @brief Allocates a copy of the given string
- *
- * @param str A zero-terminated string that must not be NULL
- * @return char* A heap allocated copy of str
- */
-char* alloc_string_copy(const char* str);
-
 #endif

@@ -5,7 +5,7 @@
 #include "util/mem.h"
 
 struct abs_declarator* parse_abs_declarator(struct parser_state* s) {
-    struct abs_declarator* res = xmalloc(sizeof(struct abs_declarator));
+    struct abs_declarator* res = xmalloc(sizeof *res);
     if (s->it->type == ASTERISK) {
         res->ptr = parse_pointer(s);
         if (!res->ptr) {

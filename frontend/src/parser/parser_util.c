@@ -15,12 +15,13 @@ void expected_tokens_error(struct parser_state* s,
                            const enum token_type* expected,
                            size_t num_expected) {
     assert(expected);
+    enum { MAX_NUM_EXPECTED = sizeof s->err->expected / sizeof *s->err->expected};
+    assert(num_expected <= MAX_NUM_EXPECTED);
     assert(num_expected >= 1);
 
     set_parser_err(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it->loc);
 
-    const size_t bytes = sizeof(enum token_type) * num_expected;
-    s->err->expected = xmalloc(bytes);
+    const size_t bytes = sizeof *s->err->expected * num_expected;
     memcpy(s->err->expected, expected, bytes);
     s->err->num_expected = num_expected;
     s->err->got = s->it->type;

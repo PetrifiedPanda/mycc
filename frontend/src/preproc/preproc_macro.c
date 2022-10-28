@@ -73,7 +73,7 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr,
             }
 
             if (arg_spells_cap == res.num_args) {
-                grow_alloc((void**)&arg_spells, &arg_spells_cap, sizeof(char*));
+                grow_alloc((void**)&arg_spells, &arg_spells_cap, sizeof *arg_spells);
             }
             arg_spells[res.num_args] = str_get_data(&arr->tokens[it].spelling);
             assert(arg_spells[res.num_args]);
@@ -111,7 +111,7 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr,
         res.expansion_len = arr->len - it - 1; // TODO: not sure about - 1
         res.expansion = res.expansion_len == 0
                             ? NULL
-                            : xmalloc(sizeof(struct token_or_arg)
+                            : xmalloc(sizeof *res.expansion
                                       * res.expansion_len);
 
         for (size_t i = it + 1; i < arr->len; ++i) {
@@ -157,7 +157,7 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr,
         res.expansion_len = arr->len - 3;
         res.expansion = res.expansion_len == 0
                             ? NULL
-                            : xmalloc(sizeof(struct token_or_arg)
+                            : xmalloc(sizeof *res.expansion
                                       * res.expansion_len);
         for (size_t i = 3; i < arr->len; ++i) {
             const size_t res_idx = i - 3;
@@ -192,7 +192,7 @@ static struct token_arr collect_until(struct token* start,
     const size_t len = end - start;
     struct token_arr res = {
         .len = len,
-        .tokens = len == 0 ? NULL : xmalloc(sizeof(struct token) * len),
+        .tokens = len == 0 ? NULL : xmalloc(sizeof *res.tokens * len),
     };
 
     for (size_t i = 0; i < len; ++i) {
@@ -260,7 +260,7 @@ struct macro_args collect_macro_args(struct token* args_start,
     size_t cap = is_variadic ? expected_args + 1 : expected_args;
     struct macro_args res = {
         .len = 0,
-        .arrs = cap == 0 ? NULL : xmalloc(sizeof(struct token_arr) * cap),
+        .arrs = cap == 0 ? NULL : xmalloc(sizeof *res.arrs * cap),
     };
 
     struct token* it = args_start + 1;
@@ -339,7 +339,7 @@ static void shift_back(struct token* tokens,
                        size_t to) {
     memmove(tokens + from + num,
             tokens + from,
-            (to - from) * sizeof(struct token));
+            sizeof *tokens * (to - from));
 }
 
 static void shift_forward(struct token* tokens,
@@ -348,7 +348,7 @@ static void shift_forward(struct token* tokens,
                           size_t to) {
     memmove(tokens + from,
             tokens + from + num,
-            (to - from - num) * sizeof(struct token));
+            sizeof *tokens * (to - from - num));
 }
 
 static void copy_into_tokens(struct token* tokens,
@@ -397,7 +397,7 @@ static bool expand_func_macro(struct preproc_state* state,
     if (alloc_grows) {
         res->len += alloc_change;
         res->cap += alloc_change;
-        res->tokens = xrealloc(res->tokens, sizeof(struct token) * res->cap);
+        res->tokens = xrealloc(res->tokens, sizeof *res->tokens * res->cap);
 
         shift_back(res->tokens,
                    alloc_change,
@@ -440,7 +440,7 @@ static void expand_obj_macro(struct token_arr* res,
     if (exp_len > 0) {
         res->cap += exp_len - 1;
         res->len += exp_len - 1;
-        res->tokens = xrealloc(res->tokens, sizeof(struct token) * res->cap);
+        res->tokens = xrealloc(res->tokens, sizeof *res->tokens * res->cap);
 
         shift_back(res->tokens, exp_len - 1, macro_idx, old_len);
     } else {

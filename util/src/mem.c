@@ -52,10 +52,3 @@ void grow_alloc(void** alloc, size_t* alloc_len, size_t elem_size) {
     *alloc_len = new_num;
 }
 
-char* alloc_string_copy(const char* str) {
-    assert(str);
-    char* res = xmalloc(sizeof(char) * (strlen(str) + 1));
-    strcpy(res, str);
-    return res;
-}
-

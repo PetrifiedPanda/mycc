@@ -17,7 +17,7 @@ struct designation* parse_designation(struct parser_state* s) {
         return NULL;
     }
 
-    struct designation* res = xmalloc(sizeof(struct designation));
+    struct designation* res = xmalloc(sizeof *res);
     res->designators = designators;
     return res;
 }

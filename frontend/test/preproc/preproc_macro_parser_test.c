@@ -25,7 +25,8 @@ static void compare_preproc_macros(const struct preproc_macro* got,
             const struct token* ex_tok = &ex_item->token;
 
             ASSERT_TOKEN_TYPE(got_tok->type, ex_tok->type);
-            ASSERT_STR(str_get_data(&got_tok->spelling), str_get_data(&ex_tok->spelling));
+            ASSERT_STR(str_get_data(&got_tok->spelling),
+                       str_get_data(&ex_tok->spelling));
 
             ASSERT_SIZE_T(got_tok->loc.file_idx, ex_tok->loc.file_idx);
             ASSERT_SIZE_T(got_tok->loc.file_loc.line,
@@ -47,11 +48,11 @@ TEST(object_like) {
         };
 
         struct token_arr arr = {
-            .len = sizeof tokens / sizeof(struct token),
+            .len = sizeof tokens / sizeof *tokens,
             .cap = arr.len,
             .tokens = tokens,
         };
-        
+
         struct preproc_err err = create_preproc_err();
         struct preproc_macro got = parse_preproc_macro(&arr, spell, &err);
         ASSERT(err.type == PREPROC_ERR_NONE);
@@ -75,7 +76,9 @@ TEST(object_like) {
         struct token tokens[] = {
             {STRINGIFY_OP, .spelling = create_null_str(), {0, {1, 1}}},
             {IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
-            {IDENTIFIER, .spelling = STR_NON_HEAP("ANOTHER_MACRO"), {0, {1, 9}}},
+            {IDENTIFIER,
+             .spelling = STR_NON_HEAP("ANOTHER_MACRO"),
+             {0, {1, 9}}},
             {I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 23}}},
             {ADD, .spelling = create_null_str(), {0, {1, 25}}},
             {I_CONSTANT, .spelling = STR_NON_HEAP("2"), {0, {1, 27}}},
@@ -91,7 +94,7 @@ TEST(object_like) {
         };
 
         enum {
-            TOKENS_LEN = sizeof tokens / sizeof(struct token),
+            TOKENS_LEN = sizeof tokens / sizeof *tokens,
             EXPANSION_LEN = TOKENS_LEN - 3
         };
         struct token_or_arg expansion[EXPANSION_LEN];
@@ -107,7 +110,7 @@ TEST(object_like) {
             .cap = arr.len,
             .tokens = tokens,
         };
-        
+
         struct preproc_err err = create_preproc_err();
         struct preproc_macro got = parse_preproc_macro(&arr, spell, &err);
 
@@ -155,7 +158,7 @@ TEST(func_like) {
         };
 
         enum {
-            TOKENS_LEN = sizeof tokens / sizeof(struct token),
+            TOKENS_LEN = sizeof tokens / sizeof *tokens,
             EXPANSION_LEN = TOKENS_LEN - 10
         };
 
@@ -213,7 +216,7 @@ TEST(func_like) {
         };
 
         enum {
-            TOKENS_LEN = sizeof tokens / sizeof(struct token),
+            TOKENS_LEN = sizeof tokens / sizeof *tokens,
             EXPANSION_LEN = TOKENS_LEN - 5
         };
 
@@ -254,13 +257,15 @@ TEST(func_like) {
         struct token tokens[] = {
             {STRINGIFY_OP, .spelling = create_null_str(), {0, {1, 1}}},
             {IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
-            {IDENTIFIER, .spelling = STR_NON_HEAP("NO_PARAMS_EMPTY"), {0, {1, 9}}},
+            {IDENTIFIER,
+             .spelling = STR_NON_HEAP("NO_PARAMS_EMPTY"),
+             {0, {1, 9}}},
             {LBRACKET, .spelling = create_null_str(), {0, {1, 24}}},
             {RBRACKET, .spelling = create_null_str(), {0, {1, 25}}},
         };
 
         enum {
-            TOKENS_LEN = sizeof tokens / sizeof(struct token),
+            TOKENS_LEN = sizeof tokens / sizeof *tokens,
         };
 
         struct preproc_macro ex = {
@@ -319,7 +324,7 @@ TEST(variadic) {
         };
 
         enum {
-            TOKENS_LEN = sizeof tokens / sizeof(struct token),
+            TOKENS_LEN = sizeof tokens / sizeof *tokens,
             EXPANSION_LEN = TOKENS_LEN - 12,
         };
 
@@ -394,7 +399,7 @@ TEST(variadic) {
         };
 
         enum {
-            TOKENS_LEN = sizeof tokens / sizeof(struct token),
+            TOKENS_LEN = sizeof tokens / sizeof *tokens,
             EXPANSION_LEN = TOKENS_LEN - 12,
         };
 

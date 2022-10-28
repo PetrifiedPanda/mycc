@@ -36,8 +36,7 @@ struct static_assert_declaration* parse_static_assert_declaration(
         return NULL;
     }
 
-    struct static_assert_declaration* res = xmalloc(
-        sizeof(struct static_assert_declaration));
+    struct static_assert_declaration* res = xmalloc(sizeof *res);
     res->const_expr = const_expr;
     res->err_msg = create_string_literal(&spell, loc); 
 

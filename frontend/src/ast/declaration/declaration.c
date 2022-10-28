@@ -50,7 +50,7 @@ bool parse_declaration_inplace(struct parser_state* s,
 }
 
 struct declaration* parse_declaration(struct parser_state* s) {
-    struct declaration* res = xmalloc(sizeof(struct declaration));
+    struct declaration* res = xmalloc(sizeof *res);
     if (!parse_declaration_inplace(s, res)) {
         free(res);
         return NULL;

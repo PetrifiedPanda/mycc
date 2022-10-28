@@ -5,8 +5,8 @@
 #include "util/mem.h"
 
 struct param_list* parse_param_list(struct parser_state* s) {
-    struct param_list* res = xmalloc(sizeof(struct param_list));
-    res->decls = xmalloc(sizeof(struct param_declaration));
+    struct param_list* res = xmalloc(sizeof *res);
+    res->decls = xmalloc(sizeof *res->decls);
     res->len = 1;
 
     if (!parse_param_declaration_inplace(s, &res->decls[0])) {
@@ -20,9 +20,7 @@ struct param_list* parse_param_list(struct parser_state* s) {
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->decls,
-                       &alloc_len,
-                       sizeof(struct param_declaration));
+            grow_alloc((void**)&res->decls, &alloc_len, sizeof *res->decls);
         }
 
         if (!parse_param_declaration_inplace(s, &res->decls[res->len])) {
@@ -33,8 +31,7 @@ struct param_list* parse_param_list(struct parser_state* s) {
         ++res->len;
     }
 
-    res->decls = xrealloc(res->decls,
-                          sizeof(struct param_declaration) * res->len);
+    res->decls = xrealloc(res->decls, sizeof *res->decls * res->len);
 
     return res;
 }

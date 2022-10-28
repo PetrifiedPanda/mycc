@@ -12,7 +12,7 @@ void init_identifier(struct identifier* res, const struct str* spelling, struct 
 }
 
 struct identifier* create_identifier(const struct str* spelling, struct source_loc loc) {
-    struct identifier* res = xmalloc(sizeof(struct identifier));
+    struct identifier* res = xmalloc(sizeof *res);
     init_identifier(res, spelling, loc);
     return res;
 }

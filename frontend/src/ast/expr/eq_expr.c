@@ -22,7 +22,7 @@ static bool parse_eq_expr_eq_chain(struct parser_state* s,
         if (res->len == alloc_len) {
             grow_alloc((void**)&res->eq_chain,
                        &alloc_len,
-                       sizeof(struct rel_expr_and_op));
+                       sizeof *res->eq_chain);
         }
 
         struct rel_expr_and_op* curr = &res->eq_chain[res->len];
@@ -35,8 +35,7 @@ static bool parse_eq_expr_eq_chain(struct parser_state* s,
         ++res->len;
     }
 
-    res->eq_chain = xrealloc(res->eq_chain,
-                             sizeof(struct rel_expr_and_op) * res->len);
+    res->eq_chain = xrealloc(res->eq_chain, sizeof *res->eq_chain * res->len);
 
     return true;
 fail:
@@ -68,7 +67,7 @@ struct eq_expr* parse_eq_expr_cast(struct parser_state* s,
         return NULL;
     }
 
-    struct eq_expr* res = xmalloc(sizeof(struct eq_expr));
+    struct eq_expr* res = xmalloc(sizeof *res);
     res->lhs = lhs;
 
     if (!parse_eq_expr_eq_chain(s, res)) {

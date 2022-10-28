@@ -20,9 +20,7 @@ static struct init_declarator_list parse_init_declarator_list_first_base(
         accept_it(s);
 
         if (res.len == alloc_len) {
-            grow_alloc((void**)&res.decls,
-                       &alloc_len,
-                       sizeof(struct init_declarator));
+            grow_alloc((void**)&res.decls, &alloc_len, sizeof *res.decls);
         }
 
         if (!inplace_parse_func(s, &res.decls[res.len])) {
@@ -33,7 +31,7 @@ static struct init_declarator_list parse_init_declarator_list_first_base(
         ++res.len;
     }
 
-    res.decls = xrealloc(res.decls, sizeof(struct init_declarator) * res.len);
+    res.decls = xrealloc(res.decls, sizeof *res.decls * res.len);
 
     return res;
 }
@@ -41,8 +39,7 @@ static struct init_declarator_list parse_init_declarator_list_first_base(
 static struct init_declarator_list parse_init_declarator_list_base(
     struct parser_state* s,
     bool (*inplace_parse_func)(struct parser_state*, struct init_declarator*)) {
-    struct init_declarator* first_decl = xmalloc(
-        sizeof(struct init_declarator));
+    struct init_declarator* first_decl = xmalloc(sizeof *first_decl);
 
     if (!inplace_parse_func(s, first_decl)) {
         free(first_decl);

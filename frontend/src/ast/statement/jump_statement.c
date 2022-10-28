@@ -9,7 +9,7 @@
 
 static struct jump_statement* create(struct source_loc loc,
                                      enum jump_statement_type type) {
-    struct jump_statement* res = xmalloc(sizeof(struct jump_statement));
+    struct jump_statement* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->type = type;
 
@@ -78,7 +78,7 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
             enum token_type expected[] = {GOTO, CONTINUE, BREAK, RETURN};
             expected_tokens_error(s,
                                   expected,
-                                  sizeof expected / sizeof(enum token_type));
+                                  sizeof expected / sizeof *expected);
             return NULL;
         }
     }

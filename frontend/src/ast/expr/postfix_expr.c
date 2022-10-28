@@ -102,9 +102,7 @@ static bool parse_postfix_suffixes(struct parser_state* s,
     size_t alloc_len = 0;
     while (is_posfix_op(s->it->type)) {
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->suffixes,
-                       &alloc_len,
-                       sizeof(struct postfix_suffix));
+            grow_alloc((void**)&res->suffixes, &alloc_len, sizeof *res->suffixes);
         }
 
         switch (s->it->type) {
@@ -140,15 +138,14 @@ static bool parse_postfix_suffixes(struct parser_state* s,
     }
 
     if (alloc_len != res->len) {
-        res->suffixes = xrealloc(res->suffixes,
-                                 res->len * sizeof(struct postfix_suffix));
+        res->suffixes = xrealloc(res->suffixes, sizeof *res->suffixes * res->len);
     }
 
     return true;
 }
 
 struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
-    struct postfix_expr* res = xmalloc(sizeof(struct postfix_expr));
+    struct postfix_expr* res = xmalloc(sizeof *res);
     res->suffixes = NULL;
     res->len = 0;
 
@@ -214,7 +211,7 @@ struct postfix_expr* parse_postfix_expr_type_name(struct parser_state* s,
     assert(type_name);
     assert(s->it->type == LBRACE);
 
-    struct postfix_expr* res = xmalloc(sizeof(struct postfix_expr));
+    struct postfix_expr* res = xmalloc(sizeof *res);
     res->len = 0;
     res->suffixes = NULL;
     res->is_primary = false;

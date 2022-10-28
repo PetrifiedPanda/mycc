@@ -13,7 +13,7 @@ struct compound_statement* parse_compound_statement(struct parser_state* s) {
 
     parser_push_scope(s);
 
-    struct compound_statement* res = xmalloc(sizeof(struct compound_statement));
+    struct compound_statement* res = xmalloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->items = NULL;
     res->len = 0;
@@ -23,7 +23,7 @@ struct compound_statement* parse_compound_statement(struct parser_state* s) {
         if (res->len == alloc_len) {
             grow_alloc((void**)&res->items,
                        &alloc_len,
-                       sizeof(struct block_item));
+                       sizeof *res->items);
         }
 
         if (!parse_block_item_inplace(s, &res->items[res->len])) {
@@ -33,6 +33,8 @@ struct compound_statement* parse_compound_statement(struct parser_state* s) {
 
         ++res->len;
     }
+
+    res->items = xrealloc(res->items, sizeof *res->items * res->len);
 
     assert(s->it->type == RBRACE);
     accept_it(s);

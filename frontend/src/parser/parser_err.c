@@ -114,9 +114,6 @@ void print_parser_err(FILE* out, const struct file_info* file_info, const struct
 
 void free_parser_err(struct parser_err* err) {
     switch (err->type) {
-        case PARSER_ERR_EXPECTED_TOKENS:
-            free(err->expected);
-            break;
         case PARSER_ERR_REDEFINED_SYMBOL:
             free_str(&err->redefined_symbol);
             break;
