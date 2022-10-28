@@ -91,11 +91,55 @@ static void bin_dump_identifier(struct ast_bin_dumper* d,
     bin_dump_str(d, &id->spelling);
 }
 
-static void bin_dump_log_and_expr(struct ast_bin_dumper* d,
-                                  const struct log_and_expr* expr) {
+static void bin_dump_rel_expr(struct ast_bin_dumper* d, const struct rel_expr* expr) {
     (void)d;
     (void)expr;
     // TODO:
+}
+
+static void bin_dump_eq_expr(struct ast_bin_dumper* d,
+                             const struct eq_expr* expr) {
+    bin_dump_rel_expr(d, expr->lhs);
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        const struct rel_expr_and_op* item = &expr->eq_chain[i];
+        const uint64_t eq_op = item->op;
+        assert((enum eq_expr_op)eq_op == item->op);
+        bin_dump_uint(d, eq_op);
+        bin_dump_rel_expr(d, item->rhs);
+    }
+}
+
+static void bin_dump_and_expr(struct ast_bin_dumper* d,
+                              const struct and_expr* expr) {
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        bin_dump_eq_expr(d, &expr->eq_exprs[i]);
+    }
+}
+
+static void bin_dump_xor_expr(struct ast_bin_dumper* d,
+                              const struct xor_expr* expr) {
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        bin_dump_and_expr(d, &expr->and_exprs[i]);
+    }
+}
+
+static void bin_dump_or_expr(struct ast_bin_dumper* d,
+                             const struct or_expr* expr) {
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        bin_dump_xor_expr(d, &expr->xor_exprs[i]);
+    }
+}
+
+static void bin_dump_log_and_expr(struct ast_bin_dumper* d,
+                                  const struct log_and_expr* expr) {
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        bin_dump_or_expr(d, &expr->or_exprs[i]);
+    }
 }
 
 static void bin_dump_log_or_expr(struct ast_bin_dumper* d,

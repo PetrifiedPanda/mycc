@@ -7,13 +7,6 @@ struct ast_bin_reader {
     FILE* file;
 };
 
-static bool bin_reader_read(struct ast_bin_reader* r,
-                            void* res,
-                            size_t size,
-                            size_t count) {
-    return fread(res, size, count, r->file) == count;
-}
-
 static struct file_info bin_read_file_info(struct ast_bin_reader* r);
 
 static struct translation_unit bin_read_translation_unit(
@@ -65,12 +58,27 @@ struct bin_read_ast_res bin_read_ast(FILE* f) {
     };
 }
 
+static bool bin_reader_read(struct ast_bin_reader* r,
+                            void* res,
+                            size_t size,
+                            size_t count) {
+    return fread(res, size, count, r->file) == count;
+}
+
 static bool bin_read_bool(struct ast_bin_reader* r, bool* res) {
     return bin_reader_read(r, res, sizeof *res, 1);
 }
 
 static bool bin_read_uint(struct ast_bin_reader* r, uint64_t* res) {
     return bin_reader_read(r, res, sizeof *res, 1);
+}
+
+static void* alloc_or_null(size_t num_bytes) {
+    if (num_bytes == 0) {
+        return NULL;
+    } else {
+        return xmalloc(num_bytes);
+    }
 }
 
 static struct str bin_read_str(struct ast_bin_reader* r) {
@@ -189,12 +197,109 @@ static struct identifier* bin_read_identifier(struct ast_bin_reader* r) {
     return res;
 }
 
+static struct rel_expr* bin_read_rel_expr(struct ast_bin_reader* r) {
+    (void)r;
+    // TODO:
+    return NULL;
+}
+
+static bool bin_read_eq_expr(struct ast_bin_reader* r, struct eq_expr* res) {
+    res->lhs = bin_read_rel_expr(r);
+    if (!res->lhs) {
+        return false;
+    }
+    
+    res->len = 0;
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        goto fail;
+    }
+    
+    res->eq_chain = alloc_or_null(sizeof *res->eq_chain * len);
+    for (; res->len != len; ++res->len) {
+        uint64_t eq_op;
+        if (!bin_read_uint(r, &eq_op)) {
+            goto fail;
+        }
+        
+        struct rel_expr_and_op* item = &res->eq_chain[res->len];
+        item->op = eq_op;
+        assert((uint64_t)item->op == eq_op);
+        item->rhs = bin_read_rel_expr(r);
+        if (!item->rhs) {
+            goto fail;
+        }
+    }
+
+    return true;
+fail:
+    free_eq_expr_children(res);
+    return false;
+}
+
+static bool bin_read_and_expr(struct ast_bin_reader* r, struct and_expr* res) {
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return false;
+    }
+
+    res->eq_exprs = xmalloc(sizeof *res->eq_exprs * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_eq_expr(r, &res->eq_exprs[res->len])) {
+            free_and_expr_children(res);
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool bin_read_xor_expr(struct ast_bin_reader* r, struct xor_expr* res) {
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return false;
+    }
+
+    res->and_exprs = xmalloc(sizeof *res->and_exprs * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_and_expr(r, &res->and_exprs[res->len])) {
+            free_xor_expr_children(res);
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool bin_read_or_expr(struct ast_bin_reader* r, struct or_expr* res) {
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return false;
+    }
+
+    res->xor_exprs = xmalloc(sizeof *res->xor_exprs * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_xor_expr(r, &res->xor_exprs[res->len])) {
+            free_or_expr_children(res);
+            return false;
+        }
+    }
+    return true;
+}
+
 static bool bin_read_log_and_expr(struct ast_bin_reader* r,
                                   struct log_and_expr* res) {
-    (void)r;
-    (void)res;
-    // TODO:
-    return false;
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return false;
+    }
+
+    res->or_exprs = xmalloc(sizeof *res->or_exprs * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_or_expr(r, &res->or_exprs[res->len])) {
+            free_log_and_expr_children(res);
+            return false;
+        }
+    }
+    return true;
 }
 
 static struct log_or_expr* bin_read_log_or_expr(struct ast_bin_reader* r) {
@@ -203,22 +308,15 @@ static struct log_or_expr* bin_read_log_or_expr(struct ast_bin_reader* r) {
         return NULL;
     }
 
-    struct log_and_expr* log_ands = xmalloc(sizeof *log_ands * len);
-    for (size_t i = 0; i < len; ++i) {
-        if (!bin_read_log_and_expr(r, &log_ands[i])) {
-            for (size_t j = 0; j < i; ++j) {
-                free_log_and_expr_children(&log_ands[j]);
-            }
-            free(log_ands);
+    struct log_or_expr* res = xmalloc(sizeof *res);
+    res->log_ands = xmalloc(sizeof *res->log_ands * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_log_and_expr(r, &res->log_ands[res->len])) {
+            free_log_or_expr(res);
             return false;
         }
     }
 
-    struct log_or_expr* res = xmalloc(sizeof *res);
-    *res = (struct log_or_expr){
-        .len = len,
-        .log_ands = log_ands,
-    };
     return res;
 }
 
@@ -245,7 +343,7 @@ static bool bin_read_cond_expr(struct ast_bin_reader* r,
     }
 
     res->len = len;
-    res->conditionals = xmalloc(sizeof *res->conditionals * res->len);
+    res->conditionals = alloc_or_null(sizeof *res->conditionals * res->len);
     for (size_t i = 0; i < res->len; ++i) {
         struct log_or_and_expr* item = &res->conditionals[i];
         item->log_or = bin_read_log_or_expr(r);
@@ -351,15 +449,11 @@ static bool bin_read_struct_declaration_list(
     if (!bin_read_uint(r, &len)) {
         return false;
     }
-    res->len = len;
 
-    res->decls = xmalloc(sizeof *res->decls * len);
-    for (size_t i = 0; i < len; ++i) {
-        if (!bin_read_struct_declaration(r, &res->decls[i])) {
-            for (size_t j = 0; j < i; ++j) {
-                free_struct_declaration_children(&res->decls[j]);
-            }
-            free(res->decls);
+    res->decls = alloc_or_null(sizeof *res->decls * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_struct_declaration(r, &res->decls[res->len])) {
+            free_struct_declaration_list(res);
             return false;
         }
     }
@@ -591,8 +685,8 @@ static struct declaration_specs* bin_read_declaration_specs(
         return NULL;
     }
 
-    struct align_spec* align_specs = xmalloc(sizeof *align_specs
-                                             * num_align_specs);
+    struct align_spec* align_specs = alloc_or_null(sizeof *align_specs
+                                                   * num_align_specs);
     for (size_t i = 0; i < num_align_specs; ++i) {
         if (!bin_read_align_spec(r, &align_specs[i])) {
             for (size_t j = 0; j < i; ++j) {
