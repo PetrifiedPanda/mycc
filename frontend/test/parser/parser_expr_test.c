@@ -308,14 +308,11 @@ TEST(postfix_expr) {
         ASSERT_STR(str_get_data(&res->suffixes[1].identifier->spelling),
                    "other");
 
-        ASSERT(res->suffixes[2].type == POSTFIX_INC_DEC);
-        ASSERT(res->suffixes[2].is_inc);
+        ASSERT(res->suffixes[2].type == POSTFIX_INC);
 
-        ASSERT(res->suffixes[3].type == POSTFIX_INC_DEC);
-        ASSERT(!res->suffixes[3].is_inc);
+        ASSERT(res->suffixes[3].type == POSTFIX_DEC);
 
-        ASSERT(res->suffixes[4].type == POSTFIX_INC_DEC);
-        ASSERT(res->suffixes[4].is_inc);
+        ASSERT(res->suffixes[4].type == POSTFIX_INC);
 
         free_postfix_expr(res);
     }

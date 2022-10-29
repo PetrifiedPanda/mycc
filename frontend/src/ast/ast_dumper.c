@@ -676,8 +676,9 @@ static void dump_postfix_suffix(struct ast_dumper* d,
             dumper_println(d, "pointer_access");
             dump_identifier(d, s->identifier);
             break;
-        case POSTFIX_INC_DEC:
-            dumper_println(d, "%s", s->is_inc ? "++" : "--");
+        case POSTFIX_INC:
+        case POSTFIX_DEC:
+            dumper_println(d, "%s", s->type == POSTFIX_INC ? "++" : "--");
             break;
     }
 

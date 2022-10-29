@@ -91,11 +91,108 @@ static void bin_dump_identifier(struct ast_bin_dumper* d,
     bin_dump_str(d, &id->spelling);
 }
 
-static void bin_dump_postfix_expr(struct ast_bin_dumper* d,
-                                  const struct postfix_expr* expr) {
+static void bin_dump_constant(struct ast_bin_dumper* d,
+                              const struct constant* constant) {
+    (void)d;
+    (void)constant;
+    // TODO:
+}
+
+static void bin_dump_string_constant(struct ast_bin_dumper* d,
+                                     const struct string_constant* constant) {
+    (void)d;
+    (void)constant;
+    // TODO:
+}
+
+static void bin_dump_expr(struct ast_bin_dumper* d, const struct expr* expr) {
     (void)d;
     (void)expr;
     // TODO:
+}
+
+static void bin_dump_generic_sel(struct ast_bin_dumper* d,
+                                 const struct generic_sel* sel) {
+    (void)d;
+    (void)sel;
+    // TODO:
+}
+
+static void bin_dump_primary_expr(struct ast_bin_dumper* d,
+                                  const struct primary_expr* expr) {
+    const uint64_t type = expr->type;
+    bin_dump_uint(d, type);
+    assert((enum primary_expr_type)type == expr->type);
+    switch (expr->type) {
+        case PRIMARY_EXPR_IDENTIFIER:
+            bin_dump_identifier(d, expr->identifier);
+            break;
+        case PRIMARY_EXPR_CONSTANT:
+            bin_dump_constant(d, &expr->constant);
+            break;
+        case PRIMARY_EXPR_STRING_LITERAL:
+            bin_dump_string_constant(d, &expr->string);
+            break;
+        case PRIMARY_EXPR_BRACKET:
+            bin_dump_expr(d, expr->bracket_expr);
+            break;
+        case PRIMARY_EXPR_GENERIC:
+            bin_dump_generic_sel(d, expr->generic);
+            break;
+    }
+}
+
+static void bin_dump_init_list(struct ast_bin_dumper* d,
+                               const struct init_list* lst) {
+    (void)d;
+    (void)lst;
+    // TODO:
+}
+
+static void bin_dump_arg_expr_list(struct ast_bin_dumper* d,
+                                   const struct arg_expr_list* lst) {
+    (void)d;
+    (void)lst;
+    // TODO:
+}
+
+static void bin_dump_postfix_suffix(struct ast_bin_dumper* d,
+                                    const struct postfix_suffix* suffix) {
+    const uint64_t type = suffix->type;
+    bin_dump_uint(d, type);
+    assert((enum postfix_suffix_type)type == suffix->type);
+
+    switch (suffix->type) {
+        case POSTFIX_INDEX:
+            bin_dump_expr(d, suffix->index_expr);
+            break;
+        case POSTFIX_BRACKET:
+            bin_dump_arg_expr_list(d, &suffix->bracket_list);
+            break;
+        case POSTFIX_ACCESS:
+        case POSTFIX_PTR_ACCESS:
+            bin_dump_identifier(d, suffix->identifier);
+            break;
+        case POSTFIX_INC:
+        case POSTFIX_DEC:
+            break;
+    }
+}
+
+static void bin_dump_postfix_expr(struct ast_bin_dumper* d,
+                                  const struct postfix_expr* expr) {
+    bin_dump_bool(d, expr->is_primary);
+    if (expr->is_primary) {
+        bin_dump_primary_expr(d, expr->primary);
+    } else {
+        bin_dump_ast_node_info(d, &expr->info);
+        bin_dump_type_name(d, expr->type_name);
+        bin_dump_init_list(d, &expr->init_list);
+    }
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        bin_dump_postfix_suffix(d, &expr->suffixes[i]);
+    }
 }
 
 static void bin_dump_cast_expr(struct ast_bin_dumper* d,
@@ -244,12 +341,6 @@ static void bin_dump_log_or_expr(struct ast_bin_dumper* d,
     for (size_t i = 0; i < expr->len; ++i) {
         bin_dump_log_and_expr(d, &expr->log_ands[i]);
     }
-}
-
-static void bin_dump_expr(struct ast_bin_dumper* d, const struct expr* expr) {
-    (void)d;
-    (void)expr;
-    // TODO:
 }
 
 static void bin_dump_cond_expr(struct ast_bin_dumper* d,

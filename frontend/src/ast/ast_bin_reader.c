@@ -197,9 +197,165 @@ static struct identifier* bin_read_identifier(struct ast_bin_reader* r) {
     return res;
 }
 
-static struct postfix_expr* bin_read_postfix_expr(struct ast_bin_reader* r) {
+static bool bin_read_constant(struct ast_bin_reader* r, struct constant* res) {
+    (void)r;
+    (void)res;
+    // TODO:
+    return false;
+}
+
+static bool bin_read_string_constant(struct ast_bin_reader* r,
+                                     const struct string_constant* constant) {
+    (void)r;
+    (void)constant;
+    // TODO:
+    return false;
+}
+
+static struct expr* bin_read_expr(struct ast_bin_reader* r) {
     (void)r;
     // TODO:
+    return NULL;
+}
+
+static struct generic_sel* bin_read_generic_sel(struct ast_bin_reader* r) {
+    (void)r;
+    // TODO:
+    return NULL;
+}
+
+static struct primary_expr* bin_read_primary_expr(struct ast_bin_reader* r) {
+    uint64_t type;
+    if (!bin_read_uint(r, &type)) {
+        return NULL;
+    }
+
+    struct primary_expr* res = xmalloc(sizeof *res);
+    res->type = type;
+    assert((uint64_t)res->type == type);
+    switch (res->type) {
+        case PRIMARY_EXPR_IDENTIFIER:
+            res->identifier = bin_read_identifier(r);
+            if (!res->identifier) {
+                goto fail;
+            }
+            break;
+        case PRIMARY_EXPR_CONSTANT:
+            if (!bin_read_constant(r, &res->constant)) {
+                goto fail;
+            }
+            break;
+        case PRIMARY_EXPR_STRING_LITERAL:
+            if (!bin_read_string_constant(r, &res->string)) {
+                goto fail;
+            }
+            break;
+        case PRIMARY_EXPR_BRACKET:
+            res->bracket_expr = bin_read_expr(r);
+            if (!res->bracket_expr) {
+                goto fail;
+            }
+            break;
+        case PRIMARY_EXPR_GENERIC:
+            res->generic = bin_read_generic_sel(r);
+            if (!res->generic) {
+                goto fail;
+            }
+    }
+    return res;
+fail:
+    free(res);
+    return NULL;
+}
+
+static bool bin_read_init_list(struct ast_bin_reader* r,
+                               struct init_list* res) {
+    (void)r;
+    (void)res;
+    // TODO:
+    return false;
+}
+
+static bool bin_read_arg_expr_list(struct ast_bin_reader* r,
+                                   struct arg_expr_list* res) {
+    (void)r;
+    (void)res;
+    // TODO:
+    return false;
+}
+
+static bool bin_read_postfix_suffix(struct ast_bin_reader* r,
+                                    struct postfix_suffix* res) {
+    uint64_t type;
+    if (!bin_read_uint(r, &type)) {
+        return false;
+    }
+    res->type = type;
+    assert((uint64_t)res->type == type);
+
+    switch (res->type) {
+        case POSTFIX_INDEX:
+            res->index_expr = bin_read_expr(r);
+            return res->index_expr != NULL;
+        case POSTFIX_BRACKET:
+            return bin_read_arg_expr_list(r, &res->bracket_list);
+        case POSTFIX_ACCESS:
+        case POSTFIX_PTR_ACCESS:
+            res->identifier = bin_read_identifier(r);
+            return res->identifier != NULL;
+        case POSTFIX_INC:
+        case POSTFIX_DEC:
+            return true;
+    }
+    UNREACHABLE();
+}
+
+static struct postfix_expr* bin_read_postfix_expr(struct ast_bin_reader* r) {
+    struct postfix_expr* res = xmalloc(sizeof *res);
+    if (!bin_read_bool(r, &res->is_primary)) {
+        free(res);
+        return NULL;
+    }
+
+    if (res->is_primary) {
+        res->primary = bin_read_primary_expr(r);
+        if (!res->primary) {
+            free(res);
+            return NULL;
+        }
+    } else {
+        if (!bin_read_ast_node_info(r, &res->info)) {
+            free(res);
+            return NULL;
+        }
+        res->type_name = bin_read_type_name(r);
+        if (!res->type_name) {
+            free(res);
+            return NULL;
+        }
+
+        if (!bin_read_init_list(r, &res->init_list)) {
+            free_type_name(res->type_name);
+            free(res);
+            return NULL;
+        }
+    }
+
+    res->len = 0;
+    res->suffixes = NULL;
+
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        goto fail;
+    }
+    for (; res->len != len; ++res->len) {
+        if (!bin_read_postfix_suffix(r, &res->suffixes[res->len])) {
+            goto fail;
+        }
+    }
+    return res;
+fail:
+    free_postfix_expr(res);
     return NULL;
 }
 
@@ -581,12 +737,6 @@ static struct log_or_expr* bin_read_log_or_expr(struct ast_bin_reader* r) {
     }
 
     return res;
-}
-
-static struct expr* bin_read_expr(struct ast_bin_reader* r) {
-    (void)r;
-    // TODO:
-    return NULL;
 }
 
 static void free_cond_expr_conds(struct cond_expr* cond, size_t len) {

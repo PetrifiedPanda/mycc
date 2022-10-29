@@ -14,7 +14,8 @@ enum postfix_suffix_type {
     POSTFIX_BRACKET,
     POSTFIX_ACCESS,
     POSTFIX_PTR_ACCESS,
-    POSTFIX_INC_DEC
+    POSTFIX_INC,
+    POSTFIX_DEC,
 };
 
 struct postfix_suffix {
@@ -23,7 +24,6 @@ struct postfix_suffix {
         struct expr* index_expr;
         struct arg_expr_list bracket_list;
         struct identifier* identifier;
-        bool is_inc;
     };
 };
 

@@ -92,8 +92,7 @@ struct postfix_suffix parse_postfix_inc_dec_suffix(struct parser_state* s) {
     const enum token_type op = s->it->type;
     accept_it(s);
     return (struct postfix_suffix){
-        .type = POSTFIX_INC_DEC,
-        .is_inc = op == INC_OP,
+        .type = op == INC_OP ? POSTFIX_INC : POSTFIX_DEC,
     };
 }
 
@@ -265,7 +264,8 @@ static void free_children(struct postfix_expr* p) {
             case POSTFIX_PTR_ACCESS:
                 free_identifier(s->identifier);
                 break;
-            case POSTFIX_INC_DEC:
+            case POSTFIX_INC:
+            case POSTFIX_DEC:
                 break;
         }
     }
