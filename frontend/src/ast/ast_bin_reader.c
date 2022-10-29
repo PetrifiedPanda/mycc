@@ -197,9 +197,79 @@ static struct identifier* bin_read_identifier(struct ast_bin_reader* r) {
     return res;
 }
 
-static struct unary_expr* bin_read_unary_expr(struct ast_bin_reader* r) {
+static struct postfix_expr* bin_read_postfix_expr(struct ast_bin_reader* r) {
     (void)r;
     // TODO:
+    return NULL;
+}
+
+static struct cast_expr* bin_read_cast_expr(struct ast_bin_reader* r);
+
+static struct unary_expr* bin_read_unary_expr(struct ast_bin_reader* r) {
+    struct ast_node_info info;
+    if (!bin_read_ast_node_info(r, &info)) {
+        return NULL;
+    }
+
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return NULL;
+    }
+
+    enum unary_expr_op* ops_before = xmalloc(sizeof *ops_before * len);
+    for (size_t i = 0; i < len; ++i) {
+        uint64_t unary_op;
+        if (!bin_read_uint(r, &unary_op)) {
+            free(ops_before);
+            return NULL;
+        }
+        ops_before[i] = unary_op;
+        assert((enum unary_expr_op)unary_op == ops_before[i]);
+    }
+    uint64_t expr_type;
+    if (!bin_read_uint(r, &expr_type)) {
+        free(ops_before);
+        return NULL;
+    }
+    enum unary_expr_type type = expr_type;
+    assert((uint64_t)type == expr_type);
+
+    struct unary_expr* res = xmalloc(sizeof *res);
+    res->info = info;
+    res->len = len;
+    res->ops_before = ops_before;
+    res->type = type;
+    switch (type) {
+        case UNARY_POSTFIX:
+            res->postfix = bin_read_postfix_expr(r);
+            if (!res->postfix) {
+                goto fail;
+            }
+            break;
+        case UNARY_ADDRESSOF:
+        case UNARY_DEREF:
+        case UNARY_PLUS:
+        case UNARY_MINUS:
+        case UNARY_BNOT:
+        case UNARY_NOT:
+            res->cast_expr = bin_read_cast_expr(r);
+            if (!res->cast_expr) {
+                goto fail;
+            }
+            break;
+        case UNARY_SIZEOF_TYPE:
+        case UNARY_ALIGNOF:
+            res->type_name = bin_read_type_name(r);
+            if (!res->type_name) {
+                goto fail;
+            }
+            break;
+    }
+
+    return res;
+fail:
+    free(ops_before);
+    free(res);
     return NULL;
 }
 

@@ -91,11 +91,44 @@ static void bin_dump_identifier(struct ast_bin_dumper* d,
     bin_dump_str(d, &id->spelling);
 }
 
-static void bin_dump_unary_expr(struct ast_bin_dumper* d,
-                                const struct unary_expr* expr) {
+static void bin_dump_postfix_expr(struct ast_bin_dumper* d,
+                                  const struct postfix_expr* expr) {
     (void)d;
     (void)expr;
     // TODO:
+}
+
+static void bin_dump_cast_expr(struct ast_bin_dumper* d,
+                               const struct cast_expr* expr);
+
+static void bin_dump_unary_expr(struct ast_bin_dumper* d,
+                                const struct unary_expr* expr) {
+    bin_dump_ast_node_info(d, &expr->info);
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        const uint64_t unary_op = expr->ops_before[i];
+        assert((enum unary_expr_op)unary_op == expr->ops_before[i]);
+    }
+    const uint64_t type = expr->type;
+    bin_dump_uint(d, type);
+    assert((enum unary_expr_type)type == expr->type);
+    switch (expr->type) {
+        case UNARY_POSTFIX:
+            bin_dump_postfix_expr(d, expr->postfix);
+            break;
+        case UNARY_ADDRESSOF:
+        case UNARY_DEREF:
+        case UNARY_PLUS:
+        case UNARY_MINUS:
+        case UNARY_BNOT:
+        case UNARY_NOT:
+            bin_dump_cast_expr(d, expr->cast_expr);
+            break;
+        case UNARY_SIZEOF_TYPE:
+        case UNARY_ALIGNOF:
+            bin_dump_type_name(d, expr->type_name);
+            break;
+    }
 }
 
 static void bin_dump_cast_expr(struct ast_bin_dumper* d,
