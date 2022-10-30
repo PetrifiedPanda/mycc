@@ -202,19 +202,28 @@ static void dump_identifier(struct ast_dumper* d, struct identifier* i) {
     remove_indent(d);
 }
 
-static void dump_value(struct ast_dumper* d, struct value val) {
-    dumper_println(d, "value:");
+static void dump_int_value(struct ast_dumper* d, struct int_value val) {
+    dumper_println(d, "int_value:");
 
     add_indent(d);
 
-    dumper_println(d, "type: %s", get_value_type_str(val.type));
-    if (value_is_int(val.type)) {
+    dumper_println(d, "type: %s", get_int_value_type_str(val.type));
+    if (int_value_is_signed(val.type)) {
         dumper_println(d, "int_val: %jd", val.int_val);
-    } else if (value_is_uint(val.type)) {
-        dumper_println(d, "uint_val: %ju", val.uint_val);
     } else {
-        dumper_println(d, "float_val: %Lg", val.float_val);
+        dumper_println(d, "uint_val: %ju", val.uint_val);
     }
+
+    remove_indent(d);
+}
+
+static void dump_float_value(struct ast_dumper* d, struct float_value val) {
+    dumper_println(d, "float_value:");
+
+    add_indent(d);
+
+    dumper_println(d, "type: %s", get_float_value_type_str(val.type));
+    dumper_println(d, "float_val: %Lg", val.val);
 
     remove_indent(d);
 }
@@ -231,8 +240,10 @@ static void dump_constant(struct ast_dumper* d, const struct constant* c) {
             dumper_println(d, "enum: %s", str_get_data(&c->spelling));
             break;
         case CONSTANT_FLOAT:
+            dump_float_value(d, c->float_val);
+            break;
         case CONSTANT_INT:
-            dump_value(d, c->val);
+            dump_int_value(d, c->int_val);
             break;
     }
 

@@ -11,7 +11,12 @@ static struct token create(enum token_type type,
                            struct str spelling,
                            size_t line,
                            size_t index);
-static struct token create_value(struct value val, size_t line, size_t index);
+static struct token create_tok_int(struct int_value val,
+                                   size_t line,
+                                   size_t index);
+static struct token create_tok_float(struct float_value val,
+                                     size_t line,
+                                     size_t index);
 
 static void check_token_arr_file(const char* filename,
                                  const struct token* expected,
@@ -61,40 +66,44 @@ TEST(simple) {
         create(IDENTIFIER, STR_NON_HEAP("lstr"), 9, 13),
         create(ASSIGN, create_null_str(), 9, 18),
         create(STRING_LITERAL,
-               STR_NON_HEAP("L\"Long string literal to check if long strings work\""),
+               STR_NON_HEAP(
+                   "L\"Long string literal to check if long strings work\""),
                10,
                1),
         create(SEMICOLON, create_null_str(), 10, 53),
         create(INT, create_null_str(), 11, 1),
         create(IDENTIFIER, STR_NON_HEAP("n"), 11, 5),
         create(ASSIGN, create_null_str(), 11, 7),
-        create_value(create_int_value(VALUE_INT, 0x123213), 11, 9),
+        create_tok_int(create_int_value(INT_VALUE_I, 0x123213), 11, 9),
         create(ADD, create_null_str(), 11, 18),
-        create_value(create_int_value(VALUE_INT, 132), 11, 20),
+        create_tok_int(create_int_value(INT_VALUE_I, 132), 11, 20),
         create(LEFT_OP, create_null_str(), 11, 24),
-        create_value(create_int_value(VALUE_INT, 32), 11, 27),
+        create_tok_int(create_int_value(INT_VALUE_I, 32), 11, 27),
         create(RIGHT_OP, create_null_str(), 11, 30),
-        create_value(create_int_value(VALUE_INT, 0x123), 11, 33),
+        create_tok_int(create_int_value(INT_VALUE_I, 0x123), 11, 33),
         create(SUB, create_null_str(), 11, 39),
-        create_value(create_int_value(VALUE_INT, 0123), 11, 41),
+        create_tok_int(create_int_value(INT_VALUE_I, 0123), 11, 41),
         create(DIV, create_null_str(), 11, 46),
-        create_value(create_int_value(VALUE_INT, 12), 11, 48),
+        create_tok_int(create_int_value(INT_VALUE_I, 12), 11, 48),
         create(SEMICOLON, create_null_str(), 11, 50),
         create(CONST, create_null_str(), 12, 1),
         create(CHAR, create_null_str(), 12, 7),
         create(ASTERISK, create_null_str(), 12, 11),
         create(IDENTIFIER, STR_NON_HEAP("str"), 12, 13),
         create(ASSIGN, create_null_str(), 12, 17),
-        create(STRING_LITERAL, STR_NON_HEAP("\"Normal string literal\""), 12, 19),
+        create(STRING_LITERAL,
+               STR_NON_HEAP("\"Normal string literal\""),
+               12,
+               19),
         create(SEMICOLON, create_null_str(), 12, 42),
         create(INT, create_null_str(), 13, 1),
         create(IDENTIFIER, STR_NON_HEAP("arr"), 13, 5),
         create(LINDEX, create_null_str(), 13, 8),
-        create_value(create_int_value(VALUE_INT, 1), 13, 9),
+        create_tok_int(create_int_value(INT_VALUE_I, 1), 13, 9),
         create(QMARK, create_null_str(), 13, 11),
-        create_value(create_int_value(VALUE_INT, 100), 13, 13),
+        create_tok_int(create_int_value(INT_VALUE_I, 100), 13, 13),
         create(COLON, create_null_str(), 13, 17),
-        create_value(create_int_value(VALUE_INT, 1000), 13, 19),
+        create_tok_int(create_int_value(INT_VALUE_I, 1000), 13, 19),
         create(RINDEX, create_null_str(), 13, 23),
         create(SEMICOLON, create_null_str(), 13, 24),
     };
@@ -117,7 +126,7 @@ TEST(file) {
         create(SEMICOLON, create_null_str(), 4, 39),
         create(ALIGNAS, create_null_str(), 5, 5),
         create(LBRACKET, create_null_str(), 5, 13),
-        create_value(create_int_value(VALUE_INT, 16), 5, 14),
+        create_tok_int(create_int_value(INT_VALUE_I, 16), 5, 14),
         create(RBRACKET, create_null_str(), 5, 16),
         create(CONST, create_null_str(), 5, 18),
         create(CHAR, create_null_str(), 5, 24),
@@ -134,10 +143,10 @@ TEST(file) {
         create(INT, create_null_str(), 9, 11),
         create(IDENTIFIER, STR_NON_HEAP("i"), 9, 15),
         create(COLON, create_null_str(), 9, 17),
-        create_value(create_int_value(VALUE_INT, 4), 9, 19),
+        create_tok_int(create_int_value(INT_VALUE_I, 4), 9, 19),
         create(COMMA, create_null_str(), 9, 20),
         create(COLON, create_null_str(), 9, 22),
-        create_value(create_int_value(VALUE_INT, 4), 9, 24),
+        create_tok_int(create_int_value(INT_VALUE_I, 4), 9, 24),
         create(SEMICOLON, create_null_str(), 9, 25),
         create(ALIGNAS, create_null_str(), 10, 5),
         create(LBRACKET, create_null_str(), 10, 13),
@@ -218,9 +227,9 @@ TEST(file) {
         create(COLON, create_null_str(), 32, 19),
         create(IDENTIFIER, STR_NON_HEAP("value"), 33, 13),
         create(ASSIGN, create_null_str(), 33, 19),
-        create_value(create_int_value(VALUE_LINT, 1000l), 33, 21),
+        create_tok_int(create_int_value(INT_VALUE_L, 1000l), 33, 21),
         create(MOD, create_null_str(), 33, 27),
-        create_value(create_int_value(VALUE_INT, 5), 33, 29),
+        create_tok_int(create_int_value(INT_VALUE_I, 5), 33, 29),
         create(SEMICOLON, create_null_str(), 33, 30),
         create(BREAK, create_null_str(), 34, 13),
         create(SEMICOLON, create_null_str(), 34, 18),
@@ -228,7 +237,7 @@ TEST(file) {
         create(COLON, create_null_str(), 36, 16),
         create(IDENTIFIER, STR_NON_HEAP("value"), 37, 13),
         create(ASSIGN, create_null_str(), 37, 19),
-        create_value(create_int_value(VALUE_LINT, 30l), 37, 21),
+        create_tok_int(create_int_value(INT_VALUE_L, 30l), 37, 21),
         create(SEMICOLON, create_null_str(), 37, 24),
         create(BREAK, create_null_str(), 38, 13),
         create(SEMICOLON, create_null_str(), 38, 18),
@@ -237,39 +246,55 @@ TEST(file) {
         create(IDENTIFIER, STR_NON_HEAP("s"), 46, 14),
         create(ASSIGN, create_null_str(), 46, 16),
         create(LBRACE, create_null_str(), 46, 18),
-        create_value(create_int_value(VALUE_INT, 0), 46, 19),
+        create_tok_int(create_int_value(INT_VALUE_I, 0), 46, 19),
         create(COMMA, create_null_str(), 46, 20),
-        create(
-            STRING_LITERAL,
-            STR_NON_HEAP("L\"Hello there, this string literal needs to be longer than 512 "
-            "characters oh no I don't know what to write here "
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaa\""),
-            46,
-            22),
+        create(STRING_LITERAL,
+               STR_NON_HEAP("L\"Hello there, this string literal needs to be "
+                            "longer than 512 "
+                            "characters oh no I don't know what to write here "
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaaaaa"
+                            "aaaaaaaaaaaaa\""),
+               46,
+               22),
         create(RBRACE, create_null_str(), 46, 1204),
         create(SEMICOLON, create_null_str(), 46, 1205),
         create(INT, create_null_str(), 47, 5),
         create(IDENTIFIER, STR_NON_HEAP("integer"), 47, 9),
         create(ASSIGN, create_null_str(), 47, 17),
-        create_value(create_int_value(VALUE_INT, 01000), 47, 19),
+        create_tok_int(create_int_value(INT_VALUE_I, 01000), 47, 19),
         create(LEFT_OP, create_null_str(), 47, 25),
-        create_value(create_int_value(VALUE_INT, 10), 47, 28),
+        create_tok_int(create_int_value(INT_VALUE_I, 10), 47, 28),
         create(SEMICOLON, create_null_str(), 47, 30),
         create(IDENTIFIER, STR_NON_HEAP("s"), 48, 5),
         create(DOT, create_null_str(), 48, 6),
@@ -314,31 +339,47 @@ TEST(file) {
         create(DOT, create_null_str(), 55, 17),
         create(IDENTIFIER, STR_NON_HEAP("i"), 55, 18),
         create(ASSIGN, create_null_str(), 55, 20),
-        create_value(create_int_value(VALUE_INT, 0x1000), 55, 22),
+        create_tok_int(create_int_value(INT_VALUE_I, 0x1000), 55, 22),
         create(ADD, create_null_str(), 55, 29),
-        create_value(create_int_value(VALUE_INT, 033242), 55, 31),
+        create_tok_int(create_int_value(INT_VALUE_I, 033242), 55, 31),
         create(SEMICOLON, create_null_str(), 55, 37),
         create(INT, create_null_str(), 56, 5),
         create(
             IDENTIFIER,
-            STR_NON_HEAP("super_long_identifier_that_needs_to_be_over_512_characters_long_"
-            "what_the_hell_am_i_supposed_to_write_here_a_b_c_d_e_f_g_h_i_j_k_l_"
-            "m_n_o_p_q_r_s_t_u_v_w_x_y_z_"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacccccccccccccccccccccccc"
-            "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-            "ccccccccccccccccccccccccccccccccccccccccccccccccccccoooooooooooooo"
-            "ooooooooooooooooooooooooooooooosoooooooooooooooooooooooooooodfsooo"
-            "ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo_"
-            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
-            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
-            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
-            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
-            "ssssssssssssssssssssssssssssssssssssssssssssssssssssss"),
+            STR_NON_HEAP(
+                "super_long_identifier_that_needs_to_be_over_512_characters_"
+                "long_"
+                "what_the_hell_am_i_supposed_to_write_here_a_b_c_d_e_f_g_h_i_j_"
+                "k_l_"
+                "m_n_o_p_q_r_s_t_u_v_w_x_y_z_"
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                "aaaa"
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                "aaaa"
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                "aaaa"
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                "aaaa"
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                "aaaa"
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacccccccccccccccccccc"
+                "cccc"
+                "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                "cccc"
+                "ccccccccccccccccccccccccccccccccccccccccccccccccccccoooooooooo"
+                "oooo"
+                "ooooooooooooooooooooooooooooooosoooooooooooooooooooooooooooodf"
+                "sooo"
+                "ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo_"
+                "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+                "ssss"
+                "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+                "ssss"
+                "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+                "ssss"
+                "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+                "ssss"
+                "ssssssssssssssssssssssssssssssssssssssssssssssssssssss"),
             56,
             9),
         create(SEMICOLON, create_null_str(), 56, 1141),
@@ -355,24 +396,40 @@ TEST(file) {
         create(COLON, create_null_str(), 61, 14),
         create(
             IDENTIFIER,
-            STR_NON_HEAP("super_long_identifier_that_needs_to_be_over_512_characters_long_"
-            "what_the_hell_am_i_supposed_to_write_here_a_b_c_d_e_f_g_h_i_j_k_l_"
-            "m_n_o_p_q_r_s_t_u_v_w_x_y_z_"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacccccccccccccccccccccccc"
-            "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
-            "ccccccccccccccccccccccccccccccccccccccccccccccccccccoooooooooooooo"
-            "ooooooooooooooooooooooooooooooosoooooooooooooooooooooooooooodfsooo"
-            "ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo_"
-            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
-            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
-            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
-            "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
-            "ssssssssssssssssssssssssssssssssssssssssssssssssssssss"),
+            STR_NON_HEAP(
+                "super_long_identifier_that_needs_to_be_over_512_characters_"
+                "long_"
+                "what_the_hell_am_i_supposed_to_write_here_a_b_c_d_e_f_g_h_i_j_"
+                "k_l_"
+                "m_n_o_p_q_r_s_t_u_v_w_x_y_z_"
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                "aaaa"
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                "aaaa"
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                "aaaa"
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                "aaaa"
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                "aaaa"
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacccccccccccccccccccc"
+                "cccc"
+                "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+                "cccc"
+                "ccccccccccccccccccccccccccccccccccccccccccccccccccccoooooooooo"
+                "oooo"
+                "ooooooooooooooooooooooooooooooosoooooooooooooooooooooooooooodf"
+                "sooo"
+                "ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo_"
+                "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+                "ssss"
+                "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+                "ssss"
+                "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+                "ssss"
+                "ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss"
+                "ssss"
+                "ssssssssssssssssssssssssssssssssssssssssssssssssssssss"),
             62,
             5),
         create(ASSIGN, create_null_str(), 62, 1138),
@@ -402,9 +459,9 @@ TEST(file) {
         create(DOUBLE, create_null_str(), 66, 5),
         create(IDENTIFIER, STR_NON_HEAP("d"), 66, 12),
         create(ASSIGN, create_null_str(), 66, 14),
-        create_value(create_float_value(VALUE_DOUBLE, 1e-10), 66, 16),
+        create_tok_float(create_float_value(FLOAT_VALUE_D, 1e-10), 66, 16),
         create(SUB, create_null_str(), 66, 22),
-        create_value(create_float_value(VALUE_DOUBLE, 0xabecp10), 66, 24),
+        create_tok_float(create_float_value(FLOAT_VALUE_D, 0xabecp10), 66, 24),
         create(SEMICOLON, create_null_str(), 66, 33),
         create(INT, create_null_str(), 67, 5),
         create(IDENTIFIER, STR_NON_HEAP("type_size"), 67, 9),
@@ -423,7 +480,7 @@ TEST(file) {
         create(CHAR, create_null_str(), 70, 5),
         create(IDENTIFIER, STR_NON_HEAP("c"), 70, 10),
         create(ASSIGN, create_null_str(), 70, 12),
-        create_value(create_int_value(VALUE_INT, '\n'), 70, 14),
+        create_tok_int(create_int_value(INT_VALUE_I, '\n'), 70, 14),
         create(SEMICOLON, create_null_str(), 70, 18),
         create(BOOL, create_null_str(), 72, 5),
         create(IDENTIFIER, STR_NON_HEAP("true_bool"), 72, 11),
@@ -465,7 +522,7 @@ TEST(file) {
         create(LBRACE, create_null_str(), 74, 10),
         create(IDENTIFIER, STR_NON_HEAP("LIMIT"), 74, 12),
         create(ASSIGN, create_null_str(), 74, 18),
-        create_value(create_int_value(VALUE_INT, 50000), 74, 20),
+        create_tok_int(create_int_value(INT_VALUE_I, 50000), 74, 20),
         create(RBRACE, create_null_str(), 74, 26),
         create(SEMICOLON, create_null_str(), 74, 27),
         create(CHAR, create_null_str(), 75, 5),
@@ -475,7 +532,7 @@ TEST(file) {
         create(RINDEX, create_null_str(), 75, 19),
         create(ASSIGN, create_null_str(), 75, 21),
         create(LBRACE, create_null_str(), 75, 23),
-        create_value(create_int_value(VALUE_INT, 0), 75, 24),
+        create_tok_int(create_int_value(INT_VALUE_I, 0), 75, 24),
         create(RBRACE, create_null_str(), 75, 25),
         create(SEMICOLON, create_null_str(), 75, 26),
         create(FOR, create_null_str(), 76, 5),
@@ -483,7 +540,7 @@ TEST(file) {
         create(INT, create_null_str(), 76, 10),
         create(IDENTIFIER, STR_NON_HEAP("i"), 76, 14),
         create(ASSIGN, create_null_str(), 76, 16),
-        create_value(create_int_value(VALUE_INT, 0), 76, 18),
+        create_tok_int(create_int_value(INT_VALUE_I, 0), 76, 18),
         create(COMMA, create_null_str(), 76, 19),
         create(IDENTIFIER, STR_NON_HEAP("j"), 76, 21),
         create(ASSIGN, create_null_str(), 76, 23),
@@ -495,7 +552,7 @@ TEST(file) {
         create(AND_OP, create_null_str(), 76, 42),
         create(IDENTIFIER, STR_NON_HEAP("j"), 76, 45),
         create(GT, create_null_str(), 76, 47),
-        create_value(create_int_value(VALUE_INT, 0), 76, 49),
+        create_tok_int(create_int_value(INT_VALUE_I, 0), 76, 49),
         create(SEMICOLON, create_null_str(), 76, 50),
         create(INC_OP, create_null_str(), 76, 52),
         create(IDENTIFIER, STR_NON_HEAP("i"), 76, 54),
@@ -514,7 +571,7 @@ TEST(file) {
         create(RBRACKET, create_null_str(), 77, 23),
         create(IDENTIFIER, STR_NON_HEAP("j"), 77, 24),
         create(OR, create_null_str(), 77, 26),
-        create_value(create_int_value(VALUE_INT, 5), 77, 28),
+        create_tok_int(create_int_value(INT_VALUE_I, 5), 77, 28),
         create(SEMICOLON, create_null_str(), 77, 29),
         create(IDENTIFIER, STR_NON_HEAP("arr"), 78, 9),
         create(LINDEX, create_null_str(), 78, 12),
@@ -526,7 +583,7 @@ TEST(file) {
         create(RBRACKET, create_null_str(), 78, 23),
         create(IDENTIFIER, STR_NON_HEAP("i"), 78, 24),
         create(DIV, create_null_str(), 78, 26),
-        create_value(create_int_value(VALUE_INT, 4), 78, 28),
+        create_tok_int(create_int_value(INT_VALUE_I, 4), 78, 28),
         create(XOR, create_null_str(), 78, 30),
         create(BNOT, create_null_str(), 78, 32),
         create(IDENTIFIER, STR_NON_HEAP("size"), 78, 33),
@@ -535,12 +592,12 @@ TEST(file) {
         create(INT, create_null_str(), 81, 5),
         create(IDENTIFIER, STR_NON_HEAP("i"), 81, 9),
         create(ASSIGN, create_null_str(), 81, 11),
-        create_value(create_int_value(VALUE_INT, 0), 81, 13),
+        create_tok_int(create_int_value(INT_VALUE_I, 0), 81, 13),
         create(SEMICOLON, create_null_str(), 81, 14),
         create(INT, create_null_str(), 82, 5),
         create(IDENTIFIER, STR_NON_HEAP("victim"), 82, 9),
         create(ASSIGN, create_null_str(), 82, 16),
-        create_value(create_uint_value(VALUE_UINT, 0xdeadbeef), 82, 18),
+        create_tok_int(create_uint_value(INT_VALUE_UI, 0xdeadbeef), 82, 18),
         create(SEMICOLON, create_null_str(), 82, 28),
         create(DO, create_null_str(), 83, 5),
         create(LBRACE, create_null_str(), 83, 8),
@@ -548,7 +605,7 @@ TEST(file) {
         create(LBRACKET, create_null_str(), 84, 12),
         create(IDENTIFIER, STR_NON_HEAP("i"), 84, 13),
         create(EQ_OP, create_null_str(), 84, 15),
-        create_value(create_int_value(VALUE_INT, 40), 84, 18),
+        create_tok_int(create_int_value(INT_VALUE_I, 40), 84, 18),
         create(RBRACKET, create_null_str(), 84, 20),
         create(LBRACE, create_null_str(), 84, 22),
         create(CONTINUE, create_null_str(), 85, 13),
@@ -559,7 +616,7 @@ TEST(file) {
         create(LBRACKET, create_null_str(), 86, 19),
         create(IDENTIFIER, STR_NON_HEAP("i"), 86, 20),
         create(EQ_OP, create_null_str(), 86, 22),
-        create_value(create_int_value(VALUE_INT, 1000), 86, 25),
+        create_tok_int(create_int_value(INT_VALUE_I, 1000), 86, 25),
         create(RBRACKET, create_null_str(), 86, 29),
         create(LBRACE, create_null_str(), 86, 31),
         create(BREAK, create_null_str(), 87, 13),
@@ -596,44 +653,44 @@ TEST(file) {
         create(SEMICOLON, create_null_str(), 95, 26),
         create(IDENTIFIER, STR_NON_HEAP("true_bool"), 96, 9),
         create(LEFT_ASSIGN, create_null_str(), 96, 19),
-        create_value(create_int_value(VALUE_INT, 4), 96, 23),
+        create_tok_int(create_int_value(INT_VALUE_I, 4), 96, 23),
         create(SEMICOLON, create_null_str(), 96, 24),
         create(IDENTIFIER, STR_NON_HEAP("true_bool"), 97, 9),
         create(RIGHT_ASSIGN, create_null_str(), 97, 19),
-        create_value(create_int_value(VALUE_INT, 5), 97, 23),
+        create_tok_int(create_int_value(INT_VALUE_I, 5), 97, 23),
         create(SEMICOLON, create_null_str(), 97, 24),
         create(IDENTIFIER, STR_NON_HEAP("arr"), 98, 9),
         create(LINDEX, create_null_str(), 98, 12),
         create(IDENTIFIER, STR_NON_HEAP("i"), 98, 13),
         create(RINDEX, create_null_str(), 98, 14),
         create(AND_ASSIGN, create_null_str(), 98, 16),
-        create_value(create_int_value(VALUE_INT, 0x2341), 98, 19),
+        create_tok_int(create_int_value(INT_VALUE_I, 0x2341), 98, 19),
         create(SEMICOLON, create_null_str(), 98, 25),
         create(IDENTIFIER, STR_NON_HEAP("arr"), 99, 9),
         create(LINDEX, create_null_str(), 99, 12),
         create(IDENTIFIER, STR_NON_HEAP("i"), 99, 13),
         create(ADD, create_null_str(), 99, 15),
-        create_value(create_int_value(VALUE_INT, 1), 99, 17),
+        create_tok_int(create_int_value(INT_VALUE_I, 1), 99, 17),
         create(RINDEX, create_null_str(), 99, 18),
         create(OR_ASSIGN, create_null_str(), 99, 20),
-        create_value(create_int_value(VALUE_INT, 1), 99, 23),
+        create_tok_int(create_int_value(INT_VALUE_I, 1), 99, 23),
         create(SEMICOLON, create_null_str(), 99, 24),
         create(IDENTIFIER, STR_NON_HEAP("arr"), 100, 9),
         create(LINDEX, create_null_str(), 100, 12),
-        create_value(create_int_value(VALUE_INT, 0), 100, 13),
+        create_tok_int(create_int_value(INT_VALUE_I, 0), 100, 13),
         create(RINDEX, create_null_str(), 100, 14),
         create(XOR_ASSIGN, create_null_str(), 100, 16),
-        create_value(create_int_value(VALUE_INT, 10423), 100, 19),
+        create_tok_int(create_int_value(INT_VALUE_I, 10423), 100, 19),
         create(SEMICOLON, create_null_str(), 100, 24),
         create(RBRACE, create_null_str(), 101, 5),
         create(WHILE, create_null_str(), 101, 7),
         create(LBRACKET, create_null_str(), 101, 13),
-        create_value(create_int_value(VALUE_INT, 1), 101, 14),
+        create_tok_int(create_int_value(INT_VALUE_I, 1), 101, 14),
         create(RBRACKET, create_null_str(), 101, 15),
         create(SEMICOLON, create_null_str(), 101, 16),
         create(WHILE, create_null_str(), 103, 5),
         create(LBRACKET, create_null_str(), 103, 11),
-        create_value(create_int_value(VALUE_INT, 1), 103, 12),
+        create_tok_int(create_int_value(INT_VALUE_I, 1), 103, 12),
         create(RBRACKET, create_null_str(), 103, 13),
         create(LBRACE, create_null_str(), 103, 15),
         create(BREAK, create_null_str(), 104, 9),
@@ -643,27 +700,27 @@ TEST(file) {
         create(LBRACKET, create_null_str(), 107, 12),
         create(IDENTIFIER, STR_NON_HEAP("arr"), 107, 13),
         create(LINDEX, create_null_str(), 107, 16),
-        create_value(create_int_value(VALUE_INT, 0), 107, 17),
+        create_tok_int(create_int_value(INT_VALUE_I, 0), 107, 17),
         create(RINDEX, create_null_str(), 107, 18),
         create(EQ_OP, create_null_str(), 107, 20),
-        create_value(create_int_value(VALUE_INT, 37), 107, 23),
+        create_tok_int(create_int_value(INT_VALUE_I, 37), 107, 23),
         create(QMARK, create_null_str(), 107, 26),
         create(IDENTIFIER, STR_NON_HEAP("size"), 107, 28),
         create(COLON, create_null_str(), 107, 33),
         create(LBRACKET, create_null_str(), 107, 35),
         create(IDENTIFIER, STR_NON_HEAP("arr"), 107, 36),
         create(LINDEX, create_null_str(), 107, 39),
-        create_value(create_int_value(VALUE_INT, 1), 107, 40),
+        create_tok_int(create_int_value(INT_VALUE_I, 1), 107, 40),
         create(RINDEX, create_null_str(), 107, 41),
         create(EQ_OP, create_null_str(), 107, 43),
-        create_value(create_int_value(VALUE_INT, 37), 107, 46),
+        create_tok_int(create_int_value(INT_VALUE_I, 37), 107, 46),
         create(QMARK, create_null_str(), 107, 49),
         create(IDENTIFIER, STR_NON_HEAP("type_size"), 107, 51),
         create(COLON, create_null_str(), 107, 61),
         create(SUB, create_null_str(), 107, 63),
-        create_value(create_int_value(VALUE_INT, 123123), 107, 64),
+        create_tok_int(create_int_value(INT_VALUE_I, 123123), 107, 64),
         create(RIGHT_OP, create_null_str(), 107, 71),
-        create_value(create_int_value(VALUE_INT, 4), 107, 74),
+        create_tok_int(create_int_value(INT_VALUE_I, 4), 107, 74),
         create(RBRACKET, create_null_str(), 107, 75),
         create(RBRACKET, create_null_str(), 107, 76),
         create(SEMICOLON, create_null_str(), 107, 77),
@@ -683,7 +740,7 @@ TEST(file) {
         create(CHAR, create_null_str(), 111, 14),
         create(IDENTIFIER, STR_NON_HEAP("c"), 111, 19),
         create(ASSIGN, create_null_str(), 111, 21),
-        create_value(create_int_value(VALUE_INT, '\n'), 111, 23),
+        create_tok_int(create_int_value(INT_VALUE_I, '\n'), 111, 23),
         create(SEMICOLON, create_null_str(), 111, 27),
         create(CONST, create_null_str(), 113, 5),
         create(CHAR, create_null_str(), 113, 11),
@@ -696,7 +753,7 @@ TEST(file) {
         create(COMPLEX, create_null_str(), 114, 12),
         create(IDENTIFIER, STR_NON_HEAP("comp_d"), 114, 21),
         create(ASSIGN, create_null_str(), 114, 28),
-        create_value(create_int_value(VALUE_INT, 0), 114, 30),
+        create_tok_int(create_int_value(INT_VALUE_I, 0), 114, 30),
         create(SEMICOLON, create_null_str(), 114, 31),
         create(DOUBLE, create_null_str(), 115, 5),
         create(IMAGINARY, create_null_str(), 115, 12),
@@ -704,20 +761,22 @@ TEST(file) {
         create(ASSIGN, create_null_str(), 115, 28),
         create(GENERIC, create_null_str(), 115, 30),
         create(LBRACKET, create_null_str(), 115, 38),
-        create_value(create_float_value(VALUE_DOUBLE, 1.0), 115, 39),
+        create_tok_float(create_float_value(FLOAT_VALUE_D, 1.0), 115, 39),
         create(COMMA, create_null_str(), 115, 42),
         create(FLOAT, create_null_str(), 115, 44),
         create(COLON, create_null_str(), 115, 49),
-        create_value(create_float_value(VALUE_FLOAT, 0x1p+2f), 115, 51),
+        create_tok_float(create_float_value(FLOAT_VALUE_F, 0x1p+2f), 115, 51),
         create(COMMA, create_null_str(), 115, 58),
         create(DOUBLE, create_null_str(), 115, 60),
         create(COLON, create_null_str(), 115, 66),
-        create_value(create_float_value(VALUE_LDOUBLE, 0X12.0P-10L), 115, 68),
+        create_tok_float(create_float_value(FLOAT_VALUE_LD, 0X12.0P-10L),
+                         115,
+                         68),
         create(RBRACKET, create_null_str(), 115, 79),
         create(SEMICOLON, create_null_str(), 115, 80),
         create(STATIC_ASSERT, create_null_str(), 116, 5),
         create(LBRACKET, create_null_str(), 116, 19),
-        create_value(create_int_value(VALUE_INT, 1), 116, 20),
+        create_tok_int(create_int_value(INT_VALUE_I, 1), 116, 20),
         create(COMMA, create_null_str(), 116, 21),
         create(STRING_LITERAL, STR_NON_HEAP("\"Something is wrong\""), 116, 23),
         create(RBRACKET, create_null_str(), 116, 43),
@@ -727,24 +786,24 @@ TEST(file) {
         create(CHAR, create_null_str(), 118, 5),
         create(IDENTIFIER, STR_NON_HEAP("d"), 118, 10),
         create(ASSIGN, create_null_str(), 118, 12),
-        create_value(create_int_value(VALUE_INT, '\\'), 118, 14),
+        create_tok_int(create_int_value(INT_VALUE_I, '\\'), 118, 14),
         create(COMMA, create_null_str(), 118, 18),
         create(IDENTIFIER, STR_NON_HEAP("e"), 118, 20),
         create(ASSIGN, create_null_str(), 118, 22),
-        create_value(create_int_value(VALUE_INT, '\''), 118, 24),
+        create_tok_int(create_int_value(INT_VALUE_I, '\''), 118, 24),
         create(COMMA, create_null_str(), 118, 28),
         create(IDENTIFIER, STR_NON_HEAP("f"), 118, 30),
         create(ASSIGN, create_null_str(), 118, 32),
-        create_value(create_int_value(VALUE_INT, '"'), 118, 34),
+        create_tok_int(create_int_value(INT_VALUE_I, '"'), 118, 34),
         create(COMMA, create_null_str(), 118, 37),
         create(IDENTIFIER, STR_NON_HEAP("g"), 118, 39),
         create(ASSIGN, create_null_str(), 118, 41),
-        create_value(create_int_value(VALUE_INT, '\0'), 118, 43),
+        create_tok_int(create_int_value(INT_VALUE_I, '\0'), 118, 43),
         create(SEMICOLON, create_null_str(), 118, 47),
         create(INT, create_null_str(), 119, 5),
         create(IDENTIFIER, STR_NON_HEAP("h"), 119, 9),
         create(ASSIGN, create_null_str(), 119, 11),
-        create_value(create_int_value(VALUE_INT, 's'), 119, 13),
+        create_tok_int(create_int_value(INT_VALUE_I, 's'), 119, 13),
         create(SEMICOLON, create_null_str(), 119, 16),
         create(RBRACE, create_null_str(), 120, 1),
         create(THREAD_LOCAL, create_null_str(), 122, 1),
@@ -764,7 +823,7 @@ TEST(hex_literal_or_var) {
         const struct token expected[] = {
             create(IDENTIFIER, STR_NON_HEAP("vare"), 1, 1),
             create(SUB, create_null_str(), 1, 5),
-            create_value(create_int_value(VALUE_INT, 10), 1, 6),
+            create_tok_int(create_int_value(INT_VALUE_I, 10), 1, 6),
         };
         check_token_arr_str(code, expected, sizeof expected / sizeof *expected);
     }
@@ -774,7 +833,7 @@ TEST(hex_literal_or_var) {
         const struct token expected[] = {
             create(IDENTIFIER, STR_NON_HEAP("var2e"), 1, 1),
             create(SUB, create_null_str(), 1, 6),
-            create_value(create_int_value(VALUE_INT, 10), 1, 7),
+            create_tok_int(create_int_value(INT_VALUE_I, 10), 1, 7),
         };
         check_token_arr_str(code, expected, sizeof expected / sizeof *expected);
     }
@@ -784,7 +843,7 @@ TEST(hex_literal_or_var) {
         const struct token expected[] = {
             create(IDENTIFIER, STR_NON_HEAP("var2p"), 1, 1),
             create(SUB, create_null_str(), 1, 6),
-            create_value(create_int_value(VALUE_INT, 10), 1, 7),
+            create_tok_int(create_int_value(INT_VALUE_I, 10), 1, 7),
         };
         check_token_arr_str(code, expected, sizeof expected / sizeof *expected);
     }
@@ -798,7 +857,7 @@ TEST(dot_float_literal_or_op) {
             create(INT, create_null_str(), 1, 1),
             create(IDENTIFIER, STR_NON_HEAP("n"), 1, 5),
             create(ASSIGN, create_null_str(), 1, 7),
-            create_value(create_float_value(VALUE_DOUBLE, .001), 1, 9),
+            create_tok_float(create_float_value(FLOAT_VALUE_D, .001), 1, 9),
         };
         check_token_arr_str(code, expected, sizeof expected / sizeof *expected);
     }
@@ -827,15 +886,26 @@ static struct token create(enum token_type type,
     };
 }
 
-static struct token create_value(struct value val, size_t line, size_t index) {
-    enum token_type type = I_CONSTANT;
-    if (val.type == VALUE_FLOAT || val.type == VALUE_DOUBLE
-        || val.type == VALUE_LDOUBLE) {
-        type = F_CONSTANT;
-    }
+static struct token create_tok_int(struct int_value val,
+                                   size_t line,
+                                   size_t index) {
     return (struct token){
-        .type = type,
-        .val = val,
+        .type = I_CONSTANT,
+        .int_val = val,
+        .loc =
+            {
+                .file_idx = 0,
+                .file_loc = {line, index},
+            },
+    };
+}
+
+static struct token create_tok_float(struct float_value val,
+                                     size_t line,
+                                     size_t index) {
+    return (struct token){
+        .type = F_CONSTANT,
+        .float_val = val,
         .loc =
             {
                 .file_idx = 0,
@@ -865,17 +935,18 @@ static void check_token(const struct token* t, const struct token* expected) {
     ASSERT_TOKEN_TYPE(t->type, expected->type);
 
     if (t->type == I_CONSTANT) {
-        ASSERT_VALUE_TYPE(t->val.type, expected->val.type);
-        if (value_is_int(t->val.type)) {
-            ASSERT_INTMAX_T(t->val.int_val, expected->val.int_val);
+        ASSERT_INT_VALUE_TYPE(t->int_val.type, expected->int_val.type);
+        if (int_value_is_signed(t->int_val.type)) {
+            ASSERT_INTMAX_T(t->int_val.int_val, expected->int_val.int_val);
         } else {
-            ASSERT_UINTMAX_T(t->val.uint_val, expected->val.uint_val);
+            ASSERT_UINTMAX_T(t->int_val.uint_val, expected->int_val.uint_val);
         }
     } else if (t->type == F_CONSTANT) {
-        ASSERT(t->val.type == expected->val.type);
-        ASSERT_LONG_DOUBLE(t->val.float_val, expected->val.float_val, 0.0001);
+        ASSERT_FLOAT_VALUE_TYPE(t->float_val.type, expected->float_val.type);
+        ASSERT_LONG_DOUBLE(t->float_val.val, expected->float_val.val, 0.0001);
     } else {
-        ASSERT_STR(str_get_data(&t->spelling), str_get_data(&expected->spelling));
+        ASSERT_STR(str_get_data(&t->spelling),
+                   str_get_data(&expected->spelling));
     }
 
     ASSERT_SIZE_T(t->loc.file_loc.line, expected->loc.file_loc.line);

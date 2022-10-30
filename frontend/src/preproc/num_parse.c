@@ -19,13 +19,13 @@ struct parse_float_const_res parse_float_const(const char* spell) {
             .err.type = FLOAT_CONST_ERR_TOO_LARGE,
         };
     }
-    enum value_type t = VALUE_DOUBLE;
+    enum float_value_type t = FLOAT_VALUE_D;
     assert(spell <= end);
     if (*end != '\0') {
         if (*end == 'f' || *end == 'F') {
-            t = VALUE_FLOAT;
+            t = FLOAT_VALUE_F;
         } else if (*end == 'l' || *end == 'L') {
-            t = VALUE_LDOUBLE;
+            t = FLOAT_VALUE_LD;
         } else {
             return (struct parse_float_const_res){
                 .err =
@@ -78,15 +78,16 @@ struct int_type_attrs {
 static struct int_type_attrs get_int_attrs(const char* suffix,
                                            struct int_const_err* err);
 
-static enum value_type get_value_type_dec(struct int_type_attrs attrs,
-                                          uintmax_t val,
-                                          const struct arch_int_info* info,
-                                          struct int_const_err* err);
+static enum int_value_type get_value_type_dec(struct int_type_attrs attrs,
+                                              uintmax_t val,
+                                              const struct arch_int_info* info,
+                                              struct int_const_err* err);
 
-static enum value_type get_value_type_other(struct int_type_attrs attrs,
-                                            uintmax_t val,
-                                            const struct arch_int_info* info,
-                                            struct int_const_err* err);
+static enum int_value_type get_value_type_other(
+    struct int_type_attrs attrs,
+    uintmax_t val,
+    const struct arch_int_info* info,
+    struct int_const_err* err);
 
 struct parse_int_const_res parse_int_const(const char* spell,
                                            const struct arch_int_info* info) {
@@ -117,7 +118,7 @@ struct parse_int_const_res parse_int_const(const char* spell,
             .err = err,
         };
     }
-    const enum value_type
+    const enum int_value_type
         type = base == DEC ? get_value_type_dec(attrs, val, info, &err)
                            : get_value_type_other(attrs, val, info, &err);
     if (err.type != INT_CONST_ERR_NONE) {
@@ -125,11 +126,10 @@ struct parse_int_const_res parse_int_const(const char* spell,
             .err = err,
         };
     }
-    assert(value_is_int(type) || value_is_uint(type));
     return (struct parse_int_const_res){
         .err.type = INT_CONST_ERR_NONE,
-        .res = value_is_int(type) ? create_int_value(type, (intmax_t)val)
-                                  : create_uint_value(type, val),
+        .res = int_value_is_signed(type) ? create_int_value(type, (intmax_t)val)
+                                         : create_uint_value(type, val),
     };
 }
 
@@ -266,22 +266,23 @@ static uintmax_t max_int(uintmax_t num_bits) {
 }
 
 static uintmax_t get_max_int(const struct arch_int_info* info,
-                             enum value_type type) {
-    assert(type == VALUE_UINT || type == VALUE_ULINT || type == VALUE_ULLINT
-           || type == VALUE_INT || type == VALUE_LINT || type == VALUE_LLINT);
+                             enum int_value_type type) {
+    assert(type == INT_VALUE_UI || type == INT_VALUE_UL || type == INT_VALUE_ULL
+           || type == INT_VALUE_I || type == INT_VALUE_L
+           || type == INT_VALUE_LL);
 
     switch (type) {
-        case VALUE_INT:
+        case INT_VALUE_I:
             return max_int(TARGET_CHAR_SIZE * info->int_size);
-        case VALUE_UINT:
+        case INT_VALUE_UI:
             return max_uint(TARGET_CHAR_SIZE * info->int_size);
-        case VALUE_LINT:
+        case INT_VALUE_L:
             return max_int(TARGET_CHAR_SIZE * info->lint_size);
-        case VALUE_ULINT:
+        case INT_VALUE_UL:
             return max_uint(TARGET_CHAR_SIZE * info->lint_size);
-        case VALUE_LLINT:
+        case INT_VALUE_LL:
             return max_int(TARGET_CHAR_SIZE * info->llint_size);
-        case VALUE_ULLINT:
+        case INT_VALUE_ULL:
             return max_uint(TARGET_CHAR_SIZE * info->llint_size);
 
         default:
@@ -289,7 +290,7 @@ static uintmax_t get_max_int(const struct arch_int_info* info,
     }
 }
 
-static enum value_type get_value_type_unsigned(
+static enum int_value_type get_value_type_unsigned(
     struct int_type_attrs attrs,
     uintmax_t val,
     const struct arch_int_info* info) {
@@ -298,18 +299,18 @@ static enum value_type get_value_type_unsigned(
 
     switch (attrs.num_long) {
         case 0:
-            if (val <= get_max_int(info, VALUE_UINT)) {
-                return VALUE_UINT;
+            if (val <= get_max_int(info, INT_VALUE_UI)) {
+                return INT_VALUE_UI;
             }
             FALLTHROUGH();
         case 1:
-            if (val <= get_max_int(info, VALUE_ULINT)) {
-                return VALUE_ULINT;
+            if (val <= get_max_int(info, INT_VALUE_UL)) {
+                return INT_VALUE_UL;
             }
             FALLTHROUGH();
         case 2:
-            if (val <= get_max_int(info, VALUE_ULLINT)) {
-                return VALUE_ULLINT;
+            if (val <= get_max_int(info, INT_VALUE_ULL)) {
+                return INT_VALUE_ULL;
             } else {
                 // unsigned will throw error in strotull
                 UNREACHABLE();
@@ -319,31 +320,31 @@ static enum value_type get_value_type_unsigned(
     }
 }
 
-static enum value_type get_value_type_dec(struct int_type_attrs attrs,
-                                          uintmax_t val,
-                                          const struct arch_int_info* info,
-                                          struct int_const_err* err) {
+static enum int_value_type get_value_type_dec(struct int_type_attrs attrs,
+                                              uintmax_t val,
+                                              const struct arch_int_info* info,
+                                              struct int_const_err* err) {
     assert(attrs.num_long <= 2);
     if (attrs.is_unsigned) {
         return get_value_type_unsigned(attrs, val, info);
     } else {
         switch (attrs.num_long) {
             case 0:
-                if (val <= get_max_int(info, VALUE_INT)) {
-                    return VALUE_INT;
+                if (val <= get_max_int(info, INT_VALUE_I)) {
+                    return INT_VALUE_I;
                 }
                 FALLTHROUGH();
             case 1:
-                if (val <= get_max_int(info, VALUE_LINT)) {
-                    return VALUE_LINT;
+                if (val <= get_max_int(info, INT_VALUE_L)) {
+                    return INT_VALUE_L;
                 }
                 FALLTHROUGH();
             case 2:
-                if (val <= get_max_int(info, VALUE_LLINT)) {
-                    return VALUE_LLINT;
+                if (val <= get_max_int(info, INT_VALUE_LL)) {
+                    return INT_VALUE_LL;
                 } else {
                     err->type = INT_CONST_ERR_TOO_LARGE;
-                    return VALUE_UINT;
+                    return INT_VALUE_UI;
                 }
             default:
                 UNREACHABLE();
@@ -351,10 +352,11 @@ static enum value_type get_value_type_dec(struct int_type_attrs attrs,
     }
 }
 
-static enum value_type get_value_type_other(struct int_type_attrs attrs,
-                                            uintmax_t val,
-                                            const struct arch_int_info* info,
-                                            struct int_const_err* err) {
+static enum int_value_type get_value_type_other(
+    struct int_type_attrs attrs,
+    uintmax_t val,
+    const struct arch_int_info* info,
+    struct int_const_err* err) {
     assert(attrs.num_long <= 2);
 
     if (attrs.is_unsigned) {
@@ -362,27 +364,27 @@ static enum value_type get_value_type_other(struct int_type_attrs attrs,
     } else {
         switch (attrs.num_long) {
             case 0:
-                if (val <= get_max_int(info, VALUE_INT)) {
-                    return VALUE_INT;
-                } else if (val <= get_max_int(info, VALUE_UINT)) {
-                    return VALUE_UINT;
+                if (val <= get_max_int(info, INT_VALUE_I)) {
+                    return INT_VALUE_I;
+                } else if (val <= get_max_int(info, INT_VALUE_UI)) {
+                    return INT_VALUE_UI;
                 }
                 FALLTHROUGH();
             case 1:
-                if (val <= get_max_int(info, VALUE_LINT)) {
-                    return VALUE_LINT;
-                } else if (val <= get_max_int(info, VALUE_ULINT)) {
-                    return VALUE_ULINT;
+                if (val <= get_max_int(info, INT_VALUE_L)) {
+                    return INT_VALUE_L;
+                } else if (val <= get_max_int(info, INT_VALUE_UL)) {
+                    return INT_VALUE_UL;
                 }
                 FALLTHROUGH();
             case 2:
-                if (val <= get_max_int(info, VALUE_LLINT)) {
-                    return VALUE_LLINT;
-                } else if (val <= get_max_int(info, VALUE_ULLINT)) {
-                    return VALUE_ULLINT;
+                if (val <= get_max_int(info, INT_VALUE_LL)) {
+                    return INT_VALUE_LL;
+                } else if (val <= get_max_int(info, INT_VALUE_ULL)) {
+                    return INT_VALUE_ULL;
                 } else {
                     err->type = INT_CONST_ERR_TOO_LARGE;
-                    return VALUE_INT;
+                    return INT_VALUE_I;
                 }
             default:
                 UNREACHABLE();
@@ -390,24 +392,24 @@ static enum value_type get_value_type_other(struct int_type_attrs attrs,
     }
 }
 
-static enum value_type get_uint_leastn_t_type(
+static enum int_value_type get_uint_leastn_t_type(
     size_t n,
-    const struct arch_int_info* info); 
+    const struct arch_int_info* info);
 
 struct parse_char_const_res parse_char_const(const char* spell,
                                              const struct arch_int_info* info) {
     assert(spell);
     assert(info);
 
-    enum value_type type;
+    enum int_value_type type;
     switch (*spell) {
         case '\'':
-            type = VALUE_INT;
+            type = INT_VALUE_I;
             ++spell;
             break;
         case 'u':
             if (spell[1] == '8') {
-                type = VALUE_UCHAR;
+                type = INT_VALUE_UC;
             } else if (spell[1] == '\'') {
                 type = get_uint_leastn_t_type(16, info);
             } else {
@@ -466,7 +468,7 @@ struct parse_char_const_res parse_char_const(const char* spell,
             };
     }
 
-    if (value_is_uint(type)) {
+    if (int_value_is_unsigned(type)) {
         uintmax_t val;
         switch (*spell) {
             case '\\':
@@ -504,11 +506,12 @@ struct parse_char_const_res parse_char_const(const char* spell,
                         break;
                     default:
                         // TODO: other escape stuff
-                        return (struct parse_char_const_res) {
-                            .err = {
-                                .type = CHAR_CONST_ERR_INVALID_ESCAPE,
-                                .invalid_escape = *spell,
-                            },
+                        return (struct parse_char_const_res){
+                            .err =
+                                {
+                                    .type = CHAR_CONST_ERR_INVALID_ESCAPE,
+                                    .invalid_escape = *spell,
+                                },
                         };
                 }
                 break;
@@ -519,13 +522,14 @@ struct parse_char_const_res parse_char_const(const char* spell,
 
         ++spell;
         if (*spell != '\'') {
-            return (struct parse_char_const_res) {
-                .err = {
-                    .type = CHAR_CONST_ERR_EXPECTED_CHAR,
-                    .num_expected = 1,
-                    .expected_chars[0] = '\'',
-                    .got_char = *spell,
-                },
+            return (struct parse_char_const_res){
+                .err =
+                    {
+                        .type = CHAR_CONST_ERR_EXPECTED_CHAR,
+                        .num_expected = 1,
+                        .expected_chars[0] = '\'',
+                        .got_char = *spell,
+                    },
             };
         }
         assert(spell[1] == '\0');
@@ -535,7 +539,7 @@ struct parse_char_const_res parse_char_const(const char* spell,
             .res = create_uint_value(type, val),
         };
     } else {
-        assert(value_is_int(type));
+        assert(int_value_is_signed(type));
         intmax_t val;
         switch (*spell) {
             case '\\':
@@ -556,7 +560,7 @@ struct parse_char_const_res parse_char_const(const char* spell,
                     case 'r':
                         val = '\r';
                         break;
-                       case 't':
+                    case 't':
                         val = '\t';
                         break;
                     case 'v':
@@ -573,11 +577,12 @@ struct parse_char_const_res parse_char_const(const char* spell,
                         break;
                     default:
                         // TODO: other escape stuff
-                        return (struct parse_char_const_res) {
-                            .err = {
-                                .type = CHAR_CONST_ERR_INVALID_ESCAPE,
-                                .invalid_escape = *spell,
-                            },
+                        return (struct parse_char_const_res){
+                            .err =
+                                {
+                                    .type = CHAR_CONST_ERR_INVALID_ESCAPE,
+                                    .invalid_escape = *spell,
+                                },
                         };
                 }
                 break;
@@ -588,13 +593,14 @@ struct parse_char_const_res parse_char_const(const char* spell,
 
         ++spell;
         if (*spell != '\'') {
-            return (struct parse_char_const_res) {
-                .err = {
-                    .type = CHAR_CONST_ERR_EXPECTED_CHAR,
-                    .num_expected = 1,
-                    .expected_chars[0] = '\'',
-                    .got_char = *spell,
-                },
+            return (struct parse_char_const_res){
+                .err =
+                    {
+                        .type = CHAR_CONST_ERR_EXPECTED_CHAR,
+                        .num_expected = 1,
+                        .expected_chars[0] = '\'',
+                        .got_char = *spell,
+                    },
             };
         }
         assert(spell[1] == '\0');
@@ -617,7 +623,10 @@ void print_char_const_err(FILE* out, const struct char_const_err* err) {
             for (uint8_t i = 0; i < limit; ++i) {
                 fprintf(out, "%c, ", err->expected_chars[i]);
             }
-            fprintf(out, " or %c but got %c", err->expected_chars[limit], err->got_char);
+            fprintf(out,
+                    " or %c but got %c",
+                    err->expected_chars[limit],
+                    err->got_char);
             break;
         case CHAR_CONST_ERR_INVALID_ESCAPE:
             fprintf(out, "Invalid escape character %c", err->invalid_escape);
@@ -626,21 +635,21 @@ void print_char_const_err(FILE* out, const struct char_const_err* err) {
     fprintf(out, "\n");
 }
 
-static enum value_type get_uint_leastn_t_type(
+static enum int_value_type get_uint_leastn_t_type(
     size_t n,
     const struct arch_int_info* info) {
     assert(n == 8 || n == 16 || n == 32 || n == 64);
 
     if (TARGET_CHAR_SIZE >= n) {
-        return VALUE_UCHAR;
+        return INT_VALUE_UC;
     } else if (TARGET_CHAR_SIZE * info->sint_size >= n) {
-        return VALUE_USINT;
+        return INT_VALUE_US;
     } else if (TARGET_CHAR_SIZE * info->int_size >= n) {
-        return VALUE_UINT;
+        return INT_VALUE_UI;
     } else if (TARGET_CHAR_SIZE * info->lint_size >= n) {
-        return VALUE_ULINT;
+        return INT_VALUE_UL;
     } else if (TARGET_CHAR_SIZE * info->llint_size >= n) {
-        return VALUE_ULLINT;
+        return INT_VALUE_ULL;
     }
     UNREACHABLE();
 }

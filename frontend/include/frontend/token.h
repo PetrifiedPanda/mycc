@@ -22,7 +22,8 @@ struct token {
     enum token_type type;
     union {
         struct str spelling;
-        struct value val;
+        struct int_value int_val;
+        struct float_value float_val;
     };
     struct source_loc loc;
 };

@@ -46,7 +46,7 @@ struct preproc_err {
     union {
         struct {
             bool open_fail;
-            errno_t errno_state;
+            int errno_state;
             size_t fail_file;
         };
         bool is_char_lit;

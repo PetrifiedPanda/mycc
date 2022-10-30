@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <ctype.h>
 #include <assert.h>
 
@@ -466,7 +467,9 @@ bool convert_preproc_tokens(struct token* tokens,
         switch (t->type) {
             case I_CONSTANT: {
                 if (str_char_at(&t->spelling, 0) == '\'') {
-                    struct parse_char_const_res res = parse_char_const(str_get_data(&t->spelling), info);
+                    struct parse_char_const_res res = parse_char_const(
+                        str_get_data(&t->spelling),
+                        info);
                     if (res.err.type != CHAR_CONST_ERR_NONE) {
                         set_preproc_err(err, PREPROC_ERR_CHAR_CONST, t->loc);
                         err->char_const_err = res.err;
@@ -474,7 +477,7 @@ bool convert_preproc_tokens(struct token* tokens,
                         return false;
                     }
                     free_str(&t->spelling);
-                    t->val = res.res;
+                    t->int_val = res.res;
                 } else {
                     struct parse_int_const_res res = parse_int_const(
                         str_get_data(&t->spelling),
@@ -486,7 +489,7 @@ bool convert_preproc_tokens(struct token* tokens,
                         return false;
                     }
                     free_str(&t->spelling);
-                    t->val = res.res;
+                    t->int_val = res.res;
                 }
                 break;
             }
@@ -500,7 +503,7 @@ bool convert_preproc_tokens(struct token* tokens,
                     return false;
                 }
                 free_str(&t->spelling);
-                t->val = res.res;
+                t->float_val = res.res;
                 break;
             }
             case IDENTIFIER:
@@ -630,8 +633,11 @@ static bool handle_ifdef_ifndef(struct preproc_state* state,
                                 bool is_ifndef) {
     assert(arr);
     assert(arr->tokens[0].type == STRINGIFY_OP);
-    assert((!is_ifndef && strcmp(str_get_data(&arr->tokens[1].spelling), "ifdef") == 0)
-           || (is_ifndef && strcmp(str_get_data(&arr->tokens[1].spelling), "ifndef") == 0));
+    assert(
+        (!is_ifndef
+         && strcmp(str_get_data(&arr->tokens[1].spelling), "ifdef") == 0)
+        || (is_ifndef
+            && strcmp(str_get_data(&arr->tokens[1].spelling), "ifndef") == 0));
 
     if (arr->len < 3) {
         set_preproc_err(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[1].loc);

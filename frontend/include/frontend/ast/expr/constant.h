@@ -14,11 +14,15 @@ struct constant {
     enum constant_type type;
     union {
         struct str spelling;
-        struct value val;
+        struct int_value int_val;
+        struct float_value float_val;
     };
 };
 
-struct constant create_constant(struct value val, struct source_loc loc);
+struct constant create_int_constant(struct int_value val,
+                                    struct source_loc loc);
+struct constant create_float_constant(struct float_value val,
+                                      struct source_loc loc);
 
 struct constant create_enum_constant(const struct str* spelling,
                                      struct source_loc loc);

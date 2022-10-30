@@ -71,12 +71,18 @@ struct primary_expr* parse_primary_expr(struct parser_state* s) {
             return create_primary_expr_identifier(
                 create_identifier(&spelling, loc));
         }
-        case F_CONSTANT:
+        case F_CONSTANT: {
+            const struct source_loc loc = s->it->loc;
+            const struct float_value val = s->it->float_val;
+            accept_it(s);
+            return create_primary_expr_constant(
+                create_float_constant(val, loc));
+        }
         case I_CONSTANT: {
             struct source_loc loc = s->it->loc;
-            struct value val = s->it->val;
+            struct int_value val = s->it->int_val;
             accept_it(s);
-            return create_primary_expr_constant(create_constant(val, loc));
+            return create_primary_expr_constant(create_int_constant(val, loc));
         }
         case STRING_LITERAL: {
             const struct str spelling = take_spelling(s->it);

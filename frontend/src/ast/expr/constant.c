@@ -3,13 +3,21 @@
 #include <stdlib.h>
 #include <assert.h>
 
-struct constant create_constant(struct value val, struct source_loc loc) {
-    enum constant_type t = value_is_float(val.type) ? CONSTANT_FLOAT
-                                                    : CONSTANT_INT;
+struct constant create_int_constant(struct int_value val,
+                                    struct source_loc loc) {
     return (struct constant){
         .info = create_ast_node_info(loc),
-        .type = t,
-        .val = val,
+        .type = CONSTANT_INT,
+        .int_val = val,
+    };
+}
+
+struct constant create_float_constant(struct float_value val,
+                                      struct source_loc loc) {
+    return (struct constant){
+        .info = create_ast_node_info(loc),
+        .type = CONSTANT_FLOAT,
+        .float_val = val,
     };
 }
 

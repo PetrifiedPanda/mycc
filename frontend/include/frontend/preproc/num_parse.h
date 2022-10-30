@@ -21,7 +21,7 @@ struct float_const_err {
 
 struct parse_float_const_res {
     struct float_const_err err;
-    struct value res;
+    struct float_value res;
 };
 
 struct parse_float_const_res parse_float_const(const char* spell);
@@ -46,7 +46,7 @@ struct int_const_err {
 
 struct parse_int_const_res {
     struct int_const_err err;
-    struct value res;
+    struct int_value res;
 };
 
 struct parse_int_const_res parse_int_const(const char* spell,
@@ -74,7 +74,7 @@ struct char_const_err {
 
 struct parse_char_const_res {
     struct char_const_err err;
-    struct value res;
+    struct int_value res;
 };
 
 struct parse_char_const_res parse_char_const(const char* spell,

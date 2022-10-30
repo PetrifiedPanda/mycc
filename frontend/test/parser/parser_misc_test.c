@@ -86,12 +86,12 @@ TEST(enum_list) {
         }
 
         ASSERT_NOT_NULL(res.enums[0].enum_val);
-        check_const_expr_const(res.enums[0].enum_val,
-                               create_int_value(VALUE_INT, 0));
+        check_const_expr_int(res.enums[0].enum_val,
+                             create_int_value(INT_VALUE_I, 0));
 
         ASSERT_NOT_NULL(res.enums[1].enum_val);
-        check_const_expr_const(res.enums[1].enum_val,
-                               create_float_value(VALUE_DOUBLE, 1000.0));
+        check_const_expr_float(res.enums[1].enum_val,
+                               create_float_value(FLOAT_VALUE_D, 1000.0));
 
         ASSERT_NOT_NULL(res.enums[2].enum_val);
         check_const_expr_id(res.enums[2].enum_val, "n");
@@ -201,8 +201,8 @@ TEST(designation) {
         check_identifier(designators[0].identifier, "test");
 
         ASSERT(designators[1].is_index == true);
-        check_cond_expr_const(&designators[1].arr_index->expr,
-                              create_int_value(VALUE_INT, 19));
+        check_cond_expr_int(&designators[1].arr_index->expr,
+                            create_int_value(INT_VALUE_I, 19));
 
         ASSERT(designators[2].is_index == false);
         check_identifier(designators[2].identifier, "what_is_this");
@@ -221,26 +221,26 @@ TEST(designation) {
 
         struct designator* designators = res->designators.designators;
         ASSERT(designators[0].is_index == true);
-        check_cond_expr_const(&designators[0].arr_index->expr,
-                              create_float_value(VALUE_DOUBLE, 0.5));
+        check_cond_expr_float(&designators[0].arr_index->expr,
+                              create_float_value(FLOAT_VALUE_D, 0.5));
 
         ASSERT(designators[1].is_index == false);
         check_identifier(designators[1].identifier, "blah");
 
         ASSERT(designators[2].is_index == true);
-        check_cond_expr_const(&designators[2].arr_index->expr,
-                              create_int_value(VALUE_INT, 420));
+        check_cond_expr_int(&designators[2].arr_index->expr,
+                            create_int_value(INT_VALUE_I, 420));
 
         ASSERT(designators[3].is_index == false);
         check_identifier(designators[3].identifier, "oof");
 
         ASSERT(designators[4].is_index == true);
-        check_cond_expr_const(&designators[4].arr_index->expr,
-                              create_int_value(VALUE_INT, 2));
+        check_cond_expr_int(&designators[4].arr_index->expr,
+                            create_int_value(INT_VALUE_I, 2));
 
         ASSERT(designators[5].is_index == true);
-        check_cond_expr_const(&designators[5].arr_index->expr,
-                              create_int_value(VALUE_INT, 10));
+        check_cond_expr_int(&designators[5].arr_index->expr,
+                            create_int_value(INT_VALUE_I, 10));
 
         free_designation(res);
     }
@@ -261,7 +261,7 @@ TEST(static_assert_declaration) {
 
     ASSERT_STR(str_get_data(&res->err_msg.spelling),
                "\"This is a string literal\"");
-    check_const_expr_const(res->const_expr, create_int_value(VALUE_INT, 12345));
+    check_const_expr_int(res->const_expr, create_int_value(INT_VALUE_I, 12345));
 
     free_preproc_res(&preproc_res);
     free_parser_state(&s);
@@ -282,8 +282,8 @@ static void check_struct_declaration_non_static_assert(
     }
     const struct struct_declarator* declarator = &decl->decls.decls[0];
     if (bit_field > 0) {
-        check_const_expr_const(declarator->bit_field,
-                               create_int_value(VALUE_INT, bit_field));
+        check_const_expr_int(declarator->bit_field,
+                             create_int_value(INT_VALUE_I, bit_field));
     }
     if (identifier) {
         const struct declarator* inner_decl = declarator->decl;
@@ -382,9 +382,9 @@ static void check_too_many_long(const char* code) {
 }
 
 static void check_cannot_combine_type_specs(const char* code,
-                                           enum token_type prev_spec,
-                                           enum token_type type_spec,
-                                           struct source_loc loc) {
+                                            enum token_type prev_spec,
+                                            enum token_type type_spec,
+                                            struct source_loc loc) {
 
     struct parser_err err = parse_type_specs_until_fail(code);
 
@@ -400,11 +400,26 @@ TEST(type_spec_error) {
     check_too_many_long("long long long");
     check_too_many_long("int long long long");
     check_too_many_long("long long int long");
-    check_cannot_combine_type_specs("long short", LONG, SHORT, (struct source_loc){0, {1, 6}});
-    check_cannot_combine_type_specs("long short long", LONG, SHORT, (struct source_loc){0, {1, 6}});
-    check_cannot_combine_type_specs("short long", SHORT, LONG, (struct source_loc){0, {1, 7}});
-    check_cannot_combine_type_specs("unsigned signed", UNSIGNED, SIGNED, (struct source_loc){0, {1, 10}});
-    check_cannot_combine_type_specs("signed unsigned", SIGNED, UNSIGNED, (struct source_loc){0, {1, 8}});
+    check_cannot_combine_type_specs("long short",
+                                    LONG,
+                                    SHORT,
+                                    (struct source_loc){0, {1, 6}});
+    check_cannot_combine_type_specs("long short long",
+                                    LONG,
+                                    SHORT,
+                                    (struct source_loc){0, {1, 6}});
+    check_cannot_combine_type_specs("short long",
+                                    SHORT,
+                                    LONG,
+                                    (struct source_loc){0, {1, 7}});
+    check_cannot_combine_type_specs("unsigned signed",
+                                    UNSIGNED,
+                                    SIGNED,
+                                    (struct source_loc){0, {1, 10}});
+    check_cannot_combine_type_specs("signed unsigned",
+                                    SIGNED,
+                                    UNSIGNED,
+                                    (struct source_loc){0, {1, 8}});
     // TODO: DISALLOWED_TYPE_QUALS
 }
 

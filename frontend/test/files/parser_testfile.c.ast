@@ -121,8 +121,8 @@ translation_unit:
                                                 postfix_expr:
                                                   primary_expr:
                                                     constant: ../frontend/test/files/parser_testfile.c:5,14
-                                                      value:
-                                                        type: VALUE_INT
+                                                      int_value:
+                                                        type: INT_VALUE_I
                                                         int_val: 16
                                                   len: 0
                   type_specs:
@@ -534,8 +534,8 @@ translation_unit:
                                                 postfix_expr:
                                                   primary_expr:
                                                     constant: ../frontend/test/files/parser_testfile.c:13,12
-                                                      value:
-                                                        type: VALUE_INT
+                                                      int_value:
+                                                        type: INT_VALUE_I
                                                         int_val: 1
                                                   len: 0
                   struct_declarator:
@@ -569,8 +569,8 @@ translation_unit:
                                                 postfix_expr:
                                                   primary_expr:
                                                     constant: ../frontend/test/files/parser_testfile.c:13,17
-                                                      value:
-                                                        type: VALUE_INT
+                                                      int_value:
+                                                        type: INT_VALUE_I
                                                         int_val: 10
                                                   len: 0
       init_declarator_list:
@@ -640,8 +640,8 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/parser_testfile.c:18,13
-                                                  value:
-                                                    type: VALUE_INT
+                                                  int_value:
+                                                    type: INT_VALUE_I
                                                     int_val: 1
                                               len: 0
               enumerator:
@@ -689,8 +689,8 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/parser_testfile.c:19,21
-                                                  value:
-                                                    type: VALUE_INT
+                                                  int_value:
+                                                    type: INT_VALUE_I
                                                     int_val: 69
                                               len: 0
               enumerator:
@@ -1513,8 +1513,8 @@ translation_unit:
                                                               postfix_expr:
                                                                 primary_expr:
                                                                   constant: ../frontend/test/files/parser_testfile.c:38,21
-                                                                    value:
-                                                                      type: VALUE_LINT
+                                                                    int_value:
+                                                                      type: INT_VALUE_L
                                                                       int_val: 1000
                                                                 len: 0
                                                           mul_op: %
@@ -1525,8 +1525,8 @@ translation_unit:
                                                               postfix_expr:
                                                                 primary_expr:
                                                                   constant: ../frontend/test/files/parser_testfile.c:38,29
-                                                                    value:
-                                                                      type: VALUE_INT
+                                                                    int_value:
+                                                                      type: INT_VALUE_I
                                                                       int_val: 5
                                                                 len: 0
                   block_item:
@@ -1581,8 +1581,8 @@ translation_unit:
                                                           postfix_expr:
                                                             primary_expr:
                                                               constant: ../frontend/test/files/parser_testfile.c:42,21
-                                                                value:
-                                                                  type: VALUE_LINT
+                                                                int_value:
+                                                                  type: INT_VALUE_L
                                                                   int_val: 30
                                                             len: 0
                   block_item:
@@ -1661,8 +1661,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/parser_testfile.c:51,19
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_value:
+                                                            type: INT_VALUE_I
                                                             int_val: 0
                                                       len: 0
                     designation_init:
@@ -1768,8 +1768,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:52,19
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 512
                                                 len: 0
                                         add_op: -
@@ -1782,8 +1782,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:52,27
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 10
                                                 len: 0
         block_item:
@@ -2205,8 +2205,8 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/parser_testfile.c:60,22
-                                                  value:
-                                                    type: VALUE_INT
+                                                  int_value:
+                                                    type: INT_VALUE_I
                                                     int_val: 4096
                                               len: 0
                                       add_op: +
@@ -2219,8 +2219,8 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/parser_testfile.c:60,31
-                                                  value:
-                                                    type: VALUE_INT
+                                                  int_value:
+                                                    type: INT_VALUE_I
                                                     int_val: 13986
                                               len: 0
         block_item:
@@ -2458,8 +2458,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,16
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 6
                                                 len: 0
                                           mul_op: *
@@ -2470,8 +2470,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,20
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 4
                                                 len: 0
               init_declarator:
@@ -2511,8 +2511,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,27
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 4
                                                 len: 0
                                           mul_op: *
@@ -2523,8 +2523,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,31
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 5
                                                 len: 0
                                         add_op: +
@@ -2537,8 +2537,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,35
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 2
                                                 len: 0
               init_declarator:
@@ -2578,8 +2578,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,42
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 3214
                                                 len: 0
                                     rel_op: >
@@ -2596,8 +2596,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,49
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 100
                                                 len: 0
               init_declarator:
@@ -2637,8 +2637,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,58
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 1
                                                 len: 0
                                         add_op: -
@@ -2651,8 +2651,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,62
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 2
                                                 len: 0
                                           mul_op: /
@@ -2663,8 +2663,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,66
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 2
                                                 len: 0
                               and_expr:
@@ -2686,8 +2686,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,70
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 3
                                                 len: 0
                                         add_op: -
@@ -2716,8 +2716,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,88
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 5
                                                 len: 0
                                           mul_op: %
@@ -2728,8 +2728,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,92
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 5
                                                 len: 0
                                 eq_expr:
@@ -2749,8 +2749,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,96
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 1
                                                 len: 0
               init_declarator:
@@ -2806,8 +2806,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:68,108
-                                                    value:
-                                                      type: VALUE_DOUBLE
+                                                    float_value:
+                                                      type: FLOAT_VALUE_D
                                                       float_val: 2.5
                                                 len: 0
               init_declarator:
@@ -2914,8 +2914,8 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/parser_testfile.c:69,39
-                                                  value:
-                                                    type: VALUE_INT
+                                                  int_value:
+                                                    type: INT_VALUE_I
                                                     int_val: 1000
                                               len: 0
         block_item:
@@ -3010,8 +3010,8 @@ translation_unit:
                                                                                 postfix_expr:
                                                                                   primary_expr:
                                                                                     constant: ../frontend/test/files/parser_testfile.c:71,27
-                                                                                      value:
-                                                                                        type: VALUE_INT
+                                                                                      int_value:
+                                                                                        type: INT_VALUE_I
                                                                                         int_val: 0
                                                                                   len: 0
                                                 designation_init:
@@ -3229,8 +3229,8 @@ translation_unit:
                                                                                 postfix_expr:
                                                                                   primary_expr:
                                                                                     constant: ../frontend/test/files/parser_testfile.c:75,16
-                                                                                      value:
-                                                                                        type: VALUE_UINT
+                                                                                      int_value:
+                                                                                        type: INT_VALUE_UI
                                                                                         uint_val: 3735928559
                                                                                   len: 0
                                                 designation_init:
@@ -3622,8 +3622,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:85,16
-                                                    value:
-                                                      type: VALUE_DOUBLE
+                                                    float_value:
+                                                      type: FLOAT_VALUE_D
                                                       float_val: 1e-10
                                                 len: 0
                                         add_op: -
@@ -3636,8 +3636,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:85,24
-                                                    value:
-                                                      type: VALUE_DOUBLE
+                                                    float_value:
+                                                      type: FLOAT_VALUE_D
                                                       float_val: 1e+10
                                                 len: 0
         block_item:
@@ -3858,8 +3858,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:89,14
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 10
                                                 len: 0
         block_item:
@@ -4383,8 +4383,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:94,20
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 8
                                                 len: 0
         block_item:
@@ -4465,8 +4465,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/parser_testfile.c:96,29
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_value:
+                                                            type: INT_VALUE_I
                                                             int_val: 0
                                                       len: 0
                     designation_init:
@@ -4574,8 +4574,8 @@ translation_unit:
                                                   postfix_expr:
                                                     primary_expr:
                                                       constant: ../frontend/test/files/parser_testfile.c:99,17
-                                                        value:
-                                                          type: VALUE_INT
+                                                        int_value:
+                                                          type: INT_VALUE_I
                                                           int_val: 50000
                                                     len: 0
             init_declarator_list:
@@ -4693,8 +4693,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/parser_testfile.c:101,24
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_value:
+                                                            type: INT_VALUE_I
                                                             int_val: 0
                                                       len: 0
         block_item:
@@ -4767,8 +4767,8 @@ translation_unit:
                                                   postfix_expr:
                                                     primary_expr:
                                                       constant: ../frontend/test/files/parser_testfile.c:102,18
-                                                        value:
-                                                          type: VALUE_INT
+                                                        int_value:
+                                                          type: INT_VALUE_I
                                                           int_val: 0
                                                     len: 0
                   init_declarator:
@@ -4901,8 +4901,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:102,49
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 0
                                                 len: 0
               expr:
@@ -5042,8 +5042,8 @@ translation_unit:
                                                             postfix_expr:
                                                               primary_expr:
                                                                 constant: ../frontend/test/files/parser_testfile.c:103,23
-                                                                  value:
-                                                                    type: VALUE_INT
+                                                                  int_value:
+                                                                    type: INT_VALUE_I
                                                                     int_val: 69
                                                               len: 0
                       init_declarator_list:
@@ -5155,8 +5155,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/parser_testfile.c:104,29
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_value:
+                                                              type: INT_VALUE_I
                                                               int_val: 5
                                                         len: 0
                   block_item:
@@ -5266,8 +5266,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/parser_testfile.c:105,29
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_value:
+                                                              type: INT_VALUE_I
                                                               int_val: 4
                                                         len: 0
                                       and_expr:
@@ -5363,8 +5363,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:108,13
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 0
                                                 len: 0
         block_item:
@@ -5434,8 +5434,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:109,18
-                                                    value:
-                                                      type: VALUE_UINT
+                                                    int_value:
+                                                      type: INT_VALUE_UI
                                                       uint_val: 3735928559
                                                 len: 0
         block_item:
@@ -5804,8 +5804,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/parser_testfile.c:123,23
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_value:
+                                                              type: INT_VALUE_I
                                                               int_val: 4
                                                         len: 0
                   block_item:
@@ -5853,8 +5853,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/parser_testfile.c:124,23
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_value:
+                                                              type: INT_VALUE_I
                                                               int_val: 5
                                                         len: 0
                   block_item:
@@ -5938,8 +5938,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/parser_testfile.c:125,19
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_value:
+                                                              type: INT_VALUE_I
                                                               int_val: 9025
                                                         len: 0
                   block_item:
@@ -6003,8 +6003,8 @@ translation_unit:
                                                                   postfix_expr:
                                                                     primary_expr:
                                                                       constant: ../frontend/test/files/parser_testfile.c:126,17
-                                                                        value:
-                                                                          type: VALUE_INT
+                                                                        int_value:
+                                                                          type: INT_VALUE_I
                                                                           int_val: 1
                                                                     len: 0
                               |=
@@ -6037,8 +6037,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/parser_testfile.c:126,23
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_value:
+                                                              type: INT_VALUE_I
                                                               int_val: 1
                                                         len: 0
                   block_item:
@@ -6090,8 +6090,8 @@ translation_unit:
                                                                   postfix_expr:
                                                                     primary_expr:
                                                                       constant: ../frontend/test/files/parser_testfile.c:127,13
-                                                                        value:
-                                                                          type: VALUE_INT
+                                                                        int_value:
+                                                                          type: INT_VALUE_I
                                                                           int_val: 0
                                                                     len: 0
                               ^=
@@ -6124,8 +6124,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/parser_testfile.c:127,19
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_value:
+                                                              type: INT_VALUE_I
                                                               int_val: 10423
                                                         len: 0
               expr:
@@ -6161,8 +6161,8 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/parser_testfile.c:128,14
-                                                  value:
-                                                    type: VALUE_INT
+                                                  int_value:
+                                                    type: INT_VALUE_I
                                                     int_val: 1
                                               len: 0
         block_item:
@@ -6202,8 +6202,8 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/parser_testfile.c:130,12
-                                                  value:
-                                                    type: VALUE_INT
+                                                  int_value:
+                                                    type: INT_VALUE_I
                                                     int_val: 1
                                               len: 0
               statement:
@@ -6318,8 +6318,8 @@ translation_unit:
                                                                                                                 postfix_expr:
                                                                                                                   primary_expr:
                                                                                                                     constant: ../frontend/test/files/parser_testfile.c:133,17
-                                                                                                                      value:
-                                                                                                                        type: VALUE_INT
+                                                                                                                      int_value:
+                                                                                                                        type: INT_VALUE_I
                                                                                                                         int_val: 0
                                                                                                                   len: 0
                                                                   eq_op: ==
@@ -6338,8 +6338,8 @@ translation_unit:
                                                                               postfix_expr:
                                                                                 primary_expr:
                                                                                   constant: ../frontend/test/files/parser_testfile.c:133,23
-                                                                                    value:
-                                                                                      type: VALUE_INT
+                                                                                    int_value:
+                                                                                      type: INT_VALUE_I
                                                                                       int_val: 37
                                                                                 len: 0
                                                       expr:
@@ -6472,8 +6472,8 @@ translation_unit:
                                                                                                                                                   postfix_expr:
                                                                                                                                                     primary_expr:
                                                                                                                                                       constant: ../frontend/test/files/parser_testfile.c:133,40
-                                                                                                                                                        value:
-                                                                                                                                                          type: VALUE_INT
+                                                                                                                                                        int_value:
+                                                                                                                                                          type: INT_VALUE_I
                                                                                                                                                           int_val: 1
                                                                                                                                                     len: 0
                                                                                                     eq_op: ==
@@ -6492,8 +6492,8 @@ translation_unit:
                                                                                                                 postfix_expr:
                                                                                                                   primary_expr:
                                                                                                                     constant: ../frontend/test/files/parser_testfile.c:133,46
-                                                                                                                      value:
-                                                                                                                        type: VALUE_INT
+                                                                                                                      int_value:
+                                                                                                                        type: INT_VALUE_I
                                                                                                                         int_val: 37
                                                                                                                   len: 0
                                                                                         expr:
@@ -6563,8 +6563,8 @@ translation_unit:
                                                                                                                     postfix_expr:
                                                                                                                       primary_expr:
                                                                                                                         constant: ../frontend/test/files/parser_testfile.c:133,64
-                                                                                                                          value:
-                                                                                                                            type: VALUE_INT
+                                                                                                                          int_value:
+                                                                                                                            type: INT_VALUE_I
                                                                                                                             int_val: 123123
                                                                                                                       len: 0
                                                                                 len: 0
@@ -6771,8 +6771,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:137,23
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 10
                                                 len: 0
         block_item:
@@ -6918,8 +6918,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:140,30
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 0
                                                 len: 0
         block_item:
@@ -7020,8 +7020,8 @@ translation_unit:
                                                                                 postfix_expr:
                                                                                   primary_expr:
                                                                                     constant: ../frontend/test/files/parser_testfile.c:141,39
-                                                                                      value:
-                                                                                        type: VALUE_DOUBLE
+                                                                                      float_value:
+                                                                                        type: FLOAT_VALUE_D
                                                                                         float_val: 1
                                                                                   len: 0
                                                     generic_assoc_list: ../frontend/test/files/parser_testfile.c:141,44
@@ -7074,8 +7074,8 @@ translation_unit:
                                                                                     postfix_expr:
                                                                                       primary_expr:
                                                                                         constant: ../frontend/test/files/parser_testfile.c:141,51
-                                                                                          value:
-                                                                                            type: VALUE_INT
+                                                                                          int_value:
+                                                                                            type: INT_VALUE_I
                                                                                             int_val: 10
                                                                                       len: 0
                                                       generic_assoc: ../frontend/test/files/parser_testfile.c:141,55
@@ -7126,8 +7126,8 @@ translation_unit:
                                                                                     postfix_expr:
                                                                                       primary_expr:
                                                                                         constant: ../frontend/test/files/parser_testfile.c:141,63
-                                                                                          value:
-                                                                                            type: VALUE_DOUBLE
+                                                                                          float_value:
+                                                                                            type: FLOAT_VALUE_D
                                                                                             float_val: 12
                                                                                       len: 0
                                                 len: 0
@@ -7164,8 +7164,8 @@ translation_unit:
                                           postfix_expr:
                                             primary_expr:
                                               constant: ../frontend/test/files/parser_testfile.c:142,20
-                                                value:
-                                                  type: VALUE_INT
+                                                int_value:
+                                                  type: INT_VALUE_I
                                                   int_val: 1
                                             len: 0
               string_literal: ../frontend/test/files/parser_testfile.c:142,23
@@ -7389,8 +7389,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/parser_testfile.c:148,44
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_value:
+                                                              type: INT_VALUE_I
                                                               int_val: 10
                                                         len: 0
                 param_declaration:
@@ -7592,8 +7592,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/parser_testfile.c:152,62
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_value:
+                                                              type: INT_VALUE_I
                                                               int_val: 10
                                                         len: 0
                 param_declaration:
@@ -7667,8 +7667,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/parser_testfile.c:153,67
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_value:
+                                                              type: INT_VALUE_I
                                                               int_val: 32
                                                         len: 0
       declaration_list:
@@ -7886,8 +7886,8 @@ translation_unit:
                                                               postfix_expr:
                                                                 primary_expr:
                                                                   constant: ../frontend/test/files/parser_testfile.c:156,55
-                                                                    value:
-                                                                      type: VALUE_INT
+                                                                    int_value:
+                                                                      type: INT_VALUE_I
                                                                       int_val: 10
                                                                 len: 0
                           param_declaration:
@@ -7964,8 +7964,8 @@ translation_unit:
                                                               postfix_expr:
                                                                 primary_expr:
                                                                   constant: ../frontend/test/files/parser_testfile.c:157,57
-                                                                    value:
-                                                                      type: VALUE_INT
+                                                                    int_value:
+                                                                      type: INT_VALUE_I
                                                                       int_val: 69
                                                                 len: 0
                           param_declaration:
@@ -8104,8 +8104,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/parser_testfile.c:164,20
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_value:
+                                                      type: INT_VALUE_I
                                                       int_val: 1
                                                 len: 0
                   string_literal: ../frontend/test/files/parser_testfile.c:164,23
@@ -8504,7 +8504,7 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/parser_testfile.c:171,12
-                                                  value:
-                                                    type: VALUE_INT
+                                                  int_value:
+                                                    type: INT_VALUE_I
                                                     int_val: 0
                                               len: 0

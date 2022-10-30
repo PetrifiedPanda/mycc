@@ -15,12 +15,21 @@
         }                                                                      \
     } while (0)
 
-#define ASSERT_VALUE_TYPE(got, expected)                                       \
+#define ASSERT_INT_VALUE_TYPE(got, expected)                                   \
     do {                                                                       \
         if ((got) != (expected)) {                                             \
             PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             get_value_type_str(expected),                     \
-                             get_value_type_str(got));                         \
+                             get_int_value_type_str(expected),                 \
+                             get_int_value_type_str(got));                     \
+        }                                                                      \
+    } while (0)
+
+#define ASSERT_FLOAT_VALUE_TYPE(got, expected)                                 \
+    do {                                                                       \
+        if ((got) != (expected)) {                                             \
+            PRINT_ASSERT_ERR("Expected %s but got %s",                         \
+                             get_float_value_type_str(expected),               \
+                             get_float_value_type_str(got));                   \
         }                                                                      \
     } while (0)
 
@@ -29,8 +38,7 @@ struct preproc_res tokenize_string(const char* str, const char* file);
 
 void test_compare_files(const char* got_file, const char* ex_file);
 
-#define STR_NON_HEAP(lit) \
-    str_non_heap(sizeof lit / sizeof *lit - 1, lit)
+#define STR_NON_HEAP(lit) str_non_heap(sizeof lit / sizeof *lit - 1, lit)
 
 struct str str_non_heap(size_t len, const char* str);
 
