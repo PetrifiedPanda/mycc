@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
 #include "frontend/err_base.h"
@@ -45,10 +46,11 @@ void print_preproc_err(FILE* out,
 
             assert(err->fail_file < file_info->len);
             const char* fail_path = str_get_data(&file_info->paths[err->fail_file]);
+            const char* err_string = strerror(err->errno_state);
             if (err->open_fail) {
-                fprintf(out, "Failed to open file %s", fail_path);
+                fprintf(out, "Failed to open file %s: %s", fail_path, err_string);
             } else {
-                fprintf(out, "Failed to close file %s", fail_path);
+                fprintf(out, "Failed to close file %s: %s", fail_path, err_string);
             }
             break;
         case PREPROC_ERR_UNTERMINATED_LIT:

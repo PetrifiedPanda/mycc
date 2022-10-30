@@ -427,8 +427,10 @@ static void file_err(struct preproc_err* err,
     assert(fail_file != (size_t)-1);
 
     set_preproc_err(err, PREPROC_ERR_FILE_FAIL, include_loc);
-    err->fail_file = fail_file;
     err->open_fail = open_fail;
+    err->errno_state = errno;
+    err->fail_file = fail_file;
+    errno = 0;
 }
 
 static void free_tokens(struct token* tokens) {
