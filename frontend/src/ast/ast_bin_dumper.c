@@ -176,11 +176,24 @@ static void bin_dump_expr(struct ast_bin_dumper* d, const struct expr* expr) {
     }
 }
 
+static void bin_dump_generic_assoc(struct ast_bin_dumper* d,
+                                   const struct generic_assoc* assoc) {
+    bin_dump_ast_node_info(d, &assoc->info);
+    const bool has_type_name = assoc->type_name != NULL;
+    bin_dump_bool(d, has_type_name);
+    if (has_type_name) {
+        bin_dump_type_name(d, assoc->type_name);
+    }
+    bin_dump_assign_expr(d, assoc->assign);
+}
+
 static void bin_dump_generic_assoc_list(struct ast_bin_dumper* d,
                                         const struct generic_assoc_list* lst) {
-    (void)d;
-    (void)lst;
-    // TODO:
+    bin_dump_ast_node_info(d, &lst->info);
+    bin_dump_uint(d, lst->len);
+    for (size_t i = 0; i < lst->len; ++i) {
+        bin_dump_generic_assoc(d, &lst->assocs[i]);
+    }
 }
 
 static void bin_dump_generic_sel(struct ast_bin_dumper* d,
@@ -214,11 +227,36 @@ static void bin_dump_primary_expr(struct ast_bin_dumper* d,
     }
 }
 
+static void bin_dump_designation(struct ast_bin_dumper* d,
+                                 const struct designation* des) {
+    (void)d;
+    (void)des;
+    // TODO:
+}
+
+static void bin_dump_initializer(struct ast_bin_dumper* d,
+                                 const struct initializer* init) {
+    (void)d;
+    (void)init;
+    // TODO:
+}
+
+static void bin_dump_designation_init(struct ast_bin_dumper* d,
+                                      const struct designation_init* init) {
+    const bool has_designation = init->designation != NULL;
+    bin_dump_bool(d, has_designation);
+    if (has_designation) {
+        bin_dump_designation(d, init->designation);
+    }
+    bin_dump_initializer(d, init->init);
+}
+
 static void bin_dump_init_list(struct ast_bin_dumper* d,
                                const struct init_list* lst) {
-    (void)d;
-    (void)lst;
-    // TODO:
+    bin_dump_uint(d, lst->len);
+    for (size_t i = 0; i < lst->len; ++i) {
+        bin_dump_designation_init(d, &lst->inits[i]);
+    }
 }
 
 static void bin_dump_arg_expr_list(struct ast_bin_dumper* d,

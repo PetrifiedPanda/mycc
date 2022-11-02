@@ -365,12 +365,46 @@ static struct expr* bin_read_expr(struct ast_bin_reader* r) {
     return res;
 }
 
+static bool bin_read_generic_assoc(struct ast_bin_reader* r,
+                                   struct generic_assoc* res) {
+    if (!bin_read_ast_node_info(r, &res->info)) {
+        return false;
+    }
+
+    bool has_type_name;
+    if (!bin_read_bool(r, &has_type_name)) {
+        return false;
+    }
+    if (has_type_name) {
+        res->type_name = bin_read_type_name(r);
+        if (!res->type_name) {
+            return false;
+        }
+    } else {
+        res->type_name = NULL;
+    }
+    res->assign = bin_read_assign_expr(r);
+    return res->assign != NULL;
+}
+
 static bool bin_read_generic_assoc_list(struct ast_bin_reader* r,
                                         struct generic_assoc_list* res) {
-    (void)r;
-    (void)res;
-    // TODO:
-    return false;
+    if (!bin_read_ast_node_info(r, &res->info)) {
+        return false;
+    }
+
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return false;
+    }
+
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_generic_assoc(r, &res->assocs[res->len])) {
+            free_generic_assoc_list(res);
+            return false;
+        }
+    }
+    return true;
 }
 
 static struct generic_sel* bin_read_generic_sel(struct ast_bin_reader* r) {
@@ -442,12 +476,59 @@ fail:
     return NULL;
 }
 
+static struct designation* bin_read_designation(struct ast_bin_reader* r) {
+    (void)r;
+    // TODO:
+    return NULL;
+}
+
+static struct initializer* bin_read_initializer(struct ast_bin_reader* r) {
+    (void)r;
+    // TODO:
+    return NULL;
+}
+
+static bool bin_read_designation_init(struct ast_bin_reader* r,
+                                      struct designation_init* res) {
+    bool has_designation;
+    if (!bin_read_bool(r, &has_designation)) {
+        return false;
+    }
+
+    if (has_designation) {
+        res->designation = bin_read_designation(r);
+        if (!res->designation) {
+            return false;
+        }
+    } else {
+        res->designation = NULL;
+    }
+
+    res->init = bin_read_initializer(r);
+    if (!res->init) {
+        if (has_designation) {
+            free_designation(res->designation);
+        }
+        return false;
+    }
+    return true;
+}
+
 static bool bin_read_init_list(struct ast_bin_reader* r,
                                struct init_list* res) {
-    (void)r;
-    (void)res;
-    // TODO:
-    return false;
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return false;
+    }
+
+    res->inits = xmalloc(sizeof *res->inits * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_designation_init(r, &res->inits[res->len])) {
+            free_init_list_children(res);
+            return false;
+        }
+    }
+    return true;
 }
 
 static bool bin_read_arg_expr_list(struct ast_bin_reader* r,
