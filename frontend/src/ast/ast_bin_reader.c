@@ -1172,12 +1172,38 @@ static struct pointer* bin_read_pointer(struct ast_bin_reader* r) {
     return res;
 }
 
-static bool bin_read_param_type_list(struct ast_bin_reader* r,
-                                     struct param_type_list* res) {
+static bool bin_read_param_declaration(struct ast_bin_reader* r,
+                                       struct param_declaration* res) {
     (void)r;
     (void)res;
     // TODO:
     return false;
+}
+
+static struct param_list* bin_read_param_list(struct ast_bin_reader* r) {
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return NULL;
+    }
+
+    struct param_list* res = xmalloc(sizeof *res);
+    res->decls = xmalloc(sizeof *res->decls * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_param_declaration(r, &res->decls[res->len])) {
+            free_param_list(res);
+            return NULL;
+        }
+    }
+    return res;
+}
+
+static bool bin_read_param_type_list(struct ast_bin_reader* r,
+                                     struct param_type_list* res) {
+    if (!bin_read_bool(r, &res->is_variadic)) {
+        return false;
+    }
+    res->param_list = bin_read_param_list(r);
+    return res->param_list != NULL;
 }
 
 static bool bin_read_identifier_list(struct ast_bin_reader* r,

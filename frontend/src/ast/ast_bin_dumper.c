@@ -514,11 +514,25 @@ static void bin_dump_pointer(struct ast_bin_dumper* d,
     }
 }
 
+static void bin_dump_param_declaration(struct ast_bin_dumper* d,
+                                       const struct param_declaration* decl) {
+    (void)d;
+    (void)decl;
+    // TODO:
+}
+
+static void bin_dump_param_list(struct ast_bin_dumper* d,
+                                const struct param_list* lst) {
+    bin_dump_uint(d, lst->len);
+    for (size_t i = 0; i < lst->len; ++i) {
+        bin_dump_param_declaration(d, &lst->decls[i]);
+    }
+}
+
 static void bin_dump_param_type_list(struct ast_bin_dumper* d,
                                      const struct param_type_list* lst) {
-    (void)d;
-    (void)lst;
-    // TODO:
+    bin_dump_bool(d, lst->is_variadic);
+    bin_dump_param_list(d, lst->param_list);
 }
 
 static void bin_dump_identifier_list(struct ast_bin_dumper* d,
