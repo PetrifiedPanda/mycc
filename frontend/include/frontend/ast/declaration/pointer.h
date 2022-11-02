@@ -3,11 +3,11 @@
 
 #include <stddef.h>
 
-#include "type_quals.h"
-
 #include "frontend/parser/parser_state.h"
 
 #include "frontend/ast/ast_node_info.h"
+
+struct type_quals;
 
 struct pointer {
     struct ast_node_info info;
@@ -18,6 +18,8 @@ struct pointer {
 struct pointer* parse_pointer(struct parser_state* s);
 
 void free_pointer(struct pointer* p);
+
+#include "type_quals.h"
 
 #endif
 
