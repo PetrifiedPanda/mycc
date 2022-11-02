@@ -134,24 +134,60 @@ static void bin_dump_constant(struct ast_bin_dumper* d,
     }
 }
 
+static void bin_dump_string_literal(struct ast_bin_dumper* d,
+                                    const struct string_literal* lit) {
+    bin_dump_ast_node_info(d, &lit->info);
+    bin_dump_str(d, &lit->spelling);
+}
+
 static void bin_dump_string_constant(struct ast_bin_dumper* d,
                                      const struct string_constant* constant) {
-    (void)d;
-    (void)constant;
-    // TODO:
+    bin_dump_bool(d, constant->is_func);
+    if (constant->is_func) {
+        bin_dump_ast_node_info(d, &constant->info);
+    } else {
+        bin_dump_string_literal(d, &constant->lit);
+    }
+}
+
+static void bin_dump_unary_expr(struct ast_bin_dumper* d,
+                                const struct unary_expr* expr);
+
+static void bin_dump_cond_expr(struct ast_bin_dumper* d,
+                               const struct cond_expr* expr);
+
+static void bin_dump_assign_expr(struct ast_bin_dumper* d,
+                                 const struct assign_expr* expr) {
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        const struct unary_and_op* item = &expr->assign_chain[i];
+        bin_dump_unary_expr(d, item->unary);
+        const uint64_t op = item->op;
+        assert((enum assign_expr_op)op == item->op);
+        bin_dump_uint(d, op);
+    }
+    bin_dump_cond_expr(d, expr->value);
 }
 
 static void bin_dump_expr(struct ast_bin_dumper* d, const struct expr* expr) {
+    bin_dump_uint(d, expr->len);
+    for (size_t i = 0; i < expr->len; ++i) {
+        bin_dump_assign_expr(d, &expr->assign_exprs[i]);
+    }
+}
+
+static void bin_dump_generic_assoc_list(struct ast_bin_dumper* d,
+                                        const struct generic_assoc_list* lst) {
     (void)d;
-    (void)expr;
+    (void)lst;
     // TODO:
 }
 
 static void bin_dump_generic_sel(struct ast_bin_dumper* d,
                                  const struct generic_sel* sel) {
-    (void)d;
-    (void)sel;
-    // TODO:
+    bin_dump_ast_node_info(d, &sel->info);
+    bin_dump_assign_expr(d, sel->assign);
+    bin_dump_generic_assoc_list(d, &sel->assocs);
 }
 
 static void bin_dump_primary_expr(struct ast_bin_dumper* d,
@@ -241,6 +277,7 @@ static void bin_dump_unary_expr(struct ast_bin_dumper* d,
     for (size_t i = 0; i < expr->len; ++i) {
         const uint64_t unary_op = expr->ops_before[i];
         assert((enum unary_expr_op)unary_op == expr->ops_before[i]);
+        bin_dump_uint(d, unary_op);
     }
     const uint64_t type = expr->type;
     bin_dump_uint(d, type);
@@ -393,12 +430,6 @@ static void bin_dump_cond_expr(struct ast_bin_dumper* d,
 static void bin_dump_const_expr(struct ast_bin_dumper* d,
                                 const struct const_expr* expr) {
     bin_dump_cond_expr(d, &expr->expr);
-}
-
-static void bin_dump_string_literal(struct ast_bin_dumper* d,
-                                    const struct string_literal* lit) {
-    bin_dump_ast_node_info(d, &lit->info);
-    bin_dump_str(d, &lit->spelling);
 }
 
 static void bin_dump_static_assert_declaration(

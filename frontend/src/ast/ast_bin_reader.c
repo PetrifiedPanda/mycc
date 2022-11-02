@@ -271,24 +271,131 @@ static bool bin_read_constant(struct ast_bin_reader* r, struct constant* res) {
     UNREACHABLE();
 }
 
+static bool bin_read_string_literal(struct ast_bin_reader* r,
+                                    struct string_literal* res) {
+    if (!bin_read_ast_node_info(r, &res->info)) {
+        return false;
+    }
+
+    res->spelling = bin_read_str(r);
+    return str_is_valid(&res->spelling);
+}
+
 static bool bin_read_string_constant(struct ast_bin_reader* r,
-                                     const struct string_constant* constant) {
+                                     struct string_constant* constant) {
+    if (!bin_read_bool(r, &constant->is_func)) {
+        return false;
+    }
+    if (constant->is_func) {
+        return bin_read_ast_node_info(r, &constant->info);
+    } else {
+        return bin_read_string_literal(r, &constant->lit);
+    }
+}
+
+static struct unary_expr* bin_read_unary_expr(struct ast_bin_reader* r);
+
+static struct cond_expr* bin_read_cond_expr(struct ast_bin_reader* r);
+
+static void free_assign_chain(struct unary_and_op* assign_chain, size_t len) {
+    for (size_t i = 0; i < len; ++i) {
+        struct unary_and_op* item = &assign_chain[i];
+        free_unary_expr(item->unary);
+    }
+    free(assign_chain);
+}
+
+static bool bin_read_assign_expr_inplace(struct ast_bin_reader* r,
+                                         struct assign_expr* res) {
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return false;
+    }
+
+    res->len = len;
+    res->assign_chain = xmalloc(sizeof *res->assign_chain * len);
+    for (size_t i = 0; i < len; ++i) {
+        struct unary_and_op* item = &res->assign_chain[i];
+        item->unary = bin_read_unary_expr(r);
+        if (!item->unary) {
+            free_assign_chain(res->assign_chain, i);
+            return false;
+        }
+        uint64_t op;
+        if (!bin_read_uint(r, &op)) {
+            free_unary_expr(item->unary);
+            free_assign_chain(res->assign_chain, i);
+            return false;
+        }
+        item->op = op;
+        assert((uint64_t)item->op == op);
+    }
+
+    res->value = bin_read_cond_expr(r);
+    if (!res->value) {
+        free_assign_chain(res->assign_chain, res->len);
+        return false;
+    }
+    return true;
+}
+
+static struct assign_expr* bin_read_assign_expr(struct ast_bin_reader* r) {
+    struct assign_expr* res = xmalloc(sizeof *res);
+    if (!bin_read_assign_expr_inplace(r, res)) {
+        free(res);
+        return NULL;
+    }
+    return res;
+}
+
+static struct expr* bin_read_expr(struct ast_bin_reader* r) {
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return NULL;
+    }
+
+    struct expr* res = xmalloc(sizeof *res);
+    res->assign_exprs = xmalloc(sizeof *res->assign_exprs * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_assign_expr_inplace(r, &res->assign_exprs[res->len])) {
+            free_expr(res);
+            return false;
+        }
+    }
+    return res;
+}
+
+static bool bin_read_generic_assoc_list(struct ast_bin_reader* r,
+                                        struct generic_assoc_list* res) {
     (void)r;
-    (void)constant;
+    (void)res;
     // TODO:
     return false;
 }
 
-static struct expr* bin_read_expr(struct ast_bin_reader* r) {
-    (void)r;
-    // TODO:
-    return NULL;
-}
-
 static struct generic_sel* bin_read_generic_sel(struct ast_bin_reader* r) {
-    (void)r;
-    // TODO:
-    return NULL;
+    struct ast_node_info info;
+    if (!bin_read_ast_node_info(r, &info)) {
+        return NULL;
+    }
+
+    struct assign_expr* assign = bin_read_assign_expr(r);
+    if (!assign) {
+        return NULL;
+    }
+
+    struct generic_assoc_list assocs;
+    if (!bin_read_generic_assoc_list(r, &assocs)) {
+        free_assign_expr(assign);
+        return NULL;
+    }
+    struct generic_sel* res = xmalloc(sizeof *res);
+    *res = (struct generic_sel){
+        .info = info,
+        .assign = assign,
+        .assocs = assocs,
+    };
+    return res;
 }
 
 static struct primary_expr* bin_read_primary_expr(struct ast_bin_reader* r) {
@@ -815,8 +922,8 @@ static void free_cond_expr_conds(struct cond_expr* cond, size_t len) {
     free(cond->conditionals);
 }
 
-static bool bin_read_cond_expr(struct ast_bin_reader* r,
-                               struct cond_expr* res) {
+static bool bin_read_cond_expr_inplace(struct ast_bin_reader* r,
+                                       struct cond_expr* res) {
     uint64_t len;
     if (!bin_read_uint(r, &len)) {
         return false;
@@ -849,25 +956,24 @@ static bool bin_read_cond_expr(struct ast_bin_reader* r,
     return true;
 }
 
+static struct cond_expr* bin_read_cond_expr(struct ast_bin_reader* r) {
+    struct cond_expr* res = xmalloc(sizeof *res);
+    if (!bin_read_cond_expr_inplace(r, res)) {
+        free(res);
+        return NULL;
+    }
+    return res;
+}
+
 static struct const_expr* bin_read_const_expr(struct ast_bin_reader* r) {
     struct cond_expr cond;
-    if (!bin_read_cond_expr(r, &cond)) {
+    if (!bin_read_cond_expr_inplace(r, &cond)) {
         return NULL;
     }
 
     struct const_expr* res = xmalloc(sizeof *res);
     res->expr = cond;
     return res;
-}
-
-static bool bin_read_string_literal(struct ast_bin_reader* r,
-                                    struct string_literal* res) {
-    if (!bin_read_ast_node_info(r, &res->info)) {
-        return false;
-    }
-
-    res->spelling = bin_read_str(r);
-    return str_is_valid(&res->spelling);
 }
 
 static struct static_assert_declaration* bin_read_static_assert_declaration(
