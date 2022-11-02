@@ -53,15 +53,14 @@ extern jmp_buf test_jump_buf;
     for (size_t i = 0; i < num_tests; ++i) {                                   \
         if (setjmp(test_jump_buf)) {                                           \
             printf("\tTest %s failed", test_names[i]);                         \
-            errno = 0;                                                         \
             goto test_failed;                                                  \
         } else {                                                               \
             tests[i]();                                                        \
         }                                                                      \
-        assert(errno == 0);                                                    \
         printf("\tTest %s successful", test_names[i]);                         \
         ++num_succeeded;                                                       \
 test_failed:                                                                   \
+        assert(errno == 0);                                                    \
         printf("\n");                                                          \
     }                                                                          \
                                                                                \
