@@ -1172,12 +1172,82 @@ static struct pointer* bin_read_pointer(struct ast_bin_reader* r) {
     return res;
 }
 
+static struct direct_abs_declarator* bin_read_direct_abs_declarator(
+    struct ast_bin_reader* r) {
+    (void)r;
+    // TODO:
+    return NULL;
+}
+
+static struct abs_declarator* bin_read_abs_declarator(
+    struct ast_bin_reader* r) {
+    bool has_ptr;
+    if (!bin_read_bool(r, &has_ptr)) {
+        return NULL;
+    }
+    struct pointer* ptr = NULL;
+    if (has_ptr) {
+        ptr = bin_read_pointer(r);
+        if (!ptr) {
+            return NULL;
+        }
+    }
+    bool has_direct_abs_decl;
+    if (!bin_read_bool(r, &has_direct_abs_decl)) {
+        if (has_ptr) {
+            free_pointer(ptr);
+        }
+        return false;
+    }
+
+    struct direct_abs_declarator* direct_abs_decl = NULL;
+    if (has_direct_abs_decl) {
+        direct_abs_decl = bin_read_direct_abs_declarator(r);
+        if (!direct_abs_decl) {
+            if (has_ptr) {
+                free_pointer(ptr);
+            }
+            return false;
+        }
+    }
+    struct abs_declarator* res = xmalloc(sizeof *res);
+    *res = (struct abs_declarator){
+        .ptr = ptr,
+        .direct_abs_decl = direct_abs_decl,
+    };
+    return res;
+}
+
+static struct declaration_specs* bin_read_declaration_specs(
+    struct ast_bin_reader* r);
+
+static struct declarator* bin_read_declarator(struct ast_bin_reader* r);
+
 static bool bin_read_param_declaration(struct ast_bin_reader* r,
                                        struct param_declaration* res) {
-    (void)r;
-    (void)res;
-    // TODO:
-    return false;
+    res->decl_specs = bin_read_declaration_specs(r);
+    if (!res->decl_specs) {
+        return false;
+    }
+
+    uint64_t type;
+    if (!bin_read_uint(r, &type)) {
+        free_declaration_specs(res->decl_specs);
+        return false;
+    }
+    res->type = type;
+    assert((uint64_t)res->type == type);
+    switch (res->type) {
+        case PARAM_DECL_DECL:
+            res->decl = bin_read_declarator(r);
+            return res->decl != NULL;
+        case PARAM_DECL_ABSTRACT_DECL:
+            res->abstract_decl = bin_read_abs_declarator(r);
+            return res->abstract_decl != NULL;
+        case PARAM_DECL_NONE:
+            return true;
+    }
+    UNREACHABLE();
 }
 
 static struct param_list* bin_read_param_list(struct ast_bin_reader* r) {
@@ -1260,8 +1330,6 @@ static bool bin_read_arr_or_func_suffix(struct ast_bin_reader* r,
     }
     UNREACHABLE();
 }
-
-static struct declarator* bin_read_declarator(struct ast_bin_reader* r);
 
 static struct direct_declarator* bin_read_direct_declarator(
     struct ast_bin_reader* r) {
@@ -1388,9 +1456,6 @@ static bool bin_read_struct_declarator_list(
     }
     return false;
 }
-
-static struct declaration_specs* bin_read_declaration_specs(
-    struct ast_bin_reader* r);
 
 static bool bin_read_struct_declaration(struct ast_bin_reader* r,
                                         struct struct_declaration* res) {
@@ -1557,13 +1622,6 @@ static struct spec_qual_list* bin_read_spec_qual_list(
         .specs = specs,
     };
     return res;
-}
-
-static struct abs_declarator* bin_read_abs_declarator(
-    struct ast_bin_reader* r) {
-    (void)r;
-    // TODO:
-    return NULL;
 }
 
 static bool bin_read_type_name_inplace(struct ast_bin_reader* r,

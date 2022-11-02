@@ -514,11 +514,50 @@ static void bin_dump_pointer(struct ast_bin_dumper* d,
     }
 }
 
-static void bin_dump_param_declaration(struct ast_bin_dumper* d,
-                                       const struct param_declaration* decl) {
+static void bin_dump_direct_abs_declarator(
+    struct ast_bin_dumper* d,
+    const struct direct_abs_declarator* decl) {
     (void)d;
     (void)decl;
     // TODO:
+}
+
+static void bin_dump_abs_declarator(struct ast_bin_dumper* d,
+                                    const struct abs_declarator* decl) {
+    const bool has_ptr = decl->ptr != NULL;
+    bin_dump_bool(d, has_ptr);
+    if (has_ptr) {
+        bin_dump_pointer(d, decl->ptr);
+    }
+    const bool has_direct_abs_decl = decl->direct_abs_decl != NULL;
+    bin_dump_bool(d, has_direct_abs_decl);
+    if (has_direct_abs_decl) {
+        bin_dump_direct_abs_declarator(d, decl->direct_abs_decl);
+    }
+}
+
+static void bin_dump_declaration_specs(struct ast_bin_dumper* d,
+                                       const struct declaration_specs* specs);
+
+static void bin_dump_declarator(struct ast_bin_dumper* d,
+                                const struct declarator* decl);
+
+static void bin_dump_param_declaration(struct ast_bin_dumper* d,
+                                       const struct param_declaration* decl) {
+    bin_dump_declaration_specs(d, decl->decl_specs);
+    const uint64_t type = decl->type;
+    assert((enum param_decl_type)type == decl->type);
+    bin_dump_uint(d, type);
+    switch (decl->type) {
+        case PARAM_DECL_DECL:
+            bin_dump_declarator(d, decl->decl);
+            break;
+        case PARAM_DECL_ABSTRACT_DECL:
+            bin_dump_abs_declarator(d, decl->abstract_decl);
+            break;
+        case PARAM_DECL_NONE:
+            break;
+    }
 }
 
 static void bin_dump_param_list(struct ast_bin_dumper* d,
@@ -576,9 +615,6 @@ static void bin_dump_arr_or_func_suffix(
     }
 }
 
-static void bin_dump_declarator(struct ast_bin_dumper* d,
-                                const struct declarator* decl);
-
 static void bin_dump_direct_declarator(struct ast_bin_dumper* d,
                                        const struct direct_declarator* decl) {
     bin_dump_ast_node_info(d, &decl->info);
@@ -626,9 +662,6 @@ static void bin_dump_struct_declarator_list(
         bin_dump_struct_declarator(d, &decls->decls[i]);
     }
 }
-
-static void bin_dump_declaration_specs(struct ast_bin_dumper* d,
-                                       const struct declaration_specs* specs);
 
 static void bin_dump_struct_declaration(struct ast_bin_dumper* d,
                                         const struct struct_declaration* decl) {
@@ -714,13 +747,6 @@ static void bin_dump_spec_qual_list(struct ast_bin_dumper* d,
     bin_dump_ast_node_info(d, &lst->info);
     bin_dump_type_quals(d, &lst->quals);
     bin_dump_type_specs(d, &lst->specs);
-}
-
-static void bin_dump_abs_declarator(struct ast_bin_dumper* d,
-                                    const struct abs_declarator* decl) {
-    (void)d;
-    (void)decl;
-    // TODO:
 }
 
 static void bin_dump_type_name(struct ast_bin_dumper* d,
