@@ -268,6 +268,7 @@ static bool bin_read_constant(struct ast_bin_reader* r, struct constant* res) {
         case CONSTANT_FLOAT:
             return bin_read_float_value(r, &res->float_val);
     }
+    UNREACHABLE();
 }
 
 static bool bin_read_string_constant(struct ast_bin_reader* r,
