@@ -227,18 +227,45 @@ static void bin_dump_primary_expr(struct ast_bin_dumper* d,
     }
 }
 
+static void bin_dump_const_expr(struct ast_bin_dumper* d,
+                                const struct const_expr* expr);
+
+static void bin_dump_designator(struct ast_bin_dumper* d,
+                                const struct designator* des) {
+    bin_dump_ast_node_info(d, &des->info);
+    bin_dump_bool(d, des->is_index);
+    if (des->is_index) {
+        bin_dump_const_expr(d, des->arr_index);
+    } else {
+        bin_dump_identifier(d, des->identifier);
+    }
+}
+
+static void bin_dump_designator_list(struct ast_bin_dumper* d,
+                                     const struct designator_list* des) {
+    bin_dump_uint(d, des->len);
+    for (size_t i = 0; i < des->len; ++i) {
+        bin_dump_designator(d, &des->designators[i]);
+    }
+}
+
 static void bin_dump_designation(struct ast_bin_dumper* d,
                                  const struct designation* des) {
-    (void)d;
-    (void)des;
-    // TODO:
+    bin_dump_designator_list(d, &des->designators);
 }
+
+static void bin_dump_init_list(struct ast_bin_dumper* d,
+                               const struct init_list* lst);
 
 static void bin_dump_initializer(struct ast_bin_dumper* d,
                                  const struct initializer* init) {
-    (void)d;
-    (void)init;
-    // TODO:
+    bin_dump_ast_node_info(d, &init->info);
+    bin_dump_bool(d, init->is_assign);
+    if (init->is_assign) {
+        bin_dump_assign_expr(d, init->assign);
+    } else {
+        bin_dump_init_list(d, &init->init_list);
+    }
 }
 
 static void bin_dump_designation_init(struct ast_bin_dumper* d,
@@ -261,9 +288,10 @@ static void bin_dump_init_list(struct ast_bin_dumper* d,
 
 static void bin_dump_arg_expr_list(struct ast_bin_dumper* d,
                                    const struct arg_expr_list* lst) {
-    (void)d;
-    (void)lst;
-    // TODO:
+    bin_dump_uint(d, lst->len);
+    for (size_t i = 0; i < lst->len; ++i) {
+        bin_dump_assign_expr(d, &lst->assign_exprs[i]);
+    }
 }
 
 static void bin_dump_postfix_suffix(struct ast_bin_dumper* d,
@@ -477,12 +505,112 @@ static void bin_dump_static_assert_declaration(
     bin_dump_string_literal(d, &decl->err_msg);
 }
 
+static void bin_dump_pointer(struct ast_bin_dumper* d,
+                             const struct pointer* ptr) {
+    bin_dump_ast_node_info(d, &ptr->info);
+    bin_dump_uint(d, ptr->num_indirs);
+    for (size_t i = 0; i < ptr->num_indirs; ++i) {
+        bin_dump_type_quals(d, &ptr->quals_after_ptr[i]);
+    }
+}
+
+static void bin_dump_param_type_list(struct ast_bin_dumper* d,
+                                     const struct param_type_list* lst) {
+    (void)d;
+    (void)lst;
+    // TODO:
+}
+
+static void bin_dump_identifier_list(struct ast_bin_dumper* d,
+                                     const struct identifier_list* lst) {
+    (void)d;
+    (void)lst;
+    // TODO:
+}
+
+static void bin_dump_arr_suffix(struct ast_bin_dumper* d,
+                                const struct arr_suffix* suffix) {
+    bin_dump_bool(d, suffix->is_static);
+    bin_dump_type_quals(d, &suffix->type_quals);
+    bin_dump_bool(d, suffix->is_asterisk);
+    const bool has_assign_expr = suffix->arr_len != NULL;
+    bin_dump_bool(d, has_assign_expr);
+    if (has_assign_expr) {
+        bin_dump_assign_expr(d, suffix->arr_len);
+    }
+}
+
+static void bin_dump_arr_or_func_suffix(
+    struct ast_bin_dumper* d,
+    const struct arr_or_func_suffix* suffix) {
+    bin_dump_ast_node_info(d, &suffix->info);
+    const uint64_t type = suffix->type;
+    assert((enum arr_or_func_suffix_type)type == suffix->type);
+    bin_dump_uint(d, type);
+    switch (suffix->type) {
+        case ARR_OR_FUNC_ARRAY:
+            bin_dump_arr_suffix(d, &suffix->arr_suffix);
+            break;
+        case ARR_OR_FUNC_FUN_PARAMS:
+            bin_dump_param_type_list(d, &suffix->fun_types);
+            break;
+        case ARR_OR_FUNC_FUN_OLD_PARAMS:
+            bin_dump_identifier_list(d, &suffix->fun_params);
+            break;
+        case ARR_OR_FUNC_FUN_EMPTY:
+            break;
+    }
+}
+
+static void bin_dump_declarator(struct ast_bin_dumper* d,
+                                const struct declarator* decl);
+
+static void bin_dump_direct_declarator(struct ast_bin_dumper* d,
+                                       const struct direct_declarator* decl) {
+    bin_dump_ast_node_info(d, &decl->info);
+    bin_dump_bool(d, decl->is_id);
+    if (decl->is_id) {
+        bin_dump_identifier(d, decl->id);
+    } else {
+        bin_dump_declarator(d, decl->decl);
+    }
+    bin_dump_uint(d, decl->len);
+    for (size_t i = 0; i < decl->len; ++i) {
+        bin_dump_arr_or_func_suffix(d, &decl->suffixes[i]);
+    }
+}
+
+static void bin_dump_declarator(struct ast_bin_dumper* d,
+                                const struct declarator* decl) {
+    const bool has_ptr = decl->ptr != NULL;
+    bin_dump_bool(d, has_ptr);
+    if (has_ptr) {
+        bin_dump_pointer(d, decl->ptr);
+    }
+    bin_dump_direct_declarator(d, decl->direct_decl);
+}
+
+static void bin_dump_struct_declarator(struct ast_bin_dumper* d,
+                                       const struct struct_declarator* decl) {
+    const bool has_decl = decl->decl != NULL;
+    bin_dump_bool(d, has_decl);
+    if (has_decl) {
+        bin_dump_declarator(d, decl->decl);
+    }
+    const bool has_bit_field = decl->bit_field != NULL;
+    bin_dump_bool(d, has_bit_field);
+    if (has_bit_field) {
+        bin_dump_const_expr(d, decl->bit_field);
+    }
+}
+
 static void bin_dump_struct_declarator_list(
     struct ast_bin_dumper* d,
     const struct struct_declarator_list* decls) {
-    (void)d;
-    (void)decls;
-    // TODO:
+    bin_dump_uint(d, decls->len);
+    for (size_t i = 0; i < decls->len; ++i) {
+        bin_dump_struct_declarator(d, &decls->decls[i]);
+    }
 }
 
 static void bin_dump_declaration_specs(struct ast_bin_dumper* d,
@@ -630,13 +758,6 @@ static void bin_dump_declaration_specs(struct ast_bin_dumper* d,
     }
 
     bin_dump_type_specs(d, &specs->type_specs);
-}
-
-static void bin_dump_declarator(struct ast_bin_dumper* d,
-                                const struct declarator* decl) {
-    (void)d;
-    (void)decl;
-    // TODO:
 }
 
 static void bin_dump_declaration_list(struct ast_bin_dumper* d,
