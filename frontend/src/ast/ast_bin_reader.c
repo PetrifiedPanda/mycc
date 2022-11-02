@@ -73,6 +73,14 @@ static bool bin_read_uint(struct ast_bin_reader* r, uint64_t* res) {
     return bin_reader_read(r, res, sizeof *res, 1);
 }
 
+static bool bin_read_int(struct ast_bin_reader* r, int64_t* res) {
+    return bin_reader_read(r, res, sizeof *res, 1);
+}
+
+static bool bin_read_float(struct ast_bin_reader* r, long double* res) {
+    return bin_reader_read(r, res, sizeof *res, 1);
+}
+
 static void* alloc_or_null(size_t num_bytes) {
     if (num_bytes == 0) {
         return NULL;
@@ -197,11 +205,69 @@ static struct identifier* bin_read_identifier(struct ast_bin_reader* r) {
     return res;
 }
 
+static bool bin_read_int_value(struct ast_bin_reader* r,
+                               struct int_value* res) {
+    uint64_t type;
+    if (!bin_read_uint(r, &type)) {
+        return false;
+    }
+    res->type = type;
+    assert((uint64_t)res->type == type);
+    if (int_value_is_signed(res->type)) {
+        int64_t int_val;
+        if (!bin_read_int(r, &int_val)) {
+            return false;
+        }
+        res->int_val = int_val;
+        assert((int64_t)res->int_val == int_val);
+    } else {
+        uint64_t uint_val;
+        if (!bin_read_uint(r, &uint_val)) {
+            return false;
+        }
+        res->uint_val = uint_val;
+        assert((uint64_t)res->uint_val == uint_val);
+    }
+    return true;
+}
+
+static bool bin_read_float_value(struct ast_bin_reader* r,
+                                 struct float_value* res) {
+    uint64_t type;
+    if (!bin_read_uint(r, &type)) {
+        return false;
+    }
+    res->type = type;
+    assert((uint64_t)res->type == type);
+    long double val;
+    if (!bin_read_float(r, &val)) {
+        return false;
+    }
+    res->val = val;
+    assert((long double)res->val == val);
+    return true;
+}
+
 static bool bin_read_constant(struct ast_bin_reader* r, struct constant* res) {
-    (void)r;
-    (void)res;
-    // TODO:
-    return false;
+    if (!bin_read_ast_node_info(r, &res->info)) {
+        return false;
+    }
+
+    uint64_t type;
+    if (!bin_read_uint(r, &type)) {
+        return false;
+    }
+    res->type = type;
+    assert((uint64_t)res->type == type);
+    switch (res->type) {
+        case CONSTANT_ENUM:
+            res->spelling = bin_read_str(r);
+            return str_is_valid(&res->spelling);
+        case CONSTANT_INT:
+            return bin_read_int_value(r, &res->int_val);
+        case CONSTANT_FLOAT:
+            return bin_read_float_value(r, &res->float_val);
+    }
 }
 
 static bool bin_read_string_constant(struct ast_bin_reader* r,

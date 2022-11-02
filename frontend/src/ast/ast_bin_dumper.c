@@ -46,6 +46,14 @@ static void bin_dump_uint(struct ast_bin_dumper* d, uint64_t i) {
     bin_dumper_write(d, &i, sizeof i, 1);
 }
 
+static void bin_dump_int(struct ast_bin_dumper* d, int64_t i) {
+    bin_dumper_write(d, &i, sizeof i, 1);
+}
+
+static void bin_dump_float(struct ast_bin_dumper* d, long double f) {
+    bin_dumper_write(d, &f, sizeof f, 1);
+}
+
 static void bin_dump_str(struct ast_bin_dumper* d, const struct str* str) {
     const size_t len = str_len(str);
     bin_dump_uint(d, len);
@@ -91,11 +99,39 @@ static void bin_dump_identifier(struct ast_bin_dumper* d,
     bin_dump_str(d, &id->spelling);
 }
 
+static void bin_dump_int_value(struct ast_bin_dumper* d,
+                               const struct int_value* val) {
+    bin_dump_uint(d, val->type);
+    if (int_value_is_signed(val->type)) {
+        bin_dump_int(d, val->int_val);
+    } else {
+        bin_dump_uint(d, val->uint_val);
+    }
+}
+
+static void bin_dump_float_value(struct ast_bin_dumper* d,
+                                 const struct float_value* val) {
+    bin_dump_uint(d, val->type);
+    bin_dump_float(d, val->val);
+}
+
 static void bin_dump_constant(struct ast_bin_dumper* d,
                               const struct constant* constant) {
-    (void)d;
-    (void)constant;
-    // TODO:
+    bin_dump_ast_node_info(d, &constant->info);
+    const uint64_t type = constant->type;
+    assert((enum constant_type)type == constant->type);
+    bin_dump_uint(d, type);
+    switch (constant->type) {
+        case CONSTANT_ENUM:
+            bin_dump_str(d, &constant->spelling);
+            break;
+        case CONSTANT_INT:
+            bin_dump_int_value(d, &constant->int_val);
+            break;
+        case CONSTANT_FLOAT:
+            bin_dump_float_value(d, &constant->float_val);
+            break;
+    }
 }
 
 static void bin_dump_string_constant(struct ast_bin_dumper* d,
@@ -593,4 +629,3 @@ static void bin_dump_translation_unit(struct ast_bin_dumper* d,
         bin_dump_external_declaration(d, &tl->external_decls[i]);
     }
 }
-
