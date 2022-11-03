@@ -1619,10 +1619,81 @@ static struct struct_union_spec* bin_read_struct_union_spec(
     return res;
 }
 
+static bool bin_read_enumerator(struct ast_bin_reader* r,
+                                struct enumerator* res) {
+    res->identifier = bin_read_identifier(r);
+    if (!res->identifier) {
+        return false;
+    }
+    bool has_enum_val;
+    if (!bin_read_bool(r, &has_enum_val)) {
+        free_identifier(res->identifier);
+        return false;
+    }
+
+    if (has_enum_val) {
+        res->enum_val = bin_read_const_expr(r);
+        if (!res->enum_val) {
+            free_identifier(res->identifier);
+            return false;
+        }
+    } else {
+        res->enum_val = NULL;
+    }
+    return true;
+}
+
+static bool bin_read_enum_list(struct ast_bin_reader* r,
+                               struct enum_list* res) {
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return false;
+    }
+    res->enums = xmalloc(sizeof *res->enums * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_enumerator(r, &res->enums[res->len])) {
+            free_enum_list(res);
+            return false;
+        }
+    }
+    return true;
+}
+
 static struct enum_spec* bin_read_enum_spec(struct ast_bin_reader* r) {
-    (void)r;
-    // TODO:
-    return NULL;
+    struct ast_node_info info;
+    if (!bin_read_ast_node_info(r, &info)) {
+        return NULL;
+    }
+    bool has_identifier;
+    if (!bin_read_bool(r, &has_identifier)) {
+        return NULL;
+    }
+
+    struct identifier* id;
+    if (has_identifier) {
+        id = bin_read_identifier(r);
+        if (!id) {
+            return NULL;
+        }
+    } else {
+        id = NULL;
+    }
+
+    struct enum_list lst;
+    if (!bin_read_enum_list(r, &lst)) {
+        if (has_identifier) {
+            free_identifier(id);
+        }
+        return NULL;
+    }
+
+    struct enum_spec* res = xmalloc(sizeof *res);
+    *res = (struct enum_spec){
+        .info = info,
+        .identifier = id,
+        .enum_list = lst,
+    };
+    return res;
 }
 
 static bool bin_read_type_modifiers(struct ast_bin_reader* r,
@@ -1835,19 +1906,129 @@ static struct declaration_specs* bin_read_declaration_specs(
     return res;
 }
 
+static bool bin_read_declaration(struct ast_bin_reader* r,
+                                 struct declaration* res);
+
 static bool bin_read_declaration_list(struct ast_bin_reader* r,
                                       struct declaration_list* res) {
-    (void)r;
-    (void)res;
-    // TODO:
-    return false;
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return false;
+    }
+    res->decls = xmalloc(sizeof *res->decls * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_declaration(r, &res->decls[res->len])) {
+            free_declaration_list(res);
+            return false;
+        }
+    }
+    return true;
 }
 
-static struct compound_statement* bin_read_compound_statement(
+static struct labeled_statement* bin_read_labeled_statement(
     struct ast_bin_reader* r) {
     (void)r;
     // TODO:
     return NULL;
+}
+
+static struct expr_statement* bin_read_expr_statement(
+    struct ast_bin_reader* r) {
+    (void)r;
+    // TODO:
+    return NULL;
+}
+
+static struct selection_statement* bin_read_selection_statement(
+    struct ast_bin_reader* r) {
+    (void)r;
+    // TODO:
+    return NULL;
+}
+
+static struct iteration_statement* bin_read_iteration_statement(
+    struct ast_bin_reader* r) {
+    (void)r;
+    // TODO:
+    return NULL;
+}
+
+static struct jump_statement* bin_read_jump_statement(
+    struct ast_bin_reader* r) {
+    (void)r;
+    // TODO:
+    return NULL;
+}
+
+static struct compound_statement* bin_read_compound_statement(
+    struct ast_bin_reader* r);
+
+static bool bin_read_statement(struct ast_bin_reader* r,
+                               struct statement* res) {
+    uint64_t type;
+    if (!bin_read_uint(r, &type)) {
+        return false;
+    }
+    res->type = type;
+    assert((uint64_t)res->type == type);
+    switch (res->type) {
+        case STATEMENT_LABELED:
+            res->labeled = bin_read_labeled_statement(r);
+            return res->labeled != NULL;
+        case STATEMENT_COMPOUND:
+            res->comp = bin_read_compound_statement(r);
+            return res->comp != NULL;
+        case STATEMENT_EXPRESSION:
+            res->expr = bin_read_expr_statement(r);
+            return res->expr != NULL;
+        case STATEMENT_SELECTION:
+            res->sel = bin_read_selection_statement(r);
+            return res->sel != NULL;
+        case STATEMENT_ITERATION:
+            res->it = bin_read_iteration_statement(r);
+            return res->it != NULL;
+        case STATEMENT_JUMP:
+            res->jmp = bin_read_jump_statement(r);
+            return res->jmp != NULL;
+    }
+    UNREACHABLE();
+}
+
+static bool bin_read_block_item(struct ast_bin_reader* r,
+                                struct block_item* res) {
+    if (!bin_read_bool(r, &res->is_decl)) {
+        return false;
+    }
+
+    if (res->is_decl) {
+        return bin_read_declaration(r, &res->decl);
+    } else {
+        return bin_read_statement(r, &res->stat);
+    }
+}
+
+static struct compound_statement* bin_read_compound_statement(
+    struct ast_bin_reader* r) {
+    struct ast_node_info info;
+    if (!bin_read_ast_node_info(r, &info)) {
+        return NULL;
+    }
+
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return NULL;
+    }
+
+    struct compound_statement* res = xmalloc(sizeof *res);
+    res->info = info;
+    res->items = xmalloc(sizeof *res->items * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_block_item(r, &res->items[res->len])) {
+            free_compound_statement(res);
+            return NULL;
+        }
+    }
+    return res;
 }
 
 static bool bin_read_func_def(struct ast_bin_reader* r, struct func_def* res) {

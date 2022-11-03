@@ -731,11 +731,33 @@ static void bin_dump_struct_union_spec(struct ast_bin_dumper* d,
     bin_dump_struct_declaration_list(d, &spec->decl_list);
 }
 
+static void bin_dump_enumerator(struct ast_bin_dumper* d,
+                                const struct enumerator* enumerator) {
+    bin_dump_identifier(d, enumerator->identifier);
+    const bool has_enum_val = enumerator->enum_val != NULL;
+    bin_dump_bool(d, has_enum_val);
+    if (has_enum_val) {
+        bin_dump_const_expr(d, enumerator->enum_val);
+    }
+}
+
+static void bin_dump_enum_list(struct ast_bin_dumper* d,
+                               const struct enum_list* lst) {
+    bin_dump_uint(d, lst->len);
+    for (size_t i = 0; i < lst->len; ++i) {
+        bin_dump_enumerator(d, &lst->enums[i]);
+    }
+}
+
 static void bin_dump_enum_spec(struct ast_bin_dumper* d,
                                const struct enum_spec* spec) {
-    (void)d;
-    (void)spec;
-    // TODO:
+    bin_dump_ast_node_info(d, &spec->info);
+    const bool has_identifier = spec->identifier != NULL;
+    bin_dump_bool(d, has_identifier);
+    if (has_identifier) {
+        bin_dump_identifier(d, spec->identifier);
+    }
+    bin_dump_enum_list(d, &spec->enum_list);
 }
 
 static void bin_dump_type_modifiers(struct ast_bin_dumper* d,
@@ -836,18 +858,101 @@ static void bin_dump_declaration_specs(struct ast_bin_dumper* d,
     bin_dump_type_specs(d, &specs->type_specs);
 }
 
+static void bin_dump_declaration(struct ast_bin_dumper* d,
+                                 const struct declaration* decl);
+
 static void bin_dump_declaration_list(struct ast_bin_dumper* d,
                                       const struct declaration_list* decls) {
+    bin_dump_uint(d, decls->len);
+    for (size_t i = 0; i < decls->len; ++i) {
+        bin_dump_declaration(d, &decls->decls[i]);
+    }
+}
+
+static void bin_dump_labeled_statement(struct ast_bin_dumper* d,
+                                       const struct labeled_statement* stat) {
     (void)d;
-    (void)decls;
+    (void)stat;
+    // TODO:
+}
+
+static void bin_dump_expr_statement(struct ast_bin_dumper* d,
+                                    const struct expr_statement* stat) {
+    (void)d;
+    (void)stat;
+    // TODO:
+}
+
+static void bin_dump_selection_statement(
+    struct ast_bin_dumper* d,
+    const struct selection_statement* stat) {
+    (void)d;
+    (void)stat;
+    // TODO:
+}
+
+static void bin_dump_iteration_statement(
+    struct ast_bin_dumper* d,
+    const struct iteration_statement* stat) {
+    (void)d;
+    (void)stat;
+    // TODO:
+}
+
+static void bin_dump_jump_statement(struct ast_bin_dumper* d,
+                                    const struct jump_statement* stat) {
+    (void)d;
+    (void)stat;
     // TODO:
 }
 
 static void bin_dump_compound_statement(struct ast_bin_dumper* d,
+                                        const struct compound_statement* stat);
+
+static void bin_dump_statement(struct ast_bin_dumper* d,
+                               const struct statement* stat) {
+    const uint64_t type = stat->type;
+    assert((enum statement_type)type == stat->type);
+    bin_dump_uint(d, type);
+    switch (stat->type) {
+        case STATEMENT_LABELED:
+            bin_dump_labeled_statement(d, stat->labeled);
+            break;
+        case STATEMENT_COMPOUND:
+            bin_dump_compound_statement(d, stat->comp);
+            break;
+        case STATEMENT_EXPRESSION:
+            bin_dump_expr_statement(d, stat->expr);
+            break;
+        case STATEMENT_SELECTION:
+            bin_dump_selection_statement(d, stat->sel);
+            break;
+        case STATEMENT_ITERATION:
+            bin_dump_iteration_statement(d, stat->it);
+            break;
+        case STATEMENT_JUMP:
+            bin_dump_jump_statement(d, stat->jmp);
+            break;
+    }
+}
+
+static void bin_dump_block_item(struct ast_bin_dumper* d,
+                                const struct block_item* item) {
+    bin_dump_bool(d, item->is_decl);
+    if (item->is_decl) {
+        bin_dump_declaration(d, &item->decl);
+    } else {
+        bin_dump_statement(d, &item->stat);
+    }
+}
+
+static void bin_dump_compound_statement(struct ast_bin_dumper* d,
                                         const struct compound_statement* stat) {
-    (void)d;
-    (void)stat;
-    // TODO:
+    bin_dump_ast_node_info(d, &stat->info);
+    bin_dump_uint(d, stat->len);
+    for (size_t i = 0; i < stat->len; ++i) {
+        bin_dump_block_item(d, &stat->items[i]);
+    }
 }
 
 static void bin_dump_func_def(struct ast_bin_dumper* d,
