@@ -514,12 +514,47 @@ static void bin_dump_pointer(struct ast_bin_dumper* d,
     }
 }
 
+static void bin_dump_param_type_list(struct ast_bin_dumper* d,
+                                     const struct param_type_list* lst);
+
+static void bin_dump_abs_arr_or_func_suffix(
+    struct ast_bin_dumper* d,
+    const struct abs_arr_or_func_suffix* suffix) {
+    bin_dump_ast_node_info(d, &suffix->info);
+    const uint64_t type = suffix->type;
+    assert((enum abs_arr_or_func_suffix_type)type == suffix->type);
+    bin_dump_uint(d, type);
+    switch (suffix->type) {
+        case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
+            bin_dump_bool(d, suffix->has_asterisk);
+            break;
+        case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN:
+            bin_dump_bool(d, suffix->is_static);
+            bin_dump_type_quals(d, &suffix->type_quals);
+            bin_dump_assign_expr(d, suffix->assign);
+            break;
+        case ABS_ARR_OR_FUNC_SUFFIX_FUNC:
+            bin_dump_param_type_list(d, &suffix->func_types);
+            break;
+    }
+}
+
+static void bin_dump_abs_declarator(struct ast_bin_dumper* d,
+                                    const struct abs_declarator* decl);
+
 static void bin_dump_direct_abs_declarator(
     struct ast_bin_dumper* d,
     const struct direct_abs_declarator* decl) {
-    (void)d;
-    (void)decl;
-    // TODO:
+    bin_dump_ast_node_info(d, &decl->info);
+    const bool has_bracket_decl = decl->bracket_decl != NULL;
+    bin_dump_bool(d, has_bracket_decl);
+    if (has_bracket_decl) {
+        bin_dump_abs_declarator(d, decl->bracket_decl);
+    }
+    bin_dump_uint(d, decl->len);
+    for (size_t i = 0; i < decl->len; ++i) {
+        bin_dump_abs_arr_or_func_suffix(d, &decl->following_suffixes[i]);
+    }
 }
 
 static void bin_dump_abs_declarator(struct ast_bin_dumper* d,
@@ -576,9 +611,10 @@ static void bin_dump_param_type_list(struct ast_bin_dumper* d,
 
 static void bin_dump_identifier_list(struct ast_bin_dumper* d,
                                      const struct identifier_list* lst) {
-    (void)d;
-    (void)lst;
-    // TODO:
+    bin_dump_uint(d, lst->len);
+    for (size_t i = 0; i < lst->len; ++i) {
+        bin_dump_identifier(d, &lst->identifiers[i]);
+    }
 }
 
 static void bin_dump_arr_suffix(struct ast_bin_dumper* d,

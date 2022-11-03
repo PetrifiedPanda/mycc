@@ -186,22 +186,24 @@ static struct atomic_type_spec* bin_read_atomic_type_spec(
     return res;
 }
 
+static bool bin_read_identifier_inplace(struct ast_bin_reader* r,
+                                        struct identifier* res) {
+    if (!bin_read_ast_node_info(r, &res->info)) {
+        return false;
+    }
+
+    if (!str_is_valid(&res->spelling)) {
+        return false;
+    }
+    return true;
+}
+
 static struct identifier* bin_read_identifier(struct ast_bin_reader* r) {
-    struct ast_node_info info;
-    if (!bin_read_ast_node_info(r, &info)) {
-        return NULL;
-    }
-
-    struct str spell = bin_read_str(r);
-    if (!str_is_valid(&spell)) {
-        return NULL;
-    }
-
     struct identifier* res = xmalloc(sizeof *res);
-    *res = (struct identifier){
-        .info = info,
-        .spelling = spell,
-    };
+    if (!bin_read_identifier_inplace(r, res)) {
+        free(res);
+        return NULL;
+    }
     return res;
 }
 
@@ -1172,11 +1174,83 @@ static struct pointer* bin_read_pointer(struct ast_bin_reader* r) {
     return res;
 }
 
+static bool bin_read_param_type_list(struct ast_bin_reader* r,
+                                     struct param_type_list* res);
+
+static bool bin_read_abs_arr_or_func_suffix(
+    struct ast_bin_reader* r,
+    struct abs_arr_or_func_suffix* res) {
+    if (!bin_read_ast_node_info(r, &res->info)) {
+        return false;
+    }
+
+    uint64_t type;
+    if (!bin_read_uint(r, &type)) {
+        return false;
+    }
+    res->type = type;
+    assert((uint64_t)res->type == type);
+    switch (res->type) {
+        case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
+            return bin_read_bool(r, &res->has_asterisk);
+        case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN:
+            if (!(bin_read_bool(r, &res->is_static)
+                  && bin_read_type_quals(r, &res->type_quals))) {
+                return false;
+            }
+            res->assign = bin_read_assign_expr(r);
+            return res->assign != NULL;
+        case ABS_ARR_OR_FUNC_SUFFIX_FUNC:
+            return bin_read_param_type_list(r, &res->func_types);
+    }
+    UNREACHABLE();
+}
+
+static struct abs_declarator* bin_read_abs_declarator(struct ast_bin_reader* r);
+
 static struct direct_abs_declarator* bin_read_direct_abs_declarator(
     struct ast_bin_reader* r) {
-    (void)r;
-    // TODO:
-    return NULL;
+    struct ast_node_info info;
+    if (!bin_read_ast_node_info(r, &info)) {
+        return NULL;
+    }
+
+    bool has_bracket_decl;
+    if (!bin_read_bool(r, &has_bracket_decl)) {
+        return NULL;
+    }
+
+    struct abs_declarator* bracket_decl;
+    if (has_bracket_decl) {
+        bracket_decl = bin_read_abs_declarator(r);
+        if (!bracket_decl) {
+            return NULL;
+        }
+    } else {
+        bracket_decl = NULL;
+    }
+
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        if (has_bracket_decl) {
+            free_abs_declarator(bracket_decl);
+        }
+        return NULL;
+    }
+
+    struct direct_abs_declarator* res = xmalloc(sizeof *res);
+    res->info = info;
+    res->bracket_decl = bracket_decl;
+    res->following_suffixes = xmalloc(sizeof *res->following_suffixes * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_abs_arr_or_func_suffix(
+                r,
+                &res->following_suffixes[res->len])) {
+            free_direct_abs_declarator(res);
+            return NULL;
+        }
+    }
+    return res;
 }
 
 static struct abs_declarator* bin_read_abs_declarator(
@@ -1278,10 +1352,18 @@ static bool bin_read_param_type_list(struct ast_bin_reader* r,
 
 static bool bin_read_identifier_list(struct ast_bin_reader* r,
                                      struct identifier_list* res) {
-    (void)r;
-    (void)res;
-    // TODO:
-    return false;
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return false;
+    }
+    res->identifiers = xmalloc(sizeof *res->identifiers * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_identifier_inplace(r, &res->identifiers[res->len])) {
+            free_identifier_list(res);
+            return false;
+        }
+    }
+    return true;
 }
 
 static bool bin_read_arr_suffix(struct ast_bin_reader* r,
