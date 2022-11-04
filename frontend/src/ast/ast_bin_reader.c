@@ -1914,8 +1914,8 @@ static struct declaration_specs* bin_read_declaration_specs(
     return res;
 }
 
-static bool bin_read_declaration(struct ast_bin_reader* r,
-                                 struct declaration* res);
+static bool bin_read_declaration_inplace(struct ast_bin_reader* r,
+                                         struct declaration* res);
 
 static bool bin_read_declaration_list(struct ast_bin_reader* r,
                                       struct declaration_list* res) {
@@ -1925,7 +1925,7 @@ static bool bin_read_declaration_list(struct ast_bin_reader* r,
     }
     res->decls = xmalloc(sizeof *res->decls * len);
     for (res->len = 0; res->len != len; ++res->len) {
-        if (!bin_read_declaration(r, &res->decls[res->len])) {
+        if (!bin_read_declaration_inplace(r, &res->decls[res->len])) {
             free_declaration_list(res);
             return false;
         }
@@ -2060,18 +2060,135 @@ fail_after_expr:
     return NULL;
 }
 
+static struct declaration* bin_read_declaration(struct ast_bin_reader* r);
+
+static bool bin_read_for_loop(struct ast_bin_reader* r, struct for_loop* res) {
+    if (!bin_read_bool(r, &res->is_decl)) {
+        return false;
+    }
+
+    if (res->is_decl) {
+        res->init_decl = bin_read_declaration(r);
+        if (!res->init_decl) {
+            return false;
+        }
+    } else {
+        res->init_expr = bin_read_expr_statement(r);
+        if (!res->init_expr) {
+            return false;
+        }
+    }
+
+    res->cond = bin_read_expr_statement(r);
+    if (!res->cond) {
+        goto fail_before_cond;
+    }
+    res->incr_expr = bin_read_expr(r);
+    if (!res->incr_expr) {
+        goto fail_after_cond;
+    }
+
+    return res;
+fail_after_cond:
+    free_expr_statement(res->cond);
+fail_before_cond:
+    if (res->is_decl) {
+        free_declaration(res->init_decl);
+    } else {
+        free_expr_statement(res->init_expr);
+    }
+    return false;
+}
+
 static struct iteration_statement* bin_read_iteration_statement(
     struct ast_bin_reader* r) {
-    (void)r;
-    // TODO:
+    struct ast_node_info info;
+    if (!bin_read_ast_node_info(r, &info)) {
+        return false;
+    }
+    uint64_t type;
+    if (!bin_read_uint(r, &type)) {
+        return false;
+    }
+
+    struct iteration_statement* res = xmalloc(sizeof *res);
+    res->info = info;
+    res->type = type;
+    assert((uint64_t)res->type == type);
+
+    res->loop_body = bin_read_statement(r);
+    if (!res->loop_body) {
+        goto fail_before_loop_body;
+    }
+
+    switch (res->type) {
+        case ITERATION_STATEMENT_WHILE:
+        case ITERATION_STATEMENT_DO:
+            res->while_cond = bin_read_expr(r);
+            if (!res->while_cond) {
+                goto fail_after_loop_body;
+            }
+            break;
+        case ITERATION_STATEMENT_FOR:
+            if (!bin_read_for_loop(r, &res->for_loop)) {
+                goto fail_after_loop_body;
+            }
+            break;
+    }
+    return res;
+fail_after_loop_body:
+    free_statement(res->loop_body);
+fail_before_loop_body:
+    free(res);
     return NULL;
 }
 
 static struct jump_statement* bin_read_jump_statement(
     struct ast_bin_reader* r) {
-    (void)r;
-    // TODO:
-    return NULL;
+    struct ast_node_info info;
+    if (!bin_read_ast_node_info(r, &info)) {
+        return NULL;
+    }
+
+    uint64_t type;
+    if (!bin_read_uint(r, &type)) {
+        return NULL;
+    }
+
+    struct jump_statement* res = xmalloc(sizeof *res);
+    res->info = info;
+    res->type = type;
+    assert((uint64_t)res->type == type);
+    switch (res->type) {
+        case JUMP_STATEMENT_GOTO:
+            res->goto_label = bin_read_identifier(r);
+            if (!res->goto_label) {
+                free(res);
+                return NULL;
+            }
+            break;
+        case JUMP_STATEMENT_CONTINUE:
+        case JUMP_STATEMENT_BREAK:
+            break;
+        case JUMP_STATEMENT_RETURN: {
+            bool has_ret_val;
+            if (!bin_read_bool(r, &has_ret_val)) {
+                free(res);
+                return NULL;
+            }
+            if (has_ret_val) {
+                res->ret_val = bin_read_expr(r);
+                if (!res->ret_val) {
+                    free(res);
+                    return NULL;
+                }
+            } else {
+                res->ret_val = NULL;
+            }
+            break;
+        }
+    }
+    return res;
 }
 
 static struct compound_statement* bin_read_compound_statement(
@@ -2124,7 +2241,7 @@ static bool bin_read_block_item(struct ast_bin_reader* r,
     }
 
     if (res->is_decl) {
-        return bin_read_declaration(r, &res->decl);
+        return bin_read_declaration_inplace(r, &res->decl);
     } else {
         return bin_read_statement_inplace(r, &res->stat);
     }
@@ -2179,16 +2296,48 @@ static bool bin_read_func_def(struct ast_bin_reader* r, struct func_def* res) {
     return true;
 }
 
-static bool bin_read_init_declarator_list(struct ast_bin_reader* r,
-                                          struct init_declarator_list* res) {
-    (void)r;
-    (void)res;
-    // TODO:
-    return false;
+static bool bin_read_init_declarator(struct ast_bin_reader* r,
+                                     struct init_declarator* res) {
+    res->decl = bin_read_declarator(r);
+    if (!res->decl) {
+        return false;
+    }
+    bool has_init;
+    if (!bin_read_bool(r, &has_init)) {
+        free_declarator(res->decl);
+        return false;
+    }
+
+    if (has_init) {
+        res->init = bin_read_initializer(r);
+        if (!res->init) {
+            return false;
+        }
+    } else {
+        res->init = NULL;
+    }
+    return true;
 }
 
-static bool bin_read_declaration(struct ast_bin_reader* r,
-                                 struct declaration* res) {
+static bool bin_read_init_declarator_list(struct ast_bin_reader* r,
+                                          struct init_declarator_list* res) {
+    uint64_t len;
+    if (!bin_read_uint(r, &len)) {
+        return false;
+    }
+
+    res->decls = xmalloc(sizeof *res->decls * len);
+    for (res->len = 0; res->len != len; ++res->len) {
+        if (!bin_read_init_declarator(r, &res->decls[res->len])) {
+            free_init_declarator_list(res);
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool bin_read_declaration_inplace(struct ast_bin_reader* r,
+                                         struct declaration* res) {
     if (!bin_read_bool(r, &res->is_normal_decl)) {
         return false;
     }
@@ -2210,6 +2359,14 @@ static bool bin_read_declaration(struct ast_bin_reader* r,
     return true;
 }
 
+static struct declaration* bin_read_declaration(struct ast_bin_reader* r) {
+    struct declaration* res = xmalloc(sizeof *res);
+    if (!bin_read_declaration_inplace(r, res)) {
+        return NULL;
+    }
+    return res;
+}
+
 static bool bin_read_external_declaration(struct ast_bin_reader* r,
                                           struct external_declaration* res) {
     if (!bin_read_bool(r, &res->is_func_def)) {
@@ -2218,7 +2375,7 @@ static bool bin_read_external_declaration(struct ast_bin_reader* r,
     if (res->is_func_def) {
         return bin_read_func_def(r, &res->func_def);
     } else {
-        return bin_read_declaration(r, &res->decl);
+        return bin_read_declaration_inplace(r, &res->decl);
     }
 }
 

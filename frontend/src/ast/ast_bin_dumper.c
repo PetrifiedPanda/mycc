@@ -911,19 +911,58 @@ static void bin_dump_selection_statement(
     }
 }
 
+static void bin_dump_for_loop(struct ast_bin_dumper* d,
+                              const struct for_loop* loop) {
+    bin_dump_bool(d, loop->is_decl);
+    if (loop->is_decl) {
+        bin_dump_declaration(d, loop->init_decl);
+    } else {
+        bin_dump_expr_statement(d, loop->init_expr);
+    }
+    bin_dump_expr_statement(d, loop->cond);
+    bin_dump_expr(d, loop->incr_expr);
+}
+
 static void bin_dump_iteration_statement(
     struct ast_bin_dumper* d,
     const struct iteration_statement* stat) {
-    (void)d;
-    (void)stat;
-    // TODO:
+    bin_dump_ast_node_info(d, &stat->info);
+    const uint64_t type = stat->type;
+    assert((enum iteration_statement_type)type == stat->type);
+    bin_dump_statement(d, stat->loop_body);
+    switch (stat->type) {
+        case ITERATION_STATEMENT_WHILE:
+        case ITERATION_STATEMENT_DO:
+            bin_dump_expr(d, stat->while_cond);
+            break;
+        case ITERATION_STATEMENT_FOR:
+            bin_dump_for_loop(d, &stat->for_loop);
+            break;
+    }
 }
 
 static void bin_dump_jump_statement(struct ast_bin_dumper* d,
                                     const struct jump_statement* stat) {
-    (void)d;
-    (void)stat;
-    // TODO:
+    bin_dump_ast_node_info(d, &stat->info);
+    const uint64_t type = stat->type;
+    assert((enum jump_statement_type)type == stat->type);
+    bin_dump_uint(d, type);
+    switch (stat->type) {
+        case JUMP_STATEMENT_GOTO:
+            bin_dump_identifier(d, stat->goto_label);
+            break;
+        case JUMP_STATEMENT_CONTINUE:
+        case JUMP_STATEMENT_BREAK:
+            break;
+        case JUMP_STATEMENT_RETURN: {
+            const bool has_ret_val = stat->ret_val != NULL;
+            bin_dump_bool(d, has_ret_val);
+            if (has_ret_val) {
+                bin_dump_expr(d, stat->ret_val);
+            }
+            break;
+        }
+    }
 }
 
 static void bin_dump_compound_statement(struct ast_bin_dumper* d,
@@ -983,12 +1022,23 @@ static void bin_dump_func_def(struct ast_bin_dumper* d,
     bin_dump_compound_statement(d, def->comp);
 }
 
+static void bin_dump_init_declarator(struct ast_bin_dumper* d,
+                                     const struct init_declarator* decl) {
+    bin_dump_declarator(d, decl->decl);
+    const bool has_init = decl->init != NULL;
+    bin_dump_bool(d, has_init);
+    if (has_init) {
+        bin_dump_initializer(d, decl->init);
+    }
+}
+
 static void bin_dump_init_declarator_list(
     struct ast_bin_dumper* d,
     const struct init_declarator_list* decls) {
-    (void)d;
-    (void)decls;
-    // TODO:
+    bin_dump_uint(d, decls->len);
+    for (size_t i = 0; i < decls->len; ++i) {
+        bin_dump_init_declarator(d, &decls->decls[i]);
+    }
 }
 
 static void bin_dump_declaration(struct ast_bin_dumper* d,
