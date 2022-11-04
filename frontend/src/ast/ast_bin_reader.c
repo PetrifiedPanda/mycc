@@ -1613,7 +1613,9 @@ static struct struct_union_spec* bin_read_struct_union_spec(
 
     struct struct_declaration_list lst;
     if (!bin_read_struct_declaration_list(r, &lst)) {
-        free_identifier(id);
+        if (has_identifier) {
+            free_identifier(id);
+        }
         return NULL;
     }
 

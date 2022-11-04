@@ -11,7 +11,7 @@ static void bin_dumper_write(struct ast_bin_dumper* d,
                              const void* buffer,
                              size_t size,
                              size_t count) {
-    if (fwrite(buffer, size, count, d->file) < size) {
+    if (fwrite(buffer, size, count, d->file) < count) {
         longjmp(d->err_buf, 0);
     }
 }
