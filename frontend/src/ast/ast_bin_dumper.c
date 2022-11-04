@@ -893,17 +893,22 @@ static void bin_dump_labeled_statement(struct ast_bin_dumper* d,
 
 static void bin_dump_expr_statement(struct ast_bin_dumper* d,
                                     const struct expr_statement* stat) {
-    (void)d;
-    (void)stat;
-    // TODO:
+    bin_dump_ast_node_info(d, &stat->info);
+    bin_dump_expr(d, &stat->expr);
 }
 
 static void bin_dump_selection_statement(
     struct ast_bin_dumper* d,
     const struct selection_statement* stat) {
-    (void)d;
-    (void)stat;
-    // TODO:
+    bin_dump_ast_node_info(d, &stat->info);
+    bin_dump_bool(d, stat->is_if);
+    bin_dump_expr(d, stat->sel_expr);
+    bin_dump_statement(d, stat->sel_stat);
+    const bool has_else = stat->else_stat != NULL;
+    bin_dump_bool(d, has_else);
+    if (has_else) {
+        bin_dump_statement(d, stat->else_stat);
+    }
 }
 
 static void bin_dump_iteration_statement(

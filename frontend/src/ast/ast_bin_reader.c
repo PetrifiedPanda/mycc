@@ -350,19 +350,27 @@ static struct assign_expr* bin_read_assign_expr(struct ast_bin_reader* r) {
     return res;
 }
 
-static struct expr* bin_read_expr(struct ast_bin_reader* r) {
+static bool bin_read_expr_inplace(struct ast_bin_reader* r, struct expr* res) {
     uint64_t len;
     if (!bin_read_uint(r, &len)) {
-        return NULL;
+        return false;
     }
 
-    struct expr* res = xmalloc(sizeof *res);
     res->assign_exprs = xmalloc(sizeof *res->assign_exprs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!bin_read_assign_expr_inplace(r, &res->assign_exprs[res->len])) {
-            free_expr(res);
+            free_expr_children(res);
             return false;
         }
+    }
+    return true;
+}
+
+static struct expr* bin_read_expr(struct ast_bin_reader* r) {
+    struct expr* res = xmalloc(sizeof *res);
+    if (!bin_read_expr_inplace(r, res)) {
+        free(res);
+        return NULL;
     }
     return res;
 }
@@ -1983,15 +1991,72 @@ fail:
 
 static struct expr_statement* bin_read_expr_statement(
     struct ast_bin_reader* r) {
-    (void)r;
-    // TODO:
-    return NULL;
+    struct ast_node_info info;
+    if (!bin_read_ast_node_info(r, &info)) {
+        return NULL;
+    }
+
+    struct expr expr;
+    if (!bin_read_expr_inplace(r, &expr)) {
+        return NULL;
+    }
+    struct expr_statement* res = xmalloc(sizeof *res);
+    *res = (struct expr_statement){
+        .info = info,
+        .expr = expr,
+    };
+    return res;
 }
 
 static struct selection_statement* bin_read_selection_statement(
     struct ast_bin_reader* r) {
-    (void)r;
-    // TODO:
+    struct ast_node_info info;
+    if (!bin_read_ast_node_info(r, &info)) {
+        return NULL;
+    }
+
+    bool is_if;
+    if (!bin_read_bool(r, &is_if)) {
+        return NULL;
+    }
+
+    struct expr* sel_expr = bin_read_expr(r);
+    if (!sel_expr) {
+        return NULL;
+    }
+
+    struct statement* sel_stat = bin_read_statement(r);
+    if (!sel_stat) {
+        goto fail_after_expr;
+    }
+
+    bool has_else;
+    if (!bin_read_bool(r, &has_else)) {
+        goto fail_after_stat;
+    }
+
+    struct statement* else_stat;
+    if (has_else) {
+        else_stat = bin_read_statement(r);
+        if (!else_stat) {
+            goto fail_after_stat;
+        }
+    } else {
+        else_stat = NULL;
+    }
+
+    struct selection_statement* res = xmalloc(sizeof *res);
+    *res = (struct selection_statement){
+        .info = info,
+        .is_if = is_if,
+        .sel_stat = sel_stat,
+        .else_stat = else_stat,
+    };
+    return res;
+fail_after_stat:
+    free_statement(sel_stat);
+fail_after_expr:
+    free_expr(sel_expr);
     return NULL;
 }
 
