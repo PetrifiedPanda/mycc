@@ -869,11 +869,26 @@ static void bin_dump_declaration_list(struct ast_bin_dumper* d,
     }
 }
 
+static void bin_dump_statement(struct ast_bin_dumper* d,
+                               const struct statement* stat);
+
 static void bin_dump_labeled_statement(struct ast_bin_dumper* d,
                                        const struct labeled_statement* stat) {
-    (void)d;
-    (void)stat;
-    // TODO:
+    bin_dump_ast_node_info(d, &stat->info);
+    const uint64_t type = stat->type;
+    assert((enum labeled_statement_type)type == stat->type);
+    bin_dump_uint(d, type);
+    switch (stat->type) {
+        case LABELED_STATEMENT_CASE:
+            bin_dump_const_expr(d, stat->case_expr);
+            break;
+        case LABELED_STATEMENT_LABEL:
+            bin_dump_identifier(d, stat->label);
+            break;
+        case LABELED_STATEMENT_DEFAULT:
+            break;
+    }
+    bin_dump_statement(d, stat->stat);
 }
 
 static void bin_dump_expr_statement(struct ast_bin_dumper* d,

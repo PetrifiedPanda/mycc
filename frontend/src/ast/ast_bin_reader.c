@@ -1925,10 +1925,59 @@ static bool bin_read_declaration_list(struct ast_bin_reader* r,
     return true;
 }
 
+static struct statement* bin_read_statement(struct ast_bin_reader* r);
+
 static struct labeled_statement* bin_read_labeled_statement(
     struct ast_bin_reader* r) {
-    (void)r;
-    // TODO:
+    struct ast_node_info info;
+    if (!bin_read_ast_node_info(r, &info)) {
+        return NULL;
+    }
+
+    uint64_t type;
+    if (!bin_read_uint(r, &type)) {
+        return NULL;
+    }
+
+    struct labeled_statement* res = xmalloc(sizeof *res);
+    res->type = type;
+    assert((uint64_t)res->type == type);
+    switch (res->type) {
+        case LABELED_STATEMENT_CASE:
+            res->case_expr = bin_read_const_expr(r);
+            if (!res->case_expr) {
+                goto fail;
+            }
+            break;
+        case LABELED_STATEMENT_LABEL:
+            res->label = bin_read_identifier(r);
+            if (!res->label) {
+                goto fail;
+            }
+            break;
+        case LABELED_STATEMENT_DEFAULT:
+            break;
+    }
+
+    res->stat = bin_read_statement(r);
+    if (!res->stat) {
+        switch (res->type) {
+            case LABELED_STATEMENT_CASE:
+                free_const_expr(res->case_expr);
+                break;
+            case LABELED_STATEMENT_LABEL:
+                free_identifier(res->label);
+                break;
+            case LABELED_STATEMENT_DEFAULT:
+                break;
+        }
+        free(res);
+        return NULL;
+    }
+
+    return res;
+fail:
+    free(res);
     return NULL;
 }
 
@@ -1963,8 +2012,8 @@ static struct jump_statement* bin_read_jump_statement(
 static struct compound_statement* bin_read_compound_statement(
     struct ast_bin_reader* r);
 
-static bool bin_read_statement(struct ast_bin_reader* r,
-                               struct statement* res) {
+static bool bin_read_statement_inplace(struct ast_bin_reader* r,
+                                       struct statement* res) {
     uint64_t type;
     if (!bin_read_uint(r, &type)) {
         return false;
@@ -1994,6 +2043,15 @@ static bool bin_read_statement(struct ast_bin_reader* r,
     UNREACHABLE();
 }
 
+static struct statement* bin_read_statement(struct ast_bin_reader* r) {
+    struct statement* res = xmalloc(sizeof *res);
+    if (!bin_read_statement_inplace(r, res)) {
+        free(res);
+        return NULL;
+    }
+    return res;
+}
+
 static bool bin_read_block_item(struct ast_bin_reader* r,
                                 struct block_item* res) {
     if (!bin_read_bool(r, &res->is_decl)) {
@@ -2003,7 +2061,7 @@ static bool bin_read_block_item(struct ast_bin_reader* r,
     if (res->is_decl) {
         return bin_read_declaration(r, &res->decl);
     } else {
-        return bin_read_statement(r, &res->stat);
+        return bin_read_statement_inplace(r, &res->stat);
     }
 }
 
