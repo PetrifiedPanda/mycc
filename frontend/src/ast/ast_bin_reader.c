@@ -124,6 +124,9 @@ static struct file_info bin_read_file_info(struct ast_bin_reader* r) {
     for (size_t i = 0; i < len; ++i) {
         res.paths[i] = bin_read_str(r);
         if (!str_is_valid(&res.paths[i])) {
+            for (size_t j = 0; j < i; ++j) {
+                free_str(&res.paths[j]);
+            }
             free(res.paths);
             return (struct file_info){
                 .len = 0,
@@ -192,6 +195,7 @@ static bool bin_read_identifier_inplace(struct ast_bin_reader* r,
         return false;
     }
 
+    res->spelling = bin_read_str(r);
     if (!str_is_valid(&res->spelling)) {
         return false;
     }
@@ -315,7 +319,7 @@ static bool bin_read_assign_expr_inplace(struct ast_bin_reader* r,
     }
 
     res->len = len;
-    res->assign_chain = xmalloc(sizeof *res->assign_chain * len);
+    res->assign_chain = alloc_or_null(sizeof *res->assign_chain * len);
     for (size_t i = 0; i < len; ++i) {
         struct unary_and_op* item = &res->assign_chain[i];
         item->unary = bin_read_unary_expr(r);
@@ -356,7 +360,7 @@ static bool bin_read_expr_inplace(struct ast_bin_reader* r, struct expr* res) {
         return false;
     }
 
-    res->assign_exprs = xmalloc(sizeof *res->assign_exprs * len);
+    res->assign_exprs = alloc_or_null(sizeof *res->assign_exprs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!bin_read_assign_expr_inplace(r, &res->assign_exprs[res->len])) {
             free_expr_children(res);
@@ -408,6 +412,7 @@ static bool bin_read_generic_assoc_list(struct ast_bin_reader* r,
         return false;
     }
 
+    res->assocs = xmalloc(sizeof *res->assocs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!bin_read_generic_assoc(r, &res->assocs[res->len])) {
             free_generic_assoc_list(res);
@@ -544,6 +549,7 @@ static struct initializer* bin_read_initializer(struct ast_bin_reader* r) {
         return NULL;
     }
     struct initializer* res = xmalloc(sizeof *res);
+    res->is_assign = is_assign;
     if (is_assign) {
         res->assign = bin_read_assign_expr(r);
         if (!res->assign) {
@@ -609,7 +615,7 @@ static bool bin_read_arg_expr_list(struct ast_bin_reader* r,
         return false;
     }
 
-    res->assign_exprs = xmalloc(sizeof *res->assign_exprs * len);
+    res->assign_exprs = alloc_or_null(sizeof *res->assign_exprs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!bin_read_assign_expr_inplace(r, &res->assign_exprs[res->len])) {
             free_arg_expr_list(res);
@@ -683,6 +689,8 @@ static struct postfix_expr* bin_read_postfix_expr(struct ast_bin_reader* r) {
     if (!bin_read_uint(r, &len)) {
         goto fail;
     }
+
+    res->suffixes = alloc_or_null(sizeof *res->suffixes * len);
     for (; res->len != len; ++res->len) {
         if (!bin_read_postfix_suffix(r, &res->suffixes[res->len])) {
             goto fail;
@@ -707,7 +715,7 @@ static struct unary_expr* bin_read_unary_expr(struct ast_bin_reader* r) {
         return NULL;
     }
 
-    enum unary_expr_op* ops_before = xmalloc(sizeof *ops_before * len);
+    enum unary_expr_op* ops_before = alloc_or_null(sizeof *ops_before * len);
     for (size_t i = 0; i < len; ++i) {
         uint64_t unary_op;
         if (!bin_read_uint(r, &unary_op)) {
@@ -823,6 +831,7 @@ static struct mul_expr* bin_read_mul_expr(struct ast_bin_reader* r) {
         goto fail;
     }
 
+    res->mul_chain = alloc_or_null(sizeof *res->mul_chain * len);
     for (; res->len != len; ++res->len) {
         uint64_t mul_op;
         if (!bin_read_uint(r, &mul_op)) {
@@ -1171,7 +1180,7 @@ static struct pointer* bin_read_pointer(struct ast_bin_reader* r) {
 
     struct pointer* res = xmalloc(sizeof *res);
     res->info = info;
-    res->quals_after_ptr = xmalloc(sizeof *res->quals_after_ptr);
+    res->quals_after_ptr = xmalloc(sizeof *res->quals_after_ptr * num_indirs);
     for (res->num_indirs = 0; res->num_indirs != num_indirs;
          ++res->num_indirs) {
         if (!bin_read_type_quals(r, &res->quals_after_ptr[res->num_indirs])) {
@@ -1206,8 +1215,19 @@ static bool bin_read_abs_arr_or_func_suffix(
                   && bin_read_type_quals(r, &res->type_quals))) {
                 return false;
             }
-            res->assign = bin_read_assign_expr(r);
-            return res->assign != NULL;
+            
+            bool has_assign;
+            if (!bin_read_bool(r, &has_assign)) {
+                return false;
+            }
+            
+            if (has_assign) {
+                res->assign = bin_read_assign_expr(r);
+                return res->assign != NULL;
+            } else {
+                res->assign = NULL;
+                return true;
+            }
         case ABS_ARR_OR_FUNC_SUFFIX_FUNC:
             return bin_read_param_type_list(r, &res->func_types);
     }
@@ -1452,6 +1472,11 @@ static struct direct_declarator* bin_read_direct_declarator(
 
     uint64_t len;
     if (!bin_read_uint(r, &len)) {
+        if (res->is_id) {
+            free_identifier(res->id);
+        } else {
+            free_declarator(res->decl);
+        }
         free(res);
         return NULL;
     }
@@ -1476,7 +1501,7 @@ static struct declarator* bin_read_declarator(struct ast_bin_reader* r) {
     if (has_ptr) {
         ptr = bin_read_pointer(r);
         if (!ptr) {
-            return false;
+            return NULL;
         }
     }
 
@@ -1485,7 +1510,7 @@ static struct declarator* bin_read_declarator(struct ast_bin_reader* r) {
         if (has_ptr) {
             free_pointer(ptr);
         }
-        return false;
+        return NULL;
     }
     struct declarator* res = xmalloc(sizeof *res);
     res->ptr = ptr;
@@ -1537,14 +1562,14 @@ static bool bin_read_struct_declarator_list(
         return false;
     }
 
-    res->decls = xmalloc(sizeof *res->decls * len);
+    res->decls = alloc_or_null(sizeof *res->decls * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!bin_read_struct_declarator(r, &res->decls[res->len])) {
             free_struct_declarator_list(res);
             return false;
         }
     }
-    return false;
+    return true;
 }
 
 static bool bin_read_struct_declaration(struct ast_bin_reader* r,
@@ -1560,10 +1585,12 @@ static bool bin_read_struct_declaration(struct ast_bin_reader* r,
         if (!res->decl_specs) {
             return false;
         }
-
-        return bin_read_struct_declarator_list(r, &res->decls);
+        if (!bin_read_struct_declarator_list(r, &res->decls)) {
+            return false;
+        } else {
+            return true;
+        }
     }
-    return false;
 }
 
 static bool bin_read_struct_declaration_list(
@@ -1659,7 +1686,7 @@ static bool bin_read_enum_list(struct ast_bin_reader* r,
     if (!bin_read_uint(r, &len)) {
         return false;
     }
-    res->enums = xmalloc(sizeof *res->enums * len);
+    res->enums = alloc_or_null(sizeof *res->enums * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!bin_read_enumerator(r, &res->enums[res->len])) {
             free_enum_list(res);
@@ -1900,6 +1927,7 @@ static struct declaration_specs* bin_read_declaration_specs(
             free_align_spec_children(&align_specs[i]);
         }
         free(align_specs);
+        return NULL;
     }
 
     struct declaration_specs* res = xmalloc(sizeof *res);
@@ -1925,7 +1953,7 @@ static bool bin_read_declaration_list(struct ast_bin_reader* r,
     if (!bin_read_uint(r, &len)) {
         return false;
     }
-    res->decls = xmalloc(sizeof *res->decls * len);
+    res->decls = alloc_or_null(sizeof *res->decls * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!bin_read_declaration_inplace(r, &res->decls[res->len])) {
             free_declaration_list(res);
@@ -2051,6 +2079,7 @@ static struct selection_statement* bin_read_selection_statement(
     *res = (struct selection_statement){
         .info = info,
         .is_if = is_if,
+        .sel_expr = sel_expr,
         .sel_stat = sel_stat,
         .else_stat = else_stat,
     };
@@ -2263,7 +2292,7 @@ static struct compound_statement* bin_read_compound_statement(
 
     struct compound_statement* res = xmalloc(sizeof *res);
     res->info = info;
-    res->items = xmalloc(sizeof *res->items * len);
+    res->items = alloc_or_null(sizeof *res->items * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!bin_read_block_item(r, &res->items[res->len])) {
             free_compound_statement(res);
@@ -2289,7 +2318,7 @@ static bool bin_read_func_def(struct ast_bin_reader* r, struct func_def* res) {
         return false;
     }
     res->comp = bin_read_compound_statement(r);
-    if (res->comp) {
+    if (!res->comp) {
         free_declaration_specs(res->specs);
         free_declarator(res->decl);
         free_declaration_list(&res->decl_list);
@@ -2328,7 +2357,7 @@ static bool bin_read_init_declarator_list(struct ast_bin_reader* r,
         return false;
     }
 
-    res->decls = xmalloc(sizeof *res->decls * len);
+    res->decls = alloc_or_null(sizeof *res->decls * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!bin_read_init_declarator(r, &res->decls[res->len])) {
             free_init_declarator_list(res);

@@ -531,7 +531,11 @@ static void bin_dump_abs_arr_or_func_suffix(
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN:
             bin_dump_bool(d, suffix->is_static);
             bin_dump_type_quals(d, &suffix->type_quals);
-            bin_dump_assign_expr(d, suffix->assign);
+            const bool has_assign = suffix->assign != NULL;
+            bin_dump_bool(d, has_assign);
+            if (has_assign) {
+                bin_dump_assign_expr(d, suffix->assign);
+            }
             break;
         case ABS_ARR_OR_FUNC_SUFFIX_FUNC:
             bin_dump_param_type_list(d, &suffix->func_types);
@@ -929,6 +933,7 @@ static void bin_dump_iteration_statement(
     bin_dump_ast_node_info(d, &stat->info);
     const uint64_t type = stat->type;
     assert((enum iteration_statement_type)type == stat->type);
+    bin_dump_uint(d, type);
     bin_dump_statement(d, stat->loop_body);
     switch (stat->type) {
         case ITERATION_STATEMENT_WHILE:
