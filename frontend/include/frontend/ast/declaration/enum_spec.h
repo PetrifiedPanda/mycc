@@ -8,6 +8,7 @@ struct identifier;
 struct enum_spec {
     struct ast_node_info info;
     struct identifier* identifier;
+    // TODO: This does not differentiate between enum my_enum {} and enum my_enum
     struct enum_list enum_list;
 };
 

@@ -36,8 +36,7 @@ struct enum_spec* parse_enum_spec(struct parser_state* s) {
     struct enum_list enums = {.len = 0, .enums = NULL};
     if (s->it->type == LBRACE) {
         accept_it(s);
-        enums = parse_enum_list(s);
-        if (enums.len == 0) {
+        if (!parse_enum_list(s, &enums)) {
             goto fail;
         }
         if (s->it->type == COMMA) {

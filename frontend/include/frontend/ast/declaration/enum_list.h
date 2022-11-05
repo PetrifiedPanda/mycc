@@ -12,7 +12,7 @@ struct enum_list {
     struct enumerator* enums;
 };
 
-struct enum_list parse_enum_list(struct parser_state* s);
+bool parse_enum_list(struct parser_state* s, struct enum_list* res);
 
 void free_enum_list(struct enum_list* l);
 

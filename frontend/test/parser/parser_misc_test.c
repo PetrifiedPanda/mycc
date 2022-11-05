@@ -43,7 +43,8 @@ TEST(enum_list) {
         struct parser_err err = create_parser_err();
         struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
-        struct enum_list res = parse_enum_list(&s);
+        struct enum_list res;
+        ASSERT(parse_enum_list(&s, &res));
         ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
         ASSERT_SIZE_T(res.len, (size_t)EXPECTED_LEN);
@@ -75,7 +76,8 @@ TEST(enum_list) {
         struct parser_err err = create_parser_err();
         struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
-        struct enum_list res = parse_enum_list(&s);
+        struct enum_list res;
+        ASSERT(parse_enum_list(&s, &res));
         ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
         ASSERT_SIZE_T(res.len, (size_t)EXPECTED_LEN);

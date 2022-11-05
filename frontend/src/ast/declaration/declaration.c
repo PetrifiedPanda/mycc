@@ -24,12 +24,14 @@ bool parse_declaration_inplace(struct parser_state* s,
         }
 
         if (s->it->type != SEMICOLON) {
-            if (found_typedef) {
-                res->init_decls = parse_init_declarator_list_typedef(s);
-            } else {
-                res->init_decls = parse_init_declarator_list(s);
-            }
-            if (res->init_decls.len == 0) {
+            const bool success = found_typedef
+                                     ? parse_init_declarator_list_typedef(
+                                         s,
+                                         &res->init_decls)
+                                     : parse_init_declarator_list(
+                                         s,
+                                         &res->init_decls);
+            if (!success) {
                 free_declaration_specs(res->decl_specs);
                 return false;
             }

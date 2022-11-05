@@ -19,18 +19,20 @@ struct init_declarator_list {
  * @return struct init_declarator_list A list parsed with first_decl as the
  * first element in the list
  */
-struct init_declarator_list parse_init_declarator_list_first(
+bool parse_init_declarator_list_first(struct parser_state* s,
+                                      struct init_declarator_list* res,
+                                      struct init_declarator* first_decl);
+
+bool parse_init_declarator_list(struct parser_state* s,
+                                struct init_declarator_list* res);
+
+bool parse_init_declarator_list_typedef_first(
     struct parser_state* s,
+    struct init_declarator_list* res,
     struct init_declarator* first_decl);
 
-struct init_declarator_list parse_init_declarator_list(struct parser_state* s);
-
-struct init_declarator_list parse_init_declarator_list_typedef_first(
-    struct parser_state* s,
-    struct init_declarator* first_decl);
-
-struct init_declarator_list parse_init_declarator_list_typedef(
-    struct parser_state* s);
+bool parse_init_declarator_list_typedef(struct parser_state* s,
+                                        struct init_declarator_list* res);
 
 void free_init_declarator_list(struct init_declarator_list* l);
 

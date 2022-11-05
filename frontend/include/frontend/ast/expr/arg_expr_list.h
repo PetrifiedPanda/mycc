@@ -12,7 +12,7 @@ struct arg_expr_list {
     struct assign_expr* assign_exprs;
 };
 
-struct arg_expr_list parse_arg_expr_list(struct parser_state* s);
+bool parse_arg_expr_list(struct parser_state* s, struct arg_expr_list* res);
 
 void free_arg_expr_list(struct arg_expr_list* l);
 

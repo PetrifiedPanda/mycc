@@ -53,8 +53,7 @@ static bool parse_postfix_func_suffix(struct parser_state* s,
         .len = 0,
     };
     if (s->it->type != RBRACKET) {
-        arg_expr_list = parse_arg_expr_list(s);
-        if (arg_expr_list.len == 0) {
+        if (!parse_arg_expr_list(s, &arg_expr_list)) {
             return false;
         }
     }
@@ -71,9 +70,8 @@ static bool parse_postfix_access_suffix(struct parser_state* s,
                                         struct postfix_suffix* res) {
     assert(res);
     assert(s->it->type == DOT || s->it->type == PTR_OP);
-    enum postfix_suffix_type type = s->it->type == PTR_OP
-                                        ? POSTFIX_PTR_ACCESS
-                                        : POSTFIX_ACCESS;
+    enum postfix_suffix_type type = s->it->type == PTR_OP ? POSTFIX_PTR_ACCESS
+                                                          : POSTFIX_ACCESS;
     accept_it(s);
     if (s->it->type != IDENTIFIER) {
         return false;
@@ -101,7 +99,9 @@ static bool parse_postfix_suffixes(struct parser_state* s,
     size_t alloc_len = 0;
     while (is_posfix_op(s->it->type)) {
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->suffixes, &alloc_len, sizeof *res->suffixes);
+            grow_alloc((void**)&res->suffixes,
+                       &alloc_len,
+                       sizeof *res->suffixes);
         }
 
         switch (s->it->type) {
@@ -137,7 +137,8 @@ static bool parse_postfix_suffixes(struct parser_state* s,
     }
 
     if (alloc_len != res->len) {
-        res->suffixes = xrealloc(res->suffixes, sizeof *res->suffixes * res->len);
+        res->suffixes = xrealloc(res->suffixes,
+                                 sizeof *res->suffixes * res->len);
     }
 
     return true;
@@ -204,9 +205,10 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
  * @param type_name A type name that was already parsed by parse_unary_expr
  * @return A postfix_expr that uses the given type_name
  */
-struct postfix_expr* parse_postfix_expr_type_name(struct parser_state* s,
-                                                  struct type_name* type_name,
-                                                  struct source_loc start_bracket_loc) {
+struct postfix_expr* parse_postfix_expr_type_name(
+    struct parser_state* s,
+    struct type_name* type_name,
+    struct source_loc start_bracket_loc) {
     assert(type_name);
     assert(s->it->type == LBRACE);
 

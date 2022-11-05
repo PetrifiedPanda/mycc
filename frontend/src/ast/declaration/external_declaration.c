@@ -38,13 +38,16 @@ static bool parse_external_decl_normal_decl(
     init_decl->decl = first_decl;
     init_decl->init = init;
 
-    if (found_typedef) {
-        decl->init_decls = parse_init_declarator_list_typedef_first(s,
-                                                                    init_decl);
-    } else {
-        decl->init_decls = parse_init_declarator_list_first(s, init_decl);
-    }
-    if (decl->init_decls.len == 0) {
+    const bool success = found_typedef
+                             ? parse_init_declarator_list_typedef_first(
+                                 s,
+                                 &decl->init_decls,
+                                 init_decl)
+                             : parse_init_declarator_list_first(
+                                 s,
+                                 &decl->init_decls,
+                                 init_decl);
+    if (!success) {
         free_init_declarator_children(init_decl);
         free(init_decl);
         free_declaration_children(decl);
@@ -77,8 +80,7 @@ static bool parse_external_declaration_func_def(
     func_def->specs = decl_specs;
     func_def->decl = first_decl;
     if (s->it->type != LBRACE) {
-        func_def->decl_list = parse_declaration_list(s);
-        if (func_def->decl_list.len == 0) {
+        if (!parse_declaration_list(s, &func_def->decl_list)) {
             free_declaration_specs(decl_specs);
             free_declarator(first_decl);
             return false;
