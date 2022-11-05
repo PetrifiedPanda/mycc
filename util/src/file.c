@@ -80,4 +80,3 @@ void file_read_line(FILE* file,
     *res = xrealloc(*res, sizeof **res * (*res_len + 1));
     (*res)[*res_len] = '\0';
 }
-
