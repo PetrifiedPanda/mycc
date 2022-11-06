@@ -1,17 +1,17 @@
-#ifndef AST_BIN_READER
-#define AST_BIN_READER
+#ifndef AST_DESERIALIZER_H
+#define AST_DESERIALIZER_H
 
 #include "frontend/file_info.h"
 
 #include "translation_unit.h"
 
-struct bin_read_ast_res {
+struct deserialize_ast_res {
     bool is_valid;
     struct file_info file_info;
     struct translation_unit tl;
 };
 
-struct bin_read_ast_res bin_read_ast(FILE* f);
+struct deserialize_ast_res deserialize_ast(FILE* f);
 
 #endif
 
