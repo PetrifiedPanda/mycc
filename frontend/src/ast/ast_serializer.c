@@ -1,6 +1,7 @@
 #include "frontend/ast/ast_serializer.h"
 
 #include <setjmp.h>
+#include <string.h>
 
 struct ast_serializer {
     jmp_buf err_buf;
@@ -51,7 +52,13 @@ static void serialize_int(struct ast_serializer* d, int64_t i) {
 }
 
 static void serialize_float(struct ast_serializer* d, long double f) {
-    serializer_write(d, &f, sizeof f, 1);
+    // because a sizeof(long double) is 16 bytes on x64, but the value is 80 bit
+    // (10 bytes) 6 bytes remain uninitialized, so setting all bytes to 0 before
+    // serializing shuts valgrind up
+    long double hack_val;
+    memset(&hack_val, 0, sizeof hack_val);
+    hack_val = f;
+    serializer_write(d, &hack_val, sizeof hack_val, 1);
 }
 
 static void serialize_str(struct ast_serializer* d, const struct str* str) {
