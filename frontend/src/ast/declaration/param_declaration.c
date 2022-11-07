@@ -12,18 +12,19 @@ struct abs_decl_or_decl {
     };
 };
 
-static bool parse_abs_decl_or_decl(struct parser_state* s, struct abs_decl_or_decl* res) {
+static bool parse_abs_decl_or_decl(struct parser_state* s,
+                                   struct abs_decl_or_decl* res) {
     assert(res);
     struct pointer* ptr;
     if (s->it->type == ASTERISK) {
         ptr = parse_pointer(s);
         if (!ptr) {
-            return false; 
+            return false;
         }
     } else {
         ptr = NULL;
     }
-    
+
     if (s->it->type == IDENTIFIER) {
         res->is_abs = false;
         res->decl = xmalloc(sizeof *res->decl);
@@ -53,7 +54,8 @@ static bool parse_abs_decl_or_decl(struct parser_state* s, struct abs_decl_or_de
         if (bracket_decl.is_abs) {
             res->abs_decl = xmalloc(sizeof *res->abs_decl);
             res->abs_decl->ptr = ptr;
-            res->abs_decl->direct_abs_decl = xmalloc(sizeof *res->abs_decl->direct_abs_decl);
+            res->abs_decl->direct_abs_decl = xmalloc(
+                sizeof *res->abs_decl->direct_abs_decl);
             struct direct_abs_declarator* decl = res->abs_decl->direct_abs_decl;
             decl->info = create_ast_node_info(loc);
             decl->bracket_decl = bracket_decl.abs_decl;
@@ -73,7 +75,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s, struct abs_decl_or_de
         } else {
             res->decl = xmalloc(sizeof *res->decl);
             res->decl->ptr = ptr;
-            res->decl->direct_decl = xmalloc(sizeof *res->decl);
+            res->decl->direct_decl = xmalloc(sizeof *res->decl->direct_decl);
             struct direct_declarator* decl = res->decl->direct_decl;
             decl->info = create_ast_node_info(loc);
             decl->is_id = false;
@@ -86,7 +88,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s, struct abs_decl_or_de
                 free(res->decl);
                 goto fail;
             }
-            
+
             if (!parse_arr_or_func_suffixes(s, decl)) {
                 free(res->decl);
                 goto fail;
@@ -95,7 +97,9 @@ static bool parse_abs_decl_or_decl(struct parser_state* s, struct abs_decl_or_de
     } else {
         res->is_abs = true;
         if (ptr == NULL) {
-            set_parser_err(s->err, PARSER_ERR_EMPTY_DIRECT_ABS_DECL, s->it->loc);
+            set_parser_err(s->err,
+                           PARSER_ERR_EMPTY_DIRECT_ABS_DECL,
+                           s->it->loc);
             return false;
         }
         res->abs_decl = xmalloc(sizeof *res->abs_decl);
@@ -126,7 +130,7 @@ bool parse_param_declaration_inplace(struct parser_state* s,
         free_declaration_specs(res->decl_specs);
         return false;
     }
-    
+
     if (s->it->type == COMMA || s->it->type == RBRACKET) {
         res->type = PARAM_DECL_NONE;
         res->decl = NULL;
