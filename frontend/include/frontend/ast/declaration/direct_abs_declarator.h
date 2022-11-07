@@ -39,6 +39,11 @@ struct direct_abs_declarator {
     struct abs_arr_or_func_suffix* following_suffixes;
 };
 
+/**
+ * @param s current parser_state
+ * @param res direct_abs_declarator that is fully initialized except for the
+ *            suffixes, will be freed on failure
+ */
 bool parse_abs_arr_or_func_suffixes(struct parser_state* s,
                                     struct direct_abs_declarator* res);
 

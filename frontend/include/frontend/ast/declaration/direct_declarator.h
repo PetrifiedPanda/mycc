@@ -49,6 +49,11 @@ struct direct_declarator {
     struct arr_or_func_suffix* suffixes;
 };
 
+/**
+ * @param s current parser_state
+ * @param res direct_decl already initialized except suffixes, will be freed on
+ *            failure
+ */
 bool parse_arr_or_func_suffixes(struct parser_state* s,
                                 struct direct_declarator* res);
 
