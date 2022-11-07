@@ -46,8 +46,7 @@ struct struct_union_spec* parse_struct_union_spec(struct parser_state* s) {
     struct struct_declaration_list list = {.len = 0, .decls = NULL};
     if (s->it->type == LBRACE) {
         accept_it(s);
-        list = parse_struct_declaration_list(s);
-        if (list.len == 0) {
+        if (!parse_struct_declaration_list(s, &list)) {
             goto fail;
         }
 

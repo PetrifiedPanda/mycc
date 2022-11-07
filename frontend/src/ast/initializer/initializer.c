@@ -34,8 +34,8 @@ struct initializer* parse_initializer(struct parser_state* s) {
     const struct source_loc loc = s->it->loc;
     if (s->it->type == LBRACE) {
         accept_it(s);
-        struct init_list init_list = parse_init_list(s);
-        if (init_list.len == 0) {
+        struct init_list init_list;
+        if (!parse_init_list(s, &init_list)) {
             return NULL;
         }
 

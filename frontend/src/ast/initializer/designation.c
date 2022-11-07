@@ -7,8 +7,8 @@
 #include "frontend/parser/parser_util.h"
 
 struct designation* parse_designation(struct parser_state* s) {
-    struct designator_list designators = parse_designator_list(s);
-    if (designators.len == 0) {
+    struct designator_list designators; 
+    if (!parse_designator_list(s, &designators)) {
         return NULL;
     }
 

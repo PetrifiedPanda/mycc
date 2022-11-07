@@ -23,8 +23,7 @@ bool parse_struct_declaration_inplace(struct parser_state* s,
         }
 
         if (s->it->type != SEMICOLON) {
-            res->decls = parse_struct_declarator_list(s);
-            if (res->decls.len == 0) {
+            if (!parse_struct_declarator_list(s, &res->decls)) {
                 free_declaration_specs(res->decl_specs);
                 return false;
             }

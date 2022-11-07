@@ -167,8 +167,7 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
             return NULL;
         }
 
-        res->init_list = parse_init_list(s);
-        if (res->init_list.len == 0) {
+        if (!parse_init_list(s, &res->init_list)) {
             free_type_name(res->type_name);
             free(res);
             return NULL;
@@ -224,8 +223,7 @@ struct postfix_expr* parse_postfix_expr_type_name(
 
     accept_it(s);
 
-    res->init_list = parse_init_list(s);
-    if (s->err->type != PARSER_ERR_NONE) {
+    if (!parse_init_list(s, &res->init_list)) {
         goto fail;
     }
 

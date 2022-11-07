@@ -4,39 +4,39 @@
 
 #include "util/mem.h"
 
-struct designator_list parse_designator_list(struct parser_state* s) {
-    struct designator_list res = {
+bool parse_designator_list(struct parser_state* s, struct designator_list* res) {
+    *res = (struct designator_list){
         .len = 1,
-        .designators = xmalloc(sizeof *res.designators),
+        .designators = xmalloc(sizeof *res->designators),
     };
 
-    if (!parse_designator_inplace(s, &res.designators[0])) {
-        free(res.designators);
-        return (struct designator_list){.len = 0, .designators = NULL};
+    if (!parse_designator_inplace(s, &res->designators[0])) {
+        free(res->designators);
+        return false;
     }
 
-    size_t alloc_len = res.len;
+    size_t alloc_len = res->len;
     while (s->it->type == LINDEX || s->it->type == DOT) {
-        if (res.len == alloc_len) {
-            grow_alloc((void**)&res.designators,
+        if (res->len == alloc_len) {
+            grow_alloc((void**)&res->designators,
                        &alloc_len,
-                       sizeof *res.designators);
+                       sizeof *res->designators);
         }
 
-        if (!parse_designator_inplace(s, &res.designators[res.len])) {
+        if (!parse_designator_inplace(s, &res->designators[res->len])) {
             goto fail;
         }
 
-        ++res.len;
+        ++res->len;
     }
-    res.designators = xrealloc(res.designators,
-                               res.len * sizeof *res.designators);
+    res->designators = xrealloc(res->designators,
+                               res->len * sizeof *res->designators);
 
     return res;
 
 fail:
-    free_designator_list(&res);
-    return (struct designator_list){.len = 0, .designators = NULL};
+    free_designator_list(res);
+    return false;
 }
 
 void free_designator_list(struct designator_list* l) {

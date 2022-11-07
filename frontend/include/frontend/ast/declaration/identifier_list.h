@@ -12,7 +12,7 @@ struct identifier_list {
     struct identifier* identifiers;
 };
 
-struct identifier_list parse_identifier_list(struct parser_state* s);
+bool parse_identifier_list(struct parser_state* s, struct identifier_list* res);
 
 void free_identifier_list(struct identifier_list* l);
 

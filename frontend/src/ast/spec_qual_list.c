@@ -19,25 +19,21 @@ static bool parse_spec_or_qual(struct parser_state* s,
     return true;
 }
 
-struct spec_qual_list parse_spec_qual_list(struct parser_state* s) {
-    struct spec_qual_list res = {
+bool parse_spec_qual_list(struct parser_state* s, struct spec_qual_list* res) {
+    *res = (struct spec_qual_list){
         .info = create_ast_node_info(s->it->loc),
         .quals = create_type_quals(),
         .specs = create_type_specs(),
     };
 
-    if (!parse_spec_or_qual(s, &res)) {
-        return (struct spec_qual_list){
-            .quals = create_type_quals(),
-            .specs = create_type_specs(),
-        };
+    if (!parse_spec_or_qual(s, res)) {
+        return false;
     }
 
     while (is_type_spec(s) || is_type_qual(s->it->type)) {
-        if (!parse_spec_or_qual(s, &res)) {
-            free_spec_qual_list_children(&res);
-            return (struct spec_qual_list){.quals = create_type_quals(),
-                                           .specs = create_type_specs()};
+        if (!parse_spec_or_qual(s, res)) {
+            free_spec_qual_list_children(res);
+            return false;
         }
     }
 
@@ -50,9 +46,5 @@ void free_spec_qual_list_children(struct spec_qual_list* l) {
 
 void free_spec_qual_list(struct spec_qual_list* l) {
     free_spec_qual_list_children(l);
-}
-
-bool is_valid_spec_qual_list(struct spec_qual_list* l) {
-    return is_valid_type_quals(&l->quals) || is_valid_type_specs(&l->specs);
 }
 

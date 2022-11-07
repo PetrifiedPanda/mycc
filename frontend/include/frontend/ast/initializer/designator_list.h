@@ -12,7 +12,7 @@ struct designator_list {
     struct designator* designators;
 };
 
-struct designator_list parse_designator_list(struct parser_state* s);
+bool parse_designator_list(struct parser_state* s, struct designator_list* res);
 
 void free_designator_list(struct designator_list* l);
 

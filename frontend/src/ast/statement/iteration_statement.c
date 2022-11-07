@@ -8,10 +8,10 @@
 
 #include "frontend/parser/parser_util.h"
 
-static inline void assign_do_or_while(struct source_loc loc,
-                                      struct iteration_statement* res,
-                                      struct expr* while_cond,
-                                      struct statement* loop_body) {
+static void assign_do_or_while(struct source_loc loc,
+                               struct iteration_statement* res,
+                               struct expr* while_cond,
+                               struct statement* loop_body) {
     assert(res);
     assert(while_cond);
     assert(loop_body);

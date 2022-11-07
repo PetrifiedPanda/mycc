@@ -45,8 +45,7 @@ static bool parse_arr_suffix(struct parser_state* s,
     }
 
     if (is_type_qual(s->it->type)) {
-        suffix->type_quals = parse_type_qual_list(s);
-        if (!is_valid_type_quals(&suffix->type_quals)) {
+        if (!parse_type_qual_list(s, &suffix->type_quals)) {
             return false;
         }
 
@@ -103,8 +102,7 @@ static bool parse_func_suffix(struct parser_state* s,
     accept_it(s);
     if (s->it->type == IDENTIFIER && !is_typedef_name(s, &s->it->spelling)) {
         res->type = ARR_OR_FUNC_FUN_OLD_PARAMS;
-        res->fun_params = parse_identifier_list(s);
-        if (res->fun_params.len == 0) {
+        if (!parse_identifier_list(s, &res->fun_params)) {
             return false;
         }
 
@@ -117,8 +115,7 @@ static bool parse_func_suffix(struct parser_state* s,
         res->type = ARR_OR_FUNC_FUN_EMPTY;
     } else {
         res->type = ARR_OR_FUNC_FUN_PARAMS;
-        res->fun_types = parse_param_type_list(s);
-        if (res->fun_types.param_list == NULL) {
+        if (!parse_param_type_list(s, &res->fun_types)) {
             return false;
         }
 

@@ -18,7 +18,7 @@ struct init_list {
     struct designation_init* inits;
 };
 
-struct init_list parse_init_list(struct parser_state* s);
+bool parse_init_list(struct parser_state* s, struct init_list* res);
 
 void free_init_list_children(struct init_list* l);
 
@@ -26,3 +26,4 @@ void free_init_list_children(struct init_list* l);
 #include "designation.h"
 
 #endif
+

@@ -13,12 +13,10 @@ struct spec_qual_list {
     struct type_specs specs;
 };
 
-struct spec_qual_list parse_spec_qual_list(struct parser_state* s);
+bool parse_spec_qual_list(struct parser_state* s, struct spec_qual_list* res);
 
 void free_spec_qual_list_children(struct spec_qual_list* l);
 void free_spec_qual_list(struct spec_qual_list* l);
-
-bool is_valid_spec_qual_list(struct spec_qual_list* l);
 
 #endif
 

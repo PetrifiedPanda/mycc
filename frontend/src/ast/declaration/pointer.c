@@ -16,8 +16,7 @@ struct pointer* parse_pointer(struct parser_state* s) {
     res->quals_after_ptr = xmalloc(sizeof *res->quals_after_ptr);
 
     if (is_type_qual(s->it->type)) {
-        res->quals_after_ptr[0] = parse_type_qual_list(s);
-        if (!is_valid_type_quals(&res->quals_after_ptr[0])) {
+        if (!parse_type_qual_list(s, &res->quals_after_ptr[0])) {
             free(res->quals_after_ptr);
             free(res);
             return NULL;
@@ -37,8 +36,8 @@ struct pointer* parse_pointer(struct parser_state* s) {
         }
 
         if (is_type_qual(s->it->type)) {
-            res->quals_after_ptr[res->num_indirs] = parse_type_qual_list(s);
-            if (!is_valid_type_quals(&res->quals_after_ptr[res->num_indirs])) {
+            if (!parse_type_qual_list(s,
+                                      &res->quals_after_ptr[res->num_indirs])) {
                 free_pointer(res);
                 return NULL;
             }
@@ -64,3 +63,4 @@ void free_pointer(struct pointer* p) {
     free_children(p);
     free(p);
 }
+

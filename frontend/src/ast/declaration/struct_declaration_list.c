@@ -6,33 +6,33 @@
 
 #include "frontend/parser/parser_util.h"
 
-struct struct_declaration_list parse_struct_declaration_list(
-    struct parser_state* s) {
-    struct struct_declaration_list res = {
+bool parse_struct_declaration_list(struct parser_state* s,
+                                   struct struct_declaration_list* res) {
+    *res = (struct struct_declaration_list){
         .len = 1,
-        .decls = xmalloc(sizeof *res.decls),
+        .decls = xmalloc(sizeof *res->decls),
     };
 
-    if (!parse_struct_declaration_inplace(s, &res.decls[0])) {
-        free(res.decls);
-        return (struct struct_declaration_list){.len = 0, .decls = NULL};
+    if (!parse_struct_declaration_inplace(s, &res->decls[0])) {
+        free(res->decls);
+        return false;
     }
 
-    size_t alloc_len = res.len;
+    size_t alloc_len = res->len;
     while (is_declaration(s) || s->it->type == STATIC_ASSERT) {
-        if (res.len == alloc_len) {
-            grow_alloc((void**)&res.decls, &alloc_len, sizeof *res.decls);
+        if (res->len == alloc_len) {
+            grow_alloc((void**)&res->decls, &alloc_len, sizeof *res->decls);
         }
 
-        if (!parse_struct_declaration_inplace(s, &res.decls[res.len])) {
-            free_struct_declaration_list(&res);
-            return (struct struct_declaration_list){.len = 0, .decls = NULL};
+        if (!parse_struct_declaration_inplace(s, &res->decls[res->len])) {
+            free_struct_declaration_list(res);
+            return false;
         }
 
-        ++res.len;
+        ++res->len;
     }
 
-    res.decls = xrealloc(res.decls, sizeof *res.decls * res.len);
+    res->decls = xrealloc(res->decls, sizeof *res->decls * res->len);
 
     return res;
 }

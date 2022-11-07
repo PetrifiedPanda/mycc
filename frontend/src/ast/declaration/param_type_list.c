@@ -2,33 +2,24 @@
 
 #include <assert.h>
 
-static struct param_type_list create_param_type_list(
-    bool is_variadic,
-    struct param_list* param_list) {
-    assert(param_list);
-    return (struct param_type_list){.is_variadic = is_variadic,
-                                    .param_list = param_list};
-}
-
-struct param_type_list parse_param_type_list(struct parser_state* s) {
-    struct param_list* param_list = parse_param_list(s);
-    if (!param_list) {
-        return (struct param_type_list){.is_variadic = false,
-                                        .param_list = NULL};
+bool parse_param_type_list(struct parser_state* s,
+                           struct param_type_list* res) {
+    res->param_list = parse_param_list(s);
+    if (!res->param_list) {
+        return false;
     }
 
-    bool is_variadic = false;
+    res->is_variadic = false;
     if (s->it->type == COMMA) {
         accept_it(s);
         if (!accept(s, ELLIPSIS)) {
-            free_param_list(param_list);
-            return (struct param_type_list){.is_variadic = false,
-                                            .param_list = NULL};
+            free_param_list(res->param_list);
+            return false;
         }
-        is_variadic = true;
+        res->is_variadic = true;
     }
 
-    return create_param_type_list(is_variadic, param_list);
+    return true;
 }
 
 void free_param_type_list(struct param_type_list* l) {

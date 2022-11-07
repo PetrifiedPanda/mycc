@@ -20,8 +20,7 @@ static bool parse_abs_func_suffix(struct parser_state* s,
         };
         accept_it(s);
     } else {
-        res->func_types = parse_param_type_list(s);
-        if (res->func_types.param_list == NULL) {
+        if (!parse_param_type_list(s, &res->func_types)) {
             return false;
         }
 
@@ -61,8 +60,7 @@ static bool parse_abs_arr_suffix(struct parser_state* s,
     }
 
     if (is_type_qual(s->it->type)) {
-        res->type_quals = parse_type_qual_list(s);
-        if (!is_valid_type_quals(&res->type_quals)) {
+        if (!parse_type_qual_list(s, &res->type_quals)) {
             return false;
         }
 

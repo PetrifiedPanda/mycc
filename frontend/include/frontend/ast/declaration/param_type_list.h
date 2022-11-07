@@ -12,7 +12,7 @@ struct param_type_list {
     struct param_list* param_list;
 };
 
-struct param_type_list parse_param_type_list(struct parser_state* s);
+bool parse_param_type_list(struct parser_state* s, struct param_type_list* res);
 
 void free_param_type_list(struct param_type_list* l);
 

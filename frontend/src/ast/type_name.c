@@ -12,8 +12,7 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
 
     if (is_type_spec(s) || is_type_qual(s->it->type)) {
         res->spec_qual_list = xmalloc(sizeof *res->spec_qual_list);
-        *res->spec_qual_list = parse_spec_qual_list(s);
-        if (!is_valid_spec_qual_list(res->spec_qual_list)) {
+        if (!parse_spec_qual_list(s, res->spec_qual_list)) {
             return false;
         }
     } else {

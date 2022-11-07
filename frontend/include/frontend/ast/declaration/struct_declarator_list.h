@@ -12,11 +12,12 @@ struct struct_declarator_list {
     struct struct_declarator* decls;
 };
 
-struct struct_declarator_list parse_struct_declarator_list(
-    struct parser_state* s);
+bool parse_struct_declarator_list(struct parser_state* s,
+                                  struct struct_declarator_list* res);
 
 void free_struct_declarator_list(struct struct_declarator_list* l);
 
 #include "struct_declarator.h"
 
 #endif
+

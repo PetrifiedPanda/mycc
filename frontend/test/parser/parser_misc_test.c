@@ -310,7 +310,8 @@ TEST(struct_declaration_list) {
     struct parser_err err = create_parser_err();
     struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
-    struct struct_declaration_list res = parse_struct_declaration_list(&s);
+    struct struct_declaration_list res;
+    ASSERT(parse_struct_declaration_list(&s, &res));
     ASSERT_SIZE_T(res.len, (size_t)4);
 
     check_struct_declaration_non_static_assert(&res.decls[0],

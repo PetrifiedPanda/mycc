@@ -15,7 +15,8 @@ struct generic_assoc_list {
     struct generic_assoc* assocs;
 };
 
-struct generic_assoc_list parse_generic_assoc_list(struct parser_state* s);
+bool parse_generic_assoc_list(struct parser_state* s,
+                              struct generic_assoc_list* res);
 
 void free_generic_assoc_list(struct generic_assoc_list* l);
 

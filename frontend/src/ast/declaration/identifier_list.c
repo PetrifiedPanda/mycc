@@ -6,43 +6,44 @@
 
 #include "frontend/parser/parser_util.h"
 
-struct identifier_list parse_identifier_list(struct parser_state* s) {
+bool parse_identifier_list(struct parser_state* s,
+                           struct identifier_list* res) {
     if (s->it->type != IDENTIFIER) {
-        return (struct identifier_list){.len = 0, .identifiers = NULL};
+        return false;
     }
-    struct identifier_list res = {
+    *res = (struct identifier_list){
         .len = 1,
-        .identifiers = xmalloc(sizeof *res.identifiers),
+        .identifiers = xmalloc(sizeof *res->identifiers),
     };
     struct str spell = take_spelling(s->it);
     struct source_loc loc = s->it->loc;
     accept_it(s);
-    init_identifier(res.identifiers, &spell, loc);
+    init_identifier(res->identifiers, &spell, loc);
 
-    size_t alloc_len = res.len;
+    size_t alloc_len = res->len;
     while (s->it->type == COMMA) {
         accept_it(s);
 
-        if (res.len == alloc_len) {
-            grow_alloc((void**)&res.identifiers,
+        if (res->len == alloc_len) {
+            grow_alloc((void**)&res->identifiers,
                        &alloc_len,
-                       sizeof *res.identifiers);
+                       sizeof *res->identifiers);
         }
 
         if (s->it->type != IDENTIFIER) {
-            free_identifier_list(&res);
-            return (struct identifier_list){.len = 0, .identifiers = NULL};
+            free_identifier_list(res);
+            return false;
         }
         spell = take_spelling(s->it);
         loc = s->it->loc;
         accept_it(s);
-        init_identifier(&res.identifiers[res.len], &spell, loc);
+        init_identifier(&res->identifiers[res->len], &spell, loc);
 
-        ++res.len;
+        ++res->len;
     }
 
-    res.identifiers = xrealloc(res.identifiers,
-                               sizeof *res.identifiers * res.len);
+    res->identifiers = xrealloc(res->identifiers,
+                                sizeof *res->identifiers * res->len);
 
     return res;
 }

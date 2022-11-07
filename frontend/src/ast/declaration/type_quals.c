@@ -37,24 +37,21 @@ void update_type_quals(struct parser_state* s, struct type_quals* quals) {
     accept_it(s);
 }
 
-struct type_quals parse_type_qual_list(struct parser_state* s) {
-    struct type_quals res = create_type_quals();
+bool parse_type_qual_list(struct parser_state* s, struct type_quals* res) {
+    assert(res);
+    *res = create_type_quals();
 
     if (!is_type_qual(s->it->type)) {
         enum token_type expected[] = {CONST, RESTRICT, VOLATILE, ATOMIC};
 
         expected_tokens_error(s, expected, sizeof expected / sizeof *expected);
-        return create_type_quals();
+        return false;
     }
 
     while (is_type_qual(s->it->type)) {
-        update_type_quals(s, &res);
+        update_type_quals(s, res);
     }
 
-    return res;
-}
-
-bool is_valid_type_quals(const struct type_quals* q) {
-    return q->is_const || q->is_volatile || q->is_restrict || q->is_atomic;
+    return true;
 }
 

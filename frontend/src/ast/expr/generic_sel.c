@@ -39,8 +39,8 @@ struct generic_sel* parse_generic_sel(struct parser_state* s) {
         goto fail;
     }
 
-    struct generic_assoc_list assocs = parse_generic_assoc_list(s);
-    if (assocs.len == 0) {
+    struct generic_assoc_list assocs; 
+    if (!parse_generic_assoc_list(s, &assocs)) {
         goto fail;
     }
 
