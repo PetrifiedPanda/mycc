@@ -669,7 +669,7 @@ static void serialize_direct_declarator(struct ast_serializer* d,
     if (decl->is_id) {
         serialize_identifier(d, decl->id);
     } else {
-        serialize_declarator(d, decl->decl);
+        serialize_declarator(d, decl->bracket_decl);
     }
     serialize_uint(d, decl->len);
     for (size_t i = 0; i < decl->len; ++i) {

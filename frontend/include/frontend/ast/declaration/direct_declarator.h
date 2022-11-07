@@ -43,13 +43,15 @@ struct direct_declarator {
     bool is_id;
     union {
         struct identifier* id;
-        struct declarator* decl;
+        struct declarator* bracket_decl;
     };
     size_t len;
     struct arr_or_func_suffix* suffixes;
 };
 
-bool parse_arr_or_func_suffixes(struct parser_state* s, struct direct_declarator* res);
+bool parse_arr_or_func_suffixes(struct parser_state* s,
+                                struct direct_declarator* res);
+
 struct direct_declarator* parse_direct_declarator(struct parser_state* s);
 struct direct_declarator* parse_direct_declarator_typedef(
     struct parser_state* s);

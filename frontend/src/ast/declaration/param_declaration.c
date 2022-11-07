@@ -79,7 +79,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
             struct direct_declarator* decl = res->decl->direct_decl;
             decl->info = create_ast_node_info(loc);
             decl->is_id = false;
-            decl->decl = bracket_decl.decl;
+            decl->bracket_decl = bracket_decl.decl;
 
             if (!accept(s, RBRACKET)) {
                 decl->len = 0;

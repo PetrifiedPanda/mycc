@@ -1060,7 +1060,7 @@ static void dump_direct_declarator(struct ast_dumper* d,
     if (decl->is_id) {
         dump_identifier(d, decl->id);
     } else {
-        dump_declarator(d, decl->decl);
+        dump_declarator(d, decl->bracket_decl);
     }
 
     for (size_t i = 0; i < decl->len; ++i) {

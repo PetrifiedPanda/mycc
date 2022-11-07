@@ -147,7 +147,8 @@ static bool parse_arr_or_func_suffix(struct parser_state* s,
     }
 }
 
-bool parse_arr_or_func_suffixes(struct parser_state* s, struct direct_declarator* res) {
+bool parse_arr_or_func_suffixes(struct parser_state* s,
+                                struct direct_declarator* res) {
     res->suffixes = NULL;
     res->len = 0;
     size_t alloc_len = res->len;
@@ -180,14 +181,14 @@ static struct direct_declarator* parse_direct_declarator_base(
     if (s->it->type == LBRACKET) {
         accept_it(s);
         res->is_id = false;
-        res->decl = parse_func(s);
-        if (!res->decl) {
+        res->bracket_decl = parse_func(s);
+        if (!res->bracket_decl) {
             free(res);
             return NULL;
         }
 
         if (!accept(s, RBRACKET)) {
-            free_declarator(res->decl);
+            free_declarator(res->bracket_decl);
             free(res);
             return NULL;
         }
@@ -237,7 +238,7 @@ static void free_children(struct direct_declarator* d) {
     if (d->is_id) {
         free_identifier(d->id);
     } else {
-        free_declarator(d->decl);
+        free_declarator(d->bracket_decl);
     }
 
     for (size_t i = 0; i < d->len; ++i) {

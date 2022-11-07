@@ -1474,8 +1474,8 @@ static struct direct_declarator* deserialize_direct_declarator(
             return NULL;
         }
     } else {
-        res->decl = deserialize_declarator(r);
-        if (!res->decl) {
+        res->bracket_decl = deserialize_declarator(r);
+        if (!res->bracket_decl) {
             free(res);
             return NULL;
         }
@@ -1486,7 +1486,7 @@ static struct direct_declarator* deserialize_direct_declarator(
         if (res->is_id) {
             free_identifier(res->id);
         } else {
-            free_declarator(res->decl);
+            free_declarator(res->bracket_decl);
         }
         free(res);
         return NULL;
