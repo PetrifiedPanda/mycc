@@ -114,6 +114,33 @@ static bool parse_abs_arr_or_func_suffix(struct parser_state* s,
     }
 }
 
+bool parse_abs_arr_or_func_suffixes(struct parser_state* s,
+                                    struct direct_abs_declarator* res) {
+    res->following_suffixes = NULL;
+    res->len = 0;
+    size_t alloc_len = res->len;
+    while (s->it->type == LBRACKET || s->it->type == LINDEX) {
+        if (res->len == alloc_len) {
+            grow_alloc((void**)&res->following_suffixes,
+                       &alloc_len,
+                       sizeof *res->following_suffixes);
+        }
+
+        if (!parse_abs_arr_or_func_suffix(s,
+                                          &res->following_suffixes[res->len])) {
+            free_direct_abs_declarator(res);
+            return false;
+        }
+
+        ++res->len;
+    }
+
+    res->following_suffixes = xrealloc(res->following_suffixes,
+                                       sizeof *res->following_suffixes
+                                           * res->len);
+    return true;
+}
+
 struct direct_abs_declarator* parse_direct_abs_declarator(
     struct parser_state* s) {
     struct direct_abs_declarator* res = xmalloc(sizeof *res);
@@ -137,29 +164,9 @@ struct direct_abs_declarator* parse_direct_abs_declarator(
         res->bracket_decl = NULL;
     }
 
-    res->following_suffixes = NULL;
-    res->len = 0;
-    size_t alloc_len = res->len;
-    while (s->it->type == LBRACKET || s->it->type == LINDEX) {
-        if (res->len == alloc_len) {
-            grow_alloc((void**)&res->following_suffixes,
-                       &alloc_len,
-                       sizeof *res->following_suffixes);
-        }
-
-        if (!parse_abs_arr_or_func_suffix(s,
-                                          &res->following_suffixes[res->len])) {
-            free_direct_abs_declarator(res);
-            return NULL;
-        }
-
-        ++res->len;
+    if (!parse_abs_arr_or_func_suffixes(s, res)) {
+        return NULL;
     }
-
-    res->following_suffixes = xrealloc(res->following_suffixes,
-                                       sizeof *res->following_suffixes
-                                           * res->len);
-
     return res;
 }
 

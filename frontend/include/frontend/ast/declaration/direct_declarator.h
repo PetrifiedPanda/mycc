@@ -49,6 +49,7 @@ struct direct_declarator {
     struct arr_or_func_suffix* suffixes;
 };
 
+bool parse_arr_or_func_suffixes(struct parser_state* s, struct direct_declarator* res);
 struct direct_declarator* parse_direct_declarator(struct parser_state* s);
 struct direct_declarator* parse_direct_declarator_typedef(
     struct parser_state* s);

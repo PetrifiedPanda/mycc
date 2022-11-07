@@ -108,6 +108,10 @@ void print_parser_err(FILE* out, const struct file_info* file_info, const struct
                 out,
                 "Expected a typedef name but got identifier with spelling %s",
                 str_get_data(&err->non_typedef_spelling));
+            break;
+        case PARSER_ERR_EMPTY_DIRECT_ABS_DECL:
+            fprintf(out, "Empty abstract declarator");
+            break;
     }
     fprintf(out, "\n");
 }

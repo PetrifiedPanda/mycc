@@ -147,6 +147,30 @@ static bool parse_arr_or_func_suffix(struct parser_state* s,
     }
 }
 
+bool parse_arr_or_func_suffixes(struct parser_state* s, struct direct_declarator* res) {
+    res->suffixes = NULL;
+    res->len = 0;
+    size_t alloc_len = res->len;
+    while (s->it->type == LBRACKET || s->it->type == LINDEX) {
+        if (alloc_len == res->len) {
+            grow_alloc((void**)&res->suffixes,
+                       &alloc_len,
+                       sizeof *res->suffixes);
+        }
+
+        if (!parse_arr_or_func_suffix(s, &res->suffixes[res->len])) {
+            free_direct_declarator(res);
+            return false;
+        }
+
+        ++res->len;
+    }
+
+    res->suffixes = xrealloc(res->suffixes, sizeof *res->suffixes * res->len);
+
+    return true;
+}
+
 static struct direct_declarator* parse_direct_declarator_base(
     struct parser_state* s,
     struct declarator* (*parse_func)(struct parser_state*),
@@ -184,25 +208,9 @@ static struct direct_declarator* parse_direct_declarator_base(
         return NULL;
     }
 
-    res->suffixes = NULL;
-    res->len = 0;
-    size_t alloc_len = res->len;
-    while (s->it->type == LBRACKET || s->it->type == LINDEX) {
-        if (alloc_len == res->len) {
-            grow_alloc((void**)&res->suffixes,
-                       &alloc_len,
-                       sizeof *res->suffixes);
-        }
-
-        if (!parse_arr_or_func_suffix(s, &res->suffixes[res->len])) {
-            free_direct_declarator(res);
-            return NULL;
-        }
-
-        ++res->len;
+    if (!parse_arr_or_func_suffixes(s, res)) {
+        return false;
     }
-
-    res->suffixes = xrealloc(res->suffixes, sizeof *res->suffixes * res->len);
 
     return res;
 }

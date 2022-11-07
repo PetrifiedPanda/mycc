@@ -42,6 +42,9 @@ struct direct_abs_declarator {
 struct direct_abs_declarator* parse_direct_abs_declarator(
     struct parser_state* s);
 
+bool parse_abs_arr_or_func_suffixes(struct parser_state* s,
+                                    struct direct_abs_declarator* res);
+
 void free_direct_abs_declarator(struct direct_abs_declarator* d);
 
 #include "abs_declarator.h"
