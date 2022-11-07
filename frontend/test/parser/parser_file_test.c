@@ -247,7 +247,7 @@ TEST(parser_testfile) {
     struct parser_err err = create_parser_err();
     struct translation_unit tl = parse_tokens(res.toks, &err);
     ASSERT(err.type == PARSER_ERR_NONE);
-    ASSERT_SIZE_T(tl.len, (size_t)15);
+    ASSERT_SIZE_T(tl.len, (size_t)17);
     
     compare_with_ex_file(&tl, &res.file_info, "../frontend/test/files/parser_testfile.c.ast");
 

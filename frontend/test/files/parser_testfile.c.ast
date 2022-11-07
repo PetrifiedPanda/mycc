@@ -1,5 +1,5 @@
 translation_unit:
-  len: 15
+  len: 17
   external_declaration:
     declaration:
       declaration_specs: ../frontend/test/files/parser_testfile.c:3,1
@@ -8507,4 +8507,843 @@ translation_unit:
                                                   int_value:
                                                     type: INT_VALUE_I
                                                     int_val: 0
+                                              len: 0
+  external_declaration:
+    declaration:
+      declaration_specs: ../frontend/test/files/parser_testfile.c:174,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          int
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: ../frontend/test/files/parser_testfile.c:174,5
+              identifier: ../frontend/test/files/parser_testfile.c:174,5
+                spelling: sum_arr
+              arr_or_func_suffix: ../frontend/test/files/parser_testfile.c:174,12
+                param_type_list:
+                  is_variadic: false
+                  param_type_list:
+                    len: 3
+                    param_declaration:
+                      declaration_specs: ../frontend/test/files/parser_testfile.c:174,13
+                        func_specs:
+                          is_inline: false
+                          is_noreturn: false
+                        storage_class:
+                          is_typedef: false
+                          is_extern: false
+                          is_static: false
+                          is_thread_local: false
+                          is_auto: false
+                          is_register: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        num_align_specs: 0
+                        type_specs:
+                          type_modifiers:
+                            is_unsigned: false
+                            is_signed: false
+                            is_short: false
+                            num_long: 0
+                            is_complex: false
+                            is_imaginary: false
+                          int
+                      abs_declarator:
+                        pointer: ../frontend/test/files/parser_testfile.c:174,16
+                          num_indirs: 1
+                          type_quals:
+                            is_const: false
+                            is_restrict: false
+                            is_volatile: false
+                            is_atomic: false
+                    param_declaration:
+                      declaration_specs: ../frontend/test/files/parser_testfile.c:174,19
+                        func_specs:
+                          is_inline: false
+                          is_noreturn: false
+                        storage_class:
+                          is_typedef: false
+                          is_extern: false
+                          is_static: false
+                          is_thread_local: false
+                          is_auto: false
+                          is_register: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        num_align_specs: 0
+                        type_specs:
+                          type_modifiers:
+                            is_unsigned: false
+                            is_signed: false
+                            is_short: false
+                            num_long: 1
+                            is_complex: false
+                            is_imaginary: false
+                          NO_TYPE_SPEC
+                      no_decl
+                    param_declaration:
+                      declaration_specs: ../frontend/test/files/parser_testfile.c:174,25
+                        func_specs:
+                          is_inline: false
+                          is_noreturn: false
+                        storage_class:
+                          is_typedef: false
+                          is_extern: false
+                          is_static: false
+                          is_thread_local: false
+                          is_auto: false
+                          is_register: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        num_align_specs: 0
+                        type_specs:
+                          type_modifiers:
+                            is_unsigned: false
+                            is_signed: false
+                            is_short: false
+                            num_long: 0
+                            is_complex: false
+                            is_imaginary: false
+                          int
+                      abs_declarator:
+                        direct_abs_declarator: ../frontend/test/files/parser_testfile.c:174,28
+                          abs_declarator:
+                            pointer: ../frontend/test/files/parser_testfile.c:174,29
+                              num_indirs: 1
+                              type_quals:
+                                is_const: false
+                                is_restrict: false
+                                is_volatile: false
+                                is_atomic: false
+                          abs_arr_or_func_suffix: ../frontend/test/files/parser_testfile.c:174,31
+                            param_type_list:
+                              is_variadic: false
+                              param_type_list:
+                                len: 2
+                                param_declaration:
+                                  declaration_specs: ../frontend/test/files/parser_testfile.c:174,32
+                                    func_specs:
+                                      is_inline: false
+                                      is_noreturn: false
+                                    storage_class:
+                                      is_typedef: false
+                                      is_extern: false
+                                      is_static: false
+                                      is_thread_local: false
+                                      is_auto: false
+                                      is_register: false
+                                    type_quals:
+                                      is_const: false
+                                      is_restrict: false
+                                      is_volatile: false
+                                      is_atomic: false
+                                    num_align_specs: 0
+                                    type_specs:
+                                      type_modifiers:
+                                        is_unsigned: false
+                                        is_signed: false
+                                        is_short: false
+                                        num_long: 0
+                                        is_complex: false
+                                        is_imaginary: false
+                                      int
+                                  no_decl
+                                param_declaration:
+                                  declaration_specs: ../frontend/test/files/parser_testfile.c:174,37
+                                    func_specs:
+                                      is_inline: false
+                                      is_noreturn: false
+                                    storage_class:
+                                      is_typedef: false
+                                      is_extern: false
+                                      is_static: false
+                                      is_thread_local: false
+                                      is_auto: false
+                                      is_register: false
+                                    type_quals:
+                                      is_const: false
+                                      is_restrict: false
+                                      is_volatile: false
+                                      is_atomic: false
+                                    num_align_specs: 0
+                                    type_specs:
+                                      type_modifiers:
+                                        is_unsigned: false
+                                        is_signed: false
+                                        is_short: false
+                                        num_long: 0
+                                        is_complex: false
+                                        is_imaginary: false
+                                      int
+                                  no_decl
+  external_declaration:
+    func_def:
+      declaration_specs: ../frontend/test/files/parser_testfile.c:176,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          int
+      declarator:
+        direct_declarator: ../frontend/test/files/parser_testfile.c:176,5
+          identifier: ../frontend/test/files/parser_testfile.c:176,5
+            spelling: sum_arr
+          arr_or_func_suffix: ../frontend/test/files/parser_testfile.c:176,12
+            param_type_list:
+              is_variadic: false
+              param_type_list:
+                len: 3
+                param_declaration:
+                  declaration_specs: ../frontend/test/files/parser_testfile.c:176,13
+                    func_specs:
+                      is_inline: false
+                      is_noreturn: false
+                    storage_class:
+                      is_typedef: false
+                      is_extern: false
+                      is_static: false
+                      is_thread_local: false
+                      is_auto: false
+                      is_register: false
+                    type_quals:
+                      is_const: false
+                      is_restrict: false
+                      is_volatile: false
+                      is_atomic: false
+                    num_align_specs: 0
+                    type_specs:
+                      type_modifiers:
+                        is_unsigned: false
+                        is_signed: false
+                        is_short: false
+                        num_long: 0
+                        is_complex: false
+                        is_imaginary: false
+                      int
+                  declarator:
+                    pointer: ../frontend/test/files/parser_testfile.c:176,16
+                      num_indirs: 1
+                      type_quals:
+                        is_const: false
+                        is_restrict: false
+                        is_volatile: false
+                        is_atomic: false
+                    direct_declarator: ../frontend/test/files/parser_testfile.c:176,18
+                      identifier: ../frontend/test/files/parser_testfile.c:176,18
+                        spelling: arr
+                param_declaration:
+                  declaration_specs: ../frontend/test/files/parser_testfile.c:176,23
+                    func_specs:
+                      is_inline: false
+                      is_noreturn: false
+                    storage_class:
+                      is_typedef: false
+                      is_extern: false
+                      is_static: false
+                      is_thread_local: false
+                      is_auto: false
+                      is_register: false
+                    type_quals:
+                      is_const: false
+                      is_restrict: false
+                      is_volatile: false
+                      is_atomic: false
+                    num_align_specs: 0
+                    type_specs:
+                      type_modifiers:
+                        is_unsigned: false
+                        is_signed: false
+                        is_short: false
+                        num_long: 1
+                        is_complex: false
+                        is_imaginary: false
+                      NO_TYPE_SPEC
+                  declarator:
+                    direct_declarator: ../frontend/test/files/parser_testfile.c:176,28
+                      identifier: ../frontend/test/files/parser_testfile.c:176,28
+                        spelling: len
+                param_declaration:
+                  declaration_specs: ../frontend/test/files/parser_testfile.c:176,33
+                    func_specs:
+                      is_inline: false
+                      is_noreturn: false
+                    storage_class:
+                      is_typedef: false
+                      is_extern: false
+                      is_static: false
+                      is_thread_local: false
+                      is_auto: false
+                      is_register: false
+                    type_quals:
+                      is_const: false
+                      is_restrict: false
+                      is_volatile: false
+                      is_atomic: false
+                    num_align_specs: 0
+                    type_specs:
+                      type_modifiers:
+                        is_unsigned: false
+                        is_signed: false
+                        is_short: false
+                        num_long: 0
+                        is_complex: false
+                        is_imaginary: false
+                      int
+                  declarator:
+                    direct_declarator: ../frontend/test/files/parser_testfile.c:176,36
+                      declarator:
+                        pointer: ../frontend/test/files/parser_testfile.c:176,37
+                          num_indirs: 1
+                          type_quals:
+                            is_const: false
+                            is_restrict: false
+                            is_volatile: false
+                            is_atomic: false
+                        direct_declarator: ../frontend/test/files/parser_testfile.c:176,38
+                          identifier: ../frontend/test/files/parser_testfile.c:176,38
+                            spelling: add_func
+                      arr_or_func_suffix: ../frontend/test/files/parser_testfile.c:176,47
+                        param_type_list:
+                          is_variadic: false
+                          param_type_list:
+                            len: 2
+                            param_declaration:
+                              declaration_specs: ../frontend/test/files/parser_testfile.c:176,48
+                                func_specs:
+                                  is_inline: false
+                                  is_noreturn: false
+                                storage_class:
+                                  is_typedef: false
+                                  is_extern: false
+                                  is_static: false
+                                  is_thread_local: false
+                                  is_auto: false
+                                  is_register: false
+                                type_quals:
+                                  is_const: false
+                                  is_restrict: false
+                                  is_volatile: false
+                                  is_atomic: false
+                                num_align_specs: 0
+                                type_specs:
+                                  type_modifiers:
+                                    is_unsigned: false
+                                    is_signed: false
+                                    is_short: false
+                                    num_long: 0
+                                    is_complex: false
+                                    is_imaginary: false
+                                  int
+                              no_decl
+                            param_declaration:
+                              declaration_specs: ../frontend/test/files/parser_testfile.c:176,53
+                                func_specs:
+                                  is_inline: false
+                                  is_noreturn: false
+                                storage_class:
+                                  is_typedef: false
+                                  is_extern: false
+                                  is_static: false
+                                  is_thread_local: false
+                                  is_auto: false
+                                  is_register: false
+                                type_quals:
+                                  is_const: false
+                                  is_restrict: false
+                                  is_volatile: false
+                                  is_atomic: false
+                                num_align_specs: 0
+                                type_specs:
+                                  type_modifiers:
+                                    is_unsigned: false
+                                    is_signed: false
+                                    is_short: false
+                                    num_long: 0
+                                    is_complex: false
+                                    is_imaginary: false
+                                  int
+                              no_decl
+      declaration_list:
+        len: 0
+      compound_statement: ../frontend/test/files/parser_testfile.c:176,59
+        len: 3
+        block_item:
+          declaration:
+            declaration_specs: ../frontend/test/files/parser_testfile.c:177,5
+              func_specs:
+                is_inline: false
+                is_noreturn: false
+              storage_class:
+                is_typedef: false
+                is_extern: false
+                is_static: false
+                is_thread_local: false
+                is_auto: false
+                is_register: false
+              type_quals:
+                is_const: false
+                is_restrict: false
+                is_volatile: false
+                is_atomic: false
+              num_align_specs: 0
+              type_specs:
+                type_modifiers:
+                  is_unsigned: false
+                  is_signed: false
+                  is_short: false
+                  num_long: 0
+                  is_complex: false
+                  is_imaginary: false
+                int
+            init_declarator_list:
+              len: 1
+              init_declarator:
+                declarator:
+                  direct_declarator: ../frontend/test/files/parser_testfile.c:177,9
+                    identifier: ../frontend/test/files/parser_testfile.c:177,9
+                      spelling: sum
+                initializer: ../frontend/test/files/parser_testfile.c:177,15
+                  assign_expr:
+                    len: 0
+                    cond_expr:
+                      len: 0
+                      log_or_expr:
+                        len: 1
+                        log_and_expr:
+                          len: 1
+                          or_expr:
+                            len: 1
+                            xor_expr:
+                              len: 1
+                              and_expr:
+                                len: 1
+                                eq_expr:
+                                  len: 0
+                                  rel_expr:
+                                    len: 0
+                                    shift_expr:
+                                      len: 0
+                                      add_expr:
+                                        len: 0
+                                        mul_expr:
+                                          len: 0
+                                          cast_expr: ../frontend/test/files/parser_testfile.c:177,15
+                                            len: 0
+                                            unary_expr: ../frontend/test/files/parser_testfile.c:177,15
+                                              len: 0
+                                              postfix_expr:
+                                                primary_expr:
+                                                  constant: ../frontend/test/files/parser_testfile.c:177,15
+                                                    int_value:
+                                                      type: INT_VALUE_I
+                                                      int_val: 0
+                                                len: 0
+        block_item:
+          statement:
+            iteration_statement: ../frontend/test/files/parser_testfile.c:178,5
+              type: for
+              declaration:
+                declaration_specs: ../frontend/test/files/parser_testfile.c:178,10
+                  func_specs:
+                    is_inline: false
+                    is_noreturn: false
+                  storage_class:
+                    is_typedef: false
+                    is_extern: false
+                    is_static: false
+                    is_thread_local: false
+                    is_auto: false
+                    is_register: false
+                  type_quals:
+                    is_const: false
+                    is_restrict: false
+                    is_volatile: false
+                    is_atomic: false
+                  num_align_specs: 0
+                  type_specs:
+                    type_modifiers:
+                      is_unsigned: false
+                      is_signed: false
+                      is_short: false
+                      num_long: 1
+                      is_complex: false
+                      is_imaginary: false
+                    NO_TYPE_SPEC
+                init_declarator_list:
+                  len: 1
+                  init_declarator:
+                    declarator:
+                      direct_declarator: ../frontend/test/files/parser_testfile.c:178,15
+                        identifier: ../frontend/test/files/parser_testfile.c:178,15
+                          spelling: i
+                    initializer: ../frontend/test/files/parser_testfile.c:178,19
+                      assign_expr:
+                        len: 0
+                        cond_expr:
+                          len: 0
+                          log_or_expr:
+                            len: 1
+                            log_and_expr:
+                              len: 1
+                              or_expr:
+                                len: 1
+                                xor_expr:
+                                  len: 1
+                                  and_expr:
+                                    len: 1
+                                    eq_expr:
+                                      len: 0
+                                      rel_expr:
+                                        len: 0
+                                        shift_expr:
+                                          len: 0
+                                          add_expr:
+                                            len: 0
+                                            mul_expr:
+                                              len: 0
+                                              cast_expr: ../frontend/test/files/parser_testfile.c:178,19
+                                                len: 0
+                                                unary_expr: ../frontend/test/files/parser_testfile.c:178,19
+                                                  len: 0
+                                                  postfix_expr:
+                                                    primary_expr:
+                                                      constant: ../frontend/test/files/parser_testfile.c:178,19
+                                                        int_value:
+                                                          type: INT_VALUE_I
+                                                          int_val: 0
+                                                    len: 0
+              expr_statement: ../frontend/test/files/parser_testfile.c:178,22
+                expr:
+                  len: 1
+                  assign_expr:
+                    len: 0
+                    cond_expr:
+                      len: 0
+                      log_or_expr:
+                        len: 1
+                        log_and_expr:
+                          len: 1
+                          or_expr:
+                            len: 1
+                            xor_expr:
+                              len: 1
+                              and_expr:
+                                len: 1
+                                eq_expr:
+                                  len: 0
+                                  rel_expr:
+                                    len: 1
+                                    shift_expr:
+                                      len: 0
+                                      add_expr:
+                                        len: 0
+                                        mul_expr:
+                                          len: 0
+                                          cast_expr: ../frontend/test/files/parser_testfile.c:178,22
+                                            len: 0
+                                            unary_expr: ../frontend/test/files/parser_testfile.c:178,22
+                                              len: 0
+                                              postfix_expr:
+                                                primary_expr:
+                                                  identifier: ../frontend/test/files/parser_testfile.c:178,22
+                                                    spelling: i
+                                                len: 0
+                                    rel_op: <
+                                    shift_expr:
+                                      len: 0
+                                      add_expr:
+                                        len: 0
+                                        mul_expr:
+                                          len: 0
+                                          cast_expr: ../frontend/test/files/parser_testfile.c:178,26
+                                            len: 0
+                                            unary_expr: ../frontend/test/files/parser_testfile.c:178,26
+                                              len: 0
+                                              postfix_expr:
+                                                primary_expr:
+                                                  identifier: ../frontend/test/files/parser_testfile.c:178,26
+                                                    spelling: len
+                                                len: 0
+              expr:
+                len: 1
+                assign_expr:
+                  len: 0
+                  cond_expr:
+                    len: 0
+                    log_or_expr:
+                      len: 1
+                      log_and_expr:
+                        len: 1
+                        or_expr:
+                          len: 1
+                          xor_expr:
+                            len: 1
+                            and_expr:
+                              len: 1
+                              eq_expr:
+                                len: 0
+                                rel_expr:
+                                  len: 0
+                                  shift_expr:
+                                    len: 0
+                                    add_expr:
+                                      len: 0
+                                      mul_expr:
+                                        len: 0
+                                        cast_expr: ../frontend/test/files/parser_testfile.c:178,31
+                                          len: 0
+                                          unary_expr: ../frontend/test/files/parser_testfile.c:178,31
+                                            len: 1
+                                            ++
+                                            postfix_expr:
+                                              primary_expr:
+                                                identifier: ../frontend/test/files/parser_testfile.c:178,33
+                                                  spelling: i
+                                              len: 0
+              statement:
+                compound_statement: ../frontend/test/files/parser_testfile.c:178,36
+                  len: 1
+                  block_item:
+                    statement:
+                      expr_statement: ../frontend/test/files/parser_testfile.c:179,9
+                        expr:
+                          len: 1
+                          assign_expr:
+                            len: 1
+                            unary_and_op:
+                              unary_expr: ../frontend/test/files/parser_testfile.c:179,9
+                                len: 0
+                                postfix_expr:
+                                  primary_expr:
+                                    identifier: ../frontend/test/files/parser_testfile.c:179,9
+                                      spelling: sum
+                                  len: 0
+                              =
+                            cond_expr:
+                              len: 0
+                              log_or_expr:
+                                len: 1
+                                log_and_expr:
+                                  len: 1
+                                  or_expr:
+                                    len: 1
+                                    xor_expr:
+                                      len: 1
+                                      and_expr:
+                                        len: 1
+                                        eq_expr:
+                                          len: 0
+                                          rel_expr:
+                                            len: 0
+                                            shift_expr:
+                                              len: 0
+                                              add_expr:
+                                                len: 0
+                                                mul_expr:
+                                                  len: 0
+                                                  cast_expr: ../frontend/test/files/parser_testfile.c:179,15
+                                                    len: 0
+                                                    unary_expr: ../frontend/test/files/parser_testfile.c:179,15
+                                                      len: 0
+                                                      postfix_expr:
+                                                        primary_expr:
+                                                          identifier: ../frontend/test/files/parser_testfile.c:179,15
+                                                            spelling: add_func
+                                                        len: 1
+                                                        postfix_suffix:
+                                                          arg_expr_list:
+                                                            len: 2
+                                                            assign_expr:
+                                                              len: 0
+                                                              cond_expr:
+                                                                len: 0
+                                                                log_or_expr:
+                                                                  len: 1
+                                                                  log_and_expr:
+                                                                    len: 1
+                                                                    or_expr:
+                                                                      len: 1
+                                                                      xor_expr:
+                                                                        len: 1
+                                                                        and_expr:
+                                                                          len: 1
+                                                                          eq_expr:
+                                                                            len: 0
+                                                                            rel_expr:
+                                                                              len: 0
+                                                                              shift_expr:
+                                                                                len: 0
+                                                                                add_expr:
+                                                                                  len: 0
+                                                                                  mul_expr:
+                                                                                    len: 0
+                                                                                    cast_expr: ../frontend/test/files/parser_testfile.c:179,24
+                                                                                      len: 0
+                                                                                      unary_expr: ../frontend/test/files/parser_testfile.c:179,24
+                                                                                        len: 0
+                                                                                        postfix_expr:
+                                                                                          primary_expr:
+                                                                                            identifier: ../frontend/test/files/parser_testfile.c:179,24
+                                                                                              spelling: sum
+                                                                                          len: 0
+                                                            assign_expr:
+                                                              len: 0
+                                                              cond_expr:
+                                                                len: 0
+                                                                log_or_expr:
+                                                                  len: 1
+                                                                  log_and_expr:
+                                                                    len: 1
+                                                                    or_expr:
+                                                                      len: 1
+                                                                      xor_expr:
+                                                                        len: 1
+                                                                        and_expr:
+                                                                          len: 1
+                                                                          eq_expr:
+                                                                            len: 0
+                                                                            rel_expr:
+                                                                              len: 0
+                                                                              shift_expr:
+                                                                                len: 0
+                                                                                add_expr:
+                                                                                  len: 0
+                                                                                  mul_expr:
+                                                                                    len: 0
+                                                                                    cast_expr: ../frontend/test/files/parser_testfile.c:179,29
+                                                                                      len: 0
+                                                                                      unary_expr: ../frontend/test/files/parser_testfile.c:179,29
+                                                                                        len: 0
+                                                                                        postfix_expr:
+                                                                                          primary_expr:
+                                                                                            identifier: ../frontend/test/files/parser_testfile.c:179,29
+                                                                                              spelling: arr
+                                                                                          len: 1
+                                                                                          postfix_suffix:
+                                                                                            expr:
+                                                                                              len: 1
+                                                                                              assign_expr:
+                                                                                                len: 0
+                                                                                                cond_expr:
+                                                                                                  len: 0
+                                                                                                  log_or_expr:
+                                                                                                    len: 1
+                                                                                                    log_and_expr:
+                                                                                                      len: 1
+                                                                                                      or_expr:
+                                                                                                        len: 1
+                                                                                                        xor_expr:
+                                                                                                          len: 1
+                                                                                                          and_expr:
+                                                                                                            len: 1
+                                                                                                            eq_expr:
+                                                                                                              len: 0
+                                                                                                              rel_expr:
+                                                                                                                len: 0
+                                                                                                                shift_expr:
+                                                                                                                  len: 0
+                                                                                                                  add_expr:
+                                                                                                                    len: 0
+                                                                                                                    mul_expr:
+                                                                                                                      len: 0
+                                                                                                                      cast_expr: ../frontend/test/files/parser_testfile.c:179,33
+                                                                                                                        len: 0
+                                                                                                                        unary_expr: ../frontend/test/files/parser_testfile.c:179,33
+                                                                                                                          len: 0
+                                                                                                                          postfix_expr:
+                                                                                                                            primary_expr:
+                                                                                                                              identifier: ../frontend/test/files/parser_testfile.c:179,33
+                                                                                                                                spelling: i
+                                                                                                                            len: 0
+        block_item:
+          statement:
+            jump_statement: ../frontend/test/files/parser_testfile.c:181,5
+              type: return
+              expr:
+                len: 1
+                assign_expr:
+                  len: 0
+                  cond_expr:
+                    len: 0
+                    log_or_expr:
+                      len: 1
+                      log_and_expr:
+                        len: 1
+                        or_expr:
+                          len: 1
+                          xor_expr:
+                            len: 1
+                            and_expr:
+                              len: 1
+                              eq_expr:
+                                len: 0
+                                rel_expr:
+                                  len: 0
+                                  shift_expr:
+                                    len: 0
+                                    add_expr:
+                                      len: 0
+                                      mul_expr:
+                                        len: 0
+                                        cast_expr: ../frontend/test/files/parser_testfile.c:181,12
+                                          len: 0
+                                          unary_expr: ../frontend/test/files/parser_testfile.c:181,12
+                                            len: 0
+                                            postfix_expr:
+                                              primary_expr:
+                                                identifier: ../frontend/test/files/parser_testfile.c:181,12
+                                                  spelling: sum
                                               len: 0

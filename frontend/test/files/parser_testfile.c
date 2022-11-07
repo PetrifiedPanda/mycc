@@ -171,3 +171,13 @@ void (*function_that_returns_a_function(int n, int r))(int, int) {
     return 0;
 }
 
+int sum_arr(int*, long, int(*)(int, int));
+
+int sum_arr(int* arr, long len, int(*add_func)(int, int)) {
+    int sum = 0;
+    for (long i = 0; i < len; ++i) {
+        sum = add_func(sum, arr[i]);
+    }
+    return sum;
+}
+
