@@ -39,6 +39,8 @@ struct enum_spec* parse_enum_spec(struct parser_state* s) {
         if (!parse_enum_list(s, &enums)) {
             goto fail;
         }
+        assert(enums.len > 0);
+
         if (s->it->type == COMMA) {
             accept_it(s);
         }

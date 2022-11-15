@@ -32,11 +32,18 @@ static bool compare_type_quals(const struct type_quals* q1,
     return q1->is_atomic == q2->is_atomic;
 }
 
-static bool compare_spec_qual_list(const struct spec_qual_list* l1,
-                                   const struct spec_qual_list* l2) {
-    (void)l1, (void)l2;
+static bool compare_type_specs(const struct type_specs* s1,
+                               const struct type_specs* s2) {
+    (void)s1, (void)s2;
     // TODO:
     return false;
+}
+
+static bool compare_spec_qual_list(const struct spec_qual_list* l1,
+                                   const struct spec_qual_list* l2) {
+    ASSERT(compare_ast_node_info(&l1->info, &l2->info));
+    ASSERT(compare_type_quals(&l1->quals, &l2->quals));
+    return compare_type_specs(&l1->specs, &l2->specs);
 }
 
 static bool compare_abs_declarator(const struct abs_declarator* d1,
@@ -74,13 +81,6 @@ static bool compare_align_spec(const struct align_spec* s1,
     } else {
         return compare_const_expr(s1->const_expr, s2->const_expr);
     }
-}
-
-static bool compare_type_specs(const struct type_specs* s1,
-                               const struct type_specs* s2) {
-    (void)s1, (void)s2;
-    // TODO:
-    return false;
 }
 
 static bool compare_func_specs(const struct func_specs* s1,
