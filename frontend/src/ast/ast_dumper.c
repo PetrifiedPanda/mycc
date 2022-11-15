@@ -23,7 +23,7 @@ static void remove_indent(struct ast_dumper* d) {
 
 static void print_indents(struct ast_dumper* d) {
     for (size_t i = 0; i < d->num_indents; ++i) {
-        if (fprintf(d->file, "  ") < 0) {
+        if (fputs("  ", d->file) < 0) {
             longjmp(d->err_buf, 0);
         }
     }
@@ -43,7 +43,19 @@ static PRINTF_FORMAT(2, 3) void dumper_println(struct ast_dumper* d,
         longjmp(d->err_buf, 0);
     }
 
-    if (fprintf(d->file, "\n") < 0) {
+    if (fputc('\n', d->file) == EOF) {
+        longjmp(d->err_buf, 0);
+    }
+}
+
+static void dumper_puts(struct ast_dumper* d, const char* str) {
+    print_indents(d);
+
+    if (fputs(str, d->file) < 0) {
+        longjmp(d->err_buf, 0); 
+    }
+
+    if (fputc('\n', d->file) == EOF) {
         longjmp(d->err_buf, 0);
     }
 }
@@ -256,7 +268,7 @@ static void dump_string_literal(struct ast_dumper* d,
     dumper_print_node_head(d, "string_literal", &l->info);
 
     add_indent(d);
-    dumper_println(d, "%s", str_get_data(&l->spelling));
+    dumper_puts(d, str_get_data(&l->spelling));
     remove_indent(d);
 }
 
@@ -268,7 +280,7 @@ static void dump_string_constant(struct ast_dumper* d,
 
     if (c->is_func) {
         dumper_print_node_head(d, "string_constant", &c->info);
-        dumper_println(d, "%s", get_spelling(FUNC_NAME));
+        dumper_puts(d, get_spelling(FUNC_NAME));
     } else {
         dumper_println(d, "string_constant:");
         dump_string_literal(d, &c->lit);
@@ -597,7 +609,7 @@ static void dump_type_specs(struct ast_dumper* d, const struct type_specs* s) {
         case TYPE_SPEC_FLOAT:
         case TYPE_SPEC_DOUBLE:
         case TYPE_SPEC_BOOL:
-            dumper_println(d, "%s", type_spec_type_str(s->type));
+            dumper_puts(d, type_spec_type_str(s->type));
             break;
         case TYPE_SPEC_ATOMIC:
             dump_atomic_type_spec(d, s->atomic_spec);
@@ -689,7 +701,7 @@ static void dump_postfix_suffix(struct ast_dumper* d,
             break;
         case POSTFIX_INC:
         case POSTFIX_DEC:
-            dumper_println(d, "%s", s->type == POSTFIX_INC ? "++" : "--");
+            dumper_puts(d, s->type == POSTFIX_INC ? "++" : "--");
             break;
     }
 
@@ -785,7 +797,7 @@ static void dump_unary_expr(struct ast_dumper* d, const struct unary_expr* e) {
 
     dumper_println(d, "len: %zu", e->len);
     for (size_t i = 0; i < e->len; ++i) {
-        dumper_println(d, "%s", unary_expr_op_str(e->ops_before[i]));
+        dumper_puts(d, unary_expr_op_str(e->ops_before[i]));
     }
 
     switch (e->type) {
@@ -798,7 +810,7 @@ static void dump_unary_expr(struct ast_dumper* d, const struct unary_expr* e) {
         case UNARY_MINUS:
         case UNARY_BNOT:
         case UNARY_NOT:
-            dumper_println(d, "%s", unary_expr_type_str(e->type));
+            dumper_puts(d, unary_expr_type_str(e->type));
             dump_cast_expr(d, e->cast_expr);
             break;
         case UNARY_SIZEOF_TYPE:
@@ -862,7 +874,7 @@ static void dump_assign_expr(struct ast_dumper* d,
 
         dump_unary_expr(d, item->unary);
 
-        dumper_println(d, "%s", assign_expr_op_str(item->op));
+        dumper_puts(d, assign_expr_op_str(item->op));
 
         remove_indent(d);
     }
