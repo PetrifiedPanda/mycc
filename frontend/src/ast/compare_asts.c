@@ -1,5 +1,7 @@
 #include "frontend/ast/compare_asts.h"
 
+#include "util/annotations.h"
+
 // TODO: maybe assert is not the best name (especially because there already is
 // an assert in testing)
 #define ASSERT(cond)                                                           \
@@ -32,11 +34,68 @@ static bool compare_type_quals(const struct type_quals* q1,
     return q1->is_atomic == q2->is_atomic;
 }
 
-static bool compare_type_specs(const struct type_specs* s1,
-                               const struct type_specs* s2) {
+static bool compare_atomic_type_specs(const struct atomic_type_spec* s1,
+                                      const struct atomic_type_spec* s2) {
     (void)s1, (void)s2;
     // TODO:
     return false;
+}
+
+static bool compare_struct_union_specs(const struct struct_union_spec* s1,
+                                       const struct struct_union_spec* s2) {
+    (void)s1, (void)s2;
+    // TODO:
+    return false;
+}
+
+static bool compare_enum_spec(const struct enum_spec* s1,
+                              const struct enum_spec* s2) {
+    (void)s1, (void)s2;
+    // TODO:
+    return false;
+}
+
+static bool compare_identifier(const struct identifier* i1,
+                               const struct identifier* i2) {
+    (void)i1, (void)i2;
+    // TODO:
+    return false;
+}
+
+static bool compare_type_modifiers(const struct type_modifiers* m1,
+                                   const struct type_modifiers* m2) {
+    ASSERT(m1->is_unsigned == m2->is_unsigned);
+    ASSERT(m1->is_signed == m2->is_signed);
+    ASSERT(m1->is_short == m2->is_short);
+    ASSERT(m1->num_long == m2->num_long);
+    ASSERT(m1->is_complex == m2->is_complex);
+    return m1->is_imaginary == m2->is_imaginary;
+}
+
+static bool compare_type_specs(const struct type_specs* s1,
+                               const struct type_specs* s2) {
+    ASSERT(compare_type_modifiers(&s1->mods, &s2->mods));
+    ASSERT(s1->type == s2->type);
+    switch (s1->type) {
+        case TYPE_SPEC_NONE:
+        case TYPE_SPEC_VOID:
+        case TYPE_SPEC_CHAR:
+        case TYPE_SPEC_INT:
+        case TYPE_SPEC_FLOAT:
+        case TYPE_SPEC_DOUBLE:
+        case TYPE_SPEC_BOOL:
+            return true;
+        case TYPE_SPEC_ATOMIC:
+            return compare_atomic_type_specs(s1->atomic_spec, s2->atomic_spec);
+        case TYPE_SPEC_STRUCT:
+            return compare_struct_union_specs(s1->struct_union_spec,
+                                              s2->struct_union_spec);
+        case TYPE_SPEC_ENUM:
+            return compare_enum_spec(s1->enum_spec, s2->enum_spec);
+        case TYPE_SPEC_TYPENAME:
+            return compare_identifier(s1->typedef_name, s2->typedef_name);
+    }
+    UNREACHABLE();
 }
 
 static bool compare_spec_qual_list(const struct spec_qual_list* l1,
