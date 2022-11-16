@@ -1,5 +1,7 @@
 #include "frontend/ast/compare_asts.h"
 
+#include <string.h>
+
 #include "util/annotations.h"
 
 // TODO: maybe assert is not the best name (especially because there already is
@@ -34,30 +36,82 @@ static bool compare_type_quals(const struct type_quals* q1,
     return q1->is_atomic == q2->is_atomic;
 }
 
+static bool compare_type_name(const struct type_name* t1,
+                              const struct type_name* t2);
+
 static bool compare_atomic_type_specs(const struct atomic_type_spec* s1,
                                       const struct atomic_type_spec* s2) {
-    (void)s1, (void)s2;
+    ASSERT(compare_ast_node_info(&s1->info, &s2->info));
+    return compare_type_name(s1->type_name, s2->type_name);
+}
+
+static bool compare_strs(const struct str* s1, const struct str* s2) {
+    ASSERT(str_len(s1) == str_len(s2));
+    return strcmp(str_get_data(s1), str_get_data(s2));
+}
+
+static bool compare_identifiers(const struct identifier* i1,
+                                const struct identifier* i2) {
+    ASSERT(compare_ast_node_info(&i1->info, &i2->info));
+    return compare_strs(&i1->spelling, &i2->spelling);
+}
+
+static bool compare_static_asserts(const struct static_assert_declaration* d1,
+                                   const struct static_assert_declaration* d2) {
+    (void)d1, (void)d2;
     // TODO:
     return false;
 }
 
-static bool compare_struct_union_specs(const struct struct_union_spec* s1,
-                                       const struct struct_union_spec* s2) {
-    (void)s1, (void)s2;
+static bool compare_struct_declarator_list(
+    const struct struct_declarator_list* l1,
+    const struct struct_declarator_list* l2) {
+    (void)l1, (void)l2;
     // TODO:
     return false;
+}
+
+static bool compare_declaration_specs(const struct declaration_specs* s1,
+                                      const struct declaration_specs* s2);
+
+static bool compare_struct_declarations(const struct struct_declaration* d1,
+                                        const struct struct_declaration* d2) {
+    ASSERT(d1->is_static_assert == d2->is_static_assert);
+    if (d1->is_static_assert) {
+        return compare_static_asserts(d1->assert, d2->assert);
+    } else {
+        ASSERT(compare_declaration_specs(d1->decl_specs, d2->decl_specs));
+        return compare_struct_declarator_list(&d1->decls, &d2->decls);
+    }
+}
+
+static bool compare_struct_declaration_lists(
+    const struct struct_declaration_list* l1,
+    const struct struct_declaration_list* l2) {
+    ASSERT(l1->len == l2->len);
+    for (size_t i = 0; i < l1->len; ++i) {
+        ASSERT(compare_struct_declarations(&l1->decls[i], &l2->decls[i]));
+    }
+    return true;
+}
+
+static bool compare_struct_union_specs(const struct struct_union_spec* s1,
+                                       const struct struct_union_spec* s2) {
+    ASSERT(compare_ast_node_info(&s1->info, &s2->info));
+    ASSERT(s1->is_struct == s2->is_struct);
+    if (s1->identifier == NULL) {
+        ASSERT(s2->identifier == NULL);
+    } else if (s2->identifier == NULL) {
+        return false;
+    } else {
+        ASSERT(compare_identifiers(s1->identifier, s2->identifier));
+    }
+    return compare_struct_declaration_lists(&s1->decl_list, &s2->decl_list);
 }
 
 static bool compare_enum_spec(const struct enum_spec* s1,
                               const struct enum_spec* s2) {
     (void)s1, (void)s2;
-    // TODO:
-    return false;
-}
-
-static bool compare_identifier(const struct identifier* i1,
-                               const struct identifier* i2) {
-    (void)i1, (void)i2;
     // TODO:
     return false;
 }
@@ -93,7 +147,7 @@ static bool compare_type_specs(const struct type_specs* s1,
         case TYPE_SPEC_ENUM:
             return compare_enum_spec(s1->enum_spec, s2->enum_spec);
         case TYPE_SPEC_TYPENAME:
-            return compare_identifier(s1->typedef_name, s2->typedef_name);
+            return compare_identifiers(s1->typedef_name, s2->typedef_name);
     }
     UNREACHABLE();
 }
