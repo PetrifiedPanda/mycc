@@ -56,11 +56,144 @@ static bool compare_identifiers(const struct identifier* i1,
     return compare_strs(&i1->spelling, &i2->spelling);
 }
 
-static bool compare_const_exprs(const struct const_expr* e1,
-                                const struct const_expr* e2) {
+static bool compare_cast_exprs(const struct cast_expr* e1,
+                               const struct cast_expr* e2) {
     (void)e1, (void)e2;
     // TODO:
     return false;
+}
+
+static bool compare_mul_exprs(const struct mul_expr* e1,
+                              const struct mul_expr* e2) {
+    ASSERT(compare_cast_exprs(e1->lhs, e2->lhs));
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        const struct cast_expr_and_op* item1 = &e1->mul_chain[i];
+        const struct cast_expr_and_op* item2 = &e2->mul_chain[i];
+        ASSERT(item1->op == item2->op);
+        ASSERT(compare_cast_exprs(item1->rhs, item2->rhs));
+    }
+    return true;
+}
+
+static bool compare_add_exprs(const struct add_expr* e1,
+                              const struct add_expr* e2) {
+    ASSERT(compare_mul_exprs(e1->lhs, e2->lhs));
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        const struct mul_expr_and_op* item1 = &e1->add_chain[i];
+        const struct mul_expr_and_op* item2 = &e2->add_chain[i];
+        ASSERT(item1->op == item2->op);
+        ASSERT(compare_mul_exprs(item1->rhs, item2->rhs));
+    }
+    return true;
+}
+
+static bool compare_shift_exprs(const struct shift_expr* e1,
+                                const struct shift_expr* e2) {
+    ASSERT(compare_add_exprs(e1->lhs, e2->lhs));
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        const struct add_expr_and_op* item1 = &e1->shift_chain[i];
+        const struct add_expr_and_op* item2 = &e2->shift_chain[i];
+        ASSERT(item1->op == item2->op);
+        ASSERT(compare_add_exprs(item1->rhs, item2->rhs));
+    }
+    return true;
+}
+
+static bool compare_rel_exprs(const struct rel_expr* e1,
+                              const struct rel_expr* e2) {
+    ASSERT(compare_shift_exprs(e1->lhs, e2->lhs));
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        const struct shift_expr_and_op* item1 = &e1->rel_chain[i];
+        const struct shift_expr_and_op* item2 = &e2->rel_chain[i];
+        ASSERT(item1->op == item2->op);
+        ASSERT(compare_shift_exprs(item1->rhs, item2->rhs));
+    }
+    return true;
+}
+
+static bool compare_eq_exprs(const struct eq_expr* e1,
+                             const struct eq_expr* e2) {
+    ASSERT(compare_rel_exprs(e1->lhs, e2->lhs));
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        const struct rel_expr_and_op* item1 = &e1->eq_chain[i];
+        const struct rel_expr_and_op* item2 = &e2->eq_chain[i];
+        ASSERT(item1->op == item2->op);
+        ASSERT(compare_rel_exprs(item1->rhs, item2->rhs));
+    }
+    return true;
+}
+
+static bool compare_and_exprs(const struct and_expr* e1,
+                              const struct and_expr* e2) {
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        ASSERT(compare_eq_exprs(&e1->eq_exprs[i], &e2->eq_exprs[i]));
+    }
+    return true;
+}
+
+static bool compare_xor_exprs(const struct xor_expr* e1,
+                              const struct xor_expr* e2) {
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        ASSERT(compare_and_exprs(&e1->and_exprs[i], &e2->and_exprs[i]));
+    }
+    return true;
+}
+
+static bool compare_or_exprs(const struct or_expr* e1,
+                             const struct or_expr* e2) {
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        ASSERT(compare_xor_exprs(&e1->xor_exprs[i], &e2->xor_exprs[i]));
+    }
+    return true;
+}
+
+static bool compare_log_and_exprs(const struct log_and_expr* e1,
+                                  const struct log_and_expr* e2) {
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        ASSERT(compare_or_exprs(&e1->or_exprs[i], &e2->or_exprs[i]));
+    }
+    return true;
+}
+
+static bool compare_log_or_exprs(const struct log_or_expr* e1,
+                                 const struct log_or_expr* e2) {
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        ASSERT(compare_log_and_exprs(&e1->log_ands[i], &e2->log_ands[i]));
+    }
+    return true;
+}
+
+static bool compare_exprs(const struct expr* e1, const struct expr* e2) {
+    (void)e1, (void)e2;
+    // TODO:
+    return false;
+}
+
+static bool compare_cond_exprs(const struct cond_expr* e1,
+                               const struct cond_expr* e2) {
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        const struct log_or_and_expr* item1 = &e1->conditionals[i];
+        const struct log_or_and_expr* item2 = &e2->conditionals[i];
+        ASSERT(compare_log_or_exprs(item1->log_or, item2->log_or));
+        ASSERT(compare_exprs(item1->expr, item2->expr));
+    }
+    return compare_log_or_exprs(e1->last_else, e2->last_else);
+}
+
+static bool compare_const_exprs(const struct const_expr* e1,
+                                const struct const_expr* e2) {
+    return compare_cond_exprs(&e1->expr, &e2->expr);
 }
 
 static bool compare_string_literals(const struct string_literal* l1,
