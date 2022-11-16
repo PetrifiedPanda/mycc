@@ -21,11 +21,16 @@ bool compare_asts(const struct translation_unit* tl1,
     return compare_translation_units(tl1, tl2);
 }
 
-static bool compare_ast_node_info(const struct ast_node_info* i1,
-                                  const struct ast_node_info* i2) {
+static bool compare_ast_node_infos(const struct ast_node_info* i1,
+                                   const struct ast_node_info* i2) {
     ASSERT(i1->loc.file_idx == i2->loc.file_idx);
     ASSERT(i1->loc.file_loc.line == i2->loc.file_loc.line);
     return i1->loc.file_loc.index == i2->loc.file_loc.index;
+}
+
+static bool compare_strs(const struct str* s1, const struct str* s2) {
+    ASSERT(str_len(s1) == str_len(s2));
+    return strcmp(str_get_data(s1), str_get_data(s2));
 }
 
 static bool compare_type_quals(const struct type_quals* q1,
@@ -41,26 +46,34 @@ static bool compare_type_name(const struct type_name* t1,
 
 static bool compare_atomic_type_specs(const struct atomic_type_spec* s1,
                                       const struct atomic_type_spec* s2) {
-    ASSERT(compare_ast_node_info(&s1->info, &s2->info));
+    ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
     return compare_type_name(s1->type_name, s2->type_name);
-}
-
-static bool compare_strs(const struct str* s1, const struct str* s2) {
-    ASSERT(str_len(s1) == str_len(s2));
-    return strcmp(str_get_data(s1), str_get_data(s2));
 }
 
 static bool compare_identifiers(const struct identifier* i1,
                                 const struct identifier* i2) {
-    ASSERT(compare_ast_node_info(&i1->info, &i2->info));
+    ASSERT(compare_ast_node_infos(&i1->info, &i2->info));
     return compare_strs(&i1->spelling, &i2->spelling);
 }
 
-static bool compare_static_asserts(const struct static_assert_declaration* d1,
-                                   const struct static_assert_declaration* d2) {
-    (void)d1, (void)d2;
+static bool compare_const_exprs(const struct const_expr* e1,
+                                const struct const_expr* e2) {
+    (void)e1, (void)e2;
     // TODO:
     return false;
+}
+
+static bool compare_string_literals(const struct string_literal* l1,
+                                    const struct string_literal* l2) {
+    ASSERT(compare_ast_node_infos(&l1->info, &l2->info));
+    return compare_strs(&l1->spelling, &l2->spelling);
+}
+
+static bool compare_static_assert_declarations(
+    const struct static_assert_declaration* d1,
+    const struct static_assert_declaration* d2) {
+    ASSERT(compare_const_exprs(d1->const_expr, d2->const_expr));
+    return compare_string_literals(&d1->err_msg, &d2->err_msg);
 }
 
 static bool compare_struct_declarator_list(
@@ -78,7 +91,7 @@ static bool compare_struct_declarations(const struct struct_declaration* d1,
                                         const struct struct_declaration* d2) {
     ASSERT(d1->is_static_assert == d2->is_static_assert);
     if (d1->is_static_assert) {
-        return compare_static_asserts(d1->assert, d2->assert);
+        return compare_static_assert_declarations(d1->assert, d2->assert);
     } else {
         ASSERT(compare_declaration_specs(d1->decl_specs, d2->decl_specs));
         return compare_struct_declarator_list(&d1->decls, &d2->decls);
@@ -97,7 +110,7 @@ static bool compare_struct_declaration_lists(
 
 static bool compare_struct_union_specs(const struct struct_union_spec* s1,
                                        const struct struct_union_spec* s2) {
-    ASSERT(compare_ast_node_info(&s1->info, &s2->info));
+    ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
     ASSERT(s1->is_struct == s2->is_struct);
     if (s1->identifier == NULL) {
         ASSERT(s2->identifier == NULL);
@@ -154,7 +167,7 @@ static bool compare_type_specs(const struct type_specs* s1,
 
 static bool compare_spec_qual_list(const struct spec_qual_list* l1,
                                    const struct spec_qual_list* l2) {
-    ASSERT(compare_ast_node_info(&l1->info, &l2->info));
+    ASSERT(compare_ast_node_infos(&l1->info, &l2->info));
     ASSERT(compare_type_quals(&l1->quals, &l2->quals));
     return compare_type_specs(&l1->specs, &l2->specs);
 }
@@ -178,21 +191,14 @@ static bool compare_type_name(const struct type_name* t1,
     }
 }
 
-static bool compare_const_expr(const struct const_expr* e1,
-                               const struct const_expr* e2) {
-    (void)e1, (void)e2;
-    // TODO:
-    return false;
-}
-
 static bool compare_align_spec(const struct align_spec* s1,
                                const struct align_spec* s2) {
-    ASSERT(compare_ast_node_info(&s1->info, &s2->info));
+    ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
     ASSERT(s1->is_type_name == s2->is_type_name);
     if (s1->is_type_name) {
         return compare_type_name(s1->type_name, s2->type_name);
     } else {
-        return compare_const_expr(s1->const_expr, s2->const_expr);
+        return compare_const_exprs(s1->const_expr, s2->const_expr);
     }
 }
 
@@ -214,7 +220,7 @@ static bool compare_storage_class(const struct storage_class* c1,
 
 static bool compare_declaration_specs(const struct declaration_specs* s1,
                                       const struct declaration_specs* s2) {
-    ASSERT(compare_ast_node_info(&s1->info, &s2->info));
+    ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
     ASSERT(compare_func_specs(&s1->func_specs, &s2->func_specs));
     ASSERT(compare_storage_class(&s1->storage_class, &s2->storage_class));
     ASSERT(compare_type_quals(&s1->type_quals, &s2->type_quals));
