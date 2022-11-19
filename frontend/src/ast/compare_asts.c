@@ -41,13 +41,13 @@ static bool compare_type_quals(const struct type_quals* q1,
     return q1->is_atomic == q2->is_atomic;
 }
 
-static bool compare_type_name(const struct type_name* t1,
-                              const struct type_name* t2);
+static bool compare_type_names(const struct type_name* t1,
+                               const struct type_name* t2);
 
 static bool compare_atomic_type_specs(const struct atomic_type_spec* s1,
                                       const struct atomic_type_spec* s2) {
     ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
-    return compare_type_name(s1->type_name, s2->type_name);
+    return compare_type_names(s1->type_name, s2->type_name);
 }
 
 static bool compare_identifiers(const struct identifier* i1,
@@ -56,11 +56,164 @@ static bool compare_identifiers(const struct identifier* i1,
     return compare_strs(&i1->spelling, &i2->spelling);
 }
 
-static bool compare_cast_exprs(const struct cast_expr* e1,
-                               const struct cast_expr* e2) {
-    (void)e1, (void)e2;
+static bool compare_int_value(const struct int_value* v1,
+                              const struct int_value* v2) {
+    ASSERT(v1->type == v2->type);
+    if (int_value_is_signed(v1->type)) {
+        return v1->int_val == v2->int_val;
+    } else {
+        return v1->uint_val == v2->uint_val;
+    }
+}
+
+static bool compare_float_value(const struct float_value* v1,
+                                const struct float_value* v2) {
+    ASSERT(v1->type == v2->type);
+    return v1->val == v2->val;
+}
+
+static bool compare_constants(const struct constant* c1,
+                              const struct constant* c2) {
+    ASSERT(compare_ast_node_infos(&c1->info, &c2->info));
+    ASSERT(c1->type == c2->type);
+    switch (c1->type) {
+        case CONSTANT_ENUM:
+            return compare_strs(&c1->spelling, &c2->spelling);
+        case CONSTANT_INT:
+            return compare_int_value(&c1->int_val, &c2->int_val);
+        case CONSTANT_FLOAT:
+            return compare_float_value(&c1->float_val, &c2->float_val);
+    }
+    UNREACHABLE();
+}
+
+static bool compare_string_literals(const struct string_literal* l1,
+                                    const struct string_literal* l2) {
+    ASSERT(compare_ast_node_infos(&l1->info, &l2->info));
+    return compare_strs(&l1->spelling, &l2->spelling);
+}
+
+static bool compare_string_constants(const struct string_constant* c1,
+                                     const struct string_constant* c2) {
+    ASSERT(c1->is_func == c2->is_func);
+    if (c1->is_func) {
+        return compare_ast_node_infos(&c1->info, &c2->info); 
+    } else {
+        return compare_string_literals(&c1->lit, &c2->lit);
+    }
+}
+
+static bool compare_generic_sel(const struct generic_sel* s1,
+                                const struct generic_sel* s2) {
+    (void)s1, (void)s2;
     // TODO:
     return false;
+}
+
+static bool compare_exprs(const struct expr* e1, const struct expr* e2);
+
+static bool compare_primary_exprs(const struct primary_expr* e1,
+                                  const struct primary_expr* e2) {
+    ASSERT(e1->type == e2->type);
+    switch (e1->type) {
+        case PRIMARY_EXPR_IDENTIFIER:
+            return compare_identifiers(e1->identifier, e2->identifier);
+        case PRIMARY_EXPR_CONSTANT:
+            return compare_constants(&e1->constant, &e2->constant);
+        case PRIMARY_EXPR_STRING_LITERAL:
+            return compare_string_constants(&e1->string, &e2->string);
+        case PRIMARY_EXPR_BRACKET:
+            return compare_exprs(e1->bracket_expr, e2->bracket_expr);
+        case PRIMARY_EXPR_GENERIC:
+            return compare_generic_sel(e1->generic, e2->generic);
+    }
+    UNREACHABLE();
+}
+
+static bool compare_init_list(const struct init_list* l1, const struct init_list* l2) {
+    (void)l1, (void)l2;
+    // TODO:
+    return false;
+}
+
+static bool compare_arg_expr_lists(const struct arg_expr_list* l1,
+                                   const struct arg_expr_list* l2) {
+    (void)l1, (void)l2;
+    // TODO:
+    return false;
+}
+
+static bool compare_postfix_suffixes(const struct postfix_suffix* s1,
+                                     const struct postfix_suffix* s2) {
+    ASSERT(s1->type == s2->type);
+    switch (s1->type) {
+        case POSTFIX_INDEX:
+            return compare_exprs(s1->index_expr, s2->index_expr);
+        case POSTFIX_BRACKET:
+            return compare_arg_expr_lists(&s1->bracket_list, &s2->bracket_list);
+        case POSTFIX_ACCESS:
+        case POSTFIX_PTR_ACCESS:
+            return compare_identifiers(s1->identifier, s2->identifier);
+        case POSTFIX_INC:
+        case POSTFIX_DEC:
+            return true;
+    }
+    UNREACHABLE();
+}
+
+static bool compare_postfix_exprs(const struct postfix_expr* e1,
+                                  const struct postfix_expr* e2) {
+    ASSERT(e1->is_primary == e2->is_primary);
+    if (e1->is_primary) {
+        ASSERT(compare_primary_exprs(e1->primary, e2->primary));
+    } else {
+        ASSERT(compare_ast_node_infos(&e1->info, &e2->info));
+        ASSERT(compare_type_names(e1->type_name, e2->type_name));
+        ASSERT(compare_init_list(&e1->init_list, &e2->init_list));
+    }
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        ASSERT(compare_postfix_suffixes(&e1->suffixes[i], &e2->suffixes[i]));
+    }
+    return true;
+}
+
+static bool compare_cast_exprs(const struct cast_expr* e1,
+                               const struct cast_expr* e2);
+
+static bool compare_unary_exprs(const struct unary_expr* e1,
+                                const struct unary_expr* e2) {
+    ASSERT(compare_ast_node_infos(&e1->info, &e2->info));
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        ASSERT(e1->ops_before[i] == e2->ops_before[i]);
+    }
+    ASSERT(e1->type == e2->type);
+    switch (e1->type) {
+        case UNARY_POSTFIX:
+            return compare_postfix_exprs(e1->postfix, e2->postfix);
+        case UNARY_ADDRESSOF:
+        case UNARY_DEREF:
+        case UNARY_PLUS:
+        case UNARY_MINUS:
+        case UNARY_BNOT:
+        case UNARY_NOT:
+            return compare_cast_exprs(e1->cast_expr, e2->cast_expr);
+        case UNARY_SIZEOF_TYPE:
+        case UNARY_ALIGNOF:
+            return compare_type_names(e1->type_name, e2->type_name);
+    }
+    UNREACHABLE();
+}
+
+static bool compare_cast_exprs(const struct cast_expr* e1,
+                               const struct cast_expr* e2) {
+    ASSERT(compare_ast_node_infos(&e1->info, &e2->info));
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        ASSERT(compare_type_names(&e1->type_names[i], &e2->type_names[i]));
+    }
+    return compare_unary_exprs(e1->rhs, e2->rhs);
 }
 
 static bool compare_mul_exprs(const struct mul_expr* e1,
@@ -196,12 +349,6 @@ static bool compare_const_exprs(const struct const_expr* e1,
     return compare_cond_exprs(&e1->expr, &e2->expr);
 }
 
-static bool compare_string_literals(const struct string_literal* l1,
-                                    const struct string_literal* l2) {
-    ASSERT(compare_ast_node_infos(&l1->info, &l2->info));
-    return compare_strs(&l1->spelling, &l2->spelling);
-}
-
 static bool compare_static_assert_declarations(
     const struct static_assert_declaration* d1,
     const struct static_assert_declaration* d2) {
@@ -312,8 +459,8 @@ static bool compare_abs_declarator(const struct abs_declarator* d1,
     return false;
 }
 
-static bool compare_type_name(const struct type_name* t1,
-                              const struct type_name* t2) {
+static bool compare_type_names(const struct type_name* t1,
+                               const struct type_name* t2) {
     ASSERT(compare_spec_qual_list(t1->spec_qual_list, t2->spec_qual_list));
     if (t1->abstract_decl == NULL) {
         return t2->abstract_decl == NULL;
@@ -329,7 +476,7 @@ static bool compare_align_spec(const struct align_spec* s1,
     ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
     ASSERT(s1->is_type_name == s2->is_type_name);
     if (s1->is_type_name) {
-        return compare_type_name(s1->type_name, s2->type_name);
+        return compare_type_names(s1->type_name, s2->type_name);
     } else {
         return compare_const_exprs(s1->const_expr, s2->const_expr);
     }
