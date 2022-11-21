@@ -103,11 +103,25 @@ static bool compare_string_constants(const struct string_constant* c1,
     }
 }
 
-static bool compare_generic_sel(const struct generic_sel* s1,
-                                const struct generic_sel* s2) {
-    (void)s1, (void)s2;
+static bool compare_assign_exprs(const struct assign_expr* e1,
+                                 const struct assign_expr* e2) {
+    (void)e1, (void)e2;
     // TODO:
     return false;
+}
+
+static bool compare_generic_assoc_lists(const struct generic_assoc_list* l1,
+                                        const struct generic_assoc_list* l2) {
+    (void)l1, (void)l2;
+    // TODO:
+    return false;
+}
+
+static bool compare_generic_sel(const struct generic_sel* s1,
+                                const struct generic_sel* s2) {
+    ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
+    ASSERT(compare_assign_exprs(s1->assign, s2->assign));
+    return compare_generic_assoc_lists(&s1->assocs, &s2->assocs);
 }
 
 static bool compare_exprs(const struct expr* e1, const struct expr* e2);
