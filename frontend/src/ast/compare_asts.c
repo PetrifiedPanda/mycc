@@ -13,6 +13,17 @@
         }                                                                      \
     } while (0)
 
+#define COMPARE_NULLABLE(item1, item2, comp)                                   \
+    do {                                                                       \
+        if (item1 == NULL) {                                                   \
+            ASSERT(item2 == NULL);                                             \
+        } else if (item2 == NULL) {                                            \
+            return false;                                                      \
+        } else {                                                               \
+            ASSERT(comp(item1, item2));                                        \
+        }                                                                      \
+    } while (0)
+
 static bool compare_translation_units(const struct translation_unit* tl1,
                                       const struct translation_unit* tl2);
 
@@ -123,13 +134,7 @@ static bool compare_assign_exprs(const struct assign_expr* e1,
 static bool compare_generic_assocs(const struct generic_assoc* a1,
                                    const struct generic_assoc* a2) {
     ASSERT(compare_ast_node_infos(&a1->info, &a2->info));
-    if (a1->type_name == NULL) {
-        ASSERT(a2->type_name == NULL);
-    } else if (a2->type_name == NULL) {
-        return false;
-    } else {
-        ASSERT(compare_type_names(a1->type_name, a2->type_name));
-    }
+    COMPARE_NULLABLE(a1->type_name, a2->type_name, compare_type_names);
     return compare_assign_exprs(a1->assign, a2->assign);
 }
 
@@ -214,13 +219,7 @@ static bool compare_initializers(const struct initializer* i1,
 
 static bool compare_designation_inits(const struct designation_init* i1,
                                       const struct designation_init* i2) {
-    if (i1->designation == NULL) {
-        ASSERT(i2->designation == NULL);
-    } else if (i2->designation == NULL) {
-        return false;
-    } else {
-        ASSERT(compare_designations(i1->designation, i2->designation));
-    }
+    COMPARE_NULLABLE(i1->designation, i2->designation, compare_designations);
     return compare_initializers(i1->init, i2->init);
 }
 
@@ -471,17 +470,98 @@ static bool compare_pointers(const struct pointer* p1,
 }
 
 static bool compare_param_type_lists(const struct param_type_list* l1,
+                                     const struct param_type_list* l2);
+
+static bool compare_abs_arr_or_func_suffix(
+    const struct abs_arr_or_func_suffix* s1,
+    const struct abs_arr_or_func_suffix* s2) {
+    ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
+    ASSERT(s1->type == s2->type);
+    switch (s1->type) {
+        case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
+            return s1->has_asterisk == s2->has_asterisk;
+        case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN:
+            ASSERT(s1->is_static == s2->is_static);
+            ASSERT(compare_type_quals(&s1->type_quals, &s2->type_quals));
+            COMPARE_NULLABLE(s1->assign, s2->assign, compare_assign_exprs);
+            return true;
+        case ABS_ARR_OR_FUNC_SUFFIX_FUNC:
+            return compare_param_type_lists(&s1->func_types, &s2->func_types);
+    }
+    UNREACHABLE();
+}
+
+static bool compare_abs_declarators(const struct abs_declarator* d1,
+                                    const struct abs_declarator* d2);
+
+static bool compare_direct_abs_declarators(
+    const struct direct_abs_declarator* d1,
+    const struct direct_abs_declarator* d2) {
+    ASSERT(compare_ast_node_infos(&d1->info, &d2->info));
+    COMPARE_NULLABLE(d1->bracket_decl,
+                     d2->bracket_decl,
+                     compare_abs_declarators);
+    ASSERT(d1->len == d2->len);
+    for (size_t i = 0; i < d1->len; ++i) {
+        ASSERT(compare_abs_arr_or_func_suffix(&d1->following_suffixes[i],
+                                              &d2->following_suffixes[i]));
+    }
+    return true;
+}
+
+static bool compare_abs_declarators(const struct abs_declarator* d1,
+                                    const struct abs_declarator* d2) {
+    COMPARE_NULLABLE(d1->ptr, d2->ptr, compare_pointers);
+    COMPARE_NULLABLE(d1->direct_abs_decl,
+                     d2->direct_abs_decl,
+                     compare_direct_abs_declarators);
+    return true;
+}
+
+static bool compare_declaration_specs(const struct declaration_specs* s1,
+                                      const struct declaration_specs* s2);
+
+static bool compare_declarators(const struct declarator* d1,
+                                const struct declarator* d2);
+
+static bool compare_param_declarations(const struct param_declaration* d1,
+                                       const struct param_declaration* d2) {
+    ASSERT(compare_declaration_specs(d1->decl_specs, d2->decl_specs));
+    ASSERT(d1->type == d2->type);
+    switch (d1->type) {
+        case PARAM_DECL_DECL:
+            return compare_declarators(d1->decl, d2->decl);
+        case PARAM_DECL_ABSTRACT_DECL:
+            return compare_abs_declarators(d1->abstract_decl,
+                                           d2->abstract_decl);
+        case PARAM_DECL_NONE:
+            return true;
+    }
+    UNREACHABLE();
+}
+
+static bool compare_param_lists(const struct param_list* l1,
+                                const struct param_list* l2) {
+    ASSERT(l1->len == l2->len);
+    for (size_t i = 0; i < l1->len; ++i) {
+        ASSERT(compare_param_declarations(&l1->decls[i], &l2->decls[i]));
+    }
+    return true;
+}
+
+static bool compare_param_type_lists(const struct param_type_list* l1,
                                      const struct param_type_list* l2) {
-    (void)l1, (void)l2;
-    // TODO:
-    return false;
+    ASSERT(l1->is_variadic == l2->is_variadic);
+    return compare_param_lists(l1->param_list, l2->param_list);
 }
 
 static bool compare_identifier_lists(const struct identifier_list* l1,
                                      const struct identifier_list* l2) {
-    (void)l1, (void)l2;
-    // TODO:
-    return false;
+    ASSERT(l1->len == l2->len);
+    for (size_t i = 0; i < l1->len; ++i) {
+        ASSERT(compare_identifiers(&l1->identifiers[i], &l2->identifiers[i]));
+    }
+    return true;
 }
 
 static bool compare_arr_suffixes(const struct arr_suffix* s1,
@@ -489,13 +569,8 @@ static bool compare_arr_suffixes(const struct arr_suffix* s1,
     ASSERT(s1->is_static == s2->is_static);
     ASSERT(compare_type_quals(&s1->type_quals, &s2->type_quals));
     ASSERT(s1->is_asterisk == s2->is_asterisk);
-    if (s1->arr_len == NULL) {
-        return s2->arr_len == NULL;
-    } else if (s2->arr_len == NULL) {
-        return false;
-    } else {
-        return compare_assign_exprs(s1->arr_len, s2->arr_len);
-    }
+    COMPARE_NULLABLE(s1->arr_len, s2->arr_len, compare_assign_exprs);
+    return true;
 }
 
 static bool compare_arr_or_func_suffix(const struct arr_or_func_suffix* s1,
@@ -515,9 +590,6 @@ static bool compare_arr_or_func_suffix(const struct arr_or_func_suffix* s1,
     UNREACHABLE();
 }
 
-static bool compare_declarators(const struct declarator* d1,
-                                const struct declarator* d2);
-
 static bool compare_direct_declarators(const struct direct_declarator* d1,
                                        const struct direct_declarator* d2) {
     ASSERT(compare_ast_node_infos(&d1->info, &d2->info));
@@ -536,34 +608,15 @@ static bool compare_direct_declarators(const struct direct_declarator* d1,
 
 static bool compare_declarators(const struct declarator* d1,
                                 const struct declarator* d2) {
-    if (d1->ptr == NULL) {
-        ASSERT(d2->ptr == NULL);
-    } else if (d2->ptr == NULL) {
-        return false;
-    } else {
-        ASSERT(compare_pointers(d1->ptr, d2->ptr));
-    }
-
+    COMPARE_NULLABLE(d1->ptr, d2->ptr, compare_pointers);
     return compare_direct_declarators(d1->direct_decl, d2->direct_decl);
 }
 
 static bool compare_struct_declarator(const struct struct_declarator* d1,
                                       const struct struct_declarator* d2) {
-    if (d1->decl == NULL) {
-        ASSERT(d2->decl == NULL);
-    } else if (d2->decl == NULL) {
-        return false;
-    } else {
-        ASSERT(compare_declarators(d1->decl, d2->decl));
-    }
-
-    if (d1->bit_field == NULL) {
-        return d2->bit_field == NULL;
-    } else if (d2->bit_field == NULL) {
-        return false;
-    } else {
-        return compare_const_exprs(d1->bit_field, d2->bit_field);
-    }
+    COMPARE_NULLABLE(d1->decl, d2->decl, compare_declarators);
+    COMPARE_NULLABLE(d1->bit_field, d2->bit_field, compare_const_exprs);
+    return true;
 }
 
 static bool compare_struct_declarator_list(
@@ -575,9 +628,6 @@ static bool compare_struct_declarator_list(
     }
     return true;
 }
-
-static bool compare_declaration_specs(const struct declaration_specs* s1,
-                                      const struct declaration_specs* s2);
 
 static bool compare_struct_declarations(const struct struct_declaration* d1,
                                         const struct struct_declaration* d2) {
@@ -604,21 +654,31 @@ static bool compare_struct_union_specs(const struct struct_union_spec* s1,
                                        const struct struct_union_spec* s2) {
     ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
     ASSERT(s1->is_struct == s2->is_struct);
-    if (s1->identifier == NULL) {
-        ASSERT(s2->identifier == NULL);
-    } else if (s2->identifier == NULL) {
-        return false;
-    } else {
-        ASSERT(compare_identifiers(s1->identifier, s2->identifier));
-    }
+    COMPARE_NULLABLE(s1->identifier, s2->identifier, compare_identifiers);
     return compare_struct_declaration_lists(&s1->decl_list, &s2->decl_list);
+}
+
+static bool compare_enumerators(const struct enumerator* e1,
+                                const struct enumerator* e2) {
+    ASSERT(compare_identifiers(e1->identifier, e2->identifier));
+    COMPARE_NULLABLE(e1->enum_val, e2->enum_val, compare_const_exprs);
+    return true;
+}
+
+static bool compare_enum_list(const struct enum_list* l1,
+                              const struct enum_list* l2) {
+    ASSERT(l1->len == l2->len);
+    for (size_t i = 0; i < l1->len; ++i) {
+        ASSERT(compare_enumerators(&l1->enums[i], &l2->enums[i]));
+    }
+    return true;
 }
 
 static bool compare_enum_spec(const struct enum_spec* s1,
                               const struct enum_spec* s2) {
-    (void)s1, (void)s2;
-    // TODO:
-    return false;
+    ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
+    COMPARE_NULLABLE(s1->identifier, s2->identifier, compare_identifiers);
+    return compare_enum_list(&s1->enum_list, &s1->enum_list);
 }
 
 static bool compare_type_modifiers(const struct type_modifiers* m1,
@@ -664,23 +724,13 @@ static bool compare_spec_qual_list(const struct spec_qual_list* l1,
     return compare_type_specs(&l1->specs, &l2->specs);
 }
 
-static bool compare_abs_declarator(const struct abs_declarator* d1,
-                                   const struct abs_declarator* d2) {
-    (void)d1, (void)d2;
-    // TODO:
-    return false;
-}
-
 static bool compare_type_names(const struct type_name* t1,
                                const struct type_name* t2) {
     ASSERT(compare_spec_qual_list(t1->spec_qual_list, t2->spec_qual_list));
-    if (t1->abstract_decl == NULL) {
-        return t2->abstract_decl == NULL;
-    } else if (t2->abstract_decl == NULL) {
-        return false;
-    } else {
-        return compare_abs_declarator(t1->abstract_decl, t2->abstract_decl);
-    }
+    COMPARE_NULLABLE(t1->abstract_decl,
+                     t2->abstract_decl,
+                     compare_abs_declarators);
+    return true;
 }
 
 static bool compare_align_spec(const struct align_spec* s1,
@@ -724,22 +774,37 @@ static bool compare_declaration_specs(const struct declaration_specs* s1,
     return compare_type_specs(&s1->type_specs, &s2->type_specs);
 }
 
-static bool compare_declarator(const struct declarator* d1,
-                               const struct declarator* d2) {
-    (void)d1, (void)d2;
-    // TODO:
-    return false;
-}
-
-static bool compare_declaration_list(const struct declaration_list* l1,
-                                     const struct declaration_list* l2) {
+static bool compare_init_declarator_lists(
+    const struct init_declarator_list* l1,
+    const struct init_declarator_list* l2) {
     (void)l1, (void)l2;
     // TODO:
     return false;
 }
 
-static bool compare_compound_statement(const struct compound_statement* s1,
-                                       const struct compound_statement* s2) {
+static bool compare_declarations(const struct declaration* d1,
+                                 const struct declaration* d2) {
+    ASSERT(d1->is_normal_decl == d2->is_normal_decl);
+    if (d1->is_normal_decl) {
+        ASSERT(compare_declaration_specs(d1->decl_specs, d2->decl_specs));
+        return compare_init_declarator_lists(&d1->init_decls, &d2->init_decls);
+    } else {
+        return compare_static_assert_declarations(d1->static_assert_decl,
+                                                  d2->static_assert_decl);
+    }
+}
+
+static bool compare_declaration_lists(const struct declaration_list* l1,
+                                      const struct declaration_list* l2) {
+    ASSERT(l1->len == l2->len);
+    for (size_t i = 0; i < l1->len; ++i) {
+        ASSERT(compare_declarations(&l1->decls[i], &l2->decls[i]));
+    }
+    return true;
+}
+
+static bool compare_compound_statements(const struct compound_statement* s1,
+                                        const struct compound_statement* s2) {
     (void)s1, (void)s2;
     // TODO:
     return false;
@@ -748,16 +813,9 @@ static bool compare_compound_statement(const struct compound_statement* s1,
 static bool compare_func_defs(const struct func_def* d1,
                               const struct func_def* d2) {
     ASSERT(compare_declaration_specs(d1->specs, d2->specs));
-    ASSERT(compare_declarator(d1->decl, d2->decl));
-    ASSERT(compare_declaration_list(&d1->decl_list, &d2->decl_list));
-    return compare_compound_statement(d1->comp, d2->comp);
-}
-
-static bool compare_declarations(const struct declaration* d1,
-                                 const struct declaration* d2) {
-    (void)d1, (void)d2;
-    // TODO:
-    return false;
+    ASSERT(compare_declarators(d1->decl, d2->decl));
+    ASSERT(compare_declaration_lists(&d1->decl_list, &d2->decl_list));
+    return compare_compound_statements(d1->comp, d2->comp);
 }
 
 static bool compare_external_declarations(
