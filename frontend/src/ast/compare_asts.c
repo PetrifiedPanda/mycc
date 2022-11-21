@@ -122,9 +122,15 @@ static bool compare_assign_exprs(const struct assign_expr* e1,
 
 static bool compare_generic_assocs(const struct generic_assoc* a1,
                                    const struct generic_assoc* a2) {
-    (void)a1, (void)a2;
-    // TODO:
-    return false;
+    ASSERT(compare_ast_node_infos(&a1->info, &a2->info));
+    if (a1->type_name == NULL) {
+        ASSERT(a2->type_name == NULL);
+    } else if (a2->type_name == NULL) {
+        return false;
+    } else {
+        ASSERT(compare_type_names(a1->type_name, a2->type_name));
+    }
+    return compare_assign_exprs(a1->assign, a2->assign);
 }
 
 static bool compare_generic_assoc_lists(const struct generic_assoc_list* l1,
@@ -164,18 +170,77 @@ static bool compare_primary_exprs(const struct primary_expr* e1,
     UNREACHABLE();
 }
 
+static bool compare_const_exprs(const struct const_expr* e1,
+                                const struct const_expr* e2);
+
+static bool compare_designator(const struct designator* d1,
+                               const struct designator* d2) {
+    ASSERT(compare_ast_node_infos(&d1->info, &d2->info));
+    ASSERT(d1->is_index == d2->is_index);
+    if (d1->is_index) {
+        return compare_const_exprs(d1->arr_index, d2->arr_index);
+    } else {
+        return compare_identifiers(d1->identifier, d2->identifier);
+    }
+}
+
+static bool compare_designator_list(const struct designator_list* l1,
+                                    const struct designator_list* l2) {
+    ASSERT(l1->len == l2->len);
+    for (size_t i = 0; i < l1->len; ++i) {
+        ASSERT(compare_designator(&l1->designators[i], &l2->designators[i]));
+    }
+    return true;
+}
+
+static bool compare_designations(const struct designation* d1,
+                                 const struct designation* d2) {
+    return compare_designator_list(&d1->designators, &d2->designators);
+}
+
+static bool compare_init_list(const struct init_list* l1,
+                              const struct init_list* l2);
+
+static bool compare_initializers(const struct initializer* i1,
+                                 const struct initializer* i2) {
+    ASSERT(compare_ast_node_infos(&i1->info, &i2->info));
+    ASSERT(i1->is_assign == i2->is_assign);
+    if (i1->is_assign) {
+        return compare_assign_exprs(i1->assign, i2->assign);
+    } else {
+        return compare_init_list(&i1->init_list, &i2->init_list);
+    }
+}
+
+static bool compare_designation_inits(const struct designation_init* i1,
+                                      const struct designation_init* i2) {
+    if (i1->designation == NULL) {
+        ASSERT(i2->designation == NULL);
+    } else if (i2->designation == NULL) {
+        return false;
+    } else {
+        ASSERT(compare_designations(i1->designation, i2->designation));
+    }
+    return compare_initializers(i1->init, i2->init);
+}
+
 static bool compare_init_list(const struct init_list* l1,
                               const struct init_list* l2) {
-    (void)l1, (void)l2;
-    // TODO:
+    ASSERT(l1->len == l2->len);
+    for (size_t i = 0; i < l1->len; ++i) {
+        ASSERT(compare_designation_inits(&l1->inits[i], &l2->inits[i]));
+    }
     return false;
 }
 
 static bool compare_arg_expr_lists(const struct arg_expr_list* l1,
                                    const struct arg_expr_list* l2) {
-    (void)l1, (void)l2;
-    // TODO:
-    return false;
+    ASSERT(l1->len == l2->len);
+    for (size_t i = 0; i < l1->len; ++i) {
+        ASSERT(
+            compare_assign_exprs(&l1->assign_exprs[i], &l2->assign_exprs[i]));
+    }
+    return true;
 }
 
 static bool compare_postfix_suffixes(const struct postfix_suffix* s1,
@@ -362,9 +427,12 @@ static bool compare_log_or_exprs(const struct log_or_expr* e1,
 }
 
 static bool compare_exprs(const struct expr* e1, const struct expr* e2) {
-    (void)e1, (void)e2;
-    // TODO:
-    return false;
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        ASSERT(
+            compare_assign_exprs(&e1->assign_exprs[i], &e2->assign_exprs[i]));
+    }
+    return true;
 }
 
 static bool compare_cond_exprs(const struct cond_expr* e1,
@@ -391,12 +459,121 @@ static bool compare_static_assert_declarations(
     return compare_string_literals(&d1->err_msg, &d2->err_msg);
 }
 
-static bool compare_struct_declarator_list(
-    const struct struct_declarator_list* l1,
-    const struct struct_declarator_list* l2) {
+static bool compare_pointers(const struct pointer* p1,
+                             const struct pointer* p2) {
+    ASSERT(compare_ast_node_infos(&p1->info, &p2->info));
+    ASSERT(p1->num_indirs == p2->num_indirs);
+    for (size_t i = 0; i < p1->num_indirs; ++i) {
+        ASSERT(compare_type_quals(&p1->quals_after_ptr[i],
+                                  &p1->quals_after_ptr[i]));
+    }
+    return true;
+}
+
+static bool compare_param_type_lists(const struct param_type_list* l1,
+                                     const struct param_type_list* l2) {
     (void)l1, (void)l2;
     // TODO:
     return false;
+}
+
+static bool compare_identifier_lists(const struct identifier_list* l1,
+                                     const struct identifier_list* l2) {
+    (void)l1, (void)l2;
+    // TODO:
+    return false;
+}
+
+static bool compare_arr_suffixes(const struct arr_suffix* s1,
+                                 const struct arr_suffix* s2) {
+    ASSERT(s1->is_static == s2->is_static);
+    ASSERT(compare_type_quals(&s1->type_quals, &s2->type_quals));
+    ASSERT(s1->is_asterisk == s2->is_asterisk);
+    if (s1->arr_len == NULL) {
+        return s2->arr_len == NULL;
+    } else if (s2->arr_len == NULL) {
+        return false;
+    } else {
+        return compare_assign_exprs(s1->arr_len, s2->arr_len);
+    }
+}
+
+static bool compare_arr_or_func_suffix(const struct arr_or_func_suffix* s1,
+                                       const struct arr_or_func_suffix* s2) {
+    ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
+    ASSERT(s1->type == s2->type);
+    switch (s1->type) {
+        case ARR_OR_FUNC_ARRAY:
+            return compare_arr_suffixes(&s1->arr_suffix, &s2->arr_suffix);
+        case ARR_OR_FUNC_FUN_PARAMS:
+            return compare_param_type_lists(&s1->fun_types, &s2->fun_types);
+        case ARR_OR_FUNC_FUN_OLD_PARAMS:
+            return compare_identifier_lists(&s1->fun_params, &s2->fun_params);
+        case ARR_OR_FUNC_FUN_EMPTY:
+            return true;
+    }
+    UNREACHABLE();
+}
+
+static bool compare_declarators(const struct declarator* d1,
+                                const struct declarator* d2);
+
+static bool compare_direct_declarators(const struct direct_declarator* d1,
+                                       const struct direct_declarator* d2) {
+    ASSERT(compare_ast_node_infos(&d1->info, &d2->info));
+    ASSERT(d1->is_id == d2->is_id);
+    if (d1->is_id) {
+        ASSERT(compare_identifiers(d1->id, d2->id));
+    } else {
+        ASSERT(compare_declarators(d1->bracket_decl, d2->bracket_decl));
+    }
+    ASSERT(d1->len == d2->len);
+    for (size_t i = 0; i < d1->len; ++i) {
+        ASSERT(compare_arr_or_func_suffix(&d1->suffixes[i], &d2->suffixes[i]));
+    }
+    return true;
+}
+
+static bool compare_declarators(const struct declarator* d1,
+                                const struct declarator* d2) {
+    if (d1->ptr == NULL) {
+        ASSERT(d2->ptr == NULL);
+    } else if (d2->ptr == NULL) {
+        return false;
+    } else {
+        ASSERT(compare_pointers(d1->ptr, d2->ptr));
+    }
+
+    return compare_direct_declarators(d1->direct_decl, d2->direct_decl);
+}
+
+static bool compare_struct_declarator(const struct struct_declarator* d1,
+                                      const struct struct_declarator* d2) {
+    if (d1->decl == NULL) {
+        ASSERT(d2->decl == NULL);
+    } else if (d2->decl == NULL) {
+        return false;
+    } else {
+        ASSERT(compare_declarators(d1->decl, d2->decl));
+    }
+
+    if (d1->bit_field == NULL) {
+        return d2->bit_field == NULL;
+    } else if (d2->bit_field == NULL) {
+        return false;
+    } else {
+        return compare_const_exprs(d1->bit_field, d2->bit_field);
+    }
+}
+
+static bool compare_struct_declarator_list(
+    const struct struct_declarator_list* l1,
+    const struct struct_declarator_list* l2) {
+    ASSERT(l1->len == l2->len);
+    for (size_t i = 0; i < l1->len; ++i) {
+        ASSERT(compare_struct_declarator(&l1->decls[i], &l2->decls[i]));
+    }
+    return true;
 }
 
 static bool compare_declaration_specs(const struct declaration_specs* s1,
