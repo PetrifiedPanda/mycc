@@ -97,24 +97,44 @@ static bool compare_string_constants(const struct string_constant* c1,
                                      const struct string_constant* c2) {
     ASSERT(c1->is_func == c2->is_func);
     if (c1->is_func) {
-        return compare_ast_node_infos(&c1->info, &c2->info); 
+        return compare_ast_node_infos(&c1->info, &c2->info);
     } else {
         return compare_string_literals(&c1->lit, &c2->lit);
     }
 }
 
+static bool compare_unary_exprs(const struct unary_expr* e1,
+                                const struct unary_expr* e2);
+static bool compare_cond_exprs(const struct cond_expr* e1,
+                               const struct cond_expr* e2);
+
 static bool compare_assign_exprs(const struct assign_expr* e1,
                                  const struct assign_expr* e2) {
-    (void)e1, (void)e2;
+    ASSERT(e1->len == e2->len);
+    for (size_t i = 0; i < e1->len; ++i) {
+        struct unary_and_op* item1 = &e1->assign_chain[i];
+        struct unary_and_op* item2 = &e2->assign_chain[i];
+        ASSERT(compare_unary_exprs(item1->unary, item2->unary));
+        ASSERT(item1->op == item2->op);
+    }
+    return compare_cond_exprs(e1->value, e2->value);
+}
+
+static bool compare_generic_assocs(const struct generic_assoc* a1,
+                                   const struct generic_assoc* a2) {
+    (void)a1, (void)a2;
     // TODO:
     return false;
 }
 
 static bool compare_generic_assoc_lists(const struct generic_assoc_list* l1,
                                         const struct generic_assoc_list* l2) {
-    (void)l1, (void)l2;
-    // TODO:
-    return false;
+    ASSERT(compare_ast_node_infos(&l1->info, &l2->info));
+    ASSERT(l1->len == l2->len);
+    for (size_t i = 0; i < l1->len; ++i) {
+        ASSERT(compare_generic_assocs(&l1->assocs[i], &l2->assocs[i]));
+    }
+    return true;
 }
 
 static bool compare_generic_sel(const struct generic_sel* s1,
@@ -144,7 +164,8 @@ static bool compare_primary_exprs(const struct primary_expr* e1,
     UNREACHABLE();
 }
 
-static bool compare_init_list(const struct init_list* l1, const struct init_list* l2) {
+static bool compare_init_list(const struct init_list* l1,
+                              const struct init_list* l2) {
     (void)l1, (void)l2;
     // TODO:
     return false;
