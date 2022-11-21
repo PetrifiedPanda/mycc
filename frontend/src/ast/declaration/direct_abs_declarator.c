@@ -170,6 +170,8 @@ struct direct_abs_declarator* parse_direct_abs_declarator(
 
 static void free_abs_arr_or_func_suffix(struct abs_arr_or_func_suffix* s) {
     switch (s->type) {
+        case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
+            break;
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN:
             if (s->assign) {
                 free_assign_expr(s->assign);
@@ -177,8 +179,6 @@ static void free_abs_arr_or_func_suffix(struct abs_arr_or_func_suffix* s) {
             break;
         case ABS_ARR_OR_FUNC_SUFFIX_FUNC:
             free_param_type_list(&s->func_types);
-            break;
-        default:
             break;
     }
 }
