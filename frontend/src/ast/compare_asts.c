@@ -41,7 +41,7 @@ static bool compare_ast_node_infos(const struct ast_node_info* i1,
 
 static bool compare_strs(const struct str* s1, const struct str* s2) {
     ASSERT(str_len(s1) == str_len(s2));
-    return strcmp(str_get_data(s1), str_get_data(s2));
+    return strcmp(str_get_data(s1), str_get_data(s2)) == 0;
 }
 
 static bool compare_type_quals(const struct type_quals* q1,
@@ -229,7 +229,7 @@ static bool compare_init_list(const struct init_list* l1,
     for (size_t i = 0; i < l1->len; ++i) {
         ASSERT(compare_designation_inits(&l1->inits[i], &l2->inits[i]));
     }
-    return false;
+    return true;
 }
 
 static bool compare_arg_expr_lists(const struct arg_expr_list* l1,
@@ -907,7 +907,8 @@ static bool compare_jump_statements(const struct jump_statement* s1,
         case JUMP_STATEMENT_BREAK:
             return true;
         case JUMP_STATEMENT_RETURN:
-            return compare_exprs(s1->ret_val, s2->ret_val);
+            COMPARE_NULLABLE(s1->ret_val, s2->ret_val, compare_exprs);
+            return true;
     }
     UNREACHABLE();
 }

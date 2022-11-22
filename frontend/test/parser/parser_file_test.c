@@ -5,6 +5,8 @@
 #include "frontend/preproc/preproc.h"
 #include "frontend/parser/parser.h"
 #include "frontend/ast/ast_dumper.h"
+#include "frontend/ast/ast_deserializer.h"
+#include "frontend/ast/compare_asts.h"
 
 #include "../test_helpers.h"
 
@@ -199,7 +201,8 @@ TEST(no_preproc) {
     struct translation_unit tl = parse_tokens(res.toks, &err);
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)10);
-
+    ASSERT(compare_asts(&tl, &tl));
+    
     compare_with_ex_file(&tl, &res.file_info, "../frontend/test/files/no_preproc.c.ast");
 
     const struct storage_class sc = {false, false, false, false, false, false};
@@ -248,6 +251,7 @@ TEST(parser_testfile) {
     struct translation_unit tl = parse_tokens(res.toks, &err);
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)17);
+    ASSERT(compare_asts(&tl, &tl));
     
     compare_with_ex_file(&tl, &res.file_info, "../frontend/test/files/parser_testfile.c.ast");
 
@@ -320,6 +324,7 @@ TEST(large_testfile) {
     struct translation_unit tl = parse_tokens(res.toks, &err);
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)88);
+    ASSERT(compare_asts(&tl, &tl));
 
     compare_with_ex_file(&tl, &res.file_info, "../frontend/test/files/large_testfile.c.ast");
 
