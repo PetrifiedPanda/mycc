@@ -869,11 +869,31 @@ static bool compare_selection_statements(const struct selection_statement* s1,
     return true;
 }
 
+static bool compare_for_loops(const struct for_loop* l1,
+                              const struct for_loop* l2) {
+    ASSERT(l1->is_decl == l2->is_decl);
+    if (l1->is_decl) {
+        ASSERT(compare_declarations(l1->init_decl, l2->init_decl));
+    } else {
+        ASSERT(compare_expr_statements(l1->init_expr, l2->init_expr));
+    }
+    ASSERT(compare_expr_statements(l1->cond, l2->cond));
+    return compare_exprs(l1->incr_expr, l2->incr_expr);
+}
+
 static bool compare_iteration_statements(const struct iteration_statement* s1,
                                          const struct iteration_statement* s2) {
-    (void)s1, (void)s2;
-    // TODO:
-    return false;
+    ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
+    ASSERT(s1->type == s2->type);
+    ASSERT(compare_statements(s1->loop_body, s2->loop_body));
+    switch (s1->type) {
+        case ITERATION_STATEMENT_WHILE:
+        case ITERATION_STATEMENT_DO:
+            return compare_exprs(s1->while_cond, s2->while_cond);
+        case ITERATION_STATEMENT_FOR:
+            return compare_for_loops(&s1->for_loop, &s2->for_loop);
+    }
+    UNREACHABLE();
 }
 
 static bool compare_jump_statements(const struct jump_statement* s1,
