@@ -774,12 +774,21 @@ static bool compare_declaration_specs(const struct declaration_specs* s1,
     return compare_type_specs(&s1->type_specs, &s2->type_specs);
 }
 
+static bool compare_init_declarators(const struct init_declarator* d1,
+                                     const struct init_declarator* d2) {
+    ASSERT(compare_declarators(d1->decl, d2->decl));
+    COMPARE_NULLABLE(d1->init, d2->init, compare_initializers);
+    return true;
+}
+
 static bool compare_init_declarator_lists(
     const struct init_declarator_list* l1,
     const struct init_declarator_list* l2) {
-    (void)l1, (void)l2;
-    // TODO:
-    return false;
+    ASSERT(l1->len == l2->len);
+    for (size_t i = 0; i < l1->len; ++i) {
+        ASSERT(compare_init_declarators(&l1->decls[i], &l2->decls[i]));
+    }
+    return true;
 }
 
 static bool compare_declarations(const struct declaration* d1,
@@ -803,11 +812,104 @@ static bool compare_declaration_lists(const struct declaration_list* l1,
     return true;
 }
 
+static bool compare_statements(const struct statement* s1,
+                               const struct statement* s2);
+
+static bool compare_labeled_statements(const struct labeled_statement* s1,
+                                       const struct labeled_statement* s2) {
+    ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
+    ASSERT(s1->type == s2->type);
+    switch (s1->type) {
+        case LABELED_STATEMENT_CASE:
+            ASSERT(compare_const_exprs(s1->case_expr, s2->case_expr));
+            break;
+        case LABELED_STATEMENT_LABEL:
+            ASSERT(compare_identifiers(s1->label, s2->label));
+            break;
+        case LABELED_STATEMENT_DEFAULT:
+            break;
+    }
+
+    return compare_statements(s1->stat, s2->stat);
+}
+
+static bool compare_block_items(const struct block_item* i1,
+                                const struct block_item* i2) {
+    ASSERT(i1->is_decl == i2->is_decl);
+    if (i1->is_decl) {
+        return compare_declarations(&i1->decl, &i2->decl);
+    } else {
+        return compare_statements(&i1->stat, &i2->stat);
+    }
+}
+
 static bool compare_compound_statements(const struct compound_statement* s1,
                                         const struct compound_statement* s2) {
+    ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
+    ASSERT(s1->len == s2->len);
+    for (size_t i = 0; i < s1->len; ++i) {
+        ASSERT(compare_block_items(&s1->items[i], &s2->items[i]));
+    }
+    return true;
+}
+
+static bool compare_expr_statements(const struct expr_statement* s1,
+                                    const struct expr_statement* s2) {
+    ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
+    return compare_exprs(&s1->expr, &s2->expr);
+}
+
+static bool compare_selection_statements(const struct selection_statement* s1,
+                                         const struct selection_statement* s2) {
+    ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
+    ASSERT(s1->is_if == s2->is_if);
+    ASSERT(compare_exprs(s1->sel_expr, s2->sel_expr));
+    ASSERT(compare_statements(s1->sel_stat, s2->sel_stat));
+    COMPARE_NULLABLE(s1->else_stat, s2->else_stat, compare_statements);
+    return true;
+}
+
+static bool compare_iteration_statements(const struct iteration_statement* s1,
+                                         const struct iteration_statement* s2) {
     (void)s1, (void)s2;
     // TODO:
     return false;
+}
+
+static bool compare_jump_statements(const struct jump_statement* s1,
+                                    const struct jump_statement* s2) {
+    ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
+    ASSERT(s1->type == s2->type);
+    switch (s1->type) {
+        case JUMP_STATEMENT_GOTO:
+            return compare_identifiers(s1->goto_label, s2->goto_label);
+        case JUMP_STATEMENT_CONTINUE:
+        case JUMP_STATEMENT_BREAK:
+            return true;
+        case JUMP_STATEMENT_RETURN:
+            return compare_exprs(s1->ret_val, s2->ret_val);
+    }
+    UNREACHABLE();
+}
+
+static bool compare_statements(const struct statement* s1,
+                               const struct statement* s2) {
+    ASSERT(s1->type == s2->type);
+    switch (s1->type) {
+        case STATEMENT_LABELED:
+            return compare_labeled_statements(s1->labeled, s2->labeled);
+        case STATEMENT_COMPOUND:
+            return compare_compound_statements(s1->comp, s2->comp);
+        case STATEMENT_EXPRESSION:
+            return compare_expr_statements(s1->expr, s2->expr);
+        case STATEMENT_SELECTION:
+            return compare_selection_statements(s1->sel, s2->sel);
+        case STATEMENT_ITERATION:
+            return compare_iteration_statements(s1->it, s2->it);
+        case STATEMENT_JUMP:
+            return compare_jump_statements(s1->jmp, s2->jmp);
+    }
+    UNREACHABLE();
 }
 
 static bool compare_func_defs(const struct func_def* d1,
