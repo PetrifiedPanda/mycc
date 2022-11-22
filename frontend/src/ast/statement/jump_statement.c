@@ -96,12 +96,13 @@ static void free_children(struct jump_statement* s) {
         case JUMP_STATEMENT_GOTO:
             free_identifier(s->goto_label);
             break;
+        case JUMP_STATEMENT_CONTINUE:
+        case JUMP_STATEMENT_BREAK:
+            break;
         case JUMP_STATEMENT_RETURN:
             if (s->ret_val) {
                 free_expr(s->ret_val);
             }
-            break;
-        default:
             break;
     }
 }
