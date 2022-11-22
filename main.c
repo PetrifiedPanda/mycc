@@ -57,6 +57,7 @@ int main(int argc, char** argv) {
         if (preproc_err.type != PREPROC_ERR_NONE) {
             print_preproc_err(stderr, &preproc_res.file_info, &preproc_err);
             free_preproc_err(&preproc_err);
+            free_preproc_res(&preproc_res);
             return EXIT_FAILURE;
         }
         if (!convert_preproc_tokens(preproc_res.toks,

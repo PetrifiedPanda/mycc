@@ -454,7 +454,9 @@ void free_preproc_res_preproc_tokens(struct preproc_res* res) {
 }
 
 void free_preproc_res(struct preproc_res* res) {
-    free_tokens(res->toks);
+    if (res->toks) {
+        free_tokens(res->toks);
+    }
     free_file_info(&res->file_info);
 }
 
