@@ -73,9 +73,10 @@
 
 #define ASSERT_STR(got, expected)                                              \
     do {                                                                       \
-        if (((expected) == NULL && (got) != NULL)                              \
-            || ((got) == NULL && (expected) != NULL)) {                        \
-            PRINT_ASSERT_ERR("Expected %s but got %s", expected, got);         \
+        if ((expected) == NULL && (got) != NULL) {                             \
+            PRINT_ASSERT_ERR("Expected NULL but got %s", got);                 \
+        } else if ((expected) != NULL && (got) == NULL) {                      \
+            PRINT_ASSERT_ERR("Expected %s but got NULL", expected);            \
         } else if ((got) != NULL && (expected) != NULL) {                      \
             if (strcmp(got, expected) != 0) {                                  \
                 PRINT_ASSERT_ERR("Expected %s but got %s", expected, got);     \
