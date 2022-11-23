@@ -477,6 +477,9 @@ static struct primary_expr* deserialize_primary_expr(
             }
             break;
         case PRIMARY_EXPR_BRACKET:
+            if (!deserialize_ast_node_info(r, &res->info)) {
+                goto fail;
+            }
             res->bracket_expr = deserialize_expr(r);
             if (!res->bracket_expr) {
                 goto fail;
@@ -553,6 +556,7 @@ static struct initializer* deserialize_initializer(struct ast_deserializer* r) {
         return NULL;
     }
     struct initializer* res = xmalloc(sizeof *res);
+    res->info = info;
     res->is_assign = is_assign;
     if (is_assign) {
         res->assign = deserialize_assign_expr(r);
@@ -1989,6 +1993,7 @@ static struct labeled_statement* deserialize_labeled_statement(
     }
 
     struct labeled_statement* res = xmalloc(sizeof *res);
+    res->info = info;
     res->type = type;
     assert((uint64_t)res->type == type);
     switch (res->type) {

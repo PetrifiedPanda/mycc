@@ -226,6 +226,7 @@ static void serialize_primary_expr(struct ast_serializer* d,
             serialize_string_constant(d, &expr->string);
             break;
         case PRIMARY_EXPR_BRACKET:
+            serialize_ast_node_info(d, &expr->info);
             serialize_expr(d, expr->bracket_expr);
             break;
         case PRIMARY_EXPR_GENERIC:
