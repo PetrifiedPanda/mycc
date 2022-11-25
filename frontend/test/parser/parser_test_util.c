@@ -17,7 +17,7 @@ void check_int_value(struct int_value got, struct int_value expected) {
 
 void check_float_value(struct float_value got, struct float_value expected) {
     ASSERT_FLOAT_VALUE_TYPE(got.type, expected.type);
-    ASSERT_LONG_DOUBLE(got.val, expected.val, 0.0001);
+    ASSERT_DOUBLE(got.val, expected.val, 0.0001);
 }
 
 void check_identifier(struct identifier* id, const char* spell) {

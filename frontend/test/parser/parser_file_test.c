@@ -178,32 +178,39 @@ static void check_external_decl_func_def_typedef(
                                  body_len);
 
     ASSERT(d->func_def.specs->type_specs.type == TYPE_SPEC_TYPENAME);
-    ASSERT_STR(str_get_data(&d->func_def.specs->type_specs.typedef_name->spelling), ret_type);
+    ASSERT_STR(
+        str_get_data(&d->func_def.specs->type_specs.typedef_name->spelling),
+        ret_type);
 }
 
-static void compare_with_ex_file(const struct translation_unit* tl, const struct file_info* file_info, const char* ex_file) {
-    const char* tmp_filename = "tmp.ast";
+static void compare_with_ex_file(const struct translation_unit* got,
+                                 const struct file_info* file_info,
+                                 const char* ex_filename) {
+    FILE* ex_file = fopen(ex_filename, "rb");
+    ASSERT(ex_file);
+    struct deserialize_ast_res expected = deserialize_ast(ex_file);
+    ASSERT(expected.is_valid);
+    ASSERT(fclose(ex_file) == 0);
 
-    FILE* tmp_file = fopen(tmp_filename, "w");
-    ASSERT(dump_ast(tl, file_info, tmp_file));
-
-    ASSERT_INT(fclose(tmp_file), 0);
-    test_compare_files(tmp_filename, ex_file);
-
-    remove(tmp_filename);
+    ASSERT(expected.file_info.len == file_info->len);
+    ASSERT(compare_asts(got, file_info, &expected.tl, &expected.file_info));
+    free_translation_unit(&expected.tl);
+    free_file_info(&expected.file_info);
 }
 
 TEST(no_preproc) {
     const char* file = "../frontend/test/files/no_preproc.c";
     struct preproc_res res = tokenize(file);
-    
+
     struct parser_err err = create_parser_err();
     struct translation_unit tl = parse_tokens(res.toks, &err);
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)10);
-    ASSERT(compare_asts(&tl, &tl));
-    
-    compare_with_ex_file(&tl, &res.file_info, "../frontend/test/files/no_preproc.c.ast");
+    ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
+
+    compare_with_ex_file(&tl,
+                         &res.file_info,
+                         "../frontend/test/files/no_preproc.c.binast");
 
     const struct storage_class sc = {false, false, false, false, false, false};
     const struct storage_class sc_static = {.is_static = true};
@@ -246,14 +253,16 @@ TEST(no_preproc) {
 TEST(parser_testfile) {
     const char* file = "../frontend/test/files/parser_testfile.c";
     struct preproc_res res = tokenize(file);
-    
+
     struct parser_err err = create_parser_err();
     struct translation_unit tl = parse_tokens(res.toks, &err);
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)17);
-    ASSERT(compare_asts(&tl, &tl));
-    
-    compare_with_ex_file(&tl, &res.file_info, "../frontend/test/files/parser_testfile.c.ast");
+    ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
+
+    compare_with_ex_file(&tl,
+                         &res.file_info,
+                         "../frontend/test/files/parser_testfile.c.binast");
 
     const char* tmp_filename = "tmp.ast";
     FILE* tmp_file = fopen(tmp_filename, "w");
@@ -262,7 +271,8 @@ TEST(parser_testfile) {
 
     ASSERT_INT(fclose(tmp_file), 0);
 
-    test_compare_files(tmp_filename, "../frontend/test/files/parser_testfile.c.ast");
+    test_compare_files(tmp_filename,
+                       "../frontend/test/files/parser_testfile.c.ast");
 
     const struct storage_class sc = {false, false, false, false, false, false};
     const struct storage_class sc_static = {.is_static = true};
@@ -319,14 +329,16 @@ TEST(parser_testfile) {
 TEST(large_testfile) {
     const char* file = "../frontend/test/files/large_testfile.c";
     struct preproc_res res = tokenize(file);
-    
+
     struct parser_err err = create_parser_err();
     struct translation_unit tl = parse_tokens(res.toks, &err);
     ASSERT(err.type == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)88);
-    ASSERT(compare_asts(&tl, &tl));
+    ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
 
-    compare_with_ex_file(&tl, &res.file_info, "../frontend/test/files/large_testfile.c.ast");
+    compare_with_ex_file(&tl,
+                         &res.file_info,
+                         "../frontend/test/files/large_testfile.c.binast");
 
     const struct storage_class sc = {false, false, false, false, false, false};
     const struct storage_class sc_static = {.is_static = true};

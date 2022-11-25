@@ -77,7 +77,7 @@ static bool deserialize_int(struct ast_deserializer* r, int64_t* res) {
     return deserializer_read(r, res, sizeof *res, 1);
 }
 
-static bool deserialize_float(struct ast_deserializer* r, long double* res) {
+static bool deserialize_float(struct ast_deserializer* r, double* res) {
     return deserializer_read(r, res, sizeof *res, 1);
 }
 
@@ -245,7 +245,7 @@ static bool deserialize_float_value(struct ast_deserializer* r,
     }
     res->type = type;
     assert((uint64_t)res->type == type);
-    long double val;
+    double val;
     if (!deserialize_float(r, &val)) {
         return false;
     }

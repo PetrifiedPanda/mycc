@@ -943,7 +943,7 @@ static void check_token(const struct token* t, const struct token* expected) {
         }
     } else if (t->type == F_CONSTANT) {
         ASSERT_FLOAT_VALUE_TYPE(t->float_val.type, expected->float_val.type);
-        ASSERT_LONG_DOUBLE(t->float_val.val, expected->float_val.val, 0.0001);
+        ASSERT_DOUBLE(t->float_val.val, expected->float_val.val, 0.0001);
     } else {
         ASSERT_STR(str_get_data(&t->spelling),
                    str_get_data(&expected->spelling));

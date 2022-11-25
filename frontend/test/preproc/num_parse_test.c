@@ -45,10 +45,10 @@ TEST(integer) {
 #define TEST_FLOAT_LITERAL(constant, expected_val_type)                        \
     do {                                                                       \
         const char spell[] = #constant;                                        \
-        const long double num = constant;                                      \
+        const double num = constant;                                           \
         const struct parse_float_const_res res = parse_float_const(spell);     \
         ASSERT(res.err.type == FLOAT_CONST_ERR_NONE);                          \
-        ASSERT_LONG_DOUBLE(num, res.res.val, 0.000000001l);                    \
+        ASSERT_DOUBLE(num, res.res.val, 0.000000001l);                         \
         ASSERT(res.res.type == expected_val_type);                             \
     } while (0)
 

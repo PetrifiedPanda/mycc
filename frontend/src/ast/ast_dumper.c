@@ -235,7 +235,7 @@ static void dump_float_value(struct ast_dumper* d, struct float_value val) {
     add_indent(d);
 
     dumper_println(d, "type: %s", get_float_value_type_str(val.type));
-    dumper_println(d, "float_val: %Lg", val.val);
+    dumper_println(d, "float_val: %g", val.val);
 
     remove_indent(d);
 }

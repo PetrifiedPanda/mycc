@@ -30,7 +30,7 @@ bool int_value_is_unsigned(enum int_value_type t) {
     }
 }
 
-struct int_value create_int_value(enum int_value_type t, intmax_t val) {
+struct int_value create_int_value(enum int_value_type t, int64_t val) {
     assert(int_value_is_signed(t));
     return (struct int_value){
         .type = t,
@@ -38,7 +38,7 @@ struct int_value create_int_value(enum int_value_type t, intmax_t val) {
     };
 }
 
-struct int_value create_uint_value(enum int_value_type t, uintmax_t val) {
+struct int_value create_uint_value(enum int_value_type t, uint64_t val) {
     assert(int_value_is_unsigned(t));
     return (struct int_value){
         .type = t,
@@ -46,8 +46,7 @@ struct int_value create_uint_value(enum int_value_type t, uintmax_t val) {
     };
 }
 
-struct float_value create_float_value(enum float_value_type t,
-                                      long double val) {
+struct float_value create_float_value(enum float_value_type t, double val) {
     return (struct float_value){
         .type = t,
         .val = val,

@@ -64,10 +64,10 @@
         }                                                                      \
     } while (0)
 
-#define ASSERT_LONG_DOUBLE(got, expected, precision)                           \
+#define ASSERT_DOUBLE(got, expected, precision)                                \
     do {                                                                       \
         if (fabsl((got) - (expected)) > precision) {                           \
-            PRINT_ASSERT_ERR("Expected %.20Lf but got %.20Lf", expected, got); \
+            PRINT_ASSERT_ERR("Expected %.20f but got %.20f", expected, got);   \
         }                                                                      \
     } while (0)
 

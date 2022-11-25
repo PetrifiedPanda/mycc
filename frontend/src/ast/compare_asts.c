@@ -27,9 +27,14 @@
 static bool compare_translation_units(const struct translation_unit* tl1,
                                       const struct translation_unit* tl2);
 
+static bool compare_file_infos(const struct file_info* i1,
+                               const struct file_info* i2);
+
 bool compare_asts(const struct translation_unit* tl1,
-                  const struct translation_unit* tl2) {
-    return compare_translation_units(tl1, tl2);
+                  const struct file_info* i1,
+                  const struct translation_unit* tl2,
+                  const struct file_info* i2) {
+    return compare_file_infos(i1, i2) && compare_translation_units(tl1, tl2);
 }
 
 static bool compare_ast_node_infos(const struct ast_node_info* i1,
@@ -42,6 +47,15 @@ static bool compare_ast_node_infos(const struct ast_node_info* i1,
 static bool compare_strs(const struct str* s1, const struct str* s2) {
     ASSERT(str_len(s1) == str_len(s2));
     return strcmp(str_get_data(s1), str_get_data(s2)) == 0;
+}
+
+static bool compare_file_infos(const struct file_info* i1,
+                               const struct file_info* i2) {
+    ASSERT(i1->len == i2->len);
+    for (size_t i = 0; i < i1->len; ++i) {
+        ASSERT(compare_strs(&i1->paths[i], &i2->paths[i]));
+    }
+    return true;
 }
 
 static bool compare_type_quals(const struct type_quals* q1,
