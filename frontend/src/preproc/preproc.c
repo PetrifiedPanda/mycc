@@ -460,70 +460,80 @@ void free_preproc_res(struct preproc_res* res) {
     free_file_info(&res->file_info);
 }
 
+static bool convert_preproc_token(struct token* t,
+                                  const struct arch_int_info* info,
+                                  struct preproc_err* err) {
+    assert(t);
+    assert(info);
+    assert(err);
+    switch (t->type) {
+        case I_CONSTANT: {
+            if (str_char_at(&t->spelling, 0) == '\'') {
+                struct parse_char_const_res res = parse_char_const(
+                    str_get_data(&t->spelling),
+                    info);
+                if (res.err.type != CHAR_CONST_ERR_NONE) {
+                    set_preproc_err(err, PREPROC_ERR_CHAR_CONST, t->loc);
+                    err->char_const_err = res.err;
+                    err->constant_spell = t->spelling;
+                    return false;
+                }
+                free_str(&t->spelling);
+                t->int_val = res.res;
+            } else {
+                struct parse_int_const_res res = parse_int_const(
+                    str_get_data(&t->spelling),
+                    info);
+                if (res.err.type != INT_CONST_ERR_NONE) {
+                    set_preproc_err(err, PREPROC_ERR_INT_CONST, t->loc);
+                    err->int_const_err = res.err;
+                    err->constant_spell = t->spelling;
+                    return false;
+                }
+                free_str(&t->spelling);
+                t->int_val = res.res;
+            }
+            break;
+        }
+        case F_CONSTANT: {
+            struct parse_float_const_res res = parse_float_const(
+                str_get_data(&t->spelling));
+            if (res.err.type != FLOAT_CONST_ERR_NONE) {
+                set_preproc_err(err, PREPROC_ERR_FLOAT_CONST, t->loc);
+                err->float_const_err = res.err;
+                err->constant_spell = t->spelling;
+                return false;
+            }
+            free_str(&t->spelling);
+            t->float_val = res.res;
+            break;
+        }
+        case IDENTIFIER:
+            t->type = keyword_type(str_get_data(&t->spelling));
+            if (t->type != IDENTIFIER) {
+                free_str(&t->spelling);
+                t->spelling = create_null_str();
+            }
+            break;
+        case STRINGIFY_OP:
+        case CONCAT_OP:
+            set_preproc_err(err, PREPROC_ERR_MISPLACED_PREPROC_TOKEN, t->loc);
+            err->misplaced_preproc_tok = t->type;
+            return false;
+        default:
+            break;
+    }
+    return true;
+}
+
 bool convert_preproc_tokens(struct token* tokens,
                             const struct arch_int_info* info,
                             struct preproc_err* err) {
     assert(tokens);
     assert(info);
     for (struct token* t = tokens; t->type != INVALID; ++t) {
-        switch (t->type) {
-            case I_CONSTANT: {
-                if (str_char_at(&t->spelling, 0) == '\'') {
-                    struct parse_char_const_res res = parse_char_const(
-                        str_get_data(&t->spelling),
-                        info);
-                    if (res.err.type != CHAR_CONST_ERR_NONE) {
-                        set_preproc_err(err, PREPROC_ERR_CHAR_CONST, t->loc);
-                        err->char_const_err = res.err;
-                        err->constant_spell = t->spelling;
-                        return false;
-                    }
-                    free_str(&t->spelling);
-                    t->int_val = res.res;
-                } else {
-                    struct parse_int_const_res res = parse_int_const(
-                        str_get_data(&t->spelling),
-                        info);
-                    if (res.err.type != INT_CONST_ERR_NONE) {
-                        set_preproc_err(err, PREPROC_ERR_INT_CONST, t->loc);
-                        err->int_const_err = res.err;
-                        err->constant_spell = t->spelling;
-                        return false;
-                    }
-                    free_str(&t->spelling);
-                    t->int_val = res.res;
-                }
-                break;
-            }
-            case F_CONSTANT: {
-                struct parse_float_const_res res = parse_float_const(
-                    str_get_data(&t->spelling));
-                if (res.err.type != FLOAT_CONST_ERR_NONE) {
-                    set_preproc_err(err, PREPROC_ERR_FLOAT_CONST, t->loc);
-                    err->float_const_err = res.err;
-                    err->constant_spell = t->spelling;
-                    return false;
-                }
-                free_str(&t->spelling);
-                t->float_val = res.res;
-                break;
-            }
-            case IDENTIFIER:
-                t->type = keyword_type(str_get_data(&t->spelling));
-                if (t->type != IDENTIFIER) {
-                    free_str(&t->spelling);
-                    t->spelling = create_null_str();
-                }
-                break;
-            case STRINGIFY_OP:
-            case CONCAT_OP:
-                set_preproc_err(err,
-                                PREPROC_ERR_MISPLACED_PREPROC_TOKEN,
-                                t->loc);
-                err->misplaced_preproc_tok = t->type;
-                return false;
-            default:
-                break;
+        if (!convert_preproc_token(t, info, err)) {
+            return false;
         }
     }
     return true;
