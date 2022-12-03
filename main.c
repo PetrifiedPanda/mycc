@@ -16,7 +16,7 @@
 static struct str get_out_filename(const char* origin_file, const char* suffix);
 
 int main(int argc, char** argv) {
-    struct cmd_args args = parse_cmd_args(argc, argv);
+    const struct cmd_args args = parse_cmd_args(argc, argv);
 #ifdef _WIN32
     const bool is_windows = true;
 #else
@@ -45,19 +45,23 @@ int main(int argc, char** argv) {
                 fprintf(stderr, "Failed to close file %s\n", filename);
                 return EXIT_FAILURE;
             }
-            
+
             struct str out_filename_str = args.output_file == NULL
                                               ? get_out_filename(filename,
                                                                  ".ast")
                                               : create_null_str();
-            const char* out_filename = str_is_valid(&out_filename_str) ? str_get_data(&out_filename_str) : args.output_file;
+            const char* out_filename = str_is_valid(&out_filename_str)
+                                           ? str_get_data(&out_filename_str)
+                                           : args.output_file;
             FILE* out_file = fopen(out_filename, "w");
             if (!out_file) {
                 fprintf(stderr, "Failed to open file %s\n", out_filename);
                 return EXIT_FAILURE;
             }
             if (!dump_ast(&res.tl, &res.file_info, out_file)) {
-                fprintf(stderr, "Failed to write ast to textfile %s\n", out_filename);
+                fprintf(stderr,
+                        "Failed to write ast to textfile %s\n",
+                        out_filename);
                 fclose(out_file);
                 free_str(&out_filename_str);
                 free_translation_unit(&res.tl);
@@ -66,7 +70,9 @@ int main(int argc, char** argv) {
             }
             fflush(out_file);
             if (fclose(out_file) != 0) {
-                fprintf(stderr, "Failed to close output file %s\n", out_filename);
+                fprintf(stderr,
+                        "Failed to close output file %s\n",
+                        out_filename);
                 free_str(&out_filename_str);
                 free_translation_unit(&res.tl);
                 free_file_info(&res.file_info);
