@@ -3,6 +3,8 @@
 #include "testing/testing.h"
 #include "testing/asserts.h"
 
+#include "util/macro_util.h"
+
 enum {
     INSERTION_NUM = 100
 };
@@ -33,14 +35,14 @@ TEST(push_back_to_empty) {
 
 TEST(push_back_to_empty_with_cap) {
     struct str str1 = create_empty_str_with_cap(200);
-    
+
     char expected_buf[INSERTION_NUM + 1] = {0};
     insert_test_helper(&str1, expected_buf, 0);
 
     struct str str2 = create_empty_str_with_cap(4);
     memset(expected_buf, 0, sizeof expected_buf);
     insert_test_helper(&str2, expected_buf, 0);
-    
+
     struct str str3 = create_empty_str_with_cap(23);
     memset(expected_buf, 0, sizeof expected_buf);
     insert_test_helper(&str3, expected_buf, 0);
@@ -75,8 +77,8 @@ TEST(push_back_to_nonempty) {
         const char s1[] = lit1;                                                \
         const char s2[] = lit2;                                                \
         enum {                                                                 \
-            S1_LEN = sizeof s1 / sizeof *s1 - 1,                               \
-            S2_LEN = sizeof s2 / sizeof *s2 - 1,                               \
+            S1_LEN = ARR_LEN(s1) - 1,                                          \
+            S2_LEN = ARR_LEN(s2) - 1,                                          \
         };                                                                     \
                                                                                \
         const char expected[S1_LEN + S2_LEN + 1] = ex;                         \

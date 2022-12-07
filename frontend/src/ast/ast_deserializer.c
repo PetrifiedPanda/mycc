@@ -1,7 +1,7 @@
 #include "frontend/ast/ast_deserializer.h"
 
 #include "util/mem.h"
-#include "util/annotations.h"
+#include "util/macro_util.h"
 
 struct ast_deserializer {
     FILE* file;

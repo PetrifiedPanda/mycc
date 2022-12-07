@@ -37,5 +37,7 @@
 
 #endif
 
+#define ARR_LEN(arr) sizeof arr / sizeof *arr
+
 #endif
 

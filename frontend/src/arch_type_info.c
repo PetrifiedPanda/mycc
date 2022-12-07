@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-#include "util/annotations.h"
+#include "util/macro_util.h"
 
 struct arch_type_info get_arch_type_info(enum arch a, bool is_windows) {
     // if x86 supported add it to assert

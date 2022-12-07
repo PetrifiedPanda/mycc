@@ -3,7 +3,7 @@
 #include <assert.h>
 
 #include "util/mem.h"
-#include "util/annotations.h"
+#include "util/macro_util.h"
 
 #include "frontend/parser/parser_util.h"
 

@@ -1,6 +1,6 @@
 #include "parser_test_util.h"
 
-#include "util/annotations.h"
+#include "util/macro_util.h"
 
 #include "testing/asserts.h"
 

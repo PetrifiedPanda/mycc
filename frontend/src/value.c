@@ -2,7 +2,7 @@
 
 #include <assert.h>
 
-#include "util/annotations.h"
+#include "util/macro_util.h"
 
 bool int_value_is_signed(enum int_value_type t) {
     switch (t) {

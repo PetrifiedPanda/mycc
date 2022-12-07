@@ -5,11 +5,10 @@
 #include <stdarg.h>
 #include <assert.h>
 
-#include "util/annotations.h"
+#include "util/macro_util.h"
 
 enum {
-    ARG_PARSE_MAX_ALLOWED_FILES = sizeof(struct cmd_args){0}.files
-                                  / sizeof *(struct cmd_args){0}.files,
+    ARG_PARSE_MAX_ALLOWED_FILES = ARR_LEN((struct cmd_args){0}.files),
 };
 
 static PRINTF_FORMAT(1, 2) _Noreturn void exit_with_err(const char* format,

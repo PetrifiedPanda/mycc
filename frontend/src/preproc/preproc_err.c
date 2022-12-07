@@ -8,7 +8,7 @@
 #include "frontend/err_base.h"
 
 #include "util/mem.h"
-#include "util/annotations.h"
+#include "util/macro_util.h"
 
 struct preproc_err create_preproc_err(void) {
     return (struct preproc_err){

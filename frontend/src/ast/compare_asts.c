@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-#include "util/annotations.h"
+#include "util/macro_util.h"
 
 // TODO: maybe assert is not the best name (especially because there already is
 // an assert in testing)

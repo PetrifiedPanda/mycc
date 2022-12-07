@@ -6,7 +6,7 @@
 #include <limits.h>
 #include <assert.h>
 
-#include "util/annotations.h"
+#include "util/macro_util.h"
 
 struct parse_float_const_res parse_float_const(const char* spell) {
     const char* end = spell; // so end is set

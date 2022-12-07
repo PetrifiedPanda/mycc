@@ -5,7 +5,7 @@
 #include <assert.h>
 
 #include "util/mem.h"
-#include "util/annotations.h"
+#include "util/macro_util.h"
 
 struct string_hash_map_key {
     bool was_deleted;
