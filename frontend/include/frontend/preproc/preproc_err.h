@@ -6,6 +6,7 @@
 #include "util/str.h"
 
 #include "frontend/err_base.h"
+#include "frontend/expected_tokens_err.h"
 
 #include "frontend/preproc/num_parse.h"
 
@@ -18,7 +19,7 @@ enum preproc_err_type {
     PREPROC_ERR_MACRO_ARG_COUNT,
     PREPROC_ERR_UNTERMINATED_MACRO,
     PREPROC_ERR_ARG_COUNT,
-    PREPROC_ERR_NOT_IDENTIFIER,
+    PREPROC_ERR_IFDEF_NOT_ID,
     PREPROC_ERR_MISSING_IF,
     PREPROC_ERR_INVALID_PREPROC_DIR,
     PREPROC_ERR_ELIF_ELSE_AFTER_ELSE,
@@ -26,6 +27,9 @@ enum preproc_err_type {
     PREPROC_ERR_INT_CONST,
     PREPROC_ERR_FLOAT_CONST,
     PREPROC_ERR_CHAR_CONST,
+    PREPROC_ERR_EMPTY_DEFINE,
+    PREPROC_ERR_DEFINE_NOT_ID,
+    PREPROC_ERR_EXPECTED_TOKENS,
 };
 
 enum else_op_type {
@@ -79,6 +83,8 @@ struct preproc_err {
                 struct char_const_err char_const_err;
             };
         };
+        enum token_type type_instead_of_identifier;
+        struct expected_tokens_err expected_tokens_err;
     };
 };
 

@@ -4,31 +4,27 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/macro_util.h"
 
 #include "frontend/parser/parser_err.h"
 
 void expected_token_error(struct parser_state* s, enum token_type expected) {
-    expected_tokens_error(s, &expected, 1);
+    set_parser_err(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it->loc);
+    s->err->expected_tokens_err = create_expected_token_err(s->it->type, expected);
 }
 
 void expected_tokens_error(struct parser_state* s,
                            const enum token_type* expected,
                            size_t num_expected) {
     assert(expected);
-    enum { MAX_NUM_EXPECTED = sizeof s->err->expected / sizeof *s->err->expected};
-    assert(num_expected <= MAX_NUM_EXPECTED);
-    assert(num_expected >= 1);
-
     set_parser_err(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it->loc);
-
-    const size_t bytes = sizeof *s->err->expected * num_expected;
-    memcpy(s->err->expected, expected, bytes);
-    s->err->num_expected = num_expected;
-    s->err->got = s->it->type;
+    s->err->expected_tokens_err = create_expected_tokens_err(s->it->type,
+                                                             expected,
+                                                             num_expected);
 }
 
 bool is_type_spec_token(const struct parser_state* s,
-                               const struct token* token) {
+                        const struct token* token) {
     switch (token->type) {
         case VOID:
         case CHAR:

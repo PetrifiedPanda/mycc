@@ -34,20 +34,7 @@ void print_parser_err(FILE* out, const struct file_info* file_info, const struct
         case PARSER_ERR_NONE:
             UNREACHABLE();
         case PARSER_ERR_EXPECTED_TOKENS: {
-            fprintf(out,
-                    "Expected token of type %s",
-                    get_type_str(err->expected[0]));
-            for (size_t i = 1; i < err->num_expected; ++i) {
-                printf(", %s", get_type_str(err->expected[i]));
-            }
-
-            if (err->got == INVALID) {
-                fprintf(out, " but got to enf of file");
-            } else {
-                fprintf(out,
-                        " but got token of type %s",
-                        get_type_str(err->got));
-            }
+            print_expected_tokens_err(out, &err->expected_tokens_err);
             break;
         }
         case PARSER_ERR_REDEFINED_SYMBOL: {

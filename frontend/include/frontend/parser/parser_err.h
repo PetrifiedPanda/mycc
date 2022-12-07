@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "frontend/err_base.h"
+#include "frontend/expected_tokens_err.h"
 #include "frontend/token.h"
 
 enum parser_err_type {
@@ -29,11 +30,7 @@ struct parser_err {
     enum parser_err_type type;
     struct err_base base;
     union {
-        struct { // expected tokens
-            enum token_type got;
-            size_t num_expected;
-            enum token_type expected[21]; 
-        };
+        struct expected_tokens_err expected_tokens_err; 
         struct { // redefined symbol
             struct str redefined_symbol;
             bool was_typedef_name;

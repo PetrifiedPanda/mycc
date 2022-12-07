@@ -47,9 +47,10 @@ static void check_expected_semicolon_jump_statement(const char* spell) {
     ASSERT_NULL(res);
 
     ASSERT(err.type == PARSER_ERR_EXPECTED_TOKENS);
-    ASSERT_SIZE_T(err.num_expected, (size_t)1);
-    ASSERT_TOKEN_TYPE(err.expected[0], SEMICOLON);
-    ASSERT_TOKEN_TYPE(err.got, INVALID);
+    const struct expected_tokens_err* ex_tokens_err = &err.expected_tokens_err;
+    ASSERT_SIZE_T(ex_tokens_err->num_expected, (size_t)1);
+    ASSERT_TOKEN_TYPE(ex_tokens_err->expected[0], SEMICOLON);
+    ASSERT_TOKEN_TYPE(ex_tokens_err->got, INVALID);
 
     free_preproc_res(&preproc_res);
     free_parser_err(&err);
@@ -91,13 +92,14 @@ TEST(jump_statement) {
         ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
         ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
         ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)1);
-
-        ASSERT_SIZE_T(err.num_expected, (size_t)4);
-        ASSERT_TOKEN_TYPE(err.got, IDENTIFIER);
-        ASSERT_TOKEN_TYPE(err.expected[0], GOTO);
-        ASSERT_TOKEN_TYPE(err.expected[1], CONTINUE);
-        ASSERT_TOKEN_TYPE(err.expected[2], BREAK);
-        ASSERT_TOKEN_TYPE(err.expected[3], RETURN);
+    
+        const struct expected_tokens_err* ex_tokens_err = &err.expected_tokens_err;
+        ASSERT_SIZE_T(ex_tokens_err->num_expected, (size_t)4);
+        ASSERT_TOKEN_TYPE(ex_tokens_err->got, IDENTIFIER);
+        ASSERT_TOKEN_TYPE(ex_tokens_err->expected[0], GOTO);
+        ASSERT_TOKEN_TYPE(ex_tokens_err->expected[1], CONTINUE);
+        ASSERT_TOKEN_TYPE(ex_tokens_err->expected[2], BREAK);
+        ASSERT_TOKEN_TYPE(ex_tokens_err->expected[3], RETURN);
 
         free_preproc_res(&preproc_res);
         free_parser_err(&err);

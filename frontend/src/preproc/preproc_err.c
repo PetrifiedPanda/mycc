@@ -45,12 +45,19 @@ void print_preproc_err(FILE* out,
             }
 
             assert(err->fail_file < file_info->len);
-            const char* fail_path = str_get_data(&file_info->paths[err->fail_file]);
+            const char* fail_path = str_get_data(
+                &file_info->paths[err->fail_file]);
             const char* err_string = strerror(err->errno_state);
             if (err->open_fail) {
-                fprintf(out, "Failed to open file %s: %s", fail_path, err_string);
+                fprintf(out,
+                        "Failed to open file %s: %s",
+                        fail_path,
+                        err_string);
             } else {
-                fprintf(out, "Failed to close file %s: %s", fail_path, err_string);
+                fprintf(out,
+                        "Failed to close file %s: %s",
+                        fail_path,
+                        err_string);
             }
             break;
         case PREPROC_ERR_UNTERMINATED_LIT:
@@ -61,7 +68,9 @@ void print_preproc_err(FILE* out,
             break;
         case PREPROC_ERR_INVALID_ID:
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Invalid identifier: %s", str_get_data(&err->invalid_id));
+            fprintf(out,
+                    "Invalid identifier: %s",
+                    str_get_data(&err->invalid_id));
             break;
         case PREPROC_ERR_INVALID_NUMBER:
             print_err_base(out, file_info, &err->base);
@@ -84,7 +93,7 @@ void print_preproc_err(FILE* out,
             break;
         case PREPROC_ERR_UNTERMINATED_MACRO:
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Unterminated macro invocation");
+            fprintf(out, "Unterminated macro");
             break;
         case PREPROC_ERR_ARG_COUNT: {
             print_err_base(out, file_info, &err->base);
@@ -98,7 +107,7 @@ void print_preproc_err(FILE* out,
             }
             break;
         }
-        case PREPROC_ERR_NOT_IDENTIFIER: {
+        case PREPROC_ERR_IFDEF_NOT_ID: {
             print_err_base(out, file_info, &err->base);
             const char* dir_str = get_single_macro_op_str(
                 err->not_identifier_op);
@@ -121,8 +130,8 @@ void print_preproc_err(FILE* out,
         case PREPROC_ERR_ELIF_ELSE_AFTER_ELSE: {
             assert(err->elif_after_else_op != ELSE_OP_ENDIF);
             print_err_base(out, file_info, &err->base);
-            const char*
-                prev_else_file = str_get_data(&file_info->paths[err->prev_else_loc.file_idx]);
+            const char* prev_else_file = str_get_data(
+                &file_info->paths[err->prev_else_loc.file_idx]);
             const struct file_loc loc = err->prev_else_loc.file_loc;
             switch (err->elif_after_else_op) {
                 case ELSE_OP_ELIF:
@@ -156,20 +165,38 @@ void print_preproc_err(FILE* out,
         case PREPROC_ERR_INT_CONST:
             assert(str_is_valid(&err->constant_spell));
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Integer constant %s is not a valid integer constant", str_get_data(&err->constant_spell));
+            fprintf(out,
+                    "Integer constant %s is not a valid integer constant",
+                    str_get_data(&err->constant_spell));
             print_int_const_err(out, &err->int_const_err);
             break;
         case PREPROC_ERR_FLOAT_CONST:
             assert(str_is_valid(&err->constant_spell));
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Floating constant %s is not a valid integer constant", str_get_data(&err->constant_spell));
+            fprintf(out,
+                    "Floating constant %s is not a valid integer constant",
+                    str_get_data(&err->constant_spell));
             print_float_const_err(out, &err->float_const_err);
             break;
         case PREPROC_ERR_CHAR_CONST:
             assert(str_is_valid(&err->constant_spell));
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Character constant %s is not a valid character constant", str_get_data(&err->constant_spell));
+            fprintf(out,
+                    "Character constant %s is not a valid character constant",
+                    str_get_data(&err->constant_spell));
             print_char_const_err(out, &err->char_const_err);
+            break;
+        case PREPROC_ERR_EMPTY_DEFINE:
+            print_err_base(out, file_info, &err->base);
+            fprintf(out, "Empty define directive");
+            break;
+        case PREPROC_ERR_DEFINE_NOT_ID:
+            print_err_base(out, file_info, &err->base);
+            fprintf(out, "define not followed by id");
+            break;
+        case PREPROC_ERR_EXPECTED_TOKENS:
+            print_err_base(out, file_info, &err->base);
+            print_expected_tokens_err(out, &err->expected_tokens_err);
             break;
     }
     fprintf(out, "\n");
@@ -222,11 +249,14 @@ void free_preproc_err(struct preproc_err* err) {
         case PREPROC_ERR_UNTERMINATED_LIT:
         case PREPROC_ERR_UNTERMINATED_MACRO:
         case PREPROC_ERR_ARG_COUNT:
-        case PREPROC_ERR_NOT_IDENTIFIER:
+        case PREPROC_ERR_IFDEF_NOT_ID:
         case PREPROC_ERR_MISSING_IF:
         case PREPROC_ERR_INVALID_PREPROC_DIR:
         case PREPROC_ERR_ELIF_ELSE_AFTER_ELSE:
         case PREPROC_ERR_MISPLACED_PREPROC_TOKEN:
+        case PREPROC_ERR_EMPTY_DEFINE:
+        case PREPROC_ERR_DEFINE_NOT_ID:
+        case PREPROC_ERR_EXPECTED_TOKENS:
             break;
     }
 }

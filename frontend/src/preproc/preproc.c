@@ -666,7 +666,7 @@ static bool handle_ifdef_ifndef(struct preproc_state* state,
     }
     if (arr->tokens[2].type != IDENTIFIER) {
         set_preproc_err(state->err,
-                        PREPROC_ERR_NOT_IDENTIFIER,
+                        PREPROC_ERR_IFDEF_NOT_ID,
                         arr->tokens[2].loc);
         state->err->not_identifier_got = arr->tokens[2].type;
         state->err->not_identifier_op = is_ifndef ? SINGLE_MACRO_OP_IFNDEF
@@ -765,7 +765,7 @@ static bool preproc_statement(struct preproc_state* state,
             return false;
         } else if (arr->tokens[2].type != IDENTIFIER) {
             set_preproc_err(state->err,
-                            PREPROC_ERR_NOT_IDENTIFIER,
+                            PREPROC_ERR_IFDEF_NOT_ID,
                             arr->tokens[2].loc);
             state->err->not_identifier_got = arr->tokens[2].type;
             state->err->not_identifier_op = SINGLE_MACRO_OP_UNDEF;
