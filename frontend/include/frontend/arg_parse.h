@@ -3,10 +3,6 @@
 
 #include <stdbool.h>
 
-enum {
-    ARG_PARSE_MAX_ALLOWED_FILES = 32,
-};
-
 enum arg_action {
     ARG_ACTION_OUTPUT_TEXT,
     ARG_ACTION_OUTPUT_BIN,
@@ -15,7 +11,7 @@ enum arg_action {
 
 struct cmd_args {
     int num_files;
-    const char* files[ARG_PARSE_MAX_ALLOWED_FILES];
+    const char* files[32];
     const char* output_file;
     enum arg_action action;
 };
