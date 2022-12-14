@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/macro_util.h"
 
 #include "frontend/parser/parser_util.h"
 
@@ -78,7 +79,7 @@ struct jump_statement* parse_jump_statement(struct parser_state* s) {
             enum token_type expected[] = {GOTO, CONTINUE, BREAK, RETURN};
             expected_tokens_error(s,
                                   expected,
-                                  sizeof expected / sizeof *expected);
+                                  ARR_LEN(expected));
             return NULL;
         }
     }
