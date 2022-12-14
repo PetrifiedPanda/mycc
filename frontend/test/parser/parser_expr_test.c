@@ -438,10 +438,10 @@ TEST(assign_expr) {
         };
 
         enum {
-            SIZE = sizeof expected_ops / sizeof *expected_ops
+            LEN = ARR_LEN(expected_ops)
         };
 
-        for (size_t i = 0; i < SIZE; ++i) {
+        for (size_t i = 0; i < LEN; ++i) {
             ASSERT(res->assign_chain[i].op == expected_ops[i]);
 
             struct val_or_str curr = expected_spellings[i];

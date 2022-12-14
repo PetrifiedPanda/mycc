@@ -76,7 +76,7 @@ TEST(object_like) {
          .token = {I_CONSTANT, .spelling = STR_NON_HEAP("2"), {0, {1, 19}}}},
     };
     enum {
-        EXP_LEN = sizeof expansion / sizeof *expansion
+        EXP_LEN = ARR_LEN(expansion)
     };
 
     struct preproc_macro macro = {
@@ -151,7 +151,7 @@ TEST(func_like) {
         .num_args = 2,
         .is_variadic = false,
 
-        .expansion_len = sizeof ex1 / sizeof *ex1,
+        .expansion_len = ARR_LEN(ex1),
         .expansion = ex1,
     };
 
@@ -181,7 +181,7 @@ TEST(func_like) {
         .num_args = 6,
         .is_variadic = false,
 
-        .expansion_len = sizeof ex2 / sizeof *ex2,
+        .expansion_len = ARR_LEN(ex2),
         .expansion = ex2,
     };
 
@@ -206,7 +206,7 @@ TEST(func_like) {
         .num_args = 0,
         .is_variadic = false,
 
-        .expansion_len = sizeof ex3 / sizeof *ex3,
+        .expansion_len = ARR_LEN(ex3),
         .expansion = ex3,
     };
 
@@ -233,7 +233,7 @@ TEST(func_like_variadic) {
         .num_args = 1,
         .is_variadic = true,
 
-        .expansion_len = sizeof ex1 / sizeof *ex1,
+        .expansion_len = ARR_LEN(ex1),
         .expansion = ex1,
     };
 
@@ -262,7 +262,7 @@ TEST(func_like_variadic) {
         .num_args = 0,
         .is_variadic = true,
 
-        .expansion_len = sizeof ex2 / sizeof *ex2,
+        .expansion_len = ARR_LEN(ex2),
         .expansion = ex2,
     };
 

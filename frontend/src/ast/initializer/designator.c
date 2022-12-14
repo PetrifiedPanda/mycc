@@ -2,6 +2,8 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "util/macro_util.h"
+
 bool parse_designator_inplace(struct parser_state* s, struct designator* res) {
     res->info = create_ast_node_info(s->it->loc);
     switch (s->it->type) {
@@ -36,9 +38,7 @@ bool parse_designator_inplace(struct parser_state* s, struct designator* res) {
         }
         default: {
             enum token_type expected[] = {LINDEX, DOT};
-            expected_tokens_error(s,
-                                  expected,
-                                  sizeof expected / sizeof *expected);
+            expected_tokens_error(s, expected, ARR_LEN(expected));
             return false;
         }
     }

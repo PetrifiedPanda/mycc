@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "util/mem.h"
+#include "util/macro_util.h"
 
 #include "frontend/parser/parser_util.h"
 
@@ -31,7 +32,7 @@ struct struct_union_spec* parse_struct_union_spec(struct parser_state* s) {
         accept_it(s);
     } else {
         enum token_type expected[] = {STRUCT, UNION};
-        expected_tokens_error(s, expected, sizeof expected / sizeof *expected);
+        expected_tokens_error(s, expected, ARR_LEN(expected));
         return NULL;
     }
 

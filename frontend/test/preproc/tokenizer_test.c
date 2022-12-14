@@ -107,7 +107,7 @@ TEST(simple) {
         create(RINDEX, create_null_str(), 13, 23),
         create(SEMICOLON, create_null_str(), 13, 24),
     };
-    check_token_arr_str(code, expected, sizeof expected / sizeof *expected);
+    check_token_arr_str(code, expected, ARR_LEN(expected));
 }
 
 TEST(file) {
@@ -811,9 +811,7 @@ TEST(file) {
         create(IDENTIFIER, STR_NON_HEAP("g_thread"), 122, 19),
         create(SEMICOLON, create_null_str(), 122, 27),
     };
-    check_token_arr_file(filename,
-                         expected,
-                         sizeof expected / sizeof *expected);
+    check_token_arr_file(filename, expected, ARR_LEN(expected));
 }
 
 TEST(hex_literal_or_var) {
@@ -825,7 +823,7 @@ TEST(hex_literal_or_var) {
             create(SUB, create_null_str(), 1, 5),
             create_tok_int(create_int_value(INT_VALUE_I, 10), 1, 6),
         };
-        check_token_arr_str(code, expected, sizeof expected / sizeof *expected);
+        check_token_arr_str(code, expected, ARR_LEN(expected));
     }
     {
         const char* code = "var2e-10";
@@ -835,7 +833,7 @@ TEST(hex_literal_or_var) {
             create(SUB, create_null_str(), 1, 6),
             create_tok_int(create_int_value(INT_VALUE_I, 10), 1, 7),
         };
-        check_token_arr_str(code, expected, sizeof expected / sizeof *expected);
+        check_token_arr_str(code, expected, ARR_LEN(expected));
     }
     {
         const char* code = "var2p-10";
@@ -845,7 +843,7 @@ TEST(hex_literal_or_var) {
             create(SUB, create_null_str(), 1, 6),
             create_tok_int(create_int_value(INT_VALUE_I, 10), 1, 7),
         };
-        check_token_arr_str(code, expected, sizeof expected / sizeof *expected);
+        check_token_arr_str(code, expected, ARR_LEN(expected));
     }
 }
 
@@ -859,7 +857,7 @@ TEST(dot_float_literal_or_op) {
             create(ASSIGN, create_null_str(), 1, 7),
             create_tok_float(create_float_value(FLOAT_VALUE_D, .001), 1, 9),
         };
-        check_token_arr_str(code, expected, sizeof expected / sizeof *expected);
+        check_token_arr_str(code, expected, ARR_LEN(expected));
     }
 }
 

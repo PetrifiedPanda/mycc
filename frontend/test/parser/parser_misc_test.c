@@ -54,9 +54,7 @@ TEST(enum_list) {
             ASSERT_NOT_NULL(res.enums[i].identifier);
             ASSERT_NULL(res.enums[i].enum_val);
         }
-        check_enum_list_ids(&res,
-                            enum_constants,
-                            sizeof enum_constants / sizeof *enum_constants);
+        check_enum_list_ids(&res, enum_constants, ARR_LEN(enum_constants));
 
         for (size_t i = 0; i < EXPECTED_LEN; ++i) {
             ASSERT(is_enum_constant(&s, &enum_constants[i]));
@@ -140,7 +138,7 @@ TEST(enum_spec) {
 
         check_enum_list_ids(&res->enum_list,
                             enum_constants,
-                            sizeof enum_constants / sizeof *enum_constants);
+                            ARR_LEN(enum_constants));
 
         free_preproc_res(&preproc_res);
         free_parser_state(&s);
@@ -164,7 +162,7 @@ TEST(enum_spec) {
 
         check_enum_list_ids(&res->enum_list,
                             enum_constants,
-                            sizeof enum_constants / sizeof *enum_constants);
+                            ARR_LEN(enum_constants));
 
         free_preproc_res(&preproc_res);
         free_parser_state(&s);

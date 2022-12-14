@@ -6,6 +6,8 @@
 
 #include "frontend/token_type.h"
 
+#include "util/macro_util.h"
+
 #define ASSERT_TOKEN_TYPE(got, expected)                                       \
     do {                                                                       \
         if ((got) != (expected)) {                                             \
@@ -38,7 +40,7 @@ struct preproc_res tokenize_string(const char* str, const char* file);
 
 void test_compare_files(const char* got_file, const char* ex_file);
 
-#define STR_NON_HEAP(lit) str_non_heap(sizeof lit / sizeof *lit - 1, lit)
+#define STR_NON_HEAP(lit) str_non_heap(ARR_LEN(lit) - 1, lit)
 
 struct str str_non_heap(size_t len, const char* str);
 

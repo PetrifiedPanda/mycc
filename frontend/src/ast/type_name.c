@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/macro_util.h"
 
 #include "frontend/parser/parser_util.h"
 
@@ -24,7 +25,7 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
             ATOMIC,   STRUCT,   UNION,    ENUM, TYPEDEF_NAME, CONST,
             RESTRICT, VOLATILE, ATOMIC,
         };
-        expected_tokens_error(s, expected, sizeof expected / sizeof *expected);
+        expected_tokens_error(s, expected, ARR_LEN(expected));
         return false;
     }
 

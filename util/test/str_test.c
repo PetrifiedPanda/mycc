@@ -56,7 +56,7 @@ TEST(push_back_to_empty_with_cap) {
     do {                                                                       \
         const char raw_str[] = str_lit;                                        \
         enum {                                                                 \
-            RAW_STR_STRLEN = sizeof raw_str - 1                                \
+            RAW_STR_STRLEN = ARR_LEN(raw_str) - 1                                \
         };                                                                     \
         struct str str = create_str(RAW_STR_STRLEN, raw_str);                  \
         ASSERT_STR(str_get_data(&str), raw_str);                               \
@@ -82,8 +82,7 @@ TEST(push_back_to_nonempty) {
         };                                                                     \
                                                                                \
         const char expected[S1_LEN + S2_LEN + 1] = ex;                         \
-        static_assert(sizeof expected / sizeof *expected - 1                   \
-                          == (size_t)S1_LEN + S2_LEN,                          \
+        static_assert(ARR_LEN(expected) - 1 == (size_t)S1_LEN + S2_LEN,        \
                       "Expected length does not match the length of "          \
                       "concatenated strings");                                 \
                                                                                \
@@ -132,8 +131,8 @@ TEST(copy_take) {
     const char small_str[] = "Small string";
     const char long_str[] = "Not so small string, that is very long";
     enum {
-        SMALL_LEN = sizeof small_str / sizeof *small_str - 1,
-        LONG_LEN = sizeof long_str / sizeof *long_str - 1,
+        SMALL_LEN = ARR_LEN(small_str) - 1,
+        LONG_LEN = ARR_LEN(long_str) - 1,
     };
     copy_test_helper(SMALL_LEN, small_str);
     copy_test_helper(LONG_LEN, long_str);

@@ -48,7 +48,7 @@ TEST(object_like) {
         };
 
         struct token_arr arr = {
-            .len = sizeof tokens / sizeof *tokens,
+            .len = ARR_LEN(tokens),
             .cap = arr.len,
             .tokens = tokens,
         };
@@ -94,7 +94,7 @@ TEST(object_like) {
         };
 
         enum {
-            TOKENS_LEN = sizeof tokens / sizeof *tokens,
+            TOKENS_LEN = ARR_LEN(tokens),
             EXPANSION_LEN = TOKENS_LEN - 3
         };
         struct token_or_arg expansion[EXPANSION_LEN];
@@ -158,7 +158,7 @@ TEST(func_like) {
         };
 
         enum {
-            TOKENS_LEN = sizeof tokens / sizeof *tokens,
+            TOKENS_LEN = ARR_LEN(tokens),
             EXPANSION_LEN = TOKENS_LEN - 10
         };
 
@@ -216,7 +216,7 @@ TEST(func_like) {
         };
 
         enum {
-            TOKENS_LEN = sizeof tokens / sizeof *tokens,
+            TOKENS_LEN = ARR_LEN(tokens),
             EXPANSION_LEN = TOKENS_LEN - 5
         };
 
@@ -265,7 +265,7 @@ TEST(func_like) {
         };
 
         enum {
-            TOKENS_LEN = sizeof tokens / sizeof *tokens,
+            TOKENS_LEN = ARR_LEN(tokens),
         };
 
         struct preproc_macro ex = {
@@ -324,7 +324,7 @@ TEST(variadic) {
         };
 
         enum {
-            TOKENS_LEN = sizeof tokens / sizeof *tokens,
+            TOKENS_LEN = ARR_LEN(tokens),
             EXPANSION_LEN = TOKENS_LEN - 12,
         };
 
@@ -399,7 +399,7 @@ TEST(variadic) {
         };
 
         enum {
-            TOKENS_LEN = sizeof tokens / sizeof *tokens,
+            TOKENS_LEN = ARR_LEN(tokens),
             EXPANSION_LEN = TOKENS_LEN - 12,
         };
 

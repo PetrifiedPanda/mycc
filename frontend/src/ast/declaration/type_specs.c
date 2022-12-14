@@ -205,9 +205,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
                 COMPLEX,
                 IMAGINARY,
             };
-            expected_tokens_error(s,
-                                  expected,
-                                  sizeof expected / sizeof *expected);
+            expected_tokens_error(s, expected, ARR_LEN(expected));
             res->type = TYPE_SPEC_NONE;
             return false;
         }
