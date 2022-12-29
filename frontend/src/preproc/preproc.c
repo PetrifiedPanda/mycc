@@ -97,6 +97,7 @@ static void string_read_line(const char** str,
         bool use_dyn_buf = false;
         while (*it != '\n' && *it != '\0') {
             ++it;
+            // TODO: error when non_static buf is used (set PREPROC_LINE_BUF_LEN to lower value)
             if (*res_len == static_buf_len - 1) {
                 use_dyn_buf = true;
                 break;
