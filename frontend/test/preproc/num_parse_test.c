@@ -8,9 +8,7 @@
         const uintmax_t num = constant;                                        \
         const struct arch_type_info info = get_arch_type_info(ARCH_X86_64,     \
                                                               false);          \
-        const struct parse_int_const_res res = parse_int_const(                \
-            spell,                                                             \
-            &info.int_info);                                                   \
+        const struct parse_int_const_res res = parse_int_const(spell, &info);  \
         ASSERT(res.err.type == INT_CONST_ERR_NONE);                            \
         ASSERT(res.res.type == expected_val_type);                             \
         ASSERT_UINTMAX_T(num, res.res.uint_val);                               \
@@ -22,9 +20,7 @@
         const intmax_t num = constant;                                         \
         const struct arch_type_info info = get_arch_type_info(ARCH_X86_64,     \
                                                               false);          \
-        const struct parse_int_const_res res = parse_int_const(                \
-            spell,                                                             \
-            &info.int_info);                                                   \
+        const struct parse_int_const_res res = parse_int_const(spell, &info);  \
         ASSERT(res.err.type == INT_CONST_ERR_NONE);                            \
         ASSERT(res.res.type == expected_val_type);                             \
         ASSERT_UINTMAX_T(num, res.res.int_val);                                \
@@ -111,8 +107,7 @@ TEST(int_min_fitting_type_oct) {
 
 static void test_parse_int_err(const char* spell, enum int_const_err_type err) {
     const struct arch_type_info info = get_arch_type_info(ARCH_X86_64, false);
-    const struct parse_int_const_res res = parse_int_const(spell,
-                                                           &info.int_info);
+    const struct parse_int_const_res res = parse_int_const(spell, &info);
     ASSERT(res.err.type == err);
 }
 static void test_parse_float_err(const char* spell,
@@ -123,8 +118,7 @@ static void test_parse_float_err(const char* spell,
 
 static void test_parse_int_invalid_char(const char* spell, char invalid_char) {
     const struct arch_type_info info = get_arch_type_info(ARCH_X86_64, false);
-    const struct parse_int_const_res res = parse_int_const(spell,
-                                                           &info.int_info);
+    const struct parse_int_const_res res = parse_int_const(spell, &info);
     ASSERT(res.err.type == INT_CONST_ERR_INVALID_CHAR);
     ASSERT_CHAR(res.err.invalid_char, invalid_char);
 }

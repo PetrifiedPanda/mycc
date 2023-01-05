@@ -33,7 +33,9 @@ struct preproc_res preproc_string(const char* str,
 /**
  * Converts the given preprocessor tokens to parser tokens
  */
-bool convert_preproc_tokens(struct token* tokens, const struct arch_int_info* info, struct preproc_err* err);
+bool convert_preproc_tokens(struct token* tokens,
+                            const struct arch_type_info* info,
+                            struct preproc_err* err);
 
 /**
  * Frees tokens before calling convert_preproc_tokens

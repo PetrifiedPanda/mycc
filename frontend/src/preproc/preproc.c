@@ -463,7 +463,7 @@ void free_preproc_res(struct preproc_res* res) {
 }
 
 static bool convert_preproc_token(struct token* t,
-                                  const struct arch_int_info* info,
+                                  const struct arch_type_info* info,
                                   struct preproc_err* err) {
     assert(t);
     assert(info);
@@ -529,7 +529,7 @@ static bool convert_preproc_token(struct token* t,
 }
 
 bool convert_preproc_tokens(struct token* tokens,
-                            const struct arch_int_info* info,
+                            const struct arch_type_info* info,
                             struct preproc_err* err) {
     assert(tokens);
     assert(info);

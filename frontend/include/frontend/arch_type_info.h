@@ -20,6 +20,7 @@ struct arch_float_info {
 };
 
 struct arch_type_info {
+    uint8_t bits_in_char;
     struct arch_int_info int_info;
     struct arch_float_info float_info;
 };

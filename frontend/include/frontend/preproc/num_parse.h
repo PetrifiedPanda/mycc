@@ -50,7 +50,7 @@ struct parse_int_const_res {
 };
 
 struct parse_int_const_res parse_int_const(const char* spell,
-                                           const struct arch_int_info* info);
+                                           const struct arch_type_info* type_info);
 
 void print_int_const_err(FILE* out, const struct int_const_err* err);
 
@@ -78,7 +78,7 @@ struct parse_char_const_res {
 };
 
 struct parse_char_const_res parse_char_const(const char* spell,
-                                             const struct arch_int_info* info);
+                                             const struct arch_type_info* type_info);
 
 void print_char_const_err(FILE* out, const struct char_const_err* err);
 

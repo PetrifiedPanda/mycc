@@ -80,17 +80,17 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
 
 static enum int_value_type get_value_type_dec(struct int_type_attrs attrs,
                                               uintmax_t val,
-                                              const struct arch_int_info* info,
+                                              const struct arch_type_info* type_info,
                                               struct int_const_err* err);
 
 static enum int_value_type get_value_type_other(
     struct int_type_attrs attrs,
     uintmax_t val,
-    const struct arch_int_info* info,
+    const struct arch_type_info* type_info,
     struct int_const_err* err);
 
 struct parse_int_const_res parse_int_const(const char* spell,
-                                           const struct arch_int_info* info) {
+                                           const struct arch_type_info* type_info) {
     const enum {
         DEC = 10,
         HEX = 16,
@@ -119,8 +119,8 @@ struct parse_int_const_res parse_int_const(const char* spell,
         };
     }
     const enum int_value_type
-        type = base == DEC ? get_value_type_dec(attrs, val, info, &err)
-                           : get_value_type_other(attrs, val, info, &err);
+        type = base == DEC ? get_value_type_dec(attrs, val, type_info, &err)
+                           : get_value_type_other(attrs, val, type_info, &err);
     if (err.type != INT_CONST_ERR_NONE) {
         return (struct parse_int_const_res){
             .err = err,
@@ -234,10 +234,6 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
     return res;
 }
 
-enum {
-    TARGET_CHAR_SIZE = CHAR_BIT,
-};
-
 static uintmax_t int_pow2(uintmax_t exp) {
     if (exp < sizeof exp * CHAR_BIT) {
         return 1ull << exp;
@@ -265,25 +261,27 @@ static uintmax_t max_int(uintmax_t num_bits) {
     return int_pow2(num_bits - 1) - 1;
 }
 
-static uintmax_t get_max_int(const struct arch_int_info* info,
+static uintmax_t get_max_int(const struct arch_type_info* type_info,
                              enum int_value_type type) {
     assert(type == INT_VALUE_UI || type == INT_VALUE_UL || type == INT_VALUE_ULL
            || type == INT_VALUE_I || type == INT_VALUE_L
            || type == INT_VALUE_LL);
-
+    
+    const struct arch_int_info* info = &type_info->int_info;
+    const uint8_t target_char_size = type_info->bits_in_char;
     switch (type) {
         case INT_VALUE_I:
-            return max_int(TARGET_CHAR_SIZE * info->int_size);
+            return max_int(target_char_size * info->int_size);
         case INT_VALUE_UI:
-            return max_uint(TARGET_CHAR_SIZE * info->int_size);
+            return max_uint(target_char_size * info->int_size);
         case INT_VALUE_L:
-            return max_int(TARGET_CHAR_SIZE * info->lint_size);
+            return max_int(target_char_size * info->lint_size);
         case INT_VALUE_UL:
-            return max_uint(TARGET_CHAR_SIZE * info->lint_size);
+            return max_uint(target_char_size * info->lint_size);
         case INT_VALUE_LL:
-            return max_int(TARGET_CHAR_SIZE * info->llint_size);
+            return max_int(target_char_size * info->llint_size);
         case INT_VALUE_ULL:
-            return max_uint(TARGET_CHAR_SIZE * info->llint_size);
+            return max_uint(target_char_size * info->llint_size);
 
         default:
             UNREACHABLE();
@@ -293,23 +291,23 @@ static uintmax_t get_max_int(const struct arch_int_info* info,
 static enum int_value_type get_value_type_unsigned(
     struct int_type_attrs attrs,
     uintmax_t val,
-    const struct arch_int_info* info) {
+    const struct arch_type_info* type_info) {
     assert(attrs.is_unsigned);
     assert(attrs.num_long <= 2);
 
     switch (attrs.num_long) {
         case 0:
-            if (val <= get_max_int(info, INT_VALUE_UI)) {
+            if (val <= get_max_int(type_info, INT_VALUE_UI)) {
                 return INT_VALUE_UI;
             }
             FALLTHROUGH();
         case 1:
-            if (val <= get_max_int(info, INT_VALUE_UL)) {
+            if (val <= get_max_int(type_info, INT_VALUE_UL)) {
                 return INT_VALUE_UL;
             }
             FALLTHROUGH();
         case 2:
-            if (val <= get_max_int(info, INT_VALUE_ULL)) {
+            if (val <= get_max_int(type_info, INT_VALUE_ULL)) {
                 return INT_VALUE_ULL;
             } else {
                 // unsigned will throw error in strotull
@@ -322,25 +320,25 @@ static enum int_value_type get_value_type_unsigned(
 
 static enum int_value_type get_value_type_dec(struct int_type_attrs attrs,
                                               uintmax_t val,
-                                              const struct arch_int_info* info,
+                                              const struct arch_type_info* type_info,
                                               struct int_const_err* err) {
     assert(attrs.num_long <= 2);
     if (attrs.is_unsigned) {
-        return get_value_type_unsigned(attrs, val, info);
+        return get_value_type_unsigned(attrs, val, type_info);
     } else {
         switch (attrs.num_long) {
             case 0:
-                if (val <= get_max_int(info, INT_VALUE_I)) {
+                if (val <= get_max_int(type_info, INT_VALUE_I)) {
                     return INT_VALUE_I;
                 }
                 FALLTHROUGH();
             case 1:
-                if (val <= get_max_int(info, INT_VALUE_L)) {
+                if (val <= get_max_int(type_info, INT_VALUE_L)) {
                     return INT_VALUE_L;
                 }
                 FALLTHROUGH();
             case 2:
-                if (val <= get_max_int(info, INT_VALUE_LL)) {
+                if (val <= get_max_int(type_info, INT_VALUE_LL)) {
                     return INT_VALUE_LL;
                 } else {
                     err->type = INT_CONST_ERR_TOO_LARGE;
@@ -355,32 +353,32 @@ static enum int_value_type get_value_type_dec(struct int_type_attrs attrs,
 static enum int_value_type get_value_type_other(
     struct int_type_attrs attrs,
     uintmax_t val,
-    const struct arch_int_info* info,
+    const struct arch_type_info* type_info,
     struct int_const_err* err) {
     assert(attrs.num_long <= 2);
 
     if (attrs.is_unsigned) {
-        return get_value_type_unsigned(attrs, val, info);
+        return get_value_type_unsigned(attrs, val, type_info);
     } else {
         switch (attrs.num_long) {
             case 0:
-                if (val <= get_max_int(info, INT_VALUE_I)) {
+                if (val <= get_max_int(type_info, INT_VALUE_I)) {
                     return INT_VALUE_I;
-                } else if (val <= get_max_int(info, INT_VALUE_UI)) {
+                } else if (val <= get_max_int(type_info, INT_VALUE_UI)) {
                     return INT_VALUE_UI;
                 }
                 FALLTHROUGH();
             case 1:
-                if (val <= get_max_int(info, INT_VALUE_L)) {
+                if (val <= get_max_int(type_info, INT_VALUE_L)) {
                     return INT_VALUE_L;
-                } else if (val <= get_max_int(info, INT_VALUE_UL)) {
+                } else if (val <= get_max_int(type_info, INT_VALUE_UL)) {
                     return INT_VALUE_UL;
                 }
                 FALLTHROUGH();
             case 2:
-                if (val <= get_max_int(info, INT_VALUE_LL)) {
+                if (val <= get_max_int(type_info, INT_VALUE_LL)) {
                     return INT_VALUE_LL;
-                } else if (val <= get_max_int(info, INT_VALUE_ULL)) {
+                } else if (val <= get_max_int(type_info, INT_VALUE_ULL)) {
                     return INT_VALUE_ULL;
                 } else {
                     err->type = INT_CONST_ERR_TOO_LARGE;
@@ -394,12 +392,12 @@ static enum int_value_type get_value_type_other(
 
 static enum int_value_type get_uint_leastn_t_type(
     size_t n,
-    const struct arch_int_info* info);
+    const struct arch_type_info* type_info);
 
 struct parse_char_const_res parse_char_const(const char* spell,
-                                             const struct arch_int_info* info) {
+                                             const struct arch_type_info* type_info) {
     assert(spell);
-    assert(info);
+    assert(type_info);
 
     enum int_value_type type;
     switch (*spell) {
@@ -411,7 +409,7 @@ struct parse_char_const_res parse_char_const(const char* spell,
             if (spell[1] == '8') {
                 type = INT_VALUE_UC;
             } else if (spell[1] == '\'') {
-                type = get_uint_leastn_t_type(16, info);
+                type = get_uint_leastn_t_type(16, type_info);
             } else {
                 return (struct parse_char_const_res){
                     .err =
@@ -426,7 +424,7 @@ struct parse_char_const_res parse_char_const(const char* spell,
             spell += 2;
             break;
         case 'U':
-            type = get_uint_leastn_t_type(32, info);
+            type = get_uint_leastn_t_type(32, type_info);
             if (spell[1] != '\'') {
                 return (struct parse_char_const_res){
                     .err =
@@ -442,7 +440,7 @@ struct parse_char_const_res parse_char_const(const char* spell,
             break;
         case 'L':
             // TODO: handle wchar_t stuff
-            type = get_uint_leastn_t_type(32, info);
+            type = get_uint_leastn_t_type(32, type_info);
             if (spell[1] != '\'') {
                 return (struct parse_char_const_res){
                     .err =
@@ -637,18 +635,20 @@ void print_char_const_err(FILE* out, const struct char_const_err* err) {
 
 static enum int_value_type get_uint_leastn_t_type(
     size_t n,
-    const struct arch_int_info* info) {
+    const struct arch_type_info* type_info) {
     assert(n == 8 || n == 16 || n == 32 || n == 64);
-
-    if (TARGET_CHAR_SIZE >= n) {
+    
+    const struct arch_int_info* info = &type_info->int_info;
+    const uint8_t target_char_size = type_info->bits_in_char;
+    if (target_char_size >= n) {
         return INT_VALUE_UC;
-    } else if (TARGET_CHAR_SIZE * info->sint_size >= n) {
+    } else if (target_char_size * info->sint_size >= n) {
         return INT_VALUE_US;
-    } else if (TARGET_CHAR_SIZE * info->int_size >= n) {
+    } else if (target_char_size * info->int_size >= n) {
         return INT_VALUE_UI;
-    } else if (TARGET_CHAR_SIZE * info->lint_size >= n) {
+    } else if (target_char_size * info->lint_size >= n) {
         return INT_VALUE_UL;
-    } else if (TARGET_CHAR_SIZE * info->llint_size >= n) {
+    } else if (target_char_size * info->llint_size >= n) {
         return INT_VALUE_ULL;
     }
     UNREACHABLE();

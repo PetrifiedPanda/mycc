@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
                 return EXIT_FAILURE;
             }
             if (!convert_preproc_tokens(preproc_res.toks,
-                                        &type_info.int_info,
+                                        &type_info,
                                         &preproc_err)) {
                 print_preproc_err(stderr, &preproc_res.file_info, &preproc_err);
                 free_preproc_err(&preproc_err);
