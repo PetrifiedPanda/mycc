@@ -268,20 +268,20 @@ static uintmax_t get_max_int(const struct arch_type_info* type_info,
            || type == INT_VALUE_LL);
     
     const struct arch_int_info* info = &type_info->int_info;
-    const uint8_t target_char_size = type_info->bits_in_char;
+    const uint8_t bits_in_char = type_info->bits_in_char;
     switch (type) {
         case INT_VALUE_I:
-            return max_int(target_char_size * info->int_size);
+            return max_int(bits_in_char * info->int_size);
         case INT_VALUE_UI:
-            return max_uint(target_char_size * info->int_size);
+            return max_uint(bits_in_char * info->int_size);
         case INT_VALUE_L:
-            return max_int(target_char_size * info->lint_size);
+            return max_int(bits_in_char * info->lint_size);
         case INT_VALUE_UL:
-            return max_uint(target_char_size * info->lint_size);
+            return max_uint(bits_in_char * info->lint_size);
         case INT_VALUE_LL:
-            return max_int(target_char_size * info->llint_size);
+            return max_int(bits_in_char * info->llint_size);
         case INT_VALUE_ULL:
-            return max_uint(target_char_size * info->llint_size);
+            return max_uint(bits_in_char * info->llint_size);
 
         default:
             UNREACHABLE();
@@ -639,16 +639,16 @@ static enum int_value_type get_uint_leastn_t_type(
     assert(n == 8 || n == 16 || n == 32 || n == 64);
     
     const struct arch_int_info* info = &type_info->int_info;
-    const uint8_t target_char_size = type_info->bits_in_char;
-    if (target_char_size >= n) {
+    const uint8_t bits_in_char = type_info->bits_in_char;
+    if (bits_in_char >= n) {
         return INT_VALUE_UC;
-    } else if (target_char_size * info->sint_size >= n) {
+    } else if (bits_in_char * info->sint_size >= n) {
         return INT_VALUE_US;
-    } else if (target_char_size * info->int_size >= n) {
+    } else if (bits_in_char * info->int_size >= n) {
         return INT_VALUE_UI;
-    } else if (target_char_size * info->lint_size >= n) {
+    } else if (bits_in_char * info->lint_size >= n) {
         return INT_VALUE_UL;
-    } else if (target_char_size * info->llint_size >= n) {
+    } else if (bits_in_char * info->llint_size >= n) {
         return INT_VALUE_ULL;
     }
     UNREACHABLE();
