@@ -89,17 +89,18 @@ static void string_read_line(const char** str,
                              size_t* res_len,
                              char* static_buf,
                              size_t static_buf_len) {
-
     const char* start = *str;
     const char* it = *str;
     if (*res_len < static_buf_len) {
         *res = static_buf;
         bool use_dyn_buf = false;
+        size_t new_res_len = *res_len;
         while (*it != '\n' && *it != '\0') {
             ++it;
-            // TODO: error when non_static buf is used (set PREPROC_LINE_BUF_LEN to lower value)
-            if (*res_len == static_buf_len - 1) {
+            ++new_res_len;
+            if (new_res_len == static_buf_len - 1) {
                 use_dyn_buf = true;
+                *res = NULL;
                 break;
             }
         }
