@@ -17,6 +17,7 @@
 #include "frontend/preproc/preproc_state.h"
 #include "frontend/preproc/tokenizer.h"
 #include "frontend/preproc/num_parse.h"
+#include "frontend/preproc/code_source.h"
 
 static bool preproc_file(struct preproc_state* state,
                          const char* path,
@@ -65,106 +66,6 @@ enum {
     PREPROC_LINE_BUF_LEN = 200
 };
 
-struct code_source {
-    bool is_file;
-    union {
-        FILE* file;
-        const char* str;
-    };
-    const char* path;
-    size_t current_line;
-    bool comment_not_terminated;
-};
-
-static bool code_source_over(struct code_source* src) {
-    if (src->is_file) {
-        return feof(src->file);
-    } else {
-        return *src->str == '\0';
-    }
-}
-
-static void string_read_line(const char** str,
-                             char** res,
-                             size_t* res_len,
-                             char* static_buf,
-                             size_t static_buf_len) {
-    const char* start = *str;
-    const char* it = *str;
-    if (*res_len < static_buf_len) {
-        *res = static_buf;
-        bool use_dyn_buf = false;
-        size_t new_res_len = *res_len;
-        while (*it != '\n' && *it != '\0') {
-            ++it;
-            ++new_res_len;
-            if (new_res_len == static_buf_len - 1) {
-                use_dyn_buf = true;
-                *res = NULL;
-                break;
-            }
-        }
-
-        if (!use_dyn_buf) {
-            if (it == start && *res_len == 0) {
-                *res = NULL;
-            } else {
-                const size_t len = it - start;
-                *str = *it == '\0' ? it : it + 1;
-                memcpy(static_buf + *res_len, start, sizeof *static_buf * len);
-                *res_len += len;
-                static_buf[len] = '\0';
-            }
-            return;
-        }
-    }
-
-    while (*it != '\n' && *it != '\0') {
-        ++it;
-    }
-
-    *str = *it == '\0' ? it : it + 1;
-    const size_t len = it - start;
-    const size_t prev_res_len = *res_len;
-    *res_len += len;
-    if (len == 0) {
-        return;
-    }
-    *res = xrealloc(*res, sizeof **res * (*res_len + 1));
-    memcpy(*res + prev_res_len, start, sizeof **res * len);
-    (*res)[*res_len] = '\0';
-}
-
-static char* code_source_read_line(struct code_source* src,
-                                   char static_buf[PREPROC_LINE_BUF_LEN]) {
-    char* res = NULL;
-    bool escaped_newline = false;
-    size_t len = 0;
-    do {
-        if (src->is_file) {
-            file_read_line(src->file,
-                           &res,
-                           &len,
-                           static_buf,
-                           PREPROC_LINE_BUF_LEN);
-        } else {
-            string_read_line(&src->str,
-                             &res,
-                             &len,
-                             static_buf,
-                             PREPROC_LINE_BUF_LEN);
-        }
-
-        if (res != NULL && len > 0) {
-            escaped_newline = res[len - 1] == '\\';
-            // TODO: newlines not contained when escaped newline is found
-        }
-        ++src->current_line;
-    } while (escaped_newline);
-
-    return res;
-}
-
 static bool is_preproc_directive(const char* line) {
     const char* it = line;
     while (isspace(*it)) {
@@ -187,7 +88,7 @@ static bool read_and_tokenize_line(struct preproc_state* state,
     while (true) {
         char static_buf[PREPROC_LINE_BUF_LEN];
         const size_t prev_curr_line = src->current_line;
-        char* line = code_source_read_line(src, static_buf);
+        char* line = code_source_read_line(src, PREPROC_LINE_BUF_LEN, static_buf);
         if (line == NULL) {
             return true;
         }
@@ -340,6 +241,7 @@ static bool preproc_src(struct preproc_state* state, struct code_source* src) {
     return true;
 }
 
+#ifdef MYCC_TEST_FUNCTIONALITY
 struct preproc_res preproc_string(const char* str,
                                   const char* path,
                                   struct preproc_err* err) {
@@ -347,13 +249,7 @@ struct preproc_res preproc_string(const char* str,
 
     struct preproc_state state = create_preproc_state(path, err);
 
-    struct code_source src = {
-        .is_file = false,
-        .str = str,
-        .path = path,
-        .current_line = 1,
-        .comment_not_terminated = false,
-    };
+    struct code_source src = create_code_source_string(str, path);
 
     if (!preproc_src(&state, &src)) {
         free_preproc_state(&state);
@@ -384,6 +280,7 @@ struct preproc_res preproc_string(const char* str,
 
     return res;
 }
+#endif // MYCC_TEST_FUNCTIONALITY
 
 static void file_err(struct preproc_err* err,
                      size_t fail_file,
@@ -399,13 +296,7 @@ static bool preproc_file(struct preproc_state* state,
         return false;
     }
 
-    struct code_source src = {
-        .is_file = true,
-        .file = file,
-        .path = path,
-        .current_line = 1,
-        .comment_not_terminated = false,
-    };
+    struct code_source src = create_code_source_file(file, path);
 
     const bool res = preproc_src(state, &src);
 
@@ -590,7 +481,7 @@ static bool skip_until_next_cond(struct preproc_state* state,
     while (!code_source_over(src)) {
         char static_buf[PREPROC_LINE_BUF_LEN];
         const size_t prev_curr_line = src->current_line;
-        char* line = code_source_read_line(src, static_buf);
+        char* line = code_source_read_line(src, PREPROC_LINE_BUF_LEN, static_buf);
         if (is_cond_directive(line)) {
             struct token_arr arr = {
                 .len = 0,

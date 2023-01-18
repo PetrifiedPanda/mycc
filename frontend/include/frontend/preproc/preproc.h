@@ -19,6 +19,7 @@ struct preproc_res {
  */
 struct preproc_res preproc(const char* path, struct preproc_err* err);
 
+#ifdef MYCC_TEST_FUNCTIONALITY
 /**
  * @param str a string containing source code
  * @param path path to be entered into the resulting tokens
@@ -29,6 +30,7 @@ struct preproc_res preproc(const char* path, struct preproc_err* err);
 struct preproc_res preproc_string(const char* str,
                                   const char* path,
                                   struct preproc_err* err);
+#endif
 
 /**
  * Converts the given preprocessor tokens to parser tokens
