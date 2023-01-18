@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <assert.h>
 
 #include "frontend/err_base.h"
@@ -226,6 +227,19 @@ static const char* get_else_op_str(enum else_op_type type) {
     }
 
     UNREACHABLE();
+}
+
+void set_preproc_file_err(struct preproc_err* err,
+                          size_t fail_file,
+                          struct source_loc include_loc,
+                          bool open_fail) {
+    assert(fail_file != (size_t)-1);
+
+    set_preproc_err(err, PREPROC_ERR_FILE_FAIL, include_loc);
+    err->open_fail = open_fail;
+    err->errno_state = errno;
+    err->fail_file = fail_file;
+    errno = 0;
 }
 
 void free_preproc_err(struct preproc_err* err) {

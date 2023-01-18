@@ -1,13 +1,15 @@
 #include "frontend/preproc/code_source.h"
 
-#include <assert.h>
 #include <string.h>
+#include <stdlib.h>
+#include <assert.h>
 
 #include "util/mem.h"
 #include "util/file.h"
 
 #ifdef MYCC_TEST_FUNCTIONALITY
-struct code_source create_code_source_string(const char* str, const char* path) {
+struct code_source create_code_source_string(const char* str,
+                                             const char* path) {
     assert(str);
     assert(path);
     return (struct code_source){
@@ -72,9 +74,19 @@ static void string_read_line(const char** str,
 
 #endif // MYCC_TEST_FUNCTIONALITY
 
-struct code_source create_code_source_file(FILE* file, const char* path) {
-    assert(file);
+struct code_source create_code_source_file(const char* path,
+                                           struct preproc_err* err,
+                                           size_t file_info_idx,
+                                           struct source_loc include_loc) {
     assert(path);
+    assert(err);
+
+    FILE* file = fopen(path, "r");
+    if (!file) {
+        set_preproc_file_err(err, file_info_idx, include_loc, true);
+        return (struct code_source){0};
+    }
+
     return (struct code_source){
 #ifdef MYCC_TEST_FUNCTIONALITY
         ._is_str = false,
@@ -98,8 +110,8 @@ bool code_source_over(struct code_source* src) {
 }
 
 char* code_source_read_line(struct code_source* src,
-                                   size_t static_buf_len,
-                                   char* static_buf) {
+                            size_t static_buf_len,
+                            char* static_buf) {
     char* res = NULL;
     bool escaped_newline = false;
     size_t len = 0;
@@ -111,14 +123,10 @@ char* code_source_read_line(struct code_source* src,
                              &len,
                              static_buf,
                              static_buf_len);
-        } else 
+        } else
 #endif
         {
-            file_read_line(src->_file,
-                           &res,
-                           &len,
-                           static_buf,
-                           static_buf_len);
+            file_read_line(src->_file, &res, &len, static_buf, static_buf_len);
         }
 
         if (res != NULL && len > 0) {
@@ -129,5 +137,19 @@ char* code_source_read_line(struct code_source* src,
     } while (escaped_newline);
 
     return res;
+}
+
+void free_code_source(struct code_source* src) {
+#ifdef MYCC_TEST_FUNCTIONALITY
+    if (!src->_is_str) {
+#else
+    {
+#endif
+        if (fclose(src->_file) != 0) {
+            // TODO: not sure if aborting is the right thing to do here
+            fprintf(stderr, "Failed to close file %s, exiting\n", src->path);
+            abort();
+        }
+    }
 }
 

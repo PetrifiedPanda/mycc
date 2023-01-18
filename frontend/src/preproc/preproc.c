@@ -88,7 +88,9 @@ static bool read_and_tokenize_line(struct preproc_state* state,
     while (true) {
         char static_buf[PREPROC_LINE_BUF_LEN];
         const size_t prev_curr_line = src->current_line;
-        char* line = code_source_read_line(src, PREPROC_LINE_BUF_LEN, static_buf);
+        char* line = code_source_read_line(src,
+                                           PREPROC_LINE_BUF_LEN,
+                                           static_buf);
         if (line == NULL) {
             return true;
         }
@@ -282,49 +284,26 @@ struct preproc_res preproc_string(const char* str,
 }
 #endif // MYCC_TEST_FUNCTIONALITY
 
-static void file_err(struct preproc_err* err,
-                     size_t fail_file,
-                     struct source_loc include_loc,
-                     bool open_fail);
-
 static bool preproc_file(struct preproc_state* state,
                          const char* path,
                          struct source_loc include_loc) {
-    FILE* file = fopen(path, "r");
-    if (!file) {
-        file_err(state->err, state->file_info.len - 1, include_loc, true);
-        return false;
-    }
-
-    struct code_source src = create_code_source_file(file, path);
+    const size_t current_file_idx = state->file_info.len - 1;
+    struct code_source src = create_code_source_file(path,
+                                                     state->err,
+                                                     current_file_idx,
+                                                     include_loc);
 
     const bool res = preproc_src(state, &src);
 
     if (!res) {
         // TODO: what to do if closing fails
-        fclose(file);
+        // TODO: error may be written twice
+        free_code_source(&src);
         return false;
     }
-
-    if (fclose(file) != 0) {
-        file_err(state->err, state->file_info.len - 1, include_loc, false);
-        return false;
-    }
+    free_code_source(&src);
 
     return true;
-}
-
-static void file_err(struct preproc_err* err,
-                     size_t fail_file,
-                     struct source_loc include_loc,
-                     bool open_fail) {
-    assert(fail_file != (size_t)-1);
-
-    set_preproc_err(err, PREPROC_ERR_FILE_FAIL, include_loc);
-    err->open_fail = open_fail;
-    err->errno_state = errno;
-    err->fail_file = fail_file;
-    errno = 0;
 }
 
 static void free_tokens(struct token* tokens) {
@@ -481,7 +460,9 @@ static bool skip_until_next_cond(struct preproc_state* state,
     while (!code_source_over(src)) {
         char static_buf[PREPROC_LINE_BUF_LEN];
         const size_t prev_curr_line = src->current_line;
-        char* line = code_source_read_line(src, PREPROC_LINE_BUF_LEN, static_buf);
+        char* line = code_source_read_line(src,
+                                           PREPROC_LINE_BUF_LEN,
+                                           static_buf);
         if (is_cond_directive(line)) {
             struct token_arr arr = {
                 .len = 0,

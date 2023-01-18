@@ -98,6 +98,11 @@ void print_preproc_err(FILE* out,
                        const struct file_info* file_info,
                        struct preproc_err* err);
 
+void set_preproc_file_err(struct preproc_err* err,
+                          size_t fail_file,
+                          struct source_loc include_loc,
+                          bool open_fail);
+
 void free_preproc_err(struct preproc_err* err);
 
 #endif
