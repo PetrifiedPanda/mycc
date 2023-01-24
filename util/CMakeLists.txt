@@ -5,7 +5,7 @@ file(GLOB Sources src/*.c)
 add_library(${This} OBJECT ${Sources})
 target_include_directories(${This} PUBLIC ./include)
 
-if (${MYCC_TEST} STREQUAL "ON")
+if (${MYCC_TEST})
     file(GLOB TestSources test/*.c)
 
     set(Test mycc-util-test)

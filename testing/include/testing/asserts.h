@@ -57,10 +57,14 @@
         }                                                                      \
     } while (0)
 
-#define ASSERT_SIZE_T(got, expected)                                           \
+#define ASSERT_SIZE_T(got_expr, expected_expr)                                 \
     do {                                                                       \
-        if ((got) != (expected)) {                                             \
-            PRINT_ASSERT_ERR("Expected %zu but got %zu", expected, got);       \
+        const size_t assert_size_t_got = (got_expr);                           \
+        const size_t assert_size_t_ex = (expected_expr);                       \
+        if (assert_size_t_got != assert_size_t_ex) {                           \
+            PRINT_ASSERT_ERR("Expected %zu but got %zu",                       \
+                             assert_size_t_ex,                                 \
+                             assert_size_t_got);                               \
         }                                                                      \
     } while (0)
 

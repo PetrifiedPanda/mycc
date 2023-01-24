@@ -20,6 +20,7 @@ static size_t get_tokens_len(const struct token* tokens) {
 static void test_preproc_macro(const struct preproc_macro* macro,
                                size_t macro_idx,
                                size_t macro_end_idx,
+                               size_t expected_end,
                                const char* input,
                                const char* output) {
     struct preproc_err input_err = create_preproc_err();
@@ -38,12 +39,14 @@ static void test_preproc_macro(const struct preproc_macro* macro,
             },
         .err = &err,
     };
+    
+    ASSERT_SIZE_T(expand_preproc_macro(&state,
+                                       &state.res,
+                                       macro,
+                                       macro_idx,
+                                       macro_end_idx),
+                  expected_end);
 
-    ASSERT(expand_preproc_macro(&state,
-                                &state.res,
-                                macro,
-                                macro_idx,
-                                macro_end_idx));
     ASSERT(err.type == PREPROC_ERR_NONE);
 
     struct preproc_err output_err = create_preproc_err();
@@ -89,16 +92,19 @@ TEST(object_like) {
     test_preproc_macro(&macro,
                        3,
                        (size_t)-1,
+                       5,
                        "int var = MACRO;\nfunc();",
                        "int var = 1 + 2;\nfunc();");
     test_preproc_macro(&macro,
                        0,
                        (size_t)-1,
+                       2,
                        "MACRO; for (size_t i = 0; i < 42; ++i) continue;",
                        "1 + 2; for (size_t i = 0; i < 42; ++i) continue;");
     test_preproc_macro(&macro,
                        5,
                        (size_t)-1,
+                       7,
                        "int x = 1000; MACRO",
                        "int x = 1000; 1 + 2");
 }
@@ -116,16 +122,19 @@ TEST(object_like_empty) {
     test_preproc_macro(&macro,
                        1,
                        (size_t)-1,
+                       0,
                        "function EMPTY_MACRO (var, 2);",
                        "function (var, 2);");
     test_preproc_macro(&macro,
                        0,
                        (size_t)-1,
+                       0,
                        "EMPTY_MACRO int n = 1000;",
                        "int n = 1000;");
     test_preproc_macro(&macro,
                        10,
                        (size_t)-1,
+                       9,
                        "while (true) x *= 2 * 2;\nEMPTY_MACRO;",
                        "while (true) x *= 2 * 2;\n;");
 }
@@ -158,15 +167,18 @@ TEST(func_like) {
     test_preproc_macro(&macro1,
                        3,
                        14,
+                       19,
                        "int n = FUNC_LIKE_MACRO(2 * 2, x - 5 + 2) + 1;",
                        "int n = 2 * 2 + x - 5 + 2 * 3 - x - 5 + 2 + 1;");
     test_preproc_macro(&macro1,
                        3,
                        7,
+                       8,
                        "char c = FUNC_LIKE_MACRO(, 10);",
                        "char c = + 10 * 3 - 10;");
     test_preproc_macro(&macro1,
                        2,
+                       6,
                        6,
                        "f = FUNC_LIKE_MACRO(f,);",
                        "f = f + * 3 -;");
@@ -188,6 +200,7 @@ TEST(func_like) {
     test_preproc_macro(&macro2,
                        0,
                        13,
+                       0,
                        "OTHER_FUNC_LIKE(var, 1, 2, 3, 4, 5) = 69;",
                        "var = 69;");
 
@@ -213,8 +226,21 @@ TEST(func_like) {
     test_preproc_macro(&macro3,
                        4,
                        6,
+                       6,
                        "const float stuff = YET_ANOTHER_FUNC_LIKE();",
                        "const float stuff = 1 + 1;");
+    
+    // #define TEST_MACRON()
+    const struct preproc_macro macro4 = {
+        .is_func_macro = true,
+        .num_args = 0,
+        .is_variadic = false,
+
+        .expansion_len = 0,
+        .expansion = NULL,
+    };
+
+    test_preproc_macro(&macro4, 0, 2, 0, "TEST_MACRON() + 10", "+ 10");
 }
 
 TEST(func_like_variadic) {
@@ -240,9 +266,10 @@ TEST(func_like_variadic) {
     test_preproc_macro(&macro1,
                        2,
                        9,
+                       7,
                        "res = CALL_FUNC(printf, \"Hello World %d\", 89);",
                        "res = printf(\"Hello World %d\", 89);");
-    test_preproc_macro(&macro1, 0, 3, "CALL_FUNC(function);", "function();");
+    test_preproc_macro(&macro1, 0, 3, 2, "CALL_FUNC(function);", "function();");
 
     // #define ONLY_VARARGS(...) 1, 2, __VA_ARGS__
     struct token_or_arg ex2[] = {
@@ -269,11 +296,13 @@ TEST(func_like_variadic) {
     test_preproc_macro(&macro2,
                        3,
                        5,
+                       6,
                        "int n = ONLY_VARARGS();",
                        "int n = 1, 2,;");
     test_preproc_macro(&macro2,
                        2,
                        7,
+                       8,
                        "m = ONLY_VARARGS(3, 4);",
                        "m = 1, 2, 3, 4;");
 }

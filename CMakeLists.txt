@@ -10,7 +10,9 @@ project(${This} LANGUAGES C)
 
 include(CTest)
 
-option(MYCC_TEST "" ON)
+option(MYCC_ENABLE_TESTS "" ON)
+
+set(MYCC_TEST ${MYCC_ENABLE_TESTS} STREQUAL "ON")
 
 if (WIN32)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
@@ -29,7 +31,7 @@ set(Util mycc-util)
 set(Frontend mycc-frontend)
 set(Backend mycc-backend)
 
-if (${MYCC_TEST} STREQUAL "ON")
+if (${MYCC_TEST})
     add_compile_definitions(MYCC_TEST_FUNCTIONALITY)
     add_subdirectory(testing)
 endif()

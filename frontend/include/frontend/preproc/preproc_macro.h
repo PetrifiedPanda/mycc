@@ -7,6 +7,7 @@
 #include "frontend/token.h"
 
 #include "preproc_state.h"
+#include "code_source.h"
 
 struct token_or_arg {
     bool is_arg;
@@ -26,11 +27,15 @@ struct preproc_macro {
     struct token_or_arg* expansion;
 };
 
-bool expand_preproc_macro(struct preproc_state* state,
-                          struct token_arr* res,
-                          const struct preproc_macro* macro,
-                          size_t macro_idx,
-                          size_t macro_end);
+bool expand_all_macros(struct preproc_state* state,
+                       size_t start,
+                       struct code_source* src);
+
+size_t expand_preproc_macro(struct preproc_state* state,
+                            struct token_arr* res,
+                            const struct preproc_macro* macro,
+                            size_t macro_idx,
+                            size_t macro_end);
 
 struct preproc_macro parse_preproc_macro(struct token_arr* arr,
                                          const char* spell,
