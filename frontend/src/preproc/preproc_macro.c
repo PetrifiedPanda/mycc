@@ -50,43 +50,12 @@ static size_t find_macro_end(struct preproc_state* state,
     return it - state->res.tokens;
 }
 
-static bool find_and_exec_macro(struct preproc_state* state,
-                                size_t i,
-                                struct code_source* src) {
+static size_t find_and_exec_macro(struct preproc_state* state,
+                                  size_t i,
+                                  struct code_source* src) {
     const struct token* curr = &state->res.tokens[i];
-    if (curr->type == IDENTIFIER) {
-        const struct preproc_macro* macro = find_preproc_macro(state,
-                                                               &curr->spelling);
-        if (macro != NULL) {
-            size_t macro_end;
-            if (macro->is_func_macro) {
-                const size_t next_idx = i + 1;
-                if (next_idx < state->res.len
-                    && state->res.tokens[next_idx].type == LBRACKET) {
-                    macro_end = find_macro_end(state, curr, src);
-                    if (state->err == PREPROC_ERR_NONE) {
-                        return false;
-                    }
-                } else {
-                    return true;
-                }
-            } else {
-                macro_end = (size_t)-1;
-            }
-            if (expand_preproc_macro(state, &state->res, macro, i, macro_end)
-                != (size_t)-1) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-/*
-// Returns the last element of the expanded macro (i if no macro is expanded) or
-(size_t)-1 on error static size_t find_and_exec_macro_2(struct preproc_state*
-state, size_t i, struct code_source* src) { const struct token* curr =
-&state->res.tokens[i]; if (curr->type != IDENTIFIER) { return i;
+    if (curr->type != IDENTIFIER) {
+        return i;
     }
     const struct preproc_macro* macro = find_preproc_macro(state,
                                                            &curr->spelling);
@@ -103,27 +72,24 @@ state, size_t i, struct code_source* src) { const struct token* curr =
                 return (size_t)-1;
             }
         } else {
+            // not considered func_macro without brackets
             return i;
         }
     } else {
         macro_end = (size_t)-1;
     }
-    if (!expand_preproc_macro(state, &state->res, macro, i, macro_end)) {
-        return (size_t)-1;
-    }
-
-    // TODO: return end of macro
-    return (size_t)-1;
+    return expand_preproc_macro(state, &state->res, macro, i, macro_end);
 }
-*/
 
 bool expand_all_macros(struct preproc_state* state,
                        size_t start,
                        struct code_source* src) {
     for (size_t i = start; i < state->res.len; ++i) {
-        if (!find_and_exec_macro(state, i, src)) {
+        const size_t next = find_and_exec_macro(state, i, src);
+        if (next == (size_t)-1) {
             return false;
         }
+        i = next;
     }
 
     return true;
