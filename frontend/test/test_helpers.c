@@ -111,6 +111,7 @@ void test_compare_files(const char* got_file, const char* ex_file) {
 
     fclose(got);
     fclose(ex);
+    remove(got_file);
 }
 
 struct str str_non_heap(size_t len, const char* str) {
