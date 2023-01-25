@@ -32,7 +32,7 @@ struct code_source create_code_source_file(const char* path,
                                            size_t file_info_idx,
                                            struct source_loc include_loc);
 
-bool code_source_over(struct code_source* src);
+bool code_source_over(const struct code_source* src);
 
 char* code_source_read_line(struct code_source* src, size_t static_buf_len, char* static_buf);
 

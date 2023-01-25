@@ -98,7 +98,7 @@ struct code_source create_code_source_file(const char* path,
     };
 }
 
-bool code_source_over(struct code_source* src) {
+bool code_source_over(const struct code_source* src) {
 #ifdef MYCC_TEST_FUNCTIONALITY
     if (src->_is_str) {
         return *src->_str == '\0';
