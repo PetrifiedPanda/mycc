@@ -124,6 +124,159 @@ size_t expand_preproc_macro(struct preproc_state* state,
 
 static struct token move_token(struct token* t);
 
+static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
+                                                  const char* spell,
+                                                  struct preproc_err* err) {
+    struct preproc_macro res = {
+        .spell = spell,
+        .is_func_macro = true,
+    };
+
+    size_t it = 4;
+    res.num_args = 0;
+
+    const char** arg_spells = NULL;
+    size_t arg_spells_cap = 0;
+    while (it < arr->len && arr->tokens[it].type != RBRACKET
+           && arr->tokens[it].type != ELLIPSIS) {
+        if (arr->tokens[it].type != IDENTIFIER) {
+            set_preproc_err(err,
+                            PREPROC_ERR_EXPECTED_TOKENS,
+                            arr->tokens[it].loc);
+            const enum token_type ex[] = {
+                ELLIPSIS,
+                IDENTIFIER,
+            };
+            err->expected_tokens_err = create_expected_tokens_err(
+                arr->tokens[it].type,
+                ex,
+                ARR_LEN(ex));
+            return (struct preproc_macro){0};
+        }
+
+        if (arg_spells_cap == res.num_args) {
+            grow_alloc((void**)&arg_spells,
+                       &arg_spells_cap,
+                       sizeof *arg_spells);
+        }
+        arg_spells[res.num_args] = str_get_data(&arr->tokens[it].spelling);
+        assert(arg_spells[res.num_args]);
+
+        ++res.num_args;
+        ++it;
+
+        if (arr->tokens[it].type != RBRACKET) {
+            if (arr->tokens[it].type != COMMA) {
+                set_preproc_err(err,
+                                PREPROC_ERR_EXPECTED_TOKENS,
+                                arr->tokens[it].loc);
+                const enum token_type ex[] = {
+                    COMMA,
+                    RBRACKET,
+                };
+                err->expected_tokens_err = create_expected_tokens_err(
+                    arr->tokens[it].type,
+                    ex,
+                    ARR_LEN(ex));
+                return (struct preproc_macro){0};
+            }
+            ++it;
+        }
+    }
+
+    if (it == arr->len) {
+        assert(arr->tokens[3].type == LBRACKET);
+        set_preproc_err(err,
+                        PREPROC_ERR_UNTERMINATED_MACRO,
+                        arr->tokens[3].loc);
+        return (struct preproc_macro){0};
+    }
+
+    if (arr->tokens[it].type == ELLIPSIS) {
+        ++it;
+        res.is_variadic = true;
+        if (arr->tokens[it].type != RBRACKET) {
+            set_preproc_err(err,
+                            PREPROC_ERR_EXPECTED_TOKENS,
+                            arr->tokens[it].loc);
+            err->expected_tokens_err = create_expected_token_err(
+                arr->tokens[it].type,
+                RBRACKET);
+            return (struct preproc_macro){0};
+        }
+    } else {
+        res.is_variadic = false;
+    }
+
+    assert(arr->tokens[it].type == RBRACKET);
+
+    res.expansion_len = arr->len - it - 1; // TODO: not sure about - 1
+    res.expansion = res.expansion_len == 0
+                        ? NULL
+                        : xmalloc(sizeof *res.expansion * res.expansion_len);
+
+    for (size_t i = it + 1; i < arr->len; ++i) {
+        const size_t res_idx = i - it - 1;
+
+        struct token* curr_tok = &arr->tokens[i];
+        struct token_or_arg* res_curr = &res.expansion[res_idx];
+        if (curr_tok->type == IDENTIFIER) {
+            if (res.is_variadic
+                && strcmp(str_get_data(&curr_tok->spelling), "__VA_ARGS__")
+                       == 0) {
+                res_curr->is_arg = true;
+                res_curr->arg_num = res.num_args;
+                continue;
+            }
+
+            size_t idx = (size_t)-1;
+            for (size_t j = 0; j < res.num_args; ++j) {
+                if (strcmp(str_get_data(&curr_tok->spelling), arg_spells[j])
+                    == 0) {
+                    idx = j;
+                    break;
+                }
+            }
+
+            if (idx != (size_t)-1) {
+                res_curr->is_arg = true;
+                res_curr->arg_num = idx;
+                continue;
+            }
+        }
+
+        res_curr->is_arg = false;
+        res_curr->token = *curr_tok;
+        curr_tok->spelling = create_null_str();
+    }
+
+    // cast to make msvc happy (though it shouldn't be like this)
+    free((void*)arg_spells);
+    return res;
+}
+
+static struct preproc_macro parse_object_like_macro(struct token_arr* arr,
+                                                    const char* spell) {
+    struct preproc_macro res = {
+        .spell = spell,
+        .is_func_macro = false,
+        .num_args = 0,
+        .is_variadic = false,
+        .expansion_len = arr->len - 3,
+        .expansion = res.expansion_len == 0
+                         ? NULL
+                         : xmalloc(sizeof *res.expansion * res.expansion_len),
+    };
+
+    for (size_t i = 3; i < arr->len; ++i) {
+        const size_t res_idx = i - 3;
+        struct token_or_arg* res_curr = &res.expansion[res_idx];
+        res_curr->is_arg = false;
+        res_curr->token = move_token(&arr->tokens[i]);
+    }
+    return res;
+}
+
 struct preproc_macro parse_preproc_macro(struct token_arr* arr,
                                          const char* spell,
                                          struct preproc_err* err) {
@@ -143,150 +296,11 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr,
         return (struct preproc_macro){0};
     }
 
-    struct preproc_macro res;
-    res.spell = spell;
-
     if (arr->len > 3 && arr->tokens[3].type == LBRACKET) {
-        res.is_func_macro = true;
-
-        size_t it = 4;
-        res.num_args = 0;
-
-        const char** arg_spells = NULL;
-        size_t arg_spells_cap = 0;
-        while (it < arr->len && arr->tokens[it].type != RBRACKET
-               && arr->tokens[it].type != ELLIPSIS) {
-            if (arr->tokens[it].type != IDENTIFIER) {
-                set_preproc_err(err,
-                                PREPROC_ERR_EXPECTED_TOKENS,
-                                arr->tokens[it].loc);
-                const enum token_type ex[] = {
-                    ELLIPSIS,
-                    IDENTIFIER,
-                };
-                err->expected_tokens_err = create_expected_tokens_err(
-                    arr->tokens[it].type,
-                    ex,
-                    ARR_LEN(ex));
-                return (struct preproc_macro){0};
-            }
-
-            if (arg_spells_cap == res.num_args) {
-                grow_alloc((void**)&arg_spells,
-                           &arg_spells_cap,
-                           sizeof *arg_spells);
-            }
-            arg_spells[res.num_args] = str_get_data(&arr->tokens[it].spelling);
-            assert(arg_spells[res.num_args]);
-
-            ++res.num_args;
-            ++it;
-
-            if (arr->tokens[it].type != RBRACKET) {
-                if (arr->tokens[it].type != COMMA) {
-                    set_preproc_err(err,
-                                    PREPROC_ERR_EXPECTED_TOKENS,
-                                    arr->tokens[it].loc);
-                    const enum token_type ex[] = {
-                        COMMA,
-                        RBRACKET,
-                    };
-                    err->expected_tokens_err = create_expected_tokens_err(
-                        arr->tokens[it].type,
-                        ex,
-                        ARR_LEN(ex));
-                    return (struct preproc_macro){0};
-                }
-                ++it;
-            }
-        }
-
-        if (it == arr->len) {
-            assert(arr->tokens[3].type == LBRACKET);
-            set_preproc_err(err,
-                            PREPROC_ERR_UNTERMINATED_MACRO,
-                            arr->tokens[3].loc);
-            return (struct preproc_macro){0};
-        }
-
-        if (arr->tokens[it].type == ELLIPSIS) {
-            ++it;
-            res.is_variadic = true;
-            if (arr->tokens[it].type != RBRACKET) {
-                set_preproc_err(err,
-                                PREPROC_ERR_EXPECTED_TOKENS,
-                                arr->tokens[it].loc);
-                err->expected_tokens_err = create_expected_token_err(
-                    arr->tokens[it].type,
-                    RBRACKET);
-                return (struct preproc_macro){0};
-            }
-        } else {
-            res.is_variadic = false;
-        }
-
-        assert(arr->tokens[it].type == RBRACKET);
-
-        res.expansion_len = arr->len - it - 1; // TODO: not sure about - 1
-        res.expansion = res.expansion_len == 0 ? NULL
-                                               : xmalloc(sizeof *res.expansion
-                                                         * res.expansion_len);
-
-        for (size_t i = it + 1; i < arr->len; ++i) {
-            const size_t res_idx = i - it - 1;
-
-            struct token* curr_tok = &arr->tokens[i];
-            struct token_or_arg* res_curr = &res.expansion[res_idx];
-            if (curr_tok->type == IDENTIFIER) {
-                if (res.is_variadic
-                    && strcmp(str_get_data(&curr_tok->spelling), "__VA_ARGS__")
-                           == 0) {
-                    res_curr->is_arg = true;
-                    res_curr->arg_num = res.num_args;
-                    continue;
-                }
-
-                size_t idx = (size_t)-1;
-                for (size_t j = 0; j < res.num_args; ++j) {
-                    if (strcmp(str_get_data(&curr_tok->spelling), arg_spells[j])
-                        == 0) {
-                        idx = j;
-                        break;
-                    }
-                }
-
-                if (idx != (size_t)-1) {
-                    res_curr->is_arg = true;
-                    res_curr->arg_num = idx;
-                    continue;
-                }
-            }
-
-            res_curr->is_arg = false;
-            res_curr->token = *curr_tok;
-            curr_tok->spelling = create_null_str();
-        }
-
-        // cast to make msvc happy (though it shouldn't be like this)
-        free((void*)arg_spells);
+        return parse_func_like_macro(arr, spell, err);
     } else {
-        res.is_func_macro = false;
-        res.num_args = 0;
-        res.is_variadic = false;
-
-        res.expansion_len = arr->len - 3;
-        res.expansion = res.expansion_len == 0 ? NULL
-                                               : xmalloc(sizeof *res.expansion
-                                                         * res.expansion_len);
-        for (size_t i = 3; i < arr->len; ++i) {
-            const size_t res_idx = i - 3;
-            struct token_or_arg* res_curr = &res.expansion[res_idx];
-            res_curr->is_arg = false;
-            res_curr->token = move_token(&arr->tokens[i]);
-        }
+        return parse_object_like_macro(arr, spell);
     }
-
-    return res;
 }
 
 void free_preproc_macro(struct preproc_macro* m) {
