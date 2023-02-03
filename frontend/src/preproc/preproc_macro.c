@@ -124,6 +124,15 @@ size_t expand_preproc_macro(struct preproc_state* state,
 
 static struct token move_token(struct token* t);
 
+static size_t get_str_idx(const char** strs, size_t len, const char* to_find) {
+    for (size_t i = 0; i < len; ++i) {
+        if (strcmp(strs[i], to_find) == 0) {
+            return i;
+        }
+    }
+    return (size_t)-1;
+}
+
 static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
                                                   const char* spell,
                                                   struct preproc_err* err) {
@@ -229,19 +238,13 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
                 continue;
             }
 
-            size_t idx = (size_t)-1;
-            for (size_t j = 0; j < res.num_args; ++j) {
-                if (strcmp(str_get_data(&curr_tok->spelling), arg_spells[j])
-                    == 0) {
-                    idx = j;
-                    break;
-                }
-            }
+            const size_t idx = get_str_idx(arg_spells,
+                                           res.num_args,
+                                           str_get_data(&curr_tok->spelling));
 
             if (idx != (size_t)-1) {
                 res_curr->is_arg = true;
                 res_curr->arg_num = idx;
-                continue;
             }
         }
 
