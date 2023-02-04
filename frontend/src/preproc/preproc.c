@@ -70,7 +70,7 @@ static bool preproc_src(struct preproc_state* state, struct code_source* src) {
             return false;
         }
 
-        if (!expand_all_macros(state, prev_len, src)) {
+        if (!expand_all_macros(state, &state->res, prev_len, src)) {
             return false;
         }
     }

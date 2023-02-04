@@ -28,6 +28,7 @@ struct preproc_macro {
 };
 
 bool expand_all_macros(struct preproc_state* state,
+                       struct token_arr* res,
                        size_t start,
                        struct code_source* src);
 
