@@ -50,9 +50,9 @@ static size_t find_macro_end(struct preproc_state* state,
     return it - state->res.tokens;
 }
 
-static size_t find_and_exec_macro(struct preproc_state* state,
-                                  size_t i,
-                                  struct code_source* src) {
+static size_t find_and_expand_macro(struct preproc_state* state,
+                                    size_t i,
+                                    struct code_source* src) {
     const struct token* curr = &state->res.tokens[i];
     if (curr->type != IDENTIFIER) {
         return i;
@@ -85,7 +85,7 @@ bool expand_all_macros(struct preproc_state* state,
                        size_t start,
                        struct code_source* src) {
     for (size_t i = start; i < state->res.len; ++i) {
-        const size_t next = find_and_exec_macro(state, i, src);
+        const size_t next = find_and_expand_macro(state, i, src);
         if (next == (size_t)-1) {
             return false;
         }
