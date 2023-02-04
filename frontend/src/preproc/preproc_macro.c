@@ -160,7 +160,7 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
                 arr->tokens[it].type,
                 ex,
                 ARR_LEN(ex));
-            return (struct preproc_macro){0};
+            goto fail;
         }
 
         if (arg_spells_cap == res.num_args) {
@@ -187,7 +187,7 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
                     arr->tokens[it].type,
                     ex,
                     ARR_LEN(ex));
-                return (struct preproc_macro){0};
+                goto fail;
             }
             ++it;
         }
@@ -198,7 +198,7 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
         set_preproc_err(err,
                         PREPROC_ERR_UNTERMINATED_MACRO,
                         arr->tokens[3].loc);
-        return (struct preproc_macro){0};
+        goto fail;
     }
 
     if (arr->tokens[it].type == ELLIPSIS) {
@@ -211,7 +211,7 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
             err->expected_tokens_err = create_expected_token_err(
                 arr->tokens[it].type,
                 RBRACKET);
-            return (struct preproc_macro){0};
+            goto fail;
         }
     } else {
         res.is_variadic = false;
@@ -245,6 +245,7 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
             if (idx != (size_t)-1) {
                 res_curr->is_arg = true;
                 res_curr->arg_num = idx;
+                continue;
             }
         }
 
@@ -256,6 +257,9 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
     // cast to make msvc happy (though it shouldn't be like this)
     free((void*)arg_spells);
     return res;
+fail:
+    free((void*)arg_spells);
+    return (struct preproc_macro){0};
 }
 
 static struct preproc_macro parse_object_like_macro(struct token_arr* arr,
