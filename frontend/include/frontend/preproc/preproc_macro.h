@@ -32,12 +32,6 @@ bool expand_all_macros(struct preproc_state* state,
                        size_t start,
                        struct code_source* src);
 
-size_t expand_preproc_macro(struct preproc_state* state,
-                            struct token_arr* res,
-                            const struct preproc_macro* macro,
-                            size_t macro_idx,
-                            size_t macro_end);
-
 struct preproc_macro parse_preproc_macro(struct token_arr* arr,
                                          const char* spell,
                                          struct preproc_err* err);
