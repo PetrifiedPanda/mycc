@@ -98,13 +98,18 @@ static void expanded_macro_stack_free(struct expanded_macro_stack* stack) {
     free(stack->data);
 }
 
-static size_t expand_preproc_macro(struct preproc_state* state,
-                                   struct token_arr* res,
-                                   const struct preproc_macro* macro,
-                                   size_t macro_idx,
-                                   size_t macro_end,
-                                   struct code_source* src,
-                                   struct expanded_macro_stack* expanded);
+static size_t expand_obj_macro(struct token_arr* res,
+                               const struct preproc_macro* macro,
+                               size_t macro_idx,
+                               struct expanded_macro_stack* expanded);
+
+static size_t expand_func_macro(struct preproc_state* state,
+                                struct token_arr* res,
+                                const struct preproc_macro* macro,
+                                size_t macro_idx,
+                                size_t macro_end,
+                                struct code_source* src,
+                                struct expanded_macro_stack* expanded);
 
 static size_t find_and_expand_macro(struct preproc_state* state,
                                     struct token_arr* res,
@@ -129,14 +134,14 @@ static size_t find_and_expand_macro(struct preproc_state* state,
                 return (size_t)-1;
             }
             assert(macro_end != (size_t)-1);
+            return expand_func_macro(state, res, macro, i, macro_end, src, expanded);
         } else {
             // not considered func_macro without brackets
             return i;
         }
     } else {
-        macro_end = (size_t)-1;
+        return expand_obj_macro(res, macro, i, expanded);
     }
-    return expand_preproc_macro(state, res, macro, i, macro_end, src, expanded);
 }
 
 static bool expand_all_macros_internal(struct preproc_state* state,
@@ -169,47 +174,6 @@ bool expand_all_macros(struct preproc_state* state,
     expanded_macro_stack_free(&expanded);
     return success;
 }
-
-static size_t expand_obj_macro(struct token_arr* res,
-                               const struct preproc_macro* macro,
-                               size_t macro_idx,
-                               struct expanded_macro_stack* expanded);
-
-static size_t expand_func_macro(struct preproc_state* state,
-                                struct token_arr* res,
-                                const struct preproc_macro* macro,
-                                size_t macro_idx,
-                                size_t macro_end,
-                                struct code_source* src,
-                                struct expanded_macro_stack* expanded);
-
-static size_t expand_preproc_macro(struct preproc_state* state,
-                                   struct token_arr* res,
-                                   const struct preproc_macro* macro,
-                                   size_t macro_idx,
-                                   size_t macro_end,
-                                   struct code_source* src,
-                                   struct expanded_macro_stack* expanded) {
-    assert(state);
-    assert(macro);
-
-    if (macro->is_func_macro) {
-        printf("macro_end: %zu, res->len: %zu\n", macro_end, res->len);
-        assert(macro_end < res->len);
-        assert(res->tokens[macro_end].type == RBRACKET);
-        return expand_func_macro(state,
-                                 res,
-                                 macro,
-                                 macro_idx,
-                                 macro_end,
-                                 src,
-                                 expanded);
-    } else {
-        return expand_obj_macro(res, macro, macro_idx, expanded);
-    }
-}
-
-static struct token move_token(struct token* t);
 
 static size_t get_str_idx(const char** strs, size_t len, const char* to_find) {
     for (size_t i = 0; i < len; ++i) {
@@ -348,6 +312,8 @@ fail:
     free((void*)arg_spells);
     return (struct preproc_macro){0};
 }
+
+static struct token move_token(struct token* t);
 
 static struct preproc_macro parse_object_like_macro(struct token_arr* arr,
                                                     const char* spell) {
@@ -594,6 +560,7 @@ static size_t expand_func_macro(struct preproc_state* state,
                                 struct code_source* src,
                                 struct expanded_macro_stack* expanded) {
     assert(macro->is_func_macro);
+    assert(macro_end < res->len);
     assert(res->tokens[macro_idx + 1].type == LBRACKET);
     struct macro_args args = collect_macro_args(res->tokens + macro_idx + 1,
                                                 &res->tokens[macro_end],
