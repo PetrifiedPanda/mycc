@@ -11,9 +11,8 @@
 #include "frontend/preproc/read_and_tokenize_line.h"
 
 // TODO: make this also collect macro args?
-// TODO: pointer may be invalidated by read_and_tokenize_line
 static size_t find_macro_end(struct preproc_state* state,
-                             struct token_arr* res,
+                             const struct token_arr* res,
                              size_t macro_start,
                              struct code_source* src) {
     size_t i = macro_start;
@@ -21,19 +20,22 @@ static size_t find_macro_end(struct preproc_state* state,
     ++i;
     assert(res->tokens[i].type == LBRACKET);
     ++i;
-
+    
+    const bool can_read_new_toks = res == &state->res;
     size_t open_bracket_count = 1;
-    while (!code_source_over(src) || i != res->len) { 
-        while (!code_source_over(src) && i == res->len) {
-            if (!read_and_tokenize_line(state, src)) {
-                return (size_t)-1;
+    while (i != res->len || (can_read_new_toks && !code_source_over(src))) {
+        if (can_read_new_toks) {
+            while (i == res->len && !code_source_over(src)) {
+                if (!read_and_tokenize_line(state, src)) {
+                    return (size_t)-1;
+                }
+            }
+
+            if (code_source_over(src) && i == res->len) {
+                break;
             }
         }
 
-        if (code_source_over(src) && i == res->len) {
-            break;
-        }
-        
         const struct token* curr = &res->tokens[i];
         if (curr->type == LBRACKET) {
             ++open_bracket_count;
@@ -56,7 +58,7 @@ static size_t find_macro_end(struct preproc_state* state,
 }
 
 struct expanded_macro_stack {
-    const struct preproc_macro** data;
+    const char** data;
     size_t len, cap;
 };
 
@@ -65,7 +67,7 @@ static void expanded_macro_stack_push(struct expanded_macro_stack* stack,
     if (stack->len == stack->cap) {
         grow_alloc((void**)&stack->data, &stack->cap, sizeof(void*));
     }
-    stack->data[stack->len] = m;
+    stack->data[stack->len] = m->spell;
     ++stack->len;
 }
 
@@ -77,7 +79,7 @@ static bool expanded_macro_stack_contains(
     const struct expanded_macro_stack* stack,
     const struct preproc_macro* to_check) {
     for (size_t i = 0; i < stack->len; ++i) {
-        if (stack->data[i] == to_check) {
+        if (stack->data[i] == to_check->spell) {
             return true;
         }
     }
@@ -604,7 +606,11 @@ static size_t expand_func_macro(struct preproc_state* state,
     }
 
     for (size_t i = 0; i < args.len; ++i) {
-        if (!expand_all_macros_internal(state, &args.arrs[i], 0, src, expanded)) {
+        if (!expand_all_macros_internal(state,
+                                        &args.arrs[i],
+                                        0,
+                                        src,
+                                        expanded)) {
             free_macro_args(&args);
             return false;
         }
