@@ -58,8 +58,8 @@ static size_t find_macro_end(struct preproc_state* state,
 }
 
 struct expanded_macro_stack {
-    const char** data;
     size_t len, cap;
+    const char** data;
 };
 
 static void expanded_macro_stack_push(struct expanded_macro_stack* stack,
@@ -88,9 +88,9 @@ static bool expanded_macro_stack_contains(
 
 static struct expanded_macro_stack expanded_macro_stack_create(void) {
     return (struct expanded_macro_stack){
-        .data = NULL,
         .len = 0,
         .cap = 0,
+        .data = NULL,
     };
 }
 
