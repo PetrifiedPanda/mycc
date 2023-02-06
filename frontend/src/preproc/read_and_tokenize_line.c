@@ -66,12 +66,12 @@ bool read_and_tokenize_line(struct preproc_state* state,
                 return false;
             }
         } else {
-            bool res = tokenize_line(&state->res,
-                                     state->err,
-                                     line,
-                                     prev_curr_line,
-                                     state->file_info.len - 1,
-                                     &src->comment_not_terminated);
+            const bool res = tokenize_line(&state->res,
+                                           state->err,
+                                           line,
+                                           prev_curr_line,
+                                           state->file_info.len - 1,
+                                           &src->comment_not_terminated);
             if (line != static_buf) {
                 free(line);
             }
@@ -146,7 +146,7 @@ static bool skip_until_next_cond(struct preproc_state* state,
                 return false;
             }
 
-            bool stat_res = preproc_statement(state, src, &arr);
+            const bool stat_res = preproc_statement(state, src, &arr);
             free_token_arr(&arr);
             return stat_res;
         }
