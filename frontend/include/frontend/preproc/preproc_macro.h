@@ -20,8 +20,8 @@ struct token_or_arg {
 struct preproc_macro {
     const char* spell;
     bool is_func_macro;
-    size_t num_args;
     bool is_variadic;
+    size_t num_args;
 
     size_t expansion_len;
     struct token_or_arg* expansion;
