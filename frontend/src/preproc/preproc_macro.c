@@ -4,6 +4,7 @@
 #include <string.h>
 #include <assert.h>
 
+#include "frontend/token.h"
 #include "util/mem.h"
 #include "util/macro_util.h"
 
@@ -13,45 +14,45 @@
 // TODO: pointer may be invalidated by read_and_tokenize_line
 static size_t find_macro_end(struct preproc_state* state,
                              struct token_arr* res,
-                             const struct token* macro_start,
+                             size_t macro_start,
                              struct code_source* src) {
-    const struct token* it = macro_start;
-    assert(it->type == IDENTIFIER);
-    ++it;
-    assert(it->type == LBRACKET);
-    ++it;
+    size_t i = macro_start;
+    assert(res->tokens[i].type == IDENTIFIER);
+    ++i;
+    assert(res->tokens[i].type == LBRACKET);
+    ++i;
 
     size_t open_bracket_count = 1;
-    // quit when !(code_source_over(src) && it == res->tokens + res->len) && !(open_bracket_count == 0 && it->type == RBRACKET)
-    while (!code_source_over(src) || it != res->tokens + res->len) { 
-        while (!code_source_over(src) && it == res->tokens + res->len) {
+    while (!code_source_over(src) || i != res->len) { 
+        while (!code_source_over(src) && i == res->len) {
             if (!read_and_tokenize_line(state, src)) {
                 return (size_t)-1;
             }
         }
 
-        if (code_source_over(src) && it == res->tokens + res->len) {
+        if (code_source_over(src) && i == res->len) {
             break;
         }
-
-        if (it->type == LBRACKET) {
+        
+        const struct token* curr = &res->tokens[i];
+        if (curr->type == LBRACKET) {
             ++open_bracket_count;
-        } else if (it->type == RBRACKET) {
+        } else if (curr->type == RBRACKET) {
             --open_bracket_count;
             if (open_bracket_count == 0) {
                 break;
             }
         }
-        ++it;
+        ++i;
     }
 
-    if (it->type != RBRACKET) {
+    if (res->tokens[i].type != RBRACKET) {
         set_preproc_err(state->err,
                         PREPROC_ERR_UNTERMINATED_MACRO,
-                        macro_start->loc);
+                        res->tokens[macro_start].loc);
         return (size_t)-1;
     }
-    return it - res->tokens;
+    return i;
 }
 
 struct expanded_macro_stack {
@@ -121,7 +122,7 @@ static size_t find_and_expand_macro(struct preproc_state* state,
     if (macro->is_func_macro) {
         const size_t next_idx = i + 1;
         if (next_idx < res->len && res->tokens[next_idx].type == LBRACKET) {
-            macro_end = find_macro_end(state, res, curr, src);
+            macro_end = find_macro_end(state, res, i, src);
             if (state->err->type != PREPROC_ERR_NONE) {
                 return (size_t)-1;
             }
