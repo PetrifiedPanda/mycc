@@ -1,6 +1,5 @@
 #include "frontend/ast/declaration/declaration_specs.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -102,7 +101,7 @@ static enum parse_declaration_spec_res parse_declaration_spec(
         accept_it(s);
     } else if (s->it->type == ALIGNAS) {
         if (res->num_align_specs == *alloc_len_align_specs) {
-            grow_alloc((void**)&res->align_specs, alloc_len_align_specs, sizeof *res->align_specs); 
+            mycc_grow_alloc((void**)&res->align_specs, alloc_len_align_specs, sizeof *res->align_specs); 
         }
 
         if (!parse_align_spec_inplace(
@@ -124,7 +123,7 @@ struct declaration_specs* parse_declaration_specs(struct parser_state* s,
     assert(found_typedef);
     assert(*found_typedef == false);
 
-    struct declaration_specs* res = xmalloc(sizeof *res);
+    struct declaration_specs* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
     res->func_specs = (struct func_specs){
         .is_inline = false,
@@ -162,7 +161,7 @@ struct declaration_specs* parse_declaration_specs(struct parser_state* s,
         }
     }
 
-    res->align_specs = xrealloc(res->align_specs, sizeof *res->align_specs * res->num_align_specs);
+    res->align_specs = mycc_realloc(res->align_specs, sizeof *res->align_specs * res->num_align_specs);
 
     *found_typedef = res->storage_class.is_typedef;
 
@@ -173,13 +172,13 @@ static void free_children(struct declaration_specs* s) {
     for (size_t i = 0; i < s->num_align_specs; ++i) {
         free_align_spec_children(&s->align_specs[i]);
     }
-    free(s->align_specs);
+    mycc_free(s->align_specs);
     free_type_specs_children(&s->type_specs);
 }
 
 void free_declaration_specs(struct declaration_specs* s) {
     free_children(s);
 
-    free(s);
+    mycc_free(s);
 }
 

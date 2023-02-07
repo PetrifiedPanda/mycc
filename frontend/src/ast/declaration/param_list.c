@@ -5,13 +5,13 @@
 #include "util/mem.h"
 
 struct param_list* parse_param_list(struct parser_state* s) {
-    struct param_list* res = xmalloc(sizeof *res);
-    res->decls = xmalloc(sizeof *res->decls);
+    struct param_list* res = mycc_alloc(sizeof *res);
+    res->decls = mycc_alloc(sizeof *res->decls);
     res->len = 1;
 
     if (!parse_param_declaration_inplace(s, &res->decls[0])) {
-        free(res->decls);
-        free(res);
+        mycc_free(res->decls);
+        mycc_free(res);
         return NULL;
     }
 
@@ -20,7 +20,7 @@ struct param_list* parse_param_list(struct parser_state* s) {
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->decls, &alloc_len, sizeof *res->decls);
+            mycc_grow_alloc((void**)&res->decls, &alloc_len, sizeof *res->decls);
         }
 
         if (!parse_param_declaration_inplace(s, &res->decls[res->len])) {
@@ -31,7 +31,7 @@ struct param_list* parse_param_list(struct parser_state* s) {
         ++res->len;
     }
 
-    res->decls = xrealloc(res->decls, sizeof *res->decls * res->len);
+    res->decls = mycc_realloc(res->decls, sizeof *res->decls * res->len);
 
     return res;
 }
@@ -40,10 +40,10 @@ static void free_children(struct param_list* l) {
     for (size_t i = 0; i < l->len; ++i) {
         free_param_declaration_children(&l->decls[i]);
     }
-    free(l->decls);
+    mycc_free(l->decls);
 }
 
 void free_param_list(struct param_list* l) {
     free_children(l);
-    free(l);
+    mycc_free(l);
 }

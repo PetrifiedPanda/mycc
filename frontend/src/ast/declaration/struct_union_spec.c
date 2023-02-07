@@ -1,7 +1,5 @@
 #include "frontend/ast/declaration/struct_union_spec.h"
 
-#include <stdlib.h>
-
 #include "util/mem.h"
 #include "util/macro_util.h"
 
@@ -12,7 +10,7 @@ static struct struct_union_spec* create_struct_union(
     bool is_struct,
     struct identifier* identifier,
     struct struct_declaration_list decl_list) {
-    struct struct_union_spec* res = xmalloc(sizeof *res);
+    struct struct_union_spec* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->is_struct = is_struct;
     res->identifier = identifier;
@@ -74,6 +72,6 @@ static void free_children(struct struct_union_spec* s) {
 
 void free_struct_union_spec(struct struct_union_spec* s) {
     free_children(s);
-    free(s);
+    mycc_free(s);
 }
 

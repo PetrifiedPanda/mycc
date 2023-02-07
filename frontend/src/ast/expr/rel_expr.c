@@ -1,6 +1,5 @@
 #include "frontend/ast/expr/rel_expr.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -38,7 +37,7 @@ static bool parse_rel_expr_rel_chain(struct parser_state* s,
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->rel_chain,
+            mycc_grow_alloc((void**)&res->rel_chain,
                        &alloc_len,
                        sizeof *res->rel_chain);
         }
@@ -53,7 +52,7 @@ static bool parse_rel_expr_rel_chain(struct parser_state* s,
         ++res->len;
     }
 
-    res->rel_chain = xrealloc(res->rel_chain,
+    res->rel_chain = mycc_realloc(res->rel_chain,
                               sizeof *res->rel_chain * res->len);
 
     return true;
@@ -68,7 +67,7 @@ struct rel_expr* parse_rel_expr(struct parser_state* s) {
         return NULL;
     }
 
-    struct rel_expr* res = xmalloc(sizeof *res);
+    struct rel_expr* res = mycc_alloc(sizeof *res);
     res->lhs = lhs;
 
     if (!parse_rel_expr_rel_chain(s, res)) {
@@ -87,7 +86,7 @@ struct rel_expr* parse_rel_expr_cast(struct parser_state* s,
         return NULL;
     }
 
-    struct rel_expr* res = xmalloc(sizeof *res);
+    struct rel_expr* res = mycc_alloc(sizeof *res);
     res->lhs = lhs;
 
     if (!parse_rel_expr_rel_chain(s, res)) {
@@ -102,10 +101,10 @@ void free_rel_expr_children(struct rel_expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         free_shift_expr(e->rel_chain[i].rhs);
     }
-    free(e->rel_chain);
+    mycc_free(e->rel_chain);
 }
 
 void free_rel_expr(struct rel_expr* e) {
     free_rel_expr_children(e);
-    free(e);
+    mycc_free(e);
 }

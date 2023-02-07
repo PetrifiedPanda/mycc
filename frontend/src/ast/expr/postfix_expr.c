@@ -99,7 +99,7 @@ static bool parse_postfix_suffixes(struct parser_state* s,
     size_t alloc_len = 0;
     while (is_posfix_op(s->it->type)) {
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->suffixes,
+            mycc_grow_alloc((void**)&res->suffixes,
                        &alloc_len,
                        sizeof *res->suffixes);
         }
@@ -137,7 +137,7 @@ static bool parse_postfix_suffixes(struct parser_state* s,
     }
 
     if (alloc_len != res->len) {
-        res->suffixes = xrealloc(res->suffixes,
+        res->suffixes = mycc_realloc(res->suffixes,
                                  sizeof *res->suffixes * res->len);
     }
 
@@ -145,7 +145,7 @@ static bool parse_postfix_suffixes(struct parser_state* s,
 }
 
 struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
-    struct postfix_expr* res = xmalloc(sizeof *res);
+    struct postfix_expr* res = mycc_alloc(sizeof *res);
     res->suffixes = NULL;
     res->len = 0;
 
@@ -157,19 +157,19 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
 
         res->type_name = parse_type_name(s);
         if (!res->type_name) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
 
         if (!(accept(s, RBRACKET) && accept(s, LBRACE))) {
             free_type_name(res->type_name);
-            free(res);
+            mycc_free(res);
             return NULL;
         }
 
         if (!parse_init_list(s, &res->init_list)) {
             free_type_name(res->type_name);
-            free(res);
+            mycc_free(res);
             return NULL;
         }
 
@@ -185,7 +185,7 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
         res->is_primary = true;
         res->primary = parse_primary_expr(s);
         if (!res->primary) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
     }
@@ -211,7 +211,7 @@ struct postfix_expr* parse_postfix_expr_type_name(
     assert(type_name);
     assert(s->it->type == LBRACE);
 
-    struct postfix_expr* res = xmalloc(sizeof *res);
+    struct postfix_expr* res = mycc_alloc(sizeof *res);
     res->len = 0;
     res->suffixes = NULL;
     res->is_primary = false;
@@ -269,11 +269,11 @@ static void free_children(struct postfix_expr* p) {
                 break;
         }
     }
-    free(p->suffixes);
+    mycc_free(p->suffixes);
 }
 
 void free_postfix_expr(struct postfix_expr* p) {
     free_children(p);
-    free(p);
+    mycc_free(p);
 }
 

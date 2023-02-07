@@ -1,7 +1,6 @@
 #include "frontend/err_base.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"

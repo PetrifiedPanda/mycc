@@ -1,6 +1,5 @@
 #include "frontend/parser/parser_state.h"
 
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
@@ -37,7 +36,7 @@ struct parser_state create_parser_state(struct token* tokens,
     struct parser_state res = {
         .it = tokens,
         ._len = 1,
-        ._scope_maps = xmalloc(sizeof *res._scope_maps),
+        ._scope_maps = mycc_alloc(sizeof *res._scope_maps),
         .err = err,
     };
     res._scope_maps[0] = create_string_hash_map(
@@ -52,7 +51,7 @@ void free_parser_state(struct parser_state* s) {
     for (size_t i = 0; i < s->_len; ++i) {
         free_string_hash_map(&s->_scope_maps[i]);
     }
-    free(s->_scope_maps);
+    mycc_free(s->_scope_maps);
 }
 
 bool accept(struct parser_state* s, enum token_type expected) {
@@ -72,8 +71,8 @@ void accept_it(struct parser_state* s) {
 
 void parser_push_scope(struct parser_state* s) {
     ++s->_len;
-    s->_scope_maps = xrealloc(s->_scope_maps,
-                              sizeof *s->_scope_maps * s->_len);
+    s->_scope_maps = mycc_realloc(s->_scope_maps,
+                                  sizeof *s->_scope_maps * s->_len);
     s->_scope_maps[s->_len - 1] = create_string_hash_map(
         sizeof(struct parser_identifier_data),
         SCOPE_MAP_INIT_CAP,
@@ -85,8 +84,8 @@ void parser_pop_scope(struct parser_state* s) {
     assert(s->_len > 1);
     --s->_len;
     free_string_hash_map(&s->_scope_maps[s->_len]);
-    s->_scope_maps = xrealloc(s->_scope_maps,
-                              sizeof *s->_scope_maps * s->_len);
+    s->_scope_maps = mycc_realloc(s->_scope_maps,
+                                  sizeof *s->_scope_maps * s->_len);
 }
 
 bool register_enum_constant(struct parser_state* s, const struct token* token) {

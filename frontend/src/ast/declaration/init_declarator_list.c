@@ -1,6 +1,5 @@
 #include "frontend/ast/declaration/init_declarator_list.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -19,7 +18,7 @@ static bool parse_init_declarator_list_first_base(
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->decls, &alloc_len, sizeof *res->decls);
+            mycc_grow_alloc((void**)&res->decls, &alloc_len, sizeof *res->decls);
         }
 
         if (!inplace_parse_func(s, &res->decls[res->len])) {
@@ -30,7 +29,7 @@ static bool parse_init_declarator_list_first_base(
         ++res->len;
     }
 
-    res->decls = xrealloc(res->decls, sizeof *res->decls * res->len);
+    res->decls = mycc_realloc(res->decls, sizeof *res->decls * res->len);
 
     return true;
 }
@@ -39,10 +38,10 @@ static bool parse_init_declarator_list_base(
     struct parser_state* s,
     struct init_declarator_list* res,
     bool (*inplace_parse_func)(struct parser_state*, struct init_declarator*)) {
-    struct init_declarator* first_decl = xmalloc(sizeof *first_decl);
+    struct init_declarator* first_decl = mycc_alloc(sizeof *first_decl);
 
     if (!inplace_parse_func(s, first_decl)) {
-        free(first_decl);
+        mycc_free(first_decl);
         return false;
     }
 
@@ -91,5 +90,5 @@ void free_init_declarator_list(struct init_declarator_list* l) {
     for (size_t i = 0; i < l->len; ++i) {
         free_init_declarator_children(&l->decls[i]);
     }
-    free(l->decls);
+    mycc_free(l->decls);
 }

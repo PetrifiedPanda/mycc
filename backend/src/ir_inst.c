@@ -1,7 +1,8 @@
 #include "backend/ir_inst.h"
 
-#include <stdlib.h>
 #include <assert.h>
+
+#include "util/mem.h"
 
 void free_ir_global(struct ir_global* g) {
     free_str(&g->name);
@@ -18,7 +19,7 @@ void free_ir_literal(struct ir_literal* lit) {
             for (size_t i = 0; i < lit->num_members; ++i) {
                 free_ir_literal(&lit->members[i]);
             }
-            free(lit->members);
+            mycc_free(lit->members);
             break;
         default:
             break;
@@ -166,7 +167,7 @@ static void free_args(struct ir_inst_arg* args, size_t len) {
     for (size_t i = 0; i < len; ++i) {
         free_inst_arg(&args[i]);
     }
-    free(args);
+    mycc_free(args);
 }
 
 void free_ir_inst(struct ir_inst* tac) {

@@ -1,6 +1,6 @@
 #include "backend/cfg.h"
 
-#include <stdlib.h>
+#include "util/mem.h"
 
 void free_cfg(struct cfg* cfg) {
     free_str(&cfg->name);
@@ -8,10 +8,10 @@ void free_cfg(struct cfg* cfg) {
     for (size_t i = 0; i < cfg->len; ++i) {
         free_basic_block(&cfg->blocks[i]);
     }
-    free(cfg->blocks);
+    mycc_free(cfg->blocks);
 
     for (size_t i = 0; i < cfg->num_regs; ++i) {
         free_ir_reg(&cfg->regs[i]);
     }
-    free(cfg->regs);
+    mycc_free(cfg->regs);
 }

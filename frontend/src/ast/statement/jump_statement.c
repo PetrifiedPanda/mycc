@@ -1,6 +1,5 @@
 #include "frontend/ast/statement/jump_statement.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -10,7 +9,7 @@
 
 static struct jump_statement* create(struct source_loc loc,
                                      enum jump_statement_type type) {
-    struct jump_statement* res = xmalloc(sizeof *res);
+    struct jump_statement* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->type = type;
 
@@ -110,5 +109,5 @@ static void free_children(struct jump_statement* s) {
 
 void free_jump_statement(struct jump_statement* s) {
     free_children(s);
-    free(s);
+    mycc_free(s);
 }

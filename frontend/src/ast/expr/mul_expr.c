@@ -1,6 +1,5 @@
 #include "frontend/ast/expr/mul_expr.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -34,7 +33,7 @@ static bool parse_mul_expr_mul_chain(struct parser_state* s,
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->mul_chain, &alloc_len, sizeof *res->mul_chain);
+            mycc_grow_alloc((void**)&res->mul_chain, &alloc_len, sizeof *res->mul_chain);
         }
 
         struct cast_expr_and_op* curr = &res->mul_chain[res->len];
@@ -48,7 +47,7 @@ static bool parse_mul_expr_mul_chain(struct parser_state* s,
         ++res->len;
     }
 
-    res->mul_chain = xrealloc(res->mul_chain, sizeof *res->mul_chain * res->len);
+    res->mul_chain = mycc_realloc(res->mul_chain, sizeof *res->mul_chain * res->len);
 
     return true;
 }
@@ -59,7 +58,7 @@ struct mul_expr* parse_mul_expr(struct parser_state* s) {
         return NULL;
     }
 
-    struct mul_expr* res = xmalloc(sizeof *res);
+    struct mul_expr* res = mycc_alloc(sizeof *res);
     
     res->lhs = lhs;
 
@@ -74,7 +73,7 @@ struct mul_expr* parse_mul_expr_cast(struct parser_state* s,
                                      struct cast_expr* start) {
     assert(start);
 
-    struct mul_expr* res = xmalloc(sizeof *res);
+    struct mul_expr* res = mycc_alloc(sizeof *res);
     res->lhs = start;
 
     if (!parse_mul_expr_mul_chain(s, res)) {
@@ -89,10 +88,10 @@ static void free_children(struct mul_expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         free_cast_expr(e->mul_chain[i].rhs);
     }
-    free(e->mul_chain);
+    mycc_free(e->mul_chain);
 }
 
 void free_mul_expr(struct mul_expr* e) {
     free_children(e);
-    free(e);
+    mycc_free(e);
 }

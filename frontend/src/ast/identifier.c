@@ -1,6 +1,5 @@
 #include "frontend/ast/identifier.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -12,7 +11,7 @@ void init_identifier(struct identifier* res, const struct str* spelling, struct 
 }
 
 struct identifier* create_identifier(const struct str* spelling, struct source_loc loc) {
-    struct identifier* res = xmalloc(sizeof *res);
+    struct identifier* res = mycc_alloc(sizeof *res);
     init_identifier(res, spelling, loc);
     return res;
 }
@@ -23,6 +22,6 @@ void free_identifier_children(struct identifier* i) {
 
 void free_identifier(struct identifier* i) {
     free_identifier_children(i);
-    free(i);
+    mycc_free(i);
 }
 

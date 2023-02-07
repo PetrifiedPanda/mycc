@@ -1,17 +1,15 @@
 #include "frontend/ast/declaration/declarator.h"
 
-#include <stdlib.h>
-
 #include "util/mem.h"
 
 static struct declarator* parse_declarator_base(
     struct parser_state* s,
     struct direct_declarator* (*parse_func)(struct parser_state* s)) {
-    struct declarator* res = xmalloc(sizeof *res);
+    struct declarator* res = mycc_alloc(sizeof *res);
     if (s->it->type == ASTERISK) {
         res->ptr = parse_pointer(s);
         if (!res->ptr) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
     } else {
@@ -23,7 +21,7 @@ static struct declarator* parse_declarator_base(
         if (res->ptr) {
             free_pointer(res->ptr);
         }
-        free(res);
+        mycc_free(res);
         return NULL;
     }
 
@@ -47,5 +45,5 @@ static void free_children(struct declarator* d) {
 
 void free_declarator(struct declarator* d) {
     free_children(d);
-    free(d);
+    mycc_free(d);
 }

@@ -45,7 +45,7 @@ void file_read_line(FILE* file,
 
         if (copy_to_dyn_buf) {
             cap = static_buf_len * 2;
-            *res = xmalloc(sizeof **res * cap);
+            *res = mycc_alloc(sizeof **res * cap);
             memcpy(*res, static_buf, sizeof **res * (static_buf_len - 1));
         } else if (*res_len == 0 && c == EOF) {
             *res = NULL;
@@ -61,7 +61,7 @@ void file_read_line(FILE* file,
 
     while ((c = getc(file)) != '\n' && c != '\r' && c != EOF) {
         if (*res_len == cap) {
-            grow_alloc((void**)res, &cap, sizeof **res);
+            mycc_grow_alloc((void**)res, &cap, sizeof **res);
         }
         (*res)[*res_len] = (char)c;
 
@@ -77,6 +77,6 @@ void file_read_line(FILE* file,
         return;
     }
 
-    *res = xrealloc(*res, sizeof **res * (*res_len + 1));
+    *res = mycc_realloc(*res, sizeof **res * (*res_len + 1));
     (*res)[*res_len] = '\0';
 }

@@ -1,6 +1,5 @@
 #include "frontend/ast/statement/compound_statement.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -13,7 +12,7 @@ struct compound_statement* parse_compound_statement(struct parser_state* s) {
 
     parser_push_scope(s);
 
-    struct compound_statement* res = xmalloc(sizeof *res);
+    struct compound_statement* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->items = NULL;
     res->len = 0;
@@ -21,7 +20,7 @@ struct compound_statement* parse_compound_statement(struct parser_state* s) {
     size_t alloc_len = res->len;
     while (s->it->type != RBRACE) {
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->items,
+            mycc_grow_alloc((void**)&res->items,
                        &alloc_len,
                        sizeof *res->items);
         }
@@ -34,7 +33,7 @@ struct compound_statement* parse_compound_statement(struct parser_state* s) {
         ++res->len;
     }
 
-    res->items = xrealloc(res->items, sizeof *res->items * res->len);
+    res->items = mycc_realloc(res->items, sizeof *res->items * res->len);
 
     assert(s->it->type == RBRACE);
     accept_it(s);
@@ -48,10 +47,10 @@ void free_children(struct compound_statement* s) {
     for (size_t i = 0; i < s->len; ++i) {
         free_block_item_children(&s->items[i]);
     }
-    free(s->items);
+    mycc_free(s->items);
 }
 
 void free_compound_statement(struct compound_statement* s) {
     free_children(s);
-    free(s);
+    mycc_free(s);
 }

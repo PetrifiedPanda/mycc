@@ -1,21 +1,19 @@
 #include "frontend/ast/statement/selection_statement.h"
 
-#include <stdlib.h>
-
 #include "util/mem.h"
 #include "util/macro_util.h"
 
 #include "frontend/parser/parser_util.h"
 
 struct selection_statement* parse_selection_statement(struct parser_state* s) {
-    struct selection_statement* res = xmalloc(sizeof *res);
+    struct selection_statement* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
     if (s->it->type == IF) {
         res->is_if = true;
         accept_it(s);
     } else {
         if (!accept(s, SWITCH)) {
-            free(res);
+            mycc_free(res);
             enum token_type expected[] = {IF, SWITCH};
 
             expected_tokens_error(s, expected, ARR_LEN(expected));
@@ -25,26 +23,26 @@ struct selection_statement* parse_selection_statement(struct parser_state* s) {
     }
 
     if (!accept(s, LBRACKET)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
 
     res->sel_expr = parse_expr(s);
     if (!res->sel_expr) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
 
     if (!accept(s, RBRACKET)) {
         free_expr(res->sel_expr);
-        free(res);
+        mycc_free(res);
         return NULL;
     }
 
     res->sel_stat = parse_statement(s);
     if (!res->sel_stat) {
         free_expr(res->sel_expr);
-        free(res);
+        mycc_free(res);
         return NULL;
     }
 
@@ -54,7 +52,7 @@ struct selection_statement* parse_selection_statement(struct parser_state* s) {
         if (!res->else_stat) {
             free_statement(res->sel_stat);
             free_expr(res->sel_expr);
-            free(res);
+            mycc_free(res);
             return NULL;
         }
     } else {
@@ -74,5 +72,5 @@ static void free_children(struct selection_statement* s) {
 
 void free_selection_statement(struct selection_statement* s) {
     free_children(s);
-    free(s);
+    mycc_free(s);
 }

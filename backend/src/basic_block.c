@@ -1,6 +1,6 @@
 #include "backend/basic_block.h"
 
-#include <stdlib.h>
+#include "util/mem.h"
 
 void free_branch_inst(struct branch_inst* b) {
     switch (b->type) {
@@ -19,9 +19,9 @@ void free_basic_block(struct basic_block* bb) {
     for (size_t i = 0; i < bb->len; ++i) {
         free_ir_inst(&bb->ops[i]);
     }
-    free(bb->ops);
+    mycc_free(bb->ops);
     
     free_branch_inst(&bb->branch);
 
-    free(bb->preds);
+    mycc_free(bb->preds);
 }

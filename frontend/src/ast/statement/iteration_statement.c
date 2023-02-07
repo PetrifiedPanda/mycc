@@ -1,6 +1,5 @@
 #include "frontend/ast/statement/iteration_statement.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -24,7 +23,7 @@ static struct iteration_statement* create_while_loop(
     struct source_loc loc,
     struct expr* while_cond,
     struct statement* loop_body) {
-    struct iteration_statement* res = xmalloc(sizeof *res);
+    struct iteration_statement* res = mycc_alloc(sizeof *res);
     res->type = ITERATION_STATEMENT_WHILE;
     assign_do_or_while(loc, res, while_cond, loop_body);
 
@@ -34,7 +33,7 @@ static struct iteration_statement* create_while_loop(
 static struct iteration_statement* create_do_loop(struct source_loc loc,
                                                   struct expr* while_cond,
                                                   struct statement* loop_body) {
-    struct iteration_statement* res = xmalloc(sizeof *res);
+    struct iteration_statement* res = mycc_alloc(sizeof *res);
     res->type = ITERATION_STATEMENT_DO;
     assign_do_or_while(loc, res, while_cond, loop_body);
 
@@ -52,7 +51,7 @@ static struct iteration_statement* create_for_loop(
     }
     assert(for_loop.cond);
     assert(loop_body);
-    struct iteration_statement* res = xmalloc(sizeof *res);
+    struct iteration_statement* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->type = ITERATION_STATEMENT_FOR;
     res->loop_body = loop_body;
@@ -227,5 +226,5 @@ static void free_children(struct iteration_statement* s) {
 
 void free_iteration_statement(struct iteration_statement* s) {
     free_children(s);
-    free(s);
+    mycc_free(s);
 }

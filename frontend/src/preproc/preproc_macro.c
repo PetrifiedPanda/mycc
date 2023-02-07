@@ -1,6 +1,5 @@
 #include "frontend/preproc/preproc_macro.h"
 
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
@@ -20,7 +19,7 @@ static size_t find_macro_end(struct preproc_state* state,
     ++i;
     assert(res->tokens[i].type == LBRACKET);
     ++i;
-    
+
     const bool can_read_new_toks = res == &state->res;
     size_t open_bracket_count = 1;
     while (i != res->len || (can_read_new_toks && !code_source_over(src))) {
@@ -65,7 +64,7 @@ struct expanded_macro_stack {
 static void expanded_macro_stack_push(struct expanded_macro_stack* stack,
                                       const struct preproc_macro* m) {
     if (stack->len == stack->cap) {
-        grow_alloc((void**)&stack->data, &stack->cap, sizeof(void*));
+        mycc_grow_alloc((void**)&stack->data, &stack->cap, sizeof(void*));
     }
     stack->data[stack->len] = m->spell;
     ++stack->len;
@@ -95,7 +94,7 @@ static struct expanded_macro_stack expanded_macro_stack_create(void) {
 }
 
 static void expanded_macro_stack_free(struct expanded_macro_stack* stack) {
-    free(stack->data);
+    mycc_free(stack->data);
 }
 
 static size_t expand_obj_macro(struct token_arr* res,
@@ -134,7 +133,13 @@ static size_t find_and_expand_macro(struct preproc_state* state,
                 return (size_t)-1;
             }
             assert(macro_end != (size_t)-1);
-            return expand_func_macro(state, res, macro, i, macro_end, src, expanded);
+            return expand_func_macro(state,
+                                     res,
+                                     macro,
+                                     i,
+                                     macro_end,
+                                     src,
+                                     expanded);
         } else {
             // not considered func_macro without brackets
             return i;
@@ -215,9 +220,9 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
         }
 
         if (arg_spells_cap == res.num_args) {
-            grow_alloc((void**)&arg_spells,
-                       &arg_spells_cap,
-                       sizeof *arg_spells);
+            mycc_grow_alloc((void**)&arg_spells,
+                            &arg_spells_cap,
+                            sizeof *arg_spells);
         }
         arg_spells[res.num_args] = str_get_data(&arr->tokens[it].spelling);
         assert(arg_spells[res.num_args]);
@@ -273,7 +278,7 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
     res.expansion_len = arr->len - it - 1; // TODO: not sure about - 1
     res.expansion = res.expansion_len == 0
                         ? NULL
-                        : xmalloc(sizeof *res.expansion * res.expansion_len);
+                        : mycc_alloc(sizeof *res.expansion * res.expansion_len);
 
     for (size_t i = it + 1; i < arr->len; ++i) {
         const size_t res_idx = i - it - 1;
@@ -306,10 +311,10 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
     }
 
     // cast to make msvc happy (though it shouldn't be like this)
-    free((void*)arg_spells);
+    mycc_free((void*)arg_spells);
     return res;
 fail:
-    free((void*)arg_spells);
+    mycc_free((void*)arg_spells);
     return (struct preproc_macro){0};
 }
 
@@ -325,7 +330,7 @@ static struct preproc_macro parse_object_like_macro(struct token_arr* arr,
         .expansion_len = arr->len - 3,
         .expansion = res.expansion_len == 0
                          ? NULL
-                         : xmalloc(sizeof *res.expansion * res.expansion_len),
+                         : mycc_alloc(sizeof *res.expansion * res.expansion_len),
     };
 
     for (size_t i = 3; i < arr->len; ++i) {
@@ -369,7 +374,7 @@ void free_preproc_macro(struct preproc_macro* m) {
             free_token(&m->expansion[i].token);
         }
     }
-    free(m->expansion);
+    mycc_free(m->expansion);
 }
 
 static struct token copy_token(const struct token* t);
@@ -385,7 +390,7 @@ static struct token_arr collect_until(struct token* start,
     const size_t len = end - start;
     struct token_arr res = {
         .len = len,
-        .tokens = len == 0 ? NULL : xmalloc(sizeof *res.tokens * len),
+        .tokens = len == 0 ? NULL : mycc_alloc(sizeof *res.tokens * len),
     };
 
     for (size_t i = 0; i < len; ++i) {
@@ -428,7 +433,7 @@ static void free_macro_args(struct macro_args* args) {
     for (size_t i = 0; i < args->len; ++i) {
         free_token_arr(&args->arrs[i]);
     }
-    free(args->arrs);
+    mycc_free(args->arrs);
 }
 
 /**
@@ -453,7 +458,7 @@ struct macro_args collect_macro_args(struct token* args_start,
     size_t cap = is_variadic ? expected_args + 1 : expected_args;
     struct macro_args res = {
         .len = 0,
-        .arrs = cap == 0 ? NULL : xmalloc(sizeof *res.arrs * cap),
+        .arrs = cap == 0 ? NULL : mycc_alloc(sizeof *res.arrs * cap),
     };
 
     struct token* it = args_start + 1;
@@ -602,7 +607,7 @@ static size_t expand_func_macro(struct preproc_state* state,
     if (alloc_grows) {
         res->len += alloc_change;
         res->cap += alloc_change;
-        res->tokens = xrealloc(res->tokens, sizeof *res->tokens * res->cap);
+        res->tokens = mycc_realloc(res->tokens, sizeof *res->tokens * res->cap);
 
         shift_back(res->tokens,
                    alloc_change,
@@ -650,7 +655,7 @@ static size_t expand_obj_macro(struct token_arr* res,
     if (exp_len > 0) {
         res->cap += exp_len - 1;
         res->len += exp_len - 1;
-        res->tokens = xrealloc(res->tokens, sizeof *res->tokens * res->cap);
+        res->tokens = mycc_realloc(res->tokens, sizeof *res->tokens * res->cap);
 
         shift_back(res->tokens, exp_len - 1, macro_idx, old_len);
     } else {

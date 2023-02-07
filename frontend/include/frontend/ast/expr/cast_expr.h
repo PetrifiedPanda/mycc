@@ -1,8 +1,6 @@
 #ifndef CAST_EXPR_H
 #define CAST_EXPR_H
 
-#include <stdlib.h>
-
 #include "frontend/parser/parser_state.h"
 
 #include "frontend/ast/ast_node_info.h"

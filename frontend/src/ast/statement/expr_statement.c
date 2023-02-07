@@ -1,13 +1,11 @@
 #include "frontend/ast/statement/expr_statement.h"
 
-#include <stdlib.h>
-
 #include "util/mem.h"
 
 #include "frontend/parser/parser_util.h"
 
 struct expr_statement* parse_expr_statement(struct parser_state* s) {
-    struct expr_statement* res = xmalloc(sizeof *res);
+    struct expr_statement* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
     if (s->it->type == SEMICOLON) {
         accept_it(s);
@@ -16,7 +14,7 @@ struct expr_statement* parse_expr_statement(struct parser_state* s) {
         return res;
     } else {
         if (!parse_expr_inplace(s, &res->expr)) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
 
@@ -35,5 +33,6 @@ static void free_children(struct expr_statement* s) {
 
 void free_expr_statement(struct expr_statement* s) {
     free_children(s);
-    free(s);
+    mycc_free(s);
 }
+

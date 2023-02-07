@@ -1,6 +1,5 @@
 #include "frontend/ast/declaration/declaration.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -52,9 +51,9 @@ bool parse_declaration_inplace(struct parser_state* s,
 }
 
 struct declaration* parse_declaration(struct parser_state* s) {
-    struct declaration* res = xmalloc(sizeof *res);
+    struct declaration* res = mycc_alloc(sizeof *res);
     if (!parse_declaration_inplace(s, res)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     return res;
@@ -71,6 +70,6 @@ void free_declaration_children(struct declaration* d) {
 
 void free_declaration(struct declaration* d) {
     free_declaration_children(d);
-    free(d);
+    mycc_free(d);
 }
 

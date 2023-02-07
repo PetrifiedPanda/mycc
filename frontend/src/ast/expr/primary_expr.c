@@ -1,6 +1,5 @@
 #include "frontend/ast/expr/primary_expr.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -9,7 +8,7 @@
 
 static struct primary_expr* create_primary_expr_constant(
     struct constant constant) {
-    struct primary_expr* res = xmalloc(sizeof *res);
+    struct primary_expr* res = mycc_alloc(sizeof *res);
     res->type = PRIMARY_EXPR_CONSTANT;
     res->constant = constant;
 
@@ -18,7 +17,7 @@ static struct primary_expr* create_primary_expr_constant(
 
 static struct primary_expr* create_primary_expr_string(
     struct string_constant string) {
-    struct primary_expr* res = xmalloc(sizeof *res);
+    struct primary_expr* res = mycc_alloc(sizeof *res);
     res->type = PRIMARY_EXPR_STRING_LITERAL;
     res->string = string;
 
@@ -29,7 +28,7 @@ static struct primary_expr* create_primary_expr_identifier(
     struct identifier* identifier) {
     assert(identifier);
 
-    struct primary_expr* res = xmalloc(sizeof *res);
+    struct primary_expr* res = mycc_alloc(sizeof *res);
     res->type = PRIMARY_EXPR_IDENTIFIER;
     res->identifier = identifier;
 
@@ -40,7 +39,7 @@ static struct primary_expr* create_primary_expr_bracket(
     struct expr* bracket_expr,
     struct source_loc loc) {
     assert(bracket_expr);
-    struct primary_expr* res = xmalloc(sizeof *res);
+    struct primary_expr* res = mycc_alloc(sizeof *res);
     res->type = PRIMARY_EXPR_BRACKET;
     res->info = create_ast_node_info(loc);
     res->bracket_expr = bracket_expr;
@@ -51,7 +50,7 @@ static struct primary_expr* create_primary_expr_bracket(
 static struct primary_expr* create_primary_expr_generic(
     struct generic_sel* generic) {
     assert(generic);
-    struct primary_expr* res = xmalloc(sizeof *res);
+    struct primary_expr* res = mycc_alloc(sizeof *res);
     res->type = PRIMARY_EXPR_GENERIC;
     res->generic = generic;
 
@@ -150,5 +149,5 @@ static void free_children(struct primary_expr* e) {
 
 void free_primary_expr(struct primary_expr* e) {
     free_children(e);
-    free(e);
+    mycc_free(e);
 }

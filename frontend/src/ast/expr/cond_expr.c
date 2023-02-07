@@ -1,7 +1,6 @@
 #include "frontend/ast/expr/cond_expr.h"
 
 #include <assert.h>
-#include <stdlib.h>
 
 #include "util/mem.h"
 
@@ -33,7 +32,7 @@ static bool parse_cond_expr_conditionals(struct parser_state* s,
         }
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->conditionals, &alloc_len, sizeof *res->conditionals);
+            mycc_grow_alloc((void**)&res->conditionals, &alloc_len, sizeof *res->conditionals);
         }
 
         res->conditionals[res->len] = (struct log_or_and_expr){
@@ -46,7 +45,7 @@ static bool parse_cond_expr_conditionals(struct parser_state* s,
         ++res->len;
     }
 
-    res->conditionals = xrealloc(res->conditionals, sizeof *res->conditionals * res->len);
+    res->conditionals = mycc_realloc(res->conditionals, sizeof *res->conditionals * res->len);
     return true;
 
 fail:
@@ -73,15 +72,15 @@ struct cond_expr* parse_cond_expr_cast(struct parser_state* s,
                                        struct cast_expr* start) {
     assert(start);
 
-    struct cond_expr* res = xmalloc(sizeof *res);
+    struct cond_expr* res = mycc_alloc(sizeof *res);
     res->last_else = parse_log_or_expr_cast(s, start);
     if (!res->last_else) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
 
     if (!parse_cond_expr_conditionals(s, res)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     return res;
@@ -93,13 +92,13 @@ void free_cond_expr_children(struct cond_expr* e) {
         free_log_or_expr(item->log_or);
         free_expr(item->expr);
     }
-    free(e->conditionals);
+    mycc_free(e->conditionals);
 
     free_log_or_expr(e->last_else);
 }
 
 void free_cond_expr(struct cond_expr* e) {
     free_cond_expr_children(e);
-    free(e);
+    mycc_free(e);
 }
 

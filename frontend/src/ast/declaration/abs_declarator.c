@@ -1,15 +1,13 @@
 #include "frontend/ast/declaration/abs_declarator.h"
 
-#include <stdlib.h>
-
 #include "util/mem.h"
 
 struct abs_declarator* parse_abs_declarator(struct parser_state* s) {
-    struct abs_declarator* res = xmalloc(sizeof *res);
+    struct abs_declarator* res = mycc_alloc(sizeof *res);
     if (s->it->type == ASTERISK) {
         res->ptr = parse_pointer(s);
         if (!res->ptr) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
     } else {
@@ -23,7 +21,7 @@ struct abs_declarator* parse_abs_declarator(struct parser_state* s) {
             if (res->ptr) {
                 free_pointer(res->ptr);
             }
-            free(res);
+            mycc_free(res);
             return NULL;
         }
     } else {
@@ -32,7 +30,7 @@ struct abs_declarator* parse_abs_declarator(struct parser_state* s) {
 
     if (res->direct_abs_decl == NULL && res->ptr == NULL) {
         set_parser_err(s->err, PARSER_ERR_EMPTY_DIRECT_ABS_DECL, s->it->loc);
-        free(res);
+        mycc_free(res);
         return NULL;
     }
 
@@ -50,5 +48,5 @@ static void free_children(struct abs_declarator* d) {
 
 void free_abs_declarator(struct abs_declarator* d) {
     free_children(d);
-    free(d);
+    mycc_free(d);
 }

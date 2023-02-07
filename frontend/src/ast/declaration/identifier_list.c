@@ -1,7 +1,5 @@
 #include "frontend/ast/declaration/identifier_list.h"
 
-#include <stdlib.h>
-
 #include "util/mem.h"
 
 #include "frontend/parser/parser_util.h"
@@ -13,7 +11,7 @@ bool parse_identifier_list(struct parser_state* s,
     }
     *res = (struct identifier_list){
         .len = 1,
-        .identifiers = xmalloc(sizeof *res->identifiers),
+        .identifiers = mycc_alloc(sizeof *res->identifiers),
     };
     struct str spell = take_spelling(s->it);
     struct source_loc loc = s->it->loc;
@@ -25,7 +23,7 @@ bool parse_identifier_list(struct parser_state* s,
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->identifiers,
+            mycc_grow_alloc((void**)&res->identifiers,
                        &alloc_len,
                        sizeof *res->identifiers);
         }
@@ -42,7 +40,7 @@ bool parse_identifier_list(struct parser_state* s,
         ++res->len;
     }
 
-    res->identifiers = xrealloc(res->identifiers,
+    res->identifiers = mycc_realloc(res->identifiers,
                                 sizeof *res->identifiers * res->len);
 
     return res;
@@ -52,5 +50,5 @@ void free_identifier_list(struct identifier_list* l) {
     for (size_t i = 0; i < l->len; ++i) {
         free_identifier_children(&l->identifiers[i]);
     }
-    free(l->identifiers);
+    mycc_free(l->identifiers);
 }

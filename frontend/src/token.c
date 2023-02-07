@@ -1,6 +1,5 @@
 #include "frontend/token.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"

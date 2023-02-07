@@ -22,8 +22,8 @@ struct string_hash_map create_string_hash_map(size_t elem_size,
         ._item_size = elem_size,
         ._free_keys = free_keys,
         ._item_free = item_free,
-        ._keys = xcalloc(init_cap, sizeof(struct string_hash_map_key)),
-        ._items = xcalloc(init_cap, elem_size),
+        ._keys = mycc_alloc_zeroed(init_cap, sizeof(struct string_hash_map_key)),
+        ._items = mycc_alloc_zeroed(init_cap, elem_size),
     };
 }
 
@@ -38,14 +38,14 @@ void free_string_hash_map(struct string_hash_map* map) {
         }
     }
 
-    free(map->_items);
+    mycc_free(map->_items);
 
     if (map->_free_keys) {
         for (size_t i = 0; i < map->_cap; ++i) {
             free_str(&map->_keys[i].str);
         }
     }
-    free(map->_keys);
+    mycc_free(map->_keys);
 }
 
 static size_t hash_string(const struct str* str);
@@ -200,8 +200,8 @@ static void resize_map(struct string_hash_map* map) {
 
     map->_len = 0;
     map->_cap += map->_cap / 2 + 1;
-    map->_keys = xcalloc(map->_cap, sizeof *map->_keys);
-    map->_items = xcalloc(map->_cap, map->_item_size);
+    map->_keys = mycc_alloc_zeroed(map->_cap, sizeof *map->_keys);
+    map->_items = mycc_alloc_zeroed(map->_cap, map->_item_size);
 
     for (size_t i = 0; i < prev_cap; ++i) {
         if (str_is_valid(&old_keys[i].str)) {
@@ -216,8 +216,8 @@ static void resize_map(struct string_hash_map* map) {
 
     UNUSED(prev_len);
     assert(map->_len == prev_len);
-    free(old_items);
-    free((void*)old_keys);
+    mycc_free(old_items);
+    mycc_free((void*)old_keys);
 }
 
 // Hash function taken from K&R version 2 (page 144)

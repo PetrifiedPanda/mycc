@@ -1,6 +1,5 @@
 #include "frontend/ast/declaration/enum_spec.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -11,7 +10,7 @@ static struct enum_spec* create_enum_spec(struct source_loc loc,
                                           struct identifier* identifier,
                                           struct enum_list enum_list) {
     assert(identifier || enum_list.len > 0);
-    struct enum_spec* res = xmalloc(sizeof *res);
+    struct enum_spec* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->identifier = identifier;
     res->enum_list = enum_list;
@@ -70,6 +69,6 @@ static void free_children(struct enum_spec* s) {
 
 void free_enum_spec(struct enum_spec* s) {
     free_children(s);
-    free(s);
+    mycc_free(s);
 }
 

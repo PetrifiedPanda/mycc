@@ -1,6 +1,5 @@
 #include "frontend/ast/expr/constant.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 struct constant create_int_constant(struct int_value val,

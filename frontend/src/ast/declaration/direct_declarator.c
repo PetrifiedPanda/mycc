@@ -1,6 +1,5 @@
 #include "frontend/ast/declaration/direct_declarator.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -151,7 +150,7 @@ bool parse_arr_or_func_suffixes(struct parser_state* s,
     size_t alloc_len = res->len;
     while (s->it->type == LBRACKET || s->it->type == LINDEX) {
         if (alloc_len == res->len) {
-            grow_alloc((void**)&res->suffixes,
+            mycc_grow_alloc((void**)&res->suffixes,
                        &alloc_len,
                        sizeof *res->suffixes);
         }
@@ -164,7 +163,7 @@ bool parse_arr_or_func_suffixes(struct parser_state* s,
         ++res->len;
     }
 
-    res->suffixes = xrealloc(res->suffixes, sizeof *res->suffixes * res->len);
+    res->suffixes = mycc_realloc(res->suffixes, sizeof *res->suffixes * res->len);
 
     return true;
 }
@@ -173,26 +172,26 @@ static struct direct_declarator* parse_direct_declarator_base(
     struct parser_state* s,
     struct declarator* (*parse_func)(struct parser_state*),
     bool (*identifier_handler)(struct parser_state*, const struct token*)) {
-    struct direct_declarator* res = xmalloc(sizeof *res);
+    struct direct_declarator* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
     if (s->it->type == LBRACKET) {
         accept_it(s);
         res->is_id = false;
         res->bracket_decl = parse_func(s);
         if (!res->bracket_decl) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
 
         if (!accept(s, RBRACKET)) {
             free_declarator(res->bracket_decl);
-            free(res);
+            mycc_free(res);
             return NULL;
         }
     } else if (s->it->type == IDENTIFIER) {
         res->is_id = true;
         if (!identifier_handler(s, s->it)) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
         const struct str spelling = take_spelling(s->it);
@@ -200,7 +199,7 @@ static struct direct_declarator* parse_direct_declarator_base(
         accept_it(s);
         res->id = create_identifier(&spelling, loc);
     } else {
-        free(res);
+        mycc_free(res);
         enum token_type expected[] = {LBRACKET, IDENTIFIER};
         expected_tokens_error(s, expected, ARR_LEN(expected));
         return NULL;
@@ -256,11 +255,11 @@ static void free_children(struct direct_declarator* d) {
                 UNREACHABLE();
         }
     }
-    free(d->suffixes);
+    mycc_free(d->suffixes);
 }
 
 void free_direct_declarator(struct direct_declarator* d) {
     free_children(d);
-    free(d);
+    mycc_free(d);
 }
 

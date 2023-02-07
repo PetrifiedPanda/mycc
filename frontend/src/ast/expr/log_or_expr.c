@@ -1,6 +1,5 @@
 #include "frontend/ast/expr/log_or_expr.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -19,7 +18,7 @@ static bool parse_log_or_expr_ops(struct parser_state* s,
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->log_ands,
+            mycc_grow_alloc((void**)&res->log_ands,
                        &alloc_len,
                        sizeof *res->log_ands);
         }
@@ -31,7 +30,7 @@ static bool parse_log_or_expr_ops(struct parser_state* s,
         ++res->len;
     }
 
-    res->log_ands = xrealloc(res->log_ands, sizeof *res->log_ands * res->len);
+    res->log_ands = mycc_realloc(res->log_ands, sizeof *res->log_ands * res->len);
 
     return true;
 fail:
@@ -40,18 +39,18 @@ fail:
 }
 
 struct log_or_expr* parse_log_or_expr(struct parser_state* s) {
-    struct log_and_expr* and_exprs = xmalloc(sizeof *and_exprs);
+    struct log_and_expr* and_exprs = mycc_alloc(sizeof *and_exprs);
     if (!parse_log_and_expr_inplace(s, and_exprs)) {
-        free(and_exprs);
+        mycc_free(and_exprs);
         return NULL;
     }
 
-    struct log_or_expr* res = xmalloc(sizeof *res);
+    struct log_or_expr* res = mycc_alloc(sizeof *res);
     res->log_ands = and_exprs;
     res->len = 1;
 
     if (!parse_log_or_expr_ops(s, res)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
 
@@ -67,12 +66,12 @@ struct log_or_expr* parse_log_or_expr_cast(struct parser_state* s,
         return NULL;
     }
 
-    struct log_or_expr* res = xmalloc(sizeof *res);
+    struct log_or_expr* res = mycc_alloc(sizeof *res);
     res->log_ands = and_exprs;
     res->len = 1;
 
     if (!parse_log_or_expr_ops(s, res)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
 
@@ -83,11 +82,11 @@ static void free_children(struct log_or_expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         free_log_and_expr_children(&e->log_ands[i]);
     }
-    free(e->log_ands);
+    mycc_free(e->log_ands);
 }
 
 void free_log_or_expr(struct log_or_expr* e) {
     free_children(e);
-    free(e);
+    mycc_free(e);
 }
 

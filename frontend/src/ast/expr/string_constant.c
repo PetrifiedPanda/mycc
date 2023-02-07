@@ -1,6 +1,5 @@
 #include "frontend/ast/expr/string_constant.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 struct string_constant create_string_constant(const struct str* spelling, struct source_loc loc) {

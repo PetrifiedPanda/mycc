@@ -1,7 +1,5 @@
 #include "frontend/ast/string_literal.h"
 
-#include <stdlib.h>
-
 struct string_literal create_string_literal(const struct str* spelling,
                                             struct source_loc loc) {
     return (struct string_literal){

@@ -1,7 +1,6 @@
 #include "frontend/preproc/preproc.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
@@ -146,14 +145,14 @@ static void free_tokens(struct token* tokens) {
     for (struct token* it = tokens; it->type != INVALID; ++it) {
         free_token(it);
     }
-    free(tokens);
+    mycc_free(tokens);
 }
 
 static void free_preproc_tokens(struct token* tokens) {
     for (struct token* it = tokens; it->type != INVALID; ++it) {
         free_str(&it->spelling);
     }
-    free(tokens);
+    mycc_free(tokens);
 }
 
 void free_preproc_res_preproc_tokens(struct preproc_res* res) {
@@ -248,7 +247,7 @@ bool convert_preproc_tokens(struct token* tokens,
 }
 
 static void append_terminator_token(struct token_arr* arr) {
-    arr->tokens = xrealloc(arr->tokens, sizeof *arr->tokens * (arr->len + 1));
+    arr->tokens = mycc_realloc(arr->tokens, sizeof *arr->tokens * (arr->len + 1));
     arr->tokens[arr->len] = (struct token){
         .type = INVALID,
         .spelling = create_null_str(),

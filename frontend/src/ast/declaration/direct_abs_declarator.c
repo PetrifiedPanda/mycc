@@ -1,6 +1,5 @@
 #include "frontend/ast/declaration/direct_abs_declarator.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -119,7 +118,7 @@ bool parse_abs_arr_or_func_suffixes(struct parser_state* s,
     size_t alloc_len = res->len;
     while (s->it->type == LBRACKET || s->it->type == LINDEX) {
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->following_suffixes,
+            mycc_grow_alloc((void**)&res->following_suffixes,
                        &alloc_len,
                        sizeof *res->following_suffixes);
         }
@@ -133,7 +132,7 @@ bool parse_abs_arr_or_func_suffixes(struct parser_state* s,
         ++res->len;
     }
 
-    res->following_suffixes = xrealloc(res->following_suffixes,
+    res->following_suffixes = mycc_realloc(res->following_suffixes,
                                        sizeof *res->following_suffixes
                                            * res->len);
     return true;
@@ -141,7 +140,7 @@ bool parse_abs_arr_or_func_suffixes(struct parser_state* s,
 
 struct direct_abs_declarator* parse_direct_abs_declarator(
     struct parser_state* s) {
-    struct direct_abs_declarator* res = xmalloc(sizeof *res);
+    struct direct_abs_declarator* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
     if (s->it->type == LBRACKET
         && (s->it[1].type == LBRACKET || s->it[1].type == LINDEX
@@ -149,13 +148,13 @@ struct direct_abs_declarator* parse_direct_abs_declarator(
         accept_it(s);
         res->bracket_decl = parse_abs_declarator(s);
         if (!res->bracket_decl) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
 
         if (!accept(s, RBRACKET)) {
             free_abs_declarator(res->bracket_decl);
-            free(res);
+            mycc_free(res);
             return NULL;
         }
     } else {
@@ -191,11 +190,11 @@ static void free_children(struct direct_abs_declarator* d) {
     for (size_t i = 0; i < d->len; ++i) {
         free_abs_arr_or_func_suffix(&d->following_suffixes[i]);
     }
-    free(d->following_suffixes);
+    mycc_free(d->following_suffixes);
 }
 
 void free_direct_abs_declarator(struct direct_abs_declarator* d) {
     free_children(d);
-    free(d);
+    mycc_free(d);
 }
 

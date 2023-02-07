@@ -1,6 +1,5 @@
 #include "frontend/ast/expr/expr.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -10,10 +9,10 @@
 bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
     assert(res);
 
-    res->assign_exprs = xmalloc(sizeof *res->assign_exprs);
+    res->assign_exprs = mycc_alloc(sizeof *res->assign_exprs);
 
     if (!parse_assign_expr_inplace(s, &res->assign_exprs[0])) {
-        free(res->assign_exprs);
+        mycc_free(res->assign_exprs);
         return false;
     }
     res->len = 1;
@@ -21,7 +20,7 @@ bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
     while (s->it->type == COMMA) {
         accept_it(s);
         if (alloc_len == res->len) {
-            grow_alloc((void**)&res->assign_exprs,
+            mycc_grow_alloc((void**)&res->assign_exprs,
                        &alloc_len,
                        sizeof *res->assign_exprs);
         }
@@ -35,7 +34,7 @@ bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
     }
 
     if (alloc_len != res->len) {
-        res->assign_exprs = xrealloc(res->assign_exprs,
+        res->assign_exprs = mycc_realloc(res->assign_exprs,
                                      sizeof *res->assign_exprs * res->len);
     }
 
@@ -43,9 +42,9 @@ bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
 }
 
 struct expr* parse_expr(struct parser_state* s) {
-    struct expr* res = xmalloc(sizeof *res);
+    struct expr* res = mycc_alloc(sizeof *res);
     if (!parse_expr_inplace(s, res)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     return res;
@@ -55,10 +54,10 @@ void free_expr_children(struct expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         free_assign_expr_children(&e->assign_exprs[i]);
     }
-    free(e->assign_exprs);
+    mycc_free(e->assign_exprs);
 }
 
 void free_expr(struct expr* e) {
     free_expr_children(e);
-    free(e);
+    mycc_free(e);
 }

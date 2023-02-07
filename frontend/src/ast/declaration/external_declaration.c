@@ -34,7 +34,7 @@ static bool parse_external_decl_normal_decl(
         }
     }
 
-    struct init_declarator* init_decl = xmalloc(sizeof *init_decl);
+    struct init_declarator* init_decl = mycc_alloc(sizeof *init_decl);
     init_decl->decl = first_decl;
     init_decl->init = init;
 
@@ -49,7 +49,7 @@ static bool parse_external_decl_normal_decl(
                                  init_decl);
     if (!success) {
         free_init_declarator_children(init_decl);
-        free(init_decl);
+        mycc_free(init_decl);
         free_declaration_children(decl);
         return false;
     }

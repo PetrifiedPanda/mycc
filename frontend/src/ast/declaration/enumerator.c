@@ -1,6 +1,5 @@
 #include "frontend/ast/declaration/enumerator.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"

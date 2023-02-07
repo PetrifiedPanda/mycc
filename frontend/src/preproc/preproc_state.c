@@ -1,6 +1,5 @@
 #include "frontend/preproc/preproc_state.h"
 
-#include <stdlib.h>
 #include <string.h>
 
 #include "util/mem.h"
@@ -49,7 +48,7 @@ void push_preproc_cond(struct preproc_state* state,
                        struct source_loc loc,
                        bool was_true) {
     if (state->conds_len == state->conds_cap) {
-        grow_alloc((void**)&state->conds,
+        mycc_grow_alloc((void**)&state->conds,
                    &state->conds_cap,
                    sizeof *state->conds);
     }
@@ -75,12 +74,12 @@ void free_token_arr(struct token_arr* arr) {
     for (size_t i = 0; i < arr->len; ++i) {
         free_str(&arr->tokens[i].spelling);
     }
-    free(arr->tokens);
+    mycc_free(arr->tokens);
 }
 
 void free_preproc_state(struct preproc_state* state) {
     free_token_arr(&state->res);
-    free(state->conds);
+    mycc_free(state->conds);
     free_string_hash_map(&state->_macro_map);
     free_file_info(&state->file_info);
 }

@@ -10,11 +10,11 @@ bool parse_generic_assoc_list(struct parser_state* s,
     *res = (struct generic_assoc_list){
         .info = create_ast_node_info(s->it->loc),
         .len = 1,
-        .assocs = xmalloc(sizeof *res->assocs * alloc_len),
+        .assocs = mycc_alloc(sizeof *res->assocs * alloc_len),
     };
 
     if (!parse_generic_assoc_inplace(s, &res->assocs[0])) {
-        free(res->assocs);
+        mycc_free(res->assocs);
         return false;
     }
 
@@ -22,7 +22,7 @@ bool parse_generic_assoc_list(struct parser_state* s,
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->assocs, &alloc_len, sizeof *res->assocs);
+            mycc_grow_alloc((void**)&res->assocs, &alloc_len, sizeof *res->assocs);
         }
 
         if (!parse_generic_assoc_inplace(s, &res->assocs[res->len])) {
@@ -31,7 +31,7 @@ bool parse_generic_assoc_list(struct parser_state* s,
 
         ++res->len;
     }
-    res->assocs = xrealloc(res->assocs, sizeof *res->assocs * res->len);
+    res->assocs = mycc_realloc(res->assocs, sizeof *res->assocs * res->len);
     return res;
 
 fail:
@@ -43,6 +43,6 @@ void free_generic_assoc_list(struct generic_assoc_list* l) {
     for (size_t i = 0; i < l->len; ++i) {
         free_generic_assoc_children(&l->assocs[i]);
     }
-    free(l->assocs);
+    mycc_free(l->assocs);
 }
 

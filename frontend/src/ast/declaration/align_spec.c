@@ -49,6 +49,6 @@ void free_align_spec_children(struct align_spec* s) {
 
 static void free_align_spec(struct align_spec* s) {
     free_align_spec_children(s);
-    free(s);
+    mycc_free(s);
 }
 

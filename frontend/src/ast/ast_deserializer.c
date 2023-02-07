@@ -85,7 +85,7 @@ static void* alloc_or_null(size_t num_bytes) {
     if (num_bytes == 0) {
         return NULL;
     } else {
-        return xmalloc(num_bytes);
+        return mycc_alloc(num_bytes);
     }
 }
 
@@ -119,7 +119,7 @@ static struct file_info deserialize_file_info(struct ast_deserializer* r) {
 
     struct file_info res = {
         .len = len,
-        .paths = xmalloc(sizeof *res.paths * len),
+        .paths = mycc_alloc(sizeof *res.paths * len),
     };
     for (size_t i = 0; i < len; ++i) {
         res.paths[i] = deserialize_str(r);
@@ -127,7 +127,7 @@ static struct file_info deserialize_file_info(struct ast_deserializer* r) {
             for (size_t j = 0; j < i; ++j) {
                 free_str(&res.paths[j]);
             }
-            free(res.paths);
+            mycc_free(res.paths);
             return (struct file_info){
                 .len = 0,
                 .paths = NULL,
@@ -180,7 +180,7 @@ static struct atomic_type_spec* deserialize_atomic_type_spec(
         return NULL;
     }
 
-    struct atomic_type_spec* res = xmalloc(sizeof *res);
+    struct atomic_type_spec* res = mycc_alloc(sizeof *res);
     *res = (struct atomic_type_spec){
         .info = info,
         .type_name = type_name,
@@ -203,9 +203,9 @@ static bool deserialize_identifier_inplace(struct ast_deserializer* r,
 }
 
 static struct identifier* deserialize_identifier(struct ast_deserializer* r) {
-    struct identifier* res = xmalloc(sizeof *res);
+    struct identifier* res = mycc_alloc(sizeof *res);
     if (!deserialize_identifier_inplace(r, res)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     return res;
@@ -309,7 +309,7 @@ static void free_assign_chain(struct unary_and_op* assign_chain, size_t len) {
         struct unary_and_op* item = &assign_chain[i];
         free_unary_expr(item->unary);
     }
-    free(assign_chain);
+    mycc_free(assign_chain);
 }
 
 static bool deserialize_assign_expr_inplace(struct ast_deserializer* r,
@@ -347,9 +347,9 @@ static bool deserialize_assign_expr_inplace(struct ast_deserializer* r,
 }
 
 static struct assign_expr* deserialize_assign_expr(struct ast_deserializer* r) {
-    struct assign_expr* res = xmalloc(sizeof *res);
+    struct assign_expr* res = mycc_alloc(sizeof *res);
     if (!deserialize_assign_expr_inplace(r, res)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     return res;
@@ -373,9 +373,9 @@ static bool deserialize_expr_inplace(struct ast_deserializer* r,
 }
 
 static struct expr* deserialize_expr(struct ast_deserializer* r) {
-    struct expr* res = xmalloc(sizeof *res);
+    struct expr* res = mycc_alloc(sizeof *res);
     if (!deserialize_expr_inplace(r, res)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     return res;
@@ -414,7 +414,7 @@ static bool deserialize_generic_assoc_list(struct ast_deserializer* r,
         return false;
     }
 
-    res->assocs = xmalloc(sizeof *res->assocs * len);
+    res->assocs = mycc_alloc(sizeof *res->assocs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_generic_assoc(r, &res->assocs[res->len])) {
             free_generic_assoc_list(res);
@@ -440,7 +440,7 @@ static struct generic_sel* deserialize_generic_sel(struct ast_deserializer* r) {
         free_assign_expr(assign);
         return NULL;
     }
-    struct generic_sel* res = xmalloc(sizeof *res);
+    struct generic_sel* res = mycc_alloc(sizeof *res);
     *res = (struct generic_sel){
         .info = info,
         .assign = assign,
@@ -456,7 +456,7 @@ static struct primary_expr* deserialize_primary_expr(
         return NULL;
     }
 
-    struct primary_expr* res = xmalloc(sizeof *res);
+    struct primary_expr* res = mycc_alloc(sizeof *res);
     res->type = type;
     assert((uint64_t)res->type == type);
     switch (res->type) {
@@ -493,7 +493,7 @@ static struct primary_expr* deserialize_primary_expr(
     }
     return res;
 fail:
-    free(res);
+    mycc_free(res);
     return NULL;
 }
 
@@ -523,7 +523,7 @@ static bool deserialize_designator_list(struct ast_deserializer* r,
         return false;
     }
 
-    res->designators = xmalloc(sizeof *res->designators * len);
+    res->designators = mycc_alloc(sizeof *res->designators * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_designator(r, &res->designators[res->len])) {
             free_designator_list(res);
@@ -534,9 +534,9 @@ static bool deserialize_designator_list(struct ast_deserializer* r,
 }
 
 static struct designation* deserialize_designation(struct ast_deserializer* r) {
-    struct designation* res = xmalloc(sizeof *res);
+    struct designation* res = mycc_alloc(sizeof *res);
     if (!deserialize_designator_list(r, &res->designators)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     return res;
@@ -555,18 +555,18 @@ static struct initializer* deserialize_initializer(struct ast_deserializer* r) {
     if (!deserialize_bool(r, &is_assign)) {
         return NULL;
     }
-    struct initializer* res = xmalloc(sizeof *res);
+    struct initializer* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->is_assign = is_assign;
     if (is_assign) {
         res->assign = deserialize_assign_expr(r);
         if (!res->assign) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
     } else {
         if (!deserialize_init_list(r, &res->init_list)) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
     }
@@ -606,7 +606,7 @@ static bool deserialize_init_list(struct ast_deserializer* r,
         return false;
     }
 
-    res->inits = xmalloc(sizeof *res->inits * len);
+    res->inits = mycc_alloc(sizeof *res->inits * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_designation_init(r, &res->inits[res->len])) {
             free_init_list_children(res);
@@ -661,32 +661,32 @@ static bool deserialize_postfix_suffix(struct ast_deserializer* r,
 
 static struct postfix_expr* deserialize_postfix_expr(
     struct ast_deserializer* r) {
-    struct postfix_expr* res = xmalloc(sizeof *res);
+    struct postfix_expr* res = mycc_alloc(sizeof *res);
     if (!deserialize_bool(r, &res->is_primary)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
 
     if (res->is_primary) {
         res->primary = deserialize_primary_expr(r);
         if (!res->primary) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
     } else {
         if (!deserialize_ast_node_info(r, &res->info)) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
         res->type_name = deserialize_type_name(r);
         if (!res->type_name) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
 
         if (!deserialize_init_list(r, &res->init_list)) {
             free_type_name(res->type_name);
-            free(res);
+            mycc_free(res);
             return NULL;
         }
     }
@@ -728,7 +728,7 @@ static struct unary_expr* deserialize_unary_expr(struct ast_deserializer* r) {
     for (size_t i = 0; i < len; ++i) {
         uint64_t unary_op;
         if (!deserialize_uint(r, &unary_op)) {
-            free(ops_before);
+            mycc_free(ops_before);
             return NULL;
         }
         ops_before[i] = unary_op;
@@ -736,13 +736,13 @@ static struct unary_expr* deserialize_unary_expr(struct ast_deserializer* r) {
     }
     uint64_t expr_type;
     if (!deserialize_uint(r, &expr_type)) {
-        free(ops_before);
+        mycc_free(ops_before);
         return NULL;
     }
     enum unary_expr_type type = expr_type;
     assert((uint64_t)type == expr_type);
 
-    struct unary_expr* res = xmalloc(sizeof *res);
+    struct unary_expr* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->len = len;
     res->ops_before = ops_before;
@@ -776,8 +776,8 @@ static struct unary_expr* deserialize_unary_expr(struct ast_deserializer* r) {
 
     return res;
 fail:
-    free(ops_before);
-    free(res);
+    mycc_free(ops_before);
+    mycc_free(res);
     return NULL;
 }
 
@@ -788,7 +788,7 @@ static void free_type_names_up_to(struct type_name* type_names, size_t len) {
     for (size_t i = 0; i < len; ++i) {
         free_type_name_children(&type_names[i]);
     }
-    free(type_names);
+    mycc_free(type_names);
 }
 
 static struct cast_expr* deserialize_cast_expr(struct ast_deserializer* r) {
@@ -814,7 +814,7 @@ static struct cast_expr* deserialize_cast_expr(struct ast_deserializer* r) {
         return NULL;
     }
 
-    struct cast_expr* res = xmalloc(sizeof *res);
+    struct cast_expr* res = mycc_alloc(sizeof *res);
     *res = (struct cast_expr){
         .info = info,
         .len = len,
@@ -826,10 +826,10 @@ static struct cast_expr* deserialize_cast_expr(struct ast_deserializer* r) {
 }
 
 static struct mul_expr* deserialize_mul_expr(struct ast_deserializer* r) {
-    struct mul_expr* res = xmalloc(sizeof *res);
+    struct mul_expr* res = mycc_alloc(sizeof *res);
     res->lhs = deserialize_cast_expr(r);
     if (!res->lhs) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     res->len = 0;
@@ -864,10 +864,10 @@ fail:
 }
 
 static struct add_expr* deserialize_add_expr(struct ast_deserializer* r) {
-    struct add_expr* res = xmalloc(sizeof *res);
+    struct add_expr* res = mycc_alloc(sizeof *res);
     res->lhs = deserialize_mul_expr(r);
     if (!res->lhs) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     res->len = 0;
@@ -902,10 +902,10 @@ fail:
 }
 
 static struct shift_expr* deserialize_shift_expr(struct ast_deserializer* r) {
-    struct shift_expr* res = xmalloc(sizeof *res);
+    struct shift_expr* res = mycc_alloc(sizeof *res);
     res->lhs = deserialize_add_expr(r);
     if (!res->lhs) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     res->len = 0;
@@ -939,10 +939,10 @@ fail:
 }
 
 static struct rel_expr* deserialize_rel_expr(struct ast_deserializer* r) {
-    struct rel_expr* res = xmalloc(sizeof *res);
+    struct rel_expr* res = mycc_alloc(sizeof *res);
     res->lhs = deserialize_shift_expr(r);
     if (!res->lhs) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     res->len = 0;
@@ -1017,7 +1017,7 @@ static bool deserialize_and_expr(struct ast_deserializer* r,
         return false;
     }
 
-    res->eq_exprs = xmalloc(sizeof *res->eq_exprs * len);
+    res->eq_exprs = mycc_alloc(sizeof *res->eq_exprs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_eq_expr(r, &res->eq_exprs[res->len])) {
             free_and_expr_children(res);
@@ -1034,7 +1034,7 @@ static bool deserialize_xor_expr(struct ast_deserializer* r,
         return false;
     }
 
-    res->and_exprs = xmalloc(sizeof *res->and_exprs * len);
+    res->and_exprs = mycc_alloc(sizeof *res->and_exprs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_and_expr(r, &res->and_exprs[res->len])) {
             free_xor_expr_children(res);
@@ -1051,7 +1051,7 @@ static bool deserialize_or_expr(struct ast_deserializer* r,
         return false;
     }
 
-    res->xor_exprs = xmalloc(sizeof *res->xor_exprs * len);
+    res->xor_exprs = mycc_alloc(sizeof *res->xor_exprs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_xor_expr(r, &res->xor_exprs[res->len])) {
             free_or_expr_children(res);
@@ -1068,7 +1068,7 @@ static bool deserialize_log_and_expr(struct ast_deserializer* r,
         return false;
     }
 
-    res->or_exprs = xmalloc(sizeof *res->or_exprs * len);
+    res->or_exprs = mycc_alloc(sizeof *res->or_exprs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_or_expr(r, &res->or_exprs[res->len])) {
             free_log_and_expr_children(res);
@@ -1084,8 +1084,8 @@ static struct log_or_expr* deserialize_log_or_expr(struct ast_deserializer* r) {
         return NULL;
     }
 
-    struct log_or_expr* res = xmalloc(sizeof *res);
-    res->log_ands = xmalloc(sizeof *res->log_ands * len);
+    struct log_or_expr* res = mycc_alloc(sizeof *res);
+    res->log_ands = mycc_alloc(sizeof *res->log_ands * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_log_and_expr(r, &res->log_ands[res->len])) {
             free_log_or_expr(res);
@@ -1102,7 +1102,7 @@ static void free_cond_expr_conds(struct cond_expr* cond, size_t len) {
         free_log_or_expr(item->log_or);
         free_expr(item->expr);
     }
-    free(cond->conditionals);
+    mycc_free(cond->conditionals);
 }
 
 static bool deserialize_cond_expr_inplace(struct ast_deserializer* r,
@@ -1140,9 +1140,9 @@ static bool deserialize_cond_expr_inplace(struct ast_deserializer* r,
 }
 
 static struct cond_expr* deserialize_cond_expr(struct ast_deserializer* r) {
-    struct cond_expr* res = xmalloc(sizeof *res);
+    struct cond_expr* res = mycc_alloc(sizeof *res);
     if (!deserialize_cond_expr_inplace(r, res)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     return res;
@@ -1154,7 +1154,7 @@ static struct const_expr* deserialize_const_expr(struct ast_deserializer* r) {
         return NULL;
     }
 
-    struct const_expr* res = xmalloc(sizeof *res);
+    struct const_expr* res = mycc_alloc(sizeof *res);
     res->expr = cond;
     return res;
 }
@@ -1172,7 +1172,7 @@ static struct static_assert_declaration* deserialize_static_assert_declaration(
         return NULL;
     }
 
-    struct static_assert_declaration* res = xmalloc(sizeof *res);
+    struct static_assert_declaration* res = mycc_alloc(sizeof *res);
     *res = (struct static_assert_declaration){
         .const_expr = expr,
         .err_msg = lit,
@@ -1191,9 +1191,9 @@ static struct pointer* deserialize_pointer(struct ast_deserializer* r) {
         return NULL;
     }
 
-    struct pointer* res = xmalloc(sizeof *res);
+    struct pointer* res = mycc_alloc(sizeof *res);
     res->info = info;
-    res->quals_after_ptr = xmalloc(sizeof *res->quals_after_ptr * num_indirs);
+    res->quals_after_ptr = mycc_alloc(sizeof *res->quals_after_ptr * num_indirs);
     for (res->num_indirs = 0; res->num_indirs != num_indirs;
          ++res->num_indirs) {
         if (!deserialize_type_quals(r,
@@ -1281,10 +1281,10 @@ static struct direct_abs_declarator* deserialize_direct_abs_declarator(
         return NULL;
     }
 
-    struct direct_abs_declarator* res = xmalloc(sizeof *res);
+    struct direct_abs_declarator* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->bracket_decl = bracket_decl;
-    res->following_suffixes = xmalloc(sizeof *res->following_suffixes * len);
+    res->following_suffixes = mycc_alloc(sizeof *res->following_suffixes * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_abs_arr_or_func_suffix(
                 r,
@@ -1327,7 +1327,7 @@ static struct abs_declarator* deserialize_abs_declarator(
             return false;
         }
     }
-    struct abs_declarator* res = xmalloc(sizeof *res);
+    struct abs_declarator* res = mycc_alloc(sizeof *res);
     *res = (struct abs_declarator){
         .ptr = ptr,
         .direct_abs_decl = direct_abs_decl,
@@ -1373,8 +1373,8 @@ static struct param_list* deserialize_param_list(struct ast_deserializer* r) {
         return NULL;
     }
 
-    struct param_list* res = xmalloc(sizeof *res);
-    res->decls = xmalloc(sizeof *res->decls * len);
+    struct param_list* res = mycc_alloc(sizeof *res);
+    res->decls = mycc_alloc(sizeof *res->decls * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_param_declaration(r, &res->decls[res->len])) {
             free_param_list(res);
@@ -1399,7 +1399,7 @@ static bool deserialize_identifier_list(struct ast_deserializer* r,
     if (!deserialize_uint(r, &len)) {
         return false;
     }
-    res->identifiers = xmalloc(sizeof *res->identifiers * len);
+    res->identifiers = mycc_alloc(sizeof *res->identifiers * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_identifier_inplace(r, &res->identifiers[res->len])) {
             free_identifier_list(res);
@@ -1468,19 +1468,19 @@ static struct direct_declarator* deserialize_direct_declarator(
         return NULL;
     }
 
-    struct direct_declarator* res = xmalloc(sizeof *res);
+    struct direct_declarator* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->is_id = is_id;
     if (res->is_id) {
         res->id = deserialize_identifier(r);
         if (!res->id) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
     } else {
         res->bracket_decl = deserialize_declarator(r);
         if (!res->bracket_decl) {
-            free(res);
+            mycc_free(res);
             return NULL;
         }
     }
@@ -1492,7 +1492,7 @@ static struct direct_declarator* deserialize_direct_declarator(
         } else {
             free_declarator(res->bracket_decl);
         }
-        free(res);
+        mycc_free(res);
         return NULL;
     }
 
@@ -1527,7 +1527,7 @@ static struct declarator* deserialize_declarator(struct ast_deserializer* r) {
         }
         return NULL;
     }
-    struct declarator* res = xmalloc(sizeof *res);
+    struct declarator* res = mycc_alloc(sizeof *res);
     res->ptr = ptr;
     res->direct_decl = direct_decl;
     return res;
@@ -1661,7 +1661,7 @@ static struct struct_union_spec* deserialize_struct_union_spec(
         return NULL;
     }
 
-    struct struct_union_spec* res = xmalloc(sizeof *res);
+    struct struct_union_spec* res = mycc_alloc(sizeof *res);
     *res = (struct struct_union_spec){
         .info = info,
         .is_struct = is_struct,
@@ -1739,7 +1739,7 @@ static struct enum_spec* deserialize_enum_spec(struct ast_deserializer* r) {
         return NULL;
     }
 
-    struct enum_spec* res = xmalloc(sizeof *res);
+    struct enum_spec* res = mycc_alloc(sizeof *res);
     *res = (struct enum_spec){
         .info = info,
         .identifier = id,
@@ -1820,7 +1820,7 @@ static struct spec_qual_list* deserialize_spec_qual_list(
         return NULL;
     }
 
-    struct spec_qual_list* res = xmalloc(sizeof *res);
+    struct spec_qual_list* res = mycc_alloc(sizeof *res);
     *res = (struct spec_qual_list){
         .info = info,
         .quals = quals,
@@ -1856,9 +1856,9 @@ fail:
 }
 
 static struct type_name* deserialize_type_name(struct ast_deserializer* r) {
-    struct type_name* res = xmalloc(sizeof *res);
+    struct type_name* res = mycc_alloc(sizeof *res);
     if (!deserialize_type_name_inplace(r, res)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     return res;
@@ -1931,7 +1931,7 @@ static struct declaration_specs* deserialize_declaration_specs(
             for (size_t j = 0; j < i; ++j) {
                 free_align_spec_children(&align_specs[j]);
             }
-            free(align_specs);
+            mycc_free(align_specs);
             return NULL;
         }
     }
@@ -1941,11 +1941,11 @@ static struct declaration_specs* deserialize_declaration_specs(
         for (size_t i = 0; i < num_align_specs; ++i) {
             free_align_spec_children(&align_specs[i]);
         }
-        free(align_specs);
+        mycc_free(align_specs);
         return NULL;
     }
 
-    struct declaration_specs* res = xmalloc(sizeof *res);
+    struct declaration_specs* res = mycc_alloc(sizeof *res);
     *res = (struct declaration_specs){
         .info = info,
         .func_specs = func_specs,
@@ -1992,7 +1992,7 @@ static struct labeled_statement* deserialize_labeled_statement(
         return NULL;
     }
 
-    struct labeled_statement* res = xmalloc(sizeof *res);
+    struct labeled_statement* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->type = type;
     assert((uint64_t)res->type == type);
@@ -2025,13 +2025,13 @@ static struct labeled_statement* deserialize_labeled_statement(
             case LABELED_STATEMENT_DEFAULT:
                 break;
         }
-        free(res);
+        mycc_free(res);
         return NULL;
     }
 
     return res;
 fail:
-    free(res);
+    mycc_free(res);
     return NULL;
 }
 
@@ -2046,7 +2046,7 @@ static struct expr_statement* deserialize_expr_statement(
     if (!deserialize_expr_inplace(r, &expr)) {
         return NULL;
     }
-    struct expr_statement* res = xmalloc(sizeof *res);
+    struct expr_statement* res = mycc_alloc(sizeof *res);
     *res = (struct expr_statement){
         .info = info,
         .expr = expr,
@@ -2091,7 +2091,7 @@ static struct selection_statement* deserialize_selection_statement(
         else_stat = NULL;
     }
 
-    struct selection_statement* res = xmalloc(sizeof *res);
+    struct selection_statement* res = mycc_alloc(sizeof *res);
     *res = (struct selection_statement){
         .info = info,
         .is_if = is_if,
@@ -2159,7 +2159,7 @@ static struct iteration_statement* deserialize_iteration_statement(
         return false;
     }
 
-    struct iteration_statement* res = xmalloc(sizeof *res);
+    struct iteration_statement* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->type = type;
     assert((uint64_t)res->type == type);
@@ -2187,7 +2187,7 @@ static struct iteration_statement* deserialize_iteration_statement(
 fail_after_loop_body:
     free_statement(res->loop_body);
 fail_before_loop_body:
-    free(res);
+    mycc_free(res);
     return NULL;
 }
 
@@ -2203,7 +2203,7 @@ static struct jump_statement* deserialize_jump_statement(
         return NULL;
     }
 
-    struct jump_statement* res = xmalloc(sizeof *res);
+    struct jump_statement* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->type = type;
     assert((uint64_t)res->type == type);
@@ -2211,7 +2211,7 @@ static struct jump_statement* deserialize_jump_statement(
         case JUMP_STATEMENT_GOTO:
             res->goto_label = deserialize_identifier(r);
             if (!res->goto_label) {
-                free(res);
+                mycc_free(res);
                 return NULL;
             }
             break;
@@ -2221,13 +2221,13 @@ static struct jump_statement* deserialize_jump_statement(
         case JUMP_STATEMENT_RETURN: {
             bool has_ret_val;
             if (!deserialize_bool(r, &has_ret_val)) {
-                free(res);
+                mycc_free(res);
                 return NULL;
             }
             if (has_ret_val) {
                 res->ret_val = deserialize_expr(r);
                 if (!res->ret_val) {
-                    free(res);
+                    mycc_free(res);
                     return NULL;
                 }
             } else {
@@ -2274,9 +2274,9 @@ static bool deserialize_statement_inplace(struct ast_deserializer* r,
 }
 
 static struct statement* deserialize_statement(struct ast_deserializer* r) {
-    struct statement* res = xmalloc(sizeof *res);
+    struct statement* res = mycc_alloc(sizeof *res);
     if (!deserialize_statement_inplace(r, res)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     return res;
@@ -2307,7 +2307,7 @@ static struct compound_statement* deserialize_compound_statement(
         return NULL;
     }
 
-    struct compound_statement* res = xmalloc(sizeof *res);
+    struct compound_statement* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->items = alloc_or_null(sizeof *res->items * len);
     for (res->len = 0; res->len != len; ++res->len) {
@@ -2409,7 +2409,7 @@ static bool deserialize_declaration_inplace(struct ast_deserializer* r,
 }
 
 static struct declaration* deserialize_declaration(struct ast_deserializer* r) {
-    struct declaration* res = xmalloc(sizeof *res);
+    struct declaration* res = mycc_alloc(sizeof *res);
     if (!deserialize_declaration_inplace(r, res)) {
         return NULL;
     }
@@ -2440,13 +2440,13 @@ static struct translation_unit deserialize_translation_unit(
     }
 
     res.len = len;
-    res.external_decls = xmalloc(sizeof *res.external_decls * res.len);
+    res.external_decls = mycc_alloc(sizeof *res.external_decls * res.len);
     for (size_t i = 0; i < res.len; ++i) {
         if (!deserialize_external_declaration(r, &res.external_decls[i])) {
             for (size_t j = 0; j < i; ++j) {
                 free_external_declaration_children(&res.external_decls[j]);
             }
-            free(res.external_decls);
+            mycc_free(res.external_decls);
             return (struct translation_unit){
                 .len = 0,
                 .external_decls = NULL,

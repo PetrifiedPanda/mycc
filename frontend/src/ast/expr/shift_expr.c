@@ -1,6 +1,5 @@
 #include "frontend/ast/expr/shift_expr.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -18,7 +17,7 @@ static bool parse_shift_expr_shift_chain(struct parser_state* s,
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->shift_chain,
+            mycc_grow_alloc((void**)&res->shift_chain,
                        &alloc_len,
                        sizeof *res->shift_chain);
         }
@@ -33,7 +32,7 @@ static bool parse_shift_expr_shift_chain(struct parser_state* s,
         ++res->len;
     }
 
-    res->shift_chain = xrealloc(res->shift_chain,
+    res->shift_chain = mycc_realloc(res->shift_chain,
                                 sizeof *res->shift_chain * res->len);
 
     return true;
@@ -49,7 +48,7 @@ struct shift_expr* parse_shift_expr(struct parser_state* s) {
         return NULL;
     }
 
-    struct shift_expr* res = xmalloc(sizeof *res);
+    struct shift_expr* res = mycc_alloc(sizeof *res);
     res->lhs = lhs;
 
     if (!parse_shift_expr_shift_chain(s, res)) {
@@ -68,7 +67,7 @@ struct shift_expr* parse_shift_expr_cast(struct parser_state* s,
         return NULL;
     }
 
-    struct shift_expr* res = xmalloc(sizeof *res);
+    struct shift_expr* res = mycc_alloc(sizeof *res);
     res->lhs = lhs;
 
     if (!parse_shift_expr_shift_chain(s, res)) {
@@ -83,10 +82,10 @@ static void free_children(struct shift_expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         free_add_expr(e->shift_chain[i].rhs);
     }
-    free(e->shift_chain);
+    mycc_free(e->shift_chain);
 }
 
 void free_shift_expr(struct shift_expr* e) {
     free_children(e);
-    free(e);
+    mycc_free(e);
 }

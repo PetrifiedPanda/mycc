@@ -1,7 +1,7 @@
 #include "frontend/preproc/code_source.h"
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -67,7 +67,7 @@ static void string_read_line(const char** str,
     if (len == 0) {
         return;
     }
-    *res = xrealloc(*res, sizeof **res * (*res_len + 1));
+    *res = mycc_realloc(*res, sizeof **res * (*res_len + 1));
     memcpy(*res + prev_res_len, start, sizeof **res * len);
     (*res)[*res_len] = '\0';
 }

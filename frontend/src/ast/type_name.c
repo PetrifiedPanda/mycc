@@ -1,6 +1,5 @@
 #include "frontend/ast/type_name.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -12,7 +11,7 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
     assert(res);
 
     if (is_type_spec(s) || is_type_qual(s->it->type)) {
-        res->spec_qual_list = xmalloc(sizeof *res->spec_qual_list);
+        res->spec_qual_list = mycc_alloc(sizeof *res->spec_qual_list);
         if (!parse_spec_qual_list(s, res->spec_qual_list)) {
             return false;
         }
@@ -44,9 +43,9 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
 }
 
 struct type_name* parse_type_name(struct parser_state* s) {
-    struct type_name* res = xmalloc(sizeof *res);
+    struct type_name* res = mycc_alloc(sizeof *res);
     if (!parse_type_name_inplace(s, res)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     return res;
@@ -54,7 +53,7 @@ struct type_name* parse_type_name(struct parser_state* s) {
 
 void free_type_name_children(struct type_name* n) {
     free_spec_qual_list(n->spec_qual_list);
-    free(n->spec_qual_list);
+    mycc_free(n->spec_qual_list);
     if (n->abstract_decl) {
         free_abs_declarator(n->abstract_decl);
     }
@@ -62,6 +61,6 @@ void free_type_name_children(struct type_name* n) {
 
 void free_type_name(struct type_name* n) {
     free_type_name_children(n);
-    free(n);
+    mycc_free(n);
 }
 

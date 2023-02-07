@@ -27,20 +27,20 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
 
     if (s->it->type == IDENTIFIER) {
         res->is_abs = false;
-        res->decl = xmalloc(sizeof *res->decl);
+        res->decl = mycc_alloc(sizeof *res->decl);
         res->decl->ptr = ptr;
         res->decl->direct_decl = parse_direct_declarator(s);
         if (!res->decl->direct_decl) {
-            free(res->decl);
+            mycc_free(res->decl);
             goto fail;
         }
     } else if (s->it->type == LINDEX) {
         res->is_abs = true;
-        res->abs_decl = xmalloc(sizeof *res->abs_decl);
+        res->abs_decl = mycc_alloc(sizeof *res->abs_decl);
         res->abs_decl->ptr = ptr;
         res->abs_decl->direct_abs_decl = parse_direct_abs_declarator(s);
         if (!res->abs_decl->direct_abs_decl) {
-            free(res->abs_decl);
+            mycc_free(res->abs_decl);
             goto fail;
         }
     } else if (s->it->type == LBRACKET) {
@@ -52,9 +52,9 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
         }
         res->is_abs = bracket_decl.is_abs;
         if (bracket_decl.is_abs) {
-            res->abs_decl = xmalloc(sizeof *res->abs_decl);
+            res->abs_decl = mycc_alloc(sizeof *res->abs_decl);
             res->abs_decl->ptr = ptr;
-            res->abs_decl->direct_abs_decl = xmalloc(
+            res->abs_decl->direct_abs_decl = mycc_alloc(
                 sizeof *res->abs_decl->direct_abs_decl);
             struct direct_abs_declarator* decl = res->abs_decl->direct_abs_decl;
             decl->info = create_ast_node_info(loc);
@@ -64,18 +64,18 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
                 decl->len = 0;
                 decl->following_suffixes = NULL;
                 free_direct_abs_declarator(decl);
-                free(res->abs_decl);
+                mycc_free(res->abs_decl);
                 goto fail;
             }
 
             if (!parse_abs_arr_or_func_suffixes(s, decl)) {
-                free(res->abs_decl);
+                mycc_free(res->abs_decl);
                 goto fail;
             }
         } else {
-            res->decl = xmalloc(sizeof *res->decl);
+            res->decl = mycc_alloc(sizeof *res->decl);
             res->decl->ptr = ptr;
-            res->decl->direct_decl = xmalloc(sizeof *res->decl->direct_decl);
+            res->decl->direct_decl = mycc_alloc(sizeof *res->decl->direct_decl);
             struct direct_declarator* decl = res->decl->direct_decl;
             decl->info = create_ast_node_info(loc);
             decl->is_id = false;
@@ -85,12 +85,12 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
                 decl->len = 0;
                 decl->suffixes = NULL;
                 free_direct_declarator(decl);
-                free(res->decl);
+                mycc_free(res->decl);
                 goto fail;
             }
 
             if (!parse_arr_or_func_suffixes(s, decl)) {
-                free(res->decl);
+                mycc_free(res->decl);
                 goto fail;
             }
         }
@@ -102,7 +102,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
                            s->it->loc);
             return false;
         }
-        res->abs_decl = xmalloc(sizeof *res->abs_decl);
+        res->abs_decl = mycc_alloc(sizeof *res->abs_decl);
         res->abs_decl->ptr = ptr;
         res->abs_decl->direct_abs_decl = NULL;
     }

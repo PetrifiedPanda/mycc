@@ -1,6 +1,5 @@
 #include "frontend/ast/statement/statement.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -87,9 +86,9 @@ is_stat_expr:
 }
 
 struct statement* parse_statement(struct parser_state* s) {
-    struct statement* res = xmalloc(sizeof *res);
+    struct statement* res = mycc_alloc(sizeof *res);
     if (!parse_statement_inplace(s, res)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     return res;
@@ -120,5 +119,5 @@ void free_statement_children(struct statement* s) {
 
 void free_statement(struct statement* s) {
     free_statement_children(s);
-    free(s);
+    mycc_free(s);
 }

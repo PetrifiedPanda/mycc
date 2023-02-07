@@ -1,6 +1,5 @@
 #include "frontend/ast/expr/add_expr.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -18,7 +17,7 @@ static bool parse_add_expr_add_chain(struct parser_state* s,
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->add_chain, &alloc_len, sizeof *res->add_chain);
+            mycc_grow_alloc((void**)&res->add_chain, &alloc_len, sizeof *res->add_chain);
         }
 
         struct mul_expr_and_op* curr = &res->add_chain[res->len];
@@ -33,7 +32,7 @@ static bool parse_add_expr_add_chain(struct parser_state* s,
         ++res->len;
     }
 
-    res->add_chain = xrealloc(res->add_chain, sizeof *res->add_chain * res->len);
+    res->add_chain = mycc_realloc(res->add_chain, sizeof *res->add_chain * res->len);
 
     return true;
 }
@@ -44,7 +43,7 @@ struct add_expr* parse_add_expr(struct parser_state* s) {
         return NULL;
     }
 
-    struct add_expr* res = xmalloc(sizeof *res);
+    struct add_expr* res = mycc_alloc(sizeof *res);
     res->lhs = lhs;
 
     if (!parse_add_expr_add_chain(s, res)) {
@@ -63,7 +62,7 @@ struct add_expr* parse_add_expr_cast(struct parser_state* s,
         return NULL;
     }
 
-    struct add_expr* res = xmalloc(sizeof *res);
+    struct add_expr* res = mycc_alloc(sizeof *res);
     res->lhs = lhs;
 
     if (!parse_add_expr_add_chain(s, res)) {
@@ -78,10 +77,10 @@ static void free_children(struct add_expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         free_mul_expr(e->add_chain[i].rhs);
     }
-    free(e->add_chain);
+    mycc_free(e->add_chain);
 }
 
 void free_add_expr(struct add_expr* e) {
     free_children(e);
-    free(e);
+    mycc_free(e);
 }

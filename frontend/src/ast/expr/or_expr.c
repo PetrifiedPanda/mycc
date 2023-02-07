@@ -1,6 +1,5 @@
 #include "frontend/ast/expr/or_expr.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -15,7 +14,7 @@ static bool parse_or_expr_rest(struct parser_state* s, struct or_expr* res) {
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->xor_exprs,
+            mycc_grow_alloc((void**)&res->xor_exprs,
                        &alloc_len,
                        sizeof *res->xor_exprs);
         }
@@ -27,7 +26,7 @@ static bool parse_or_expr_rest(struct parser_state* s, struct or_expr* res) {
         ++res->len;
     }
 
-    res->xor_exprs = xrealloc(res->xor_exprs,
+    res->xor_exprs = mycc_realloc(res->xor_exprs,
                               sizeof *res->xor_exprs * res->len);
 
     return true;
@@ -40,9 +39,9 @@ fail:
 bool parse_or_expr_inplace(struct parser_state* s, struct or_expr* res) {
     assert(res);
 
-    res->xor_exprs = xmalloc(sizeof *res->xor_exprs);
+    res->xor_exprs = mycc_alloc(sizeof *res->xor_exprs);
     if (!parse_xor_expr_inplace(s, res->xor_exprs)) {
-        free(res->xor_exprs);
+        mycc_free(res->xor_exprs);
         return false;
     }
 
@@ -62,7 +61,7 @@ struct or_expr* parse_or_expr_cast(struct parser_state* s,
         return NULL;
     }
 
-    struct or_expr* res = xmalloc(sizeof *res);
+    struct or_expr* res = mycc_alloc(sizeof *res);
     res->xor_exprs = xor_exprs;
 
     if (!parse_or_expr_rest(s, res)) {
@@ -76,5 +75,5 @@ void free_or_expr_children(struct or_expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         free_xor_expr_children(&e->xor_exprs[i]);
     }
-    free(e->xor_exprs);
+    mycc_free(e->xor_exprs);
 }

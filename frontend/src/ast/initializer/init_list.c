@@ -28,10 +28,10 @@ static bool parse_designation_init(struct parser_state* s,
 bool parse_init_list(struct parser_state* s, struct init_list* res) {
     *res = (struct init_list){
         .len = 1,
-        .inits = xmalloc(sizeof *res->inits),
+        .inits = mycc_alloc(sizeof *res->inits),
     };
     if (!parse_designation_init(s, &res->inits[0])) {
-        free(res->inits);
+        mycc_free(res->inits);
         return false;
     }
 
@@ -40,7 +40,7 @@ bool parse_init_list(struct parser_state* s, struct init_list* res) {
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->inits, &alloc_len, sizeof *res->inits);
+            mycc_grow_alloc((void**)&res->inits, &alloc_len, sizeof *res->inits);
         }
 
         if (!parse_designation_init(s, &res->inits[res->len])) {
@@ -50,7 +50,7 @@ bool parse_init_list(struct parser_state* s, struct init_list* res) {
         ++res->len;
     }
 
-    res->inits = xrealloc(res->inits, sizeof *res->inits * res->len);
+    res->inits = mycc_realloc(res->inits, sizeof *res->inits * res->len);
 
     return res;
 fail:
@@ -66,5 +66,5 @@ void free_init_list_children(struct init_list* l) {
         }
         free_initializer(item->init);
     }
-    free(l->inits);
+    mycc_free(l->inits);
 }

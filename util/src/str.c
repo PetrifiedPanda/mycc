@@ -42,7 +42,7 @@ static struct str create_str_with_cap(size_t len, const char* str, size_t cap) {
         res._is_static_buf = false;
         res._len = len;
         res._cap = cap + 1;
-        res._data = xmalloc(sizeof *res._data * res._cap);
+        res._data = mycc_alloc(sizeof *res._data * res._cap);
         memcpy(res._data, str, sizeof *res._static_buf * len);
         res._data[len] = '\0';
     }
@@ -64,7 +64,7 @@ struct str create_empty_str_with_cap(size_t cap) {
         res._is_static_buf = false;
         res._len = 0;
         res._cap = cap + 1;
-        res._data = xmalloc(sizeof *res._data * res._cap);
+        res._data = mycc_alloc(sizeof *res._data * res._cap);
         res._data[0] = '\0';
     }
     return res;
@@ -121,7 +121,7 @@ void str_push_back(struct str* str, char c) {
     if (str->_is_static_buf) {
         if (str->_small_len == STATIC_BUF_LEN - 1) {
             size_t len = str->_small_len;
-            char* data = xmalloc(sizeof *data * (STATIC_BUF_LEN + 1));
+            char* data = mycc_alloc(sizeof *data * (STATIC_BUF_LEN + 1));
             memcpy(data, str->_static_buf, sizeof *data * (STATIC_BUF_LEN - 1));
             data[len] = c;
             ++len;
@@ -137,7 +137,7 @@ void str_push_back(struct str* str, char c) {
         }
     } else {
         if (str->_len == str->_cap - 1) {
-            grow_alloc((void**)&str->_data, &str->_cap, sizeof *str->_data);
+            mycc_grow_alloc((void**)&str->_data, &str->_cap, sizeof *str->_data);
         }
         str->_data[str->_len] = c;
         ++str->_len;
@@ -150,7 +150,7 @@ void str_shrink_to_fit(struct str* str) {
     assert(str_is_valid(str));
     if (!str->_is_static_buf && str->_len + 1 != str->_cap) {
         str->_cap = str->_len + 1;
-        str->_data = xrealloc(str->_data, sizeof *str->_data * str->_cap);
+        str->_data = mycc_realloc(str->_data, sizeof *str->_data * str->_cap);
     }
 }
 
@@ -198,7 +198,7 @@ struct str str_copy(const struct str* str) {
 void free_str(const struct str* str) {
     assert(str);
     if (!str->_is_static_buf) {
-        free(str->_data);
+        mycc_free(str->_data);
     }
 }
 

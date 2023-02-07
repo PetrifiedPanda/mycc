@@ -1,6 +1,5 @@
 #include "frontend/ast/expr/eq_expr.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -20,7 +19,7 @@ static bool parse_eq_expr_eq_chain(struct parser_state* s,
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->eq_chain,
+            mycc_grow_alloc((void**)&res->eq_chain,
                        &alloc_len,
                        sizeof *res->eq_chain);
         }
@@ -35,7 +34,7 @@ static bool parse_eq_expr_eq_chain(struct parser_state* s,
         ++res->len;
     }
 
-    res->eq_chain = xrealloc(res->eq_chain, sizeof *res->eq_chain * res->len);
+    res->eq_chain = mycc_realloc(res->eq_chain, sizeof *res->eq_chain * res->len);
 
     return true;
 fail:
@@ -67,7 +66,7 @@ struct eq_expr* parse_eq_expr_cast(struct parser_state* s,
         return NULL;
     }
 
-    struct eq_expr* res = xmalloc(sizeof *res);
+    struct eq_expr* res = mycc_alloc(sizeof *res);
     res->lhs = lhs;
 
     if (!parse_eq_expr_eq_chain(s, res)) {
@@ -82,5 +81,5 @@ void free_eq_expr_children(struct eq_expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         free_rel_expr(e->eq_chain[i].rhs);
     }
-    free(e->eq_chain);
+    mycc_free(e->eq_chain);
 }

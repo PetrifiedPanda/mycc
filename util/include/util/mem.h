@@ -10,7 +10,7 @@
  * @param bytes Size of allocation
  * @return void* Pointer to allocated storage
  */
-void* xmalloc(size_t bytes);
+void* mycc_alloc(size_t bytes);
 
 /**
  * @brief calls calloc(), exiting when calloc() fails
@@ -19,7 +19,7 @@ void* xmalloc(size_t bytes);
  * @param elem_size Size of one element in bytes
  * @return void* Pointer to allocated storage, or NULL if len is zero
  */
-void* xcalloc(size_t len, size_t elem_size);
+void* mycc_alloc_zeroed(size_t len, size_t elem_size);
 
 /**
  * @brief Calls realloc(), exiting when realloc() fails
@@ -29,7 +29,12 @@ void* xcalloc(size_t len, size_t elem_size);
  * @param bytes New size for the allocation
  * @return void* Resized allocation
  */
-void* xrealloc(void* alloc, size_t bytes);
+void* mycc_realloc(void* alloc, size_t bytes);
+
+/**
+ * @brief Wrapper for free()
+ */
+void mycc_free(void* alloc);
 
 /**
  * @brief Grows an existing allocation, writing the new allocation and its size
@@ -41,6 +46,6 @@ void* xrealloc(void* alloc, size_t bytes);
  * number of elements will be written
  * @param elem_size Size of one element in bytes
  */
-void grow_alloc(void** alloc, size_t* alloc_len, size_t elem_size);
+void mycc_grow_alloc(void** alloc, size_t* alloc_len, size_t elem_size);
 
 #endif

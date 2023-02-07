@@ -1,6 +1,5 @@
 #include "frontend/ast/expr/generic_sel.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -13,7 +12,7 @@ static struct generic_sel* create_generic_sel(
     struct source_loc loc) {
     assert(assign);
     assert(assocs.len != 0);
-    struct generic_sel* res = xmalloc(sizeof *res);
+    struct generic_sel* res = mycc_alloc(sizeof *res);
     
     res->info = create_ast_node_info(loc);
     res->assign = assign;
@@ -63,5 +62,5 @@ static void free_children(struct generic_sel* s) {
 
 void free_generic_sel(struct generic_sel* s) {
     free_children(s);
-    free(s);
+    mycc_free(s);
 }

@@ -1,7 +1,6 @@
 #include "frontend/ast/expr/assign_expr.h"
 
 #include <assert.h>
-#include <stdlib.h>
 
 #include "util/mem.h"
 #include "util/macro_util.h"
@@ -116,7 +115,7 @@ bool parse_assign_expr_inplace(struct parser_state* s,
         } else if (opt.is_cond) {
             res->value = opt.cond;
             ++res->len;
-            res->assign_chain = xrealloc(res->assign_chain, sizeof *res->assign_chain * res->len);
+            res->assign_chain = mycc_realloc(res->assign_chain, sizeof *res->assign_chain * res->len);
             res->assign_chain[res->len - 1] = (struct unary_and_op){
                 .op = token_type_to_assign_op(op),
                 .unary = last_unary,
@@ -127,7 +126,7 @@ bool parse_assign_expr_inplace(struct parser_state* s,
         struct unary_expr* new_last = opt.unary;
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->assign_chain, &alloc_len, sizeof *res->assign_chain);
+            mycc_grow_alloc((void**)&res->assign_chain, &alloc_len, sizeof *res->assign_chain);
         }
 
         res->assign_chain[res->len] = (struct unary_and_op){
@@ -139,7 +138,7 @@ bool parse_assign_expr_inplace(struct parser_state* s,
         ++res->len;
     }
 
-    res->assign_chain = xrealloc(res->assign_chain, sizeof *res->assign_chain * res->len);
+    res->assign_chain = mycc_realloc(res->assign_chain, sizeof *res->assign_chain * res->len);
 
     res->value = parse_cond_expr_cast(s, create_cast_expr_unary(last_unary));
     if (!res->value) {
@@ -151,15 +150,15 @@ fail:
     for (size_t i = 0; i < res->len; ++i) {
         free_unary_expr(res->assign_chain[i].unary);
     }
-    free(res->assign_chain);
+    mycc_free(res->assign_chain);
 
     return false;
 }
 
 struct assign_expr* parse_assign_expr(struct parser_state* s) {
-    struct assign_expr* res = xmalloc(sizeof *res);
+    struct assign_expr* res = mycc_alloc(sizeof *res);
     if (!parse_assign_expr_inplace(s, res)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     return res;
@@ -169,12 +168,12 @@ void free_assign_expr_children(struct assign_expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         free_unary_expr(e->assign_chain[i].unary);
     }
-    free(e->assign_chain);
+    mycc_free(e->assign_chain);
 
     free_cond_expr(e->value);
 }
 
 void free_assign_expr(struct assign_expr* e) {
     free_assign_expr_children(e);
-    free(e);
+    mycc_free(e);
 }

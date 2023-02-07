@@ -1,24 +1,22 @@
 #include "frontend/ast/initializer/designator_list.h"
 
-#include <stdlib.h>
-
 #include "util/mem.h"
 
 bool parse_designator_list(struct parser_state* s, struct designator_list* res) {
     *res = (struct designator_list){
         .len = 1,
-        .designators = xmalloc(sizeof *res->designators),
+        .designators = mycc_alloc(sizeof *res->designators),
     };
 
     if (!parse_designator_inplace(s, &res->designators[0])) {
-        free(res->designators);
+        mycc_free(res->designators);
         return false;
     }
 
     size_t alloc_len = res->len;
     while (s->it->type == LINDEX || s->it->type == DOT) {
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->designators,
+            mycc_grow_alloc((void**)&res->designators,
                        &alloc_len,
                        sizeof *res->designators);
         }
@@ -29,7 +27,7 @@ bool parse_designator_list(struct parser_state* s, struct designator_list* res) 
 
         ++res->len;
     }
-    res->designators = xrealloc(res->designators,
+    res->designators = mycc_realloc(res->designators,
                                res->len * sizeof *res->designators);
 
     return res;
@@ -43,5 +41,5 @@ void free_designator_list(struct designator_list* l) {
     for (size_t i = 0; i < l->len; ++i) {
         free_designator_children(&l->designators[i]);
     }
-    free(l->designators);
+    mycc_free(l->designators);
 }

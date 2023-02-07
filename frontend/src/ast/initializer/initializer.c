@@ -1,6 +1,5 @@
 #include "frontend/ast/initializer/initializer.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -11,7 +10,7 @@ static struct initializer* create_initializer_assign(
     struct source_loc loc,    
     struct assign_expr* assign) {
     assert(assign);
-    struct initializer* res = xmalloc(sizeof *res);
+    struct initializer* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->is_assign = true;
     res->assign = assign;
@@ -22,7 +21,7 @@ static struct initializer* create_initializer_assign(
 static struct initializer* create_initializer_init_list(
     struct source_loc loc,
     struct init_list init_list) {
-    struct initializer* res = xmalloc(sizeof *res);
+    struct initializer* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->is_assign = false;
     res->init_list = init_list;
@@ -66,5 +65,5 @@ void free_initializer_children(struct initializer* i) {
 
 void free_initializer(struct initializer* i) {
     free_initializer_children(i);
-    free(i);
+    mycc_free(i);
 }

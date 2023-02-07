@@ -1,9 +1,9 @@
 #include "backend/ssa_basic_block.h"
 
-#include <stdlib.h>
+#include "util/mem.h"
 
 void free_phi_inst(struct phi_inst* i) {
-    free(i->options); 
+    mycc_free(i->options); 
 }
 
 void free_ssa_basic_block(struct ssa_basic_block* bb) {

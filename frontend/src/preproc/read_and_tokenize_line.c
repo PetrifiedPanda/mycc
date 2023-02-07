@@ -1,10 +1,10 @@
 #include "frontend/preproc/read_and_tokenize_line.h"
 
-#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
 #include "util/macro_util.h"
+#include "util/mem.h"
 
 #include "frontend/preproc/tokenizer.h"
 
@@ -54,7 +54,7 @@ bool read_and_tokenize_line(struct preproc_state* state,
                                            state->file_info.len - 1,
                                            &src->comment_not_terminated);
             if (line != static_buf) {
-                free(line);
+                mycc_free(line);
             }
             if (!res) {
                 return false;
@@ -73,7 +73,7 @@ bool read_and_tokenize_line(struct preproc_state* state,
                                            state->file_info.len - 1,
                                            &src->comment_not_terminated);
             if (line != static_buf) {
-                free(line);
+                mycc_free(line);
             }
             if (!res) {
                 return false;
@@ -139,7 +139,7 @@ static bool skip_until_next_cond(struct preproc_state* state,
                                            &src->comment_not_terminated);
 
             if (line != static_buf) {
-                free(line);
+                mycc_free(line);
             }
 
             if (!res) {
@@ -152,7 +152,7 @@ static bool skip_until_next_cond(struct preproc_state* state,
         }
 
         if (line != static_buf) {
-            free(line);
+            mycc_free(line);
         }
     }
 

@@ -1,16 +1,14 @@
 #include "frontend/ast/declaration/enum_list.h"
 
-#include <stdlib.h>
-
 #include "util/mem.h"
 
 #include "frontend/parser/parser_util.h"
 
 bool parse_enum_list(struct parser_state* s, struct enum_list* res) {
     res->len = 1;
-    res->enums = xmalloc(sizeof *res->enums);
+    res->enums = mycc_alloc(sizeof *res->enums);
     if (!parse_enumerator_inplace(s, &res->enums[0])) {
-        free(res->enums);
+        mycc_free(res->enums);
         return false;
     }
 
@@ -19,7 +17,7 @@ bool parse_enum_list(struct parser_state* s, struct enum_list* res) {
         accept_it(s);
 
         if (res->len == alloc_len) {
-            grow_alloc((void**)&res->enums, &alloc_len, sizeof *res->enums);
+            mycc_grow_alloc((void**)&res->enums, &alloc_len, sizeof *res->enums);
         }
 
         if (!parse_enumerator_inplace(s, &res->enums[res->len])) {
@@ -29,7 +27,7 @@ bool parse_enum_list(struct parser_state* s, struct enum_list* res) {
         ++res->len;
     }
 
-    res->enums = xrealloc(res->enums, res->len * sizeof *res->enums);
+    res->enums = mycc_realloc(res->enums, res->len * sizeof *res->enums);
 
     return res;
 fail:
@@ -41,5 +39,5 @@ void free_enum_list(struct enum_list* l) {
     for (size_t i = 0; i < l->len; ++i) {
         free_enumerator_children(&l->enums[i]);
     }
-    free(l->enums);
+    mycc_free(l->enums);
 }

@@ -1,13 +1,11 @@
 #include "frontend/ast/expr/const_expr.h"
 
-#include <stdlib.h>
-
 #include "util/mem.h"
 
 struct const_expr* parse_const_expr(struct parser_state* s) {
-    struct const_expr* res = xmalloc(sizeof *res);
+    struct const_expr* res = mycc_alloc(sizeof *res);
     if (!parse_cond_expr_inplace(s, &res->expr)) {
-        free(res);
+        mycc_free(res);
         return NULL;
     }
     return res;
@@ -19,6 +17,6 @@ static void free_children(struct const_expr* e) {
 
 void free_const_expr(struct const_expr* e) {
     free_children(e);
-    free(e);
+    mycc_free(e);
 }
 

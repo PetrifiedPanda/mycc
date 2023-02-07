@@ -24,7 +24,7 @@ struct atomic_type_spec* parse_atomic_type_spec(struct parser_state* s) {
         return NULL;
     }
 
-    struct atomic_type_spec* res = xmalloc(sizeof *res);
+    struct atomic_type_spec* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     res->type_name = type_name;
     return res;
@@ -32,6 +32,6 @@ struct atomic_type_spec* parse_atomic_type_spec(struct parser_state* s) {
 
 void free_atomic_type_spec(struct atomic_type_spec* s) {
     free_type_name(s->type_name);
-    free(s);
+    mycc_free(s);
 }
 
