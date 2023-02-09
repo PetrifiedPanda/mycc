@@ -166,7 +166,6 @@ static void memdebug_cleanup(void) {
                     curr->alloced_loc.line);
         }
     }
-    // TODO: FIX STATS
     fprintf(stderr,
             "Of %zu allocations, %zu were freed\n",
             g_alloc_stats.num_allocs,
