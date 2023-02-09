@@ -1,8 +1,9 @@
 #include "test_helpers.h"
 
-#include "testing/asserts.h"
-
 #include "util/file.h"
+#include "util/mem.h"
+
+#include "testing/asserts.h"
 
 #include "frontend/preproc/preproc.h"
 
@@ -74,11 +75,11 @@ void test_compare_files(const char* got_file, const char* ex_file) {
         }
 
         if (got_line != got_buf) {
-            free(got_line);
+            mycc_free(got_line);
         }
 
         if (ex_line != ex_buf) {
-            free(ex_line);
+            mycc_free(ex_line);
         }
 
         ++line_counter;
@@ -102,11 +103,11 @@ void test_compare_files(const char* got_file, const char* ex_file) {
     }
 
     if (got_line != got_buf) {
-        free(got_line);
+        mycc_free(got_line);
     }
 
     if (ex_line != ex_buf) {
-        free(ex_line);
+        mycc_free(ex_line);
     }
 
     fclose(got);

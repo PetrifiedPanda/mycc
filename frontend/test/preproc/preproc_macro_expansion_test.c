@@ -1,6 +1,8 @@
 #include "frontend/preproc/preproc.h"
 #include "frontend/preproc/preproc_macro.h"
 
+#include "util/mem.h"
+
 #include "testing/asserts.h"
 
 #include "../test_helpers.h"
@@ -59,7 +61,7 @@ static void test_preproc_macro(const struct preproc_macro* macro,
                    str_get_data(&expected.toks[i].spelling));
         free_str(&state.res.tokens[i].spelling);
     }
-    free(state.res.tokens);
+    mycc_free(state.res.tokens);
     free_file_info(&res.file_info);
     free_preproc_res_preproc_tokens(&expected);
     state.res = (struct token_arr){

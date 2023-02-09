@@ -11,8 +11,7 @@ project(${This} LANGUAGES C)
 include(CTest)
 
 option(MYCC_ENABLE_TESTS "" ON)
-
-set(MYCC_TEST ${MYCC_ENABLE_TESTS} STREQUAL "ON")
+option(MYCC_MEMDEBUG "Enable memory debugger" OFF)
 
 if (WIN32)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
@@ -31,7 +30,11 @@ set(Util mycc-util)
 set(Frontend mycc-frontend)
 set(Backend mycc-backend)
 
-if (${MYCC_TEST})
+if (${MYCC_MEMDEBUG})
+    add_compile_definitions(MYCC_MEMDEBUG)
+endif()
+
+if (${MYCC_ENABLE_TESTS})
     add_compile_definitions(MYCC_TEST_FUNCTIONALITY)
     add_subdirectory(testing)
 endif()

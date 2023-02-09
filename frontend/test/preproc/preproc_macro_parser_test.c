@@ -1,5 +1,7 @@
 #include "frontend/preproc/preproc_macro.h"
 
+#include "util/mem.h"
+
 #include "testing/asserts.h"
 
 #include "../test_helpers.h"
@@ -68,7 +70,7 @@ TEST(object_like) {
         };
 
         compare_preproc_macros(&got, &ex);
-        free(got.expansion);
+        mycc_free(got.expansion);
     }
     {
         const char* spell = "ANOTHER_MACRO";
@@ -125,7 +127,7 @@ TEST(object_like) {
         };
 
         compare_preproc_macros(&got, &ex);
-        free(got.expansion);
+        mycc_free(got.expansion);
     }
 }
 
@@ -197,7 +199,7 @@ TEST(func_like) {
         ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
-        free(got.expansion);
+        mycc_free(got.expansion);
     }
     {
         const char* spell = "NO_PARAMS";
@@ -249,7 +251,7 @@ TEST(func_like) {
         ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
-        free(got.expansion);
+        mycc_free(got.expansion);
     }
     {
         const char* spell = "NO_PARAMS_EMPTY";
@@ -289,7 +291,7 @@ TEST(func_like) {
         ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
-        free(got.expansion);
+        mycc_free(got.expansion);
     }
 }
 
@@ -363,7 +365,7 @@ TEST(variadic) {
         ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
-        free(got.expansion);
+        mycc_free(got.expansion);
     }
     {
         const char* spell = "FUNC_LIKE";
@@ -441,7 +443,7 @@ TEST(variadic) {
         ASSERT(err.type == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
-        free(got.expansion);
+        mycc_free(got.expansion);
     }
 }
 

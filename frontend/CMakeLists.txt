@@ -13,7 +13,7 @@ add_library(${This} OBJECT ${Sources})
 target_link_libraries(${This} PUBLIC ${Util})
 target_include_directories(${This} PUBLIC ./include)
 
-if (${MYCC_TEST})
+if (${MYCC_ENABLE_TESTS})
     set(Test mycc-frontend-test)
 
     file(GLOB TestSources test/*.c

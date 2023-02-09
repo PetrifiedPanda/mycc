@@ -1,6 +1,7 @@
 #include "util/file.h"
 
 #include <string.h>
+#include <stdbool.h>
 #include <assert.h>
 
 #include "util/mem.h"
