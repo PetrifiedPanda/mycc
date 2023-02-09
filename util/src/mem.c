@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <assert.h>
-#include <math.h>
 
 #ifdef MYCC_MEMDEBUG
 #undef mycc_alloc
@@ -112,15 +111,13 @@ static size_t find_alloc_idx(void* alloc) {
         return 0;
     }
     size_t left = 0;
-    size_t right = g_alloc_stats.len == 0 ? 0 : g_alloc_stats.len - 1;
-    while (left <= right) {
-        const size_t middle = floor((left + right) / 2.0);
+    size_t right = g_alloc_stats.len;
+    while (left < right) {
+        const size_t middle = (left + right) / 2;
         if (g_alloc_stats.data[middle].alloc < alloc) {
-            left = middle + 1;
-        } else if (g_alloc_stats.data[middle].alloc > alloc) {
-            right = middle - 1;
+            left = middle + 1; 
         } else {
-            return middle;
+            right = middle;
         }
     }
     return left;
