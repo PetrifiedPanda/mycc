@@ -97,9 +97,11 @@ static void expanded_macro_stack_free(struct expanded_macro_stack* stack) {
     mycc_free(stack->data);
 }
 
-static size_t expand_obj_macro(struct token_arr* res,
+static size_t expand_obj_macro(struct preproc_state* state,
+                               struct token_arr* res,
                                const struct preproc_macro* macro,
                                size_t macro_idx,
+                               struct code_source* src,
                                struct expanded_macro_stack* expanded);
 
 static size_t expand_func_macro(struct preproc_state* state,
@@ -145,24 +147,27 @@ static size_t find_and_expand_macro(struct preproc_state* state,
             return i;
         }
     } else {
-        return expand_obj_macro(res, macro, i, expanded);
+        return expand_obj_macro(state, res, macro, i, src, expanded);
     }
 }
 
-static bool expand_all_macros_internal(struct preproc_state* state,
-                                       struct token_arr* res,
-                                       size_t start,
-                                       struct code_source* src,
-                                       struct expanded_macro_stack* expanded) {
-    for (size_t i = start; i < res->len; ++i) {
+static size_t expand_all_macros_in_range(
+    struct preproc_state* state,
+    struct token_arr* res,
+    size_t start,
+    size_t end,
+    struct code_source* src,
+    struct expanded_macro_stack* expanded) {
+    for (size_t i = start; i < end; ++i) {
         const size_t next = find_and_expand_macro(state, res, i, src, expanded);
         if (next == (size_t)-1) {
-            return false;
+            return (size_t)-1;
         }
+        end += i - next;
         i = next;
     }
 
-    return true;
+    return end == 0 ? 0 : end - 1;
 }
 
 bool expand_all_macros(struct preproc_state* state,
@@ -171,13 +176,14 @@ bool expand_all_macros(struct preproc_state* state,
                        struct code_source* src) {
 
     struct expanded_macro_stack expanded = expanded_macro_stack_create();
-    const bool success = expand_all_macros_internal(state,
-                                                    res,
-                                                    start,
-                                                    src,
-                                                    &expanded);
+    const size_t success = expand_all_macros_in_range(state,
+                                                      res,
+                                                      start,
+                                                      res->len,
+                                                      src,
+                                                      &expanded);
     expanded_macro_stack_free(&expanded);
-    return success;
+    return success != (size_t)-1;
 }
 
 static size_t get_str_idx(const char** strs, size_t len, const char* to_find) {
@@ -328,9 +334,9 @@ static struct preproc_macro parse_object_like_macro(struct token_arr* arr,
         .num_args = 0,
         .is_variadic = false,
         .expansion_len = arr->len - 3,
-        .expansion = res.expansion_len == 0
-                         ? NULL
-                         : mycc_alloc(sizeof *res.expansion * res.expansion_len),
+        .expansion = res.expansion_len == 0 ? NULL
+                                            : mycc_alloc(sizeof *res.expansion
+                                                         * res.expansion_len),
     };
 
     for (size_t i = 3; i < arr->len; ++i) {
@@ -578,13 +584,15 @@ static size_t expand_func_macro(struct preproc_state* state,
     }
 
     for (size_t i = 0; i < args.len; ++i) {
-        if (!expand_all_macros_internal(state,
-                                        &args.arrs[i],
-                                        0,
-                                        src,
-                                        expanded)) {
+        if (expand_all_macros_in_range(state,
+                                       &args.arrs[i],
+                                       0,
+                                       args.arrs[i].len,
+                                       src,
+                                       expanded)
+            == (size_t)-1) {
             free_macro_args(&args);
-            return false;
+            return (size_t)-1;
         }
     }
 
@@ -632,17 +640,25 @@ static size_t expand_func_macro(struct preproc_state* state,
         }
     }
 
+    const size_t last_after_macro = token_idx == 0 ? 0 : token_idx - 1;
     expanded_macro_stack_push(expanded, macro);
-    // TODO: expand macros
+    const size_t end_idx = expand_all_macros_in_range(state,
+                                                      res,
+                                                      macro_idx,
+                                                      last_after_macro,
+                                                      src,
+                                                      expanded);
     expanded_macro_stack_pop(expanded);
 
     free_macro_args(&args);
-    return token_idx == 0 ? 0 : token_idx - 1;
+    return end_idx;
 }
 
-static size_t expand_obj_macro(struct token_arr* res,
+static size_t expand_obj_macro(struct preproc_state* state,
+                               struct token_arr* res,
                                const struct preproc_macro* macro,
                                size_t macro_idx,
+                               struct code_source* src,
                                struct expanded_macro_stack* expanded) {
     assert(macro->is_func_macro == false);
     assert(macro->num_args == 0);
@@ -672,15 +688,14 @@ static size_t expand_obj_macro(struct token_arr* res,
     }
 
     expanded_macro_stack_push(expanded, macro);
-    // TODO: expand macros on expansion
+    const size_t end_idx = expand_all_macros_in_range(state,
+                                                      res,
+                                                      macro_idx,
+                                                      macro_idx + exp_len,
+                                                      src,
+                                                      expanded);
     expanded_macro_stack_pop(expanded);
-
-    size_t one_past_last_token = macro_idx + exp_len;
-    if (one_past_last_token == 0) {
-        return 0;
-    } else {
-        return one_past_last_token - 1;
-    }
+    return end_idx;
 }
 
 static struct token copy_token(const struct token* t) {
