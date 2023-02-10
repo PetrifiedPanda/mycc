@@ -123,6 +123,44 @@ TEST(object_like_empty) {
                        "while (true) x *= 2 * 2;\n;");
 }
 
+TEST(recursive) {
+    struct token_or_arg rec_obj_ex[] = {
+        {.is_arg = false, .token = {IDENTIFIER, .spelling = STR_NON_HEAP("REC_MACRO"), {0, {1, 1}}}}, 
+    };
+    const struct preproc_macro rec_obj = {
+        .spell = "REC_MACRO",
+        .is_func_macro = false,
+        .num_args = 0,
+        .is_variadic = false,
+
+        .expansion_len = ARR_LEN(rec_obj_ex),
+        .expansion = rec_obj_ex,
+    };
+
+    test_preproc_macro(&rec_obj, "int x = REC_MACRO - 10;", "int x = REC_MACRO - 10;");
+    test_preproc_macro(&rec_obj, "REC_MACRO = REC_MACRO - 10;", "REC_MACRO = REC_MACRO - 10;");
+    test_preproc_macro(&rec_obj, "x = REC_MACRO - 10;REC_MACRO", "x = REC_MACRO - 10;REC_MACRO");
+
+    struct token_or_arg rec_func_ex[] = {
+        {.is_arg = false, .token = {IDENTIFIER, .spelling = STR_NON_HEAP("REC_FUNC_MACRO"), {0, {1, 1}}}},
+        {.is_arg = false, .token = {LBRACKET, .spelling = create_null_str(), {0, {1, 1}}}},
+        {.is_arg = false, .token = {RBRACKET, .spelling = create_null_str(), {0, {1, 1}}}},
+    };
+
+    const struct preproc_macro rec_func = {
+        .spell = "REC_FUNC_MACRO",
+        .is_func_macro = true,
+        .num_args = 0,
+        .is_variadic = false,
+
+        .expansion_len = ARR_LEN(rec_func_ex),
+        .expansion = rec_func_ex,
+    };
+    test_preproc_macro(&rec_func, "int x = REC_FUNC_MACRO() - 10;", "int x = REC_FUNC_MACRO() - 10;");
+    test_preproc_macro(&rec_func, "REC_FUNC_MACRO() = REC_FUNC_MACRO() - 10;", "REC_FUNC_MACRO() = REC_FUNC_MACRO() - 10;");
+    test_preproc_macro(&rec_func, "x = REC_FUNC_MACRO() - 10;REC_FUNC_MACRO()", "x = REC_FUNC_MACRO() - 10;REC_FUNC_MACRO()");
+}
+
 TEST(func_like) {
     // #define FUNC_LIKE_MACRO(x, y) x + y * 3 - y
     struct token_or_arg ex1[] = {
@@ -267,9 +305,10 @@ TEST(func_like_variadic) {
     test_preproc_macro(&macro2, "m = ONLY_VARARGS(3, 4);", "m = 1, 2, 3, 4;");
 }
 
-TEST_SUITE_BEGIN(preproc_macro_expansion, 4) {
+TEST_SUITE_BEGIN(preproc_macro_expansion, 5) {
     REGISTER_TEST(object_like);
     REGISTER_TEST(object_like_empty);
+    REGISTER_TEST(recursive);
     REGISTER_TEST(func_like);
     REGISTER_TEST(func_like_variadic);
 }
