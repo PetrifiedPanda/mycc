@@ -86,8 +86,6 @@ struct alloc_entry {
     struct alloc_loc freed_loc;
 };
 
-static bool g_cleanup_func_set = false;
-
 struct alloc_stats {
     struct alloc_entry* data;
     size_t len;
@@ -97,6 +95,9 @@ struct alloc_stats {
     size_t bytes_alloced;
     size_t bytes_freed;
 };
+
+
+static bool g_cleanup_func_set = false;
 static struct alloc_stats g_alloc_stats = {
     .data = NULL,
     .len = 0,
