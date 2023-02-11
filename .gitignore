@@ -4,6 +4,7 @@
 .ccls-cache/
 .cache/
 .clangd/
+.vs/
 compile_commands.json
 
 # build folders
