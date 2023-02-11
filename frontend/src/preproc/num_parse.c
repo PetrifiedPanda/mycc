@@ -11,7 +11,7 @@
 struct parse_float_const_res parse_float_const(const char* spell) {
     const char* end = spell; // so end is set
     assert(errno == 0);
-    long double val = strtold(spell, (char**)&end);
+    double val = strtod(spell, (char**)&end);
     if (errno != 0) {
         assert(errno == ERANGE);
         errno = 0;
@@ -45,7 +45,7 @@ struct parse_float_const_res parse_float_const(const char* spell) {
 
     return (struct parse_float_const_res){
         .err.type = FLOAT_CONST_ERR_NONE,
-        .res = create_float_value(t, (double)val),
+        .res = create_float_value(t, val),
     };
 }
 
