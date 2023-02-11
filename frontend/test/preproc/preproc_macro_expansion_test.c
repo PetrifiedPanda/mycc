@@ -213,9 +213,13 @@ TEST(func_like) {
                        "int n = FUNC_LIKE_MACRO(2 * 2, x - 5 + 2) + 1;",
                        "int n = 2 * 2 + x - 5 + 2 * 3 - x - 5 + 2 + 1;");
     test_preproc_macro(&macro1,
+                       "int\n n = FUNC_LIKE_MACRO(\n2 * 2,\n x - 5 + 2) + 1;",
+                       "int\n n = 2 * 2 + x - 5 + 2 * 3 - x - 5 + 2 + 1;");
+    test_preproc_macro(&macro1,
                        "char c = FUNC_LIKE_MACRO(, 10);",
                        "char c = + 10 * 3 - 10;");
     test_preproc_macro(&macro1, "f = FUNC_LIKE_MACRO(f,);", "f = f + * 3 -;");
+    test_preproc_macro(&macro1, "f = FUNC_LIKE_MACRO(f,\n);", "f = f + * 3 -;");
 
     // #define OTHER_FUNC_LIKE(x, y, z, a, b, c) x
     struct token_or_arg ex2[] = {
@@ -234,6 +238,9 @@ TEST(func_like) {
 
     test_preproc_macro(&macro2,
                        "OTHER_FUNC_LIKE(var, 1, 2, 3, 4, 5) = 69;",
+                       "var = 69;");
+    test_preproc_macro(&macro2,
+                       "OTHER_FUNC_LIKE(var,\n 1, 2,\n 3, 4\n, 5) = 69;",
                        "var = 69;");
     test_preproc_macro(&macro2,
                        "int n = OTHER_FUNC_LIKE(OTHER_FUNC_LIKE(1, a, b, c, d, "
@@ -263,6 +270,9 @@ TEST(func_like) {
     test_preproc_macro(&macro3,
                        "const float stuff = YET_ANOTHER_FUNC_LIKE();",
                        "const float stuff = 1 + 1;");
+    test_preproc_macro(&macro3,
+                       "const float stuff = YET_ANOTHER_FUNC_LIKE\n(\n);",
+                       "const float stuff = 1 + 1;");
 
     // #define TEST_MACRON()
     const struct preproc_macro macro4 = {
@@ -276,6 +286,7 @@ TEST(func_like) {
     };
 
     test_preproc_macro(&macro4, "TEST_MACRON() + 10", "+ 10");
+    test_preproc_macro(&macro4, "TEST_MACRON\n(\n)\n + 10", "+ 10");
 }
 
 TEST(func_like_variadic) {
