@@ -97,14 +97,19 @@ static void expanded_macro_stack_free(struct expanded_macro_stack* stack) {
     mycc_free(stack->data);
 }
 
-static size_t expand_obj_macro(struct preproc_state* state,
+struct expansion_info {
+    ptrdiff_t alloc_change;
+    size_t next;
+};
+
+static struct expansion_info expand_obj_macro(struct preproc_state* state,
                                struct token_arr* res,
                                const struct preproc_macro* macro,
                                size_t macro_idx,
                                struct code_source* src,
                                struct expanded_macro_stack* expanded);
 
-static size_t expand_func_macro(struct preproc_state* state,
+static struct expansion_info expand_func_macro(struct preproc_state* state,
                                 struct token_arr* res,
                                 const struct preproc_macro* macro,
                                 size_t macro_idx,
@@ -112,19 +117,19 @@ static size_t expand_func_macro(struct preproc_state* state,
                                 struct code_source* src,
                                 struct expanded_macro_stack* expanded);
 
-static size_t find_and_expand_macro(struct preproc_state* state,
+static struct expansion_info find_and_expand_macro(struct preproc_state* state,
                                     struct token_arr* res,
                                     size_t i,
                                     struct code_source* src,
                                     struct expanded_macro_stack* expanded) {
     const struct token* curr = &res->tokens[i];
     if (curr->type != IDENTIFIER) {
-        return i;
+        return (struct expansion_info){0, i + 1};
     }
     const struct preproc_macro* macro = find_preproc_macro(state,
                                                            &curr->spelling);
     if (macro == NULL || expanded_macro_stack_contains(expanded, macro)) {
-        return i;
+        return (struct expansion_info){0, i + 1};
     }
     size_t macro_end;
     if (macro->is_func_macro) {
@@ -132,42 +137,41 @@ static size_t find_and_expand_macro(struct preproc_state* state,
         if (next_idx < res->len && res->tokens[next_idx].type == LBRACKET) {
             macro_end = find_macro_end(state, res, i, src);
             if (state->err->type != PREPROC_ERR_NONE) {
-                return (size_t)-1;
+                return (struct expansion_info){0, (size_t)-1};
             }
             assert(macro_end != (size_t)-1);
-            return expand_func_macro(state,
-                                     res,
-                                     macro,
-                                     i,
-                                     macro_end,
-                                     src,
-                                     expanded);
+            return expand_func_macro(state, res, macro, i, macro_end, src, expanded);
         } else {
             // not considered func_macro without brackets
-            return i;
+            return (struct expansion_info){0, i + 1};
         }
     } else {
         return expand_obj_macro(state, res, macro, i, src, expanded);
     }
 }
 
-static size_t expand_all_macros_in_range(
+static struct expansion_info expand_all_macros_in_range(
     struct preproc_state* state,
     struct token_arr* res,
     size_t start,
     size_t end,
     struct code_source* src,
     struct expanded_macro_stack* expanded) {
-    for (size_t i = start; i < end; ++i) {
-        const size_t next = find_and_expand_macro(state, res, i, src, expanded);
-        if (next == (size_t)-1) {
-            return (size_t)-1;
+    assert(end <= res->len);
+    ptrdiff_t alloc_change = 0;
+    size_t i = start;
+    while (i < end) {
+        const struct expansion_info ex_info = find_and_expand_macro(state, res, i, src, expanded);
+        if (ex_info.next == (size_t)-1) {
+            return (struct expansion_info){0, (size_t)-1};
         }
-        end += i - next;
-        i = next;
+        end += ex_info.alloc_change;
+        alloc_change += ex_info.alloc_change;
+        assert(end <= res->len);
+        i = ex_info.next;
     }
 
-    return end == 0 ? 0 : end - 1;
+    return (struct expansion_info){alloc_change, end};
 }
 
 bool expand_all_macros(struct preproc_state* state,
@@ -176,14 +180,14 @@ bool expand_all_macros(struct preproc_state* state,
                        struct code_source* src) {
 
     struct expanded_macro_stack expanded = expanded_macro_stack_create();
-    const size_t success = expand_all_macros_in_range(state,
+    const struct expansion_info success = expand_all_macros_in_range(state,
                                                       res,
                                                       start,
                                                       res->len,
                                                       src,
                                                       &expanded);
     expanded_macro_stack_free(&expanded);
-    return success != (size_t)-1;
+    return success.next != (size_t)-1;
 }
 
 static size_t get_str_idx(const char** strs, size_t len, const char* to_find) {
@@ -416,8 +420,7 @@ static struct token_arr collect_macro_arg(struct token* it,
                                           const struct token* limit_ptr) {
     size_t num_open_brackets = 0;
     struct token* arg_start = it;
-    while (it != limit_ptr && it->type != COMMA
-           && (it->type != RBRACKET || num_open_brackets != 0)) {
+    while (it != limit_ptr && (it->type != COMMA || num_open_brackets != 0)) {
         if (it->type == LBRACKET) {
             ++num_open_brackets;
         } else if (it->type == RBRACKET) {
@@ -563,7 +566,7 @@ static void copy_into_tokens(struct token* tokens,
 }
 
 // TODO: stringification and concatenation
-static size_t expand_func_macro(struct preproc_state* state,
+static struct expansion_info expand_func_macro(struct preproc_state* state,
                                 struct token_arr* res,
                                 const struct preproc_macro* macro,
                                 size_t macro_idx,
@@ -580,19 +583,20 @@ static size_t expand_func_macro(struct preproc_state* state,
                                                 state->err);
     if (args.len == 0 && macro->num_args != 0) {
         assert(state->err->type != PREPROC_ERR_NONE);
-        return (size_t)-1;
+        return (struct expansion_info){0, (size_t)-1};
     }
 
     for (size_t i = 0; i < args.len; ++i) {
-        if (expand_all_macros_in_range(state,
-                                       &args.arrs[i],
-                                       0,
-                                       args.arrs[i].len,
-                                       src,
-                                       expanded)
-            == (size_t)-1) {
+        const struct expansion_info success = expand_all_macros_in_range(
+            state,
+            &args.arrs[i],
+            0,
+            args.arrs[i].len,
+            src,
+            expanded);
+        if (success.next == (size_t)-1) {
             free_macro_args(&args);
-            return (size_t)-1;
+            return success;
         }
     }
 
@@ -603,7 +607,7 @@ static size_t expand_func_macro(struct preproc_state* state,
     const size_t macro_call_len = macro_end - macro_idx + 1;
 
     const bool alloc_grows = exp_len > macro_call_len;
-    const size_t alloc_change = alloc_grows ? exp_len - macro_call_len
+    const size_t alloc_change_abs = alloc_grows ? exp_len - macro_call_len
                                             : macro_call_len - exp_len;
 
     const size_t old_len = res->len;
@@ -612,19 +616,22 @@ static size_t expand_func_macro(struct preproc_state* state,
     free_token(&res->tokens[macro_idx + 1]);                  // opening bracket
     free_token(&res->tokens[macro_idx + macro_call_len - 1]); // closing bracket
 
+    ptrdiff_t alloc_change = 0;
     if (alloc_grows) {
-        res->len += alloc_change;
-        res->cap += alloc_change;
+        alloc_change = alloc_change_abs;
+        res->len += alloc_change_abs;
+        res->cap += alloc_change_abs;
         res->tokens = mycc_realloc(res->tokens, sizeof *res->tokens * res->cap);
 
         shift_back(res->tokens,
-                   alloc_change,
+                   alloc_change_abs,
                    macro_idx + macro_call_len,
                    old_len);
-    } else if (alloc_change != 0) {
-        res->len -= alloc_change;
+    } else if (alloc_change_abs != 0) {
+        alloc_change = -(ptrdiff_t)alloc_change_abs;
+        res->len -= alloc_change_abs;
 
-        shift_forward(res->tokens, alloc_change, macro_idx + exp_len, old_len);
+        shift_forward(res->tokens, alloc_change_abs, macro_idx + exp_len, old_len);
     }
 
     size_t token_idx = macro_idx;
@@ -642,7 +649,7 @@ static size_t expand_func_macro(struct preproc_state* state,
 
     const size_t last_after_macro = token_idx == 0 ? 0 : token_idx - 1;
     expanded_macro_stack_push(expanded, macro);
-    const size_t end_idx = expand_all_macros_in_range(state,
+    struct expansion_info ex_info = expand_all_macros_in_range(state,
                                                       res,
                                                       macro_idx,
                                                       last_after_macro,
@@ -651,10 +658,11 @@ static size_t expand_func_macro(struct preproc_state* state,
     expanded_macro_stack_pop(expanded);
 
     free_macro_args(&args);
-    return end_idx;
+    ex_info.alloc_change += alloc_change;
+    return ex_info;
 }
 
-static size_t expand_obj_macro(struct preproc_state* state,
+static struct expansion_info expand_obj_macro(struct preproc_state* state,
                                struct token_arr* res,
                                const struct preproc_macro* macro,
                                size_t macro_idx,
@@ -667,14 +675,17 @@ static size_t expand_obj_macro(struct preproc_state* state,
     const size_t old_len = res->len;
 
     free_token(&res->tokens[macro_idx]);
-
+    
+    ptrdiff_t alloc_change;
     if (exp_len > 0) {
+        alloc_change = exp_len - 1;
         res->cap += exp_len - 1;
         res->len += exp_len - 1;
         res->tokens = mycc_realloc(res->tokens, sizeof *res->tokens * res->cap);
 
         shift_back(res->tokens, exp_len - 1, macro_idx, old_len);
     } else {
+        alloc_change = -1;
         res->len -= 1;
 
         shift_forward(res->tokens, 1, macro_idx, old_len);
@@ -688,14 +699,15 @@ static size_t expand_obj_macro(struct preproc_state* state,
     }
 
     expanded_macro_stack_push(expanded, macro);
-    const size_t end_idx = expand_all_macros_in_range(state,
+    struct expansion_info ex_info = expand_all_macros_in_range(state,
                                                       res,
                                                       macro_idx,
                                                       macro_idx + exp_len,
                                                       src,
                                                       expanded);
     expanded_macro_stack_pop(expanded);
-    return end_idx;
+    ex_info.alloc_change += alloc_change;
+    return ex_info;
 }
 
 static struct token copy_token(const struct token* t) {

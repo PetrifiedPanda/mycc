@@ -127,6 +127,7 @@ TEST(recursive) {
     struct token_or_arg rec_obj_ex[] = {
         {.is_arg = false, .token = {IDENTIFIER, .spelling = STR_NON_HEAP("REC_MACRO"), {0, {1, 1}}}}, 
     };
+    // #define REC_MACRO REC_MACRO
     const struct preproc_macro rec_obj = {
         .spell = "REC_MACRO",
         .is_func_macro = false,
@@ -146,7 +147,8 @@ TEST(recursive) {
         {.is_arg = false, .token = {LBRACKET, .spelling = create_null_str(), {0, {1, 1}}}},
         {.is_arg = false, .token = {RBRACKET, .spelling = create_null_str(), {0, {1, 1}}}},
     };
-
+    
+    // #define REC_FUNC_MACRO() REC_FUNC_MACRO()
     const struct preproc_macro rec_func = {
         .spell = "REC_FUNC_MACRO",
         .is_func_macro = true,
@@ -213,6 +215,7 @@ TEST(func_like) {
     test_preproc_macro(&macro2,
                        "OTHER_FUNC_LIKE(var, 1, 2, 3, 4, 5) = 69;",
                        "var = 69;");
+    test_preproc_macro(&macro2, "int n = OTHER_FUNC_LIKE(OTHER_FUNC_LIKE(1, a, b, c, d, e), x, y, z, 1, 2);", "int n = 1;");
 
     // #define YET_ANOTHER_FUNC_LIKE() 1 + 1
     struct token_or_arg ex3[] = {
