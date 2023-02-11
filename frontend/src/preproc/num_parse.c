@@ -45,7 +45,7 @@ struct parse_float_const_res parse_float_const(const char* spell) {
 
     return (struct parse_float_const_res){
         .err.type = FLOAT_CONST_ERR_NONE,
-        .res = create_float_value(t, val),
+        .res = create_float_value(t, (double)val),
     };
 }
 
