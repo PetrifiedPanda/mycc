@@ -125,7 +125,10 @@ TEST(object_like_empty) {
 
 TEST(recursive) {
     struct token_or_arg rec_obj_ex[] = {
-        {.is_arg = false, .token = {IDENTIFIER, .spelling = STR_NON_HEAP("REC_MACRO"), {0, {1, 1}}}}, 
+        {.is_arg = false,
+         .token = {IDENTIFIER,
+                   .spelling = STR_NON_HEAP("REC_MACRO"),
+                   {0, {1, 1}}}},
     };
     // #define REC_MACRO REC_MACRO
     const struct preproc_macro rec_obj = {
@@ -138,16 +141,27 @@ TEST(recursive) {
         .expansion = rec_obj_ex,
     };
 
-    test_preproc_macro(&rec_obj, "int x = REC_MACRO - 10;", "int x = REC_MACRO - 10;");
-    test_preproc_macro(&rec_obj, "REC_MACRO = REC_MACRO - 10;", "REC_MACRO = REC_MACRO - 10;");
-    test_preproc_macro(&rec_obj, "x = REC_MACRO - 10;REC_MACRO", "x = REC_MACRO - 10;REC_MACRO");
+    test_preproc_macro(&rec_obj,
+                       "int x = REC_MACRO - 10;",
+                       "int x = REC_MACRO - 10;");
+    test_preproc_macro(&rec_obj,
+                       "REC_MACRO = REC_MACRO - 10;",
+                       "REC_MACRO = REC_MACRO - 10;");
+    test_preproc_macro(&rec_obj,
+                       "x = REC_MACRO - 10;REC_MACRO",
+                       "x = REC_MACRO - 10;REC_MACRO");
 
     struct token_or_arg rec_func_ex[] = {
-        {.is_arg = false, .token = {IDENTIFIER, .spelling = STR_NON_HEAP("REC_FUNC_MACRO"), {0, {1, 1}}}},
-        {.is_arg = false, .token = {LBRACKET, .spelling = create_null_str(), {0, {1, 1}}}},
-        {.is_arg = false, .token = {RBRACKET, .spelling = create_null_str(), {0, {1, 1}}}},
+        {.is_arg = false,
+         .token = {IDENTIFIER,
+                   .spelling = STR_NON_HEAP("REC_FUNC_MACRO"),
+                   {0, {1, 1}}}},
+        {.is_arg = false,
+         .token = {LBRACKET, .spelling = create_null_str(), {0, {1, 1}}}},
+        {.is_arg = false,
+         .token = {RBRACKET, .spelling = create_null_str(), {0, {1, 1}}}},
     };
-    
+
     // #define REC_FUNC_MACRO() REC_FUNC_MACRO()
     const struct preproc_macro rec_func = {
         .spell = "REC_FUNC_MACRO",
@@ -158,9 +172,15 @@ TEST(recursive) {
         .expansion_len = ARR_LEN(rec_func_ex),
         .expansion = rec_func_ex,
     };
-    test_preproc_macro(&rec_func, "int x = REC_FUNC_MACRO() - 10;", "int x = REC_FUNC_MACRO() - 10;");
-    test_preproc_macro(&rec_func, "REC_FUNC_MACRO() = REC_FUNC_MACRO() - 10;", "REC_FUNC_MACRO() = REC_FUNC_MACRO() - 10;");
-    test_preproc_macro(&rec_func, "x = REC_FUNC_MACRO() - 10;REC_FUNC_MACRO()", "x = REC_FUNC_MACRO() - 10;REC_FUNC_MACRO()");
+    test_preproc_macro(&rec_func,
+                       "int x = REC_FUNC_MACRO() - 10;",
+                       "int x = REC_FUNC_MACRO() - 10;");
+    test_preproc_macro(&rec_func,
+                       "REC_FUNC_MACRO() = REC_FUNC_MACRO() - 10;",
+                       "REC_FUNC_MACRO() = REC_FUNC_MACRO() - 10;");
+    test_preproc_macro(&rec_func,
+                       "x = REC_FUNC_MACRO() - 10;REC_FUNC_MACRO()",
+                       "x = REC_FUNC_MACRO() - 10;REC_FUNC_MACRO()");
 }
 
 TEST(func_like) {
@@ -215,7 +235,10 @@ TEST(func_like) {
     test_preproc_macro(&macro2,
                        "OTHER_FUNC_LIKE(var, 1, 2, 3, 4, 5) = 69;",
                        "var = 69;");
-    test_preproc_macro(&macro2, "int n = OTHER_FUNC_LIKE(OTHER_FUNC_LIKE(1, a, b, c, d, e), x, y, z, 1, 2);", "int n = 1;");
+    test_preproc_macro(&macro2,
+                       "int n = OTHER_FUNC_LIKE(OTHER_FUNC_LIKE(1, a, b, c, d, "
+                       "e), x, y, z, 1, 2);",
+                       "int n = 1;");
 
     // #define YET_ANOTHER_FUNC_LIKE() 1 + 1
     struct token_or_arg ex3[] = {
