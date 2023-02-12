@@ -92,6 +92,8 @@ struct alloc_stats {
     size_t cap;
     size_t num_allocs;
     size_t num_frees;
+    size_t num_reallocs;
+    size_t num_reallocs_without_copy;
     size_t bytes_alloced;
     size_t bytes_freed;
 };
@@ -104,6 +106,8 @@ static struct alloc_stats g_alloc_stats = {
     .cap = 0,
     .num_allocs = 0,
     .num_frees = 0,
+    .num_reallocs = 0,
+    .num_reallocs_without_copy = 0,
     .bytes_alloced = 0,
     .bytes_freed = 0,
 };
@@ -176,6 +180,7 @@ static void memdebug_cleanup(void) {
             "Of %zu bytes allocated, %zu were freed\n",
             g_alloc_stats.bytes_alloced,
             g_alloc_stats.bytes_freed);
+    fprintf(stderr, "Of %zu realloc calls, %zu resized an existing allocation\n", g_alloc_stats.num_reallocs, g_alloc_stats.num_reallocs_without_copy);
     mycc_free(g_alloc_stats.data);
     if (leak_detected) {
         _Exit(EXIT_FAILURE);
@@ -229,6 +234,7 @@ static void set_freed(struct alloc_stats* stats,
 static void set_alloc_bytes(struct alloc_stats* stats, size_t alloc_idx, size_t bytes) {
     struct alloc_entry* curr = &stats->data[alloc_idx];
     assert(!curr->freed);
+    stats->num_reallocs_without_copy += 1;
     if (bytes > curr->bytes) {
         stats->bytes_alloced += bytes - curr->bytes;
     } else {
@@ -272,6 +278,7 @@ void* mycc_memdebug_realloc_wrapper(void* alloc,
                                     size_t bytes,
                                     const char* file,
                                     size_t line) {
+    g_alloc_stats.num_reallocs += 1;
     if (alloc == NULL) {
         void* new_alloc = mycc_realloc(alloc, bytes);
         if (new_alloc != NULL) {
@@ -312,6 +319,7 @@ void mycc_memdebug_grow_alloc_wrapper(void** alloc,
                                       size_t elem_size,
                                       const char* file,
                                       size_t line) {
+    g_alloc_stats.num_reallocs += 1;
     if (*alloc == NULL) {
         mycc_grow_alloc(alloc, alloc_len, elem_size);
         insert_alloc(&g_alloc_stats, *alloc, *alloc_len * elem_size, file, line);
