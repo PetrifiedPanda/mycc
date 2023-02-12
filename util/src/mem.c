@@ -98,7 +98,6 @@ struct alloc_stats {
     size_t bytes_freed;
 };
 
-
 static bool g_cleanup_func_set = false;
 static struct alloc_stats g_alloc_stats = {
     .data = NULL,
@@ -122,7 +121,7 @@ static size_t find_alloc_idx(const struct alloc_stats* stats, void* alloc) {
     while (left < right) {
         const size_t middle = (left + right) / 2;
         if (stats->data[middle].alloc < alloc) {
-            left = middle + 1; 
+            left = middle + 1;
         } else {
             right = middle;
         }
@@ -180,7 +179,10 @@ static void memdebug_cleanup(void) {
             "Of %zu bytes allocated, %zu were freed\n",
             g_alloc_stats.bytes_alloced,
             g_alloc_stats.bytes_freed);
-    fprintf(stderr, "Of %zu realloc calls, %zu resized an existing allocation\n", g_alloc_stats.num_reallocs, g_alloc_stats.num_reallocs_without_copy);
+    fprintf(stderr,
+            "Of %zu realloc calls, %zu resized an existing allocation\n",
+            g_alloc_stats.num_reallocs,
+            g_alloc_stats.num_reallocs_without_copy);
     mycc_free(g_alloc_stats.data);
     if (leak_detected) {
         _Exit(EXIT_FAILURE);
@@ -231,7 +233,9 @@ static void set_freed(struct alloc_stats* stats,
     stats->num_frees += 1;
 }
 
-static void set_alloc_bytes(struct alloc_stats* stats, size_t alloc_idx, size_t bytes) {
+static void set_alloc_bytes(struct alloc_stats* stats,
+                            size_t alloc_idx,
+                            size_t bytes) {
     struct alloc_entry* curr = &stats->data[alloc_idx];
     assert(!curr->freed);
     stats->num_reallocs_without_copy += 1;
@@ -322,7 +326,11 @@ void mycc_memdebug_grow_alloc_wrapper(void** alloc,
     g_alloc_stats.num_reallocs += 1;
     if (*alloc == NULL) {
         mycc_grow_alloc(alloc, alloc_len, elem_size);
-        insert_alloc(&g_alloc_stats, *alloc, *alloc_len * elem_size, file, line);
+        insert_alloc(&g_alloc_stats,
+                     *alloc,
+                     *alloc_len * elem_size,
+                     file,
+                     line);
     } else {
         const size_t alloc_idx = find_alloc_idx(&g_alloc_stats, *alloc);
         assert(g_alloc_stats.data[alloc_idx].alloc == *alloc);
