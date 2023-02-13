@@ -113,9 +113,6 @@ static struct alloc_stats g_alloc_stats = {
 
 static size_t find_alloc_idx(const struct alloc_stats* stats, void* alloc) {
     assert(alloc != NULL);
-    if (stats->len == 0) {
-        return 0;
-    }
     size_t left = 0;
     size_t right = stats->len;
     while (left < right) {
@@ -133,6 +130,7 @@ static struct alloc_entry create_alloc_entry(void* alloc,
                                              size_t bytes,
                                              const char* file,
                                              size_t line) {
+    assert(alloc != NULL);
     return (struct alloc_entry){
         .alloc = alloc,
         .bytes = bytes,
