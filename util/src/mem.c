@@ -147,6 +147,46 @@ static void print_surrounding_lines(size_t num) {
     }
 }
 
+static size_t get_num_digits(size_t n) {
+    size_t num_digits = 0;
+    size_t val = n;
+    while (val != 0) {
+        val /= 10;
+        ++num_digits;
+    }
+    return num_digits;
+}
+
+static size_t pow_size_t(size_t x, size_t n) {
+    size_t res = 1;
+    for (size_t i = 0; i < n; ++i) {
+        res *= x;
+    }
+    return res;
+}
+
+static void pretty_print_size_t(FILE* out, size_t n) {
+    if (n == 0) {
+        fputc('0', out);
+        return;
+    }
+    const size_t num_digits = get_num_digits(n);
+    size_t remainder = n;
+    size_t num_digits_to_print = num_digits - 1;
+    size_t pow = pow_size_t(10, num_digits_to_print);
+    while (num_digits_to_print != 0) {
+        const size_t to_print = remainder / pow;
+        remainder -= pow * to_print;
+        fputc('0' + to_print, out);
+        if (num_digits_to_print % 3 == 0) {
+            fputc(',', out);
+        }
+        --num_digits_to_print;
+        pow /= 10;
+    }
+    fputc('0' + remainder, out);
+}
+
 static void memdebug_cleanup(void) {
     enum {
         LINE_COUNT = 20
@@ -169,18 +209,23 @@ static void memdebug_cleanup(void) {
                     curr->alloced_loc.line);
         }
     }
-    fprintf(stderr,
-            "Of %zu allocations, %zu were freed\n",
-            g_alloc_stats.num_allocs,
-            g_alloc_stats.num_frees);
-    fprintf(stderr,
-            "Of %zu bytes allocated, %zu were freed\n",
-            g_alloc_stats.bytes_alloced,
-            g_alloc_stats.bytes_freed);
-    fprintf(stderr,
-            "Of %zu realloc calls, %zu resized an existing allocation\n",
-            g_alloc_stats.num_reallocs,
-            g_alloc_stats.num_reallocs_without_copy);
+    fputs("Of ", stderr);
+    pretty_print_size_t(stderr, g_alloc_stats.num_allocs);
+    fputs(" allocations, ", stderr);
+    pretty_print_size_t(stderr, g_alloc_stats.num_frees);
+    fputs(" were freed\n", stderr);
+    
+    fputs("Of ", stderr);
+    pretty_print_size_t(stderr, g_alloc_stats.bytes_alloced);
+    fputs(" bytes allocations, ", stderr);
+    pretty_print_size_t(stderr, g_alloc_stats.bytes_freed);
+    fputs(" bytes were freed\n", stderr);
+
+    fputs("Of ", stderr);
+    pretty_print_size_t(stderr, g_alloc_stats.num_reallocs);
+    fputs(" realloc calls, ", stderr);
+    pretty_print_size_t(stderr, g_alloc_stats.num_reallocs_without_copy);
+    fputs(" resized an existing allocation\n", stderr);
     mycc_free(g_alloc_stats.data);
     if (leak_detected) {
         _Exit(EXIT_FAILURE);
@@ -248,15 +293,11 @@ static void set_alloc_bytes(struct alloc_stats* stats,
 static void check_if_freed(const struct alloc_stats* stats, size_t alloc_idx) {
     const struct alloc_entry* entry = &stats->data[alloc_idx];
     if (entry->freed) {
-        fprintf(stderr, "Double free detected, exiting...\n");
+        fputs("Double free detected, exiting...\n", stderr);
         const char* by_realloc = entry->realloced ? " by realloc" : "";
-        fprintf(stderr,
-                "\t%p with size %zu was already freed%s in %s:%zu\n",
-                entry->alloc,
-                entry->bytes,
-                by_realloc,
-                entry->freed_loc.file,
-                entry->freed_loc.line);
+        fprintf(stderr, "\t%p with size ", entry->alloc);
+        pretty_print_size_t(stderr, entry->bytes);
+        fprintf(stderr, " was already freed%s in %s:%zu\n", by_realloc, entry->freed_loc.file, entry->freed_loc.line);
         exit(EXIT_FAILURE);
     }
 }
