@@ -278,7 +278,6 @@ static bool preproc_statement(struct preproc_state* state,
     } else if (strcmp(directive, "define") == 0) {
         const struct str spell = take_spelling(&arr->tokens[2]);
         struct preproc_macro macro = parse_preproc_macro(arr,
-                                                         str_get_data(&spell),
                                                          state->err);
         if (state->err->type != PREPROC_ERR_NONE) {
             return false;

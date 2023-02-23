@@ -18,7 +18,6 @@ struct token_or_arg {
 };
 
 struct preproc_macro {
-    const char* spell;
     bool is_func_macro;
     bool is_variadic;
     size_t num_args;
@@ -33,7 +32,6 @@ bool expand_all_macros(struct preproc_state* state,
                        struct code_source* src);
 
 struct preproc_macro parse_preproc_macro(struct token_arr* arr,
-                                         const char* spell,
                                          struct preproc_err* err);
 
 void free_preproc_macro(struct preproc_macro* m);

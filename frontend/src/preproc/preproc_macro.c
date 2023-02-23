@@ -58,7 +58,7 @@ static size_t find_macro_end(struct preproc_state* state,
 
 struct expanded_macro_stack {
     size_t len, cap;
-    const char** data;
+    const struct preproc_macro** data;
 };
 
 static void expanded_macro_stack_push(struct expanded_macro_stack* stack,
@@ -66,7 +66,7 @@ static void expanded_macro_stack_push(struct expanded_macro_stack* stack,
     if (stack->len == stack->cap) {
         mycc_grow_alloc((void**)&stack->data, &stack->cap, sizeof(void*));
     }
-    stack->data[stack->len] = m->spell;
+    stack->data[stack->len] = m;
     ++stack->len;
 }
 
@@ -78,7 +78,7 @@ static bool expanded_macro_stack_contains(
     const struct expanded_macro_stack* stack,
     const struct preproc_macro* to_check) {
     for (size_t i = 0; i < stack->len; ++i) {
-        if (stack->data[i] == to_check->spell) {
+        if (stack->data[i] == to_check) {
             return true;
         }
     }
@@ -228,10 +228,8 @@ static bool is_duplicate_arg(struct token* tok,
 }
 
 static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
-                                                  const char* spell,
                                                   struct preproc_err* err) {
     struct preproc_macro res = {
-        .spell = spell,
         .is_func_macro = true,
     };
 
@@ -361,10 +359,8 @@ fail:
 
 static struct token move_token(struct token* t);
 
-static struct preproc_macro parse_object_like_macro(struct token_arr* arr,
-                                                    const char* spell) {
+static struct preproc_macro parse_object_like_macro(struct token_arr* arr) {
     struct preproc_macro res = {
-        .spell = spell,
         .is_func_macro = false,
         .num_args = 0,
         .is_variadic = false,
@@ -384,7 +380,6 @@ static struct preproc_macro parse_object_like_macro(struct token_arr* arr,
 }
 
 struct preproc_macro parse_preproc_macro(struct token_arr* arr,
-                                         const char* spell,
                                          struct preproc_err* err) {
     assert(arr);
     assert(arr->len >= 2);
@@ -403,9 +398,9 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr,
     }
 
     if (arr->len > 3 && arr->tokens[3].type == LBRACKET) {
-        return parse_func_like_macro(arr, spell, err);
+        return parse_func_like_macro(arr, err);
     } else {
-        return parse_object_like_macro(arr, spell);
+        return parse_object_like_macro(arr);
     }
 }
 
