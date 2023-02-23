@@ -447,9 +447,88 @@ TEST(variadic) {
     }
 }
 
-TEST_SUITE_BEGIN(preproc_macro_parser, 3) {
+TEST(duplicate_arg_name) {
+    const char* spell = "FUNC_LIKE";
+    // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name(__VA_ARGS__)
+    // : c + a
+    struct token tokens[] = {
+        {STRINGIFY_OP, .spelling = create_null_str(), {0, {1, 1}}},
+        {IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
+        {IDENTIFIER, .spelling = STR_NON_HEAP("FUNC_LIKE"), {0, {1, 9}}},
+        {LBRACKET, .spelling = create_null_str(), {0, {1, 18}}},
+        {IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 19}}},
+        {COMMA, .spelling = create_null_str(), {0, {1, 20}}},
+        {IDENTIFIER, .spelling = STR_NON_HEAP("b"), {0, {1, 22}}},
+        {COMMA, .spelling = create_null_str(), {0, {1, 23}}},
+        {IDENTIFIER, .spelling = STR_NON_HEAP("c"), {0, {1, 25}}},
+        {COMMA, .spelling = create_null_str(), {0, {1, 26}}},
+        {ELLIPSIS, .spelling = create_null_str(), {0, {1, 28}}},
+        {RBRACKET, .spelling = create_null_str(), {0, {1, 31}}},
+        {IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 33}}},
+        {NE_OP, .spelling = create_null_str(), {0, {1, 35}}},
+        {I_CONSTANT, .spelling = STR_NON_HEAP("38"), {0, {1, 38}}},
+        {QMARK, .spelling = create_null_str(), {0, {1, 41}}},
+        {IDENTIFIER, .spelling = STR_NON_HEAP("b"), {0, {1, 43}}},
+        {ASTERISK, .spelling = create_null_str(), {0, {1, 45}}},
+        {IDENTIFIER, .spelling = STR_NON_HEAP("other_name"), {0, {1, 47}}},
+        {LBRACKET, .spelling = create_null_str(), {0, {1, 48}}},
+        {IDENTIFIER, .spelling = STR_NON_HEAP("__VA_ARGS__"), {0, {1, 49}}},
+        {RBRACKET, .spelling = create_null_str(), {0, {1, 60}}},
+        {COLON, .spelling = create_null_str(), {0, {1, 62}}},
+        {IDENTIFIER, .spelling = STR_NON_HEAP("c"), {0, {1, 64}}},
+        {ADD, .spelling = create_null_str(), {0, {1, 66}}},
+        {IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 68}}},
+    };
+    enum {
+        TOKENS_LEN = ARR_LEN(tokens),
+    };
+    struct token_arr arr = {
+        .len = TOKENS_LEN,
+        .cap = TOKENS_LEN,
+        .tokens = tokens,
+    };
+    // change c to a
+    tokens[8].spelling = STR_NON_HEAP("a");
+    {
+        struct preproc_err err = create_preproc_err();
+        struct preproc_macro got = parse_preproc_macro(&arr, spell, &err);
+        ASSERT(memcmp(&got, &(struct preproc_macro){0}, sizeof got) == 0);
+        ASSERT(err.type == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
+        ASSERT_STR(str_get_data(&err.duplicate_arg_name), "a");
+        ASSERT_SIZE_T(err.base.loc.file_idx, 0);
+        ASSERT_SIZE_T(err.base.loc.file_loc.line, 1);
+        ASSERT_SIZE_T(err.base.loc.file_loc.index, 25);
+    }
+
+    tokens[8].spelling = STR_NON_HEAP("c");
+    tokens[6].spelling = STR_NON_HEAP("c");
+    {
+        struct preproc_err err = create_preproc_err();
+        struct preproc_macro got = parse_preproc_macro(&arr, spell, &err);
+        ASSERT(memcmp(&got, &(struct preproc_macro){0}, sizeof got) == 0);
+        ASSERT(err.type == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
+        ASSERT_STR(str_get_data(&err.duplicate_arg_name), "c");
+        ASSERT_SIZE_T(err.base.loc.file_idx, 0);
+        ASSERT_SIZE_T(err.base.loc.file_loc.line, 1);
+        ASSERT_SIZE_T(err.base.loc.file_loc.index, 25);
+    }
+    tokens[6].spelling = STR_NON_HEAP("a");
+    {
+        struct preproc_err err = create_preproc_err();
+        struct preproc_macro got = parse_preproc_macro(&arr, spell, &err);
+        ASSERT(memcmp(&got, &(struct preproc_macro){0}, sizeof got) == 0);
+        ASSERT(err.type == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
+        ASSERT_STR(str_get_data(&err.duplicate_arg_name), "a");
+        ASSERT_SIZE_T(err.base.loc.file_idx, 0);
+        ASSERT_SIZE_T(err.base.loc.file_loc.line, 1);
+        ASSERT_SIZE_T(err.base.loc.file_loc.index, 22);
+    }
+}
+
+TEST_SUITE_BEGIN(preproc_macro_parser, 4) {
     REGISTER_TEST(object_like);
     REGISTER_TEST(func_like);
     REGISTER_TEST(variadic);
+    REGISTER_TEST(duplicate_arg_name);
 }
 TEST_SUITE_END()

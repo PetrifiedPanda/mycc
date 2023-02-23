@@ -212,6 +212,21 @@ static size_t get_str_idx(const char** strs, size_t len, const char* to_find) {
     return (size_t)-1;
 }
 
+static bool is_duplicate_arg(struct token* tok,
+                             const char** arg_spells,
+                             size_t num_args,
+                             struct preproc_err* err) {
+    const char* data = str_get_data(&tok->spelling);
+    for (size_t i = 0; i < num_args; ++i) {
+        if (strcmp(arg_spells[i], data) == 0) {
+            set_preproc_err(err, PREPROC_ERR_DUPLICATE_MACRO_PARAM, tok->loc);
+            err->duplicate_arg_name = take_spelling(tok);
+            return true;
+        }
+    }
+    return false;
+}
+
 static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
                                                   const char* spell,
                                                   struct preproc_err* err) {
@@ -249,6 +264,9 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
         }
         arg_spells[res.num_args] = str_get_data(&arr->tokens[it].spelling);
         assert(arg_spells[res.num_args]);
+        if (is_duplicate_arg(&arr->tokens[it], arg_spells, res.num_args, err)) {
+            goto fail;
+        }
 
         ++res.num_args;
         ++it;

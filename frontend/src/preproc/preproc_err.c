@@ -198,6 +198,10 @@ void print_preproc_err(FILE* out,
             print_err_base(out, file_info, &err->base);
             print_expected_tokens_err(out, &err->expected_tokens_err);
             break;
+        case PREPROC_ERR_DUPLICATE_MACRO_PARAM:
+            print_err_base(out, file_info, &err->base);
+            fprintf(out, "Duplicate macro argument name \"%s\"", str_get_data(&err->duplicate_arg_name));
+            break;
     }
     fprintf(out, "\n");
 }
@@ -255,6 +259,9 @@ void free_preproc_err(struct preproc_err* err) {
         case PREPROC_ERR_FLOAT_CONST:
         case PREPROC_ERR_CHAR_CONST:
             free_str(&err->constant_spell);
+            break;
+        case PREPROC_ERR_DUPLICATE_MACRO_PARAM:
+            free_str(&err->duplicate_arg_name);
             break;
         case PREPROC_ERR_FILE_FAIL:
         case PREPROC_ERR_MACRO_ARG_COUNT:

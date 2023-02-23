@@ -30,6 +30,7 @@ enum preproc_err_type {
     PREPROC_ERR_EMPTY_DEFINE,
     PREPROC_ERR_DEFINE_NOT_ID,
     PREPROC_ERR_EXPECTED_TOKENS,
+    PREPROC_ERR_DUPLICATE_MACRO_PARAM,
 };
 
 enum else_op_type {
@@ -85,6 +86,7 @@ struct preproc_err {
         };
         enum token_type type_instead_of_identifier;
         struct expected_tokens_err expected_tokens_err;
+        struct str duplicate_arg_name;
     };
 };
 
