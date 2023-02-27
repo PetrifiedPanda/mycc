@@ -18,10 +18,11 @@ static struct str get_out_filename(const char* origin_file, const char* suffix);
 
 int main(int argc, char** argv) {
     const struct cmd_args args = parse_cmd_args(argc, argv);
+    const bool is_windows =
 #ifdef _WIN32
-    const bool is_windows = true;
+        true;
 #else
-    const bool is_windows = false;
+        false;
 #endif
     const struct arch_type_info type_info = get_arch_type_info(ARCH_X86_64,
                                                                is_windows);
