@@ -127,6 +127,9 @@ static bool preproc_file(struct preproc_state* state,
                                                      state->err,
                                                      current_file_idx,
                                                      include_loc);
+    if (!code_source_valid(&src)) {
+        return false;
+    }
 
     const bool res = preproc_src(state, &src);
 

@@ -34,6 +34,8 @@ struct code_source create_code_source_file(const char* path,
 
 bool code_source_over(const struct code_source* src);
 
+bool code_source_valid(const struct code_source* src);
+
 char* code_source_read_line(struct code_source* src, size_t static_buf_len, char* static_buf);
 
 void free_code_source(struct code_source* src);

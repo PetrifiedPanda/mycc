@@ -109,6 +109,10 @@ bool code_source_over(const struct code_source* src) {
     }
 }
 
+bool code_source_valid(const struct code_source* src) {
+    return src->path != NULL;
+}
+
 char* code_source_read_line(struct code_source* src,
                             size_t static_buf_len,
                             char* static_buf) {
