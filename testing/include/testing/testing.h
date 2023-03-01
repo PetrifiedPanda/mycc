@@ -9,6 +9,8 @@
 #include <setjmp.h>
 #include <errno.h>
 
+#include "util/timing.h"
+
 /**
  * Jump buffer for unit tests
  */
@@ -53,13 +55,16 @@ extern jmp_buf test_jump_buf;
     for (size_t i = 0; i < num_tests; ++i) {                                   \
         if (setjmp(test_jump_buf)) {                                           \
             printf("\tTest %s failed", test_names[i]);                         \
-            goto test_failed;                                                  \
         } else {                                                               \
+            const struct timespec start = mycc_current_time();                 \
             tests[i]();                                                        \
+            const struct timespec end = mycc_current_time();                   \
+            const struct timespec diff = mycc_time_diff(&end, &start);         \
+            printf("\tTest %s succeeded in %f ms",                             \
+                   test_names[i],                                              \
+                   mycc_get_msecs_double(&diff));                              \
+            ++num_succeeded;                                                   \
         }                                                                      \
-        printf("\tTest %s successful", test_names[i]);                         \
-        ++num_succeeded;                                                       \
-test_failed:                                                                   \
         assert(errno == 0);                                                    \
         printf("\n");                                                          \
     }                                                                          \
