@@ -68,6 +68,7 @@ struct preproc_state create_preproc_state_string(const char* code, const char* f
     };
 }
 
+// TODO: what to do with this and the one in util/file.h
 void preproc_state_read_line(struct preproc_state* state) {
     assert(state);
     str_clear(&state->line_info.line); 
