@@ -27,86 +27,120 @@ static void advance(struct tokenizer_state* s, size_t num);
 static void advance_one(struct tokenizer_state* s);
 static void advance_newline(struct tokenizer_state* s);
 
-static void add_token(struct token_arr* res,
-                      enum token_type type,
-                      struct str* spell,
-                      struct file_loc file_loc,
-                      size_t file_idx);
-
 static void handle_comments(struct tokenizer_state* s,
                             bool* comment_not_terminated);
-static bool handle_character_literal(struct tokenizer_state* s,
-                                     struct token_arr* res,
-                                     struct preproc_err* err);
-static bool handle_other(struct tokenizer_state* s,
-                         struct token_arr* res,
-                         struct preproc_err* err);
 static void handle_ongoing_comment(struct tokenizer_state* s,
                                    bool* comment_not_terminated);
 
-bool tokenize_line(struct token_arr* res,
-                   struct preproc_err* err,
-                   const char* line,
-                   size_t line_num,
-                   size_t file_idx,
-                   bool* comment_not_terminated) {
+static bool handle_character_literal(struct tokenizer_state* s,
+                                     struct token* res,
+                                     struct line_info* info,
+                                     struct preproc_err* err);
+static bool handle_other(struct tokenizer_state* s,
+                         struct token* res,
+                         struct line_info* info,
+                         struct preproc_err* err);
+
+static void write_line_info(const struct tokenizer_state* s,
+                            struct line_info* info) {
+    info->next = s->it;
+    info->curr_loc.file_loc = s->file_loc;
+}
+
+// TODO: what to do when comment is whole line
+bool next_preproc_token(struct token* res,
+                        struct preproc_err* err,
+                        struct line_info* info) {
     assert(res);
-    assert(line);
-    assert(file_idx != (size_t)-1);
-    assert(comment_not_terminated);
+    assert(info);
+    assert(info->next);
+    assert(info->curr_loc.file_idx != (size_t)-1);
 
     struct tokenizer_state s = {
-        .it = line,
+        .it = info->next,
         .prev = '\0',
         .prev_prev = '\0',
-        .file_loc =
-            {
-                .line = line_num,
-                .index = 1,
-            },
-        .current_file_idx = file_idx,
+        .file_loc = info->curr_loc.file_loc,
+        .current_file_idx = info->curr_loc.file_idx,
     };
 
-    while (*s.it != '\0') {
-        if (*comment_not_terminated) {
-            handle_ongoing_comment(&s, comment_not_terminated);
-            continue;
-        }
-        while (isspace(*s.it)) {
-            // TODO: how to handle escaped newlines
-            advance_newline(&s);
-        }
-        if (*s.it == '\0') {
-            break;
-        }
-
-        enum token_type type = singlec_token_type(*s.it);
-        if (type != INVALID && is_singlec_token(&s, type)) {
-            if (type == DIV && (s.it[1] == '/' || s.it[1] == '*')) {
-                handle_comments(&s, comment_not_terminated);
-                continue;
-            }
-            if (s.it[1] != '\0') {
-                type = check_next(type, s.it + 1);
-            }
-            
-            struct str null_str = create_null_str();
-            add_token(res, type, &null_str, s.file_loc, s.current_file_idx);
-
-            size_t len = strlen(get_spelling(type));
-            advance(&s, len);
-        } else if (*s.it == '\"' || *s.it == '\''
-                   || (*s.it == 'L' && (s.it[1] == '\"' || s.it[1] == '\''))) {
-            if (!handle_character_literal(&s, res, err)) {
-                return false;
-            }
-        } else {
-            if (!handle_other(&s, res, err)) {
-                return false;
-            }
-        }
+    while (isspace(*s.it)) {
+        // TODO: how to handle escaped newlines
+        advance_newline(&s);
+    }
+    if (*s.it == '\0') {
+        // TODO: not sure if this is the best idea
+        const struct str null_str = create_null_str();
+        *res = (struct token){
+            .type = INVALID,
+            .spelling = null_str,
+            .loc =
+                {
+                    .file_idx = (size_t)-1,
+                    .file_loc = (struct file_loc){(size_t)-1, (size_t)-1},
+                },
+        };
+        write_line_info(&s, info);
+        return true;
+    }
+    if (info->is_in_comment) {
+        handle_ongoing_comment(&s, &info->is_in_comment);
+        write_line_info(&s, info);
+        return next_preproc_token(res, err, info);
     }
 
+    enum token_type type = singlec_token_type(*s.it);
+    if (type != INVALID && is_singlec_token(&s, type)) {
+        if (type == DIV && (s.it[1] == '/' || s.it[1] == '*')) {
+            handle_comments(&s, &info->is_in_comment);
+            write_line_info(&s, info);
+            return next_preproc_token(res, err, info);
+        }
+        if (s.it[1] != '\0') {
+            type = check_next(type, s.it + 1);
+        }
+
+        struct str null_str = create_null_str();
+        *res = create_token(type, &null_str, s.file_loc, s.current_file_idx);
+
+        size_t len = strlen(get_spelling(type));
+        advance(&s, len);
+
+        write_line_info(&s, info);
+        return true;
+    } else if (*s.it == '\"' || *s.it == '\''
+               || (*s.it == 'L' && (s.it[1] == '\"' || s.it[1] == '\''))) {
+        return handle_character_literal(&s, res, info, err);
+    } else {
+        return handle_other(&s, res, info, err);
+    }
+}
+
+bool tokenize_line(struct token_arr* res,
+                   struct preproc_err* err,
+                   struct line_info* info) {
+    assert(res);
+    assert(info->next);
+    assert(info->curr_loc.file_idx != (size_t)-1);
+
+    while (*info->next != '\0') {
+        struct token curr;
+        do {
+            if (!next_preproc_token(&curr, err, info)) {
+                return false;
+            }
+        } while (curr.type == INVALID && *info->next != '\0');
+
+        if (curr.type != INVALID) {
+            if (res->len == res->cap) {
+                mycc_grow_alloc((void**)&res->tokens,
+                                &res->cap,
+                                sizeof *res->tokens);
+            }
+            res->tokens[res->len] = curr;
+            ++res->len;
+        }
+    }
     return true;
 }
 
@@ -317,7 +351,7 @@ static void advance_one(struct tokenizer_state* s) {
 
 static void advance_newline(struct tokenizer_state* s) {
     if (*s->it == '\n') {
-        assert(s->it[-1] == '\\');
+        //assert(s->it[-1] == '\\');
         s->file_loc.line += 1;
         s->file_loc.index = 1;
     } else {
@@ -327,22 +361,6 @@ static void advance_newline(struct tokenizer_state* s) {
     s->prev_prev = s->prev;
     s->prev = *s->it;
     ++s->it;
-}
-
-static void realloc_tokens_if_needed(struct token_arr* res) {
-    if (res->len == res->cap) {
-        mycc_grow_alloc((void**)&res->tokens, &res->cap, sizeof *res->tokens);
-    }
-}
-
-static void add_token(struct token_arr* res,
-                      enum token_type type,
-                      struct str* spell,
-                      struct file_loc file_loc,
-                      size_t file_idx) {
-    realloc_tokens_if_needed(res);
-    res->tokens[res->len] = create_token(type, spell, file_loc, file_idx);
-    ++res->len;
 }
 
 static void handle_comments(struct tokenizer_state* s,
@@ -408,7 +426,8 @@ static void unterminated_literal_err(struct preproc_err* err,
 }
 
 static bool handle_character_literal(struct tokenizer_state* s,
-                                     struct token_arr* res,
+                                     struct token* res,
+                                     struct line_info* info,
                                      struct preproc_err* err) {
     assert(*s->it == '\'' || *s->it == '\"' || *s->it == 'L');
     enum {
@@ -447,12 +466,12 @@ static bool handle_character_literal(struct tokenizer_state* s,
         while (*s->it != '\0'
                && ((s->prev_prev != '\\' && s->prev == '\\')
                    || *s->it != terminator)) {
-            
+
             str_push_back(&spell, *s->it);
 
             advance_newline(s);
         }
-        
+
         str_shrink_to_fit(&spell);
     }
 
@@ -472,11 +491,11 @@ static bool handle_character_literal(struct tokenizer_state* s,
                                                  str_len(&spell),
                                                  terminator);
         assert(type != INVALID);
+        *res = create_token(type, &spell, start_loc, s->current_file_idx);
 
-        add_token(res, type, &spell, start_loc, s->current_file_idx);
+        write_line_info(s, info);
+        return true;
     }
-
-    return true;
 }
 
 static bool token_is_over(const struct tokenizer_state* s, bool is_num) {
@@ -504,7 +523,8 @@ static bool token_is_over(const struct tokenizer_state* s, bool is_num) {
 }
 
 static bool handle_other(struct tokenizer_state* s,
-                         struct token_arr* res,
+                         struct token* res,
+                         struct line_info* info,
                          struct preproc_err* err) {
     enum {
         BUF_STRLEN = 512
@@ -525,12 +545,12 @@ static bool handle_other(struct tokenizer_state* s,
     if (!token_is_over(s, is_num)) {
 
         while (!token_is_over(s, is_num)) {
-            
+
             str_push_back(&spell, *s->it);
 
             advance_one(s);
         }
-        
+
         str_shrink_to_fit(&spell);
     }
 
@@ -564,8 +584,8 @@ static bool handle_other(struct tokenizer_state* s,
         return false;
     }
 
-    add_token(res, type, &spell, start_loc, s->current_file_idx);
-
+    *res = create_token(type, &spell, start_loc, s->current_file_idx);
+    write_line_info(s, info);
     return true;
 }
 

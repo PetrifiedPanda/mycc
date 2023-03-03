@@ -4,9 +4,8 @@
 #include <stdbool.h>
 
 #include "preproc_state.h"
-#include "code_source.h"
 
-bool read_and_tokenize_line(struct preproc_state* state,
-                            struct code_source* src);
+bool read_and_tokenize_line(struct preproc_state* state);
+
 #endif
 

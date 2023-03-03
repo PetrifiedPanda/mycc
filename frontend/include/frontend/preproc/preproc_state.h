@@ -14,6 +14,13 @@ struct token_arr {
     struct token* tokens;
 };
 
+struct line_info {
+    struct str line;
+    const char* next;
+    struct source_loc curr_loc;
+    bool is_in_comment;
+};
+
 struct preproc_cond {
     bool had_true_branch;
     bool had_else;
@@ -22,8 +29,13 @@ struct preproc_cond {
 
 struct preproc_state {
     struct token_arr res;
+
+    struct line_info line_info;
+    FILE* file;
+
     size_t conds_len, conds_cap;
     struct preproc_cond* conds;
+
     struct preproc_err* err;
     struct string_hash_map _macro_map;
     struct file_info file_info;
@@ -31,6 +43,11 @@ struct preproc_state {
 
 struct preproc_state create_preproc_state(const char* start_file,
                                           struct preproc_err* err);
+
+struct preproc_state create_preproc_state_string(const char* code, const char* filename, struct preproc_err* err);
+
+void preproc_state_read_line(struct preproc_state* state);
+bool preproc_state_over(const struct preproc_state* state);
 
 struct preproc_macro;
 

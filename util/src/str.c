@@ -195,6 +195,17 @@ struct str str_copy(const struct str* str) {
     }
 }
 
+
+void str_clear(struct str* str) {
+    if (str->_is_static_buf) {
+        str->_small_len = 0;
+        str->_static_buf[0] = '\0';
+    } else {
+        str->_len = 0;
+        str->_data[0] = '\0';
+    }
+}
+
 void free_str(const struct str* str) {
     assert(str);
     if (!str->_is_static_buf) {

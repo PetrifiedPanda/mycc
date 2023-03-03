@@ -22,25 +22,20 @@ static bool is_preproc_directive(const char* line) {
 }
 
 static bool preproc_statement(struct preproc_state* state,
-                              struct code_source* src,
                               struct token_arr* arr);
-// TODO: what to do if the line is a preprocessor directive
-// Maybe just handle preprocessor directives until we reach an "actual" line
-bool read_and_tokenize_line(struct preproc_state* state,
-                            struct code_source* src) {
-    assert(src);
+
+bool read_and_tokenize_line(struct preproc_state* state) {
+    assert(state);
 
     while (true) {
-        char static_buf[PREPROC_LINE_BUF_LEN];
-        const size_t prev_curr_line = src->current_line;
-        char* line = code_source_read_line(src,
-                                           PREPROC_LINE_BUF_LEN,
-                                           static_buf);
-        if (line == NULL) {
+        if (state->line_info.next == NULL || *state->line_info.next == '\0') {
+            preproc_state_read_line(state);
+        }
+        if (preproc_state_over(state)) {
             return true;
         }
 
-        if (is_preproc_directive(line)) {
+        if (is_preproc_directive(state->line_info.next)) {
             struct token_arr arr = {
                 .len = 0,
                 .cap = 0,
@@ -49,18 +44,12 @@ bool read_and_tokenize_line(struct preproc_state* state,
 
             const bool res = tokenize_line(&arr,
                                            state->err,
-                                           line,
-                                           prev_curr_line,
-                                           state->file_info.len - 1,
-                                           &src->comment_not_terminated);
-            if (line != static_buf) {
-                mycc_free(line);
-            }
+                                           &state->line_info);
             if (!res) {
                 return false;
             }
 
-            const bool stat_res = preproc_statement(state, src, &arr);
+            const bool stat_res = preproc_statement(state, &arr);
             free_token_arr(&arr);
             if (!stat_res) {
                 return false;
@@ -68,13 +57,7 @@ bool read_and_tokenize_line(struct preproc_state* state,
         } else {
             const bool res = tokenize_line(&state->res,
                                            state->err,
-                                           line,
-                                           prev_curr_line,
-                                           state->file_info.len - 1,
-                                           &src->comment_not_terminated);
-            if (line != static_buf) {
-                mycc_free(line);
-            }
+                                           &state->line_info);
             if (!res) {
                 return false;
             }
@@ -117,15 +100,10 @@ static bool is_cond_directive(const char* line) {
 }
 
 // TODO: could probably be optimized
-static bool skip_until_next_cond(struct preproc_state* state,
-                                 struct code_source* src) {
-    while (!code_source_over(src)) {
-        char static_buf[PREPROC_LINE_BUF_LEN];
-        const size_t prev_curr_line = src->current_line;
-        char* line = code_source_read_line(src,
-                                           PREPROC_LINE_BUF_LEN,
-                                           static_buf);
-        if (is_cond_directive(line)) {
+static bool skip_until_next_cond(struct preproc_state* state) {
+    while (!preproc_state_over(state)) {
+        preproc_state_read_line(state);
+        if (is_cond_directive(state->line_info.next)) {
             struct token_arr arr = {
                 .len = 0,
                 .cap = 0,
@@ -133,26 +111,14 @@ static bool skip_until_next_cond(struct preproc_state* state,
             };
             const bool res = tokenize_line(&arr,
                                            state->err,
-                                           line,
-                                           prev_curr_line,
-                                           state->file_info.len - 1,
-                                           &src->comment_not_terminated);
-
-            if (line != static_buf) {
-                mycc_free(line);
-            }
-
+                                           &state->line_info);
             if (!res) {
                 return false;
             }
 
-            const bool stat_res = preproc_statement(state, src, &arr);
+            const bool stat_res = preproc_statement(state, &arr);
             free_token_arr(&arr);
             return stat_res;
-        }
-
-        if (line != static_buf) {
-            mycc_free(line);
         }
     }
 
@@ -160,23 +126,18 @@ static bool skip_until_next_cond(struct preproc_state* state,
 }
 
 static bool handle_preproc_if(struct preproc_state* state,
-                              struct code_source* src,
                               bool cond) {
-    struct source_loc loc = {
-        .file_loc = {src->current_line, 0}, // TODO: might be current_line - 1
-        .file_idx = state->file_info.len - 1,
-    };
+    struct source_loc loc = state->line_info.curr_loc;
     push_preproc_cond(state, loc, cond);
 
     if (!cond) {
-        return skip_until_next_cond(state, src);
+        return skip_until_next_cond(state);
     }
 
     return true;
 }
 
 static bool handle_ifdef_ifndef(struct preproc_state* state,
-                                struct code_source* src,
                                 struct token_arr* arr,
                                 bool is_ifndef) {
     assert(arr);
@@ -216,11 +177,10 @@ static bool handle_ifdef_ifndef(struct preproc_state* state,
     const struct preproc_macro* macro = find_preproc_macro(state, macro_spell);
 
     const bool cond = is_ifndef ? macro == NULL : macro != NULL;
-    return handle_preproc_if(state, src, cond);
+    return handle_preproc_if(state, cond);
 }
 
 static bool handle_else_elif(struct preproc_state* state,
-                             struct code_source* src,
                              struct token_arr* arr,
                              bool is_else) {
     assert(arr->len > 1);
@@ -239,7 +199,7 @@ static bool handle_else_elif(struct preproc_state* state,
         state->err->prev_else_loc = curr_if->loc;
         return false;
     } else if (curr_if->had_true_branch) {
-        return skip_until_next_cond(state, src);
+        return skip_until_next_cond(state);
     } else if (is_else) {
         curr_if->had_else = true;
         // TODO: just continue
@@ -252,7 +212,6 @@ static bool handle_else_elif(struct preproc_state* state,
 }
 
 static bool preproc_statement(struct preproc_state* state,
-                              struct code_source* src,
                               struct token_arr* arr) {
     assert(arr);
     assert(arr->tokens);
@@ -272,9 +231,9 @@ static bool preproc_statement(struct preproc_state* state,
     if (strcmp(directive, "if") == 0) {
         // TODO:
     } else if (strcmp(directive, "ifdef") == 0) {
-        return handle_ifdef_ifndef(state, src, arr, false);
+        return handle_ifdef_ifndef(state, arr, false);
     } else if (strcmp(directive, "ifndef") == 0) {
-        return handle_ifdef_ifndef(state, src, arr, true);
+        return handle_ifdef_ifndef(state, arr, true);
     } else if (strcmp(directive, "define") == 0) {
         const struct str spell = take_spelling(&arr->tokens[2]);
         struct preproc_macro macro = parse_preproc_macro(arr,
@@ -313,9 +272,9 @@ static bool preproc_statement(struct preproc_state* state,
     } else if (strcmp(directive, "pragma") == 0) {
         // TODO:
     } else if (strcmp(directive, "elif") == 0) {
-        return handle_else_elif(state, src, arr, false);
+        return handle_else_elif(state, arr, false);
     } else if (strcmp(directive, "else") == 0) {
-        return handle_else_elif(state, src, arr, true);
+        return handle_else_elif(state, arr, true);
     } else if (strcmp(directive, "endif") == 0) {
         if (state->conds_len == 0) {
             set_preproc_err(state->err,
@@ -335,3 +294,4 @@ static bool preproc_statement(struct preproc_state* state,
 
     return true;
 }
+

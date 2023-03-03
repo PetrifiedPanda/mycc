@@ -30,7 +30,7 @@ static void test_preproc_macro(const struct preproc_macro* macro,
     const size_t tokens_len = get_tokens_len(res.toks);
 
     struct preproc_err err = create_preproc_err();
-    struct preproc_state state = create_preproc_state("source_file.c", &err);
+    struct preproc_state state = create_preproc_state_string(input, "source_file.c", &err);
     state.res = (struct token_arr){
         .len = tokens_len,
         .cap = tokens_len,
@@ -41,11 +41,7 @@ static void test_preproc_macro(const struct preproc_macro* macro,
     struct str macro_str = create_str(strlen(spell), spell);
     register_preproc_macro(&state, &macro_str, macro);
 
-    struct code_source src = {
-        ._is_str = true,
-        ._str = "",
-    };
-    ASSERT(expand_all_macros(&state, &state.res, 0, &src));
+    ASSERT(expand_all_macros(&state, &state.res, 0));
     ASSERT(err.type == PREPROC_ERR_NONE);
 
     struct preproc_err output_err = create_preproc_err();

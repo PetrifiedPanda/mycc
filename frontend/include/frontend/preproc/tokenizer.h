@@ -16,9 +16,16 @@
  */
 bool tokenize_line(struct token_arr* res,
                    struct preproc_err* err,
-                   const char* line,
-                   size_t line_num,
-                   size_t file_idx,
-                   bool* comment_not_terminated);
+                   struct line_info* info);
+
+/**
+ * @param res The token where the result is written in
+ * @param info Will be written with the advanced source location and pointer
+ * 
+ * @returns false if an error occured
+ */
+bool next_preproc_token(struct token* res,
+                        struct preproc_err* err,
+                        struct line_info* info);
 
 #endif

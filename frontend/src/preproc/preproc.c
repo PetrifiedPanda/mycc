@@ -16,23 +16,19 @@
 #include "frontend/preproc/preproc_state.h"
 #include "frontend/preproc/tokenizer.h"
 #include "frontend/preproc/num_parse.h"
-#include "frontend/preproc/code_source.h"
 #include "frontend/preproc/read_and_tokenize_line.h"
-
-static bool preproc_file(struct preproc_state* state,
-                         const char* path,
-                         struct source_loc include_loc);
 
 static enum token_type keyword_type(const char* spelling);
 
 static void append_terminator_token(struct token_arr* arr);
 
+static bool preproc_impl(struct preproc_state* state);
+
 struct preproc_res preproc(const char* path, struct preproc_err* err) {
     assert(err);
 
     struct preproc_state state = create_preproc_state(path, err);
-
-    if (!preproc_file(&state, path, (struct source_loc){(size_t)-1, {0, 0}})) {
+    if (!preproc_impl(&state)) {
         struct file_info info = state.file_info;
         state.file_info = (struct file_info){
             .len = 0,
@@ -62,18 +58,17 @@ struct preproc_res preproc(const char* path, struct preproc_err* err) {
     return res;
 }
 
-static bool preproc_src(struct preproc_state* state, struct code_source* src) {
-    while (!code_source_over(src)) {
+static bool preproc_impl(struct preproc_state* state) {
+    while (!preproc_state_over(state)) {
         const size_t prev_len = state->res.len;
-        if (!read_and_tokenize_line(state, src)) {
+        if (!read_and_tokenize_line(state)) {
             return false;
         }
 
-        if (!expand_all_macros(state, &state->res, prev_len, src)) {
+        if (!expand_all_macros(state, &state->res, prev_len)) {
             return false;
         }
     }
-
     append_terminator_token(&state->res);
     return true;
 }
@@ -84,11 +79,9 @@ struct preproc_res preproc_string(const char* str,
                                   struct preproc_err* err) {
     assert(err);
 
-    struct preproc_state state = create_preproc_state(path, err);
+    struct preproc_state state = create_preproc_state_string(str, path, err);
 
-    struct code_source src = create_code_source_string(str, path);
-
-    if (!preproc_src(&state, &src)) {
+    if (!preproc_impl(&state)) {
         free_preproc_state(&state);
         return (struct preproc_res){
             .toks = NULL,
@@ -118,31 +111,6 @@ struct preproc_res preproc_string(const char* str,
     return res;
 }
 #endif // MYCC_TEST_FUNCTIONALITY
-
-static bool preproc_file(struct preproc_state* state,
-                         const char* path,
-                         struct source_loc include_loc) {
-    const size_t current_file_idx = state->file_info.len - 1;
-    struct code_source src = create_code_source_file(path,
-                                                     state->err,
-                                                     current_file_idx,
-                                                     include_loc);
-    if (!code_source_valid(&src)) {
-        return false;
-    }
-
-    const bool res = preproc_src(state, &src);
-
-    if (!res) {
-        // TODO: what to do if closing fails
-        // TODO: error may be written twice
-        free_code_source(&src);
-        return false;
-    }
-    free_code_source(&src);
-
-    return true;
-}
 
 static void free_tokens(struct token* tokens) {
     for (struct token* it = tokens; it->type != INVALID; ++it) {
