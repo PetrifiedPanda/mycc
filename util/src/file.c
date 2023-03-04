@@ -1,6 +1,5 @@
 #include "util/file.h"
 
-#include <string.h>
 #include <stdbool.h>
 #include <assert.h>
 
@@ -19,65 +18,51 @@ static void handle_win_line_ending(int newline_char, FILE* file) {
 
 #endif
 
-void file_read_line(FILE* file,
-                    char** res,
-                    size_t* res_len,
-                    char* static_buf,
-                    size_t static_buf_len) {
-    assert(res);
-    assert(res_len);
+const char* file_read_line(FILE* file,
+                           struct str* str,
+                           size_t* res_len,
+                           char* static_buf,
+                           size_t static_buf_len) {
+    assert(file);
+    assert(str);
+    assert(static_buf_len == 0 || static_buf != NULL);
 
     int c;
-    size_t cap;
-    if (*res_len < static_buf_len) {
-        *res = static_buf;
-        bool copy_to_dyn_buf = false;
+    if (*res_len < static_buf_len && str_cap(str) < static_buf_len) {
+        bool copy_to_str = false;
         while ((c = getc(file)) != '\n' && c != '\r' && c != EOF) {
             static_buf[*res_len] = (char)c;
             ++*res_len;
             if (*res_len == static_buf_len - 1) {
-                copy_to_dyn_buf = true;
+                copy_to_str = true;
                 break;
             }
         }
 #ifndef _WIN32
         handle_win_line_ending(c, file);
 #endif
-
-        if (copy_to_dyn_buf) {
-            cap = static_buf_len * 2;
-            *res = mycc_alloc(sizeof **res * cap);
-            memcpy(*res, static_buf, sizeof **res * (static_buf_len - 1));
+        if (copy_to_str) {
+            size_t new_cap = static_buf_len * 2;
+            str_reserve(str, new_cap);
+            str_append_c_str(str, *res_len, static_buf);
         } else if (*res_len == 0 && c == EOF) {
-            *res = NULL;
-            return;
+            return NULL;
         } else {
             static_buf[*res_len] = '\0';
-            *res = static_buf;
-            return;
+            return static_buf;
         }
-    } else {
-        cap = *res_len;
     }
 
     while ((c = getc(file)) != '\n' && c != '\r' && c != EOF) {
-        if (*res_len == cap) {
-            mycc_grow_alloc((void**)res, &cap, sizeof **res);
-        }
-        (*res)[*res_len] = (char)c;
-
-        ++*res_len;
+        str_push_back(str, (char)c);
     }
-
 #ifndef _WIN32
     handle_win_line_ending(c, file);
 #endif
-
+    *res_len = str_len(str);
     if (*res_len == 0 && c == EOF) {
-        assert(*res == NULL);
-        return;
+        return NULL;
     }
-
-    *res = mycc_realloc(*res, sizeof **res * (*res_len + 1));
-    (*res)[*res_len] = '\0';
+    return str_get_data(str);
 }
+
