@@ -47,7 +47,6 @@ static void write_line_info(const struct tokenizer_state* s,
     info->curr_loc.file_loc = s->file_loc;
 }
 
-// TODO: what to do when comment is whole line
 bool next_preproc_token(struct token* res,
                         struct preproc_err* err,
                         struct line_info* info) {
@@ -65,11 +64,9 @@ bool next_preproc_token(struct token* res,
     };
 
     while (isspace(*s.it)) {
-        // TODO: how to handle escaped newlines
         advance_newline(&s);
     }
     if (*s.it == '\0') {
-        // TODO: not sure if this is the best idea
         const struct str null_str = create_null_str();
         *res = (struct token){
             .type = INVALID,
@@ -82,6 +79,22 @@ bool next_preproc_token(struct token* res,
         };
         write_line_info(&s, info);
         return true;
+    } else if (*s.it == '\\') {
+        const struct source_loc loc = {
+            s.current_file_idx,
+            s.file_loc,
+        };
+        advance_one(&s);
+        while (isblank(*s.it)) {
+            advance_one(&s);
+        }
+        if (*s.it != '\n') {
+            set_preproc_err(err, PREPROC_ERR_INVALID_BACKSLASH, loc);
+            return false;
+        }
+        advance_newline(&s);
+        write_line_info(&s, info);
+        return next_preproc_token(res, err, info);
     }
     if (info->is_in_comment) {
         handle_ongoing_comment(&s, &info->is_in_comment);
@@ -351,7 +364,6 @@ static void advance_one(struct tokenizer_state* s) {
 
 static void advance_newline(struct tokenizer_state* s) {
     if (*s->it == '\n') {
-        //assert(s->it[-1] == '\\');
         s->file_loc.line += 1;
         s->file_loc.index = 1;
     } else {
