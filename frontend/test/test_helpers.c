@@ -13,7 +13,8 @@ struct preproc_res tokenize(const char* file) {
     ASSERT_NOT_NULL(res.toks);
     ASSERT_NOT_NULL(res.file_info.paths);
     ASSERT(err.type == PREPROC_ERR_NONE);
-    const struct arch_type_info type_info = get_arch_type_info(ARCH_X86_64, false);
+    const struct arch_type_info type_info = get_arch_type_info(ARCH_X86_64,
+                                                               false);
     ASSERT(convert_preproc_tokens(res.toks, &type_info, &err));
     ASSERT(err.type == PREPROC_ERR_NONE);
     return res;
@@ -24,23 +25,10 @@ struct preproc_res tokenize_string(const char* str, const char* file) {
     struct preproc_res res = preproc_string(str, file, &err);
     ASSERT_NOT_NULL(res.toks);
     ASSERT(err.type == PREPROC_ERR_NONE);
-    const struct arch_type_info type_info = get_arch_type_info(ARCH_X86_64, false);
+    const struct arch_type_info type_info = get_arch_type_info(ARCH_X86_64,
+                                                               false);
     ASSERT(convert_preproc_tokens(res.toks, &type_info, &err));
     ASSERT(err.type == PREPROC_ERR_NONE);
-    return res;
-}
-
-/*
- * read only one line, as we do not need the functionality of reading into an
- * already existing string
- */
-static char* file_read_single_line(FILE* file,
-                                   char* static_buf,
-                                   size_t static_buf_len,
-                                   size_t* res_len) {
-    char* res = NULL;
-    *res_len = 0;
-    file_read_line(file, &res, res_len, static_buf, static_buf_len);
     return res;
 }
 
@@ -51,17 +39,22 @@ void test_compare_files(const char* got_file, const char* ex_file) {
     enum {
         BUF_LEN = 500
     };
-    char got_buf[BUF_LEN];
-    char ex_buf[BUF_LEN];
+    struct str got_str = create_empty_str();
+    struct str ex_str = create_empty_str();
+    char got_buf[BUF_LEN] = {0};
+    char ex_buf[BUF_LEN] = {0};
 
-    size_t got_len, ex_len;
+    size_t got_len = 0, ex_len = 0;
 
     size_t line_counter = 1;
 
-    char* got_line = file_read_single_line(got, got_buf, BUF_LEN, &got_len);
-    char* ex_line = file_read_single_line(ex, ex_buf, BUF_LEN, &ex_len);
+    const char* got_line = file_read_line(got,
+                                          &got_str,
+                                          &got_len,
+                                          got_buf,
+                                          BUF_LEN);
+    const char* ex_line = file_read_line(ex, &ex_str, &ex_len, ex_buf, BUF_LEN);
     while (got_line != NULL && ex_line != NULL) {
-
         if (strcmp(got_line, ex_line) != 0) {
             fclose(got);
             fclose(ex);
@@ -74,18 +67,16 @@ void test_compare_files(const char* got_file, const char* ex_file) {
                              got_line);
         }
 
-        if (got_line != got_buf) {
-            mycc_free(got_line);
-        }
-
-        if (ex_line != ex_buf) {
-            mycc_free(ex_line);
-        }
-
         ++line_counter;
 
-        got_line = file_read_single_line(got, got_buf, BUF_LEN, &got_len);
-        ex_line = file_read_single_line(ex, ex_buf, BUF_LEN, &ex_len);
+        str_clear(&got_str);
+        str_clear(&ex_str);
+        got_buf[0] = '\0';
+        ex_buf[0] = '\0';
+        got_len = ex_len = 0;
+
+        got_line = file_read_line(got, &got_str, &got_len, got_buf, BUF_LEN);
+        ex_line = file_read_line(ex, &ex_str, &ex_len, ex_buf, BUF_LEN);
     }
 
     if (got_line == NULL && ex_line != NULL) {
@@ -102,13 +93,8 @@ void test_compare_files(const char* got_file, const char* ex_file) {
                          got_line);
     }
 
-    if (got_line != got_buf) {
-        mycc_free(got_line);
-    }
-
-    if (ex_line != ex_buf) {
-        mycc_free(ex_line);
-    }
+    free_str(&got_str);
+    free_str(&ex_str);
 
     fclose(got);
     fclose(ex);
