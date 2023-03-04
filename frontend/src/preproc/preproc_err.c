@@ -202,6 +202,10 @@ void print_preproc_err(FILE* out,
             print_err_base(out, file_info, &err->base);
             fprintf(out, "Duplicate macro argument name \"%s\"", str_get_data(&err->duplicate_arg_name));
             break;
+        case PREPROC_ERR_INVALID_BACKSLASH:
+            print_err_base(out, file_info, &err->base);
+            fprintf(out, "Backslash \'\\\' only allowed at the end of a line");
+            break;
     }
     fprintf(out, "\n");
 }
@@ -277,6 +281,7 @@ void free_preproc_err(struct preproc_err* err) {
         case PREPROC_ERR_EMPTY_DEFINE:
         case PREPROC_ERR_DEFINE_NOT_ID:
         case PREPROC_ERR_EXPECTED_TOKENS:
+        case PREPROC_ERR_INVALID_BACKSLASH:
             break;
     }
 }
