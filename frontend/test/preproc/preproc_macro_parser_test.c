@@ -432,6 +432,14 @@ TEST(variadic) {
     }
 }
 
+static void is_zeroed_macro(const struct preproc_macro* got) {
+    ASSERT_BOOL(got->is_func_macro, false);
+    ASSERT_BOOL(got->is_variadic, false);
+    ASSERT_SIZE_T(got->num_args, 0);
+    ASSERT_SIZE_T(got->expansion_len, 0);
+    ASSERT_NULL(got->expansion);
+}
+
 TEST(duplicate_arg_name) {
     // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name(__VA_ARGS__)
     // : c + a
@@ -476,7 +484,7 @@ TEST(duplicate_arg_name) {
     {
         struct preproc_err err = create_preproc_err();
         struct preproc_macro got = parse_preproc_macro(&arr, &err);
-        ASSERT(memcmp(&got, &(struct preproc_macro){0}, sizeof got) == 0);
+        is_zeroed_macro(&got);
         ASSERT(err.type == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(str_get_data(&err.duplicate_arg_name), "a");
         ASSERT_SIZE_T(err.base.loc.file_idx, 0);
@@ -489,7 +497,7 @@ TEST(duplicate_arg_name) {
     {
         struct preproc_err err = create_preproc_err();
         struct preproc_macro got = parse_preproc_macro(&arr, &err);
-        ASSERT(memcmp(&got, &(struct preproc_macro){0}, sizeof got) == 0);
+        is_zeroed_macro(&got);
         ASSERT(err.type == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(str_get_data(&err.duplicate_arg_name), "c");
         ASSERT_SIZE_T(err.base.loc.file_idx, 0);
@@ -500,7 +508,7 @@ TEST(duplicate_arg_name) {
     {
         struct preproc_err err = create_preproc_err();
         struct preproc_macro got = parse_preproc_macro(&arr, &err);
-        ASSERT(memcmp(&got, &(struct preproc_macro){0}, sizeof got) == 0);
+        is_zeroed_macro(&got);
         ASSERT(err.type == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(str_get_data(&err.duplicate_arg_name), "a");
         ASSERT_SIZE_T(err.base.loc.file_idx, 0);
