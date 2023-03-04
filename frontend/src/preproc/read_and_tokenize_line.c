@@ -46,6 +46,7 @@ bool read_and_tokenize_line(struct preproc_state* state) {
                                            state->err,
                                            &state->line_info);
             if (!res) {
+                free_token_arr(&arr);
                 return false;
             }
 
