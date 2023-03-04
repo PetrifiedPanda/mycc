@@ -1,12 +1,16 @@
 #include "frontend/preproc/preproc_state.h"
 
 #include <string.h>
+#include <ctype.h>
 
 #include "util/mem.h"
+#include "util/file.h"
+#include "util/macro_util.h"
 
 #include "frontend/preproc/preproc_macro.h"
 
-struct preproc_state create_preproc_state(const char* start_file, struct preproc_err* err) {
+struct preproc_state create_preproc_state(const char* start_file,
+                                          struct preproc_err* err) {
     struct str file_name = create_str(strlen(start_file), start_file);
     FILE* file = fopen(start_file, "r");
     if (!file) {
@@ -20,14 +24,16 @@ struct preproc_state create_preproc_state(const char* start_file, struct preproc
                 .cap = 0,
                 .tokens = NULL,
             },
-        .line_info = {
-            .line = create_empty_str(),
-            .next = NULL,
-            .curr_loc = {
-                .file_idx = 0,
-                .file_loc = {0, 1},
+        .line_info =
+            {
+                .line = create_empty_str(),
+                .next = NULL,
+                .curr_loc =
+                    {
+                        .file_idx = 0,
+                        .file_loc = {0, 1},
+                    },
             },
-        },
         .file = file,
         .conds_len = 0,
         .conds_cap = 0,
@@ -42,70 +48,113 @@ struct preproc_state create_preproc_state(const char* start_file, struct preproc
     };
 }
 
-struct preproc_state create_preproc_state_string(const char* code, const char* filename, struct preproc_err* err) {
+struct preproc_state create_preproc_state_string(const char* code,
+                                                 const char* filename,
+                                                 struct preproc_err* err) {
     struct str filename_str = create_str(strlen(filename), filename);
     return (struct preproc_state){
-        .res = {
-            .len = 0,
-            .cap = 0,
-            .tokens = NULL,
-        },
-        .line_info = {
-            .line = create_empty_str(),
-            .next = code,
-            .curr_loc = {
-                .file_idx = 0,
-                .file_loc = {1, 1},
+        .res =
+            {
+                .len = 0,
+                .cap = 0,
+                .tokens = NULL,
             },
-        },
+        .line_info =
+            {
+                .line = create_empty_str(),
+                .next = code,
+                .curr_loc =
+                    {
+                        .file_idx = 0,
+                        .file_loc = {1, 1},
+                    },
+            },
         .file = NULL,
         .conds_len = 0,
         .conds_cap = 0,
         .conds = NULL,
         .err = err,
-        ._macro_map = create_string_hash_map(sizeof(struct preproc_macro), 100, true, (void (*)(void*))free_preproc_macro),
+        ._macro_map = create_string_hash_map(
+            sizeof(struct preproc_macro),
+            100,
+            true,
+            (void (*)(void*))free_preproc_macro),
         .file_info = create_file_info(&filename_str),
     };
 }
 
+static bool is_escaped_newline(const char* line, size_t len) {
+    if (len == 0) {
+        return false;
+    }
+    const char* it = line + len - 1;
+    while (isspace(*it) && it != line) {
+        --it;
+    }
+    return *it == '\\';
+}
+
 void preproc_state_read_line(struct preproc_state* state) {
     assert(state);
-    str_clear(&state->line_info.line); 
-    int c;
-    while ((c = getc(state->file)) != '\n' && c != '\r' && c != EOF) {
-        str_push_back(&state->line_info.line, (char)c);
-    }
-
-#ifndef _WIN32
-    if (c == '\r') {
-        int next = getc(state->file);
-        if (next != '\n') {
-            putc(next, state->file);
+    str_clear(&state->line_info.line);
+    size_t len = 0;
+    enum {
+        STATIC_BUF_LEN = ARR_LEN(state->line_info.static_buf),
+    };
+    char* static_buf = state->line_info.static_buf;
+    struct str* line = &state->line_info.line;
+    state->line_info.next = file_read_line(
+        state->file,
+        line,
+        &len,
+        static_buf,
+        STATIC_BUF_LEN);
+    while (is_escaped_newline(state->line_info.next, len)) {
+        if (state->line_info.next == str_get_data(line)) {
+            str_push_back(line, '\n');
+        } else if (len < STATIC_BUF_LEN - 1) {
+            static_buf[len] = '\n';
+            static_buf[len + 1] = '\0';
+        } else {
+            assert(str_len(line) == 0);
+            str_reserve(line, len + 1);
+            str_append_c_str(line, len, static_buf);
+            str_push_back(line, '\n');
         }
+        ++len;
+        state->line_info.next = file_read_line(
+            state->file,
+            line,
+            &len,
+            static_buf,
+            STATIC_BUF_LEN);
     }
-#endif
-    state->line_info.next = str_get_data(&state->line_info.line);
     state->line_info.curr_loc.file_loc.line += 1;
     state->line_info.curr_loc.file_loc.index = 1;
 }
 
 bool preproc_state_over(const struct preproc_state* state) {
-    return (state->line_info.next == NULL || *state->line_info.next == '\0') && (state->file == NULL || feof(state->file));
+    return (state->line_info.next == NULL || *state->line_info.next == '\0')
+           && (state->file == NULL || feof(state->file));
 }
 
-const struct preproc_macro* find_preproc_macro(const struct preproc_state* state,
-                                               const struct str* spelling) {
+const struct preproc_macro* find_preproc_macro(
+    const struct preproc_state* state,
+    const struct str* spelling) {
     return string_hash_map_get(&state->_macro_map, spelling);
 }
 
 void register_preproc_macro(struct preproc_state* state,
                             const struct str* spelling,
                             const struct preproc_macro* macro) {
-    bool overwritten = string_hash_map_insert_overwrite(&state->_macro_map, spelling, macro);
+    bool overwritten = string_hash_map_insert_overwrite(&state->_macro_map,
+                                                        spelling,
+                                                        macro);
     (void)overwritten; // TODO: warning if redefined
 }
 
-void remove_preproc_macro(struct preproc_state* state, const struct str* spelling) {
+void remove_preproc_macro(struct preproc_state* state,
+                          const struct str* spelling) {
     string_hash_map_remove(&state->_macro_map, spelling);
 }
 
@@ -114,8 +163,8 @@ void push_preproc_cond(struct preproc_state* state,
                        bool was_true) {
     if (state->conds_len == state->conds_cap) {
         mycc_grow_alloc((void**)&state->conds,
-                   &state->conds_cap,
-                   sizeof *state->conds);
+                        &state->conds_cap,
+                        sizeof *state->conds);
     }
 
     struct preproc_cond c = {

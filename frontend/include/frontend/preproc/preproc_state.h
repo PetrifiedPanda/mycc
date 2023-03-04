@@ -19,6 +19,7 @@ struct line_info {
     const char* next;
     struct source_loc curr_loc;
     bool is_in_comment;
+    char static_buf[200];
 };
 
 struct preproc_cond {
@@ -44,21 +45,25 @@ struct preproc_state {
 struct preproc_state create_preproc_state(const char* start_file,
                                           struct preproc_err* err);
 
-struct preproc_state create_preproc_state_string(const char* code, const char* filename, struct preproc_err* err);
+struct preproc_state create_preproc_state_string(const char* code,
+                                                 const char* filename,
+                                                 struct preproc_err* err);
 
 void preproc_state_read_line(struct preproc_state* state);
 bool preproc_state_over(const struct preproc_state* state);
 
 struct preproc_macro;
 
-const struct preproc_macro* find_preproc_macro(const struct preproc_state* state,
-                                               const struct str* spelling);
+const struct preproc_macro* find_preproc_macro(
+    const struct preproc_state* state,
+    const struct str* spelling);
 
 void register_preproc_macro(struct preproc_state* state,
                             const struct str* spelling,
                             const struct preproc_macro* macro);
 
-void remove_preproc_macro(struct preproc_state* state, const struct str* spelling);
+void remove_preproc_macro(struct preproc_state* state,
+                          const struct str* spelling);
 
 void push_preproc_cond(struct preproc_state* state,
                        struct source_loc loc,
