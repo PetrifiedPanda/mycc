@@ -34,12 +34,16 @@ struct str create_empty_str_with_cap(size_t cap);
 
 bool str_is_valid(const struct str* str);
 size_t str_len(const struct str* str);
+size_t str_cap(const struct str* str);
 
 const char* str_get_data(const struct str* str);
 char str_char_at(const struct str* str, size_t i);
 
 void str_push_back(struct str* str, char c);
 void str_shrink_to_fit(struct str* str);
+void str_reserve(struct str* str, size_t new_cap);
+
+void str_append_c_str(struct str* str, size_t len, const char* c_str);
 
 struct str str_concat(size_t len1, const char* s1, size_t len2, const char* s2);
 

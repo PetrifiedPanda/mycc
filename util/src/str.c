@@ -84,6 +84,15 @@ size_t str_len(const struct str* str) {
     }
 }
 
+size_t str_cap(const struct str* str) {
+    assert(str_is_valid(str));
+    if (str->_is_static_buf) {
+        return STATIC_BUF_LEN - 1;
+    } else {
+        return str->_cap - 1;
+    }
+}
+
 static char* str_get_mut_data(struct str* str) {
     assert(str);
     assert(str_is_valid(str));
@@ -115,21 +124,27 @@ char str_char_at(const struct str* str, size_t i) {
     }
 }
 
+static void str_move_to_dyn_buf(struct str* str, size_t dyn_buf_cap) {
+    assert(str->_is_static_buf);
+
+    size_t len = str->_small_len;
+    char* data = mycc_alloc(sizeof *data * dyn_buf_cap);
+    memcpy(data, str->_static_buf, sizeof *data * STATIC_BUF_LEN);
+    str->_cap = dyn_buf_cap;
+    str->_len = len;
+    str->_data = data;
+    str->_is_static_buf = false;
+}
+
 void str_push_back(struct str* str, char c) {
     assert(str);
     assert(str_is_valid(str));
     if (str->_is_static_buf) {
         if (str->_small_len == STATIC_BUF_LEN - 1) {
-            size_t len = str->_small_len;
-            char* data = mycc_alloc(sizeof *data * (STATIC_BUF_LEN + 1));
-            memcpy(data, str->_static_buf, sizeof *data * (STATIC_BUF_LEN - 1));
-            data[len] = c;
-            ++len;
-            data[len] = '\0';
-            str->_cap = len + 1;
-            str->_len = len;
-            str->_data = data;
-            str->_is_static_buf = false;
+            str_move_to_dyn_buf(str, STATIC_BUF_LEN + 1);
+            str->_data[str->_len] = c;
+            ++str->_len;
+            str->_data[str->_len] = '\0';
         } else {
             str->_static_buf[str->_small_len] = c;
             ++str->_small_len;
@@ -137,7 +152,9 @@ void str_push_back(struct str* str, char c) {
         }
     } else {
         if (str->_len == str->_cap - 1) {
-            mycc_grow_alloc((void**)&str->_data, &str->_cap, sizeof *str->_data);
+            mycc_grow_alloc((void**)&str->_data,
+                            &str->_cap,
+                            sizeof *str->_data);
         }
         str->_data[str->_len] = c;
         ++str->_len;
@@ -152,6 +169,38 @@ void str_shrink_to_fit(struct str* str) {
         str->_cap = str->_len + 1;
         str->_data = mycc_realloc(str->_data, sizeof *str->_data * str->_cap);
     }
+}
+
+void str_reserve(struct str* str, size_t new_cap) {
+    if (str->_is_static_buf) {
+        if (new_cap >= STATIC_BUF_LEN) {
+            str_move_to_dyn_buf(str, new_cap);
+        }
+    } else if (str->_cap < new_cap) {
+        str->_data = mycc_realloc(str->_data, sizeof *str->_data * new_cap);
+    }
+}
+
+static void str_set_len(struct str* str, size_t len) {
+    if (str->_is_static_buf) {
+        assert(len < STATIC_BUF_LEN);
+        str->_small_len = len;
+    } else {
+        str->_len = len;
+    }
+}
+
+void str_append_c_str(struct str* str, size_t len, const char* c_str) {
+    const size_t curr_len = str_len(str);
+    const size_t new_len = str_len(str) + len;
+    if (str_cap(str) < new_len) {
+        str_reserve(str, new_len);
+    }
+
+    char* data = str_get_mut_data(str);
+    memcpy(data + curr_len, c_str, sizeof *c_str * len);
+    data[new_len] = '\0';
+    str_set_len(str, new_len);
 }
 
 struct str str_concat(size_t len1,
@@ -194,7 +243,6 @@ struct str str_copy(const struct str* str) {
         }
     }
 }
-
 
 void str_clear(struct str* str) {
     if (str->_is_static_buf) {
