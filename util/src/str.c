@@ -184,7 +184,7 @@ void str_reserve(struct str* str, size_t new_cap) {
 static void str_set_len(struct str* str, size_t len) {
     if (str->_is_static_buf) {
         assert(len < STATIC_BUF_LEN);
-        str->_small_len = len;
+        str->_small_len = (uint8_t)len;
     } else {
         str->_len = len;
     }

@@ -175,7 +175,7 @@ static void pretty_print_size_t(FILE* out, size_t n) {
     size_t num_digits_to_print = num_digits - 1;
     size_t pow = pow_size_t(10, num_digits_to_print);
     while (num_digits_to_print != 0) {
-        const size_t to_print = remainder / pow;
+        const int to_print = (int)(remainder / pow);
         remainder -= pow * to_print;
         fputc('0' + to_print, out);
         if (num_digits_to_print % 3 == 0) {
@@ -184,7 +184,7 @@ static void pretty_print_size_t(FILE* out, size_t n) {
         --num_digits_to_print;
         pow /= 10;
     }
-    fputc('0' + remainder, out);
+    fputc('0' + (int)remainder, out);
 }
 
 static void memdebug_cleanup(void) {
