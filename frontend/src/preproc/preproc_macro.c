@@ -476,7 +476,8 @@ struct macro_args collect_macro_args(struct token* args_start,
                                      struct preproc_err* err) {
     assert(args_start->type == LBRACKET);
 
-    size_t cap = is_variadic ? expected_args + 1 : expected_args;
+    const size_t cap = is_variadic ? expected_args + 1 : expected_args;
+    assert(cap != 0 || args_start + 1 == limit_ptr);
     struct macro_args res = {
         .len = 0,
         .arrs = cap == 0 ? NULL : mycc_alloc(sizeof *res.arrs * cap),
