@@ -139,12 +139,7 @@ static struct expansion_info find_and_expand_macro(
                 return (struct expansion_info){0, (size_t)-1};
             }
             assert(macro_end != (size_t)-1);
-            return expand_func_macro(state,
-                                     res,
-                                     macro,
-                                     i,
-                                     macro_end,
-                                     expanded);
+            return expand_func_macro(state, res, macro, i, macro_end, expanded);
         } else {
             // not considered func_macro without brackets
             return (struct expansion_info){0, i + 1};
@@ -351,14 +346,14 @@ fail:
 static struct token move_token(struct token* t);
 
 static struct preproc_macro parse_object_like_macro(struct token_arr* arr) {
+    const size_t ex_len = arr->len - 3;
     struct preproc_macro res = {
         .is_func_macro = false,
         .num_args = 0,
         .is_variadic = false,
-        .expansion_len = arr->len - 3,
-        .expansion = res.expansion_len == 0 ? NULL
-                                            : mycc_alloc(sizeof *res.expansion
-                                                         * res.expansion_len),
+        .expansion_len = ex_len,
+        .expansion = ex_len == 0 ? NULL
+                                 : mycc_alloc(sizeof *res.expansion * ex_len),
     };
 
     for (size_t i = 3; i < arr->len; ++i) {
