@@ -4,9 +4,7 @@ file(GLOB Sources src/*.c
                   src/preproc/*.c
                   src/ast/*.c
                   src/ast/expr/*.c
-                  src/ast/statement/*.c
                   src/ast/declaration/*.c
-                  src/ast/initializer/*.c
                   src/parser/*.c)
 
 add_library(${This} OBJECT ${Sources})

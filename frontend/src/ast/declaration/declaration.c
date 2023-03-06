@@ -50,15 +50,6 @@ bool parse_declaration_inplace(struct parser_state* s,
     return true;
 }
 
-struct declaration* parse_declaration(struct parser_state* s) {
-    struct declaration* res = mycc_alloc(sizeof *res);
-    if (!parse_declaration_inplace(s, res)) {
-        mycc_free(res);
-        return NULL;
-    }
-    return res;
-}
-
 void free_declaration_children(struct declaration* d) {
     if (d->is_normal_decl) {
         free_declaration_specs(d->decl_specs);

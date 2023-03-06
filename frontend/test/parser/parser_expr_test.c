@@ -292,14 +292,14 @@ static void test_postfix_expr_intializer(bool tailing_comma) {
     ASSERT(res->is_primary == false);
     ASSERT_SIZE_T(res->init_list.len, (size_t)2);
 
-    ASSERT_NULL(res->init_list.inits[0].designation);
-    ASSERT(res->init_list.inits[0].init->is_assign);
-    check_assign_expr_int(res->init_list.inits[0].init->assign,
+    ASSERT(!is_valid_designation(&res->init_list.inits[0].designation));
+    ASSERT(res->init_list.inits[0].init.is_assign);
+    check_assign_expr_int(res->init_list.inits[0].init.assign,
                           create_int_value(INT_VALUE_I, 1));
 
-    ASSERT_NULL(res->init_list.inits[1].designation);
-    ASSERT(res->init_list.inits[1].init->is_assign);
-    check_assign_expr_id(res->init_list.inits[1].init->assign, "test");
+    ASSERT(!is_valid_designation(&res->init_list.inits[1].designation));
+    ASSERT(res->init_list.inits[1].init.is_assign);
+    check_assign_expr_id(res->init_list.inits[1].init.assign, "test");
 
     free_postfix_expr(res);
 }
@@ -496,9 +496,9 @@ TEST(assign_expr) {
         ASSERT_SIZE_T(unary->postfix->len, (size_t)0);
 
         ASSERT_SIZE_T(unary->postfix->init_list.len, (size_t)2);
-        check_assign_expr_int(unary->postfix->init_list.inits[0].init->assign,
+        check_assign_expr_int(unary->postfix->init_list.inits[0].init.assign,
                               create_int_value(INT_VALUE_I, 1));
-        check_assign_expr_id(unary->postfix->init_list.inits[1].init->assign,
+        check_assign_expr_id(unary->postfix->init_list.inits[1].init.assign,
                              "var");
 
         check_cond_expr_float(res->value,
@@ -540,13 +540,13 @@ TEST(assign_expr) {
         ASSERT(unary->postfix->is_primary == false);
         ASSERT_SIZE_T(unary->postfix->init_list.len, (size_t)2);
 
-        ASSERT_NULL(unary->postfix->init_list.inits[0].designation);
-        ASSERT(unary->postfix->init_list.inits[0].init->is_assign);
-        check_assign_expr_int(unary->postfix->init_list.inits[0].init->assign,
+        ASSERT(!is_valid_designation(&unary->postfix->init_list.inits[0].designation));
+        ASSERT(unary->postfix->init_list.inits[0].init.is_assign);
+        check_assign_expr_int(unary->postfix->init_list.inits[0].init.assign,
                               create_int_value(INT_VALUE_I, 1));
-        ASSERT_NULL(unary->postfix->init_list.inits[1].designation);
-        ASSERT(unary->postfix->init_list.inits[1].init->is_assign);
-        check_assign_expr_id(unary->postfix->init_list.inits[1].init->assign,
+        ASSERT(!is_valid_designation(&unary->postfix->init_list.inits[1].designation));
+        ASSERT(unary->postfix->init_list.inits[1].init.is_assign);
+        check_assign_expr_id(unary->postfix->init_list.inits[1].init.assign,
                              "var");
 
         free_assign_expr(res);

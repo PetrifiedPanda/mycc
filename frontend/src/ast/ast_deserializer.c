@@ -533,42 +533,43 @@ static bool deserialize_designator_list(struct ast_deserializer* r,
     return true;
 }
 
-static struct designation* deserialize_designation(struct ast_deserializer* r) {
-    struct designation* res = mycc_alloc(sizeof *res);
+static bool deserialize_designation(struct ast_deserializer* r, struct designation* res) {
     if (!deserialize_designator_list(r, &res->designators)) {
-        mycc_free(res);
-        return NULL;
+        return false;
     }
-    return res;
+    return true;
 }
 
 static bool deserialize_init_list(struct ast_deserializer* r,
                                   struct init_list* res);
 
-static struct initializer* deserialize_initializer(struct ast_deserializer* r) {
-    struct ast_node_info info;
-    if (!deserialize_ast_node_info(r, &info)) {
-        return NULL;
+static bool deserialize_initializer_inplace(struct ast_deserializer* r, struct initializer* res) {
+    if (!deserialize_ast_node_info(r, &res->info)) {
+        return false;
     }
 
-    bool is_assign;
-    if (!deserialize_bool(r, &is_assign)) {
-        return NULL;
+    if (!deserialize_bool(r, &res->is_assign)) {
+        return false;
     }
-    struct initializer* res = mycc_alloc(sizeof *res);
-    res->info = info;
-    res->is_assign = is_assign;
-    if (is_assign) {
+    if (res->is_assign) {
         res->assign = deserialize_assign_expr(r);
         if (!res->assign) {
-            mycc_free(res);
-            return NULL;
+            return false;
         }
     } else {
         if (!deserialize_init_list(r, &res->init_list)) {
-            mycc_free(res);
-            return NULL;
+            return false;
         }
+    }
+    return true;
+
+}
+
+static struct initializer* deserialize_initializer(struct ast_deserializer* r) {
+    struct initializer* res = mycc_alloc(sizeof *res);
+    if (!deserialize_initializer_inplace(r, res)) {
+        mycc_free(res);
+        return NULL;
     }
     return res;
 }
@@ -581,18 +582,16 @@ static bool deserialize_designation_init(struct ast_deserializer* r,
     }
 
     if (has_designation) {
-        res->designation = deserialize_designation(r);
-        if (!res->designation) {
+        if (!deserialize_designation(r, &res->designation)) {
             return false;
         }
     } else {
-        res->designation = NULL;
+        res->designation = create_invalid_designation();
     }
 
-    res->init = deserialize_initializer(r);
-    if (!res->init) {
+    if (!deserialize_initializer_inplace(r, &res->init)) {
         if (has_designation) {
-            free_designation(res->designation);
+            free_designation_children(&res->designation);
         }
         return false;
     }
@@ -2107,8 +2106,6 @@ fail_after_expr:
     return NULL;
 }
 
-static struct declaration* deserialize_declaration(struct ast_deserializer* r);
-
 static bool deserialize_for_loop(struct ast_deserializer* r,
                                  struct for_loop* res) {
     if (!deserialize_bool(r, &res->is_decl)) {
@@ -2116,8 +2113,7 @@ static bool deserialize_for_loop(struct ast_deserializer* r,
     }
 
     if (res->is_decl) {
-        res->init_decl = deserialize_declaration(r);
-        if (!res->init_decl) {
+        if (!deserialize_declaration_inplace(r, &res->init_decl)) {
             return false;
         }
     } else {
@@ -2141,7 +2137,7 @@ fail_after_cond:
     free_expr_statement(res->cond);
 fail_before_cond:
     if (res->is_decl) {
-        free_declaration(res->init_decl);
+        free_declaration_children(&res->init_decl);
     } else {
         free_expr_statement(res->init_expr);
     }
@@ -2406,14 +2402,6 @@ static bool deserialize_declaration_inplace(struct ast_deserializer* r,
         }
     }
     return true;
-}
-
-static struct declaration* deserialize_declaration(struct ast_deserializer* r) {
-    struct declaration* res = mycc_alloc(sizeof *res);
-    if (!deserialize_declaration_inplace(r, res)) {
-        return NULL;
-    }
-    return res;
 }
 
 static bool deserialize_external_declaration(struct ast_deserializer* r,

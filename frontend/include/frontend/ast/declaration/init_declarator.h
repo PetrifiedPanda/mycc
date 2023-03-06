@@ -20,7 +20,7 @@ void free_init_declarator_children(struct init_declarator* d);
 
 #include "frontend/ast/declaration/declarator.h"
 
-#include "frontend/ast/initializer/initializer.h"
+#include "frontend/ast/initializer.h"
 
 #endif
 

@@ -21,8 +21,6 @@ struct declaration {
 
 bool parse_declaration_inplace(struct parser_state* s, struct declaration* res);
 
-struct declaration* parse_declaration(struct parser_state* s);
-
 void free_declaration_children(struct declaration* d);
 void free_declaration(struct declaration* d);
 

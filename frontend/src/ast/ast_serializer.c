@@ -272,12 +272,12 @@ static void serialize_initializer(struct ast_serializer* d,
 
 static void serialize_designation_init(struct ast_serializer* d,
                                        const struct designation_init* init) {
-    const bool has_designation = init->designation != NULL;
+    const bool has_designation = is_valid_designation(&init->designation);
     serialize_bool(d, has_designation);
     if (has_designation) {
-        serialize_designation(d, init->designation);
+        serialize_designation(d, &init->designation);
     }
-    serialize_initializer(d, init->init);
+    serialize_initializer(d, &init->init);
 }
 
 static void serialize_init_list(struct ast_serializer* d,
@@ -922,7 +922,7 @@ static void serialize_for_loop(struct ast_serializer* d,
                                const struct for_loop* loop) {
     serialize_bool(d, loop->is_decl);
     if (loop->is_decl) {
-        serialize_declaration(d, loop->init_decl);
+        serialize_declaration(d, &loop->init_decl);
     } else {
         serialize_expr_statement(d, loop->init_expr);
     }

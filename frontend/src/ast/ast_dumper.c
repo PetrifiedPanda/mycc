@@ -1221,7 +1221,7 @@ static void dump_iteration_statement(struct ast_dumper* d,
         case ITERATION_STATEMENT_FOR:
             dumper_println(d, "type: for");
             if (s->for_loop.is_decl) {
-                dump_declaration(d, s->for_loop.init_decl);
+                dump_declaration(d, &s->for_loop.init_decl);
             } else {
                 dump_expr_statement(d, s->for_loop.init_expr);
             }
@@ -1403,10 +1403,10 @@ static void dump_designation_init(struct ast_dumper* d,
 
     add_indent(d);
 
-    if (i->designation) {
-        dump_designation(d, i->designation);
+    if (is_valid_designation(&i->designation)) {
+        dump_designation(d, &i->designation);
     }
-    dump_initializer(d, i->init);
+    dump_initializer(d, &i->init);
 
     remove_indent(d);
 }

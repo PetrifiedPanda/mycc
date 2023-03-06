@@ -233,8 +233,8 @@ static bool compare_initializers(const struct initializer* i1,
 
 static bool compare_designation_inits(const struct designation_init* i1,
                                       const struct designation_init* i2) {
-    COMPARE_NULLABLE(i1->designation, i2->designation, compare_designations);
-    return compare_initializers(i1->init, i2->init);
+    ASSERT(compare_designations(&i1->designation, &i2->designation));
+    return compare_initializers(&i1->init, &i2->init);
 }
 
 static bool compare_init_list(const struct init_list* l1,
@@ -887,7 +887,7 @@ static bool compare_for_loops(const struct for_loop* l1,
                               const struct for_loop* l2) {
     ASSERT(l1->is_decl == l2->is_decl);
     if (l1->is_decl) {
-        ASSERT(compare_declarations(l1->init_decl, l2->init_decl));
+        ASSERT(compare_declarations(&l1->init_decl, &l2->init_decl));
     } else {
         ASSERT(compare_expr_statements(l1->init_expr, l2->init_expr));
     }

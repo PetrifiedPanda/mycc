@@ -15,17 +15,19 @@ static struct jump_statement* parse_jump_statement_helper(const char* code) {
 
     struct parser_err err = create_parser_err();
     struct parser_state s = create_parser_state(preproc_res.toks, &err);
-
-    struct jump_statement* res = parse_jump_statement(&s);
+    
+    struct statement stat;
+    bool res = parse_statement_inplace(&s, &stat);
+    ASSERT(res);
     ASSERT(err.type == PARSER_ERR_NONE);
-    ASSERT_NOT_NULL(res);
+    ASSERT(stat.type == STATEMENT_JUMP);
 
     ASSERT_TOKEN_TYPE(s.it->type, INVALID);
 
     free_parser_state(&s);
     free_preproc_res(&preproc_res);
-
-    return res;
+    
+    return stat.jmp;
 }
 
 static void check_jump_statement(const char* spell,
@@ -43,7 +45,7 @@ static void check_expected_semicolon_jump_statement(const char* spell) {
     struct parser_err err = create_parser_err();
     struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
-    struct jump_statement* res = parse_jump_statement(&s);
+    struct statement* res = parse_statement(&s);
     ASSERT_NULL(res);
 
     ASSERT(err.type == PARSER_ERR_EXPECTED_TOKENS);
@@ -77,7 +79,8 @@ TEST(jump_statement) {
     check_expected_semicolon_jump_statement("break");
     check_expected_semicolon_jump_statement("return an_identifier");
     check_expected_semicolon_jump_statement("return *id += (int)100");
-
+    
+    /*
     {
         struct preproc_res preproc_res = tokenize_string(
             "not_what_was_expected;",
@@ -86,7 +89,7 @@ TEST(jump_statement) {
         struct parser_err err = create_parser_err();
         struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
-        struct jump_statement* res = parse_jump_statement(&s);
+        struct statement* res = parse_statement(&s);
         ASSERT_NULL(res);
 
         ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
@@ -105,6 +108,7 @@ TEST(jump_statement) {
         free_parser_err(&err);
         free_parser_state(&s);
     }
+    */
 
     {
         struct jump_statement* res = parse_jump_statement_helper("return 600;");

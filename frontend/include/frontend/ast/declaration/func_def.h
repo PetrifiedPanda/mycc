@@ -19,7 +19,7 @@ void free_func_def_children(struct func_def* d);
 #include "declaration_specs.h"
 #include "declarator.h"
 
-#include "frontend/ast/statement/compound_statement.h"
+#include "frontend/ast/statement.h"
 
 #endif
 

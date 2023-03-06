@@ -3,7 +3,7 @@
 
 #include "arg_expr_list.h"
 
-#include "frontend/ast/initializer/init_list.h"
+#include "frontend/ast/initializer.h"
 
 struct primary_expr;
 struct expr;
