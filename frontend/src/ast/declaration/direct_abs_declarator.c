@@ -15,7 +15,10 @@ static bool parse_abs_func_suffix(struct parser_state* s,
     if (s->it->type == RBRACKET) {
         res->func_types = (struct param_type_list){
             .is_variadic = false,
-            .param_list = NULL,
+            .param_list = {
+                .len = 0,
+                .decls = NULL,
+            },
         };
         accept_it(s);
     } else {

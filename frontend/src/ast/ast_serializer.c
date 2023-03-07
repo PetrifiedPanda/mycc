@@ -612,7 +612,7 @@ static void serialize_param_list(struct ast_serializer* d,
 static void serialize_param_type_list(struct ast_serializer* d,
                                       const struct param_type_list* lst) {
     serialize_bool(d, lst->is_variadic);
-    serialize_param_list(d, lst->param_list);
+    serialize_param_list(d, &lst->param_list);
 }
 
 static void serialize_identifier_list(struct ast_serializer* d,

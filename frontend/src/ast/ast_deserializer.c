@@ -1366,21 +1366,20 @@ static bool deserialize_param_declaration(struct ast_deserializer* r,
     UNREACHABLE();
 }
 
-static struct param_list* deserialize_param_list(struct ast_deserializer* r) {
+static bool deserialize_param_list(struct ast_deserializer* r, struct param_list* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
-        return NULL;
+        return false;
     }
 
-    struct param_list* res = mycc_alloc(sizeof *res);
-    res->decls = mycc_alloc(sizeof *res->decls * len);
+    res->decls = alloc_or_null(sizeof *res->decls * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_param_declaration(r, &res->decls[res->len])) {
             free_param_list(res);
-            return NULL;
+            return false;
         }
     }
-    return res;
+    return true;
 }
 
 static bool deserialize_param_type_list(struct ast_deserializer* r,
@@ -1388,8 +1387,7 @@ static bool deserialize_param_type_list(struct ast_deserializer* r,
     if (!deserialize_bool(r, &res->is_variadic)) {
         return false;
     }
-    res->param_list = deserialize_param_list(r);
-    return res->param_list != NULL;
+    return deserialize_param_list(r, &res->param_list);
 }
 
 static bool deserialize_identifier_list(struct ast_deserializer* r,

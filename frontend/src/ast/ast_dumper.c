@@ -1000,7 +1000,7 @@ static void dump_param_type_list(struct ast_dumper* d,
     add_indent(d);
 
     dumper_println(d, "is_variadic: %s", bool_to_str(l->is_variadic));
-    dump_param_list(d, l->param_list);
+    dump_param_list(d, &l->param_list);
 
     remove_indent(d);
 }

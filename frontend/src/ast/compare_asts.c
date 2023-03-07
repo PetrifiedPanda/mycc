@@ -566,7 +566,7 @@ static bool compare_param_lists(const struct param_list* l1,
 static bool compare_param_type_lists(const struct param_type_list* l1,
                                      const struct param_type_list* l2) {
     ASSERT(l1->is_variadic == l2->is_variadic);
-    return compare_param_lists(l1->param_list, l2->param_list);
+    return compare_param_lists(&l1->param_list, &l2->param_list);
 }
 
 static bool compare_identifier_lists(const struct identifier_list* l1,
