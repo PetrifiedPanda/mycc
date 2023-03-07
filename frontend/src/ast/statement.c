@@ -113,7 +113,7 @@ static void free_block_item_children(struct block_item* i) {
     }
 }
 
-static void free_compound_statement_children(struct compound_statement* s) {
+void free_compound_statement_children(struct compound_statement* s) {
     for (size_t i = 0; i < s->len; ++i) {
         free_block_item_children(&s->items[i]);
     }
@@ -125,16 +125,14 @@ void free_compound_statement(struct compound_statement* s) {
     mycc_free(s);
 }
 
-struct compound_statement* parse_compound_statement(struct parser_state* s) {
-    const struct source_loc loc = s->it->loc;
+bool parse_compound_statement_inplace(struct parser_state* s,
+                                      struct compound_statement* res) {
+    res->info = create_ast_node_info(s->it->loc);
     if (!accept(s, LBRACE)) {
-        return NULL;
+        return false;
     }
 
     parser_push_scope(s);
-
-    struct compound_statement* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(loc);
     res->items = NULL;
     res->len = 0;
 
@@ -147,8 +145,8 @@ struct compound_statement* parse_compound_statement(struct parser_state* s) {
         }
 
         if (!parse_block_item_inplace(s, &res->items[res->len])) {
-            free_compound_statement(res);
-            return NULL;
+            free_compound_statement_children(res);
+            return false;
         }
 
         ++res->len;
@@ -161,6 +159,16 @@ struct compound_statement* parse_compound_statement(struct parser_state* s) {
 
     parser_pop_scope(s);
 
+    return true;
+}
+
+static struct compound_statement* parse_compound_statement(
+    struct parser_state* s) {
+    struct compound_statement* res = mycc_alloc(sizeof *res);
+    if (!parse_compound_statement_inplace(s, res)) {
+        mycc_free(res);
+        return NULL;
+    }
     return res;
 }
 

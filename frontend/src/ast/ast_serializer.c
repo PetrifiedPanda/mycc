@@ -1028,7 +1028,7 @@ static void serialize_func_def(struct ast_serializer* d,
     serialize_declaration_specs(d, def->specs);
     serialize_declarator(d, def->decl);
     serialize_declaration_list(d, &def->decl_list);
-    serialize_compound_statement(d, def->comp);
+    serialize_compound_statement(d, &def->comp);
 }
 
 static void serialize_init_declarator(struct ast_serializer* d,

@@ -94,7 +94,7 @@ static void check_external_decl_func_def(
 
     check_storage_class(&d->func_def.specs->storage_class, storage_class);
     check_func_specs(&d->func_def.specs->func_specs, func_specs);
-    ASSERT_SIZE_T(d->func_def.comp->len, body_len);
+    ASSERT_SIZE_T(d->func_def.comp.len, body_len);
 }
 
 static void check_external_decl_func_def_enum(

@@ -1343,7 +1343,7 @@ static void dump_func_def(struct ast_dumper* d, const struct func_def* f) {
     dump_declaration_specs(d, f->specs);
     dump_declarator(d, f->decl);
     dump_declaration_list(d, &f->decl_list);
-    dump_compound_statement(d, f->comp);
+    dump_compound_statement(d, &f->comp);
 
     remove_indent(d);
 }

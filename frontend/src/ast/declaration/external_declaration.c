@@ -92,8 +92,7 @@ static bool parse_external_declaration_func_def(
         };
     }
 
-    func_def->comp = parse_compound_statement(s);
-    if (!func_def->comp) {
+    if (!parse_compound_statement_inplace(s, &func_def->comp)) {
         free_declaration_specs(decl_specs);
         free_declarator(first_decl);
         free_declaration_list(&func_def->decl_list);

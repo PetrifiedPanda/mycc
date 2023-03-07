@@ -3,23 +3,22 @@
 
 #include "declaration_list.h"
 
+#include "frontend/ast/statement.h"
+
 struct declaration_specs;
 struct declarator;
-struct compound_statement;
 
 struct func_def {
     struct declaration_specs* specs;
     struct declarator* decl;
     struct declaration_list decl_list;
-    struct compound_statement* comp;
+    struct compound_statement comp;
 };
 
 void free_func_def_children(struct func_def* d);
 
 #include "declaration_specs.h"
 #include "declarator.h"
-
-#include "frontend/ast/statement.h"
 
 #endif
 

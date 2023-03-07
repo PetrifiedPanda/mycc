@@ -952,7 +952,7 @@ static bool compare_func_defs(const struct func_def* d1,
     ASSERT(compare_declaration_specs(d1->specs, d2->specs));
     ASSERT(compare_declarators(d1->decl, d2->decl));
     ASSERT(compare_declaration_lists(&d1->decl_list, &d2->decl_list));
-    return compare_compound_statements(d1->comp, d2->comp);
+    return compare_compound_statements(&d1->comp, &d2->comp);
 }
 
 static bool compare_external_declarations(

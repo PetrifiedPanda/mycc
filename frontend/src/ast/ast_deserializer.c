@@ -2291,26 +2291,33 @@ static bool deserialize_block_item(struct ast_deserializer* r,
     }
 }
 
-static struct compound_statement* deserialize_compound_statement(
-    struct ast_deserializer* r) {
-    struct ast_node_info info;
-    if (!deserialize_ast_node_info(r, &info)) {
-        return NULL;
+static bool deserialize_compound_statement_inplace(struct ast_deserializer* r, struct compound_statement* res) {
+    if (!deserialize_ast_node_info(r, &res->info)) {
+        return false;
     }
 
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
-        return NULL;
+        return false;
     }
+    res->len = len;
 
-    struct compound_statement* res = mycc_alloc(sizeof *res);
-    res->info = info;
     res->items = alloc_or_null(sizeof *res->items * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_block_item(r, &res->items[res->len])) {
             free_compound_statement(res);
-            return NULL;
+            return false;
         }
+    }
+    return true;
+}
+
+static struct compound_statement* deserialize_compound_statement(
+    struct ast_deserializer* r) {
+    struct compound_statement* res = mycc_alloc(sizeof *res);
+    if (!deserialize_compound_statement_inplace(r, res)) {
+        mycc_free(res);
+        return NULL;
     }
     return res;
 }
@@ -2331,8 +2338,7 @@ static bool deserialize_func_def(struct ast_deserializer* r,
         free_declarator(res->decl);
         return false;
     }
-    res->comp = deserialize_compound_statement(r);
-    if (!res->comp) {
+    if (!deserialize_compound_statement_inplace(r, &res->comp)) {
         free_declaration_specs(res->specs);
         free_declarator(res->decl);
         free_declaration_list(&res->decl_list);

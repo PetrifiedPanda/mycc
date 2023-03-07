@@ -125,12 +125,11 @@ struct jump_statement {
     };
 };
 
-
 bool parse_statement_inplace(struct parser_state* s, struct statement* res);
 struct statement* parse_statement(struct parser_state* s);
 
-
-struct compound_statement* parse_compound_statement(struct parser_state* s);
+bool parse_compound_statement_inplace(struct parser_state* s,
+                                      struct compound_statement* res);
 
 void free_statement_children(struct statement* s);
 void free_statement(struct statement* s);
@@ -138,6 +137,7 @@ void free_statement(struct statement* s);
 void free_labeled_statement(struct labeled_statement* s);
 
 void free_compound_statement(struct compound_statement* s);
+void free_compound_statement_children(struct compound_statement* s);
 
 void free_expr_statement(struct expr_statement* s);
 
