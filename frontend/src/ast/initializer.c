@@ -101,7 +101,8 @@ void free_designator_list(struct designator_list* l) {
     mycc_free(l->designators);
 }
 
-static bool parse_designation_inplace(struct parser_state* s, struct designation* res) {
+static bool parse_designation_inplace(struct parser_state* s,
+                                      struct designation* res) {
     if (!parse_designator_list(s, &res->designators)) {
         return false;
     }
@@ -111,7 +112,7 @@ static bool parse_designation_inplace(struct parser_state* s, struct designation
         return false;
     }
 
-    return true; 
+    return true;
 }
 
 struct designation* parse_designation(struct parser_state* s) {
@@ -132,15 +133,17 @@ void free_designation(struct designation* d) {
     mycc_free(d);
 }
 
-static bool parse_initializer_inplace(struct parser_state* s, struct initializer* res);
+static bool parse_initializer_inplace(struct parser_state* s,
+                                      struct initializer* res);
 bool is_valid_designation(const struct designation* d);
 
 struct designation create_invalid_designation(void) {
     return (struct designation){
-        .designators = {
-            .len = 0,
-            .designators = NULL,
-        },
+        .designators =
+            {
+                .len = 0,
+                .designators = NULL,
+            },
     };
 }
 
@@ -153,7 +156,7 @@ static bool parse_designation_init(struct parser_state* s,
     } else {
         res->designation = create_invalid_designation();
     }
-    
+
     if (!parse_initializer_inplace(s, &res->init)) {
         if (is_valid_designation(&res->designation)) {
             free_designation_children(&res->designation);
@@ -215,7 +218,8 @@ void free_init_list_children(struct init_list* l) {
     mycc_free(l->inits);
 }
 
-static bool parse_initializer_inplace(struct parser_state* s, struct initializer* res) {
+static bool parse_initializer_inplace(struct parser_state* s,
+                                      struct initializer* res) {
     res->info = create_ast_node_info(s->it->loc);
     if (s->it->type == LBRACE) {
         res->is_assign = false;
@@ -239,7 +243,7 @@ static bool parse_initializer_inplace(struct parser_state* s, struct initializer
             return false;
         }
     }
-    return true; 
+    return true;
 }
 
 struct initializer* parse_initializer(struct parser_state* s) {
