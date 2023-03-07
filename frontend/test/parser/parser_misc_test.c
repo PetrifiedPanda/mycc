@@ -302,36 +302,39 @@ static void check_struct_declaration_non_static_assert(
 
 TEST(struct_declaration_list) {
     struct preproc_res preproc_res = tokenize_string(
-        "int n: 20; int: 10; double a_double; int;",
+        "struct { int n: 20; int: 10; double a_double; int; }",
         "maybe_a_file.c");
 
     struct parser_err err = create_parser_err();
     struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
-    struct struct_declaration_list res;
-    ASSERT(parse_struct_declaration_list(&s, &res));
-    ASSERT_SIZE_T(res.len, (size_t)4);
+    struct struct_union_spec* su_spec = parse_struct_union_spec(&s);
+    ASSERT(su_spec->is_struct);
+    ASSERT_NULL(su_spec->identifier);
+    ASSERT(s.it->type == INVALID);
+    struct struct_declaration_list* res = &su_spec->decl_list;
+    ASSERT_SIZE_T(res->len, (size_t)4);
 
-    check_struct_declaration_non_static_assert(&res.decls[0],
+    check_struct_declaration_non_static_assert(&res->decls[0],
                                                TYPE_SPEC_INT,
                                                "n",
                                                20);
-    check_struct_declaration_non_static_assert(&res.decls[1],
+    check_struct_declaration_non_static_assert(&res->decls[1],
                                                TYPE_SPEC_INT,
                                                NULL,
                                                10);
-    check_struct_declaration_non_static_assert(&res.decls[2],
+    check_struct_declaration_non_static_assert(&res->decls[2],
                                                TYPE_SPEC_DOUBLE,
                                                "a_double",
                                                -1);
-    check_struct_declaration_non_static_assert(&res.decls[3],
+    check_struct_declaration_non_static_assert(&res->decls[3],
                                                TYPE_SPEC_INT,
                                                NULL,
                                                -1);
 
     free_preproc_res(&preproc_res);
     free_parser_state(&s);
-    free_struct_declaration_list(&res);
+    free_struct_union_spec(su_spec);
 }
 
 TEST(redefine_typedef) {
