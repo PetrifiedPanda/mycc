@@ -56,8 +56,6 @@ struct designation_init {
 struct initializer* parse_initializer(struct parser_state* s);
 bool parse_init_list(struct parser_state* s, struct init_list* res);
 
-struct designation* parse_designation(struct parser_state* s);
-
 struct designation create_invalid_designation(void);
 
 void free_initializer_children(struct initializer* i);

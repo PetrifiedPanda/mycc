@@ -115,15 +115,6 @@ static bool parse_designation_inplace(struct parser_state* s,
     return true;
 }
 
-struct designation* parse_designation(struct parser_state* s) {
-    struct designation* res = mycc_alloc(sizeof *res);
-    if (!parse_designation_inplace(s, res)) {
-        mycc_free(res);
-        return NULL;
-    }
-    return res;
-}
-
 void free_designation_children(struct designation* d) {
     free_designator_list(&d->designators);
 }

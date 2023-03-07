@@ -37,7 +37,8 @@ TEST(enum_list) {
 
     {
         struct preproc_res preproc_res = tokenize_string(
-            "enum {ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, baz, BAD}",
+            "enum {ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, "
+            "baz, BAD}",
             "saffds");
 
         struct parser_err err = create_parser_err();
@@ -69,13 +70,14 @@ TEST(enum_list) {
 
     {
         struct preproc_res preproc_res = tokenize_string(
-            "enum {ENUM_VAL1 = 0, enum_VAl2 = 1000.0, enum_val_3 = n, enum_val_4 = "
+            "enum {ENUM_VAL1 = 0, enum_VAl2 = 1000.0, enum_val_3 = n, "
+            "enum_val_4 = "
             "test, foo, bar, baz, BAD}",
             "saffds");
 
         struct parser_err err = create_parser_err();
         struct parser_state s = create_parser_state(preproc_res.toks, &err);
-        
+
         struct enum_spec* e_spec = parse_enum_spec(&s);
         ASSERT_NOT_NULL(e_spec);
         ASSERT_NULL(e_spec->identifier);
@@ -174,80 +176,74 @@ TEST(enum_spec) {
     }
 }
 
-static struct designation* parse_designation_helper(const char* code) {
-    struct preproc_res preproc_res = tokenize_string(code, "jsalkf");
-
+TEST(designation) {
+    struct preproc_res preproc_res = tokenize_string(
+        "{ .test[19].what_is_this.another_one = a, [0.5].blah[420].oof[2][10] "
+        "= 2 }",
+        "kdsjflkf");
     struct parser_err err = create_parser_err();
     struct parser_state s = create_parser_state(preproc_res.toks, &err);
+    struct initializer* init = parse_initializer(&s);
+    ASSERT_NOT_NULL(init);
+    ASSERT(!init->is_assign);
 
-    struct designation* res = parse_designation(&s);
-    ASSERT_NOT_NULL(res);
-    ASSERT_NOT_NULL(res->designators.designators);
-    ASSERT(err.type == PARSER_ERR_NONE);
+    const struct init_list* list = &init->init_list;
+    ASSERT_SIZE_T(list->len, 2);
+    const struct designation* des1 = &list->inits[0].designation;
+    const struct initializer* val1 = &list->inits[0].init;
+    ASSERT(val1->is_assign);
+    check_assign_expr_id(val1->assign, "a");
 
-    ASSERT_TOKEN_TYPE(s.it->type, INVALID);
+    ASSERT_SIZE_T(des1->designators.len, (size_t)4);
+
+    struct designator* designators = des1->designators.designators;
+    ASSERT(designators[0].is_index == false);
+    check_identifier(designators[0].identifier, "test");
+
+    ASSERT(designators[1].is_index == true);
+    check_cond_expr_int(&designators[1].arr_index->expr,
+                        create_int_value(INT_VALUE_I, 19));
+
+    ASSERT(designators[2].is_index == false);
+    check_identifier(designators[2].identifier, "what_is_this");
+
+    ASSERT(designators[3].is_index == false);
+    check_identifier(designators[3].identifier, "another_one");
+
+    const struct designation* des2 = &list->inits[1].designation;
+    const struct initializer* val2 = &list->inits[1].init;
+    ASSERT(val2->is_assign);
+    check_assign_expr_int(val2->assign, create_int_value(INT_VALUE_I, 2));
+
+    ASSERT_SIZE_T(des2->designators.len, (size_t)6);
+
+    designators = des2->designators.designators;
+    ASSERT(designators[0].is_index == true);
+    check_cond_expr_float(&designators[0].arr_index->expr,
+                          create_float_value(FLOAT_VALUE_D, 0.5));
+
+    ASSERT(designators[1].is_index == false);
+    check_identifier(designators[1].identifier, "blah");
+
+    ASSERT(designators[2].is_index == true);
+    check_cond_expr_int(&designators[2].arr_index->expr,
+                        create_int_value(INT_VALUE_I, 420));
+
+    ASSERT(designators[3].is_index == false);
+    check_identifier(designators[3].identifier, "oof");
+
+    ASSERT(designators[4].is_index == true);
+    check_cond_expr_int(&designators[4].arr_index->expr,
+                        create_int_value(INT_VALUE_I, 2));
+
+    ASSERT(designators[5].is_index == true);
+    check_cond_expr_int(&designators[5].arr_index->expr,
+                        create_int_value(INT_VALUE_I, 10));
+
+    free_initializer(init);
 
     free_parser_state(&s);
     free_preproc_res(&preproc_res);
-
-    return res;
-}
-
-TEST(designation) {
-    {
-        struct designation* res = parse_designation_helper(
-            ".test[19].what_is_this.another_one = ");
-
-        ASSERT_SIZE_T(res->designators.len, (size_t)4);
-
-        struct designator* designators = res->designators.designators;
-        ASSERT(designators[0].is_index == false);
-        check_identifier(designators[0].identifier, "test");
-
-        ASSERT(designators[1].is_index == true);
-        check_cond_expr_int(&designators[1].arr_index->expr,
-                            create_int_value(INT_VALUE_I, 19));
-
-        ASSERT(designators[2].is_index == false);
-        check_identifier(designators[2].identifier, "what_is_this");
-
-        ASSERT(designators[3].is_index == false);
-        check_identifier(designators[3].identifier, "another_one");
-
-        free_designation(res);
-    }
-
-    {
-        struct designation* res = parse_designation_helper(
-            "[0.5].blah[420].oof[2][10] =");
-
-        ASSERT_SIZE_T(res->designators.len, (size_t)6);
-
-        struct designator* designators = res->designators.designators;
-        ASSERT(designators[0].is_index == true);
-        check_cond_expr_float(&designators[0].arr_index->expr,
-                              create_float_value(FLOAT_VALUE_D, 0.5));
-
-        ASSERT(designators[1].is_index == false);
-        check_identifier(designators[1].identifier, "blah");
-
-        ASSERT(designators[2].is_index == true);
-        check_cond_expr_int(&designators[2].arr_index->expr,
-                            create_int_value(INT_VALUE_I, 420));
-
-        ASSERT(designators[3].is_index == false);
-        check_identifier(designators[3].identifier, "oof");
-
-        ASSERT(designators[4].is_index == true);
-        check_cond_expr_int(&designators[4].arr_index->expr,
-                            create_int_value(INT_VALUE_I, 2));
-
-        ASSERT(designators[5].is_index == true);
-        check_cond_expr_int(&designators[5].arr_index->expr,
-                            create_int_value(INT_VALUE_I, 10));
-
-        free_designation(res);
-    }
 }
 
 TEST(static_assert_declaration) {
