@@ -477,6 +477,7 @@ struct macro_args collect_macro_args(struct token* args_start,
     assert(args_start->type == LBRACKET);
 
     const size_t cap = is_variadic ? expected_args + 1 : expected_args;
+    assert(!is_variadic || cap != 0);
     assert(cap != 0 || args_start + 1 == limit_ptr);
     struct macro_args res = {
         .len = 0,
@@ -544,6 +545,7 @@ static size_t get_expansion_len(const struct preproc_macro* macro,
     for (size_t i = 0; i < macro->expansion_len; ++i) {
         const struct token_or_arg* item = &macro->expansion[i];
         if (item->is_arg) {
+            assert(args->arrs);
             len += args->arrs[item->arg_num].len;
         } else {
             len += 1;
@@ -572,6 +574,7 @@ static void shift_forward(struct token* tokens,
 static void copy_into_tokens(struct token* tokens,
                              size_t* token_idx,
                              const struct token_arr* arr) {
+    assert(arr);
     for (size_t i = 0; i < arr->len; ++i) {
         tokens[*token_idx] = copy_token(&arr->tokens[i]);
         ++*token_idx;
