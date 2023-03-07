@@ -37,77 +37,81 @@ TEST(enum_list) {
 
     {
         struct preproc_res preproc_res = tokenize_string(
-            "ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, baz, BAD",
+            "enum {ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, baz, BAD}",
             "saffds");
 
         struct parser_err err = create_parser_err();
         struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
-        struct enum_list res;
-        ASSERT(parse_enum_list(&s, &res));
+        struct enum_spec* e_spec = parse_enum_spec(&s);
+        ASSERT_NULL(e_spec->identifier);
+        ASSERT_NOT_NULL(e_spec);
+        const struct enum_list* res = &e_spec->enum_list;
         ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
-        ASSERT_SIZE_T(res.len, (size_t)EXPECTED_LEN);
-        ASSERT_NOT_NULL(res.enums);
+        ASSERT_SIZE_T(res->len, (size_t)EXPECTED_LEN);
+        ASSERT_NOT_NULL(res->enums);
 
         for (size_t i = 0; i < EXPECTED_LEN; ++i) {
-            ASSERT_NOT_NULL(res.enums[i].identifier);
-            ASSERT_NULL(res.enums[i].enum_val);
+            ASSERT_NOT_NULL(res->enums[i].identifier);
+            ASSERT_NULL(res->enums[i].enum_val);
         }
-        check_enum_list_ids(&res, enum_constants, ARR_LEN(enum_constants));
+        check_enum_list_ids(res, enum_constants, ARR_LEN(enum_constants));
 
         for (size_t i = 0; i < EXPECTED_LEN; ++i) {
             ASSERT(is_enum_constant(&s, &enum_constants[i]));
         }
 
-        free_enum_list(&res);
+        free_enum_spec(e_spec);
         free_parser_state(&s);
         free_preproc_res(&preproc_res);
     }
 
     {
         struct preproc_res preproc_res = tokenize_string(
-            "ENUM_VAL1 = 0, enum_VAl2 = 1000.0, enum_val_3 = n, enum_val_4 = "
-            "test, foo, bar, baz, BAD",
+            "enum {ENUM_VAL1 = 0, enum_VAl2 = 1000.0, enum_val_3 = n, enum_val_4 = "
+            "test, foo, bar, baz, BAD}",
             "saffds");
 
         struct parser_err err = create_parser_err();
         struct parser_state s = create_parser_state(preproc_res.toks, &err);
-
-        struct enum_list res;
-        ASSERT(parse_enum_list(&s, &res));
+        
+        struct enum_spec* e_spec = parse_enum_spec(&s);
+        ASSERT_NOT_NULL(e_spec);
+        ASSERT_NULL(e_spec->identifier);
+        const struct enum_list* res = &e_spec->enum_list;
         ASSERT(err.type == PARSER_ERR_NONE);
         ASSERT_TOKEN_TYPE(s.it->type, INVALID);
-        ASSERT_SIZE_T(res.len, (size_t)EXPECTED_LEN);
-        ASSERT_NOT_NULL(res.enums);
+        ASSERT_SIZE_T(res->len, (size_t)EXPECTED_LEN);
+        ASSERT_NOT_NULL(res->enums);
 
         for (size_t i = 0; i < EXPECTED_LEN; ++i) {
-            ASSERT_NOT_NULL(res.enums[i].identifier);
+            ASSERT_NOT_NULL(res->enums[i].identifier);
         }
 
-        ASSERT_NOT_NULL(res.enums[0].enum_val);
-        check_const_expr_int(res.enums[0].enum_val,
+        ASSERT_NOT_NULL(res->enums[0].enum_val);
+        check_const_expr_int(res->enums[0].enum_val,
                              create_int_value(INT_VALUE_I, 0));
 
-        ASSERT_NOT_NULL(res.enums[1].enum_val);
-        check_const_expr_float(res.enums[1].enum_val,
+        ASSERT_NOT_NULL(res->enums[1].enum_val);
+        check_const_expr_float(res->enums[1].enum_val,
                                create_float_value(FLOAT_VALUE_D, 1000.0));
 
-        ASSERT_NOT_NULL(res.enums[2].enum_val);
-        check_const_expr_id(res.enums[2].enum_val, "n");
+        ASSERT_NOT_NULL(res->enums[2].enum_val);
+        check_const_expr_id(res->enums[2].enum_val, "n");
 
-        ASSERT_NOT_NULL(res.enums[3].enum_val);
-        check_const_expr_id(res.enums[3].enum_val, "test");
+        ASSERT_NOT_NULL(res->enums[3].enum_val);
+        check_const_expr_id(res->enums[3].enum_val, "test");
 
         for (size_t i = 4; i < EXPECTED_LEN; ++i) {
-            ASSERT_NULL(res.enums[i].enum_val);
+            ASSERT_NULL(res->enums[i].enum_val);
         }
 
         for (size_t i = 0; i < EXPECTED_LEN; ++i) {
             ASSERT(is_enum_constant(&s, &enum_constants[i]));
         }
 
-        free_enum_list(&res);
+        free_enum_spec(e_spec);
         free_parser_state(&s);
         free_preproc_res(&preproc_res);
     }

@@ -6,6 +6,84 @@
 
 #include "frontend/parser/parser_util.h"
 
+static bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* res) {
+    assert(res);
+
+    if (s->it->type != IDENTIFIER) {
+        expected_token_error(s, IDENTIFIER);
+        return false;
+    }
+
+    struct token* id_token = s->it;
+    accept_it(s);
+
+    if (!register_enum_constant(s, id_token)) {
+        return false;
+    }
+
+    const struct str spell = take_spelling(id_token);
+    struct source_loc loc = id_token->loc;
+
+    struct const_expr* enum_val = NULL;
+    if (s->it->type == ASSIGN) {
+        accept_it(s);
+        enum_val = parse_const_expr(s);
+        if (!enum_val) {
+            free_str(&spell);
+            return false;
+        }
+    }
+    
+    res->identifier = create_identifier(&spell, loc);
+    res->enum_val = enum_val;
+
+    return true;
+}
+
+void free_enumerator_children(struct enumerator* e) {
+    free_identifier(e->identifier);
+    if (e->enum_val) {
+        free_const_expr(e->enum_val);
+    }
+}
+
+static bool parse_enum_list(struct parser_state* s, struct enum_list* res) {
+    res->len = 1;
+    res->enums = mycc_alloc(sizeof *res->enums);
+    if (!parse_enumerator_inplace(s, &res->enums[0])) {
+        mycc_free(res->enums);
+        return false;
+    }
+
+    size_t alloc_len = 1;
+    while (s->it->type == COMMA && s->it[1].type == IDENTIFIER) {
+        accept_it(s);
+
+        if (res->len == alloc_len) {
+            mycc_grow_alloc((void**)&res->enums, &alloc_len, sizeof *res->enums);
+        }
+
+        if (!parse_enumerator_inplace(s, &res->enums[res->len])) {
+            goto fail;
+        }
+
+        ++res->len;
+    }
+
+    res->enums = mycc_realloc(res->enums, res->len * sizeof *res->enums);
+
+    return res;
+fail:
+    free_enum_list(res);
+    return false;
+}
+
+void free_enum_list(struct enum_list* l) {
+    for (size_t i = 0; i < l->len; ++i) {
+        free_enumerator_children(&l->enums[i]);
+    }
+    mycc_free(l->enums);
+}
 static struct enum_spec* create_enum_spec(struct source_loc loc,
                                           struct identifier* identifier,
                                           struct enum_list enum_list) {
