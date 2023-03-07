@@ -46,5 +46,6 @@ void free_spec_qual_list_children(struct spec_qual_list* l) {
 
 void free_spec_qual_list(struct spec_qual_list* l) {
     free_spec_qual_list_children(l);
+    mycc_free(l);
 }
 
