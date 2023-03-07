@@ -13,7 +13,8 @@ struct identifier {
 void init_identifier(struct identifier* res,
                      const struct str* spelling,
                      struct source_loc loc);
-struct identifier* create_identifier(const struct str* spelling, struct source_loc loc);
+struct identifier* create_identifier(const struct str* spelling,
+                                     struct source_loc loc);
 
 void free_identifier_children(struct identifier* i);
 
