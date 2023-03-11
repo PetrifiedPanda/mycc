@@ -127,10 +127,11 @@ char str_char_at(const struct str* str, size_t i) {
 static void str_move_to_dyn_buf(struct str* str, size_t dyn_buf_cap) {
     assert(str->_is_static_buf);
 
-    size_t len = str->_small_len;
-    char* data = mycc_alloc(sizeof *data * dyn_buf_cap);
-    memcpy(data, str->_static_buf, sizeof *data * STATIC_BUF_LEN);
-    str->_cap = dyn_buf_cap;
+    const size_t len = str->_small_len;
+    const size_t real_cap = dyn_buf_cap + 1;
+    char* data = mycc_alloc(sizeof *data * real_cap);
+    memcpy(data, str->_static_buf, sizeof *data * (len + 1));
+    str->_cap = real_cap;
     str->_len = len;
     str->_data = data;
     str->_is_static_buf = false;
@@ -141,7 +142,7 @@ void str_push_back(struct str* str, char c) {
     assert(str_is_valid(str));
     if (str->_is_static_buf) {
         if (str->_small_len == STATIC_BUF_LEN - 1) {
-            str_move_to_dyn_buf(str, STATIC_BUF_LEN + 1);
+            str_move_to_dyn_buf(str, STATIC_BUF_LEN);
             str->_data[str->_len] = c;
             ++str->_len;
             str->_data[str->_len] = '\0';
@@ -178,6 +179,7 @@ void str_reserve(struct str* str, size_t new_cap) {
         }
     } else if (str->_cap < new_cap) {
         str->_data = mycc_realloc(str->_data, sizeof *str->_data * new_cap);
+        str->_cap = new_cap;
     }
 }
 
@@ -192,7 +194,7 @@ static void str_set_len(struct str* str, size_t len) {
 
 void str_append_c_str(struct str* str, size_t len, const char* c_str) {
     const size_t curr_len = str_len(str);
-    const size_t new_len = str_len(str) + len;
+    const size_t new_len = curr_len + len;
     if (str_cap(str) < new_len) {
         str_reserve(str, new_len);
     }

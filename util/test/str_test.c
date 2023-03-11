@@ -34,20 +34,33 @@ TEST(push_back_to_empty) {
 }
 
 TEST(push_back_to_empty_with_cap) {
-    struct str str1 = create_empty_str_with_cap(200);
+    enum {
+        STATIC_BUF_LEN = ARR_LEN((struct str){0}._static_buf) - 1
+    };
+    enum {
+        STR1_CAP = 200
+    };
+    struct str str1 = create_empty_str_with_cap(STR1_CAP);
+    ASSERT_SIZE_T(str_cap(&str1), STR1_CAP);
 
     char expected_buf[INSERTION_NUM + 1] = {0};
     insert_test_helper(&str1, expected_buf, 0);
 
     struct str str2 = create_empty_str_with_cap(4);
+    ASSERT_SIZE_T(str_cap(&str2), STATIC_BUF_LEN);
     memset(expected_buf, 0, sizeof expected_buf);
     insert_test_helper(&str2, expected_buf, 0);
 
-    struct str str3 = create_empty_str_with_cap(23);
+    enum {
+        STR3_CAP = STATIC_BUF_LEN + 1
+    };
+    struct str str3 = create_empty_str_with_cap(STR3_CAP);
+    ASSERT_SIZE_T(str_cap(&str3), STR3_CAP);
     memset(expected_buf, 0, sizeof expected_buf);
     insert_test_helper(&str3, expected_buf, 0);
 
     struct str str4 = create_empty_str_with_cap(0);
+    ASSERT_SIZE_T(str_cap(&str4), STATIC_BUF_LEN);
     memset(expected_buf, 0, sizeof expected_buf);
     insert_test_helper(&str4, expected_buf, 0);
 }
@@ -56,7 +69,7 @@ TEST(push_back_to_empty_with_cap) {
     do {                                                                       \
         const char raw_str[] = str_lit;                                        \
         enum {                                                                 \
-            RAW_STR_STRLEN = ARR_LEN(raw_str) - 1                                \
+            RAW_STR_STRLEN = ARR_LEN(raw_str) - 1                              \
         };                                                                     \
         struct str str = create_str(RAW_STR_STRLEN, raw_str);                  \
         ASSERT_STR(str_get_data(&str), raw_str);                               \
@@ -145,12 +158,41 @@ TEST(copy_take) {
     ASSERT(!str_is_valid(&copy));
 }
 
-TEST_SUITE_BEGIN(str, 5) {
+TEST(str_append_c_str) {
+    struct str str = create_empty_str();
+#define SHORT_STR "test"
+    const char short_str[] = SHORT_STR; 
+    enum {SHORT_STR_LEN = ARR_LEN(short_str) - 1};
+    str_append_c_str(&str, SHORT_STR_LEN, short_str);
+    ASSERT_STR(str_get_data(&str), short_str);
+    free_str(&str);
+
+    str = create_empty_str();
+#define LONG_STR "string long enough to not fit into static buffer"
+    const char long_str[] = LONG_STR;
+    enum {LONG_STR_LEN = ARR_LEN(long_str) - 1};
+    str_append_c_str(&str, LONG_STR_LEN, long_str);
+    ASSERT_STR(str_get_data(&str), long_str);
+    free_str(&str);
+
+    str = create_str(SHORT_STR_LEN, short_str);
+    str_append_c_str(&str, SHORT_STR_LEN, short_str);
+    ASSERT_STR(str_get_data(&str), SHORT_STR SHORT_STR);
+
+    str_append_c_str(&str, LONG_STR_LEN, long_str);
+    ASSERT_STR(str_get_data(&str), SHORT_STR SHORT_STR LONG_STR);
+    free_str(&str);
+#undef SHORT_STR
+#undef LONG_STR
+}
+
+TEST_SUITE_BEGIN(str, 6) {
     REGISTER_TEST(push_back_to_empty);
     REGISTER_TEST(push_back_to_empty_with_cap);
     REGISTER_TEST(push_back_to_nonempty);
     REGISTER_TEST(concat);
     REGISTER_TEST(copy_take);
+    REGISTER_TEST(str_append_c_str);
 }
 TEST_SUITE_END()
 
