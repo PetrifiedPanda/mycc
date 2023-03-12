@@ -616,7 +616,7 @@ void print_char_const_err(FILE* out, const struct char_const_err* err) {
         case CHAR_CONST_ERR_NONE:
             UNREACHABLE();
         case CHAR_CONST_ERR_EXPECTED_CHAR:
-            fprintf(out, "Expected ");
+            fputs("Expected ", out);
             const uint8_t limit = err->num_expected - 1;
             for (uint8_t i = 0; i < limit; ++i) {
                 fprintf(out, "%c, ", err->expected_chars[i]);
@@ -630,7 +630,7 @@ void print_char_const_err(FILE* out, const struct char_const_err* err) {
             fprintf(out, "Invalid escape character %c", err->invalid_escape);
             break;
     }
-    fprintf(out, "\n");
+    fputc('\n', out);
 }
 
 static enum int_value_type get_uint_leastn_t_type(
