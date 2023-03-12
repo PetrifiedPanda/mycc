@@ -93,7 +93,7 @@ void print_preproc_err(FILE* out,
             break;
         case PREPROC_ERR_UNTERMINATED_MACRO:
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Unterminated macro");
+            fputs("Unterminated macro", out);
             break;
         case PREPROC_ERR_ARG_COUNT: {
             print_err_base(out, file_info, &err->base);
@@ -125,7 +125,7 @@ void print_preproc_err(FILE* out,
         }
         case PREPROC_ERR_INVALID_PREPROC_DIR:
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Invalid preprocessor directive");
+            fputs("Invalid preprocessor directive", out);
             break;
         case PREPROC_ERR_ELIF_ELSE_AFTER_ELSE: {
             assert(err->elif_after_else_op != ELSE_OP_ENDIF);
@@ -188,11 +188,11 @@ void print_preproc_err(FILE* out,
             break;
         case PREPROC_ERR_EMPTY_DEFINE:
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Empty define directive");
+            fputs("Empty define directive", out);
             break;
         case PREPROC_ERR_DEFINE_NOT_ID:
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "define not followed by id");
+            fputs("define not followed by id", out);
             break;
         case PREPROC_ERR_EXPECTED_TOKENS:
             print_err_base(out, file_info, &err->base);
@@ -204,10 +204,10 @@ void print_preproc_err(FILE* out,
             break;
         case PREPROC_ERR_INVALID_BACKSLASH:
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Backslash \'\\\' only allowed at the end of a line");
+            fputs("Backslash \'\\\' only allowed at the end of a line", out);
             break;
     }
-    fprintf(out, "\n");
+    fputc('\n', out);
 }
 
 static const char* get_single_macro_op_str(enum single_macro_op_type type) {
