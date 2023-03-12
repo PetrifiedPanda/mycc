@@ -186,13 +186,72 @@ TEST(str_append_c_str) {
 #undef LONG_STR
 }
 
-TEST_SUITE_BEGIN(str, 6) {
+TEST(str_reserve) {
+    struct str str = create_empty_str();
+    enum { TO_RESERVE_1 = 20, TO_RESERVE_2 = 32, TO_RESERVE_3 = TO_RESERVE_2 + 8 };
+    str_reserve(&str, TO_RESERVE_1);
+    ASSERT_SIZE_T(str_cap(&str), sizeof str._static_buf - 1);
+
+    char expected[TO_RESERVE_3 + 1] = {0};
+    for (size_t i = 0; i < TO_RESERVE_1; ++i) {
+        str_push_back(&str, 'a');
+        expected[i] = 'a';
+    }
+    ASSERT_SIZE_T(str_cap(&str), sizeof str._static_buf - 1);
+
+    ASSERT_STR(str_get_data(&str), expected);
+    str_reserve(&str, TO_RESERVE_2);
+    ASSERT_STR(str_get_data(&str), expected);
+    ASSERT_SIZE_T(str_cap(&str), TO_RESERVE_2);
+    
+    for (size_t i = TO_RESERVE_1; i < TO_RESERVE_2; ++i) {
+        str_push_back(&str, 'b');
+        expected[i] = 'b';
+    }
+    ASSERT_SIZE_T(str_cap(&str), TO_RESERVE_2);
+    
+    ASSERT_STR(str_get_data(&str), expected);
+    str_reserve(&str, TO_RESERVE_3);
+    ASSERT_STR(str_get_data(&str), expected);
+    for (size_t i = TO_RESERVE_2; i < TO_RESERVE_3; ++i) {
+        str_push_back(&str, 'c');
+        expected[i] = 'c';
+    }
+    ASSERT_SIZE_T(str_cap(&str), TO_RESERVE_3);
+    ASSERT_STR(str_get_data(&str), expected);
+
+    free_str(&str);
+}
+
+TEST(str_concat) {
+#define SMALL_A "ab"
+#define SMALL_B "cd"
+    enum {SMALL_A_LEN = sizeof SMALL_A - 1, SMALL_B_LEN = sizeof SMALL_B - 1};
+    struct str small_str = str_concat(SMALL_A_LEN, SMALL_A, SMALL_B_LEN, SMALL_B);
+    ASSERT_STR(str_get_data(&small_str), SMALL_A SMALL_B);
+    free_str(&small_str);
+#undef SMALL_A
+#undef SMALL_B
+
+#define LARGE_A "this is a longer string "
+#define LARGE_B "that will be allocated in the dynamic buffer"
+    enum {LARGE_A_LEN = sizeof LARGE_A - 1, LARGE_B_LEN = sizeof LARGE_B - 1};
+    struct str large_str = str_concat(LARGE_A_LEN, LARGE_A, LARGE_B_LEN, LARGE_B);
+    ASSERT_STR(str_get_data(&large_str), LARGE_A LARGE_B);
+    free_str(&large_str);
+#undef LARGE_A
+#undef LARGE_B
+}
+
+TEST_SUITE_BEGIN(str, 8) {
     REGISTER_TEST(push_back_to_empty);
     REGISTER_TEST(push_back_to_empty_with_cap);
     REGISTER_TEST(push_back_to_nonempty);
     REGISTER_TEST(concat);
     REGISTER_TEST(copy_take);
     REGISTER_TEST(str_append_c_str);
+    REGISTER_TEST(str_reserve);
+    REGISTER_TEST(str_concat);
 }
 TEST_SUITE_END()
 

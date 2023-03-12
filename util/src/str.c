@@ -178,8 +178,8 @@ void str_reserve(struct str* str, size_t new_cap) {
             str_move_to_dyn_buf(str, new_cap);
         }
     } else if (str->_cap < new_cap) {
-        str->_data = mycc_realloc(str->_data, sizeof *str->_data * new_cap);
-        str->_cap = new_cap;
+        str->_cap = new_cap + 1;
+        str->_data = mycc_realloc(str->_data, sizeof *str->_data * str->_cap);
     }
 }
 
@@ -214,11 +214,7 @@ struct str str_concat(size_t len1,
     char* res_data = str_get_mut_data(&res);
     memcpy(res_data + len1, s2, len2 * sizeof *res_data);
     res_data[len] = '\0';
-    if (res._is_static_buf) {
-        res._small_len = (uint8_t)len;
-    } else {
-        res._len = len;
-    }
+    str_set_len(&res, len);
     return res;
 }
 
