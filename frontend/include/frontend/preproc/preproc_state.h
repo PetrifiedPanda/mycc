@@ -28,11 +28,21 @@ struct preproc_cond {
     struct source_loc loc;
 };
 
+struct opened_file_info;
+
+struct file_manager {
+    FILE* files[FOPEN_MAX];
+    size_t current_file_idx;
+    struct opened_file_info* opened_info;
+    size_t opened_info_len, opened_info_cap;
+};
+
 struct preproc_state {
     struct token_arr res;
 
     struct line_info line_info;
-    FILE* file;
+
+    struct file_manager file_manager;
 
     size_t conds_len, conds_cap;
     struct preproc_cond* conds;
@@ -57,6 +67,11 @@ struct preproc_macro;
 const struct preproc_macro* find_preproc_macro(
     const struct preproc_state* state,
     const struct str* spelling);
+
+bool parser_state_open_file(struct preproc_state* s,
+                            const struct str* filename_str,
+                            struct source_loc include_loc);
+void parser_state_close_file(struct preproc_state* s);
 
 void register_preproc_macro(struct preproc_state* state,
                             const struct str* spelling,
