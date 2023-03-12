@@ -52,28 +52,28 @@ void print_parser_err(FILE* out, const struct file_info* file_info, const struct
             break;
         }
         case PARSER_ERR_ARR_DOUBLE_STATIC:
-            fprintf(out, "Expected only one use of static");
+            fputs("Expected only one use of static", out);
             break;
         case PARSER_ERR_ARR_STATIC_NO_LEN:
-            fprintf(out, "Expected array length after use of static");
+            fputs("Expected array length after use of static", out);
             break;
         case PARSER_ERR_ARR_STATIC_ASTERISK:
-            fprintf(out, "Asterisk cannot be used with static");
+            fputs("Asterisk cannot be used with static", out);
             break;
         case PARSER_ERR_TYPEDEF_INIT:
-            fprintf(out, "Initializer not allowed in typedef");
+            fputs("Initializer not allowed in typedef", out);
             break;
         case PARSER_ERR_TYPEDEF_FUNC_DEF:
-            fprintf(out, "Function definition declared typedef");
+            fputs("Function definition declared typedef", out);
             break;
         case PARSER_ERR_TYPEDEF_PARAM_DECL:
-            fprintf(out, "typedef is not allowed in function declarator");
+            fputs("typedef is not allowed in function declarator", out);
             break;
         case PARSER_ERR_TYPEDEF_STRUCT:
-            fprintf(out, "typedef is not allowed in struct declaration");
+            fputs("typedef is not allowed in struct declaration", out);
             break;
         case PARSER_ERR_EMPTY_STRUCT_DECLARATOR:
-            fprintf(out, "Expected a declarator or a bit field specifier");
+            fputs("Expected a declarator or a bit field specifier", out);
             break;
         case PARSER_ERR_INCOMPATIBLE_TYPE_SPECS:
             fprintf(out,
@@ -82,7 +82,7 @@ void print_parser_err(FILE* out, const struct file_info* file_info, const struct
                     get_type_str(err->prev_type_spec));
             break;
         case PARSER_ERR_TOO_MUCH_LONG:
-            fprintf(out, "More than 2 long specifiers are not allowed");
+            fputs("More than 2 long specifiers are not allowed", out);
             break;
         case PARSER_ERR_DISALLOWED_TYPE_QUALS:
             fprintf(out,
@@ -96,10 +96,10 @@ void print_parser_err(FILE* out, const struct file_info* file_info, const struct
                 str_get_data(&err->non_typedef_spelling));
             break;
         case PARSER_ERR_EMPTY_DIRECT_ABS_DECL:
-            fprintf(out, "Empty abstract declarator");
+            fputs("Empty abstract declarator", out);
             break;
     }
-    fprintf(out, "\n");
+    fputc('\n', out);
 }
 
 void free_parser_err(struct parser_err* err) {
