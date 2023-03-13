@@ -212,6 +212,29 @@ static bool handle_else_elif(struct preproc_state* state,
     return false;
 }
 
+static bool handle_include(struct preproc_state* state, struct token_arr* arr) {
+    if (arr->len == 2) {
+        // TODO: error empty include
+        return false;
+    } else if (arr->len > 3) {
+        // TODO: error too many arguments to include
+        return false;
+    }
+    
+    // TODO: "<" ">" string literals
+    if (arr->tokens[2].type == STRING_LITERAL) {
+        const struct str filename = str_take(&arr->tokens[2].spelling);
+        if (!preproc_state_open_file(state, &filename, arr->tokens[2].loc)) {
+            // TODO: do we need to free filename here
+            return false;
+        }
+        return true;
+    } else {
+        // TODO: error wrong token for include
+        return false;
+    }
+}
+
 static bool preproc_statement(struct preproc_state* state,
                               struct token_arr* arr) {
     assert(arr);
@@ -269,7 +292,7 @@ static bool preproc_statement(struct preproc_state* state,
 
         remove_preproc_macro(state, &arr->tokens[2].spelling);
     } else if (strcmp(directive, "include") == 0) {
-        // TODO:
+        return handle_include(state, arr);
     } else if (strcmp(directive, "pragma") == 0) {
         // TODO:
     } else if (strcmp(directive, "elif") == 0) {

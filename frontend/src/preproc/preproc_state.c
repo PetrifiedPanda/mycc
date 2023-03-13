@@ -24,27 +24,35 @@ struct file_data {
 static struct file_data create_file_data(const char* start_file,
                                          struct preproc_err* err) {
     struct str file_name = create_str(strlen(start_file), start_file);
+    struct file_info fi = create_file_info(&file_name);
+    struct file_manager fm;
+    bool is_valid = true;
+
     FILE* file = fopen(start_file, "r");
     if (!file) {
-        set_preproc_file_err(err, 0, (struct source_loc){0, {0, 0}}, true);
-        return (struct file_data){0};
+        set_preproc_file_err(err,
+                             0,
+                             (struct source_loc){(size_t)-1, {0, 0}},
+                             true);
+        fm = (struct file_manager){0};
+        is_valid = false;
+    } else {
+        fm = (struct file_manager){
+            .files = {[0] = file},
+            .current_file_idx = 0,
+            .opened_info = mycc_alloc(sizeof *fm.opened_info),
+            .opened_info_len = 1,
+            .opened_info_cap = 1,
+        };
+        *fm.opened_info = (struct opened_file_info){
+            .idx = 0,
+            .pos = -1,
+            .file_loc = {0, 0},
+        };
     }
 
-    struct file_info fi = create_file_info(&file_name);
-    struct file_manager fm = {
-        .files = {[0] = file},
-        .current_file_idx = 0,
-        .opened_info = mycc_alloc(sizeof *fm.opened_info),
-        .opened_info_len = 1,
-        .opened_info_cap = 1,
-    };
-    *fm.opened_info = (struct opened_file_info){
-        .idx = 0,
-        .pos = -1,
-        .file_loc = {0, 0},
-    };
     return (struct file_data){
-        .is_valid = true,
+        .is_valid = is_valid,
         .fm = fm,
         .fi = fi,
     };
@@ -54,7 +62,9 @@ struct preproc_state create_preproc_state(const char* start_file,
                                           struct preproc_err* err) {
     struct file_data fd = create_file_data(start_file, err);
     if (!fd.is_valid) {
-        return (struct preproc_state){0};
+        struct preproc_state res = {0};
+        res.file_info = fd.fi;
+        return res;
     }
     return (struct preproc_state){
         .res =
@@ -207,7 +217,7 @@ bool preproc_state_open_file(struct preproc_state* s,
     const char* filename = str_get_data(&s->file_info.paths[idx]);
     FILE* file = fopen(filename, "r");
     if (!file) {
-        set_preproc_err(s->err, 0, include_loc);
+        set_preproc_file_err(s->err, idx, include_loc, true);
         return false;
     }
     ++fm->current_file_idx;

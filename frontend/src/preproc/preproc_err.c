@@ -43,7 +43,7 @@ void print_preproc_err(FILE* out,
             if (err->base.loc.file_idx != (size_t)-1) {
                 print_err_base(out, file_info, &err->base);
             }
-
+            
             assert(err->fail_file < file_info->len);
             const char* fail_path = str_get_data(
                 &file_info->paths[err->fail_file]);

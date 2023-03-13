@@ -28,6 +28,12 @@ struct preproc_res preproc(const char* path, struct preproc_err* err) {
     assert(err);
 
     struct preproc_state state = create_preproc_state(path, err);
+    if (err->type != PREPROC_ERR_NONE) {
+        return (struct preproc_res){
+            .toks = NULL,
+            .file_info = state.file_info,
+        };
+    }
     if (!preproc_impl(&state)) {
         struct file_info info = state.file_info;
         state.file_info = (struct file_info){
