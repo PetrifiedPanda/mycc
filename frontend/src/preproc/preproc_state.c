@@ -188,9 +188,9 @@ bool preproc_state_over(const struct preproc_state* state) {
            && (file == NULL || feof(file));
 }
 
-bool parser_state_open_file(struct preproc_state* s,
-                            const struct str* filename_str,
-                            struct source_loc include_loc) {
+bool preproc_state_open_file(struct preproc_state* s,
+                             const struct str* filename_str,
+                             struct source_loc include_loc) {
     struct file_manager* fm = &s->file_manager;
     if (fm->current_file_idx == FOPEN_MAX - 1) {
         long pos = ftell(fm->files[0]);
@@ -230,7 +230,7 @@ bool parser_state_open_file(struct preproc_state* s,
     return true;
 }
 
-void parser_state_close_file(struct preproc_state* s) {
+void preproc_state_close_file(struct preproc_state* s) {
     struct file_manager* fm = &s->file_manager;
     fclose(fm->files[fm->current_file_idx]);
     --fm->opened_info_len;
