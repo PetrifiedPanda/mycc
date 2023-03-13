@@ -62,8 +62,7 @@ static size_t find_item_index_insert(const struct string_hash_map* map,
         it_count != map->_cap
         && (map->_keys[i].was_deleted
             || (str_is_valid(&map->_keys[i].str)
-                && strcmp(str_get_data(&map->_keys[i].str), str_get_data(key))
-                       != 0))) {
+                && !str_eq(&map->_keys[i].str, key)))) {
         if (map->_keys[i].was_deleted && !found_deleted) {
             deleted_idx = i;
             found_deleted = true;
@@ -85,8 +84,7 @@ static size_t find_item_index(const struct string_hash_map* map,
     size_t i = hash % map->_cap;
     while (map->_keys[i].was_deleted
            || (str_is_valid(&map->_keys[i].str)
-               && strcmp(str_get_data(&map->_keys[i].str), str_get_data(key))
-                      != 0)) {
+               && !str_eq(&map->_keys[i].str, key))) {
         i = (i + 1) % map->_cap;
     }
 

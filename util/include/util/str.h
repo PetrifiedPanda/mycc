@@ -52,6 +52,8 @@ struct str str_copy(const struct str* str);
 
 void str_clear(struct str* str);
 
+bool str_eq(const struct str* s1, const struct str* s2);
+
 void free_str(const struct str* str);
 
 #endif

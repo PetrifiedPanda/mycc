@@ -252,6 +252,20 @@ void str_clear(struct str* str) {
     }
 }
 
+bool str_eq(const struct str* s1, const struct str* s2) {
+    assert(s1);
+    assert(s2);
+    assert(str_is_valid(s1));
+    assert(str_is_valid(s2));
+
+    const size_t l1 = str_len(s1);
+    if (l1 != str_len(s2)) {
+        return false;
+    }
+    const char* d1 = str_get_data(s1);
+    return memcmp(d1, str_get_data(s2), sizeof *d1 * l1) == 0;
+}
+
 void free_str(const struct str* str) {
     assert(str);
     if (!str->_is_static_buf) {
