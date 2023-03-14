@@ -7,6 +7,7 @@
 #include "util/arch.h"
 
 struct arch_int_info {
+    uint8_t wchar_t_size;
     uint8_t sint_size;
     uint8_t int_size;
     uint8_t lint_size;

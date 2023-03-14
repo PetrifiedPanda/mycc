@@ -13,6 +13,7 @@ struct arch_type_info get_arch_type_info(enum arch a, bool is_windows) {
             struct arch_float_info float_info;
             if (is_windows) {
                 int_info = (struct arch_int_info){
+                    .wchar_t_size = 2,
                     .sint_size = 2,
                     .int_size = 4,
                     .lint_size = 4,
@@ -26,6 +27,7 @@ struct arch_type_info get_arch_type_info(enum arch a, bool is_windows) {
                 };
             } else {
                 int_info = (struct arch_int_info){
+                    .wchar_t_size = 4,
                     .sint_size = 2,
                     .int_size = 4,
                     .lint_size = 8,
