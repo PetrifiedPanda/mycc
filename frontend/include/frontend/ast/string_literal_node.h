@@ -1,5 +1,5 @@
-#ifndef AST_STRING_LITERAL_H
-#define AST_STRING_LITERAL_H
+#ifndef AST_STRING_LITERAL_NODE_H
+#define AST_STRING_LITERAL_NODE_H
 
 #include "frontend/ast/ast_node_info.h"
 
