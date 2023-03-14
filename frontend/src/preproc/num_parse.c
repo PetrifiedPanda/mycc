@@ -78,10 +78,11 @@ struct int_type_attrs {
 static struct int_type_attrs get_int_attrs(const char* suffix,
                                            struct int_const_err* err);
 
-static enum int_value_type get_value_type_dec(struct int_type_attrs attrs,
-                                              uintmax_t val,
-                                              const struct arch_type_info* type_info,
-                                              struct int_const_err* err);
+static enum int_value_type get_value_type_dec(
+    struct int_type_attrs attrs,
+    uintmax_t val,
+    const struct arch_type_info* type_info,
+    struct int_const_err* err);
 
 static enum int_value_type get_value_type_other(
     struct int_type_attrs attrs,
@@ -89,8 +90,9 @@ static enum int_value_type get_value_type_other(
     const struct arch_type_info* type_info,
     struct int_const_err* err);
 
-struct parse_int_const_res parse_int_const(const char* spell,
-                                           const struct arch_type_info* type_info) {
+struct parse_int_const_res parse_int_const(
+    const char* spell,
+    const struct arch_type_info* type_info) {
     const enum {
         DEC = 10,
         HEX = 16,
@@ -266,7 +268,7 @@ static uintmax_t get_max_int(const struct arch_type_info* type_info,
     assert(type == INT_VALUE_UI || type == INT_VALUE_UL || type == INT_VALUE_ULL
            || type == INT_VALUE_I || type == INT_VALUE_L
            || type == INT_VALUE_LL);
-    
+
     const struct arch_int_info* info = &type_info->int_info;
     const uint8_t bits_in_char = type_info->bits_in_char;
     switch (type) {
@@ -318,10 +320,11 @@ static enum int_value_type get_value_type_unsigned(
     }
 }
 
-static enum int_value_type get_value_type_dec(struct int_type_attrs attrs,
-                                              uintmax_t val,
-                                              const struct arch_type_info* type_info,
-                                              struct int_const_err* err) {
+static enum int_value_type get_value_type_dec(
+    struct int_type_attrs attrs,
+    uintmax_t val,
+    const struct arch_type_info* type_info,
+    struct int_const_err* err) {
     assert(attrs.num_long <= 2);
     if (attrs.is_unsigned) {
         return get_value_type_unsigned(attrs, val, type_info);
@@ -394,8 +397,9 @@ static enum int_value_type get_uint_leastn_t_type(
     size_t n,
     const struct arch_type_info* type_info);
 
-struct parse_char_const_res parse_char_const(const char* spell,
-                                             const struct arch_type_info* type_info) {
+struct parse_char_const_res parse_char_const(
+    const char* spell,
+    const struct arch_type_info* type_info) {
     assert(spell);
     assert(type_info);
 
@@ -439,8 +443,9 @@ struct parse_char_const_res parse_char_const(const char* spell,
             spell += 2;
             break;
         case 'L':
-            // TODO: handle wchar_t stuff
-            type = get_uint_leastn_t_type(32, type_info);
+            type = get_uint_leastn_t_type(type_info->int_info.wchar_t_size
+                                              * type_info->bits_in_char,
+                                          type_info);
             if (spell[1] != '\'') {
                 return (struct parse_char_const_res){
                     .err =
@@ -637,7 +642,7 @@ static enum int_value_type get_uint_leastn_t_type(
     size_t n,
     const struct arch_type_info* type_info) {
     assert(n == 8 || n == 16 || n == 32 || n == 64);
-    
+
     const struct arch_int_info* info = &type_info->int_info;
     const uint8_t bits_in_char = type_info->bits_in_char;
     if (bits_in_char >= n) {
