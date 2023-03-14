@@ -1,7 +1,7 @@
 #ifndef STATIC_ASSERT_DECLARATION_H
 #define STATIC_ASSERT_DECLARATION_H
 
-#include "frontend/ast/string_literal.h"
+#include "frontend/ast/string_literal_node.h"
 
 #include "frontend/parser/parser_state.h"
 
@@ -9,7 +9,7 @@ struct const_expr;
 
 struct static_assert_declaration {
     struct const_expr* const_expr;
-    struct string_literal err_msg;
+    struct string_literal_node err_msg;
 };
 
 struct static_assert_declaration* parse_static_assert_declaration(

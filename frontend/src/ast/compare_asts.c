@@ -112,8 +112,8 @@ static bool compare_constants(const struct constant* c1,
     UNREACHABLE();
 }
 
-static bool compare_string_literals(const struct string_literal* l1,
-                                    const struct string_literal* l2) {
+static bool compare_string_literals(const struct string_literal_node* l1,
+                                    const struct string_literal_node* l2) {
     ASSERT(compare_ast_node_infos(&l1->info, &l2->info));
     return compare_strs(&l1->spelling, &l2->spelling);
 }

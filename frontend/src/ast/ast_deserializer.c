@@ -279,7 +279,7 @@ static bool deserialize_constant(struct ast_deserializer* r,
 }
 
 static bool deserialize_string_literal(struct ast_deserializer* r,
-                                       struct string_literal* res) {
+                                       struct string_literal_node* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
@@ -533,7 +533,8 @@ static bool deserialize_designator_list(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_designation(struct ast_deserializer* r, struct designation* res) {
+static bool deserialize_designation(struct ast_deserializer* r,
+                                    struct designation* res) {
     if (!deserialize_designator_list(r, &res->designators)) {
         return false;
     }
@@ -543,7 +544,8 @@ static bool deserialize_designation(struct ast_deserializer* r, struct designati
 static bool deserialize_init_list(struct ast_deserializer* r,
                                   struct init_list* res);
 
-static bool deserialize_initializer_inplace(struct ast_deserializer* r, struct initializer* res) {
+static bool deserialize_initializer_inplace(struct ast_deserializer* r,
+                                            struct initializer* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
@@ -562,7 +564,6 @@ static bool deserialize_initializer_inplace(struct ast_deserializer* r, struct i
         }
     }
     return true;
-
 }
 
 static struct initializer* deserialize_initializer(struct ast_deserializer* r) {
@@ -1165,7 +1166,7 @@ static struct static_assert_declaration* deserialize_static_assert_declaration(
         return NULL;
     }
 
-    struct string_literal lit;
+    struct string_literal_node lit;
     if (!deserialize_string_literal(r, &lit)) {
         free_const_expr(expr);
         return NULL;
@@ -1192,7 +1193,8 @@ static struct pointer* deserialize_pointer(struct ast_deserializer* r) {
 
     struct pointer* res = mycc_alloc(sizeof *res);
     res->info = info;
-    res->quals_after_ptr = mycc_alloc(sizeof *res->quals_after_ptr * num_indirs);
+    res->quals_after_ptr = mycc_alloc(sizeof *res->quals_after_ptr
+                                      * num_indirs);
     for (res->num_indirs = 0; res->num_indirs != num_indirs;
          ++res->num_indirs) {
         if (!deserialize_type_quals(r,
@@ -1366,7 +1368,8 @@ static bool deserialize_param_declaration(struct ast_deserializer* r,
     UNREACHABLE();
 }
 
-static bool deserialize_param_list(struct ast_deserializer* r, struct param_list* res) {
+static bool deserialize_param_list(struct ast_deserializer* r,
+                                   struct param_list* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -2289,7 +2292,9 @@ static bool deserialize_block_item(struct ast_deserializer* r,
     }
 }
 
-static bool deserialize_compound_statement_inplace(struct ast_deserializer* r, struct compound_statement* res) {
+static bool deserialize_compound_statement_inplace(
+    struct ast_deserializer* r,
+    struct compound_statement* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }

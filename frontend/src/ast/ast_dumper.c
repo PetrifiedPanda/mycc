@@ -52,7 +52,7 @@ static void dumper_puts(struct ast_dumper* d, const char* str) {
     print_indents(d);
 
     if (fputs(str, d->file) < 0) {
-        longjmp(d->err_buf, 0); 
+        longjmp(d->err_buf, 0);
     }
 
     if (fputc('\n', d->file) == EOF) {
@@ -263,7 +263,7 @@ static void dump_constant(struct ast_dumper* d, const struct constant* c) {
 }
 
 static void dump_string_literal(struct ast_dumper* d,
-                                const struct string_literal* l) {
+                                const struct string_literal_node* l) {
     assert(l);
     dumper_print_node_head(d, "string_literal", &l->info);
 

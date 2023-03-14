@@ -136,7 +136,7 @@ static void serialize_constant(struct ast_serializer* d,
 }
 
 static void serialize_string_literal(struct ast_serializer* d,
-                                     const struct string_literal* lit) {
+                                     const struct string_literal_node* lit) {
     serialize_ast_node_info(d, &lit->info);
     serialize_str(d, &lit->spelling);
 }
