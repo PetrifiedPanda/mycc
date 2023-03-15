@@ -21000,7 +21000,9 @@ translation_unit:
                                                                                                     primary_expr:
                                                                                                         string_constant:
                                                                                                         string_literal: ../frontend/test/files/large_testfile.c:751,75
-                                                                                                          "Comment was not properly terminated"
+                                                                                                          str_lit:
+                                                                                                            kind: STR_LIT_DEFAULT
+                                                                                                            contents: Comment was not properly terminated
                                                                                                     len: 0
                             block_item:
                               statement:
@@ -22237,7 +22239,9 @@ translation_unit:
                                                         primary_expr:
                                                             string_constant:
                                                             string_literal: ../frontend/test/files/large_testfile.c:782,28
-                                                              "String"
+                                                              str_lit:
+                                                                kind: STR_LIT_DEFAULT
+                                                                contents: String
                                                         len: 0
               statement:
                 compound_statement: ../frontend/test/files/large_testfile.c:783,12
@@ -22288,7 +22292,9 @@ translation_unit:
                                                         primary_expr:
                                                             string_constant:
                                                             string_literal: ../frontend/test/files/large_testfile.c:784,28
-                                                              "Char"
+                                                              str_lit:
+                                                                kind: STR_LIT_DEFAULT
+                                                                contents: Char
                                                         len: 0
         block_item:
           statement:
@@ -22462,7 +22468,9 @@ translation_unit:
                                                                                 primary_expr:
                                                                                     string_constant:
                                                                                     string_literal: ../frontend/test/files/large_testfile.c:786,56
-                                                                                      "%s literal not properly terminated"
+                                                                                      str_lit:
+                                                                                        kind: STR_LIT_DEFAULT
+                                                                                        contents: %s literal not properly terminated
                                                                                 len: 0
                                                   assign_expr:
                                                     len: 0
@@ -26683,7 +26691,9 @@ translation_unit:
                                                                                                     primary_expr:
                                                                                                         string_constant:
                                                                                                         string_literal: ../frontend/test/files/large_testfile.c:861,71
-                                                                                                          "Terminated literal is of unknown type"
+                                                                                                          str_lit:
+                                                                                                            kind: STR_LIT_DEFAULT
+                                                                                                            contents: Terminated literal is of unknown type
                                                                                                     len: 0
                             block_item:
                               statement:
@@ -30610,7 +30620,9 @@ translation_unit:
                                                                                                             primary_expr:
                                                                                                                 string_constant:
                                                                                                                 string_literal: ../frontend/test/files/large_testfile.c:928,71
-                                                                                                                  "Invalid identifier"
+                                                                                                                  str_lit:
+                                                                                                                    kind: STR_LIT_DEFAULT
+                                                                                                                    contents: Invalid identifier
                                                                                                             len: 0
                                     block_item:
                                       statement:

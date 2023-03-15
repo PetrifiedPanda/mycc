@@ -2,11 +2,11 @@
 
 #include <assert.h>
 
-struct string_constant create_string_constant(const struct str* spelling, struct source_loc loc) {
-    assert(spelling);
+struct string_constant create_string_constant(const struct str_lit* lit, struct source_loc loc) {
+    assert(lit);
     return (struct string_constant){
         .is_func = false,
-        .lit = create_string_literal(spelling, loc),
+        .lit = create_string_literal_node(lit, loc),
     };
 }
 

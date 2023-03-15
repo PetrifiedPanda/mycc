@@ -1699,7 +1699,9 @@ translation_unit:
                                                       primary_expr:
                                                           string_constant:
                                                           string_literal: ../frontend/test/files/parser_testfile.c:51,22
-                                                            L"Hello there, this string literal needs to be longer than 512 characters oh no I don't know what to write here aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                                                            str_lit:
+                                                              kind: STR_LIT_L
+                                                              contents: Hello there, this string literal needs to be longer than 512 characters oh no I don't know what to write here aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
                                                       len: 0
         block_item:
           declaration:
@@ -1974,7 +1976,9 @@ translation_unit:
                                               primary_expr:
                                                   string_constant:
                                                   string_literal: ../frontend/test/files/parser_testfile.c:56,18
-                                                    "Goodbye"
+                                                    str_lit:
+                                                      kind: STR_LIT_DEFAULT
+                                                      contents: Goodbye
                                               len: 0
         block_item:
           statement:
@@ -2077,7 +2081,9 @@ translation_unit:
                                                                                   primary_expr:
                                                                                       string_constant:
                                                                                       string_literal: ../frontend/test/files/parser_testfile.c:57,25
-                                                                                        L"Lstrings seem to be int pointers"
+                                                                                        str_lit:
+                                                                                          kind: STR_LIT_L
+                                                                                          contents: Lstrings seem to be int pointers
                                                                                   len: 0
                                                 designation_init:
                                                   initializer: ../frontend/test/files/parser_testfile.c:57,62
@@ -2113,7 +2119,9 @@ translation_unit:
                                                                                   primary_expr:
                                                                                       string_constant:
                                                                                       string_literal: ../frontend/test/files/parser_testfile.c:57,62
-                                                                                        "doot"
+                                                                                        str_lit:
+                                                                                          kind: STR_LIT_DEFAULT
+                                                                                          contents: doot
                                                                                   len: 0
                                               len: 0
         block_item:
@@ -3054,7 +3062,9 @@ translation_unit:
                                                                                   primary_expr:
                                                                                       string_constant:
                                                                                       string_literal: ../frontend/test/files/parser_testfile.c:71,37
-                                                                                        "Hewo"
+                                                                                        str_lit:
+                                                                                          kind: STR_LIT_DEFAULT
+                                                                                          contents: Hewo
                                                                                   len: 0
                                               len: 0
         block_item:
@@ -3273,7 +3283,9 @@ translation_unit:
                                                                                   primary_expr:
                                                                                       string_constant:
                                                                                       string_literal: ../frontend/test/files/parser_testfile.c:76,16
-                                                                                        "sfsfd"
+                                                                                        str_lit:
+                                                                                          kind: STR_LIT_DEFAULT
+                                                                                          contents: sfsfd
                                                                                   len: 0
                                               len: 0
         block_item:
@@ -4509,7 +4521,9 @@ translation_unit:
                                                       primary_expr:
                                                           string_constant:
                                                           string_literal: ../frontend/test/files/parser_testfile.c:96,39
-                                                            "Hi"
+                                                            str_lit:
+                                                              kind: STR_LIT_DEFAULT
+                                                              contents: Hi
                                                       len: 0
         block_item:
           declaration:
@@ -7169,7 +7183,9 @@ translation_unit:
                                                   int_val: 1
                                             len: 0
               string_literal: ../frontend/test/files/parser_testfile.c:142,23
-                "Something is wrong"
+                str_lit:
+                  kind: STR_LIT_DEFAULT
+                  contents: Something is wrong
         block_item:
           statement:
             jump_statement: ../frontend/test/files/parser_testfile.c:143,5
@@ -8109,7 +8125,9 @@ translation_unit:
                                                       int_val: 1
                                                 len: 0
                   string_literal: ../frontend/test/files/parser_testfile.c:164,23
-                    "if this failed that would be weird"
+                    str_lit:
+                      kind: STR_LIT_DEFAULT
+                      contents: if this failed that would be weird
               struct_declaration
                 declaration_specs: ../frontend/test/files/parser_testfile.c:165,5
                   func_specs:
@@ -8293,7 +8311,9 @@ translation_unit:
                                             is_imaginary: false
                                           int
         string_literal: ../frontend/test/files/parser_testfile.c:168,49
-          ""
+          str_lit:
+            kind: STR_LIT_DEFAULT
+            contents: 
   external_declaration:
     func_def:
       declaration_specs: ../frontend/test/files/parser_testfile.c:170,1

@@ -163,6 +163,25 @@ void str_push_back(struct str* str, char c) {
     }
 }
 
+static void str_set_len(struct str* str, size_t len) {
+    if (str->_is_static_buf) {
+        assert(len < STATIC_BUF_LEN);
+        str->_small_len = (uint8_t)len;
+    } else {
+        str->_len = len;
+    }
+}
+
+void str_pop_back(struct str* str) {
+    assert(str);
+    assert(str_is_valid(str));
+    const size_t len = str_len(str);
+    assert(len >= 1);
+    char* data = str_get_mut_data(str);
+    data[len - 1] = '\0';
+    str_set_len(str, len - 1);
+}
+
 void str_shrink_to_fit(struct str* str) {
     assert(str);
     assert(str_is_valid(str));
@@ -183,13 +202,12 @@ void str_reserve(struct str* str, size_t new_cap) {
     }
 }
 
-static void str_set_len(struct str* str, size_t len) {
-    if (str->_is_static_buf) {
-        assert(len < STATIC_BUF_LEN);
-        str->_small_len = (uint8_t)len;
-    } else {
-        str->_len = len;
-    }
+void str_remove_front(struct str* str, size_t num_chars) {
+    char* data = str_get_mut_data(str);
+    const size_t new_len = str_len(str) - num_chars;
+    memmove(data, data + num_chars, new_len);
+    data[new_len] = '\0';
+    str_set_len(str, new_len);
 }
 
 void str_append_c_str(struct str* str, size_t len, const char* c_str) {

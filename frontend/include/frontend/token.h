@@ -58,6 +58,8 @@ struct token create_token_copy(enum token_kind kind,
 
 struct str take_spelling(struct token* t);
 
+struct str_lit take_str_lit(struct token* t);
+
 void free_token(struct token* t);
 
 #endif

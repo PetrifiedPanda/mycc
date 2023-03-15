@@ -112,10 +112,16 @@ static bool compare_constants(const struct constant* c1,
     UNREACHABLE();
 }
 
-static bool compare_string_literals(const struct string_literal_node* l1,
-                                    const struct string_literal_node* l2) {
+static bool compare_str_lits(const struct str_lit* l1,
+                             const struct str_lit* l2) {
+    ASSERT(l1->kind == l2->kind);
+    return compare_strs(&l1->contents, &l2->contents);
+}
+
+static bool compare_string_literal_nodes(const struct string_literal_node* l1,
+                                         const struct string_literal_node* l2) {
     ASSERT(compare_ast_node_infos(&l1->info, &l2->info));
-    return compare_strs(&l1->spelling, &l2->spelling);
+    return compare_str_lits(&l1->lit, &l2->lit);
 }
 
 static bool compare_string_constants(const struct string_constant* c1,
@@ -124,7 +130,7 @@ static bool compare_string_constants(const struct string_constant* c1,
     if (c1->is_func) {
         return compare_ast_node_infos(&c1->info, &c2->info);
     } else {
-        return compare_string_literals(&c1->lit, &c2->lit);
+        return compare_string_literal_nodes(&c1->lit, &c2->lit);
     }
 }
 
@@ -469,7 +475,7 @@ static bool compare_static_assert_declarations(
     const struct static_assert_declaration* d1,
     const struct static_assert_declaration* d2) {
     ASSERT(compare_const_exprs(d1->const_expr, d2->const_expr));
-    return compare_string_literals(&d1->err_msg, &d2->err_msg);
+    return compare_string_literal_nodes(&d1->err_msg, &d2->err_msg);
 }
 
 static bool compare_pointers(const struct pointer* p1,

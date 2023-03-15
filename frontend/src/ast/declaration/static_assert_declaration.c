@@ -26,19 +26,19 @@ struct static_assert_declaration* parse_static_assert_declaration(
         return NULL;
     }
 
-    const struct str spell = take_spelling(s->it);
+    const struct str_lit lit = take_str_lit(s->it);
     struct source_loc loc = s->it->loc;
     accept_it(s);
 
     if (!(accept(s, RBRACKET) && accept(s, SEMICOLON))) {
         free_const_expr(const_expr);
-        free_str(&spell);
+        free_str_lit(&lit);
         return NULL;
     }
 
     struct static_assert_declaration* res = mycc_alloc(sizeof *res);
     res->const_expr = const_expr;
-    res->err_msg = create_string_literal(&spell, loc); 
+    res->err_msg = create_string_literal_node(&lit, loc); 
 
     return res;
 }

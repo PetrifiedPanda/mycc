@@ -59,12 +59,12 @@ static void check_primary_expr_float_constant(enum constant_kind type,
     free_primary_expr(res);
 }
 
-static void check_primary_expr_string(const char* spell) {
+static void check_primary_expr_string(const char* spell, const char* expected) {
     struct primary_expr* res = parse_primary_helper(spell);
 
     ASSERT(res->kind == PRIMARY_EXPR_STRING_LITERAL);
     ASSERT(res->string.is_func == false);
-    ASSERT_STR(str_get_data(&res->string.lit.spelling), spell);
+    ASSERT_STR(str_get_data(&res->string.lit.lit.contents), expected);
 
     free_primary_expr(res);
 }
@@ -182,7 +182,9 @@ TEST(primary_expr) {
     check_primary_expr_identifier("super_cool_identifier");
     check_primary_expr_identifier("another_cool_identifier");
     check_primary_expr_string("\"Test string it does not matter whether this "
-                              "is an actual string literal but hey\"");
+                              "is an actual string literal but hey\"",
+                              "Test string it does not matter whether this "
+                              "is an actual string literal but hey");
     check_primary_expr_func_name();
     check_primary_expr_bracket_float("(23.3)",
                                      create_float_value(FLOAT_VALUE_D, 23.3));
@@ -539,11 +541,13 @@ TEST(assign_expr) {
         ASSERT(unary->postfix->is_primary == false);
         ASSERT_SIZE_T(unary->postfix->init_list.len, (size_t)2);
 
-        ASSERT(!is_valid_designation(&unary->postfix->init_list.inits[0].designation));
+        ASSERT(!is_valid_designation(
+            &unary->postfix->init_list.inits[0].designation));
         ASSERT(unary->postfix->init_list.inits[0].init.is_assign);
         check_assign_expr_int(unary->postfix->init_list.inits[0].init.assign,
                               create_int_value(INT_VALUE_I, 1));
-        ASSERT(!is_valid_designation(&unary->postfix->init_list.inits[1].designation));
+        ASSERT(!is_valid_designation(
+            &unary->postfix->init_list.inits[1].designation));
         ASSERT(unary->postfix->init_list.inits[1].init.is_assign);
         check_assign_expr_id(unary->postfix->init_list.inits[1].init.assign,
                              "var");

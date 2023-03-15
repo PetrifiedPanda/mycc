@@ -84,11 +84,11 @@ struct primary_expr* parse_primary_expr(struct parser_state* s) {
             return create_primary_expr_constant(create_int_constant(val, loc));
         }
         case STRING_LITERAL: {
-            const struct str spelling = take_spelling(s->it);
+            const struct str_lit lit = take_str_lit(s->it);
             struct source_loc loc = s->it->loc;
             accept_it(s);
             return create_primary_expr_string(
-                create_string_constant(&spelling, loc));
+                create_string_constant(&lit, loc));
         }
         case FUNC_NAME: {
             struct source_loc loc = s->it->loc;

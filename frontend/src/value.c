@@ -53,8 +53,8 @@ struct float_value create_float_value(enum float_value_kind t, double val) {
     };
 }
 
-const char* get_int_value_type_str(enum int_value_kind t) {
-    switch (t) {
+const char* get_int_value_kind_str(enum int_value_kind k) {
+    switch (k) {
         case INT_VALUE_C:
             return "INT_VALUE_C";
         case INT_VALUE_S:
@@ -78,8 +78,8 @@ const char* get_int_value_type_str(enum int_value_kind t) {
     }
     UNREACHABLE();
 }
-const char* get_float_value_type_str(enum float_value_kind t) {
-    switch (t) {
+const char* get_float_value_kind_str(enum float_value_kind k) {
+    switch (k) {
         case FLOAT_VALUE_F:
             return "FLOAT_VALUE_F";
         case FLOAT_VALUE_D:

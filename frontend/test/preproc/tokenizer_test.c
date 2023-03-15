@@ -7,7 +7,7 @@
 
 #include "../test_helpers.h"
 
-static struct token create(enum token_kind type,
+static struct token create(enum token_kind kind,
                            struct str spelling,
                            size_t line,
                            size_t index);
@@ -17,6 +17,11 @@ static struct token create_tok_int(struct int_value val,
 static struct token create_tok_float(struct float_value val,
                                      size_t line,
                                      size_t index);
+
+static struct token create_tok_str_lit(enum str_lit_kind kind,
+                                       struct str cont,
+                                       size_t line,
+                                       size_t index);
 
 static void check_token_arr_file(const char* filename,
                                  const struct token* expected,
@@ -65,9 +70,9 @@ TEST(simple) {
         create(ASTERISK, create_null_str(), 9, 11),
         create(IDENTIFIER, STR_NON_HEAP("lstr"), 9, 13),
         create(ASSIGN, create_null_str(), 9, 18),
-        create(STRING_LITERAL,
+        create_tok_str_lit(STR_LIT_L,
                STR_NON_HEAP(
-                   "L\"Long string literal to check if long strings work\""),
+                   "Long string literal to check if long strings work"),
                10,
                1),
         create(SEMICOLON, create_null_str(), 10, 53),
@@ -91,10 +96,7 @@ TEST(simple) {
         create(ASTERISK, create_null_str(), 12, 11),
         create(IDENTIFIER, STR_NON_HEAP("str"), 12, 13),
         create(ASSIGN, create_null_str(), 12, 17),
-        create(STRING_LITERAL,
-               STR_NON_HEAP("\"Normal string literal\""),
-               12,
-               19),
+        create_tok_str_lit(STR_LIT_DEFAULT, STR_NON_HEAP("Normal string literal"), 12,19),
         create(SEMICOLON, create_null_str(), 12, 42),
         create(INT, create_null_str(), 13, 1),
         create(IDENTIFIER, STR_NON_HEAP("arr"), 13, 5),
@@ -248,8 +250,8 @@ TEST(file) {
         create(LBRACE, create_null_str(), 46, 18),
         create_tok_int(create_int_value(INT_VALUE_I, 0), 46, 19),
         create(COMMA, create_null_str(), 46, 20),
-        create(STRING_LITERAL,
-               STR_NON_HEAP("L\"Hello there, this string literal needs to be "
+        create_tok_str_lit(STR_LIT_L,
+               STR_NON_HEAP("Hello there, this string literal needs to be "
                             "longer than 512 "
                             "characters oh no I don't know what to write here "
                             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -284,7 +286,7 @@ TEST(file) {
                             "aaaaaaaaaaaaaaaa"
                             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
                             "aaaaaaaaaaaaaaaa"
-                            "aaaaaaaaaaaaa\""),
+                            "aaaaaaaaaaaaa"),
                46,
                22),
         create(RBRACE, create_null_str(), 46, 1204),
@@ -314,7 +316,7 @@ TEST(file) {
         create(PTR_OP, create_null_str(), 51, 10),
         create(IDENTIFIER, STR_NON_HEAP("str"), 51, 12),
         create(ASSIGN, create_null_str(), 51, 16),
-        create(STRING_LITERAL, STR_NON_HEAP("\"Goodbye\""), 51, 18),
+        create_tok_str_lit(STR_LIT_DEFAULT, STR_NON_HEAP("Goodbye"), 51, 18),
         create(SEMICOLON, create_null_str(), 51, 27),
         create(ASTERISK, create_null_str(), 52, 5),
         create(IDENTIFIER, STR_NON_HEAP("s_ptr"), 52, 6),
@@ -323,12 +325,12 @@ TEST(file) {
         create(IDENTIFIER, STR_NON_HEAP("MyStruct"), 52, 15),
         create(RBRACKET, create_null_str(), 52, 23),
         create(LBRACE, create_null_str(), 52, 24),
-        create(STRING_LITERAL,
-               STR_NON_HEAP("L\"\\\"Lstrings seem to be int pointers\\\"\""),
+        create_tok_str_lit(STR_LIT_L,
+               STR_NON_HEAP("\\\"Lstrings seem to be int pointers\\\""),
                52,
                25),
         create(COMMA, create_null_str(), 52, 64),
-        create(STRING_LITERAL, STR_NON_HEAP("\"doot\""), 52, 66),
+        create_tok_str_lit(STR_LIT_DEFAULT, STR_NON_HEAP("doot"), 52, 66),
         create(RBRACE, create_null_str(), 52, 72),
         create(SEMICOLON, create_null_str(), 52, 73),
         create(UNION, create_null_str(), 54, 5),
@@ -778,7 +780,7 @@ TEST(file) {
         create(LBRACKET, create_null_str(), 116, 19),
         create_tok_int(create_int_value(INT_VALUE_I, 1), 116, 20),
         create(COMMA, create_null_str(), 116, 21),
-        create(STRING_LITERAL, STR_NON_HEAP("\"Something is wrong\""), 116, 23),
+        create_tok_str_lit(STR_LIT_DEFAULT, STR_NON_HEAP("Something is wrong"), 116, 23),
         create(RBRACKET, create_null_str(), 116, 43),
         create(SEMICOLON, create_null_str(), 116, 44),
         create(RETURN, create_null_str(), 117, 5),
@@ -912,6 +914,20 @@ static struct token create_tok_float(struct float_value val,
     };
 }
 
+static struct token create_tok_str_lit(enum str_lit_kind kind,
+                                       struct str cont,
+                                       size_t line,
+                                       size_t index) {
+    return (struct token){
+        .kind = STRING_LITERAL, 
+        .str_lit = create_str_lit(kind, &cont),
+        .loc = {
+            .file_idx = 0,
+            .file_loc = {line, index},
+        },
+    };
+}
+
 static void check_size(const struct token* tokens, size_t expected) {
     size_t size = 0;
     const struct token* it = tokens;
@@ -942,6 +958,10 @@ static void check_token(const struct token* t, const struct token* expected) {
     } else if (t->kind == F_CONSTANT) {
         ASSERT_FLOAT_VALUE_KIND(t->float_val.kind, expected->float_val.kind);
         ASSERT_DOUBLE(t->float_val.val, expected->float_val.val, 0.0001);
+    } else if (t->kind == STRING_LITERAL) {
+        ASSERT_STR_LIT_KIND(t->str_lit.kind, expected->str_lit.kind);
+        ASSERT_STR(str_get_data(&t->str_lit.contents),
+                   str_get_data(&expected->str_lit.contents));
     } else {
         ASSERT_STR(str_get_data(&t->spelling),
                    str_get_data(&expected->spelling));

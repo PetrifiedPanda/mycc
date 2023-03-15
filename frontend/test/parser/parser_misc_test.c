@@ -259,8 +259,8 @@ TEST(static_assert_declaration) {
     ASSERT_TOKEN_KIND(s.it->kind, INVALID);
     ASSERT(err.kind == PARSER_ERR_NONE);
 
-    ASSERT_STR(str_get_data(&res->err_msg.spelling),
-               "\"This is a string literal\"");
+    ASSERT_STR(str_get_data(&res->err_msg.lit.contents),
+               "This is a string literal");
     check_const_expr_int(res->const_expr, create_int_value(INT_VALUE_I, 12345));
 
     free_preproc_res(&preproc_res);

@@ -144,6 +144,47 @@ void free_preproc_res(struct preproc_res* res) {
     free_file_info(&res->file_info);
 }
 
+static void convert_string_literal(struct token* t) {
+    struct str spelling = t->spelling;
+    // TODO: change this assert when '<' '>' literals are there
+    assert(str_get_data(&spelling)[str_len(&spelling) - 1] == '"');
+    str_pop_back(&spelling);
+    const char* data = str_get_data(&spelling);
+    enum str_lit_kind kind;
+    size_t chars_to_remove;
+    switch (data[0]) {
+        case '"':
+            kind = STR_LIT_DEFAULT;
+            chars_to_remove = 1;
+            break;
+        case 'u':
+            if (data[1] == '8') {
+                assert(data[2] == '"');
+                kind = STR_LIT_U8;
+                chars_to_remove = 3;
+            } else {
+                assert(data[1] == '"');
+                kind = STR_LIT_LOWER_U;
+                chars_to_remove = 2;
+            }
+            break;
+        case 'U':
+            kind = STR_LIT_UPPER_U;
+            chars_to_remove = 2;
+            break;
+        case 'L':
+            kind = STR_LIT_L;
+            chars_to_remove = 2;
+            break;
+        default:
+            UNREACHABLE();
+    }
+    // TODO: still need to convert escape sequences
+    str_remove_front(&spelling, chars_to_remove);
+    str_shrink_to_fit(&spelling);
+    t->str_lit = create_str_lit(kind, &spelling);
+}
+
 static bool convert_preproc_token(struct token* t,
                                   const struct arch_type_info* info,
                                   struct preproc_err* err) {
@@ -198,6 +239,9 @@ static bool convert_preproc_token(struct token* t,
                 free_str(&t->spelling);
                 t->spelling = create_null_str();
             }
+            break;
+        case STRING_LITERAL:
+            convert_string_literal(t);
             break;
         case STRINGIFY_OP:
         case CONCAT_OP:

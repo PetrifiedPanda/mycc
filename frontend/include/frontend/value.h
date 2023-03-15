@@ -48,8 +48,8 @@ struct int_value create_uint_value(enum int_value_kind t, uint64_t val);
 
 struct float_value create_float_value(enum float_value_kind t, double val);
 
-const char* get_int_value_type_str(enum int_value_kind t);
-const char* get_float_value_type_str(enum float_value_kind t);
+const char* get_int_value_kind_str(enum int_value_kind k);
+const char* get_float_value_kind_str(enum float_value_kind k);
 
 #endif
 

@@ -278,14 +278,26 @@ static bool deserialize_constant(struct ast_deserializer* r,
     UNREACHABLE();
 }
 
-static bool deserialize_string_literal(struct ast_deserializer* r,
-                                       struct string_literal_node* res) {
+static bool deserialize_str_lit(struct ast_deserializer* r,
+                                struct str_lit* res) {
+    uint64_t kind;
+    if (!deserialize_uint(r, &kind)) {
+        return false;
+    }
+ 
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
+    res->contents = deserialize_str(r);
+    return str_is_valid(&res->contents);
+}
+
+static bool deserialize_string_literal_node(struct ast_deserializer* r,
+                                            struct string_literal_node* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
 
-    res->spelling = deserialize_str(r);
-    return str_is_valid(&res->spelling);
+    return deserialize_str_lit(r, &res->lit);
 }
 
 static bool deserialize_string_constant(struct ast_deserializer* r,
@@ -296,7 +308,7 @@ static bool deserialize_string_constant(struct ast_deserializer* r,
     if (constant->is_func) {
         return deserialize_ast_node_info(r, &constant->info);
     } else {
-        return deserialize_string_literal(r, &constant->lit);
+        return deserialize_string_literal_node(r, &constant->lit);
     }
 }
 
@@ -1167,7 +1179,7 @@ static struct static_assert_declaration* deserialize_static_assert_declaration(
     }
 
     struct string_literal_node lit;
-    if (!deserialize_string_literal(r, &lit)) {
+    if (!deserialize_string_literal_node(r, &lit)) {
         free_const_expr(expr);
         return NULL;
     }

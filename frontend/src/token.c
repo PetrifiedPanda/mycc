@@ -49,9 +49,18 @@ struct str take_spelling(struct token* t) {
     return spelling;
 }
 
+struct str_lit take_str_lit(struct token* t) {
+    assert(t->kind == STRING_LITERAL);
+    struct str_lit res = t->str_lit;
+    t->str_lit.contents = create_null_str();
+    return res;
+}
+
 void free_token(struct token* t) {
     assert(t);
-    if (t->kind != I_CONSTANT && t->kind != F_CONSTANT) {
+    if (t->kind == STRING_LITERAL) {
+        free_str_lit(&t->str_lit);
+    } else if (t->kind != I_CONSTANT && t->kind != F_CONSTANT) {
         free_str(&t->spelling);
     }
 }

@@ -20,5 +20,9 @@ struct str_lit {
 struct str_lit create_str_lit(enum str_lit_kind kind,
                               const struct str* contents);
 
+void free_str_lit(const struct str_lit* lit);
+
+const char* get_str_lit_kind_str(enum str_lit_kind kind);
+
 #endif
 

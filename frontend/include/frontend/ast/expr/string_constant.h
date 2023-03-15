@@ -13,7 +13,7 @@ struct string_constant {
     };
 };
 
-struct string_constant create_string_constant(const struct str* spelling,
+struct string_constant create_string_constant(const struct str_lit* lit,
                                               struct source_loc loc);
 
 struct string_constant create_func_name(struct source_loc loc);

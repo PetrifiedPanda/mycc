@@ -40,8 +40,11 @@ const char* str_get_data(const struct str* str);
 char str_char_at(const struct str* str, size_t i);
 
 void str_push_back(struct str* str, char c);
+void str_pop_back(struct str* str);
 void str_shrink_to_fit(struct str* str);
 void str_reserve(struct str* str, size_t new_cap);
+
+void str_remove_front(struct str* str, size_t num_chars);
 
 void str_append_c_str(struct str* str, size_t len, const char* c_str);
 

@@ -21,8 +21,8 @@
     do {                                                                       \
         if ((got) != (expected)) {                                             \
             PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             get_int_value_type_str(expected),                 \
-                             get_int_value_type_str(got));                     \
+                             get_int_value_kind_str(expected),                 \
+                             get_int_value_kind_str(got));                     \
         }                                                                      \
     } while (0)
 
@@ -30,8 +30,17 @@
     do {                                                                       \
         if ((got) != (expected)) {                                             \
             PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             get_float_value_type_str(expected),               \
-                             get_float_value_type_str(got));                   \
+                             get_float_value_kind_str(expected),               \
+                             get_float_value_kind_str(got));                   \
+        }                                                                      \
+    } while (0)
+
+#define ASSERT_STR_LIT_KIND(got, expected)                                     \
+    do {                                                                       \
+        if ((got) != (expected)) {                                             \
+            PRINT_ASSERT_ERR("Expected %s but got %s",                         \
+                             get_str_lit_kind_str(expected),                   \
+                             get_str_lit_kind_str(got));                       \
         }                                                                      \
     } while (0)
 

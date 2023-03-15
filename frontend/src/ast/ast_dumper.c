@@ -219,7 +219,7 @@ static void dump_int_value(struct ast_dumper* d, struct int_value val) {
 
     add_indent(d);
 
-    dumper_println(d, "type: %s", get_int_value_type_str(val.kind));
+    dumper_println(d, "type: %s", get_int_value_kind_str(val.kind));
     if (int_value_is_signed(val.kind)) {
         dumper_println(d, "int_val: %jd", val.int_val);
     } else {
@@ -234,7 +234,7 @@ static void dump_float_value(struct ast_dumper* d, struct float_value val) {
 
     add_indent(d);
 
-    dumper_println(d, "type: %s", get_float_value_type_str(val.kind));
+    dumper_println(d, "type: %s", get_float_value_kind_str(val.kind));
     dumper_println(d, "float_val: %g", val.val);
 
     remove_indent(d);
@@ -262,13 +262,23 @@ static void dump_constant(struct ast_dumper* d, const struct constant* c) {
     remove_indent(d);
 }
 
+static void dump_str_lit(struct ast_dumper* d, const struct str_lit* l) {
+    assert(l);
+    dumper_puts(d, "str_lit:");
+
+    add_indent(d);
+    dumper_println(d, "kind: %s", get_str_lit_kind_str(l->kind));
+    dumper_println(d, "contents: %s", str_get_data(&l->contents));
+    remove_indent(d);
+}
+
 static void dump_string_literal(struct ast_dumper* d,
                                 const struct string_literal_node* l) {
     assert(l);
     dumper_print_node_head(d, "string_literal", &l->info);
 
     add_indent(d);
-    dumper_puts(d, str_get_data(&l->spelling));
+    dump_str_lit(d, &l->lit);
     remove_indent(d);
 }
 
@@ -571,8 +581,8 @@ static void dump_enum_spec(struct ast_dumper* d, const struct enum_spec* s) {
     remove_indent(d);
 }
 
-static const char* type_spec_type_str(enum type_spec_kind t) {
-    switch (t) {
+static const char* type_spec_kind_str(enum type_spec_kind k) {
+    switch (k) {
         case TYPE_SPEC_NONE:
             return "NO_TYPE_SPEC";
         case TYPE_SPEC_VOID:
@@ -609,7 +619,7 @@ static void dump_type_specs(struct ast_dumper* d, const struct type_specs* s) {
         case TYPE_SPEC_FLOAT:
         case TYPE_SPEC_DOUBLE:
         case TYPE_SPEC_BOOL:
-            dumper_puts(d, type_spec_type_str(s->kind));
+            dumper_puts(d, type_spec_kind_str(s->kind));
             break;
         case TYPE_SPEC_ATOMIC:
             dump_atomic_type_spec(d, s->atomic_spec);
@@ -755,9 +765,9 @@ static void dump_cast_expr(struct ast_dumper* d, const struct cast_expr* e) {
     remove_indent(d);
 }
 
-static const char* unary_expr_type_str(enum unary_expr_kind t) {
-    assert(t != UNARY_POSTFIX && t != UNARY_SIZEOF_TYPE && t != UNARY_ALIGNOF);
-    switch (t) {
+static const char* unary_expr_kind_str(enum unary_expr_kind k) {
+    assert(k != UNARY_POSTFIX && k != UNARY_SIZEOF_TYPE && k != UNARY_ALIGNOF);
+    switch (k) {
         case UNARY_ADDRESSOF:
             return get_spelling(AND);
         case UNARY_DEREF:
@@ -810,7 +820,7 @@ static void dump_unary_expr(struct ast_dumper* d, const struct unary_expr* e) {
         case UNARY_MINUS:
         case UNARY_BNOT:
         case UNARY_NOT:
-            dumper_puts(d, unary_expr_type_str(e->kind));
+            dumper_puts(d, unary_expr_kind_str(e->kind));
             dump_cast_expr(d, e->cast_expr);
             break;
         case UNARY_SIZEOF_TYPE:

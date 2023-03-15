@@ -135,10 +135,19 @@ static void serialize_constant(struct ast_serializer* d,
     }
 }
 
-static void serialize_string_literal(struct ast_serializer* d,
-                                     const struct string_literal_node* lit) {
+static void serialize_str_lit(struct ast_serializer* d,
+                              const struct str_lit* lit) {
+    const uint64_t kind = lit->kind;
+    assert((enum str_lit_kind)kind == lit->kind);
+    serialize_uint(d, kind);
+    serialize_str(d, &lit->contents);
+}
+
+static void serialize_string_literal_node(
+    struct ast_serializer* d,
+    const struct string_literal_node* lit) {
     serialize_ast_node_info(d, &lit->info);
-    serialize_str(d, &lit->spelling);
+    serialize_str_lit(d, &lit->lit);
 }
 
 static void serialize_string_constant(struct ast_serializer* d,
@@ -147,7 +156,7 @@ static void serialize_string_constant(struct ast_serializer* d,
     if (constant->is_func) {
         serialize_ast_node_info(d, &constant->info);
     } else {
-        serialize_string_literal(d, &constant->lit);
+        serialize_string_literal_node(d, &constant->lit);
     }
 }
 
@@ -504,7 +513,7 @@ static void serialize_static_assert_declaration(
     struct ast_serializer* d,
     const struct static_assert_declaration* decl) {
     serialize_const_expr(d, decl->const_expr);
-    serialize_string_literal(d, &decl->err_msg);
+    serialize_string_literal_node(d, &decl->err_msg);
 }
 
 static void serialize_pointer(struct ast_serializer* d,
