@@ -14,7 +14,7 @@ struct const_expr;
 struct declarator;
 struct identifier;
 
-enum arr_or_func_suffix_type {
+enum arr_or_func_suffix_kind {
     ARR_OR_FUNC_ARRAY,
     ARR_OR_FUNC_FUN_PARAMS,
     ARR_OR_FUNC_FUN_OLD_PARAMS,
@@ -30,7 +30,7 @@ struct arr_suffix {
 
 struct arr_or_func_suffix {
     struct ast_node_info info;
-    enum arr_or_func_suffix_type type;
+    enum arr_or_func_suffix_kind kind;
     union {
         struct arr_suffix arr_suffix;
         struct param_type_list fun_types;

@@ -20,7 +20,7 @@ static struct unary_or_cond parse_unary_or_cond(struct parser_state* s) {
         .is_cond = false,
         .cond = NULL,
     };
-    if (s->it->type == LBRACKET && next_is_type_name(s)) {
+    if (s->it->kind == LBRACKET && next_is_type_name(s)) {
         const struct source_loc start_bracket_loc = s->it->loc;
         accept_it(s);
 
@@ -34,7 +34,7 @@ static struct unary_or_cond parse_unary_or_cond(struct parser_state* s) {
             return res;
         }
 
-        if (s->it->type == LBRACE) {
+        if (s->it->kind == LBRACE) {
             res.is_cond = false;
             res.unary = parse_unary_expr_type_name(s, NULL, 0, type_name, start_bracket_loc);
         } else {
@@ -54,7 +54,7 @@ static struct unary_or_cond parse_unary_or_cond(struct parser_state* s) {
     return res;
 }
 
-static enum assign_expr_op token_type_to_assign_op(enum token_type t) {
+static enum assign_expr_op token_type_to_assign_op(enum token_kind t) {
     assert(is_assign_op(t));
     switch (t) {
         case ASSIGN:
@@ -104,8 +104,8 @@ bool parse_assign_expr_inplace(struct parser_state* s,
     struct unary_expr* last_unary = opt.unary;
 
     size_t alloc_len = res->len;
-    while (is_assign_op(s->it->type)) {
-        enum token_type op = s->it->type;
+    while (is_assign_op(s->it->kind)) {
+        enum token_kind op = s->it->kind;
         accept_it(s);
 
         opt = parse_unary_or_cond(s);

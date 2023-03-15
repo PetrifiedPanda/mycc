@@ -7,7 +7,7 @@
 
 #include "frontend/parser/parser_util.h"
 
-static enum rel_expr_op token_type_to_rel_op(enum token_type t) {
+static enum rel_expr_op token_type_to_rel_op(enum token_kind t) {
     assert(is_rel_op(t));
     switch (t) {
         case LT:
@@ -32,8 +32,8 @@ static bool parse_rel_expr_rel_chain(struct parser_state* s,
     res->rel_chain = NULL;
 
     size_t alloc_len = res->len;
-    while (is_rel_op(s->it->type)) {
-        enum token_type op = s->it->type;
+    while (is_rel_op(s->it->kind)) {
+        enum token_kind op = s->it->kind;
         accept_it(s);
 
         if (res->len == alloc_len) {

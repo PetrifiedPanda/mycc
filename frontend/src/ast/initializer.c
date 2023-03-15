@@ -10,7 +10,7 @@
 static bool parse_designator_inplace(struct parser_state* s,
                                      struct designator* res) {
     res->info = create_ast_node_info(s->it->loc);
-    switch (s->it->type) {
+    switch (s->it->kind) {
         case LINDEX: {
             accept_it(s);
             struct const_expr* index = parse_const_expr(s);
@@ -28,7 +28,7 @@ static bool parse_designator_inplace(struct parser_state* s,
         }
         case DOT: {
             accept_it(s);
-            if (s->it->type == IDENTIFIER) {
+            if (s->it->kind == IDENTIFIER) {
                 const struct str spell = take_spelling(s->it);
                 struct source_loc loc = s->it->loc;
                 accept_it(s);
@@ -41,7 +41,7 @@ static bool parse_designator_inplace(struct parser_state* s,
             }
         }
         default: {
-            enum token_type expected[] = {LINDEX, DOT};
+            enum token_kind expected[] = {LINDEX, DOT};
             expected_tokens_error(s, expected, ARR_LEN(expected));
             return false;
         }
@@ -71,7 +71,7 @@ static bool parse_designator_list(struct parser_state* s,
     }
 
     size_t alloc_len = res->len;
-    while (s->it->type == LINDEX || s->it->type == DOT) {
+    while (s->it->kind == LINDEX || s->it->kind == DOT) {
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->designators,
                             &alloc_len,
@@ -140,7 +140,7 @@ struct designation create_invalid_designation(void) {
 
 static bool parse_designation_init(struct parser_state* s,
                                    struct designation_init* res) {
-    if (s->it->type == LINDEX || s->it->type == DOT) {
+    if (s->it->kind == LINDEX || s->it->kind == DOT) {
         if (!parse_designation_inplace(s, &res->designation)) {
             return false;
         }
@@ -170,7 +170,7 @@ bool parse_init_list(struct parser_state* s, struct init_list* res) {
     }
 
     size_t alloc_len = res->len;
-    while (s->it->type == COMMA && s->it[1].type != RBRACE) {
+    while (s->it->kind == COMMA && s->it[1].kind != RBRACE) {
         accept_it(s);
 
         if (res->len == alloc_len) {
@@ -212,14 +212,14 @@ void free_init_list_children(struct init_list* l) {
 static bool parse_initializer_inplace(struct parser_state* s,
                                       struct initializer* res) {
     res->info = create_ast_node_info(s->it->loc);
-    if (s->it->type == LBRACE) {
+    if (s->it->kind == LBRACE) {
         res->is_assign = false;
         accept_it(s);
         if (!parse_init_list(s, &res->init_list)) {
             return false;
         }
 
-        if (s->it->type == COMMA) {
+        if (s->it->kind == COMMA) {
             accept_it(s);
         }
 

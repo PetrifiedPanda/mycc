@@ -25,7 +25,7 @@ static void compare_preproc_macros(const struct preproc_macro* got,
             const struct token* got_tok = &got_item->token;
             const struct token* ex_tok = &ex_item->token;
 
-            ASSERT_TOKEN_TYPE(got_tok->type, ex_tok->type);
+            ASSERT_TOKEN_KIND(got_tok->kind, ex_tok->kind);
             ASSERT_STR(str_get_data(&got_tok->spelling),
                        str_get_data(&ex_tok->spelling));
 
@@ -55,7 +55,7 @@ TEST(object_like) {
 
         struct preproc_err err = create_preproc_err();
         struct preproc_macro got = parse_preproc_macro(&arr, &err);
-        ASSERT(err.type == PREPROC_ERR_NONE);
+        ASSERT(err.kind == PREPROC_ERR_NONE);
 
         struct preproc_macro ex = {
             .is_func_macro = false,
@@ -189,7 +189,7 @@ TEST(func_like) {
 
         struct preproc_err err = create_preproc_err();
         struct preproc_macro got = parse_preproc_macro(&arr, &err);
-        ASSERT(err.type == PREPROC_ERR_NONE);
+        ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
         mycc_free(got.expansion);
@@ -239,7 +239,7 @@ TEST(func_like) {
 
         struct preproc_err err = create_preproc_err();
         struct preproc_macro got = parse_preproc_macro(&arr, &err);
-        ASSERT(err.type == PREPROC_ERR_NONE);
+        ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
         mycc_free(got.expansion);
@@ -277,7 +277,7 @@ TEST(func_like) {
 
         struct preproc_err err = create_preproc_err();
         struct preproc_macro got = parse_preproc_macro(&arr, &err);
-        ASSERT(err.type == PREPROC_ERR_NONE);
+        ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
         mycc_free(got.expansion);
@@ -349,7 +349,7 @@ TEST(variadic) {
 
         struct preproc_err err = create_preproc_err();
         struct preproc_macro got = parse_preproc_macro(&arr, &err);
-        ASSERT(err.type == PREPROC_ERR_NONE);
+        ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
         mycc_free(got.expansion);
@@ -425,7 +425,7 @@ TEST(variadic) {
 
         struct preproc_err err = create_preproc_err();
         struct preproc_macro got = parse_preproc_macro(&arr, &err);
-        ASSERT(err.type == PREPROC_ERR_NONE);
+        ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
         mycc_free(got.expansion);
@@ -485,7 +485,7 @@ TEST(duplicate_arg_name) {
         struct preproc_err err = create_preproc_err();
         struct preproc_macro got = parse_preproc_macro(&arr, &err);
         is_zeroed_macro(&got);
-        ASSERT(err.type == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
+        ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(str_get_data(&err.duplicate_arg_name), "a");
         ASSERT_SIZE_T(err.base.loc.file_idx, 0);
         ASSERT_SIZE_T(err.base.loc.file_loc.line, 1);
@@ -498,7 +498,7 @@ TEST(duplicate_arg_name) {
         struct preproc_err err = create_preproc_err();
         struct preproc_macro got = parse_preproc_macro(&arr, &err);
         is_zeroed_macro(&got);
-        ASSERT(err.type == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
+        ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(str_get_data(&err.duplicate_arg_name), "c");
         ASSERT_SIZE_T(err.base.loc.file_idx, 0);
         ASSERT_SIZE_T(err.base.loc.file_loc.line, 1);
@@ -509,7 +509,7 @@ TEST(duplicate_arg_name) {
         struct preproc_err err = create_preproc_err();
         struct preproc_macro got = parse_preproc_macro(&arr, &err);
         is_zeroed_macro(&got);
-        ASSERT(err.type == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
+        ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(str_get_data(&err.duplicate_arg_name), "a");
         ASSERT_SIZE_T(err.base.loc.file_idx, 0);
         ASSERT_SIZE_T(err.base.loc.file_loc.line, 1);

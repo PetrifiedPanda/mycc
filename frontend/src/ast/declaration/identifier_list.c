@@ -6,7 +6,7 @@
 
 bool parse_identifier_list(struct parser_state* s,
                            struct identifier_list* res) {
-    if (s->it->type != IDENTIFIER) {
+    if (s->it->kind != IDENTIFIER) {
         return false;
     }
     *res = (struct identifier_list){
@@ -19,7 +19,7 @@ bool parse_identifier_list(struct parser_state* s,
     init_identifier(res->identifiers, &spell, loc);
 
     size_t alloc_len = res->len;
-    while (s->it->type == COMMA) {
+    while (s->it->kind == COMMA) {
         accept_it(s);
 
         if (res->len == alloc_len) {
@@ -28,7 +28,7 @@ bool parse_identifier_list(struct parser_state* s,
                        sizeof *res->identifiers);
         }
 
-        if (s->it->type != IDENTIFIER) {
+        if (s->it->kind != IDENTIFIER) {
             free_identifier_list(res);
             return false;
         }

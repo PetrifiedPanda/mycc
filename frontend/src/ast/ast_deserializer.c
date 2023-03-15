@@ -213,13 +213,13 @@ static struct identifier* deserialize_identifier(struct ast_deserializer* r) {
 
 static bool deserialize_int_value(struct ast_deserializer* r,
                                   struct int_value* res) {
-    uint64_t type;
-    if (!deserialize_uint(r, &type)) {
+    uint64_t kind;
+    if (!deserialize_uint(r, &kind)) {
         return false;
     }
-    res->type = type;
-    assert((uint64_t)res->type == type);
-    if (int_value_is_signed(res->type)) {
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
+    if (int_value_is_signed(res->kind)) {
         int64_t int_val;
         if (!deserialize_int(r, &int_val)) {
             return false;
@@ -239,12 +239,12 @@ static bool deserialize_int_value(struct ast_deserializer* r,
 
 static bool deserialize_float_value(struct ast_deserializer* r,
                                     struct float_value* res) {
-    uint64_t type;
-    if (!deserialize_uint(r, &type)) {
+    uint64_t kind;
+    if (!deserialize_uint(r, &kind)) {
         return false;
     }
-    res->type = type;
-    assert((uint64_t)res->type == type);
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
     double val;
     if (!deserialize_float(r, &val)) {
         return false;
@@ -260,13 +260,13 @@ static bool deserialize_constant(struct ast_deserializer* r,
         return false;
     }
 
-    uint64_t type;
-    if (!deserialize_uint(r, &type)) {
+    uint64_t kind;
+    if (!deserialize_uint(r, &kind)) {
         return false;
     }
-    res->type = type;
-    assert((uint64_t)res->type == type);
-    switch (res->type) {
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
+    switch (res->kind) {
         case CONSTANT_ENUM:
             res->spelling = deserialize_str(r);
             return str_is_valid(&res->spelling);
@@ -451,15 +451,15 @@ static struct generic_sel* deserialize_generic_sel(struct ast_deserializer* r) {
 
 static struct primary_expr* deserialize_primary_expr(
     struct ast_deserializer* r) {
-    uint64_t type;
-    if (!deserialize_uint(r, &type)) {
+    uint64_t kind;
+    if (!deserialize_uint(r, &kind)) {
         return NULL;
     }
 
     struct primary_expr* res = mycc_alloc(sizeof *res);
-    res->type = type;
-    assert((uint64_t)res->type == type);
-    switch (res->type) {
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
+    switch (res->kind) {
         case PRIMARY_EXPR_IDENTIFIER:
             res->identifier = deserialize_identifier(r);
             if (!res->identifier) {
@@ -635,14 +635,14 @@ static bool deserialize_arg_expr_list(struct ast_deserializer* r,
 
 static bool deserialize_postfix_suffix(struct ast_deserializer* r,
                                        struct postfix_suffix* res) {
-    uint64_t type;
-    if (!deserialize_uint(r, &type)) {
+    uint64_t kind;
+    if (!deserialize_uint(r, &kind)) {
         return false;
     }
-    res->type = type;
-    assert((uint64_t)res->type == type);
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
 
-    switch (res->type) {
+    switch (res->kind) {
         case POSTFIX_INDEX:
             res->index_expr = deserialize_expr(r);
             return res->index_expr != NULL;
@@ -734,20 +734,20 @@ static struct unary_expr* deserialize_unary_expr(struct ast_deserializer* r) {
         ops_before[i] = unary_op;
         assert((enum unary_expr_op)unary_op == ops_before[i]);
     }
-    uint64_t expr_type;
-    if (!deserialize_uint(r, &expr_type)) {
+    uint64_t expr_kind;
+    if (!deserialize_uint(r, &expr_kind)) {
         mycc_free(ops_before);
         return NULL;
     }
-    enum unary_expr_type type = expr_type;
-    assert((uint64_t)type == expr_type);
+    enum unary_expr_kind kind = expr_kind;
+    assert((uint64_t)kind == expr_kind);
 
     struct unary_expr* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->len = len;
     res->ops_before = ops_before;
-    res->type = type;
-    switch (type) {
+    res->kind = kind;
+    switch (kind) {
         case UNARY_POSTFIX:
             res->postfix = deserialize_postfix_expr(r);
             if (!res->postfix) {
@@ -1216,13 +1216,13 @@ static bool deserialize_abs_arr_or_func_suffix(
         return false;
     }
 
-    uint64_t type;
-    if (!deserialize_uint(r, &type)) {
+    uint64_t kind;
+    if (!deserialize_uint(r, &kind)) {
         return false;
     }
-    res->type = type;
-    assert((uint64_t)res->type == type);
-    switch (res->type) {
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
+    switch (res->kind) {
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
             return deserialize_bool(r, &res->has_asterisk);
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN:
@@ -1348,14 +1348,14 @@ static bool deserialize_param_declaration(struct ast_deserializer* r,
         return false;
     }
 
-    uint64_t type;
-    if (!deserialize_uint(r, &type)) {
+    uint64_t kind;
+    if (!deserialize_uint(r, &kind)) {
         free_declaration_specs(res->decl_specs);
         return false;
     }
-    res->type = type;
-    assert((uint64_t)res->type == type);
-    switch (res->type) {
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
+    switch (res->kind) {
         case PARAM_DECL_DECL:
             res->decl = deserialize_declarator(r);
             return res->decl != NULL;
@@ -1437,13 +1437,13 @@ static bool deserialize_arr_or_func_suffix(struct ast_deserializer* r,
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
-    uint64_t type;
-    if (!deserialize_uint(r, &type)) {
+    uint64_t kind;
+    if (!deserialize_uint(r, &kind)) {
         return false;
     }
-    res->type = type;
-    assert((uint64_t)res->type == type);
-    switch (res->type) {
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
+    switch (res->kind) {
         case ARR_OR_FUNC_ARRAY:
             return deserialize_arr_suffix(r, &res->arr_suffix);
         case ARR_OR_FUNC_FUN_PARAMS:
@@ -1771,14 +1771,14 @@ static bool deserialize_type_specs(struct ast_deserializer* r,
     if (!deserialize_type_modifiers(r, &res->mods)) {
         return false;
     }
-    uint64_t type;
-    if (!deserialize_uint(r, &type)) {
+    uint64_t kind;
+    if (!deserialize_uint(r, &kind)) {
         return false;
     }
-    res->type = (enum type_spec_type)type;
-    assert((uint64_t)res->type == type);
+    res->kind = (enum type_spec_kind)kind;
+    assert((uint64_t)res->kind == kind);
 
-    switch (res->type) {
+    switch (res->kind) {
         case TYPE_SPEC_NONE:
         case TYPE_SPEC_VOID:
         case TYPE_SPEC_CHAR:
@@ -1987,16 +1987,16 @@ static struct labeled_statement* deserialize_labeled_statement(
         return NULL;
     }
 
-    uint64_t type;
-    if (!deserialize_uint(r, &type)) {
+    uint64_t kind;
+    if (!deserialize_uint(r, &kind)) {
         return NULL;
     }
 
     struct labeled_statement* res = mycc_alloc(sizeof *res);
     res->info = info;
-    res->type = type;
-    assert((uint64_t)res->type == type);
-    switch (res->type) {
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
+    switch (res->kind) {
         case LABELED_STATEMENT_CASE:
             res->case_expr = deserialize_const_expr(r);
             if (!res->case_expr) {
@@ -2015,7 +2015,7 @@ static struct labeled_statement* deserialize_labeled_statement(
 
     res->stat = deserialize_statement(r);
     if (!res->stat) {
-        switch (res->type) {
+        switch (res->kind) {
             case LABELED_STATEMENT_CASE:
                 free_const_expr(res->case_expr);
                 break;
@@ -2151,22 +2151,22 @@ static struct iteration_statement* deserialize_iteration_statement(
     if (!deserialize_ast_node_info(r, &info)) {
         return false;
     }
-    uint64_t type;
-    if (!deserialize_uint(r, &type)) {
+    uint64_t kind;
+    if (!deserialize_uint(r, &kind)) {
         return false;
     }
 
     struct iteration_statement* res = mycc_alloc(sizeof *res);
     res->info = info;
-    res->type = type;
-    assert((uint64_t)res->type == type);
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
 
     res->loop_body = deserialize_statement(r);
     if (!res->loop_body) {
         goto fail_before_loop_body;
     }
 
-    switch (res->type) {
+    switch (res->kind) {
         case ITERATION_STATEMENT_WHILE:
         case ITERATION_STATEMENT_DO:
             res->while_cond = deserialize_expr(r);
@@ -2195,16 +2195,16 @@ static struct jump_statement* deserialize_jump_statement(
         return NULL;
     }
 
-    uint64_t type;
-    if (!deserialize_uint(r, &type)) {
+    uint64_t kind;
+    if (!deserialize_uint(r, &kind)) {
         return NULL;
     }
 
     struct jump_statement* res = mycc_alloc(sizeof *res);
     res->info = info;
-    res->type = type;
-    assert((uint64_t)res->type == type);
-    switch (res->type) {
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
+    switch (res->kind) {
         case JUMP_STATEMENT_GOTO:
             res->goto_label = deserialize_identifier(r);
             if (!res->goto_label) {
@@ -2241,13 +2241,13 @@ static struct compound_statement* deserialize_compound_statement(
 
 static bool deserialize_statement_inplace(struct ast_deserializer* r,
                                           struct statement* res) {
-    uint64_t type;
-    if (!deserialize_uint(r, &type)) {
+    uint64_t kind;
+    if (!deserialize_uint(r, &kind)) {
         return false;
     }
-    res->type = type;
-    assert((uint64_t)res->type == type);
-    switch (res->type) {
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
+    switch (res->kind) {
         case STATEMENT_LABELED:
             res->labeled = deserialize_labeled_statement(r);
             return res->labeled != NULL;

@@ -9,10 +9,10 @@ static void free_abs_arr_or_func_suffix(struct abs_arr_or_func_suffix* s);
 
 static bool parse_abs_func_suffix(struct parser_state* s,
                                   struct abs_arr_or_func_suffix* res) {
-    assert(s->it->type == LBRACKET);
+    assert(s->it->kind == LBRACKET);
     accept_it(s);
-    res->type = ABS_ARR_OR_FUNC_SUFFIX_FUNC;
-    if (s->it->type == RBRACKET) {
+    res->kind = ABS_ARR_OR_FUNC_SUFFIX_FUNC;
+    if (s->it->kind == RBRACKET) {
         res->func_types = (struct param_type_list){
             .is_variadic = false,
             .param_list = {
@@ -36,15 +36,15 @@ static bool parse_abs_func_suffix(struct parser_state* s,
 
 static bool parse_abs_arr_suffix(struct parser_state* s,
                                  struct abs_arr_or_func_suffix* res) {
-    assert(s->it->type == LINDEX);
+    assert(s->it->kind == LINDEX);
     accept_it(s);
-    if (s->it->type == RINDEX) {
-        res->type = ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY;
+    if (s->it->kind == RINDEX) {
+        res->kind = ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY;
         res->has_asterisk = false;
         accept_it(s);
         return true;
-    } else if (s->it->type == ASTERISK) {
-        res->type = ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY;
+    } else if (s->it->kind == ASTERISK) {
+        res->kind = ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY;
         res->has_asterisk = true;
         accept_it(s);
         res->assign = NULL;
@@ -54,19 +54,19 @@ static bool parse_abs_arr_suffix(struct parser_state* s,
         return true;
     }
 
-    res->type = ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN;
+    res->kind = ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN;
     res->is_static = false;
-    if (s->it->type == STATIC) {
+    if (s->it->kind == STATIC) {
         accept_it(s);
         res->is_static = true;
     }
 
-    if (is_type_qual(s->it->type)) {
+    if (is_type_qual(s->it->kind)) {
         if (!parse_type_qual_list(s, &res->type_quals)) {
             return false;
         }
 
-        if (s->it->type == STATIC) {
+        if (s->it->kind == STATIC) {
             if (res->is_static) {
                 set_parser_err(s->err,
                                PARSER_ERR_ARR_DOUBLE_STATIC,
@@ -80,7 +80,7 @@ static bool parse_abs_arr_suffix(struct parser_state* s,
         }
     }
 
-    if (s->it->type == RINDEX) {
+    if (s->it->kind == RINDEX) {
         if (res->is_static) {
             set_parser_err(s->err, PARSER_ERR_ARR_STATIC_NO_LEN, s->it->loc);
             free_abs_arr_or_func_suffix(res);
@@ -101,10 +101,10 @@ static bool parse_abs_arr_suffix(struct parser_state* s,
 static bool parse_abs_arr_or_func_suffix(struct parser_state* s,
                                          struct abs_arr_or_func_suffix* res) {
     assert(res);
-    assert(s->it->type == LBRACKET || s->it->type == LINDEX);
+    assert(s->it->kind == LBRACKET || s->it->kind == LINDEX);
     res->info = create_ast_node_info(s->it->loc);
 
-    switch (s->it->type) {
+    switch (s->it->kind) {
         case LBRACKET:
             return parse_abs_func_suffix(s, res);
         case LINDEX:
@@ -119,7 +119,7 @@ bool parse_abs_arr_or_func_suffixes(struct parser_state* s,
     res->following_suffixes = NULL;
     res->len = 0;
     size_t alloc_len = res->len;
-    while (s->it->type == LBRACKET || s->it->type == LINDEX) {
+    while (s->it->kind == LBRACKET || s->it->kind == LINDEX) {
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->following_suffixes,
                        &alloc_len,
@@ -145,9 +145,9 @@ struct direct_abs_declarator* parse_direct_abs_declarator(
     struct parser_state* s) {
     struct direct_abs_declarator* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
-    if (s->it->type == LBRACKET
-        && (s->it[1].type == LBRACKET || s->it[1].type == LINDEX
-            || s->it[1].type == ASTERISK)) {
+    if (s->it->kind == LBRACKET
+        && (s->it[1].kind == LBRACKET || s->it[1].kind == LINDEX
+            || s->it[1].kind == ASTERISK)) {
         accept_it(s);
         res->bracket_decl = parse_abs_declarator(s);
         if (!res->bracket_decl) {
@@ -171,7 +171,7 @@ struct direct_abs_declarator* parse_direct_abs_declarator(
 }
 
 static void free_abs_arr_or_func_suffix(struct abs_arr_or_func_suffix* s) {
-    switch (s->type) {
+    switch (s->kind) {
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
             break;
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN:

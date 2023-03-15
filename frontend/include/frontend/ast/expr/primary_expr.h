@@ -1,7 +1,7 @@
 #ifndef PRIMARY_EXPR_H
 #define PRIMARY_EXPR_H
 
-#include "frontend/token_type.h"
+#include "frontend/token_kind.h"
 
 #include "constant.h"
 #include "string_constant.h"
@@ -12,7 +12,7 @@ struct expr;
 struct identifier;
 struct generic_sel;
 
-enum primary_expr_type {
+enum primary_expr_kind {
     PRIMARY_EXPR_IDENTIFIER,
     PRIMARY_EXPR_CONSTANT,
     PRIMARY_EXPR_STRING_LITERAL,
@@ -21,7 +21,7 @@ enum primary_expr_type {
 };
 
 struct primary_expr {
-    enum primary_expr_type type;
+    enum primary_expr_kind kind;
     union {
         struct constant constant;
         struct string_constant string;

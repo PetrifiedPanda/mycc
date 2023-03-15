@@ -7,7 +7,7 @@
 
 #include "frontend/parser/parser_util.h"
 
-static inline bool is_standalone_type_spec(enum token_type t) {
+static inline bool is_standalone_type_spec(enum token_kind t) {
     switch (t) {
         case VOID:
         case CHAR:
@@ -38,18 +38,18 @@ struct type_specs create_type_specs(void) {
                 .is_complex = false,
                 .is_imaginary = false,
             },
-        .type = TYPE_SPEC_NONE,
+        .kind = TYPE_SPEC_NONE,
     };
 }
 
 static void cannot_combine_with_spec_err(const struct parser_state* s,
-                                         enum token_type prev_spec) {
+                                         enum token_kind prev_spec) {
     set_parser_err(s->err, PARSER_ERR_INCOMPATIBLE_TYPE_SPECS, s->it->loc);
-    s->err->type_spec = s->it->type;
+    s->err->type_spec = s->it->kind;
     s->err->prev_type_spec = prev_spec;
 }
 
-static enum type_spec_type get_predef_type_spec(enum token_type t) {
+static enum type_spec_kind get_predef_type_spec(enum token_kind t) {
     switch (t) {
         case VOID:
             return TYPE_SPEC_VOID;
@@ -71,22 +71,22 @@ static enum type_spec_type get_predef_type_spec(enum token_type t) {
 
 static bool update_standalone_type_spec(struct parser_state* s,
                                         struct type_specs* res) {
-    switch (s->it->type) {
+    switch (s->it->kind) {
         case VOID:
         case CHAR:
         case INT:
         case FLOAT:
         case DOUBLE:
         case BOOL:
-            if (res->type != TYPE_SPEC_NONE) {
+            if (res->kind != TYPE_SPEC_NONE) {
                 set_parser_err(s->err,
                                PARSER_ERR_DISALLOWED_TYPE_QUALS,
                                s->it->loc);
-                s->err->incompatible_type = s->it->type;
+                s->err->incompatible_type = s->it->kind;
                 free_type_specs_children(res);
                 return false;
             }
-            res->type = get_predef_type_spec(s->it->type);
+            res->kind = get_predef_type_spec(s->it->kind);
             break;
         case SHORT:
             if (res->mods.num_long != 0) {
@@ -140,38 +140,38 @@ static bool update_standalone_type_spec(struct parser_state* s,
 
 static bool update_non_standalone_type_spec(struct parser_state* s,
                                             struct type_specs* res) {
-    switch (s->it->type) {
+    switch (s->it->kind) {
         case ATOMIC: {
-            res->type = TYPE_SPEC_ATOMIC;
+            res->kind = TYPE_SPEC_ATOMIC;
             res->atomic_spec = parse_atomic_type_spec(s);
             if (!res->atomic_spec) {
-                res->type = TYPE_SPEC_NONE;
+                res->kind = TYPE_SPEC_NONE;
                 return false;
             }
             break;
         }
         case STRUCT:
         case UNION: {
-            res->type = TYPE_SPEC_STRUCT;
+            res->kind = TYPE_SPEC_STRUCT;
             res->struct_union_spec = parse_struct_union_spec(s);
             if (!res->struct_union_spec) {
-                res->type = TYPE_SPEC_NONE;
+                res->kind = TYPE_SPEC_NONE;
                 return false;
             }
             break;
         }
         case ENUM: {
-            res->type = TYPE_SPEC_ENUM;
+            res->kind = TYPE_SPEC_ENUM;
             res->enum_spec = parse_enum_spec(s);
             if (!res->enum_spec) {
-                res->type = TYPE_SPEC_NONE;
+                res->kind = TYPE_SPEC_NONE;
                 return false;
             }
             break;
         }
         case IDENTIFIER: {
             if (is_typedef_name(s, &s->it->spelling)) {
-                res->type = TYPE_SPEC_TYPENAME;
+                res->kind = TYPE_SPEC_TYPENAME;
                 const struct str spell = take_spelling(s->it);
                 res->typedef_name = create_identifier(&spell, s->it->loc);
                 accept_it(s);
@@ -181,12 +181,12 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
                                PARSER_ERR_EXPECTED_TYPEDEF_NAME,
                                s->it->loc);
                 s->err->non_typedef_spelling = take_spelling(s->it);
-                res->type = TYPE_SPEC_NONE;
+                res->kind = TYPE_SPEC_NONE;
                 return false;
             }
         }
         default: {
-            enum token_type expected[] = {
+            enum token_kind expected[] = {
                 ATOMIC,
                 STRUCT,
                 UNION,
@@ -206,7 +206,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
                 IMAGINARY,
             };
             expected_tokens_error(s, expected, ARR_LEN(expected));
-            res->type = TYPE_SPEC_NONE;
+            res->kind = TYPE_SPEC_NONE;
             return false;
         }
     }
@@ -217,7 +217,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
 bool update_type_specs(struct parser_state* s, struct type_specs* res) {
     assert(res);
 
-    if (is_standalone_type_spec(s->it->type)) {
+    if (is_standalone_type_spec(s->it->kind)) {
         return update_standalone_type_spec(s, res);
     } else {
         return update_non_standalone_type_spec(s, res);
@@ -225,7 +225,7 @@ bool update_type_specs(struct parser_state* s, struct type_specs* res) {
 }
 
 void free_type_specs_children(struct type_specs* s) {
-    switch (s->type) {
+    switch (s->kind) {
         case TYPE_SPEC_NONE:
         case TYPE_SPEC_VOID:
         case TYPE_SPEC_CHAR:
@@ -252,7 +252,7 @@ void free_type_specs_children(struct type_specs* s) {
 bool is_valid_type_specs(const struct type_specs* s) {
     assert(s);
 
-    if (s->type == TYPE_SPEC_NONE) {
+    if (s->kind == TYPE_SPEC_NONE) {
         const struct type_modifiers* mods = &s->mods;
         return mods->is_unsigned || mods->is_signed || mods->is_short
                || mods->num_long != 0 || mods->is_complex || mods->is_imaginary;

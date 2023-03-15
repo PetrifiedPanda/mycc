@@ -10,7 +10,7 @@ static bool parse_spec_or_qual(struct parser_state* s,
                                struct spec_qual_list* res) {
     assert(res);
 
-    if (is_type_qual(s->it->type)) {
+    if (is_type_qual(s->it->kind)) {
         update_type_quals(s, &res->quals);
     } else if (!update_type_specs(s, &res->specs)) {
         return false;
@@ -30,7 +30,7 @@ bool parse_spec_qual_list(struct parser_state* s, struct spec_qual_list* res) {
         return false;
     }
 
-    while (is_type_spec(s) || is_type_qual(s->it->type)) {
+    while (is_type_spec(s) || is_type_qual(s->it->kind)) {
         if (!parse_spec_or_qual(s, res)) {
             free_spec_qual_list_children(res);
             return false;

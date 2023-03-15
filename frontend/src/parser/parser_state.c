@@ -7,7 +7,7 @@
 
 #include "frontend/parser/parser_util.h"
 
-enum identifier_type {
+enum identifier_kind {
     ID_TYPE_NONE,
     ID_TYPE_TYPEDEF_NAME,
     ID_TYPE_ENUM_CONSTANT
@@ -15,7 +15,7 @@ enum identifier_type {
 
 struct parser_identifier_data {
     struct source_loc loc;
-    enum identifier_type type;
+    enum identifier_kind kind;
 };
 
 enum {
@@ -24,9 +24,9 @@ enum {
 
 static bool register_identifier(struct parser_state* s,
                                 const struct token* token,
-                                enum identifier_type type);
+                                enum identifier_kind kind);
 
-static enum identifier_type get_item(const struct parser_state* s,
+static enum identifier_kind get_item(const struct parser_state* s,
                                      const struct str* spell);
 
 struct parser_state create_parser_state(struct token* tokens,
@@ -54,8 +54,8 @@ void free_parser_state(struct parser_state* s) {
     mycc_free(s->_scope_maps);
 }
 
-bool accept(struct parser_state* s, enum token_type expected) {
-    if (s->it->type != expected) {
+bool accept(struct parser_state* s, enum token_kind expected) {
+    if (s->it->kind != expected) {
         expected_token_error(s, expected);
         return false;
     } else {
@@ -65,7 +65,7 @@ bool accept(struct parser_state* s, enum token_type expected) {
 }
 
 void accept_it(struct parser_state* s) {
-    assert(s->it->type != INVALID);
+    assert(s->it->kind != INVALID);
     ++s->it;
 }
 
@@ -117,22 +117,22 @@ void parser_set_redefinition_err(struct parser_state* s,
     set_parser_err(s->err, PARSER_ERR_REDEFINED_SYMBOL, redef_tok->loc);
 
     s->err->redefined_symbol = str_copy(&redef_tok->spelling);
-    s->err->was_typedef_name = prev_def->type == ID_TYPE_TYPEDEF_NAME;
+    s->err->was_typedef_name = prev_def->kind == ID_TYPE_TYPEDEF_NAME;
     s->err->prev_def_file = prev_def->loc.file_idx;
     s->err->prev_def_loc = prev_def->loc.file_loc;
 }
 
 static bool register_identifier(struct parser_state* s,
                                 const struct token* token,
-                                enum identifier_type type) {
-    assert(type != ID_TYPE_NONE);
-    assert(token->type == IDENTIFIER);
+                                enum identifier_kind kind) {
+    assert(kind != ID_TYPE_NONE);
+    assert(token->kind == IDENTIFIER);
 
     // TODO: Add a warning when an identifier from a previous scope is shadowed
 
     struct parser_identifier_data to_insert = {
         .loc = token->loc,
-        .type = type,
+        .kind = kind,
     };
     const struct parser_identifier_data* item = string_hash_map_insert(
         &s->_scope_maps[s->_len - 1],
@@ -146,14 +146,14 @@ static bool register_identifier(struct parser_state* s,
     }
 }
 
-static enum identifier_type get_item(const struct parser_state* s,
+static enum identifier_kind get_item(const struct parser_state* s,
                                      const struct str* spell) {
     for (size_t i = 0; i < s->_len; ++i) {
         const struct parser_identifier_data* data = string_hash_map_get(
             &s->_scope_maps[i],
             spell);
         if (data != NULL) {
-            return data->type;
+            return data->kind;
         }
     }
 

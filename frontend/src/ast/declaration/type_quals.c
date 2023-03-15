@@ -16,9 +16,9 @@ struct type_quals create_type_quals(void) {
 }
 
 void update_type_quals(struct parser_state* s, struct type_quals* quals) {
-    assert(is_type_qual(s->it->type));
+    assert(is_type_qual(s->it->kind));
 
-    switch (s->it->type) {
+    switch (s->it->kind) {
         case CONST:
             quals->is_const = true;
             break;
@@ -41,14 +41,14 @@ bool parse_type_qual_list(struct parser_state* s, struct type_quals* res) {
     assert(res);
     *res = create_type_quals();
 
-    if (!is_type_qual(s->it->type)) {
-        enum token_type expected[] = {CONST, RESTRICT, VOLATILE, ATOMIC};
+    if (!is_type_qual(s->it->kind)) {
+        enum token_kind expected[] = {CONST, RESTRICT, VOLATILE, ATOMIC};
 
         expected_tokens_error(s, expected, ARR_LEN(expected));
         return false;
     }
 
-    while (is_type_qual(s->it->type)) {
+    while (is_type_qual(s->it->kind)) {
         update_type_quals(s, res);
     }
 

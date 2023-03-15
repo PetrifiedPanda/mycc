@@ -9,7 +9,7 @@ bool parse_init_declarator_typedef_inplace(struct parser_state* s,
         return false;
     }
 
-    if (s->it->type == ASSIGN) {
+    if (s->it->kind == ASSIGN) {
         set_parser_err(s->err, PARSER_ERR_TYPEDEF_INIT, s->it->loc);
         return false;
     }
@@ -26,7 +26,7 @@ bool parse_init_declarator_inplace(struct parser_state* s,
         return false;
     }
 
-    if (s->it->type == ASSIGN) {
+    if (s->it->kind == ASSIGN) {
         accept_it(s);
         res->init = parse_initializer(s);
         if (!res->init) {

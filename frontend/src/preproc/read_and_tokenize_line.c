@@ -142,7 +142,7 @@ static bool handle_ifdef_ifndef(struct preproc_state* state,
                                 struct token_arr* arr,
                                 bool is_ifndef) {
     assert(arr);
-    assert(arr->tokens[0].type == STRINGIFY_OP);
+    assert(arr->tokens[0].kind == STRINGIFY_OP);
     assert(
         (!is_ifndef
          && strcmp(str_get_data(&arr->tokens[1].spelling), "ifdef") == 0)
@@ -152,21 +152,21 @@ static bool handle_ifdef_ifndef(struct preproc_state* state,
     if (arr->len < 3) {
         set_preproc_err(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[1].loc);
         state->err->count_empty = true;
-        state->err->count_dir_type = is_ifndef ? SINGLE_MACRO_OP_IFNDEF
+        state->err->count_dir_kind = is_ifndef ? SINGLE_MACRO_OP_IFNDEF
                                                : SINGLE_MACRO_OP_IFDEF;
         return false;
     } else if (arr->len > 3) {
         set_preproc_err(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[3].loc);
         state->err->count_empty = false;
-        state->err->count_dir_type = is_ifndef ? SINGLE_MACRO_OP_IFNDEF
+        state->err->count_dir_kind = is_ifndef ? SINGLE_MACRO_OP_IFNDEF
                                                : SINGLE_MACRO_OP_IFDEF;
         return false;
     }
-    if (arr->tokens[2].type != IDENTIFIER) {
+    if (arr->tokens[2].kind != IDENTIFIER) {
         set_preproc_err(state->err,
                         PREPROC_ERR_IFDEF_NOT_ID,
                         arr->tokens[2].loc);
-        state->err->not_identifier_got = arr->tokens[2].type;
+        state->err->not_identifier_got = arr->tokens[2].kind;
         state->err->not_identifier_op = is_ifndef ? SINGLE_MACRO_OP_IFNDEF
                                                   : SINGLE_MACRO_OP_IFDEF;
         return false;
@@ -222,7 +222,7 @@ static bool handle_include(struct preproc_state* state, struct token_arr* arr) {
     }
     
     // TODO: "<" ">" string literals
-    if (arr->tokens[2].type == STRING_LITERAL) {
+    if (arr->tokens[2].kind == STRING_LITERAL) {
         const struct str filename = str_take(&arr->tokens[2].spelling);
         if (!preproc_state_open_file(state, &filename, arr->tokens[2].loc)) {
             // TODO: do we need to free filename here
@@ -239,10 +239,10 @@ static bool preproc_statement(struct preproc_state* state,
                               struct token_arr* arr) {
     assert(arr);
     assert(arr->tokens);
-    assert(arr->tokens[0].type == STRINGIFY_OP);
+    assert(arr->tokens[0].kind == STRINGIFY_OP);
     if (arr->len == 1) {
         return true;
-    } else if (arr->tokens[1].type != IDENTIFIER) {
+    } else if (arr->tokens[1].kind != IDENTIFIER) {
         set_preproc_err(state->err,
                         PREPROC_ERR_INVALID_PREPROC_DIR,
                         arr->tokens[1].loc);
@@ -262,7 +262,7 @@ static bool preproc_statement(struct preproc_state* state,
         const struct str spell = take_spelling(&arr->tokens[2]);
         struct preproc_macro macro = parse_preproc_macro(arr,
                                                          state->err);
-        if (state->err->type != PREPROC_ERR_NONE) {
+        if (state->err->kind != PREPROC_ERR_NONE) {
             return false;
         }
         register_preproc_macro(state, &spell, &macro);
@@ -272,20 +272,20 @@ static bool preproc_statement(struct preproc_state* state,
                             PREPROC_ERR_ARG_COUNT,
                             arr->tokens[1].loc);
             state->err->count_empty = true;
-            state->err->count_dir_type = SINGLE_MACRO_OP_UNDEF;
+            state->err->count_dir_kind = SINGLE_MACRO_OP_UNDEF;
             return false;
         } else if (arr->len > 3) {
             set_preproc_err(state->err,
                             PREPROC_ERR_ARG_COUNT,
                             arr->tokens[3].loc);
             state->err->count_empty = false;
-            state->err->count_dir_type = SINGLE_MACRO_OP_UNDEF;
+            state->err->count_dir_kind = SINGLE_MACRO_OP_UNDEF;
             return false;
-        } else if (arr->tokens[2].type != IDENTIFIER) {
+        } else if (arr->tokens[2].kind != IDENTIFIER) {
             set_preproc_err(state->err,
                             PREPROC_ERR_IFDEF_NOT_ID,
                             arr->tokens[2].loc);
-            state->err->not_identifier_got = arr->tokens[2].type;
+            state->err->not_identifier_got = arr->tokens[2].kind;
             state->err->not_identifier_op = SINGLE_MACRO_OP_UNDEF;
             return false;
         }

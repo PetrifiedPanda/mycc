@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-enum token_type {
+enum token_kind {
     IDENTIFIER,
     I_CONSTANT,
     F_CONSTANT,
@@ -115,34 +115,33 @@ enum token_type {
 };
 
 /**
- * @brief Gets a spelling for the given token_type
+ * @brief Gets a spelling for the given token_kind
  *
- * @param type Type to get the spelling for
- * @return const char* The spelling of the given token type, if it is
+ * @param kind Type to get the spelling for
+ * @return const char* The spelling of the given token kind, if it is
  * unambiguous, otherwise NULL
  */
-const char* get_spelling(enum token_type type);
+const char* get_spelling(enum token_kind kind);
 
 /**
- * @brief Gets a string to identify the token_type
- *
- * @param type enum token_type value
+ * @brief Gets a string to identify the token_kind
+ * 
  * @return const char* A string that is identical to the spelling of the enum
  * value
  */
-const char* get_type_str(enum token_type type);
+const char* get_kind_str(enum token_kind kind);
 
-bool is_unary_op(enum token_type t);
-bool is_assign_op(enum token_type t);
-bool is_storage_class_spec(enum token_type t);
-bool is_keyword_type_spec(enum token_type t);
-bool is_type_qual(enum token_type t);
-bool is_func_spec(enum token_type t);
+bool is_unary_op(enum token_kind t);
+bool is_assign_op(enum token_kind t);
+bool is_storage_class_spec(enum token_kind t);
+bool is_keyword_type_spec(enum token_kind t);
+bool is_type_qual(enum token_kind t);
+bool is_func_spec(enum token_kind t);
 
-bool is_shift_op(enum token_type t);
-bool is_rel_op(enum token_type t);
-bool is_mul_op(enum token_type t);
-bool is_add_op(enum token_type t);
-bool is_eq_op(enum token_type t);
+bool is_shift_op(enum token_kind t);
+bool is_rel_op(enum token_kind t);
+bool is_mul_op(enum token_kind t);
+bool is_add_op(enum token_kind t);
+bool is_eq_op(enum token_kind t);
 
 #endif

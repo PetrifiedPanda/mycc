@@ -35,7 +35,7 @@ static void check_external_decl_struct(struct external_declaration* d,
                                        size_t decl_list_len) {
     ASSERT(d->is_func_def == false);
     ASSERT(d->decl.is_normal_decl);
-    ASSERT(d->decl.decl_specs->type_specs.type == TYPE_SPEC_STRUCT);
+    ASSERT(d->decl.decl_specs->type_specs.kind == TYPE_SPEC_STRUCT);
     const struct func_specs none = {false, false};
     check_func_specs(&d->decl.decl_specs->func_specs, &none);
 
@@ -59,7 +59,7 @@ static void check_external_decl_enum(struct external_declaration* d,
                                      size_t enum_list_len) {
     ASSERT(d->is_func_def == false);
     ASSERT(d->decl.is_normal_decl);
-    ASSERT(d->decl.decl_specs->type_specs.type == TYPE_SPEC_ENUM);
+    ASSERT(d->decl.decl_specs->type_specs.kind == TYPE_SPEC_ENUM);
     const struct func_specs none = {false, false};
     check_func_specs(&d->decl.decl_specs->func_specs, &none);
     struct storage_class sc = {.is_typedef = is_typedef};
@@ -112,7 +112,7 @@ static void check_external_decl_func_def_enum(
                                  func_name,
                                  body_len);
 
-    ASSERT(d->func_def.specs->type_specs.type == TYPE_SPEC_ENUM);
+    ASSERT(d->func_def.specs->type_specs.kind == TYPE_SPEC_ENUM);
     check_identifier(d->func_def.specs->type_specs.enum_spec->identifier,
                      enum_name);
     ASSERT_SIZE_T(d->func_def.specs->type_specs.enum_spec->enum_list.len,
@@ -134,7 +134,7 @@ static void check_external_decl_func_def_struct(
                                  func_name,
                                  body_len);
 
-    ASSERT(d->func_def.specs->type_specs.type == TYPE_SPEC_STRUCT);
+    ASSERT(d->func_def.specs->type_specs.kind == TYPE_SPEC_STRUCT);
     ASSERT(d->func_def.specs->type_specs.struct_union_spec->is_struct);
     check_identifier(
         d->func_def.specs->type_specs.struct_union_spec->identifier,
@@ -149,7 +149,7 @@ static void check_external_decl_func_def_predef(
     struct storage_class storage_class,
     struct func_specs func_specs,
     size_t num_indirs,
-    enum type_spec_type ret_type,
+    enum type_spec_kind ret_type,
     const char* id_spell,
     size_t body_len) {
     check_external_decl_func_def(d,
@@ -159,7 +159,7 @@ static void check_external_decl_func_def_predef(
                                  id_spell,
                                  body_len);
 
-    ASSERT(d->func_def.specs->type_specs.type == ret_type);
+    ASSERT(d->func_def.specs->type_specs.kind == ret_type);
 }
 
 static void check_external_decl_func_def_typedef(
@@ -177,7 +177,7 @@ static void check_external_decl_func_def_typedef(
                                  func_name,
                                  body_len);
 
-    ASSERT(d->func_def.specs->type_specs.type == TYPE_SPEC_TYPENAME);
+    ASSERT(d->func_def.specs->type_specs.kind == TYPE_SPEC_TYPENAME);
     ASSERT_STR(
         str_get_data(&d->func_def.specs->type_specs.typedef_name->spelling),
         ret_type);
@@ -204,7 +204,7 @@ TEST(no_preproc) {
 
     struct parser_err err = create_parser_err();
     struct translation_unit tl = parse_tokens(res.toks, &err);
-    ASSERT(err.type == PARSER_ERR_NONE);
+    ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)10);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
 
@@ -256,7 +256,7 @@ TEST(parser_testfile) {
 
     struct parser_err err = create_parser_err();
     struct translation_unit tl = parse_tokens(res.toks, &err);
-    ASSERT(err.type == PARSER_ERR_NONE);
+    ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)17);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
 
@@ -282,7 +282,7 @@ TEST(parser_testfile) {
 
     ASSERT(tl.external_decls[1].is_func_def == false);
     ASSERT(tl.external_decls[1].decl.is_normal_decl);
-    ASSERT(tl.external_decls[1].decl.decl_specs->type_specs.type
+    ASSERT(tl.external_decls[1].decl.decl_specs->type_specs.kind
            == TYPE_SPEC_INT);
     ASSERT_SIZE_T(tl.external_decls[1].decl.init_decls.len, (size_t)1);
 
@@ -332,7 +332,7 @@ TEST(large_testfile) {
 
     struct parser_err err = create_parser_err();
     struct translation_unit tl = parse_tokens(res.toks, &err);
-    ASSERT(err.type == PARSER_ERR_NONE);
+    ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)88);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
 

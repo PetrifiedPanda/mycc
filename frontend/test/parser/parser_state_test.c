@@ -7,7 +7,7 @@
 #include "../test_helpers.h"
 
 TEST(parser_state) {
-    struct token dummy = {.type = INVALID};
+    struct token dummy = {.kind = INVALID};
     struct parser_err err = create_parser_err();
     struct parser_state s = create_parser_state(&dummy, &err);
 
@@ -41,7 +41,7 @@ TEST(parser_state) {
         } else {
             ASSERT(register_typedef_name(&s, item));
         }
-        ASSERT(err.type == PARSER_ERR_NONE);
+        ASSERT(err.kind == PARSER_ERR_NONE);
     }
 
     char test_string[STRLEN] = {0};
@@ -56,7 +56,7 @@ TEST(parser_state) {
             ASSERT(is_typedef_name(&s, &test_string_str));
             ASSERT(!is_enum_constant(&s, &test_string_str));
         }
-        ASSERT(err.type == PARSER_ERR_NONE);
+        ASSERT(err.kind == PARSER_ERR_NONE);
     }
 
     const size_t num_steps = NUM_STRINGS / SCOPE_INTERVAL + 1;
@@ -74,7 +74,7 @@ TEST(parser_state) {
                 ASSERT(is_typedef_name(&s, &pop_test_str));
                 ASSERT(!is_enum_constant(&s, &pop_test_str));
             }
-            ASSERT(err.type == PARSER_ERR_NONE);
+            ASSERT(err.kind == PARSER_ERR_NONE);
         }
 
         // test if values from popped scopes are not present anymore
@@ -85,7 +85,7 @@ TEST(parser_state) {
             ASSERT(!is_enum_constant(&s, &pop_test_str));
             ASSERT(!is_typedef_name(&s, &pop_test_str));
 
-            ASSERT(err.type == PARSER_ERR_NONE);
+            ASSERT(err.kind == PARSER_ERR_NONE);
         }
 
         // do not pop last scope
@@ -95,10 +95,10 @@ TEST(parser_state) {
     }
 
     ASSERT(s._len == 1);
-    ASSERT(err.type == PARSER_ERR_NONE);
+    ASSERT(err.kind == PARSER_ERR_NONE);
 
     struct token insert_test_token = {
-        .type = IDENTIFIER,
+        .kind = IDENTIFIER,
         .spelling = STR_NON_HEAP("Test"),
         .loc =
             {
@@ -109,7 +109,7 @@ TEST(parser_state) {
     ASSERT(register_enum_constant(&s, &insert_test_token));
     ASSERT(!register_typedef_name(&s, &insert_test_token));
 
-    ASSERT(err.type == PARSER_ERR_REDEFINED_SYMBOL);
+    ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT_STR(str_get_data(&err.redefined_symbol), "Test");
     ASSERT(!err.was_typedef_name);
     ASSERT_SIZE_T(err.prev_def_file, (size_t)0);
@@ -121,7 +121,7 @@ TEST(parser_state) {
 
     ASSERT(!register_enum_constant(&s, &insert_test_token));
 
-    ASSERT(err.type == PARSER_ERR_REDEFINED_SYMBOL);
+    ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT_STR(str_get_data(&err.redefined_symbol), "Test");
     ASSERT(!err.was_typedef_name);
     ASSERT_SIZE_T(err.prev_def_file, (size_t)0);

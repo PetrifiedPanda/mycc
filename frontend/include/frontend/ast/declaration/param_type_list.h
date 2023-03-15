@@ -9,7 +9,7 @@ struct declaration_specs;
 struct declarator;
 struct abs_declarator;
 
-enum param_decl_type {
+enum param_decl_kind {
     PARAM_DECL_DECL,
     PARAM_DECL_ABSTRACT_DECL,
     PARAM_DECL_NONE
@@ -17,7 +17,7 @@ enum param_decl_type {
 
 struct param_declaration {
     struct declaration_specs* decl_specs;
-    enum param_decl_type type;
+    enum param_decl_kind kind;
     union {
         struct declarator* decl;
         struct abs_declarator* abstract_decl;

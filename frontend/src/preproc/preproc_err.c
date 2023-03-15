@@ -12,30 +12,30 @@
 
 struct preproc_err create_preproc_err(void) {
     return (struct preproc_err){
-        .type = PREPROC_ERR_NONE,
+        .kind = PREPROC_ERR_NONE,
     };
 }
 
 void set_preproc_err(struct preproc_err* err,
-                     enum preproc_err_type type,
+                     enum preproc_err_kind kind,
                      struct source_loc loc) {
     assert(err);
-    assert(type != PREPROC_ERR_NONE);
-    assert(err->type == PREPROC_ERR_NONE);
+    assert(kind != PREPROC_ERR_NONE);
+    assert(err->kind == PREPROC_ERR_NONE);
 
-    err->type = type;
+    err->kind = kind;
     err->base = create_err_base(loc);
 }
 
-static const char* get_single_macro_op_str(enum single_macro_op_type type);
-static const char* get_else_op_str(enum else_op_type type);
+static const char* get_single_macro_op_str(enum single_macro_op_kind type);
+static const char* get_else_op_str(enum else_op_kind type);
 
 void print_preproc_err(FILE* out,
                        const struct file_info* file_info,
                        struct preproc_err* err) {
-    assert(err->type != PREPROC_ERR_NONE);
+    assert(err->kind != PREPROC_ERR_NONE);
 
-    switch (err->type) {
+    switch (err->kind) {
         case PREPROC_ERR_NONE:
             UNREACHABLE();
             break;
@@ -97,7 +97,7 @@ void print_preproc_err(FILE* out,
             break;
         case PREPROC_ERR_ARG_COUNT: {
             print_err_base(out, file_info, &err->base);
-            const char* dir_str = get_single_macro_op_str(err->count_dir_type);
+            const char* dir_str = get_single_macro_op_str(err->count_dir_kind);
             if (err->count_empty) {
                 fprintf(out,
                         "Expected an identifier after %s directive",
@@ -114,7 +114,7 @@ void print_preproc_err(FILE* out,
             fprintf(out,
                     "Expected an identifier after %s directive, but got %s",
                     dir_str,
-                    get_type_str(err->not_identifier_got));
+                    get_kind_str(err->not_identifier_got));
             break;
         }
         case PREPROC_ERR_MISSING_IF: {
@@ -210,7 +210,7 @@ void print_preproc_err(FILE* out,
     fputc('\n', out);
 }
 
-static const char* get_single_macro_op_str(enum single_macro_op_type type) {
+static const char* get_single_macro_op_str(enum single_macro_op_kind type) {
     switch (type) {
         case SINGLE_MACRO_OP_IFDEF:
             return "ifdef";
@@ -223,7 +223,7 @@ static const char* get_single_macro_op_str(enum single_macro_op_type type) {
     UNREACHABLE();
 }
 
-static const char* get_else_op_str(enum else_op_type type) {
+static const char* get_else_op_str(enum else_op_kind type) {
     switch (type) {
         case ELSE_OP_ELIF:
             return "elif";
@@ -252,7 +252,7 @@ void set_preproc_file_err(struct preproc_err* err,
 void free_preproc_err(struct preproc_err* err) {
     assert(err);
 
-    switch (err->type) {
+    switch (err->kind) {
         case PREPROC_ERR_INVALID_ID:
             free_str(&err->invalid_id);
             break;

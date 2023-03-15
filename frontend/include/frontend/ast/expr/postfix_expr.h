@@ -9,7 +9,7 @@ struct primary_expr;
 struct expr;
 struct identifier;
 
-enum postfix_suffix_type {
+enum postfix_suffix_kind {
     POSTFIX_INDEX,
     POSTFIX_BRACKET,
     POSTFIX_ACCESS,
@@ -19,7 +19,7 @@ enum postfix_suffix_type {
 };
 
 struct postfix_suffix {
-    enum postfix_suffix_type type;
+    enum postfix_suffix_kind kind;
     union {
         struct expr* index_expr;
         struct arg_expr_list bracket_list;

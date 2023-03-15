@@ -9,7 +9,7 @@
 static struct primary_expr* create_primary_expr_constant(
     struct constant constant) {
     struct primary_expr* res = mycc_alloc(sizeof *res);
-    res->type = PRIMARY_EXPR_CONSTANT;
+    res->kind = PRIMARY_EXPR_CONSTANT;
     res->constant = constant;
 
     return res;
@@ -18,7 +18,7 @@ static struct primary_expr* create_primary_expr_constant(
 static struct primary_expr* create_primary_expr_string(
     struct string_constant string) {
     struct primary_expr* res = mycc_alloc(sizeof *res);
-    res->type = PRIMARY_EXPR_STRING_LITERAL;
+    res->kind = PRIMARY_EXPR_STRING_LITERAL;
     res->string = string;
 
     return res;
@@ -29,7 +29,7 @@ static struct primary_expr* create_primary_expr_identifier(
     assert(identifier);
 
     struct primary_expr* res = mycc_alloc(sizeof *res);
-    res->type = PRIMARY_EXPR_IDENTIFIER;
+    res->kind = PRIMARY_EXPR_IDENTIFIER;
     res->identifier = identifier;
 
     return res;
@@ -40,7 +40,7 @@ static struct primary_expr* create_primary_expr_bracket(
     struct source_loc loc) {
     assert(bracket_expr);
     struct primary_expr* res = mycc_alloc(sizeof *res);
-    res->type = PRIMARY_EXPR_BRACKET;
+    res->kind = PRIMARY_EXPR_BRACKET;
     res->info = create_ast_node_info(loc);
     res->bracket_expr = bracket_expr;
 
@@ -51,14 +51,14 @@ static struct primary_expr* create_primary_expr_generic(
     struct generic_sel* generic) {
     assert(generic);
     struct primary_expr* res = mycc_alloc(sizeof *res);
-    res->type = PRIMARY_EXPR_GENERIC;
+    res->kind = PRIMARY_EXPR_GENERIC;
     res->generic = generic;
 
     return res;
 }
 
 struct primary_expr* parse_primary_expr(struct parser_state* s) {
-    switch (s->it->type) {
+    switch (s->it->kind) {
         case IDENTIFIER: {
             const struct str spelling = take_spelling(s->it);
             struct source_loc loc = s->it->loc;
@@ -124,7 +124,7 @@ struct primary_expr* parse_primary_expr(struct parser_state* s) {
 }
 
 static void free_children(struct primary_expr* e) {
-    switch (e->type) {
+    switch (e->kind) {
         case PRIMARY_EXPR_IDENTIFIER:
             free_identifier(e->identifier);
             break;

@@ -17,7 +17,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
                                    struct abs_decl_or_decl* res) {
     assert(res);
     struct pointer* ptr;
-    if (s->it->type == ASTERISK) {
+    if (s->it->kind == ASTERISK) {
         ptr = parse_pointer(s);
         if (!ptr) {
             return false;
@@ -26,7 +26,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
         ptr = NULL;
     }
 
-    if (s->it->type == IDENTIFIER) {
+    if (s->it->kind == IDENTIFIER) {
         res->is_abs = false;
         res->decl = mycc_alloc(sizeof *res->decl);
         res->decl->ptr = ptr;
@@ -35,7 +35,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
             mycc_free(res->decl);
             goto fail;
         }
-    } else if (s->it->type == LINDEX) {
+    } else if (s->it->kind == LINDEX) {
         res->is_abs = true;
         res->abs_decl = mycc_alloc(sizeof *res->abs_decl);
         res->abs_decl->ptr = ptr;
@@ -44,7 +44,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
             mycc_free(res->abs_decl);
             goto fail;
         }
-    } else if (s->it->type == LBRACKET) {
+    } else if (s->it->kind == LBRACKET) {
         const struct source_loc loc = s->it->loc;
         accept_it(s);
         struct abs_decl_or_decl bracket_decl;
@@ -132,8 +132,8 @@ static bool parse_param_declaration_inplace(struct parser_state* s,
         return false;
     }
 
-    if (s->it->type == COMMA || s->it->type == RBRACKET) {
-        res->type = PARAM_DECL_NONE;
+    if (s->it->kind == COMMA || s->it->kind == RBRACKET) {
+        res->kind = PARAM_DECL_NONE;
         res->decl = NULL;
     } else {
         struct abs_decl_or_decl abs_decl_or_decl;
@@ -143,10 +143,10 @@ static bool parse_param_declaration_inplace(struct parser_state* s,
         }
 
         if (abs_decl_or_decl.is_abs) {
-            res->type = PARAM_DECL_ABSTRACT_DECL;
+            res->kind = PARAM_DECL_ABSTRACT_DECL;
             res->abstract_decl = abs_decl_or_decl.abs_decl;
         } else {
-            res->type = PARAM_DECL_DECL;
+            res->kind = PARAM_DECL_DECL;
             res->decl = abs_decl_or_decl.decl;
         }
     }
@@ -156,7 +156,7 @@ static bool parse_param_declaration_inplace(struct parser_state* s,
 
 void free_param_declaration_children(struct param_declaration* d) {
     free_declaration_specs(d->decl_specs);
-    switch (d->type) {
+    switch (d->kind) {
         case PARAM_DECL_DECL:
             free_declarator(d->decl);
             break;
@@ -180,7 +180,7 @@ static bool parse_param_list_inplace(struct parser_state* s,
     }
 
     size_t alloc_len = res->len;
-    while (s->it->type == COMMA && s->it[1].type != ELLIPSIS) {
+    while (s->it->kind == COMMA && s->it[1].kind != ELLIPSIS) {
         accept_it(s);
 
         if (res->len == alloc_len) {
@@ -216,7 +216,7 @@ bool parse_param_type_list(struct parser_state* s,
     }
 
     res->is_variadic = false;
-    if (s->it->type == COMMA) {
+    if (s->it->kind == COMMA) {
         accept_it(s);
         if (!accept(s, ELLIPSIS)) {
             free_param_list(&res->param_list);

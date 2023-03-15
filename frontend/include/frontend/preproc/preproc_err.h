@@ -10,7 +10,7 @@
 
 #include "frontend/preproc/num_parse.h"
 
-enum preproc_err_type {
+enum preproc_err_kind {
     PREPROC_ERR_NONE = 0,
     PREPROC_ERR_FILE_FAIL,
     PREPROC_ERR_UNTERMINATED_LIT,
@@ -34,20 +34,20 @@ enum preproc_err_type {
     PREPROC_ERR_INVALID_BACKSLASH,
 };
 
-enum else_op_type {
+enum else_op_kind {
     ELSE_OP_ELIF,
     ELSE_OP_ELSE,
     ELSE_OP_ENDIF,
 };
 
-enum single_macro_op_type {
+enum single_macro_op_kind {
     SINGLE_MACRO_OP_IFDEF,
     SINGLE_MACRO_OP_IFNDEF,
     SINGLE_MACRO_OP_UNDEF,
 };
 
 struct preproc_err {
-    enum preproc_err_type type;
+    enum preproc_err_kind kind;
     struct err_base base;
     union {
         struct {
@@ -64,19 +64,19 @@ struct preproc_err {
             bool is_variadic;
         };
         struct {
-            enum single_macro_op_type count_dir_type;
+            enum single_macro_op_kind count_dir_kind;
             bool count_empty;
         };
         struct {
-            enum single_macro_op_type not_identifier_op;
-            enum token_type not_identifier_got;
+            enum single_macro_op_kind not_identifier_op;
+            enum token_kind not_identifier_got;
         };
-        enum else_op_type missing_if_op;
+        enum else_op_kind missing_if_op;
         struct {
-            enum else_op_type elif_after_else_op;
+            enum else_op_kind elif_after_else_op;
             struct source_loc prev_else_loc;
         };
-        enum token_type misplaced_preproc_tok;
+        enum token_kind misplaced_preproc_tok;
         struct {
             struct str constant_spell;
             union {
@@ -85,7 +85,7 @@ struct preproc_err {
                 struct char_const_err char_const_err;
             };
         };
-        enum token_type type_instead_of_identifier;
+        enum token_kind type_instead_of_identifier;
         struct expected_tokens_err expected_tokens_err;
         struct str duplicate_arg_name;
     };
@@ -94,7 +94,7 @@ struct preproc_err {
 struct preproc_err create_preproc_err(void);
 
 void set_preproc_err(struct preproc_err* err,
-                     enum preproc_err_type type,
+                     enum preproc_err_kind kind,
                      struct source_loc loc);
 
 void print_preproc_err(FILE* out,

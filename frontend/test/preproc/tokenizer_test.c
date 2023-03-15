@@ -7,7 +7,7 @@
 
 #include "../test_helpers.h"
 
-static struct token create(enum token_type type,
+static struct token create(enum token_kind type,
                            struct str spelling,
                            size_t line,
                            size_t index);
@@ -869,12 +869,12 @@ TEST_SUITE_BEGIN(tokenizer, 4) {
 }
 TEST_SUITE_END()
 
-static struct token create(enum token_type type,
+static struct token create(enum token_kind kind,
                            struct str spelling,
                            size_t line,
                            size_t index) {
     return (struct token){
-        .type = type,
+        .kind = kind,
         .spelling = spelling,
         .loc =
             {
@@ -888,7 +888,7 @@ static struct token create_tok_int(struct int_value val,
                                    size_t line,
                                    size_t index) {
     return (struct token){
-        .type = I_CONSTANT,
+        .kind = I_CONSTANT,
         .int_val = val,
         .loc =
             {
@@ -902,7 +902,7 @@ static struct token create_tok_float(struct float_value val,
                                      size_t line,
                                      size_t index) {
     return (struct token){
-        .type = F_CONSTANT,
+        .kind = F_CONSTANT,
         .float_val = val,
         .loc =
             {
@@ -916,7 +916,7 @@ static void check_size(const struct token* tokens, size_t expected) {
     size_t size = 0;
     const struct token* it = tokens;
 
-    while (it->type != INVALID) {
+    while (it->kind != INVALID) {
         ++it;
         ++size;
     }
@@ -924,23 +924,23 @@ static void check_size(const struct token* tokens, size_t expected) {
 }
 
 static void check_file(const struct token* tokens, size_t file_idx) {
-    for (const struct token* it = tokens; it->type != INVALID; ++it) {
+    for (const struct token* it = tokens; it->kind != INVALID; ++it) {
         ASSERT_SIZE_T(it->loc.file_idx, file_idx);
     }
 }
 
 static void check_token(const struct token* t, const struct token* expected) {
-    ASSERT_TOKEN_TYPE(t->type, expected->type);
+    ASSERT_TOKEN_KIND(t->kind, expected->kind);
 
-    if (t->type == I_CONSTANT) {
-        ASSERT_INT_VALUE_TYPE(t->int_val.type, expected->int_val.type);
-        if (int_value_is_signed(t->int_val.type)) {
+    if (t->kind == I_CONSTANT) {
+        ASSERT_INT_VALUE_KIND(t->int_val.kind, expected->int_val.kind);
+        if (int_value_is_signed(t->int_val.kind)) {
             ASSERT_INTMAX_T(t->int_val.int_val, expected->int_val.int_val);
         } else {
             ASSERT_UINTMAX_T(t->int_val.uint_val, expected->int_val.uint_val);
         }
-    } else if (t->type == F_CONSTANT) {
-        ASSERT_FLOAT_VALUE_TYPE(t->float_val.type, expected->float_val.type);
+    } else if (t->kind == F_CONSTANT) {
+        ASSERT_FLOAT_VALUE_KIND(t->float_val.kind, expected->float_val.kind);
         ASSERT_DOUBLE(t->float_val.val, expected->float_val.val, 0.0001);
     } else {
         ASSERT_STR(str_get_data(&t->spelling),

@@ -102,8 +102,8 @@ static void serialize_identifier(struct ast_serializer* d,
 
 static void serialize_int_value(struct ast_serializer* d,
                                 const struct int_value* val) {
-    serialize_uint(d, val->type);
-    if (int_value_is_signed(val->type)) {
+    serialize_uint(d, val->kind);
+    if (int_value_is_signed(val->kind)) {
         serialize_int(d, val->int_val);
     } else {
         serialize_uint(d, val->uint_val);
@@ -112,17 +112,17 @@ static void serialize_int_value(struct ast_serializer* d,
 
 static void serialize_float_value(struct ast_serializer* d,
                                   const struct float_value* val) {
-    serialize_uint(d, val->type);
+    serialize_uint(d, val->kind);
     serialize_float(d, val->val);
 }
 
 static void serialize_constant(struct ast_serializer* d,
                                const struct constant* constant) {
     serialize_ast_node_info(d, &constant->info);
-    const uint64_t type = constant->type;
-    assert((enum constant_type)type == constant->type);
-    serialize_uint(d, type);
-    switch (constant->type) {
+    const uint64_t kind = constant->kind;
+    assert((enum constant_kind)kind == constant->kind);
+    serialize_uint(d, kind);
+    switch (constant->kind) {
         case CONSTANT_ENUM:
             serialize_str(d, &constant->spelling);
             break;
@@ -206,10 +206,10 @@ static void serialize_generic_sel(struct ast_serializer* d,
 
 static void serialize_primary_expr(struct ast_serializer* d,
                                    const struct primary_expr* expr) {
-    const uint64_t type = expr->type;
-    serialize_uint(d, type);
-    assert((enum primary_expr_type)type == expr->type);
-    switch (expr->type) {
+    const uint64_t kind = expr->kind;
+    serialize_uint(d, kind);
+    assert((enum primary_expr_kind)kind == expr->kind);
+    switch (expr->kind) {
         case PRIMARY_EXPR_IDENTIFIER:
             serialize_identifier(d, expr->identifier);
             break;
@@ -298,11 +298,11 @@ static void serialize_arg_expr_list(struct ast_serializer* d,
 
 static void serialize_postfix_suffix(struct ast_serializer* d,
                                      const struct postfix_suffix* suffix) {
-    const uint64_t type = suffix->type;
-    serialize_uint(d, type);
-    assert((enum postfix_suffix_type)type == suffix->type);
+    const uint64_t kind = suffix->kind;
+    serialize_uint(d, kind);
+    assert((enum postfix_suffix_kind)kind == suffix->kind);
 
-    switch (suffix->type) {
+    switch (suffix->kind) {
         case POSTFIX_INDEX:
             serialize_expr(d, suffix->index_expr);
             break;
@@ -347,10 +347,10 @@ static void serialize_unary_expr(struct ast_serializer* d,
         assert((enum unary_expr_op)unary_op == expr->ops_before[i]);
         serialize_uint(d, unary_op);
     }
-    const uint64_t type = expr->type;
-    serialize_uint(d, type);
-    assert((enum unary_expr_type)type == expr->type);
-    switch (expr->type) {
+    const uint64_t kind = expr->kind;
+    serialize_uint(d, kind);
+    assert((enum unary_expr_kind)kind == expr->kind);
+    switch (expr->kind) {
         case UNARY_POSTFIX:
             serialize_postfix_expr(d, expr->postfix);
             break;
@@ -523,10 +523,10 @@ static void serialize_abs_arr_or_func_suffix(
     struct ast_serializer* d,
     const struct abs_arr_or_func_suffix* suffix) {
     serialize_ast_node_info(d, &suffix->info);
-    const uint64_t type = suffix->type;
-    assert((enum abs_arr_or_func_suffix_type)type == suffix->type);
-    serialize_uint(d, type);
-    switch (suffix->type) {
+    const uint64_t kind = suffix->kind;
+    assert((enum abs_arr_or_func_suffix_kind)kind == suffix->kind);
+    serialize_uint(d, kind);
+    switch (suffix->kind) {
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
             serialize_bool(d, suffix->has_asterisk);
             break;
@@ -586,10 +586,10 @@ static void serialize_declarator(struct ast_serializer* d,
 static void serialize_param_declaration(struct ast_serializer* d,
                                         const struct param_declaration* decl) {
     serialize_declaration_specs(d, decl->decl_specs);
-    const uint64_t type = decl->type;
-    assert((enum param_decl_type)type == decl->type);
-    serialize_uint(d, type);
-    switch (decl->type) {
+    const uint64_t kind = decl->kind;
+    assert((enum param_decl_kind)kind == decl->kind);
+    serialize_uint(d, kind);
+    switch (decl->kind) {
         case PARAM_DECL_DECL:
             serialize_declarator(d, decl->decl);
             break;
@@ -639,10 +639,10 @@ static void serialize_arr_or_func_suffix(
     struct ast_serializer* d,
     const struct arr_or_func_suffix* suffix) {
     serialize_ast_node_info(d, &suffix->info);
-    const uint64_t type = suffix->type;
-    assert((enum arr_or_func_suffix_type)type == suffix->type);
-    serialize_uint(d, type);
-    switch (suffix->type) {
+    const uint64_t kind = suffix->kind;
+    assert((enum arr_or_func_suffix_kind)kind == suffix->kind);
+    serialize_uint(d, kind);
+    switch (suffix->kind) {
         case ARR_OR_FUNC_ARRAY:
             serialize_arr_suffix(d, &suffix->arr_suffix);
             break;
@@ -780,10 +780,10 @@ static void serialize_type_modifiers(struct ast_serializer* d,
 static void serialize_type_specs(struct ast_serializer* d,
                                  const struct type_specs* specs) {
     serialize_type_modifiers(d, &specs->mods);
-    const uint64_t type = specs->type;
-    assert((enum type_spec_type)type == specs->type);
-    serialize_uint(d, type);
-    switch (specs->type) {
+    const uint64_t kind = specs->kind;
+    assert((enum type_spec_kind)kind == specs->kind);
+    serialize_uint(d, kind);
+    switch (specs->kind) {
         case TYPE_SPEC_NONE:
         case TYPE_SPEC_VOID:
         case TYPE_SPEC_CHAR:
@@ -882,10 +882,10 @@ static void serialize_statement(struct ast_serializer* d,
 static void serialize_labeled_statement(struct ast_serializer* d,
                                         const struct labeled_statement* stat) {
     serialize_ast_node_info(d, &stat->info);
-    const uint64_t type = stat->type;
-    assert((enum labeled_statement_type)type == stat->type);
-    serialize_uint(d, type);
-    switch (stat->type) {
+    const uint64_t kind = stat->kind;
+    assert((enum labeled_statement_kind)kind == stat->kind);
+    serialize_uint(d, kind);
+    switch (stat->kind) {
         case LABELED_STATEMENT_CASE:
             serialize_const_expr(d, stat->case_expr);
             break;
@@ -934,11 +934,11 @@ static void serialize_iteration_statement(
     struct ast_serializer* d,
     const struct iteration_statement* stat) {
     serialize_ast_node_info(d, &stat->info);
-    const uint64_t type = stat->type;
-    assert((enum iteration_statement_type)type == stat->type);
-    serialize_uint(d, type);
+    const uint64_t kind = stat->kind;
+    assert((enum iteration_statement_kind)kind == stat->kind);
+    serialize_uint(d, kind);
     serialize_statement(d, stat->loop_body);
-    switch (stat->type) {
+    switch (stat->kind) {
         case ITERATION_STATEMENT_WHILE:
         case ITERATION_STATEMENT_DO:
             serialize_expr(d, stat->while_cond);
@@ -952,10 +952,10 @@ static void serialize_iteration_statement(
 static void serialize_jump_statement(struct ast_serializer* d,
                                      const struct jump_statement* stat) {
     serialize_ast_node_info(d, &stat->info);
-    const uint64_t type = stat->type;
-    assert((enum jump_statement_type)type == stat->type);
-    serialize_uint(d, type);
-    switch (stat->type) {
+    const uint64_t kind = stat->kind;
+    assert((enum jump_statement_kind)kind == stat->kind);
+    serialize_uint(d, kind);
+    switch (stat->kind) {
         case JUMP_STATEMENT_GOTO:
             serialize_identifier(d, stat->goto_label);
             break;
@@ -978,10 +978,10 @@ static void serialize_compound_statement(struct ast_serializer* d,
 
 static void serialize_statement(struct ast_serializer* d,
                                 const struct statement* stat) {
-    const uint64_t type = stat->type;
-    assert((enum statement_type)type == stat->type);
-    serialize_uint(d, type);
-    switch (stat->type) {
+    const uint64_t kind = stat->kind;
+    assert((enum statement_kind)kind == stat->kind);
+    serialize_uint(d, kind);
+    switch (stat->kind) {
         case STATEMENT_LABELED:
             serialize_labeled_statement(d, stat->labeled);
             break;

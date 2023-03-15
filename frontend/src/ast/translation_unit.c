@@ -8,7 +8,7 @@ struct translation_unit parse_translation_unit(struct parser_state* s) {
     res.len = 0;
     res.external_decls = mycc_alloc(sizeof *res.external_decls * alloc_num);
 
-    while (s->it->type != INVALID) {
+    while (s->it->kind != INVALID) {
         if (res.len == alloc_num) {
             mycc_grow_alloc((void**)&res.external_decls,
                        &alloc_num,

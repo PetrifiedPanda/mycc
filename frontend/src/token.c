@@ -4,20 +4,20 @@
 
 #include "util/mem.h"
 
-struct token create_token(enum token_type type,
+struct token create_token(enum token_kind kind,
                           const struct str* spelling,
                           struct file_loc file_loc,
                           size_t file_idx) {
     assert(spelling);
     assert(file_idx != (size_t)-1);
-    if (get_spelling(type) == NULL) {
+    if (get_spelling(kind) == NULL) {
         assert(str_is_valid(spelling));
     } else {
         assert(!str_is_valid(spelling));
     }
 
     return (struct token){
-        .type = type,
+        .kind = kind,
         .spelling = *spelling,
         .loc = {
             .file_idx = file_idx,
@@ -26,7 +26,7 @@ struct token create_token(enum token_type type,
     };
 }
 
-struct token create_token_copy(enum token_type type,
+struct token create_token_copy(enum token_kind kind,
                                const struct str* spelling,
                                struct file_loc file_loc,
                                size_t file_idx) {
@@ -34,7 +34,7 @@ struct token create_token_copy(enum token_type type,
     assert(str_is_valid(spelling));
 
     return (struct token){
-        .type = type,
+        .kind = kind,
         .spelling = str_copy(spelling),
         .loc = {
             .file_idx = file_idx,
@@ -51,7 +51,7 @@ struct str take_spelling(struct token* t) {
 
 void free_token(struct token* t) {
     assert(t);
-    if (t->type != I_CONSTANT && t->type != F_CONSTANT) {
+    if (t->kind != I_CONSTANT && t->kind != F_CONSTANT) {
         free_str(&t->spelling);
     }
 }

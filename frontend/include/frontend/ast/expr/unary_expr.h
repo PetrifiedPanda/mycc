@@ -11,7 +11,7 @@ struct postfix_expr;
 struct cast_expr;
 struct type_name;
 
-enum unary_expr_type {
+enum unary_expr_kind {
     UNARY_POSTFIX,
     UNARY_ADDRESSOF,
     UNARY_DEREF,
@@ -33,7 +33,7 @@ struct unary_expr {
     struct ast_node_info info;
     size_t len;
     enum unary_expr_op* ops_before; 
-    enum unary_expr_type type;
+    enum unary_expr_kind kind;
     union {
         struct postfix_expr* postfix;
         struct cast_expr* cast_expr;

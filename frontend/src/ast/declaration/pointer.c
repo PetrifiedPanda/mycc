@@ -13,7 +13,7 @@ struct pointer* parse_pointer(struct parser_state* s) {
     res->num_indirs = 1;
     res->quals_after_ptr = mycc_alloc(sizeof *res->quals_after_ptr);
 
-    if (is_type_qual(s->it->type)) {
+    if (is_type_qual(s->it->kind)) {
         if (!parse_type_qual_list(s, &res->quals_after_ptr[0])) {
             mycc_free(res->quals_after_ptr);
             mycc_free(res);
@@ -24,7 +24,7 @@ struct pointer* parse_pointer(struct parser_state* s) {
     }
 
     size_t alloc_size = res->num_indirs;
-    while (s->it->type == ASTERISK) {
+    while (s->it->kind == ASTERISK) {
         accept_it(s);
 
         if (res->num_indirs == alloc_size) {
@@ -33,7 +33,7 @@ struct pointer* parse_pointer(struct parser_state* s) {
                        sizeof *res->quals_after_ptr);
         }
 
-        if (is_type_qual(s->it->type)) {
+        if (is_type_qual(s->it->kind)) {
             if (!parse_type_qual_list(s,
                                       &res->quals_after_ptr[res->num_indirs])) {
                 free_pointer(res);

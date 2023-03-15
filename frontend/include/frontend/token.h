@@ -6,7 +6,8 @@
 
 #include "util/str.h"
 
-#include "token_type.h"
+#include "token_kind.h"
+#include "str_lit.h"
 #include "value.h"
 
 struct file_loc {
@@ -19,37 +20,38 @@ struct source_loc {
 };
 
 struct token {
-    enum token_type type;
+    enum token_kind kind;
     union {
         struct str spelling;
         struct int_value int_val;
         struct float_value float_val;
+        struct str_lit str_lit;
     };
     struct source_loc loc;
 };
 
 /**
  *
- * @param type The type of the token
+ * @param kind The kind of the token
  * @param spelling The spelling of the token, or NULL if tokens of the given
- *        type have only one spelling
+ *        kind have only one spelling
  * @param file_loc The location of the token in the file
  * @param filename The file this token is in (This is copied into the token)
  */
-struct token create_token(enum token_type type,
+struct token create_token(enum token_kind kind,
                           const struct str* spelling,
                           struct file_loc file_loc,
                           size_t file_idx);
 
 /**
  *
- * @param type The type of the token
+ * @param kind The kind of the token
  * @param spelling The spelling of the token, which is to be copied, must not be
  *        NULL
  * @param file_loc The location of the token in the file
  * @param filename The file this token is in (This is copied into the token)
  */
-struct token create_token_copy(enum token_type type,
+struct token create_token_copy(enum token_kind kind,
                                const struct str* spelling,
                                struct file_loc file_loc,
                                size_t file_idx);

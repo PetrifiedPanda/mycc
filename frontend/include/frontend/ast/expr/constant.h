@@ -3,7 +3,7 @@
 
 #include "frontend/ast/ast_node_info.h"
 
-enum constant_type {
+enum constant_kind {
     CONSTANT_ENUM,
     CONSTANT_INT,
     CONSTANT_FLOAT,
@@ -11,7 +11,7 @@ enum constant_type {
 
 struct constant {
     struct ast_node_info info;
-    enum constant_type type;
+    enum constant_kind kind;
     union {
         struct str spelling;
         struct int_value int_val;

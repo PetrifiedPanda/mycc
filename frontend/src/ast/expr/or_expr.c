@@ -10,7 +10,7 @@ static bool parse_or_expr_rest(struct parser_state* s, struct or_expr* res) {
     res->len = 1;
 
     size_t alloc_len = res->len;
-    while (s->it->type == OR) {
+    while (s->it->kind == OR) {
         accept_it(s);
 
         if (res->len == alloc_len) {

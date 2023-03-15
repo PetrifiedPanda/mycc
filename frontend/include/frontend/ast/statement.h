@@ -16,7 +16,7 @@ struct selection_statement;
 struct iteration_statement;
 struct jump_statement;
 
-enum statement_type {
+enum statement_kind {
     STATEMENT_LABELED,
     STATEMENT_COMPOUND,
     STATEMENT_EXPRESSION,
@@ -26,7 +26,7 @@ enum statement_type {
 };
 
 struct statement {
-    enum statement_type type;
+    enum statement_kind kind;
     union {
         struct labeled_statement* labeled;
         struct compound_statement* comp;
@@ -40,7 +40,7 @@ struct statement {
 struct const_expr;
 struct identifier;
 
-enum labeled_statement_type {
+enum labeled_statement_kind {
     LABELED_STATEMENT_CASE,
     LABELED_STATEMENT_LABEL,
     LABELED_STATEMENT_DEFAULT,
@@ -48,7 +48,7 @@ enum labeled_statement_type {
 
 struct labeled_statement {
     struct ast_node_info info;
-    enum labeled_statement_type type;
+    enum labeled_statement_kind kind;
     union {
         struct identifier* label;
         struct const_expr* case_expr;
@@ -93,7 +93,7 @@ struct for_loop {
     struct expr* incr_expr;
 };
 
-enum iteration_statement_type {
+enum iteration_statement_kind {
     ITERATION_STATEMENT_WHILE,
     ITERATION_STATEMENT_DO,
     ITERATION_STATEMENT_FOR,
@@ -101,7 +101,7 @@ enum iteration_statement_type {
 
 struct iteration_statement {
     struct ast_node_info info;
-    enum iteration_statement_type type;
+    enum iteration_statement_kind kind;
     struct statement* loop_body;
     union {
         struct expr* while_cond;
@@ -109,7 +109,7 @@ struct iteration_statement {
     };
 };
 
-enum jump_statement_type {
+enum jump_statement_kind {
     JUMP_STATEMENT_GOTO,
     JUMP_STATEMENT_CONTINUE,
     JUMP_STATEMENT_BREAK,
@@ -118,7 +118,7 @@ enum jump_statement_type {
 
 struct jump_statement {
     struct ast_node_info info;
-    enum jump_statement_type type;
+    enum jump_statement_kind kind;
     union {
         struct identifier* goto_label;
         struct expr* ret_val;

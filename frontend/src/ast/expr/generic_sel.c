@@ -11,7 +11,7 @@ static bool parse_generic_assoc_inplace(struct parser_state* s,
     assert(res);
 
     res->info = create_ast_node_info(s->it->loc);
-    if (s->it->type == DEFAULT) {
+    if (s->it->kind == DEFAULT) {
         accept_it(s);
         res->type_name = NULL;
     } else {
@@ -59,7 +59,7 @@ static bool parse_generic_assoc_list(struct parser_state* s,
         return false;
     }
 
-    while (s->it->type == COMMA) {
+    while (s->it->kind == COMMA) {
         accept_it(s);
 
         if (res->len == alloc_len) {
@@ -103,7 +103,7 @@ static struct generic_sel* create_generic_sel(struct assign_expr* assign,
 }
 
 struct generic_sel* parse_generic_sel(struct parser_state* s) {
-    assert(s->it->type == GENERIC);
+    assert(s->it->kind == GENERIC);
     struct source_loc loc = s->it->loc;
     accept_it(s);
 

@@ -18,7 +18,7 @@ static bool parse_external_decl_normal_decl(
     decl->decl_specs = decl_specs;
 
     struct initializer* init = NULL;
-    if (s->it->type == ASSIGN) {
+    if (s->it->kind == ASSIGN) {
         if (found_typedef) {
             set_parser_err(s->err, PARSER_ERR_TYPEDEF_INIT, s->it->loc);
             free_declaration_specs(decl_specs);
@@ -79,7 +79,7 @@ static bool parse_external_declaration_func_def(
 
     func_def->specs = decl_specs;
     func_def->decl = first_decl;
-    if (s->it->type != LBRACE) {
+    if (s->it->kind != LBRACE) {
         if (!parse_declaration_list(s, &func_def->decl_list)) {
             free_declaration_specs(decl_specs);
             free_declarator(first_decl);
@@ -105,7 +105,7 @@ bool parse_external_declaration_inplace(struct parser_state* s,
                                         struct external_declaration* res) {
     assert(res);
 
-    if (s->it->type == STATIC_ASSERT) {
+    if (s->it->kind == STATIC_ASSERT) {
         res->is_func_def = false;
         res->decl.is_normal_decl = false;
         res->decl.static_assert_decl = parse_static_assert_declaration(s);
@@ -122,7 +122,7 @@ bool parse_external_declaration_inplace(struct parser_state* s,
         return false;
     }
 
-    if (s->it->type == SEMICOLON) {
+    if (s->it->kind == SEMICOLON) {
         accept_it(s);
         res->is_func_def = false;
         res->decl.is_normal_decl = true;
@@ -147,8 +147,8 @@ bool parse_external_declaration_inplace(struct parser_state* s,
         return false;
     }
 
-    if (s->it->type == ASSIGN || s->it->type == COMMA
-        || s->it->type == SEMICOLON) {
+    if (s->it->kind == ASSIGN || s->it->kind == COMMA
+        || s->it->kind == SEMICOLON) {
         return parse_external_decl_normal_decl(s,
                                                res,
                                                decl_specs,

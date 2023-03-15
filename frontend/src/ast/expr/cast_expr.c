@@ -13,7 +13,7 @@ static bool parse_cast_expr_rest(struct parser_state* s,
         .file_idx = (size_t)-1,
         .file_loc = {0, 0},
     };
-    while (s->it->type == LBRACKET && next_is_type_name(s)) {
+    while (s->it->kind == LBRACKET && next_is_type_name(s)) {
         last_lbracket_loc = s->it->loc;
         accept_it(s);
 
@@ -33,7 +33,7 @@ static bool parse_cast_expr_rest(struct parser_state* s,
         ++res->len;
     }
 
-    if (s->it->type == LBRACE) {
+    if (s->it->kind == LBRACE) {
         assert(res->len > 0);
         struct type_name* type_name = mycc_alloc(sizeof *type_name);
 

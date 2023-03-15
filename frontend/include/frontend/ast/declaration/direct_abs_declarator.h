@@ -11,7 +11,7 @@
 struct abs_declarator;
 struct assign_expr;
 
-enum abs_arr_or_func_suffix_type {
+enum abs_arr_or_func_suffix_kind {
     ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY, // either [] or [*]
     ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN,
     ABS_ARR_OR_FUNC_SUFFIX_FUNC
@@ -19,7 +19,7 @@ enum abs_arr_or_func_suffix_type {
 
 struct abs_arr_or_func_suffix {
     struct ast_node_info info;
-    enum abs_arr_or_func_suffix_type type;
+    enum abs_arr_or_func_suffix_kind kind;
     union {
         bool has_asterisk;
         struct {

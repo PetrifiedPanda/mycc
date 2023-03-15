@@ -14,7 +14,7 @@ static bool parse_init_declarator_list_first_base(
     res->decls = first_decl;
 
     size_t alloc_len = res->len;
-    while (s->it->type == COMMA) {
+    while (s->it->kind == COMMA) {
         accept_it(s);
 
         if (res->len == alloc_len) {

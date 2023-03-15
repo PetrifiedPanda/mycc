@@ -10,7 +10,7 @@
 bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
     assert(res);
 
-    if (is_type_spec(s) || is_type_qual(s->it->type)) {
+    if (is_type_spec(s) || is_type_qual(s->it->kind)) {
         res->spec_qual_list = mycc_alloc(sizeof *res->spec_qual_list);
         if (!parse_spec_qual_list(s, res->spec_qual_list)) {
             return false;
@@ -18,7 +18,7 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
     } else {
         // might be better for the error to just say "Expected type specifier or
         // type qualifier"
-        enum token_type expected[] = {
+        enum token_kind expected[] = {
             VOID,     CHAR,     SHORT,    INT,  LONG,         FLOAT,
             DOUBLE,   SIGNED,   UNSIGNED, BOOL, COMPLEX,      IMAGINARY,
             ATOMIC,   STRUCT,   UNION,    ENUM, TYPEDEF_NAME, CONST,
@@ -28,8 +28,8 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
         return false;
     }
 
-    if (s->it->type == ASTERISK || s->it->type == LBRACKET
-        || s->it->type == LINDEX) {
+    if (s->it->kind == ASTERISK || s->it->kind == LBRACKET
+        || s->it->kind == LINDEX) {
         res->abstract_decl = parse_abs_declarator(s);
         if (!res->abstract_decl) {
             free_spec_qual_list(res->spec_qual_list);

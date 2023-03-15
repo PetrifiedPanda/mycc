@@ -7,7 +7,7 @@
 #include "frontend/expected_tokens_err.h"
 #include "frontend/token.h"
 
-enum parser_err_type {
+enum parser_err_kind {
     PARSER_ERR_NONE = 0,
     PARSER_ERR_EXPECTED_TOKENS,
     PARSER_ERR_REDEFINED_SYMBOL,
@@ -27,7 +27,7 @@ enum parser_err_type {
 };
 
 struct parser_err {
-    enum parser_err_type type;
+    enum parser_err_kind kind;
     struct err_base base;
     union {
         struct expected_tokens_err expected_tokens_err; 
@@ -38,10 +38,10 @@ struct parser_err {
             struct file_loc prev_def_loc;
         };
         struct { // incompatible type specs
-            enum token_type type_spec, prev_type_spec;
+            enum token_kind type_spec, prev_type_spec;
         };
         // disallowed type specs
-        enum token_type incompatible_type;
+        enum token_kind incompatible_type;
         struct str non_typedef_spelling;
     };
 };
@@ -49,7 +49,7 @@ struct parser_err {
 struct parser_err create_parser_err(void);
 
 void set_parser_err(struct parser_err* err,
-                    enum parser_err_type type,
+                    enum parser_err_kind kind,
                     struct source_loc loc);
 
 void print_parser_err(FILE* out,

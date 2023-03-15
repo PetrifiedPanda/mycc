@@ -83,8 +83,8 @@ static bool compare_identifiers(const struct identifier* i1,
 
 static bool compare_int_value(const struct int_value* v1,
                               const struct int_value* v2) {
-    ASSERT(v1->type == v2->type);
-    if (int_value_is_signed(v1->type)) {
+    ASSERT(v1->kind == v2->kind);
+    if (int_value_is_signed(v1->kind)) {
         return v1->int_val == v2->int_val;
     } else {
         return v1->uint_val == v2->uint_val;
@@ -93,15 +93,15 @@ static bool compare_int_value(const struct int_value* v1,
 
 static bool compare_float_value(const struct float_value* v1,
                                 const struct float_value* v2) {
-    ASSERT(v1->type == v2->type);
+    ASSERT(v1->kind == v2->kind);
     return v1->val == v2->val;
 }
 
 static bool compare_constants(const struct constant* c1,
                               const struct constant* c2) {
     ASSERT(compare_ast_node_infos(&c1->info, &c2->info));
-    ASSERT(c1->type == c2->type);
-    switch (c1->type) {
+    ASSERT(c1->kind == c2->kind);
+    switch (c1->kind) {
         case CONSTANT_ENUM:
             return compare_strs(&c1->spelling, &c2->spelling);
         case CONSTANT_INT:
@@ -173,8 +173,8 @@ static bool compare_exprs(const struct expr* e1, const struct expr* e2);
 
 static bool compare_primary_exprs(const struct primary_expr* e1,
                                   const struct primary_expr* e2) {
-    ASSERT(e1->type == e2->type);
-    switch (e1->type) {
+    ASSERT(e1->kind == e2->kind);
+    switch (e1->kind) {
         case PRIMARY_EXPR_IDENTIFIER:
             return compare_identifiers(e1->identifier, e2->identifier);
         case PRIMARY_EXPR_CONSTANT:
@@ -258,8 +258,8 @@ static bool compare_arg_expr_lists(const struct arg_expr_list* l1,
 
 static bool compare_postfix_suffixes(const struct postfix_suffix* s1,
                                      const struct postfix_suffix* s2) {
-    ASSERT(s1->type == s2->type);
-    switch (s1->type) {
+    ASSERT(s1->kind == s2->kind);
+    switch (s1->kind) {
         case POSTFIX_INDEX:
             return compare_exprs(s1->index_expr, s2->index_expr);
         case POSTFIX_BRACKET:
@@ -301,8 +301,8 @@ static bool compare_unary_exprs(const struct unary_expr* e1,
     for (size_t i = 0; i < e1->len; ++i) {
         ASSERT(e1->ops_before[i] == e2->ops_before[i]);
     }
-    ASSERT(e1->type == e2->type);
-    switch (e1->type) {
+    ASSERT(e1->kind == e2->kind);
+    switch (e1->kind) {
         case UNARY_POSTFIX:
             return compare_postfix_exprs(e1->postfix, e2->postfix);
         case UNARY_ADDRESSOF:
@@ -490,8 +490,8 @@ static bool compare_abs_arr_or_func_suffix(
     const struct abs_arr_or_func_suffix* s1,
     const struct abs_arr_or_func_suffix* s2) {
     ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
-    ASSERT(s1->type == s2->type);
-    switch (s1->type) {
+    ASSERT(s1->kind == s2->kind);
+    switch (s1->kind) {
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
             return s1->has_asterisk == s2->has_asterisk;
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN:
@@ -541,8 +541,8 @@ static bool compare_declarators(const struct declarator* d1,
 static bool compare_param_declarations(const struct param_declaration* d1,
                                        const struct param_declaration* d2) {
     ASSERT(compare_declaration_specs(d1->decl_specs, d2->decl_specs));
-    ASSERT(d1->type == d2->type);
-    switch (d1->type) {
+    ASSERT(d1->kind == d2->kind);
+    switch (d1->kind) {
         case PARAM_DECL_DECL:
             return compare_declarators(d1->decl, d2->decl);
         case PARAM_DECL_ABSTRACT_DECL:
@@ -590,8 +590,8 @@ static bool compare_arr_suffixes(const struct arr_suffix* s1,
 static bool compare_arr_or_func_suffix(const struct arr_or_func_suffix* s1,
                                        const struct arr_or_func_suffix* s2) {
     ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
-    ASSERT(s1->type == s2->type);
-    switch (s1->type) {
+    ASSERT(s1->kind == s2->kind);
+    switch (s1->kind) {
         case ARR_OR_FUNC_ARRAY:
             return compare_arr_suffixes(&s1->arr_suffix, &s2->arr_suffix);
         case ARR_OR_FUNC_FUN_PARAMS:
@@ -708,8 +708,8 @@ static bool compare_type_modifiers(const struct type_modifiers* m1,
 static bool compare_type_specs(const struct type_specs* s1,
                                const struct type_specs* s2) {
     ASSERT(compare_type_modifiers(&s1->mods, &s2->mods));
-    ASSERT(s1->type == s2->type);
-    switch (s1->type) {
+    ASSERT(s1->kind == s2->kind);
+    switch (s1->kind) {
         case TYPE_SPEC_NONE:
         case TYPE_SPEC_VOID:
         case TYPE_SPEC_CHAR:
@@ -832,8 +832,8 @@ static bool compare_statements(const struct statement* s1,
 static bool compare_labeled_statements(const struct labeled_statement* s1,
                                        const struct labeled_statement* s2) {
     ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
-    ASSERT(s1->type == s2->type);
-    switch (s1->type) {
+    ASSERT(s1->kind == s2->kind);
+    switch (s1->kind) {
         case LABELED_STATEMENT_CASE:
             ASSERT(compare_const_exprs(s1->case_expr, s2->case_expr));
             break;
@@ -898,9 +898,9 @@ static bool compare_for_loops(const struct for_loop* l1,
 static bool compare_iteration_statements(const struct iteration_statement* s1,
                                          const struct iteration_statement* s2) {
     ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
-    ASSERT(s1->type == s2->type);
+    ASSERT(s1->kind == s2->kind);
     ASSERT(compare_statements(s1->loop_body, s2->loop_body));
-    switch (s1->type) {
+    switch (s1->kind) {
         case ITERATION_STATEMENT_WHILE:
         case ITERATION_STATEMENT_DO:
             return compare_exprs(s1->while_cond, s2->while_cond);
@@ -913,8 +913,8 @@ static bool compare_iteration_statements(const struct iteration_statement* s1,
 static bool compare_jump_statements(const struct jump_statement* s1,
                                     const struct jump_statement* s2) {
     ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
-    ASSERT(s1->type == s2->type);
-    switch (s1->type) {
+    ASSERT(s1->kind == s2->kind);
+    switch (s1->kind) {
         case JUMP_STATEMENT_GOTO:
             return compare_identifiers(s1->goto_label, s2->goto_label);
         case JUMP_STATEMENT_CONTINUE:
@@ -929,8 +929,8 @@ static bool compare_jump_statements(const struct jump_statement* s1,
 
 static bool compare_statements(const struct statement* s1,
                                const struct statement* s2) {
-    ASSERT(s1->type == s2->type);
-    switch (s1->type) {
+    ASSERT(s1->kind == s2->kind);
+    switch (s1->kind) {
         case STATEMENT_LABELED:
             return compare_labeled_statements(s1->labeled, s2->labeled);
         case STATEMENT_COMPOUND:

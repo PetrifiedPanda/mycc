@@ -18,10 +18,10 @@ struct tokenizer_state {
     size_t current_file_idx;
 };
 
-static enum token_type singlec_token_type(char c);
-static enum token_type check_next(enum token_type type, const char* next);
+static enum token_kind singlec_token_kind(char c);
+static enum token_kind check_next(enum token_kind kind, const char* next);
 static bool is_singlec_token(const struct tokenizer_state* s,
-                             enum token_type t);
+                             enum token_kind t);
 
 static void advance(struct tokenizer_state* s, size_t num);
 static void advance_one(struct tokenizer_state* s);
@@ -69,7 +69,7 @@ bool next_preproc_token(struct token* res,
     if (*s.it == '\0') {
         const struct str null_str = create_null_str();
         *res = (struct token){
-            .type = INVALID,
+            .kind = INVALID,
             .spelling = null_str,
             .loc =
                 {
@@ -102,21 +102,21 @@ bool next_preproc_token(struct token* res,
         return next_preproc_token(res, err, info);
     }
 
-    enum token_type type = singlec_token_type(*s.it);
-    if (type != INVALID && is_singlec_token(&s, type)) {
-        if (type == DIV && (s.it[1] == '/' || s.it[1] == '*')) {
+    enum token_kind kind = singlec_token_kind(*s.it);
+    if (kind != INVALID && is_singlec_token(&s, kind)) {
+        if (kind == DIV && (s.it[1] == '/' || s.it[1] == '*')) {
             handle_comments(&s, &info->is_in_comment);
             write_line_info(&s, info);
             return next_preproc_token(res, err, info);
         }
         if (s.it[1] != '\0') {
-            type = check_next(type, s.it + 1);
+            kind = check_next(kind, s.it + 1);
         }
 
         struct str null_str = create_null_str();
-        *res = create_token(type, &null_str, s.file_loc, s.current_file_idx);
+        *res = create_token(kind, &null_str, s.file_loc, s.current_file_idx);
 
-        size_t len = strlen(get_spelling(type));
+        size_t len = strlen(get_spelling(kind));
         advance(&s, len);
 
         write_line_info(&s, info);
@@ -142,9 +142,9 @@ bool tokenize_line(struct token_arr* res,
             if (!next_preproc_token(&curr, err, info)) {
                 return false;
             }
-        } while (curr.type == INVALID && *info->next != '\0');
+        } while (curr.kind == INVALID && *info->next != '\0');
 
-        if (curr.type != INVALID) {
+        if (curr.kind != INVALID) {
             if (res->len == res->cap) {
                 mycc_grow_alloc((void**)&res->tokens,
                                 &res->cap,
@@ -157,7 +157,7 @@ bool tokenize_line(struct token_arr* res,
     return true;
 }
 
-static enum token_type singlec_token_type(char c) {
+static enum token_kind singlec_token_kind(char c) {
     switch (c) {
         case ';':
             return SEMICOLON;
@@ -214,115 +214,115 @@ static enum token_type singlec_token_type(char c) {
     }
 }
 
-static bool check_type(enum token_type type, const char* next_chars) {
-    const char* spelling = get_spelling(type);
+static bool check_kind(enum token_kind kind, const char* next_chars) {
+    const char* spelling = get_spelling(kind);
     size_t len = strlen(spelling);
     assert(len != 0);
     assert(len >= 2);
     return strncmp(spelling + 1, next_chars, len - 1) == 0;
 }
 
-static enum token_type check_next(enum token_type type, const char* next) {
+static enum token_kind check_next(enum token_kind kind, const char* next) {
     assert(next[0] != '\0');
-    switch (type) {
+    switch (kind) {
         case ADD:
-            if (check_type(ADD_ASSIGN, next)) {
+            if (check_kind(ADD_ASSIGN, next)) {
                 return ADD_ASSIGN;
-            } else if (check_type(INC_OP, next)) {
+            } else if (check_kind(INC_OP, next)) {
                 return INC_OP;
             } else {
                 break;
             }
         case SUB:
-            if (check_type(PTR_OP, next)) {
+            if (check_kind(PTR_OP, next)) {
                 return PTR_OP;
-            } else if (check_type(DEC_OP, next)) {
+            } else if (check_kind(DEC_OP, next)) {
                 return DEC_OP;
-            } else if (check_type(SUB_ASSIGN, next)) {
+            } else if (check_kind(SUB_ASSIGN, next)) {
                 return SUB_ASSIGN;
             } else {
                 break;
             }
         case ASTERISK:
-            if (check_type(MUL_ASSIGN, next)) {
+            if (check_kind(MUL_ASSIGN, next)) {
                 return MUL_ASSIGN;
             } else {
                 break;
             }
         case DIV:
-            if (check_type(DIV_ASSIGN, next)) {
+            if (check_kind(DIV_ASSIGN, next)) {
                 return DIV_ASSIGN;
             } else {
                 break;
             }
         case LT:
-            if (check_type(LEFT_ASSIGN, next)) {
+            if (check_kind(LEFT_ASSIGN, next)) {
                 return LEFT_ASSIGN;
-            } else if (check_type(LEFT_OP, next)) {
+            } else if (check_kind(LEFT_OP, next)) {
                 return LEFT_OP;
-            } else if (check_type(LE_OP, next)) {
+            } else if (check_kind(LE_OP, next)) {
                 return LE_OP;
             } else {
                 break;
             }
         case GT:
-            if (check_type(RIGHT_ASSIGN, next)) {
+            if (check_kind(RIGHT_ASSIGN, next)) {
                 return RIGHT_ASSIGN;
-            } else if (check_type(RIGHT_OP, next)) {
+            } else if (check_kind(RIGHT_OP, next)) {
                 return RIGHT_OP;
-            } else if (check_type(GE_OP, next)) {
+            } else if (check_kind(GE_OP, next)) {
                 return GE_OP;
             } else {
                 break;
             }
         case AND:
-            if (check_type(AND_OP, next)) {
+            if (check_kind(AND_OP, next)) {
                 return AND_OP;
-            } else if (check_type(AND_ASSIGN, next)) {
+            } else if (check_kind(AND_ASSIGN, next)) {
                 return AND_ASSIGN;
             } else {
                 break;
             }
         case OR:
-            if (check_type(OR_OP, next)) {
+            if (check_kind(OR_OP, next)) {
                 return OR_OP;
-            } else if (check_type(OR_ASSIGN, next)) {
+            } else if (check_kind(OR_ASSIGN, next)) {
                 return OR_ASSIGN;
             } else {
                 break;
             }
         case XOR:
-            if (check_type(XOR_ASSIGN, next)) {
+            if (check_kind(XOR_ASSIGN, next)) {
                 return XOR_ASSIGN;
             } else {
                 break;
             }
         case MOD:
-            if (check_type(MOD_ASSIGN, next)) {
+            if (check_kind(MOD_ASSIGN, next)) {
                 return MOD_ASSIGN;
             } else {
                 break;
             }
         case DOT:
-            if (check_type(ELLIPSIS, next)) {
+            if (check_kind(ELLIPSIS, next)) {
                 return ELLIPSIS;
             } else {
                 break;
             }
         case ASSIGN:
-            if (check_type(EQ_OP, next)) {
+            if (check_kind(EQ_OP, next)) {
                 return EQ_OP;
             } else {
                 break;
             }
         case NOT:
-            if (check_type(NE_OP, next)) {
+            if (check_kind(NE_OP, next)) {
                 return NE_OP;
             } else {
                 break;
             }
         case STRINGIFY_OP:
-            if (check_type(CONCAT_OP, next)) {
+            if (check_kind(CONCAT_OP, next)) {
                 return CONCAT_OP;
             } else {
                 break;
@@ -331,11 +331,11 @@ static enum token_type check_next(enum token_type type, const char* next) {
             break;
     }
 
-    return type;
+    return kind;
 }
 
 static bool is_singlec_token(const struct tokenizer_state* s,
-                             enum token_type t) {
+                             enum token_kind t) {
     switch (t) {
         case DOT:
             return !isdigit(s->it[1]);
@@ -410,7 +410,7 @@ static void handle_ongoing_comment(struct tokenizer_state* s,
     }
 }
 
-static enum token_type get_char_lit_type(const char* buf,
+static enum token_kind get_char_lit_kind(const char* buf,
                                          size_t len,
                                          char terminator) {
     if (terminator == '\"' && is_string_literal(buf, len)) {
@@ -499,11 +499,11 @@ static bool handle_character_literal(struct tokenizer_state* s,
 
         advance_one(s);
 
-        enum token_type type = get_char_lit_type(str_get_data(&spell),
+        enum token_kind kind = get_char_lit_kind(str_get_data(&spell),
                                                  str_len(&spell),
                                                  terminator);
-        assert(type != INVALID);
-        *res = create_token(type, &spell, start_loc, s->current_file_idx);
+        assert(kind != INVALID);
+        *res = create_token(kind, &spell, start_loc, s->current_file_idx);
 
         write_line_info(s, info);
         return true;
@@ -514,11 +514,11 @@ static bool token_is_over(const struct tokenizer_state* s, bool is_num) {
     if (*s->it == '\0' || isspace(*s->it)) {
         return true;
     }
-    enum token_type type = singlec_token_type(*s->it);
-    if (type == INVALID) {
+    enum token_kind kind = singlec_token_kind(*s->it);
+    if (kind == INVALID) {
         return false;
     } else if (is_num) {
-        switch (type) {
+        switch (kind) {
             case SUB:
             case ADD: {
                 char prev = (char)tolower((unsigned char)s->prev);
@@ -566,14 +566,14 @@ static bool handle_other(struct tokenizer_state* s,
         str_shrink_to_fit(&spell);
     }
 
-    enum token_type type;
+    enum token_kind kind;
     const char* spell_data = str_get_data(&spell);
     const size_t spell_len = str_len(&spell);
     if (is_num) {
         if (is_int_const(spell_data, spell_len)) {
-            type = I_CONSTANT;
+            kind = I_CONSTANT;
         } else if (is_float_const(spell_data, spell_len)) {
-            type = F_CONSTANT;
+            kind = F_CONSTANT;
         } else {
             struct source_loc loc = {
                 .file_idx = s->current_file_idx,
@@ -584,7 +584,7 @@ static bool handle_other(struct tokenizer_state* s,
             return false;
         }
     } else if (is_valid_identifier(spell_data, spell_len)) {
-        type = IDENTIFIER;
+        kind = IDENTIFIER;
     } else {
         struct source_loc loc = {
             .file_idx = s->current_file_idx,
@@ -596,7 +596,7 @@ static bool handle_other(struct tokenizer_state* s,
         return false;
     }
 
-    *res = create_token(type, &spell, start_loc, s->current_file_idx);
+    *res = create_token(kind, &spell, start_loc, s->current_file_idx);
     write_line_info(s, info);
     return true;
 }

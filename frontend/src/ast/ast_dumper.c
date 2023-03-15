@@ -219,8 +219,8 @@ static void dump_int_value(struct ast_dumper* d, struct int_value val) {
 
     add_indent(d);
 
-    dumper_println(d, "type: %s", get_int_value_type_str(val.type));
-    if (int_value_is_signed(val.type)) {
+    dumper_println(d, "type: %s", get_int_value_type_str(val.kind));
+    if (int_value_is_signed(val.kind)) {
         dumper_println(d, "int_val: %jd", val.int_val);
     } else {
         dumper_println(d, "uint_val: %ju", val.uint_val);
@@ -234,7 +234,7 @@ static void dump_float_value(struct ast_dumper* d, struct float_value val) {
 
     add_indent(d);
 
-    dumper_println(d, "type: %s", get_float_value_type_str(val.type));
+    dumper_println(d, "type: %s", get_float_value_type_str(val.kind));
     dumper_println(d, "float_val: %g", val.val);
 
     remove_indent(d);
@@ -247,7 +247,7 @@ static void dump_constant(struct ast_dumper* d, const struct constant* c) {
 
     add_indent(d);
 
-    switch (c->type) {
+    switch (c->kind) {
         case CONSTANT_ENUM:
             dumper_println(d, "enum: %s", str_get_data(&c->spelling));
             break;
@@ -348,7 +348,7 @@ static void dump_primary_expr(struct ast_dumper* d,
                               const struct primary_expr* e) {
     assert(e);
 
-    switch (e->type) {
+    switch (e->kind) {
         case PRIMARY_EXPR_IDENTIFIER:
             dumper_println(d, "primary_expr:");
             add_indent(d);
@@ -571,7 +571,7 @@ static void dump_enum_spec(struct ast_dumper* d, const struct enum_spec* s) {
     remove_indent(d);
 }
 
-static const char* type_spec_type_str(enum type_spec_type t) {
+static const char* type_spec_type_str(enum type_spec_kind t) {
     switch (t) {
         case TYPE_SPEC_NONE:
             return "NO_TYPE_SPEC";
@@ -601,7 +601,7 @@ static void dump_type_specs(struct ast_dumper* d, const struct type_specs* s) {
 
     dump_type_modifiers(d, &s->mods);
 
-    switch (s->type) {
+    switch (s->kind) {
         case TYPE_SPEC_NONE:
         case TYPE_SPEC_VOID:
         case TYPE_SPEC_CHAR:
@@ -609,7 +609,7 @@ static void dump_type_specs(struct ast_dumper* d, const struct type_specs* s) {
         case TYPE_SPEC_FLOAT:
         case TYPE_SPEC_DOUBLE:
         case TYPE_SPEC_BOOL:
-            dumper_puts(d, type_spec_type_str(s->type));
+            dumper_puts(d, type_spec_type_str(s->kind));
             break;
         case TYPE_SPEC_ATOMIC:
             dump_atomic_type_spec(d, s->atomic_spec);
@@ -684,7 +684,7 @@ static void dump_postfix_suffix(struct ast_dumper* d,
 
     add_indent(d);
 
-    switch (s->type) {
+    switch (s->kind) {
         case POSTFIX_INDEX:
             dump_expr(d, s->index_expr);
             break;
@@ -701,7 +701,7 @@ static void dump_postfix_suffix(struct ast_dumper* d,
             break;
         case POSTFIX_INC:
         case POSTFIX_DEC:
-            dumper_puts(d, s->type == POSTFIX_INC ? "++" : "--");
+            dumper_puts(d, s->kind == POSTFIX_INC ? "++" : "--");
             break;
     }
 
@@ -755,7 +755,7 @@ static void dump_cast_expr(struct ast_dumper* d, const struct cast_expr* e) {
     remove_indent(d);
 }
 
-static const char* unary_expr_type_str(enum unary_expr_type t) {
+static const char* unary_expr_type_str(enum unary_expr_kind t) {
     assert(t != UNARY_POSTFIX && t != UNARY_SIZEOF_TYPE && t != UNARY_ALIGNOF);
     switch (t) {
         case UNARY_ADDRESSOF:
@@ -800,7 +800,7 @@ static void dump_unary_expr(struct ast_dumper* d, const struct unary_expr* e) {
         dumper_puts(d, unary_expr_op_str(e->ops_before[i]));
     }
 
-    switch (e->type) {
+    switch (e->kind) {
         case UNARY_POSTFIX:
             dump_postfix_expr(d, e->postfix);
             break;
@@ -810,7 +810,7 @@ static void dump_unary_expr(struct ast_dumper* d, const struct unary_expr* e) {
         case UNARY_MINUS:
         case UNARY_BNOT:
         case UNARY_NOT:
-            dumper_puts(d, unary_expr_type_str(e->type));
+            dumper_puts(d, unary_expr_type_str(e->kind));
             dump_cast_expr(d, e->cast_expr);
             break;
         case UNARY_SIZEOF_TYPE:
@@ -894,7 +894,7 @@ static void dump_abs_arr_or_func_suffix(
 
     add_indent(d);
 
-    switch (s->type) {
+    switch (s->kind) {
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
             dumper_println(d, "has_asterisk: %s", bool_to_str(s->has_asterisk));
             break;
@@ -961,7 +961,7 @@ static void dump_param_declaration(struct ast_dumper* d,
     add_indent(d);
 
     dump_declaration_specs(d, decl->decl_specs);
-    switch (decl->type) {
+    switch (decl->kind) {
         case PARAM_DECL_DECL:
             dump_declarator(d, decl->decl);
             break;
@@ -1043,7 +1043,7 @@ static void dump_arr_or_func_suffix(struct ast_dumper* d,
 
     add_indent(d);
 
-    switch (s->type) {
+    switch (s->kind) {
         case ARR_OR_FUNC_ARRAY:
             dump_arr_suffix(d, &s->arr_suffix);
             break;
@@ -1128,7 +1128,7 @@ static void dump_labeled_statement(struct ast_dumper* d,
 
     add_indent(d);
 
-    switch (s->type) {
+    switch (s->kind) {
         case LABELED_STATEMENT_CASE:
             dump_const_expr(d, s->case_expr);
             break;
@@ -1207,7 +1207,7 @@ static void dump_iteration_statement(struct ast_dumper* d,
 
     add_indent(d);
 
-    switch (s->type) {
+    switch (s->kind) {
         case ITERATION_STATEMENT_WHILE:
             dumper_println(d, "type: while");
             dump_expr(d, s->while_cond);
@@ -1243,7 +1243,7 @@ static void dump_jump_statement(struct ast_dumper* d,
 
     add_indent(d);
 
-    switch (s->type) {
+    switch (s->kind) {
         case JUMP_STATEMENT_GOTO:
             dumper_println(d, "type: goto");
             dump_identifier(d, s->goto_label);
@@ -1274,7 +1274,7 @@ static void dump_statement(struct ast_dumper* d, const struct statement* s) {
 
     add_indent(d);
 
-    switch (s->type) {
+    switch (s->kind) {
         case STATEMENT_LABELED:
             dump_labeled_statement(d, s->labeled);
             break;

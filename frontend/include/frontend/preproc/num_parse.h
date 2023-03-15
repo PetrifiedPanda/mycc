@@ -7,7 +7,7 @@
 #include "frontend/value.h"
 #include "frontend/arch_type_info.h"
 
-enum float_const_err_type {
+enum float_const_err_kind {
     FLOAT_CONST_ERR_NONE,
     FLOAT_CONST_ERR_TOO_LARGE,
     FLOAT_CONST_ERR_SUFFIX_TOO_LONG,
@@ -15,7 +15,7 @@ enum float_const_err_type {
 };
 
 struct float_const_err {
-    enum float_const_err_type type;
+    enum float_const_err_kind kind;
     char invalid_char;
 };
 
@@ -28,7 +28,7 @@ struct parse_float_const_res parse_float_const(const char* spell);
 
 void print_float_const_err(FILE* out, const struct float_const_err* err);
 
-enum int_const_err_type {
+enum int_const_err_kind {
     INT_CONST_ERR_NONE,
     INT_CONST_ERR_TOO_LARGE,
     INT_CONST_ERR_SUFFIX_TOO_LONG,
@@ -40,7 +40,7 @@ enum int_const_err_type {
 };
 
 struct int_const_err {
-    enum int_const_err_type type;
+    enum int_const_err_kind kind;
     char invalid_char;
 };
 
@@ -54,14 +54,14 @@ struct parse_int_const_res parse_int_const(const char* spell,
 
 void print_int_const_err(FILE* out, const struct int_const_err* err);
 
-enum char_const_err_type {
+enum char_const_err_kind {
     CHAR_CONST_ERR_NONE,
     CHAR_CONST_ERR_EXPECTED_CHAR,
     CHAR_CONST_ERR_INVALID_ESCAPE,
 };
 
 struct char_const_err {
-    enum char_const_err_type type;
+    enum char_const_err_kind kind;
     union {
         struct {
             uint8_t num_expected;

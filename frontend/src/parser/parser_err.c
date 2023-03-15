@@ -6,30 +6,30 @@
 #include "util/mem.h"
 #include "util/macro_util.h"
 
-#include "frontend/token_type.h"
+#include "frontend/token_kind.h"
 
 struct parser_err create_parser_err(void) {
     return (struct parser_err){
-        .type = PARSER_ERR_NONE,
+        .kind = PARSER_ERR_NONE,
     };
 }
 
 void set_parser_err(struct parser_err* err,
-                    enum parser_err_type type,
+                    enum parser_err_kind kind,
                     struct source_loc loc) {
     assert(err);
-    assert(type != PARSER_ERR_NONE);
-    assert(err->type == PARSER_ERR_NONE);
+    assert(kind != PARSER_ERR_NONE);
+    assert(err->kind == PARSER_ERR_NONE);
 
-    err->type = type;
+    err->kind = kind;
     err->base = create_err_base(loc);
 }
 
 void print_parser_err(FILE* out, const struct file_info* file_info, const struct parser_err* err) {
-    assert(err->type != PARSER_ERR_NONE);
+    assert(err->kind != PARSER_ERR_NONE);
 
     print_err_base(out, file_info, &err->base);
-    switch (err->type) {
+    switch (err->kind) {
         case PARSER_ERR_NONE:
             UNREACHABLE();
         case PARSER_ERR_EXPECTED_TOKENS: {
@@ -78,8 +78,8 @@ void print_parser_err(FILE* out, const struct file_info* file_info, const struct
         case PARSER_ERR_INCOMPATIBLE_TYPE_SPECS:
             fprintf(out,
                     "Cannot combine %s with previous %s type specifier",
-                    get_type_str(err->type_spec),
-                    get_type_str(err->prev_type_spec));
+                    get_kind_str(err->type_spec),
+                    get_kind_str(err->prev_type_spec));
             break;
         case PARSER_ERR_TOO_MUCH_LONG:
             fputs("More than 2 long specifiers are not allowed", out);
@@ -87,7 +87,7 @@ void print_parser_err(FILE* out, const struct file_info* file_info, const struct
         case PARSER_ERR_DISALLOWED_TYPE_QUALS:
             fprintf(out,
                     "Cannot add qualifiers to type %s",
-                    get_type_str(err->incompatible_type));
+                    get_kind_str(err->incompatible_type));
             break;
         case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
             fprintf(
@@ -103,7 +103,7 @@ void print_parser_err(FILE* out, const struct file_info* file_info, const struct
 }
 
 void free_parser_err(struct parser_err* err) {
-    switch (err->type) {
+    switch (err->kind) {
         case PARSER_ERR_REDEFINED_SYMBOL:
             free_str(&err->redefined_symbol);
             break;

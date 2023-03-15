@@ -1,9 +1,9 @@
-#include "frontend/token_type.h"
+#include "frontend/token_kind.h"
 
 #include <stddef.h>
 
-const char* get_spelling(enum token_type type) {
-    switch (type) {
+const char* get_spelling(enum token_kind kind) {
+    switch (kind) {
         case FUNC_NAME:
             return "__func__";
         case SIZEOF:
@@ -196,8 +196,8 @@ const char* get_spelling(enum token_type type) {
     }
 }
 
-const char* get_type_str(enum token_type type) {
-    switch (type) {
+const char* get_kind_str(enum token_kind kind) {
+    switch (kind) {
         case IDENTIFIER:
             return "IDENTIFIER";
         case I_CONSTANT:
@@ -401,7 +401,7 @@ const char* get_type_str(enum token_type type) {
     return NULL;
 }
 
-bool is_unary_op(enum token_type t) {
+bool is_unary_op(enum token_kind t) {
     switch (t) {
         case AND:
         case ASTERISK:
@@ -415,7 +415,7 @@ bool is_unary_op(enum token_type t) {
     }
 }
 
-bool is_assign_op(enum token_type t) {
+bool is_assign_op(enum token_kind t) {
     switch (t) {
         case ASSIGN:
         case MUL_ASSIGN:
@@ -434,7 +434,7 @@ bool is_assign_op(enum token_type t) {
     }
 }
 
-bool is_storage_class_spec(enum token_type t) {
+bool is_storage_class_spec(enum token_kind t) {
     switch (t) {
         case TYPEDEF:
         case EXTERN:
@@ -448,7 +448,7 @@ bool is_storage_class_spec(enum token_type t) {
     }
 }
 
-bool is_keyword_type_spec(enum token_type t) {
+bool is_keyword_type_spec(enum token_kind t) {
     switch (t) {
         case VOID:
         case CHAR:
@@ -472,7 +472,7 @@ bool is_keyword_type_spec(enum token_type t) {
     }
 }
 
-bool is_type_qual(enum token_type t) {
+bool is_type_qual(enum token_kind t) {
     switch (t) {
         case CONST:
         case RESTRICT:
@@ -485,11 +485,11 @@ bool is_type_qual(enum token_type t) {
     }
 }
 
-bool is_func_spec(enum token_type t) {
+bool is_func_spec(enum token_kind t) {
     return t == INLINE || t == NORETURN;
 }
 
-bool is_shift_op(enum token_type t) {
+bool is_shift_op(enum token_kind t) {
     switch (t) {
         case LEFT_OP:
         case RIGHT_OP:
@@ -499,7 +499,7 @@ bool is_shift_op(enum token_type t) {
     }
 }
 
-bool is_rel_op(enum token_type t) {
+bool is_rel_op(enum token_kind t) {
     switch (t) {
         case LE_OP:
         case GE_OP:
@@ -511,7 +511,7 @@ bool is_rel_op(enum token_type t) {
     }
 }
 
-bool is_mul_op(enum token_type t) {
+bool is_mul_op(enum token_kind t) {
     switch (t) {
         case ASTERISK:
         case DIV:
@@ -522,7 +522,7 @@ bool is_mul_op(enum token_type t) {
     }
 }
 
-bool is_add_op(enum token_type t) {
+bool is_add_op(enum token_kind t) {
     switch (t) {
         case ADD:
         case SUB:
@@ -532,7 +532,7 @@ bool is_add_op(enum token_type t) {
     }
 }
 
-bool is_eq_op(enum token_type t) {
+bool is_eq_op(enum token_kind t) {
     switch (t) {
         case EQ_OP:
         case NE_OP:

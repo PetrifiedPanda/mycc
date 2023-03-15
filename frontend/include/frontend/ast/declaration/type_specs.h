@@ -1,7 +1,7 @@
 #ifndef TYPE_SPEC_H
 #define TYPE_SPEC_H
 
-#include "frontend/token_type.h"
+#include "frontend/token_kind.h"
 
 #include "frontend/parser/parser_state.h"
 
@@ -10,7 +10,7 @@ struct struct_union_spec;
 struct enum_spec;
 struct identifier;
 
-enum type_spec_type {
+enum type_spec_kind {
     TYPE_SPEC_NONE,
     TYPE_SPEC_VOID,
     TYPE_SPEC_CHAR,
@@ -35,7 +35,7 @@ struct type_modifiers {
 
 struct type_specs {
     struct type_modifiers mods;
-    enum type_spec_type type;
+    enum type_spec_kind kind;
     union {
         struct atomic_type_spec* atomic_spec;
         struct struct_union_spec* struct_union_spec;

@@ -7,8 +7,8 @@
 #include "../test_helpers.h"
 
 void check_int_value(struct int_value got, struct int_value expected) {
-    ASSERT_INT_VALUE_TYPE(got.type, expected.type);
-    if (int_value_is_signed(got.type)) {
+    ASSERT_INT_VALUE_KIND(got.kind, expected.kind);
+    if (int_value_is_signed(got.kind)) {
         ASSERT_INTMAX_T(got.int_val, expected.int_val);
     } else {
         ASSERT_UINTMAX_T(got.uint_val, expected.uint_val);
@@ -16,7 +16,7 @@ void check_int_value(struct int_value got, struct int_value expected) {
 }
 
 void check_float_value(struct float_value got, struct float_value expected) {
-    ASSERT_FLOAT_VALUE_TYPE(got.type, expected.type);
+    ASSERT_FLOAT_VALUE_KIND(got.kind, expected.kind);
     ASSERT_DOUBLE(got.val, expected.val, 0.0001);
 }
 
@@ -29,26 +29,26 @@ void check_identifier(struct identifier* id, const char* spell) {
 }
 
 void check_primary_expr_id(const struct primary_expr* e, const char* spell) {
-    ASSERT(e->type == PRIMARY_EXPR_IDENTIFIER);
+    ASSERT(e->kind == PRIMARY_EXPR_IDENTIFIER);
     ASSERT_NOT_NULL(e->identifier);
     ASSERT_STR(str_get_data(&e->identifier->spelling), spell);
 }
 
 void check_primary_expr_int(const struct primary_expr* e,
                             struct int_value val) {
-    ASSERT(e->type == PRIMARY_EXPR_CONSTANT);
-    ASSERT(e->constant.type != CONSTANT_ENUM);
+    ASSERT(e->kind == PRIMARY_EXPR_CONSTANT);
+    ASSERT(e->constant.kind != CONSTANT_ENUM);
 
-    ASSERT(e->constant.type == CONSTANT_INT);
+    ASSERT(e->constant.kind == CONSTANT_INT);
     check_int_value(e->constant.int_val, val);
 }
 
 void check_primary_expr_float(const struct primary_expr* e,
                               struct float_value val) {
-    ASSERT(e->type == PRIMARY_EXPR_CONSTANT);
-    ASSERT(e->constant.type != CONSTANT_ENUM);
+    ASSERT(e->kind == PRIMARY_EXPR_CONSTANT);
+    ASSERT(e->constant.kind != CONSTANT_ENUM);
 
-    ASSERT(e->constant.type == CONSTANT_FLOAT);
+    ASSERT(e->constant.kind == CONSTANT_FLOAT);
     check_float_value(e->constant.float_val, val);
 }
 
@@ -73,7 +73,7 @@ static void check_unary_expr_empty(const struct unary_expr* e) {
     ASSERT_SIZE_T(e->len, (size_t)0);
     ASSERT_NULL(e->ops_before);
 
-    ASSERT(e->type == UNARY_POSTFIX);
+    ASSERT(e->kind == UNARY_POSTFIX);
 }
 
 void check_unary_expr_id(const struct unary_expr* e, const char* spell) {

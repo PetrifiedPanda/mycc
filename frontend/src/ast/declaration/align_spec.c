@@ -16,7 +16,7 @@ bool parse_align_spec_inplace(struct parser_state* s, struct align_spec* res) {
     }
 
     // TODO: this condition may be wrong
-    if (is_type_spec(s) || is_type_qual(s->it->type)) {
+    if (is_type_spec(s) || is_type_qual(s->it->kind)) {
         res->is_type_name = true;
         res->type_name = parse_type_name(s);
 

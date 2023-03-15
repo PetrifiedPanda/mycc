@@ -3,14 +3,15 @@
 
 #include <stddef.h>
 
-#include "frontend/token_type.h"
+#include "frontend/token_kind.h"
 #include "frontend/token.h"
+
 #include "parser_state.h"
 
-void expected_token_error(struct parser_state* s, enum token_type expected);
+void expected_token_error(struct parser_state* s, enum token_kind expected);
 
 void expected_tokens_error(struct parser_state* s,
-                           const enum token_type* expected,
+                           const enum token_kind* expected,
                            size_t num_expected);
 
 /**

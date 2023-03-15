@@ -11,7 +11,7 @@ static size_t get_tokens_len(const struct token* tokens) {
     size_t len = 0;
     const struct token* it = tokens;
 
-    while (it->type != INVALID) {
+    while (it->kind != INVALID) {
         ++len;
         ++it;
     }
@@ -25,7 +25,7 @@ static void test_preproc_macro(const struct preproc_macro* macro,
                                const char* output) {
     struct preproc_err input_err = create_preproc_err();
     struct preproc_res res = preproc_string(input, "source_file.c", &input_err);
-    ASSERT(input_err.type == PREPROC_ERR_NONE);
+    ASSERT(input_err.kind == PREPROC_ERR_NONE);
 
     const size_t tokens_len = get_tokens_len(res.toks);
 
@@ -42,18 +42,18 @@ static void test_preproc_macro(const struct preproc_macro* macro,
     register_preproc_macro(&state, &macro_str, macro);
 
     ASSERT(expand_all_macros(&state, &state.res, 0));
-    ASSERT(err.type == PREPROC_ERR_NONE);
+    ASSERT(err.kind == PREPROC_ERR_NONE);
 
     struct preproc_err output_err = create_preproc_err();
     struct preproc_res expected = preproc_string(output,
                                                  "source_file.c",
                                                  &output_err);
-    ASSERT(output_err.type == PREPROC_ERR_NONE);
+    ASSERT(output_err.kind == PREPROC_ERR_NONE);
 
     ASSERT_SIZE_T(state.res.len, get_tokens_len(expected.toks));
 
     for (size_t i = 0; i < state.res.len; ++i) {
-        ASSERT_TOKEN_TYPE(state.res.tokens[i].type, expected.toks[i].type);
+        ASSERT_TOKEN_KIND(state.res.tokens[i].kind, expected.toks[i].kind);
         ASSERT_STR(str_get_data(&state.res.tokens[i].spelling),
                    str_get_data(&expected.toks[i].spelling));
         free_str(&state.res.tokens[i].spelling);

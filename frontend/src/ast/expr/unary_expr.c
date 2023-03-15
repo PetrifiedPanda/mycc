@@ -29,13 +29,13 @@ static struct unary_expr* create_unary_expr_postfix(
     struct unary_expr* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     assign_operators_before(res, ops_before, len);
-    res->type = UNARY_POSTFIX;
+    res->kind = UNARY_POSTFIX;
     res->postfix = postfix;
 
     return res;
 }
 
-static enum unary_expr_type token_type_to_unary_expr_type(enum token_type t) {
+static enum unary_expr_kind token_type_to_unary_expr_type(enum token_kind t) {
     assert(is_unary_op(t));
     switch (t) {
         case AND:
@@ -58,7 +58,7 @@ static enum unary_expr_type token_type_to_unary_expr_type(enum token_type t) {
 static struct unary_expr* create_unary_expr_unary_op(
     enum unary_expr_op* ops_before,
     size_t len,
-    enum token_type unary_op,
+    enum token_kind unary_op,
     struct cast_expr* cast_expr,
     struct source_loc loc) {
     assert(is_unary_op(unary_op));
@@ -66,7 +66,7 @@ static struct unary_expr* create_unary_expr_unary_op(
     struct unary_expr* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     assign_operators_before(res, ops_before, len);
-    res->type = token_type_to_unary_expr_type(unary_op);
+    res->kind = token_type_to_unary_expr_type(unary_op);
     res->cast_expr = cast_expr;
 
     return res;
@@ -81,7 +81,7 @@ static struct unary_expr* create_unary_expr_sizeof_type(
     struct unary_expr* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     assign_operators_before(res, ops_before, len);
-    res->type = UNARY_SIZEOF_TYPE;
+    res->kind = UNARY_SIZEOF_TYPE;
     res->type_name = type_name;
 
     return res;
@@ -96,7 +96,7 @@ static struct unary_expr* create_unary_expr_alignof(
     struct unary_expr* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(loc);
     assign_operators_before(res, ops_before, len);
-    res->type = UNARY_ALIGNOF;
+    res->kind = UNARY_ALIGNOF;
     res->type_name = type_name;
 
     return res;
@@ -124,7 +124,7 @@ struct unary_expr* parse_unary_expr_type_name(
                                      start_bracket_loc);
 }
 
-enum unary_expr_op token_type_to_unary_expr_op(enum token_type t) {
+enum unary_expr_op token_type_to_unary_expr_op(enum token_kind t) {
     assert(t == INC_OP || t == DEC_OP || t == SIZEOF);
     switch (t) {
         case INC_OP:
@@ -145,13 +145,13 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
 
     const struct source_loc loc = s->it->loc;
     size_t len = 0;
-    while (s->it->type == INC_OP || s->it->type == DEC_OP
-           || (s->it->type == SIZEOF && (s->it + 1)->type != LBRACKET)) {
+    while (s->it->kind == INC_OP || s->it->kind == DEC_OP
+           || (s->it->kind == SIZEOF && s->it[1].kind != LBRACKET)) {
         if (len == alloc_len) {
             mycc_grow_alloc((void**)&ops_before, &alloc_len, sizeof *ops_before);
         }
 
-        ops_before[len] = token_type_to_unary_expr_op(s->it->type);
+        ops_before[len] = token_type_to_unary_expr_op(s->it->kind);
 
         ++len;
         accept_it(s);
@@ -161,8 +161,8 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
         ops_before = mycc_realloc(ops_before, len * sizeof *ops_before);
     }
 
-    if (is_unary_op(s->it->type)) {
-        const enum token_type unary_op = s->it->type;
+    if (is_unary_op(s->it->kind)) {
+        const enum token_kind unary_op = s->it->kind;
         accept_it(s);
         struct cast_expr* cast = parse_cast_expr(s);
         if (!cast) {
@@ -170,10 +170,10 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
         }
         return create_unary_expr_unary_op(ops_before, len, unary_op, cast, loc);
     } else {
-        switch (s->it->type) {
+        switch (s->it->kind) {
             case SIZEOF: {
                 accept_it(s);
-                assert(s->it->type == LBRACKET);
+                assert(s->it->kind == LBRACKET);
                 struct source_loc start_bracket_loc = s->it->loc;
                 if (next_is_type_name(s)) {
                     accept_it(s);
@@ -186,7 +186,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
                     if (!accept(s, RBRACKET)) {
                         goto fail;
                     }
-                    if (s->it->type == LBRACE) {
+                    if (s->it->kind == LBRACE) {
                         ++len;
                         ops_before = mycc_realloc(ops_before,
                                               len * sizeof *ops_before);
@@ -259,7 +259,7 @@ fail:
 
 void free_unary_expr_children(struct unary_expr* u) {
     mycc_free(u->ops_before);
-    switch (u->type) {
+    switch (u->kind) {
         case UNARY_POSTFIX:
             free_postfix_expr(u->postfix);
             break;

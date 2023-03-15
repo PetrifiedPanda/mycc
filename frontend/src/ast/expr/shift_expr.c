@@ -12,8 +12,8 @@ static bool parse_shift_expr_shift_chain(struct parser_state* s,
     res->shift_chain = NULL;
 
     size_t alloc_len = res->len;
-    while (is_shift_op(s->it->type)) {
-        enum token_type op = s->it->type;
+    while (is_shift_op(s->it->kind)) {
+        enum token_kind op = s->it->kind;
         accept_it(s);
 
         if (res->len == alloc_len) {

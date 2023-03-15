@@ -4,7 +4,7 @@
 
 #include "util/macro_util.h"
 
-bool int_value_is_signed(enum int_value_type t) {
+bool int_value_is_signed(enum int_value_kind t) {
     switch (t) {
         case INT_VALUE_C:
         case INT_VALUE_S:
@@ -17,7 +17,7 @@ bool int_value_is_signed(enum int_value_type t) {
     }
 }
 
-bool int_value_is_unsigned(enum int_value_type t) {
+bool int_value_is_unsigned(enum int_value_kind t) {
     switch (t) {
         case INT_VALUE_UC:
         case INT_VALUE_US:
@@ -30,30 +30,30 @@ bool int_value_is_unsigned(enum int_value_type t) {
     }
 }
 
-struct int_value create_int_value(enum int_value_type t, int64_t val) {
+struct int_value create_int_value(enum int_value_kind t, int64_t val) {
     assert(int_value_is_signed(t));
     return (struct int_value){
-        .type = t,
+        .kind = t,
         .int_val = val,
     };
 }
 
-struct int_value create_uint_value(enum int_value_type t, uint64_t val) {
+struct int_value create_uint_value(enum int_value_kind t, uint64_t val) {
     assert(int_value_is_unsigned(t));
     return (struct int_value){
-        .type = t,
+        .kind = t,
         .uint_val = val,
     };
 }
 
-struct float_value create_float_value(enum float_value_type t, double val) {
+struct float_value create_float_value(enum float_value_kind t, double val) {
     return (struct float_value){
-        .type = t,
+        .kind = t,
         .val = val,
     };
 }
 
-const char* get_int_value_type_str(enum int_value_type t) {
+const char* get_int_value_type_str(enum int_value_kind t) {
     switch (t) {
         case INT_VALUE_C:
             return "INT_VALUE_C";
@@ -78,7 +78,7 @@ const char* get_int_value_type_str(enum int_value_type t) {
     }
     UNREACHABLE();
 }
-const char* get_float_value_type_str(enum float_value_type t) {
+const char* get_float_value_type_str(enum float_value_kind t) {
     switch (t) {
         case FLOAT_VALUE_F:
             return "FLOAT_VALUE_F";

@@ -4,20 +4,20 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "frontend/token_type.h"
+#include "frontend/token_kind.h"
 
 #include "util/macro_util.h"
 
-#define ASSERT_TOKEN_TYPE(got, expected)                                       \
+#define ASSERT_TOKEN_KIND(got, expected)                                       \
     do {                                                                       \
         if ((got) != (expected)) {                                             \
             PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             get_type_str(expected),                           \
-                             get_type_str(got));                               \
+                             get_kind_str(expected),                           \
+                             get_kind_str(got));                               \
         }                                                                      \
     } while (0)
 
-#define ASSERT_INT_VALUE_TYPE(got, expected)                                   \
+#define ASSERT_INT_VALUE_KIND(got, expected)                                   \
     do {                                                                       \
         if ((got) != (expected)) {                                             \
             PRINT_ASSERT_ERR("Expected %s but got %s",                         \
@@ -26,7 +26,7 @@
         }                                                                      \
     } while (0)
 
-#define ASSERT_FLOAT_VALUE_TYPE(got, expected)                                 \
+#define ASSERT_FLOAT_VALUE_KIND(got, expected)                                 \
     do {                                                                       \
         if ((got) != (expected)) {                                             \
             PRINT_ASSERT_ERR("Expected %s but got %s",                         \

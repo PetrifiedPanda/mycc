@@ -13,7 +13,7 @@ TEST(unterminated_literal) {
         ASSERT_SIZE_T(res.file_info.len, (size_t)0);
         ASSERT_NULL(res.file_info.paths);
         
-        ASSERT(err.type == PREPROC_ERR_UNTERMINATED_LIT);
+        ASSERT(err.kind == PREPROC_ERR_UNTERMINATED_LIT);
         ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
         ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)1);
         ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
@@ -31,7 +31,7 @@ TEST(unterminated_literal) {
         ASSERT_SIZE_T(res.file_info.len, (size_t)0);
         ASSERT_NULL(res.file_info.paths);
         
-        ASSERT(err.type == PREPROC_ERR_UNTERMINATED_LIT);
+        ASSERT(err.kind == PREPROC_ERR_UNTERMINATED_LIT);
         ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)2);
         ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)10);
         ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
@@ -49,7 +49,7 @@ TEST(invalid_identifier) {
     ASSERT_SIZE_T(res.file_info.len, (size_t)0);
     ASSERT_NULL(res.file_info.paths);
     
-    ASSERT(err.type == PREPROC_ERR_INVALID_ID);
+    ASSERT(err.kind == PREPROC_ERR_INVALID_ID);
     
     ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
     ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
@@ -66,7 +66,7 @@ TEST(invalid_number) {
     ASSERT_SIZE_T(res.file_info.len, (size_t)0);
     ASSERT_NULL(res.file_info.paths);
     
-    ASSERT(err.type == PREPROC_ERR_INVALID_NUMBER);
+    ASSERT(err.kind == PREPROC_ERR_INVALID_NUMBER);
 
     ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
     ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);

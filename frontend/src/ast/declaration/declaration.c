@@ -7,7 +7,7 @@
 bool parse_declaration_inplace(struct parser_state* s,
                                struct declaration* res) {
     assert(res);
-    if (s->it->type == STATIC_ASSERT) {
+    if (s->it->kind == STATIC_ASSERT) {
         res->is_normal_decl = false;
         res->static_assert_decl = parse_static_assert_declaration(s);
         if (!res->static_assert_decl) {
@@ -22,7 +22,7 @@ bool parse_declaration_inplace(struct parser_state* s,
             return false;
         }
 
-        if (s->it->type != SEMICOLON) {
+        if (s->it->kind != SEMICOLON) {
             const bool success = found_typedef
                                      ? parse_init_declarator_list_typedef(
                                          s,

@@ -7,7 +7,7 @@
 
 #include "frontend/parser/parser_util.h"
 
-static enum mul_expr_op token_type_to_mul_op(enum token_type t) {
+static enum mul_expr_op token_type_to_mul_op(enum token_kind t) {
     assert(is_mul_op(t));
     switch (t) {
         case ASTERISK:
@@ -28,8 +28,8 @@ static bool parse_mul_expr_mul_chain(struct parser_state* s,
     res->mul_chain = NULL;
 
     size_t alloc_len = res->len;
-    while (is_mul_op(s->it->type)) {
-        enum token_type op = s->it->type;
+    while (is_mul_op(s->it->kind)) {
+        enum token_kind op = s->it->kind;
         accept_it(s);
 
         if (res->len == alloc_len) {
