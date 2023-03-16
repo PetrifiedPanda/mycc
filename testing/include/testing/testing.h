@@ -113,6 +113,7 @@ extern jmp_buf test_jump_buf;
 #define TEST_MAIN_BEGIN(max_num_suites)                                        \
     jmp_buf test_jump_buf;                                                     \
     int main(void) {                                                           \
+        const struct timespec start = mycc_current_time();                     \
         enum {                                                                 \
             MAX_NUM_SUITES = (max_num_suites)                                  \
         };                                                                     \
@@ -141,11 +142,14 @@ extern jmp_buf test_jump_buf;
     for (size_t i = 0; i < num_suites; ++i) {                                  \
         num_failed += test_suites[i]();                                        \
     }                                                                          \
+    const struct timespec end = mycc_current_time();                           \
+    const struct timespec diff = mycc_time_diff(&end, &start);                 \
+    const double msecs = mycc_get_msecs_double(&diff);                         \
     if (num_failed == 0) {                                                     \
-        printf("All tests successful\n");                                      \
+        printf("All tests successful in %f\n", msecs);                         \
         return EXIT_SUCCESS;                                                   \
     } else {                                                                   \
-        printf("%zu tests failed\n", num_failed);                              \
+        printf("%zu tests failed in %f\n", num_failed, msecs);                 \
         return EXIT_FAILURE;                                                   \
     }                                                                          \
     }
