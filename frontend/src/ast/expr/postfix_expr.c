@@ -76,7 +76,7 @@ static bool parse_postfix_access_suffix(struct parser_state* s,
     if (s->it->kind != IDENTIFIER) {
         return false;
     }
-    const struct str spelling = take_spelling(s->it);
+    const struct str spelling = token_take_spelling(s->it);
     struct source_loc loc = s->it->loc;
     accept_it(s);
     struct identifier* identifier = create_identifier(&spelling, loc);

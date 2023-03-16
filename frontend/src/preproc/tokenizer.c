@@ -116,7 +116,7 @@ bool next_preproc_token(struct token* res,
         struct str null_str = create_null_str();
         *res = create_token(kind, &null_str, s.file_loc, s.current_file_idx);
 
-        size_t len = strlen(get_spelling(kind));
+        size_t len = strlen(get_token_kind_spelling(kind));
         advance(&s, len);
 
         write_line_info(&s, info);
@@ -215,7 +215,7 @@ static enum token_kind singlec_token_kind(char c) {
 }
 
 static bool check_kind(enum token_kind kind, const char* next_chars) {
-    const char* spelling = get_spelling(kind);
+    const char* spelling = get_token_kind_spelling(kind);
     size_t len = strlen(spelling);
     assert(len != 0);
     assert(len >= 2);

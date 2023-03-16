@@ -7,6 +7,17 @@
 
 #include "frontend/parser/parser_util.h"
 
+static bool is_mul_op(enum token_kind k) {
+    switch (k) {
+        case ASTERISK:
+        case DIV:
+        case MOD:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static enum mul_expr_op token_type_to_mul_op(enum token_kind t) {
     assert(is_mul_op(t));
     switch (t) {

@@ -114,7 +114,7 @@ void print_preproc_err(FILE* out,
             fprintf(out,
                     "Expected an identifier after %s directive, but got %s",
                     dir_str,
-                    get_kind_str(err->not_identifier_got));
+                    get_token_kind_str(err->not_identifier_got));
             break;
         }
         case PREPROC_ERR_MISSING_IF: {
@@ -160,7 +160,7 @@ void print_preproc_err(FILE* out,
             fprintf(
                 out,
                 "preprocessor token \"%s\" outside of preprocessor directive",
-                get_spelling(err->misplaced_preproc_tok));
+                get_token_kind_spelling(err->misplaced_preproc_tok));
             break;
         case PREPROC_ERR_INT_CONST:
             assert(str_is_valid(&err->constant_spell));

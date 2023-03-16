@@ -206,7 +206,7 @@ struct struct_union_spec* parse_struct_union_spec(struct parser_state* s) {
 
     struct identifier* id = NULL;
     if (s->it->kind == IDENTIFIER) {
-        const struct str spell = take_spelling(s->it);
+        const struct str spell = token_take_spelling(s->it);
         const struct source_loc id_loc = s->it->loc;
         accept_it(s);
         id = create_identifier(&spell, id_loc);

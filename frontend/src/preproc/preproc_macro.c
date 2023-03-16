@@ -206,7 +206,7 @@ static bool is_duplicate_arg(struct token* tok,
     for (size_t i = 0; i < num_args; ++i) {
         if (strcmp(arg_spells[i], data) == 0) {
             set_preproc_err(err, PREPROC_ERR_DUPLICATE_MACRO_PARAM, tok->loc);
-            err->duplicate_arg_name = take_spelling(tok);
+            err->duplicate_arg_name = token_take_spelling(tok);
             return true;
         }
     }

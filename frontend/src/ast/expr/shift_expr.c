@@ -6,6 +6,16 @@
 
 #include "frontend/parser/parser_util.h"
 
+static bool is_shift_op(enum token_kind t) {
+    switch (t) {
+        case LEFT_OP:
+        case RIGHT_OP:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static bool parse_shift_expr_shift_chain(struct parser_state* s,
                                          struct shift_expr* res) {
     res->len = 0;

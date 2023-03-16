@@ -10,7 +10,7 @@ struct token create_token(enum token_kind kind,
                           size_t file_idx) {
     assert(spelling);
     assert(file_idx != (size_t)-1);
-    if (get_spelling(kind) == NULL) {
+    if (get_token_kind_spelling(kind) == NULL) {
         assert(str_is_valid(spelling));
     } else {
         assert(!str_is_valid(spelling));
@@ -43,13 +43,13 @@ struct token create_token_copy(enum token_kind kind,
     };
 }
 
-struct str take_spelling(struct token* t) {
+struct str token_take_spelling(struct token* t) {
     assert(str_is_valid(&t->spelling));
     struct str spelling = str_take(&t->spelling);
     return spelling;
 }
 
-struct str_lit take_str_lit(struct token* t) {
+struct str_lit token_take_str_lit(struct token* t) {
     assert(t->kind == STRING_LITERAL);
     struct str_lit res = t->str_lit;
     t->str_lit.contents = create_null_str();

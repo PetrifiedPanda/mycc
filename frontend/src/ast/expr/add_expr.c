@@ -6,6 +6,16 @@
 
 #include "frontend/parser/parser_util.h"
 
+static bool is_add_op(enum token_kind k) {
+    switch (k) {
+        case ADD:
+        case SUB:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static bool parse_add_expr_add_chain(struct parser_state* s,
                                      struct add_expr* res) {
     res->len = 0;

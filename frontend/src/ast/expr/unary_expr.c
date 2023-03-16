@@ -35,6 +35,20 @@ static struct unary_expr* create_unary_expr_postfix(
     return res;
 }
 
+static bool is_unary_op(enum token_kind k) {
+    switch (k) {
+        case AND:
+        case ASTERISK:
+        case ADD:
+        case SUB:
+        case BNOT:
+        case NOT:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static enum unary_expr_kind token_type_to_unary_expr_type(enum token_kind t) {
     assert(is_unary_op(t));
     switch (t) {

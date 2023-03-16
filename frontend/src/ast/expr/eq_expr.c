@@ -6,6 +6,16 @@
 
 #include "frontend/parser/parser_util.h"
 
+static bool is_eq_op(enum token_kind t) {
+    switch (t) {
+        case EQ_OP:
+        case NE_OP:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static bool parse_eq_expr_eq_chain(struct parser_state* s,
                                    struct eq_expr* res) {
     assert(res->lhs);

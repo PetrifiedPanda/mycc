@@ -78,8 +78,8 @@ void print_parser_err(FILE* out, const struct file_info* file_info, const struct
         case PARSER_ERR_INCOMPATIBLE_TYPE_SPECS:
             fprintf(out,
                     "Cannot combine %s with previous %s type specifier",
-                    get_kind_str(err->type_spec),
-                    get_kind_str(err->prev_type_spec));
+                    get_token_kind_str(err->type_spec),
+                    get_token_kind_str(err->prev_type_spec));
             break;
         case PARSER_ERR_TOO_MUCH_LONG:
             fputs("More than 2 long specifiers are not allowed", out);
@@ -87,7 +87,7 @@ void print_parser_err(FILE* out, const struct file_info* file_info, const struct
         case PARSER_ERR_DISALLOWED_TYPE_QUALS:
             fprintf(out,
                     "Cannot add qualifiers to type %s",
-                    get_kind_str(err->incompatible_type));
+                    get_token_kind_str(err->incompatible_type));
             break;
         case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
             fprintf(

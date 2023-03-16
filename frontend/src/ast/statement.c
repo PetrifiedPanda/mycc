@@ -28,7 +28,7 @@ static struct labeled_statement* parse_labeled_statement(
 
         case IDENTIFIER: {
             res->kind = LABELED_STATEMENT_LABEL;
-            const struct str spelling = take_spelling(s->it);
+            const struct str spelling = token_take_spelling(s->it);
             struct source_loc loc = s->it->loc;
             accept_it(s);
             res->label = create_identifier(&spelling, loc);
@@ -534,7 +534,7 @@ static struct jump_statement* parse_jump_statement(struct parser_state* s) {
         case GOTO: {
             accept_it(s);
             if (s->it->kind == IDENTIFIER) {
-                const struct str spell = take_spelling(s->it);
+                const struct str spell = token_take_spelling(s->it);
                 const struct source_loc id_loc = s->it->loc;
                 accept_it(s);
                 res = create_goto_statement(loc,

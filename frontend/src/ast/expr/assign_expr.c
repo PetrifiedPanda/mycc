@@ -54,6 +54,25 @@ static struct unary_or_cond parse_unary_or_cond(struct parser_state* s) {
     return res;
 }
 
+static bool is_assign_op(enum token_kind k) {
+    switch (k) {
+        case ASSIGN:
+        case MUL_ASSIGN:
+        case DIV_ASSIGN:
+        case MOD_ASSIGN:
+        case ADD_ASSIGN:
+        case SUB_ASSIGN:
+        case LEFT_ASSIGN:
+        case RIGHT_ASSIGN:
+        case AND_ASSIGN:
+        case XOR_ASSIGN:
+        case OR_ASSIGN:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static enum assign_expr_op token_type_to_assign_op(enum token_kind t) {
     assert(is_assign_op(t));
     switch (t) {

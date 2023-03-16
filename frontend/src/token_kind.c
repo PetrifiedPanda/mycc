@@ -2,7 +2,9 @@
 
 #include <stddef.h>
 
-const char* get_spelling(enum token_kind kind) {
+#include "util/macro_util.h"
+
+const char* get_token_kind_spelling(enum token_kind kind) {
     switch (kind) {
         case FUNC_NAME:
             return "__func__";
@@ -196,7 +198,7 @@ const char* get_spelling(enum token_kind kind) {
     }
 }
 
-const char* get_kind_str(enum token_kind kind) {
+const char* get_token_kind_str(enum token_kind kind) {
     switch (kind) {
         case IDENTIFIER:
             return "IDENTIFIER";
@@ -397,41 +399,7 @@ const char* get_kind_str(enum token_kind kind) {
         case INVALID:
             return "INVALID";
     }
-
     return NULL;
-}
-
-bool is_unary_op(enum token_kind t) {
-    switch (t) {
-        case AND:
-        case ASTERISK:
-        case ADD:
-        case SUB:
-        case BNOT:
-        case NOT:
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool is_assign_op(enum token_kind t) {
-    switch (t) {
-        case ASSIGN:
-        case MUL_ASSIGN:
-        case DIV_ASSIGN:
-        case MOD_ASSIGN:
-        case ADD_ASSIGN:
-        case SUB_ASSIGN:
-        case LEFT_ASSIGN:
-        case RIGHT_ASSIGN:
-        case AND_ASSIGN:
-        case XOR_ASSIGN:
-        case OR_ASSIGN:
-            return true;
-        default:
-            return false;
-    }
 }
 
 bool is_storage_class_spec(enum token_kind t) {
@@ -489,55 +457,3 @@ bool is_func_spec(enum token_kind t) {
     return t == INLINE || t == NORETURN;
 }
 
-bool is_shift_op(enum token_kind t) {
-    switch (t) {
-        case LEFT_OP:
-        case RIGHT_OP:
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool is_rel_op(enum token_kind t) {
-    switch (t) {
-        case LE_OP:
-        case GE_OP:
-        case LT:
-        case GT:
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool is_mul_op(enum token_kind t) {
-    switch (t) {
-        case ASTERISK:
-        case DIV:
-        case MOD:
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool is_add_op(enum token_kind t) {
-    switch (t) {
-        case ADD:
-        case SUB:
-            return true;
-        default:
-            return false;
-    }
-}
-
-bool is_eq_op(enum token_kind t) {
-    switch (t) {
-        case EQ_OP:
-        case NE_OP:
-            return true;
-        default:
-            return false;
-    }
-}

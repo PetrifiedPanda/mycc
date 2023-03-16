@@ -281,7 +281,7 @@ static void append_terminator_token(struct token_arr* arr) {
 }
 
 static inline bool is_spelling(const char* spelling, enum token_kind type) {
-    const char* expected_spell = get_spelling(type);
+    const char* expected_spell = get_token_kind_spelling(type);
     assert(expected_spell != NULL);
     return strcmp(spelling, expected_spell) == 0;
 }

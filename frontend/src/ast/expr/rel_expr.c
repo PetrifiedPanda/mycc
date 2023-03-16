@@ -7,6 +7,18 @@
 
 #include "frontend/parser/parser_util.h"
 
+static bool is_rel_op(enum token_kind k) {
+    switch (k) {
+        case LE_OP:
+        case GE_OP:
+        case LT:
+        case GT:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static enum rel_expr_op token_type_to_rel_op(enum token_kind t) {
     assert(is_rel_op(t));
     switch (t) {

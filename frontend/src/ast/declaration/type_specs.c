@@ -172,7 +172,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
         case IDENTIFIER: {
             if (is_typedef_name(s, &s->it->spelling)) {
                 res->kind = TYPE_SPEC_TYPENAME;
-                const struct str spell = take_spelling(s->it);
+                const struct str spell = token_take_spelling(s->it);
                 res->typedef_name = create_identifier(&spell, s->it->loc);
                 accept_it(s);
                 break;
@@ -180,7 +180,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
                 set_parser_err(s->err,
                                PARSER_ERR_EXPECTED_TYPEDEF_NAME,
                                s->it->loc);
-                s->err->non_typedef_spelling = take_spelling(s->it);
+                s->err->non_typedef_spelling = token_take_spelling(s->it);
                 res->kind = TYPE_SPEC_NONE;
                 return false;
             }

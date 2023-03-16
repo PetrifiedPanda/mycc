@@ -194,7 +194,7 @@ static struct direct_declarator* parse_direct_declarator_base(
             mycc_free(res);
             return NULL;
         }
-        const struct str spelling = take_spelling(s->it);
+        const struct str spelling = token_take_spelling(s->it);
         struct source_loc loc = s->it->loc;
         accept_it(s);
         res->id = create_identifier(&spelling, loc);

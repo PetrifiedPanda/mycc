@@ -26,7 +26,7 @@ struct static_assert_declaration* parse_static_assert_declaration(
         return NULL;
     }
 
-    const struct str_lit lit = take_str_lit(s->it);
+    const struct str_lit lit = token_take_str_lit(s->it);
     struct source_loc loc = s->it->loc;
     accept_it(s);
 

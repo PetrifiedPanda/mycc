@@ -21,7 +21,7 @@ static bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* 
         return false;
     }
 
-    const struct str spell = take_spelling(id_token);
+    const struct str spell = token_take_spelling(id_token);
     struct source_loc loc = id_token->loc;
 
     struct const_expr* enum_val = NULL;
@@ -104,7 +104,7 @@ struct enum_spec* parse_enum_spec(struct parser_state* s) {
 
     struct identifier* id = NULL;
     if (s->it->kind == IDENTIFIER) {
-        const struct str spell = take_spelling(s->it);
+        const struct str spell = token_take_spelling(s->it);
         const struct source_loc id_loc = s->it->loc;
         accept_it(s);
         id = create_identifier(&spell, id_loc);

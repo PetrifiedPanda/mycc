@@ -13,7 +13,7 @@ bool parse_identifier_list(struct parser_state* s,
         .len = 1,
         .identifiers = mycc_alloc(sizeof *res->identifiers),
     };
-    struct str spell = take_spelling(s->it);
+    struct str spell = token_take_spelling(s->it);
     struct source_loc loc = s->it->loc;
     accept_it(s);
     init_identifier(res->identifiers, &spell, loc);
@@ -32,7 +32,7 @@ bool parse_identifier_list(struct parser_state* s,
             free_identifier_list(res);
             return false;
         }
-        spell = take_spelling(s->it);
+        spell = token_take_spelling(s->it);
         loc = s->it->loc;
         accept_it(s);
         init_identifier(&res->identifiers[res->len], &spell, loc);

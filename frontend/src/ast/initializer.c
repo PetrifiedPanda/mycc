@@ -29,7 +29,7 @@ static bool parse_designator_inplace(struct parser_state* s,
         case DOT: {
             accept_it(s);
             if (s->it->kind == IDENTIFIER) {
-                const struct str spell = take_spelling(s->it);
+                const struct str spell = token_take_spelling(s->it);
                 struct source_loc loc = s->it->loc;
                 accept_it(s);
                 res->is_index = false;
