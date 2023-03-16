@@ -2,6 +2,8 @@
 
 #include "util/mem.h"
 
+#include "frontend/parser/parser_util.h"
+
 struct pointer* parse_pointer(struct parser_state* s) {
     const struct source_loc loc = s->it->loc;
     if (!accept(s, ASTERISK)) {

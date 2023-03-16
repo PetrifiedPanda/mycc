@@ -23,6 +23,37 @@ void expected_tokens_error(struct parser_state* s,
                                                              num_expected);
 }
 
+bool is_storage_class_spec(enum token_kind k) {
+    switch (k) {
+        case TYPEDEF:
+        case EXTERN:
+        case STATIC:
+        case THREAD_LOCAL:
+        case AUTO:
+        case REGISTER:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool is_type_qual(enum token_kind k) {
+    switch (k) {
+        case CONST:
+        case RESTRICT:
+        case VOLATILE:
+        case ATOMIC:
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+bool is_func_spec(enum token_kind k) {
+    return k == INLINE || k == NORETURN;
+}
+
 bool is_type_spec_token(const struct parser_state* s,
                         const struct token* token) {
     switch (token->kind) {

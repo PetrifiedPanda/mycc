@@ -131,10 +131,5 @@ const char* get_token_kind_spelling(enum token_kind kind);
  */
 const char* get_token_kind_str(enum token_kind kind);
 
-bool is_storage_class_spec(enum token_kind t);
-bool is_keyword_type_spec(enum token_kind t);
-bool is_type_qual(enum token_kind t);
-bool is_func_spec(enum token_kind t);
-
 #endif
 

@@ -14,6 +14,10 @@ void expected_tokens_error(struct parser_state* s,
                            const enum token_kind* expected,
                            size_t num_expected);
 
+bool is_storage_class_spec(enum token_kind k);
+bool is_type_qual(enum token_kind k);
+bool is_func_spec(enum token_kind k);
+
 /**
  *
  * @param s current state

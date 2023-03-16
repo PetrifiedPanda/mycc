@@ -5,6 +5,8 @@
 #include "util/mem.h"
 #include "util/macro_util.h"
 
+#include "frontend/parser/parser_util.h"
+
 static void free_abs_arr_or_func_suffix(struct abs_arr_or_func_suffix* s);
 
 static bool parse_abs_func_suffix(struct parser_state* s,
