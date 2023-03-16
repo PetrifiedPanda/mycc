@@ -161,8 +161,10 @@ TEST(copy_take) {
 TEST(str_append_c_str) {
     struct str str = create_empty_str();
 #define SHORT_STR "test"
-    const char short_str[] = SHORT_STR; 
-    enum {SHORT_STR_LEN = ARR_LEN(short_str) - 1};
+    const char short_str[] = SHORT_STR;
+    enum {
+        SHORT_STR_LEN = ARR_LEN(short_str) - 1
+    };
     str_append_c_str(&str, SHORT_STR_LEN, short_str);
     ASSERT_STR(str_get_data(&str), short_str);
     free_str(&str);
@@ -170,7 +172,9 @@ TEST(str_append_c_str) {
     str = create_empty_str();
 #define LONG_STR "string long enough to not fit into static buffer"
     const char long_str[] = LONG_STR;
-    enum {LONG_STR_LEN = ARR_LEN(long_str) - 1};
+    enum {
+        LONG_STR_LEN = ARR_LEN(long_str) - 1
+    };
     str_append_c_str(&str, LONG_STR_LEN, long_str);
     ASSERT_STR(str_get_data(&str), long_str);
     free_str(&str);
@@ -188,7 +192,11 @@ TEST(str_append_c_str) {
 
 TEST(str_reserve) {
     struct str str = create_empty_str();
-    enum { TO_RESERVE_1 = 20, TO_RESERVE_2 = 32, TO_RESERVE_3 = TO_RESERVE_2 + 8 };
+    enum {
+        TO_RESERVE_1 = 20,
+        TO_RESERVE_2 = 32,
+        TO_RESERVE_3 = TO_RESERVE_2 + 8
+    };
     str_reserve(&str, TO_RESERVE_1);
     ASSERT_SIZE_T(str_cap(&str), sizeof str._static_buf - 1);
 
@@ -203,13 +211,13 @@ TEST(str_reserve) {
     str_reserve(&str, TO_RESERVE_2);
     ASSERT_STR(str_get_data(&str), expected);
     ASSERT_SIZE_T(str_cap(&str), TO_RESERVE_2);
-    
+
     for (size_t i = TO_RESERVE_1; i < TO_RESERVE_2; ++i) {
         str_push_back(&str, 'b');
         expected[i] = 'b';
     }
     ASSERT_SIZE_T(str_cap(&str), TO_RESERVE_2);
-    
+
     ASSERT_STR(str_get_data(&str), expected);
     str_reserve(&str, TO_RESERVE_3);
     ASSERT_STR(str_get_data(&str), expected);
@@ -226,8 +234,14 @@ TEST(str_reserve) {
 TEST(str_concat) {
 #define SMALL_A "ab"
 #define SMALL_B "cd"
-    enum {SMALL_A_LEN = sizeof SMALL_A - 1, SMALL_B_LEN = sizeof SMALL_B - 1};
-    struct str small_str = str_concat(SMALL_A_LEN, SMALL_A, SMALL_B_LEN, SMALL_B);
+    enum {
+        SMALL_A_LEN = sizeof SMALL_A - 1,
+        SMALL_B_LEN = sizeof SMALL_B - 1
+    };
+    struct str small_str = str_concat(SMALL_A_LEN,
+                                      SMALL_A,
+                                      SMALL_B_LEN,
+                                      SMALL_B);
     ASSERT_STR(str_get_data(&small_str), SMALL_A SMALL_B);
     free_str(&small_str);
 #undef SMALL_A
@@ -235,15 +249,61 @@ TEST(str_concat) {
 
 #define LARGE_A "this is a longer string "
 #define LARGE_B "that will be allocated in the dynamic buffer"
-    enum {LARGE_A_LEN = sizeof LARGE_A - 1, LARGE_B_LEN = sizeof LARGE_B - 1};
-    struct str large_str = str_concat(LARGE_A_LEN, LARGE_A, LARGE_B_LEN, LARGE_B);
+    enum {
+        LARGE_A_LEN = sizeof LARGE_A - 1,
+        LARGE_B_LEN = sizeof LARGE_B - 1
+    };
+    struct str large_str = str_concat(LARGE_A_LEN,
+                                      LARGE_A,
+                                      LARGE_B_LEN,
+                                      LARGE_B);
     ASSERT_STR(str_get_data(&large_str), LARGE_A LARGE_B);
     free_str(&large_str);
 #undef LARGE_A
 #undef LARGE_B
 }
 
-TEST_SUITE_BEGIN(str, 8) {
+TEST(str_shrink_to_fit) {
+    {
+        enum {
+            STATIC_BUF_LEN = ARR_LEN((struct str){0}._static_buf),
+        };
+        struct str str = create_empty_str_with_cap(STATIC_BUF_LEN);
+        const size_t num_pushs = STATIC_BUF_LEN - 1;
+        char ex[STATIC_BUF_LEN] = {0};
+        for (size_t i = 0; i < num_pushs; ++i) {
+            str_push_back(&str, 'a');
+            ex[i] = 'a';
+        }
+        ASSERT_STR(str_get_data(&str), ex);
+        ASSERT_SIZE_T(str_cap(&str), STATIC_BUF_LEN);
+        str_shrink_to_fit(&str);
+        ASSERT_SIZE_T(str_cap(&str), STATIC_BUF_LEN - 1);
+        ASSERT_STR(str_get_data(&str), ex);
+
+        free_str(&str);
+    }
+
+    {
+        const char c_str[] = "Some string that probably works, but is long enough to not fit into the static buffer";
+        enum {
+            C_STR_LEN = ARR_LEN(c_str),
+            INIT_CAP = C_STR_LEN * 3,
+        };
+        struct str str = create_empty_str_with_cap(INIT_CAP);
+        ASSERT_SIZE_T(str_cap(&str), INIT_CAP);
+        str_append_c_str(&str, C_STR_LEN, c_str);
+        ASSERT_STR(str_get_data(&str), c_str);
+        ASSERT_SIZE_T(str_len(&str), C_STR_LEN);
+
+        str_shrink_to_fit(&str);
+        ASSERT_SIZE_T(str_cap(&str), C_STR_LEN);
+        ASSERT_STR(str_get_data(&str), c_str);
+        free_str(&str);
+    }
+}
+
+TEST_SUITE_BEGIN(str, 9) {
     REGISTER_TEST(push_back_to_empty);
     REGISTER_TEST(push_back_to_empty_with_cap);
     REGISTER_TEST(push_back_to_nonempty);
@@ -252,6 +312,7 @@ TEST_SUITE_BEGIN(str, 8) {
     REGISTER_TEST(str_append_c_str);
     REGISTER_TEST(str_reserve);
     REGISTER_TEST(str_concat);
+    REGISTER_TEST(str_shrink_to_fit);
 }
 TEST_SUITE_END()
 

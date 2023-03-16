@@ -186,8 +186,18 @@ void str_shrink_to_fit(struct str* str) {
     assert(str);
     assert(str_is_valid(str));
     if (!str->_is_static_buf && str->_len + 1 != str->_cap) {
-        str->_cap = str->_len + 1;
-        str->_data = mycc_realloc(str->_data, sizeof *str->_data * str->_cap);
+        if (str->_len < STATIC_BUF_LEN) {
+            char* data = str->_data;
+            const size_t len = str->_len;
+            str->_is_static_buf = true;
+            str->_small_len = len;
+            memcpy(str->_static_buf, data, sizeof *data * (len + 1));
+            mycc_free(data);
+        } else {
+            str->_cap = str->_len + 1;
+            str->_data = mycc_realloc(str->_data,
+                                      sizeof *str->_data * str->_cap);
+        }
     }
 }
 
