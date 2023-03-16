@@ -285,7 +285,8 @@ TEST(str_shrink_to_fit) {
     }
 
     {
-        const char c_str[] = "Some string that probably works, but is long enough to not fit into the static buffer";
+        const char c_str[] = "Some string that is meaningless, but is long "
+                             "enough to not fit into the static buffer";
         enum {
             C_STR_LEN = ARR_LEN(c_str),
             INIT_CAP = C_STR_LEN * 3,
@@ -303,7 +304,57 @@ TEST(str_shrink_to_fit) {
     }
 }
 
-TEST_SUITE_BEGIN(str, 9) {
+TEST(str_remove_front) {
+#define STR_START "hello"
+#define STR_END " there"
+#define FULL_STR STR_START STR_END
+    struct str str = create_str(ARR_LEN(FULL_STR) - 1, FULL_STR);
+    ASSERT_STR(str_get_data(&str), FULL_STR);
+    str_remove_front(&str, ARR_LEN(STR_START) - 1);
+    ASSERT_STR(str_get_data(&str), STR_END);
+    free_str(&str);
+
+#undef STR_START
+#undef STR_END
+#undef FULL_STR
+
+#define STR_START "and today we are brothers tonight we're all friends\n"
+#define STR_END "a moment of peace in a war that never ends"
+#define FULL_STR STR_START STR_END
+
+    str = create_str(ARR_LEN(FULL_STR) - 1, FULL_STR);
+    ASSERT_STR(str_get_data(&str), FULL_STR);
+    str_remove_front(&str, ARR_LEN(STR_START) - 1);
+    ASSERT_STR(str_get_data(&str), STR_END);
+    free_str(&str);
+
+#undef STR_START
+#undef STR_END
+#undef FULL_STR
+}
+
+TEST(str_pop_back) {
+    char ex_str[] = "I probably have corona while writing this test. I am "
+                    "evidently not that good at resting";
+    enum {
+        EX_STRLEN = ARR_LEN(ex_str) - 1
+    };
+
+    struct str str = create_str(EX_STRLEN, ex_str);
+    ASSERT_STR(str_get_data(&str), ex_str);
+
+    size_t curr_len = EX_STRLEN;
+    while (curr_len != 0) {
+        --curr_len;
+        str_pop_back(&str);
+        ex_str[curr_len] = '\0';
+        ASSERT_STR(str_get_data(&str), ex_str);
+        ASSERT_SIZE_T(str_len(&str), curr_len);
+    }
+    free_str(&str);
+}
+
+TEST_SUITE_BEGIN(str, 11) {
     REGISTER_TEST(push_back_to_empty);
     REGISTER_TEST(push_back_to_empty_with_cap);
     REGISTER_TEST(push_back_to_nonempty);
@@ -313,6 +364,8 @@ TEST_SUITE_BEGIN(str, 9) {
     REGISTER_TEST(str_reserve);
     REGISTER_TEST(str_concat);
     REGISTER_TEST(str_shrink_to_fit);
+    REGISTER_TEST(str_remove_front);
+    REGISTER_TEST(str_pop_back);
 }
 TEST_SUITE_END()
 
