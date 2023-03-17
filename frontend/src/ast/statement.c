@@ -11,6 +11,7 @@
 
 static struct labeled_statement* parse_labeled_statement(
     struct parser_state* s) {
+    assert(s->it->kind == TOKEN_CASE || s->it->kind == TOKEN_IDENTIFIER || s->it->kind == TOKEN_DEFAULT);
     struct labeled_statement* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
     switch (s->it->kind) {
@@ -41,14 +42,8 @@ static struct labeled_statement* parse_labeled_statement(
             res->case_expr = NULL;
             break;
         }
-
-        default: {
-            mycc_free(res);
-            enum token_kind expected[] = {TOKEN_IDENTIFIER, TOKEN_CASE, TOKEN_DEFAULT};
-
-            expected_tokens_error(s, expected, ARR_LEN(expected));
-            return NULL;
-        }
+        default:
+            UNREACHABLE();
     }
 
     if (!accept(s, TOKEN_COLON)) {
@@ -210,21 +205,15 @@ void free_expr_statement(struct expr_statement* s) {
 
 static struct selection_statement* parse_selection_statement(
     struct parser_state* s) {
+    assert(s->it->kind == TOKEN_IF || s->it->kind == TOKEN_SWITCH);
     struct selection_statement* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
     if (s->it->kind == TOKEN_IF) {
         res->is_if = true;
-        accept_it(s);
     } else {
-        if (!accept(s, TOKEN_SWITCH)) {
-            mycc_free(res);
-            enum token_kind expected[] = {TOKEN_IF, TOKEN_SWITCH};
-
-            expected_tokens_error(s, expected, ARR_LEN(expected));
-            return NULL;
-        }
         res->is_if = false;
     }
+    accept_it(s);
 
     if (!accept(s, TOKEN_LBRACKET)) {
         mycc_free(res);
@@ -447,23 +436,18 @@ fail:
 
 static struct iteration_statement* parse_iteration_statement(
     struct parser_state* s) {
+    assert(s->it->kind == TOKEN_WHILE || s->it->kind == TOKEN_DO || s->it->kind == TOKEN_FOR);
     const struct source_loc loc = s->it->loc;
     switch (s->it->kind) {
         case TOKEN_WHILE:
             return parse_while_statement(s, loc);
         case TOKEN_DO:
             return parse_do_loop(s, loc);
-
-        case TOKEN_FOR: {
+        case TOKEN_FOR:
             return parse_for_loop(s, loc);
-        }
 
-        default: {
-            enum token_kind expected[] = {TOKEN_WHILE, TOKEN_DO, TOKEN_FOR};
-
-            expected_tokens_error(s, expected, ARR_LEN(expected));
-            return NULL;
-        }
+        default:
+            UNREACHABLE();
     }
 }
 
@@ -528,6 +512,7 @@ static struct jump_statement* create_return_statement(struct source_loc loc,
 void free_jump_statement(struct jump_statement* s);
 
 static struct jump_statement* parse_jump_statement(struct parser_state* s) {
+    assert(s->it->kind == TOKEN_GOTO || s->it->kind == TOKEN_CONTINUE || s->it->kind == TOKEN_BREAK || s->it->kind == TOKEN_RETURN);
     const struct source_loc loc = s->it->loc;
     struct jump_statement* res = NULL;
     switch (s->it->kind) {
@@ -571,11 +556,8 @@ static struct jump_statement* parse_jump_statement(struct parser_state* s) {
             break;
         }
 
-        default: {
-            enum token_kind expected[] = {TOKEN_GOTO, TOKEN_CONTINUE, TOKEN_BREAK, TOKEN_RETURN};
-            expected_tokens_error(s, expected, ARR_LEN(expected));
-            return NULL;
-        }
+        default:
+            UNREACHABLE();
     }
 
     if (!accept(s, TOKEN_SEMICOLON)) {
