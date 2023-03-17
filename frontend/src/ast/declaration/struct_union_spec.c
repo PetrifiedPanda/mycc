@@ -190,20 +190,16 @@ void free_struct_declaration_list(struct struct_declaration_list* l) {
 
 
 struct struct_union_spec* parse_struct_union_spec(struct parser_state* s) {
+    assert(s->it->kind == TOKEN_STRUCT || s->it->kind == TOKEN_UNION);
     const struct source_loc loc = s->it->loc;
     bool is_struct;
     if (s->it->kind == TOKEN_STRUCT) {
         is_struct = true;
         accept_it(s);
-    } else if (s->it->kind == TOKEN_UNION) {
+    } else {
         is_struct = false;
         accept_it(s);
-    } else {
-        enum token_kind expected[] = {TOKEN_STRUCT, TOKEN_UNION};
-        expected_tokens_error(s, expected, ARR_LEN(expected));
-        return NULL;
     }
-
     struct identifier* id = NULL;
     if (s->it->kind == TOKEN_IDENTIFIER) {
         const struct str spell = token_take_spelling(s->it);
