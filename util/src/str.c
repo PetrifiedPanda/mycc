@@ -190,7 +190,7 @@ void str_shrink_to_fit(struct str* str) {
             char* data = str->_data;
             const size_t len = str->_len;
             str->_is_static_buf = true;
-            str->_small_len = len;
+            str->_small_len = (uint8_t)len;
             memcpy(str->_static_buf, data, sizeof *data * (len + 1));
             mycc_free(data);
         } else {
