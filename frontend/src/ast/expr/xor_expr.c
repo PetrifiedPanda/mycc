@@ -13,7 +13,7 @@ static bool parse_xor_expr_rest(struct parser_state* s, struct xor_expr* res) {
 
     size_t alloc_len = res->len;
     while (s->it->kind == TOKEN_XOR) {
-        accept_it(s);
+        parser_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->and_exprs, &alloc_len, sizeof *res->and_exprs); 

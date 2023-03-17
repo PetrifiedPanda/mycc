@@ -15,7 +15,7 @@ static bool parse_cast_expr_rest(struct parser_state* s,
     };
     while (s->it->kind == TOKEN_LBRACKET && next_is_type_name(s)) {
         last_lbracket_loc = s->it->loc;
-        accept_it(s);
+        parser_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->type_names,
@@ -27,7 +27,7 @@ static bool parse_cast_expr_rest(struct parser_state* s,
             goto fail;
         }
 
-        if (!accept(s, TOKEN_RBRACKET)) {
+        if (!parser_accept(s, TOKEN_RBRACKET)) {
             goto fail;
         }
         ++res->len;

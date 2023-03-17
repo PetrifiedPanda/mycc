@@ -13,7 +13,7 @@ static bool parse_and_expr_rest(struct parser_state* s, struct and_expr* res) {
     size_t alloc_len = res->len;
 
     while (s->it->kind == TOKEN_AND) {
-        accept_it(s);
+        parser_accept_it(s);
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->eq_exprs, &alloc_len, sizeof *res->eq_exprs);
         }

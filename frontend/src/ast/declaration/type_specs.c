@@ -134,7 +134,7 @@ static bool update_standalone_type_spec(struct parser_state* s,
         default:
             UNREACHABLE();
     }
-    accept_it(s);
+    parser_accept_it(s);
     return true;
 }
 
@@ -170,11 +170,11 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
             break;
         }
         case TOKEN_IDENTIFIER: {
-            if (is_typedef_name(s, &s->it->spelling)) {
+            if (parser_is_typedef_name(s, &s->it->spelling)) {
                 res->kind = TYPE_SPEC_TYPENAME;
                 const struct str spell = token_take_spelling(s->it);
                 res->typedef_name = create_identifier(&spell, s->it->loc);
-                accept_it(s);
+                parser_accept_it(s);
                 break;
             } else {
                 set_parser_err(s->err,

@@ -12,7 +12,7 @@ static void free_abs_arr_or_func_suffix(struct abs_arr_or_func_suffix* s);
 static bool parse_abs_func_suffix(struct parser_state* s,
                                   struct abs_arr_or_func_suffix* res) {
     assert(s->it->kind == TOKEN_LBRACKET);
-    accept_it(s);
+    parser_accept_it(s);
     res->kind = ABS_ARR_OR_FUNC_SUFFIX_FUNC;
     if (s->it->kind == TOKEN_RBRACKET) {
         res->func_types = (struct param_type_list){
@@ -23,13 +23,13 @@ static bool parse_abs_func_suffix(struct parser_state* s,
                     .decls = NULL,
                 },
         };
-        accept_it(s);
+        parser_accept_it(s);
     } else {
         if (!parse_param_type_list(s, &res->func_types)) {
             return false;
         }
 
-        if (!accept(s, TOKEN_RBRACKET)) {
+        if (!parser_accept(s, TOKEN_RBRACKET)) {
             free_param_type_list(&res->func_types);
             return false;
         }
@@ -40,18 +40,18 @@ static bool parse_abs_func_suffix(struct parser_state* s,
 static bool parse_abs_arr_suffix(struct parser_state* s,
                                  struct abs_arr_or_func_suffix* res) {
     assert(s->it->kind == TOKEN_LINDEX);
-    accept_it(s);
+    parser_accept_it(s);
     if (s->it->kind == TOKEN_RINDEX) {
         res->kind = ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY;
         res->has_asterisk = false;
-        accept_it(s);
+        parser_accept_it(s);
         return true;
     } else if (s->it->kind == TOKEN_ASTERISK) {
         res->kind = ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY;
         res->has_asterisk = true;
-        accept_it(s);
+        parser_accept_it(s);
         res->assign = NULL;
-        if (!accept(s, TOKEN_RINDEX)) {
+        if (!parser_accept(s, TOKEN_RINDEX)) {
             return false;
         }
         return true;
@@ -60,7 +60,7 @@ static bool parse_abs_arr_suffix(struct parser_state* s,
     res->kind = ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN;
     res->is_static = false;
     if (s->it->kind == TOKEN_STATIC) {
-        accept_it(s);
+        parser_accept_it(s);
         res->is_static = true;
     }
 
@@ -77,7 +77,7 @@ static bool parse_abs_arr_suffix(struct parser_state* s,
                 free_abs_arr_or_func_suffix(res);
                 return false;
             } else {
-                accept_it(s);
+                parser_accept_it(s);
                 res->is_static = true;
             }
         }
@@ -90,10 +90,10 @@ static bool parse_abs_arr_suffix(struct parser_state* s,
             return false;
         }
         res->assign = NULL;
-        accept_it(s);
+        parser_accept_it(s);
     } else {
         res->assign = parse_assign_expr(s);
-        if (!(res->assign && accept(s, TOKEN_RINDEX))) {
+        if (!(res->assign && parser_accept(s, TOKEN_RINDEX))) {
             free_abs_arr_or_func_suffix(res);
             return false;
         }
@@ -151,14 +151,14 @@ struct direct_abs_declarator* parse_direct_abs_declarator(
     if (s->it->kind == TOKEN_LBRACKET
         && (s->it[1].kind == TOKEN_LBRACKET || s->it[1].kind == TOKEN_LINDEX
             || s->it[1].kind == TOKEN_ASTERISK)) {
-        accept_it(s);
+        parser_accept_it(s);
         res->bracket_decl = parse_abs_declarator(s);
         if (!res->bracket_decl) {
             mycc_free(res);
             return NULL;
         }
 
-        if (!accept(s, TOKEN_RBRACKET)) {
+        if (!parser_accept(s, TOKEN_RBRACKET)) {
             free_abs_declarator(res->bracket_decl);
             mycc_free(res);
             return NULL;

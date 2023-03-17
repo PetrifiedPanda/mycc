@@ -34,7 +34,7 @@ void update_type_quals(struct parser_state* s, struct type_quals* quals) {
         default:
             UNREACHABLE();
     }
-    accept_it(s);
+    parser_accept_it(s);
 }
 
 bool parse_type_qual_list(struct parser_state* s, struct type_quals* res) {

@@ -122,7 +122,7 @@ static void primary_expr_generic_sel_test(void) {
             },
     };
 
-    register_typedef_name(&s, &insert_token);
+    parser_register_typedef_name(&s, &insert_token);
     struct primary_expr* res = parse_primary_expr(&s);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_NOT_NULL(res);

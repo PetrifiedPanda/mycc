@@ -19,7 +19,7 @@ static bool parse_struct_declarator_inplace(struct parser_state* s,
     }
 
     if (s->it->kind == TOKEN_COLON) {
-        accept_it(s);
+        parser_accept_it(s);
         res->bit_field = parse_const_expr(s);
         if (!res->bit_field) {
             free_struct_declarator_children(res);
@@ -61,7 +61,7 @@ static bool parse_struct_declarator_list(struct parser_state* s,
 
     size_t alloc_len = res->len;
     while (s->it->kind == TOKEN_COMMA) {
-        accept_it(s);
+        parser_accept_it(s);
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->decls, &alloc_len, sizeof *res->decls);
         }
@@ -118,7 +118,7 @@ static bool parse_struct_declaration_inplace(struct parser_state* s,
             };
         }
 
-        if (!accept(s, TOKEN_SEMICOLON)) {
+        if (!parser_accept(s, TOKEN_SEMICOLON)) {
             free_struct_declaration_children(res);
             return false;
         }
@@ -195,27 +195,27 @@ struct struct_union_spec* parse_struct_union_spec(struct parser_state* s) {
     bool is_struct;
     if (s->it->kind == TOKEN_STRUCT) {
         is_struct = true;
-        accept_it(s);
+        parser_accept_it(s);
     } else {
         is_struct = false;
-        accept_it(s);
+        parser_accept_it(s);
     }
     struct identifier* id = NULL;
     if (s->it->kind == TOKEN_IDENTIFIER) {
         const struct str spell = token_take_spelling(s->it);
         const struct source_loc id_loc = s->it->loc;
-        accept_it(s);
+        parser_accept_it(s);
         id = create_identifier(&spell, id_loc);
     }
 
     struct struct_declaration_list list = {.len = 0, .decls = NULL};
     if (s->it->kind == TOKEN_LBRACE) {
-        accept_it(s);
+        parser_accept_it(s);
         if (!parse_struct_declaration_list(s, &list)) {
             goto fail;
         }
 
-        if (!accept(s, TOKEN_RBRACE)) {
+        if (!parser_accept(s, TOKEN_RBRACE)) {
             free_struct_declaration_list(&list);
             goto fail;
         }

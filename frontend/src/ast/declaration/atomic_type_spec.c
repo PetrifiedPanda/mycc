@@ -6,11 +6,11 @@
 
 struct atomic_type_spec* parse_atomic_type_spec(struct parser_state* s) {
     const struct source_loc loc = s->it->loc;
-    if (!accept(s, TOKEN_ATOMIC)) {
+    if (!parser_accept(s, TOKEN_ATOMIC)) {
         return NULL;
     }
 
-    if (!accept(s, TOKEN_LBRACKET)) {
+    if (!parser_accept(s, TOKEN_LBRACKET)) {
         return NULL;
     }
 
@@ -19,7 +19,7 @@ struct atomic_type_spec* parse_atomic_type_spec(struct parser_state* s) {
         return NULL;
     }
 
-    if (!accept(s, TOKEN_RBRACKET)) {
+    if (!parser_accept(s, TOKEN_RBRACKET)) {
         free_type_name(type_name);
         return NULL;
     }

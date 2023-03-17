@@ -12,7 +12,7 @@ static bool parse_log_and_expr_rest(struct parser_state* s,
     res->len = 1;
     size_t alloc_len = res->len;
     while (s->it->kind == TOKEN_LAND) {
-        accept_it(s);
+        parser_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->or_exprs,

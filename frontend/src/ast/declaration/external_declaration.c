@@ -25,7 +25,7 @@ static bool parse_external_decl_normal_decl(
             free_declarator(first_decl);
             return false;
         }
-        accept_it(s);
+        parser_accept_it(s);
         init = parse_initializer(s);
         if (!init) {
             free_declaration_specs(decl_specs);
@@ -54,7 +54,7 @@ static bool parse_external_decl_normal_decl(
         return false;
     }
 
-    if (!accept(s, TOKEN_SEMICOLON)) {
+    if (!parser_accept(s, TOKEN_SEMICOLON)) {
         free_declaration_children(decl);
         return false;
     }
@@ -123,7 +123,7 @@ bool parse_external_declaration_inplace(struct parser_state* s,
     }
 
     if (s->it->kind == TOKEN_SEMICOLON) {
-        accept_it(s);
+        parser_accept_it(s);
         res->is_func_def = false;
         res->decl.is_normal_decl = true;
         res->decl.decl_specs = decl_specs;

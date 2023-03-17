@@ -15,9 +15,9 @@ static bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* 
     }
 
     struct token* id_token = s->it;
-    accept_it(s);
+    parser_accept_it(s);
 
-    if (!register_enum_constant(s, id_token)) {
+    if (!parser_register_enum_constant(s, id_token)) {
         return false;
     }
 
@@ -26,7 +26,7 @@ static bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* 
 
     struct const_expr* enum_val = NULL;
     if (s->it->kind == TOKEN_ASSIGN) {
-        accept_it(s);
+        parser_accept_it(s);
         enum_val = parse_const_expr(s);
         if (!enum_val) {
             free_str(&spell);
@@ -57,7 +57,7 @@ static bool parse_enum_list(struct parser_state* s, struct enum_list* res) {
 
     size_t alloc_len = 1;
     while (s->it->kind == TOKEN_COMMA && s->it[1].kind == TOKEN_IDENTIFIER) {
-        accept_it(s);
+        parser_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->enums, &alloc_len, sizeof *res->enums);
@@ -98,7 +98,7 @@ static struct enum_spec* create_enum_spec(struct source_loc loc,
 
 struct enum_spec* parse_enum_spec(struct parser_state* s) {
     const struct source_loc loc = s->it->loc;
-    if (!accept(s, TOKEN_ENUM)) {
+    if (!parser_accept(s, TOKEN_ENUM)) {
         return NULL;
     }
 
@@ -106,22 +106,22 @@ struct enum_spec* parse_enum_spec(struct parser_state* s) {
     if (s->it->kind == TOKEN_IDENTIFIER) {
         const struct str spell = token_take_spelling(s->it);
         const struct source_loc id_loc = s->it->loc;
-        accept_it(s);
+        parser_accept_it(s);
         id = create_identifier(&spell, id_loc);
     }
 
     struct enum_list enums = {.len = 0, .enums = NULL};
     if (s->it->kind == TOKEN_LBRACE) {
-        accept_it(s);
+        parser_accept_it(s);
         if (!parse_enum_list(s, &enums)) {
             goto fail;
         }
         assert(enums.len > 0);
 
         if (s->it->kind == TOKEN_COMMA) {
-            accept_it(s);
+            parser_accept_it(s);
         }
-        if (!accept(s, TOKEN_RBRACE)) {
+        if (!parser_accept(s, TOKEN_RBRACE)) {
             free_enum_list(&enums);
             goto fail;
         }

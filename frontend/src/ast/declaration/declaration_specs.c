@@ -68,7 +68,7 @@ static enum parse_declaration_spec_res parse_declaration_spec(
             default:
                 UNREACHABLE();
         }
-        accept_it(s);
+        parser_accept_it(s);
     } else if (current_is_type_qual(s)) {
         update_type_quals(s, &res->type_quals);
     } else if (is_type_spec(s)) {
@@ -98,7 +98,7 @@ static enum parse_declaration_spec_res parse_declaration_spec(
             default:
                 UNREACHABLE();
         }
-        accept_it(s);
+        parser_accept_it(s);
     } else if (s->it->kind == TOKEN_ALIGNAS) {
         if (res->num_align_specs == *alloc_len_align_specs) {
             mycc_grow_alloc((void**)&res->align_specs, alloc_len_align_specs, sizeof *res->align_specs); 

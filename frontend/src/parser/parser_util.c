@@ -75,7 +75,7 @@ bool is_type_spec_token(const struct parser_state* s,
         case TOKEN_ENUM:
             return true;
         case TOKEN_IDENTIFIER:
-            return is_typedef_name(s, &token->spelling);
+            return parser_is_typedef_name(s, &token->spelling);
         default:
             return false;
     }
@@ -85,7 +85,7 @@ bool next_is_type_name(const struct parser_state* s) {
     assert(s->it->kind != TOKEN_INVALID);
     const struct token* next = s->it + 1;
     return is_type_spec_token(s, next) || is_type_qual(next->kind)
-           || (next->kind == TOKEN_IDENTIFIER && is_typedef_name(s, &next->spelling));
+           || (next->kind == TOKEN_IDENTIFIER && parser_is_typedef_name(s, &next->spelling));
 }
 
 bool is_type_spec(const struct parser_state* s) {

@@ -13,14 +13,14 @@ static bool parse_cond_expr_conditionals(struct parser_state* s,
 
     size_t alloc_len = res->len;
     while (s->it->kind == TOKEN_QMARK) {
-        accept_it(s);
+        parser_accept_it(s);
 
         struct expr* expr = parse_expr(s);
         if (!expr) {
             goto fail;
         }
 
-        if (!accept(s, TOKEN_COLON)) {
+        if (!parser_accept(s, TOKEN_COLON)) {
             free_expr(expr);
             goto fail;
         }

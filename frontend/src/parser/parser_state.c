@@ -54,7 +54,7 @@ void free_parser_state(struct parser_state* s) {
     mycc_free(s->_scope_maps);
 }
 
-bool accept(struct parser_state* s, enum token_kind expected) {
+bool parser_accept(struct parser_state* s, enum token_kind expected) {
     if (s->it->kind != expected) {
         expected_token_error(s, expected);
         return false;
@@ -64,7 +64,7 @@ bool accept(struct parser_state* s, enum token_kind expected) {
     }
 }
 
-void accept_it(struct parser_state* s) {
+void parser_accept_it(struct parser_state* s) {
     assert(s->it->kind != TOKEN_INVALID);
     ++s->it;
 }
@@ -88,19 +88,19 @@ void parser_pop_scope(struct parser_state* s) {
                                   sizeof *s->_scope_maps * s->_len);
 }
 
-bool register_enum_constant(struct parser_state* s, const struct token* token) {
+bool parser_register_enum_constant(struct parser_state* s, const struct token* token) {
     return register_identifier(s, token, ID_TYPE_ENUM_CONSTANT);
 }
 
-bool register_typedef_name(struct parser_state* s, const struct token* token) {
+bool parser_register_typedef_name(struct parser_state* s, const struct token* token) {
     return register_identifier(s, token, ID_TYPE_TYPEDEF_NAME);
 }
 
-bool is_enum_constant(const struct parser_state* s, const struct str* spell) {
+bool parser_is_enum_constant(const struct parser_state* s, const struct str* spell) {
     return get_item(s, spell) == ID_TYPE_ENUM_CONSTANT;
 }
 
-bool is_typedef_name(const struct parser_state* s, const struct str* spell) {
+bool parser_is_typedef_name(const struct parser_state* s, const struct str* spell) {
     return get_item(s, spell) == ID_TYPE_TYPEDEF_NAME;
 }
 

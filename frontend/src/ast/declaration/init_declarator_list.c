@@ -15,7 +15,7 @@ static bool parse_init_declarator_list_first_base(
 
     size_t alloc_len = res->len;
     while (s->it->kind == TOKEN_COMMA) {
-        accept_it(s);
+        parser_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->decls, &alloc_len, sizeof *res->decls);

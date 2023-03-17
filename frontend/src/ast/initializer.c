@@ -12,12 +12,12 @@ static bool parse_designator_inplace(struct parser_state* s,
     res->info = create_ast_node_info(s->it->loc);
     switch (s->it->kind) {
         case TOKEN_LINDEX: {
-            accept_it(s);
+            parser_accept_it(s);
             struct const_expr* index = parse_const_expr(s);
             if (!index) {
                 return false;
             }
-            if (!accept(s, TOKEN_RINDEX)) {
+            if (!parser_accept(s, TOKEN_RINDEX)) {
                 free_const_expr(index);
                 return false;
             }
@@ -27,11 +27,11 @@ static bool parse_designator_inplace(struct parser_state* s,
             return true;
         }
         case TOKEN_DOT: {
-            accept_it(s);
+            parser_accept_it(s);
             if (s->it->kind == TOKEN_IDENTIFIER) {
                 const struct str spell = token_take_spelling(s->it);
                 struct source_loc loc = s->it->loc;
-                accept_it(s);
+                parser_accept_it(s);
                 res->is_index = false;
                 res->identifier = create_identifier(&spell, loc);
                 return true;
@@ -107,7 +107,7 @@ static bool parse_designation_inplace(struct parser_state* s,
         return false;
     }
 
-    if (!accept(s, TOKEN_ASSIGN)) {
+    if (!parser_accept(s, TOKEN_ASSIGN)) {
         free_designator_list(&res->designators);
         return false;
     }
@@ -171,7 +171,7 @@ bool parse_init_list(struct parser_state* s, struct init_list* res) {
 
     size_t alloc_len = res->len;
     while (s->it->kind == TOKEN_COMMA && s->it[1].kind != TOKEN_RBRACE) {
-        accept_it(s);
+        parser_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->inits,
@@ -214,16 +214,16 @@ static bool parse_initializer_inplace(struct parser_state* s,
     res->info = create_ast_node_info(s->it->loc);
     if (s->it->kind == TOKEN_LBRACE) {
         res->is_assign = false;
-        accept_it(s);
+        parser_accept_it(s);
         if (!parse_init_list(s, &res->init_list)) {
             return false;
         }
 
         if (s->it->kind == TOKEN_COMMA) {
-            accept_it(s);
+            parser_accept_it(s);
         }
 
-        if (!accept(s, TOKEN_RBRACE)) {
+        if (!parser_accept(s, TOKEN_RBRACE)) {
             free_init_list_children(&res->init_list);
             return false;
         }

@@ -26,7 +26,7 @@ static bool parse_eq_expr_eq_chain(struct parser_state* s,
     size_t alloc_len = res->len;
     while (is_eq_op(s->it->kind)) {
         enum token_kind op = s->it->kind;
-        accept_it(s);
+        parser_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->eq_chain,

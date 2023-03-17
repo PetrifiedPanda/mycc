@@ -171,7 +171,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
         ops_before[len] = token_type_to_unary_expr_op(s->it->kind);
 
         ++len;
-        accept_it(s);
+        parser_accept_it(s);
     }
 
     if (ops_before) {
@@ -180,7 +180,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
 
     if (is_unary_op(s->it->kind)) {
         const enum token_kind unary_op = s->it->kind;
-        accept_it(s);
+        parser_accept_it(s);
         struct cast_expr* cast = parse_cast_expr(s);
         if (!cast) {
             goto fail;
@@ -189,18 +189,18 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
     } else {
         switch (s->it->kind) {
             case TOKEN_SIZEOF: {
-                accept_it(s);
+                parser_accept_it(s);
                 assert(s->it->kind == TOKEN_LBRACKET);
                 struct source_loc start_bracket_loc = s->it->loc;
                 if (next_is_type_name(s)) {
-                    accept_it(s);
+                    parser_accept_it(s);
 
                     struct type_name* type_name = parse_type_name(s);
                     if (!type_name) {
                         goto fail;
                     }
 
-                    if (!accept(s, TOKEN_RBRACKET)) {
+                    if (!parser_accept(s, TOKEN_RBRACKET)) {
                         goto fail;
                     }
                     if (s->it->kind == TOKEN_LBRACE) {
@@ -243,8 +243,8 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
                 }
             }
             case TOKEN_ALIGNOF: {
-                accept_it(s);
-                if (!accept(s, TOKEN_LBRACKET)) {
+                parser_accept_it(s);
+                if (!parser_accept(s, TOKEN_LBRACKET)) {
                     goto fail;
                 }
 
@@ -253,7 +253,7 @@ struct unary_expr* parse_unary_expr(struct parser_state* s) {
                     goto fail;
                 }
 
-                if (!accept(s, TOKEN_RBRACKET)) {
+                if (!parser_accept(s, TOKEN_RBRACKET)) {
                     goto fail;
                 }
                 return create_unary_expr_alignof(ops_before,

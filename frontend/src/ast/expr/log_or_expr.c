@@ -15,7 +15,7 @@ static bool parse_log_or_expr_ops(struct parser_state* s,
 
     size_t alloc_len = res->len;
     while (s->it->kind == TOKEN_LOR) {
-        accept_it(s);
+        parser_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->log_ands,

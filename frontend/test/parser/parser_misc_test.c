@@ -60,7 +60,7 @@ TEST(enum_list) {
         check_enum_list_ids(res, enum_constants, ARR_LEN(enum_constants));
 
         for (size_t i = 0; i < EXPECTED_LEN; ++i) {
-            ASSERT(is_enum_constant(&s, &enum_constants[i]));
+            ASSERT(parser_is_enum_constant(&s, &enum_constants[i]));
         }
 
         free_enum_spec(e_spec);
@@ -110,7 +110,7 @@ TEST(enum_list) {
         }
 
         for (size_t i = 0; i < EXPECTED_LEN; ++i) {
-            ASSERT(is_enum_constant(&s, &enum_constants[i]));
+            ASSERT(parser_is_enum_constant(&s, &enum_constants[i]));
         }
 
         free_enum_spec(e_spec);
@@ -349,7 +349,7 @@ TEST(redefine_typedef) {
                                                   &spell,
                                                   (struct file_loc){0, 0},
                                                   0);
-    register_typedef_name(&s, &dummy_token);
+    parser_register_typedef_name(&s, &dummy_token);
 
     bool found_typedef = false;
     struct declaration_specs* res = parse_declaration_specs(&s, &found_typedef);

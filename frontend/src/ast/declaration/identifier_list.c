@@ -15,12 +15,12 @@ bool parse_identifier_list(struct parser_state* s,
     };
     struct str spell = token_take_spelling(s->it);
     struct source_loc loc = s->it->loc;
-    accept_it(s);
+    parser_accept_it(s);
     init_identifier(res->identifiers, &spell, loc);
 
     size_t alloc_len = res->len;
     while (s->it->kind == TOKEN_COMMA) {
-        accept_it(s);
+        parser_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->identifiers,
@@ -34,7 +34,7 @@ bool parse_identifier_list(struct parser_state* s,
         }
         spell = token_take_spelling(s->it);
         loc = s->it->loc;
-        accept_it(s);
+        parser_accept_it(s);
         init_identifier(&res->identifiers[res->len], &spell, loc);
 
         ++res->len;

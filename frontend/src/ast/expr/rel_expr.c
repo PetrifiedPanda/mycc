@@ -46,7 +46,7 @@ static bool parse_rel_expr_rel_chain(struct parser_state* s,
     size_t alloc_len = res->len;
     while (is_rel_op(s->it->kind)) {
         enum token_kind op = s->it->kind;
-        accept_it(s);
+        parser_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->rel_chain,

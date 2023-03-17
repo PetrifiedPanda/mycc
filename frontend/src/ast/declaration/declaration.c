@@ -40,7 +40,7 @@ bool parse_declaration_inplace(struct parser_state* s,
                 .decls = NULL,
             };
         }
-        if (!accept(s, TOKEN_SEMICOLON)) {
+        if (!parser_accept(s, TOKEN_SEMICOLON)) {
             free_declaration_specs(res->decl_specs);
             free_init_declarator_list(&res->init_decls);
             return false;

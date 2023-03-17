@@ -11,7 +11,7 @@ static void free_align_spec(struct align_spec* s);
 bool parse_align_spec_inplace(struct parser_state* s, struct align_spec* res) {
     assert(res);
     res->info = create_ast_node_info(s->it->loc);
-    if (!(accept(s, TOKEN_ALIGNAS) && accept(s, TOKEN_LBRACKET))) {
+    if (!(parser_accept(s, TOKEN_ALIGNAS) && parser_accept(s, TOKEN_LBRACKET))) {
         return false;
     }
 
@@ -31,7 +31,7 @@ bool parse_align_spec_inplace(struct parser_state* s, struct align_spec* res) {
         }
     }
 
-    if (!accept(s, TOKEN_RBRACKET)) {
+    if (!parser_accept(s, TOKEN_RBRACKET)) {
         free_align_spec(res);
         return false;
     }

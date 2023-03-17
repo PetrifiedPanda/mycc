@@ -37,9 +37,9 @@ TEST(parser_state) {
                                   (struct file_loc){0, 0},
                                   0);
         if (i % 2 == 0) {
-            ASSERT(register_enum_constant(&s, item));
+            ASSERT(parser_register_enum_constant(&s, item));
         } else {
-            ASSERT(register_typedef_name(&s, item));
+            ASSERT(parser_register_typedef_name(&s, item));
         }
         ASSERT(err.kind == PARSER_ERR_NONE);
     }
@@ -50,11 +50,11 @@ TEST(parser_state) {
 
         const struct str test_string_str = str_non_heap(i + 1, test_string);
         if (i % 2 == 0) {
-            ASSERT(is_enum_constant(&s, &test_string_str));
-            ASSERT(!is_typedef_name(&s, &test_string_str));
+            ASSERT(parser_is_enum_constant(&s, &test_string_str));
+            ASSERT(!parser_is_typedef_name(&s, &test_string_str));
         } else {
-            ASSERT(is_typedef_name(&s, &test_string_str));
-            ASSERT(!is_enum_constant(&s, &test_string_str));
+            ASSERT(parser_is_typedef_name(&s, &test_string_str));
+            ASSERT(!parser_is_enum_constant(&s, &test_string_str));
         }
         ASSERT(err.kind == PARSER_ERR_NONE);
     }
@@ -68,11 +68,11 @@ TEST(parser_state) {
             const struct str pop_test_str = str_non_heap(j + 1, pop_test_string);
 
             if (j % 2 == 0) {
-                ASSERT(is_enum_constant(&s, &pop_test_str));
-                ASSERT(!is_typedef_name(&s, &pop_test_str));
+                ASSERT(parser_is_enum_constant(&s, &pop_test_str));
+                ASSERT(!parser_is_typedef_name(&s, &pop_test_str));
             } else {
-                ASSERT(is_typedef_name(&s, &pop_test_str));
-                ASSERT(!is_enum_constant(&s, &pop_test_str));
+                ASSERT(parser_is_typedef_name(&s, &pop_test_str));
+                ASSERT(!parser_is_enum_constant(&s, &pop_test_str));
             }
             ASSERT(err.kind == PARSER_ERR_NONE);
         }
@@ -82,8 +82,8 @@ TEST(parser_state) {
             pop_test_string[j] = 'a';
             const struct str pop_test_str = str_non_heap(j + 1, pop_test_string);
 
-            ASSERT(!is_enum_constant(&s, &pop_test_str));
-            ASSERT(!is_typedef_name(&s, &pop_test_str));
+            ASSERT(!parser_is_enum_constant(&s, &pop_test_str));
+            ASSERT(!parser_is_typedef_name(&s, &pop_test_str));
 
             ASSERT(err.kind == PARSER_ERR_NONE);
         }
@@ -106,8 +106,8 @@ TEST(parser_state) {
                 .file_loc = {.line = 0, .index = 0},
             },
     };
-    ASSERT(register_enum_constant(&s, &insert_test_token));
-    ASSERT(!register_typedef_name(&s, &insert_test_token));
+    ASSERT(parser_register_enum_constant(&s, &insert_test_token));
+    ASSERT(!parser_register_typedef_name(&s, &insert_test_token));
 
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT_STR(str_get_data(&err.redefined_symbol), "Test");
@@ -119,7 +119,7 @@ TEST(parser_state) {
     free_parser_err(&err);
     err = create_parser_err();
 
-    ASSERT(!register_enum_constant(&s, &insert_test_token));
+    ASSERT(!parser_register_enum_constant(&s, &insert_test_token));
 
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT_STR(str_get_data(&err.redefined_symbol), "Test");

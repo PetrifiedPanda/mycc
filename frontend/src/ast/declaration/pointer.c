@@ -6,7 +6,7 @@
 
 struct pointer* parse_pointer(struct parser_state* s) {
     const struct source_loc loc = s->it->loc;
-    if (!accept(s, TOKEN_ASTERISK)) {
+    if (!parser_accept(s, TOKEN_ASTERISK)) {
         return NULL;
     }
 
@@ -27,7 +27,7 @@ struct pointer* parse_pointer(struct parser_state* s) {
 
     size_t alloc_size = res->num_indirs;
     while (s->it->kind == TOKEN_ASTERISK) {
-        accept_it(s);
+        parser_accept_it(s);
 
         if (res->num_indirs == alloc_size) {
             mycc_grow_alloc((void**)&res->quals_after_ptr,

@@ -27,7 +27,7 @@ bool parse_init_declarator_inplace(struct parser_state* s,
     }
 
     if (s->it->kind == TOKEN_ASSIGN) {
-        accept_it(s);
+        parser_accept_it(s);
         res->init = parse_initializer(s);
         if (!res->init) {
             free_declarator(res->decl);

@@ -46,7 +46,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
         }
     } else if (s->it->kind == TOKEN_LBRACKET) {
         const struct source_loc loc = s->it->loc;
-        accept_it(s);
+        parser_accept_it(s);
         struct abs_decl_or_decl bracket_decl;
         if (!parse_abs_decl_or_decl(s, &bracket_decl)) {
             goto fail;
@@ -61,7 +61,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
             decl->info = create_ast_node_info(loc);
             decl->bracket_decl = bracket_decl.abs_decl;
 
-            if (!accept(s, TOKEN_RBRACKET)) {
+            if (!parser_accept(s, TOKEN_RBRACKET)) {
                 decl->len = 0;
                 decl->following_suffixes = NULL;
                 free_direct_abs_declarator(decl);
@@ -82,7 +82,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
             decl->is_id = false;
             decl->bracket_decl = bracket_decl.decl;
 
-            if (!accept(s, TOKEN_RBRACKET)) {
+            if (!parser_accept(s, TOKEN_RBRACKET)) {
                 decl->len = 0;
                 decl->suffixes = NULL;
                 free_direct_declarator(decl);
@@ -181,7 +181,7 @@ static bool parse_param_list_inplace(struct parser_state* s,
 
     size_t alloc_len = res->len;
     while (s->it->kind == TOKEN_COMMA && s->it[1].kind != TOKEN_ELLIPSIS) {
-        accept_it(s);
+        parser_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->decls,
@@ -217,8 +217,8 @@ bool parse_param_type_list(struct parser_state* s,
 
     res->is_variadic = false;
     if (s->it->kind == TOKEN_COMMA) {
-        accept_it(s);
-        if (!accept(s, TOKEN_ELLIPSIS)) {
+        parser_accept_it(s);
+        if (!parser_accept(s, TOKEN_ELLIPSIS)) {
             free_param_list(&res->param_list);
             return false;
         }

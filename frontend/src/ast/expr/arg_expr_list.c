@@ -14,7 +14,7 @@ bool parse_arg_expr_list(struct parser_state* s, struct arg_expr_list* res) {
 
     size_t alloc_len = res->len;
     while (s->it->kind == TOKEN_COMMA) {
-        accept_it(s);
+        parser_accept_it(s);
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->assign_exprs,
                        &alloc_len,

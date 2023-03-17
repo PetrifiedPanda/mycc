@@ -22,14 +22,14 @@ static struct unary_or_cond parse_unary_or_cond(struct parser_state* s) {
     };
     if (s->it->kind == TOKEN_LBRACKET && next_is_type_name(s)) {
         const struct source_loc start_bracket_loc = s->it->loc;
-        accept_it(s);
+        parser_accept_it(s);
 
         struct type_name* type_name = parse_type_name(s);
         if (!type_name) {
             return res;
         }
 
-        if (!accept(s, TOKEN_RBRACKET)) {
+        if (!parser_accept(s, TOKEN_RBRACKET)) {
             free_type_name(type_name);
             return res;
         }
@@ -125,7 +125,7 @@ bool parse_assign_expr_inplace(struct parser_state* s,
     size_t alloc_len = res->len;
     while (is_assign_op(s->it->kind)) {
         enum token_kind op = s->it->kind;
-        accept_it(s);
+        parser_accept_it(s);
 
         opt = parse_unary_or_cond(s);
         if (opt.unary == NULL) {

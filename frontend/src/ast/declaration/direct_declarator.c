@@ -25,21 +25,21 @@ static bool parse_arr_suffix(struct parser_state* s,
         .is_asterisk = false,
         .arr_len = NULL,
     };
-    accept_it(s);
+    parser_accept_it(s);
     if (s->it->kind == TOKEN_ASTERISK) {
-        accept_it(s);
+        parser_accept_it(s);
         suffix->is_asterisk = true;
-        if (!accept(s, TOKEN_RINDEX)) {
+        if (!parser_accept(s, TOKEN_RINDEX)) {
             return false;
         }
         return true;
     } else if (s->it->kind == TOKEN_RINDEX) {
-        accept_it(s);
+        parser_accept_it(s);
         return true;
     }
 
     if (s->it->kind == TOKEN_STATIC) {
-        accept_it(s);
+        parser_accept_it(s);
         suffix->is_static = true;
     }
 
@@ -56,9 +56,9 @@ static bool parse_arr_suffix(struct parser_state* s,
                 free_arr_suffix(suffix);
                 return false;
             }
-            accept_it(s);
+            parser_accept_it(s);
             suffix->is_asterisk = true;
-            if (!accept(s, TOKEN_RINDEX)) {
+            if (!parser_accept(s, TOKEN_RINDEX)) {
                 free_arr_suffix(suffix);
                 return false;
             }
@@ -73,7 +73,7 @@ static bool parse_arr_suffix(struct parser_state* s,
             return false;
         }
         suffix->is_static = true;
-        accept_it(s);
+        parser_accept_it(s);
     }
 
     if (s->it->kind == TOKEN_RINDEX) {
@@ -82,10 +82,10 @@ static bool parse_arr_suffix(struct parser_state* s,
             free_arr_suffix(suffix);
             return false;
         }
-        accept_it(s);
+        parser_accept_it(s);
     } else {
         suffix->arr_len = parse_assign_expr(s);
-        if (!(suffix->arr_len && accept(s, TOKEN_RINDEX))) {
+        if (!(suffix->arr_len && parser_accept(s, TOKEN_RINDEX))) {
             free_arr_suffix(suffix);
             return false;
         }
@@ -98,19 +98,19 @@ static bool parse_func_suffix(struct parser_state* s,
                               struct arr_or_func_suffix* res) {
     assert(s->it->kind == TOKEN_LBRACKET);
 
-    accept_it(s);
-    if (s->it->kind == TOKEN_IDENTIFIER && !is_typedef_name(s, &s->it->spelling)) {
+    parser_accept_it(s);
+    if (s->it->kind == TOKEN_IDENTIFIER && !parser_is_typedef_name(s, &s->it->spelling)) {
         res->kind = ARR_OR_FUNC_FUN_OLD_PARAMS;
         if (!parse_identifier_list(s, &res->fun_params)) {
             return false;
         }
 
-        if (!accept(s, TOKEN_RBRACKET)) {
+        if (!parser_accept(s, TOKEN_RBRACKET)) {
             free_identifier_list(&res->fun_params);
             return false;
         }
     } else if (s->it->kind == TOKEN_RBRACKET) {
-        accept_it(s);
+        parser_accept_it(s);
         res->kind = ARR_OR_FUNC_FUN_EMPTY;
     } else {
         res->kind = ARR_OR_FUNC_FUN_PARAMS;
@@ -118,7 +118,7 @@ static bool parse_func_suffix(struct parser_state* s,
             return false;
         }
 
-        if (!accept(s, TOKEN_RBRACKET)) {
+        if (!parser_accept(s, TOKEN_RBRACKET)) {
             free_param_type_list(&res->fun_types);
             return false;
         }
@@ -175,7 +175,7 @@ static struct direct_declarator* parse_direct_declarator_base(
     struct direct_declarator* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
     if (s->it->kind == TOKEN_LBRACKET) {
-        accept_it(s);
+        parser_accept_it(s);
         res->is_id = false;
         res->bracket_decl = parse_func(s);
         if (!res->bracket_decl) {
@@ -183,7 +183,7 @@ static struct direct_declarator* parse_direct_declarator_base(
             return NULL;
         }
 
-        if (!accept(s, TOKEN_RBRACKET)) {
+        if (!parser_accept(s, TOKEN_RBRACKET)) {
             free_declarator(res->bracket_decl);
             mycc_free(res);
             return NULL;
@@ -196,7 +196,7 @@ static struct direct_declarator* parse_direct_declarator_base(
         }
         const struct str spelling = token_take_spelling(s->it);
         struct source_loc loc = s->it->loc;
-        accept_it(s);
+        parser_accept_it(s);
         res->id = create_identifier(&spelling, loc);
     } else {
         mycc_free(res);
@@ -227,7 +227,7 @@ struct direct_declarator* parse_direct_declarator_typedef(
     struct parser_state* s) {
     return parse_direct_declarator_base(s,
                                         parse_declarator_typedef,
-                                        register_typedef_name);
+                                        parser_register_typedef_name);
 }
 
 static void free_children(struct direct_declarator* d) {
