@@ -12,7 +12,7 @@ static bool parse_xor_expr_rest(struct parser_state* s, struct xor_expr* res) {
     res->len = 1;
 
     size_t alloc_len = res->len;
-    while (s->it->kind == XOR) {
+    while (s->it->kind == TOKEN_XOR) {
         accept_it(s);
 
         if (res->len == alloc_len) {

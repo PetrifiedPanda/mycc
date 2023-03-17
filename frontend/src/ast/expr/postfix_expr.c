@@ -9,12 +9,12 @@
 
 static bool is_posfix_op(enum token_kind t) {
     switch (t) {
-        case LINDEX:
-        case LBRACKET:
-        case DOT:
-        case PTR_OP:
-        case INC_OP:
-        case DEC_OP:
+        case TOKEN_LINDEX:
+        case TOKEN_LBRACKET:
+        case TOKEN_DOT:
+        case TOKEN_PTR_OP:
+        case TOKEN_INC:
+        case TOKEN_DEC:
             return true;
 
         default:
@@ -25,14 +25,14 @@ static bool is_posfix_op(enum token_kind t) {
 static bool parse_postfix_arr_suffix(struct parser_state* s,
                                      struct postfix_suffix* res) {
     assert(res);
-    assert(s->it->kind == LINDEX);
+    assert(s->it->kind == TOKEN_LINDEX);
 
     accept_it(s);
     struct expr* expr = parse_expr(s);
     if (!expr) {
         return false;
     }
-    if (!accept(s, RINDEX)) {
+    if (!accept(s, TOKEN_RINDEX)) {
         free_expr(expr);
         return false;
     }
@@ -45,19 +45,19 @@ static bool parse_postfix_arr_suffix(struct parser_state* s,
 static bool parse_postfix_func_suffix(struct parser_state* s,
                                       struct postfix_suffix* res) {
     assert(res);
-    assert(s->it->kind == LBRACKET);
+    assert(s->it->kind == TOKEN_LBRACKET);
 
     accept_it(s);
     struct arg_expr_list arg_expr_list = {
         .assign_exprs = NULL,
         .len = 0,
     };
-    if (s->it->kind != RBRACKET) {
+    if (s->it->kind != TOKEN_RBRACKET) {
         if (!parse_arg_expr_list(s, &arg_expr_list)) {
             return false;
         }
     }
-    if (!accept(s, RBRACKET)) {
+    if (!accept(s, TOKEN_RBRACKET)) {
         free_arg_expr_list(&arg_expr_list);
         return false;
     }
@@ -69,11 +69,11 @@ static bool parse_postfix_func_suffix(struct parser_state* s,
 static bool parse_postfix_access_suffix(struct parser_state* s,
                                         struct postfix_suffix* res) {
     assert(res);
-    assert(s->it->kind == DOT || s->it->kind == PTR_OP);
-    enum postfix_suffix_kind kind = s->it->kind == PTR_OP ? POSTFIX_PTR_ACCESS
+    assert(s->it->kind == TOKEN_DOT || s->it->kind == TOKEN_PTR_OP);
+    enum postfix_suffix_kind kind = s->it->kind == TOKEN_PTR_OP ? POSTFIX_PTR_ACCESS
                                                           : POSTFIX_ACCESS;
     accept_it(s);
-    if (s->it->kind != IDENTIFIER) {
+    if (s->it->kind != TOKEN_IDENTIFIER) {
         return false;
     }
     const struct str spelling = token_take_spelling(s->it);
@@ -86,11 +86,11 @@ static bool parse_postfix_access_suffix(struct parser_state* s,
 }
 
 struct postfix_suffix parse_postfix_inc_dec_suffix(struct parser_state* s) {
-    assert(s->it->kind == INC_OP || s->it->kind == DEC_OP);
+    assert(s->it->kind == TOKEN_INC|| s->it->kind == TOKEN_DEC);
     const enum token_kind op = s->it->kind;
     accept_it(s);
     return (struct postfix_suffix){
-        .kind = op == INC_OP ? POSTFIX_INC : POSTFIX_DEC,
+        .kind = op == TOKEN_INC ? POSTFIX_INC : POSTFIX_DEC,
     };
 }
 
@@ -105,27 +105,27 @@ static bool parse_postfix_suffixes(struct parser_state* s,
         }
 
         switch (s->it->kind) {
-            case LINDEX:
+            case TOKEN_LINDEX:
                 if (!parse_postfix_arr_suffix(s, &res->suffixes[res->len])) {
                     return false;
                 }
                 break;
 
-            case LBRACKET:
+            case TOKEN_LBRACKET:
                 if (!parse_postfix_func_suffix(s, &res->suffixes[res->len])) {
                     return false;
                 }
                 break;
 
-            case DOT:
-            case PTR_OP:
+            case TOKEN_DOT:
+            case TOKEN_PTR_OP:
                 if (!parse_postfix_access_suffix(s, &res->suffixes[res->len])) {
                     return false;
                 }
                 break;
 
-            case INC_OP:
-            case DEC_OP:
+            case TOKEN_INC:
+            case TOKEN_DEC:
                 res->suffixes[res->len] = parse_postfix_inc_dec_suffix(s);
                 break;
 
@@ -149,7 +149,7 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
     res->suffixes = NULL;
     res->len = 0;
 
-    if (s->it->kind == LBRACKET && next_is_type_name(s)) {
+    if (s->it->kind == TOKEN_LBRACKET && next_is_type_name(s)) {
         res->info = create_ast_node_info(s->it->loc);
         accept_it(s);
 
@@ -161,7 +161,7 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
             return NULL;
         }
 
-        if (!(accept(s, RBRACKET) && accept(s, LBRACE))) {
+        if (!(accept(s, TOKEN_RBRACKET) && accept(s, TOKEN_LBRACE))) {
             free_type_name(res->type_name);
             mycc_free(res);
             return NULL;
@@ -173,11 +173,11 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
             return NULL;
         }
 
-        if (s->it->kind == COMMA) {
+        if (s->it->kind == TOKEN_COMMA) {
             accept_it(s);
         }
 
-        if (!accept(s, RBRACE)) {
+        if (!accept(s, TOKEN_RBRACE)) {
             free_postfix_expr(res);
             return NULL;
         }
@@ -209,7 +209,7 @@ struct postfix_expr* parse_postfix_expr_type_name(
     struct type_name* type_name,
     struct source_loc start_bracket_loc) {
     assert(type_name);
-    assert(s->it->kind == LBRACE);
+    assert(s->it->kind == TOKEN_LBRACE);
 
     struct postfix_expr* res = mycc_alloc(sizeof *res);
     res->len = 0;
@@ -227,11 +227,11 @@ struct postfix_expr* parse_postfix_expr_type_name(
         goto fail;
     }
 
-    if (s->it->kind == COMMA) {
+    if (s->it->kind == TOKEN_COMMA) {
         accept_it(s);
     }
 
-    if (!accept(s, RBRACE)) {
+    if (!accept(s, TOKEN_RBRACE)) {
         return NULL;
     }
 

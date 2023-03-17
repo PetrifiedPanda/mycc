@@ -8,8 +8,8 @@
 
 static bool is_shift_op(enum token_kind t) {
     switch (t) {
-        case LEFT_OP:
-        case RIGHT_OP:
+        case TOKEN_LSHIFT:
+        case TOKEN_RSHIFT:
             return true;
         default:
             return false;
@@ -37,7 +37,7 @@ static bool parse_shift_expr_shift_chain(struct parser_state* s,
         if (!curr->rhs) {
             goto fail;
         }
-        curr->op = op == LEFT_OP ? SHIFT_EXPR_LEFT : SHIFT_EXPR_RIGHT;
+        curr->op = op == TOKEN_LSHIFT ? SHIFT_EXPR_LEFT : SHIFT_EXPR_RIGHT;
 
         ++res->len;
     }

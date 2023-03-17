@@ -14,7 +14,7 @@ static bool parse_log_or_expr_ops(struct parser_state* s,
     assert(res->len == 1);
 
     size_t alloc_len = res->len;
-    while (s->it->kind == OR_OP) {
+    while (s->it->kind == TOKEN_LOR) {
         accept_it(s);
 
         if (res->len == alloc_len) {

@@ -119,14 +119,14 @@ struct preproc_res preproc_string(const char* str,
 #endif // MYCC_TEST_FUNCTIONALITY
 
 static void free_tokens(struct token* tokens) {
-    for (struct token* it = tokens; it->kind != INVALID; ++it) {
+    for (struct token* it = tokens; it->kind != TOKEN_INVALID; ++it) {
         free_token(it);
     }
     mycc_free(tokens);
 }
 
 static void free_preproc_tokens(struct token* tokens) {
-    for (struct token* it = tokens; it->kind != INVALID; ++it) {
+    for (struct token* it = tokens; it->kind != TOKEN_INVALID; ++it) {
         free_str(&it->spelling);
     }
     mycc_free(tokens);
@@ -192,7 +192,7 @@ static bool convert_preproc_token(struct token* t,
     assert(info);
     assert(err);
     switch (t->kind) {
-        case I_CONSTANT: {
+        case TOKEN_I_CONSTANT: {
             if (str_char_at(&t->spelling, 0) == '\'') {
                 struct parse_char_const_res res = parse_char_const(
                     str_get_data(&t->spelling),
@@ -220,7 +220,7 @@ static bool convert_preproc_token(struct token* t,
             }
             break;
         }
-        case F_CONSTANT: {
+        case TOKEN_F_CONSTANT: {
             struct parse_float_const_res res = parse_float_const(
                 str_get_data(&t->spelling));
             if (res.err.kind != FLOAT_CONST_ERR_NONE) {
@@ -233,18 +233,18 @@ static bool convert_preproc_token(struct token* t,
             t->float_val = res.res;
             break;
         }
-        case IDENTIFIER:
+        case TOKEN_IDENTIFIER:
             t->kind = keyword_kind(str_get_data(&t->spelling));
-            if (t->kind != IDENTIFIER) {
+            if (t->kind != TOKEN_IDENTIFIER) {
                 free_str(&t->spelling);
                 t->spelling = create_null_str();
             }
             break;
-        case STRING_LITERAL:
+        case TOKEN_STRING_LITERAL:
             convert_string_literal(t);
             break;
-        case STRINGIFY_OP:
-        case CONCAT_OP:
+        case TOKEN_PP_STRINGIFY:
+        case TOKEN_PP_CONCAT:
             set_preproc_err(err, PREPROC_ERR_MISPLACED_PREPROC_TOKEN, t->loc);
             err->misplaced_preproc_tok = t->kind;
             return false;
@@ -259,7 +259,7 @@ bool convert_preproc_tokens(struct token* tokens,
                             struct preproc_err* err) {
     assert(tokens);
     assert(info);
-    for (struct token* t = tokens; t->kind != INVALID; ++t) {
+    for (struct token* t = tokens; t->kind != TOKEN_INVALID; ++t) {
         if (!convert_preproc_token(t, info, err)) {
             return false;
         }
@@ -270,7 +270,7 @@ bool convert_preproc_tokens(struct token* tokens,
 static void append_terminator_token(struct token_arr* arr) {
     arr->tokens = mycc_realloc(arr->tokens, sizeof *arr->tokens * (arr->len + 1));
     arr->tokens[arr->len] = (struct token){
-        .kind = INVALID,
+        .kind = TOKEN_INVALID,
         .spelling = create_null_str(),
         .loc =
             {
@@ -287,12 +287,12 @@ static inline bool is_spelling(const char* spelling, enum token_kind type) {
 }
 
 static enum token_kind keyword_kind(const char* spell) {
-    for (enum token_kind e = KEYWORDS_START; e < KEYWORDS_END; ++e) {
+    for (enum token_kind e = TOKEN_KEYWORDS_START; e < TOKEN_KEYWORDS_END; ++e) {
         if (is_spelling(spell, e)) {
             return e;
         }
     }
 
-    return IDENTIFIER;
+    return TOKEN_IDENTIFIER;
 }
 

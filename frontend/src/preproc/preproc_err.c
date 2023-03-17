@@ -155,8 +155,8 @@ void print_preproc_err(FILE* out,
             break;
         }
         case PREPROC_ERR_MISPLACED_PREPROC_TOKEN:
-            assert(err->misplaced_preproc_tok == STRINGIFY_OP
-                   || err->misplaced_preproc_tok == CONCAT_OP);
+            assert(err->misplaced_preproc_tok == TOKEN_PP_STRINGIFY
+                   || err->misplaced_preproc_tok == TOKEN_PP_CONCAT);
             fprintf(
                 out,
                 "preprocessor token \"%s\" outside of preprocessor directive",

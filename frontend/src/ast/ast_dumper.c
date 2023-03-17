@@ -290,7 +290,7 @@ static void dump_string_constant(struct ast_dumper* d,
 
     if (c->is_func) {
         dumper_print_node_head(d, "string_constant", &c->info);
-        dumper_puts(d, get_token_kind_spelling(FUNC_NAME));
+        dumper_puts(d, get_token_kind_spelling(TOKEN_FUNC_NAME));
     } else {
         dumper_println(d, "string_constant:");
         dump_string_literal(d, &c->lit);
@@ -586,17 +586,17 @@ static const char* type_spec_kind_str(enum type_spec_kind k) {
         case TYPE_SPEC_NONE:
             return "NO_TYPE_SPEC";
         case TYPE_SPEC_VOID:
-            return get_token_kind_spelling(VOID);
+            return get_token_kind_spelling(TOKEN_VOID);
         case TYPE_SPEC_CHAR:
-            return get_token_kind_spelling(CHAR);
+            return get_token_kind_spelling(TOKEN_CHAR);
         case TYPE_SPEC_INT:
-            return get_token_kind_spelling(INT);
+            return get_token_kind_spelling(TOKEN_INT);
         case TYPE_SPEC_FLOAT:
-            return get_token_kind_spelling(FLOAT);
+            return get_token_kind_spelling(TOKEN_FLOAT);
         case TYPE_SPEC_DOUBLE:
-            return get_token_kind_spelling(DOUBLE);
+            return get_token_kind_spelling(TOKEN_DOUBLE);
         case TYPE_SPEC_BOOL:
-            return get_token_kind_spelling(BOOL);
+            return get_token_kind_spelling(TOKEN_BOOL);
         default:
             UNREACHABLE();
     }
@@ -769,17 +769,17 @@ static const char* unary_expr_kind_str(enum unary_expr_kind k) {
     assert(k != UNARY_POSTFIX && k != UNARY_SIZEOF_TYPE && k != UNARY_ALIGNOF);
     switch (k) {
         case UNARY_ADDRESSOF:
-            return get_token_kind_spelling(AND);
+            return get_token_kind_spelling(TOKEN_AND);
         case UNARY_DEREF:
-            return get_token_kind_spelling(ASTERISK);
+            return get_token_kind_spelling(TOKEN_ASTERISK);
         case UNARY_PLUS:
-            return get_token_kind_spelling(ADD);
+            return get_token_kind_spelling(TOKEN_ADD);
         case UNARY_MINUS:
-            return get_token_kind_spelling(SUB);
+            return get_token_kind_spelling(TOKEN_SUB);
         case UNARY_BNOT:
-            return get_token_kind_spelling(BNOT);
+            return get_token_kind_spelling(TOKEN_BNOT);
         case UNARY_NOT:
-            return get_token_kind_spelling(NOT);
+            return get_token_kind_spelling(TOKEN_NOT);
 
         default:
             UNREACHABLE();
@@ -789,11 +789,11 @@ static const char* unary_expr_kind_str(enum unary_expr_kind k) {
 static const char* unary_expr_op_str(enum unary_expr_op o) {
     switch (o) {
         case UNARY_OP_INC:
-            return get_token_kind_spelling(INC_OP);
+            return get_token_kind_spelling(TOKEN_INC);
         case UNARY_OP_DEC:
-            return get_token_kind_spelling(DEC_OP);
+            return get_token_kind_spelling(TOKEN_DEC);
         case UNARY_OP_SIZEOF:
-            return get_token_kind_spelling(SIZEOF);
+            return get_token_kind_spelling(TOKEN_SIZEOF);
     }
     UNREACHABLE();
 }
@@ -839,27 +839,27 @@ static void dump_unary_expr(struct ast_dumper* d, const struct unary_expr* e) {
 static const char* assign_expr_op_str(enum assign_expr_op o) {
     switch (o) {
         case ASSIGN_EXPR_ASSIGN:
-            return get_token_kind_spelling(ASSIGN);
+            return get_token_kind_spelling(TOKEN_ASSIGN);
         case ASSIGN_EXPR_MUL:
-            return get_token_kind_spelling(MUL_ASSIGN);
+            return get_token_kind_spelling(TOKEN_MUL_ASSIGN);
         case ASSIGN_EXPR_DIV:
-            return get_token_kind_spelling(DIV_ASSIGN);
+            return get_token_kind_spelling(TOKEN_DIV_ASSIGN);
         case ASSIGN_EXPR_MOD:
-            return get_token_kind_spelling(MOD_ASSIGN);
+            return get_token_kind_spelling(TOKEN_MOD_ASSIGN);
         case ASSIGN_EXPR_ADD:
-            return get_token_kind_spelling(ADD_ASSIGN);
+            return get_token_kind_spelling(TOKEN_ADD_ASSIGN);
         case ASSIGN_EXPR_SUB:
-            return get_token_kind_spelling(SUB_ASSIGN);
+            return get_token_kind_spelling(TOKEN_SUB_ASSIGN);
         case ASSIGN_EXPR_LSHIFT:
-            return get_token_kind_spelling(LEFT_ASSIGN);
+            return get_token_kind_spelling(TOKEN_LSHIFT_ASSIGN);
         case ASSIGN_EXPR_RSHIFT:
-            return get_token_kind_spelling(RIGHT_ASSIGN);
+            return get_token_kind_spelling(TOKEN_RSHIFT_ASSIGN);
         case ASSIGN_EXPR_AND:
-            return get_token_kind_spelling(AND_ASSIGN);
+            return get_token_kind_spelling(TOKEN_AND_ASSIGN);
         case ASSIGN_EXPR_XOR:
-            return get_token_kind_spelling(XOR_ASSIGN);
+            return get_token_kind_spelling(TOKEN_XOR_ASSIGN);
         case ASSIGN_EXPR_OR:
-            return get_token_kind_spelling(OR_ASSIGN);
+            return get_token_kind_spelling(TOKEN_OR_ASSIGN);
     };
 
     UNREACHABLE();
@@ -1488,11 +1488,11 @@ static void dump_init_declarator_list(struct ast_dumper* d,
 static const char* mul_expr_op_str(enum mul_expr_op o) {
     switch (o) {
         case MUL_EXPR_MUL:
-            return get_token_kind_spelling(ASTERISK);
+            return get_token_kind_spelling(TOKEN_ASTERISK);
         case MUL_EXPR_DIV:
-            return get_token_kind_spelling(DIV);
+            return get_token_kind_spelling(TOKEN_DIV);
         case MUL_EXPR_MOD:
-            return get_token_kind_spelling(MOD);
+            return get_token_kind_spelling(TOKEN_MOD);
     }
     UNREACHABLE();
 }
@@ -1518,9 +1518,9 @@ static void dump_mul_expr(struct ast_dumper* d, const struct mul_expr* e) {
 static const char* add_expr_op_str(enum add_expr_op op) {
     switch (op) {
         case ADD_EXPR_ADD:
-            return get_token_kind_spelling(ADD);
+            return get_token_kind_spelling(TOKEN_ADD);
         case ADD_EXPR_SUB:
-            return get_token_kind_spelling(SUB);
+            return get_token_kind_spelling(TOKEN_SUB);
     }
     UNREACHABLE();
 }
@@ -1546,9 +1546,9 @@ static void dump_add_expr(struct ast_dumper* d, const struct add_expr* e) {
 static const char* shift_expr_op_str(enum shift_expr_op o) {
     switch (o) {
         case SHIFT_EXPR_LEFT:
-            return get_token_kind_spelling(LEFT_OP);
+            return get_token_kind_spelling(TOKEN_LSHIFT);
         case SHIFT_EXPR_RIGHT:
-            return get_token_kind_spelling(RIGHT_OP);
+            return get_token_kind_spelling(TOKEN_RSHIFT);
     }
     UNREACHABLE();
 }
@@ -1574,13 +1574,13 @@ static void dump_shift_expr(struct ast_dumper* d, const struct shift_expr* e) {
 static const char* rel_expr_op_str(enum rel_expr_op o) {
     switch (o) {
         case REL_EXPR_LT:
-            return get_token_kind_spelling(LT);
+            return get_token_kind_spelling(TOKEN_LT);
         case REL_EXPR_GT:
-            return get_token_kind_spelling(GT);
+            return get_token_kind_spelling(TOKEN_GT);
         case REL_EXPR_LE:
-            return get_token_kind_spelling(LE_OP);
+            return get_token_kind_spelling(TOKEN_LE);
         case REL_EXPR_GE:
-            return get_token_kind_spelling(GE_OP);
+            return get_token_kind_spelling(TOKEN_GE);
     }
     UNREACHABLE();
 }
@@ -1606,9 +1606,9 @@ static void dump_rel_expr(struct ast_dumper* d, const struct rel_expr* e) {
 static const char* eq_expr_op_str(enum eq_expr_op o) {
     switch (o) {
         case EQ_EXPR_EQ:
-            return get_token_kind_spelling(EQ_OP);
+            return get_token_kind_spelling(TOKEN_EQ);
         case EQ_EXPR_NE:
-            return get_token_kind_spelling(NE_OP);
+            return get_token_kind_spelling(TOKEN_NE);
     }
     UNREACHABLE();
 }

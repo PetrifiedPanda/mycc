@@ -22,7 +22,7 @@ static struct jump_statement* parse_jump_statement_helper(const char* code) {
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT(stat.kind == STATEMENT_JUMP);
 
-    ASSERT_TOKEN_KIND(s.it->kind, INVALID);
+    ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
 
     free_parser_state(&s);
     free_preproc_res(&preproc_res);
@@ -51,8 +51,8 @@ static void check_expected_semicolon_jump_statement(const char* spell) {
     ASSERT(err.kind == PARSER_ERR_EXPECTED_TOKENS);
     const struct expected_tokens_err* ex_tokens_err = &err.expected_tokens_err;
     ASSERT_SIZE_T(ex_tokens_err->num_expected, (size_t)1);
-    ASSERT_TOKEN_KIND(ex_tokens_err->expected[0], SEMICOLON);
-    ASSERT_TOKEN_KIND(ex_tokens_err->got, INVALID);
+    ASSERT_TOKEN_KIND(ex_tokens_err->expected[0], TOKEN_SEMICOLON);
+    ASSERT_TOKEN_KIND(ex_tokens_err->got, TOKEN_INVALID);
 
     free_preproc_res(&preproc_res);
     free_parser_err(&err);
@@ -112,7 +112,7 @@ TEST(statement) {
 
     struct statement* res = parse_statement(&s);
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_TOKEN_KIND(s.it->kind, INVALID);
+    ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
     ASSERT_NOT_NULL(res);
 
     ASSERT(res->kind == STATEMENT_ITERATION);

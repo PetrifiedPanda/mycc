@@ -11,7 +11,7 @@ static bool parse_generic_assoc_inplace(struct parser_state* s,
     assert(res);
 
     res->info = create_ast_node_info(s->it->loc);
-    if (s->it->kind == DEFAULT) {
+    if (s->it->kind == TOKEN_DEFAULT) {
         accept_it(s);
         res->type_name = NULL;
     } else {
@@ -21,7 +21,7 @@ static bool parse_generic_assoc_inplace(struct parser_state* s,
         }
     }
 
-    if (!accept(s, COLON)) {
+    if (!accept(s, TOKEN_COLON)) {
         goto fail;
     }
 
@@ -59,7 +59,7 @@ static bool parse_generic_assoc_list(struct parser_state* s,
         return false;
     }
 
-    while (s->it->kind == COMMA) {
+    while (s->it->kind == TOKEN_COMMA) {
         accept_it(s);
 
         if (res->len == alloc_len) {
@@ -103,11 +103,11 @@ static struct generic_sel* create_generic_sel(struct assign_expr* assign,
 }
 
 struct generic_sel* parse_generic_sel(struct parser_state* s) {
-    assert(s->it->kind == GENERIC);
+    assert(s->it->kind == TOKEN_GENERIC);
     struct source_loc loc = s->it->loc;
     accept_it(s);
 
-    if (!accept(s, LBRACKET)) {
+    if (!accept(s, TOKEN_LBRACKET)) {
         return NULL;
     }
 
@@ -116,7 +116,7 @@ struct generic_sel* parse_generic_sel(struct parser_state* s) {
         return NULL;
     }
 
-    if (!accept(s, COMMA)) {
+    if (!accept(s, TOKEN_COMMA)) {
         goto fail;
     }
 
@@ -125,7 +125,7 @@ struct generic_sel* parse_generic_sel(struct parser_state* s) {
         goto fail;
     }
 
-    if (!accept(s, RBRACKET)) {
+    if (!accept(s, TOKEN_RBRACKET)) {
         free_generic_assoc_list(&assocs);
         goto fail;
     }

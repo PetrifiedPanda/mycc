@@ -17,7 +17,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
                                    struct abs_decl_or_decl* res) {
     assert(res);
     struct pointer* ptr;
-    if (s->it->kind == ASTERISK) {
+    if (s->it->kind == TOKEN_ASTERISK) {
         ptr = parse_pointer(s);
         if (!ptr) {
             return false;
@@ -26,7 +26,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
         ptr = NULL;
     }
 
-    if (s->it->kind == IDENTIFIER) {
+    if (s->it->kind == TOKEN_IDENTIFIER) {
         res->is_abs = false;
         res->decl = mycc_alloc(sizeof *res->decl);
         res->decl->ptr = ptr;
@@ -35,7 +35,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
             mycc_free(res->decl);
             goto fail;
         }
-    } else if (s->it->kind == LINDEX) {
+    } else if (s->it->kind == TOKEN_LINDEX) {
         res->is_abs = true;
         res->abs_decl = mycc_alloc(sizeof *res->abs_decl);
         res->abs_decl->ptr = ptr;
@@ -44,7 +44,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
             mycc_free(res->abs_decl);
             goto fail;
         }
-    } else if (s->it->kind == LBRACKET) {
+    } else if (s->it->kind == TOKEN_LBRACKET) {
         const struct source_loc loc = s->it->loc;
         accept_it(s);
         struct abs_decl_or_decl bracket_decl;
@@ -61,7 +61,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
             decl->info = create_ast_node_info(loc);
             decl->bracket_decl = bracket_decl.abs_decl;
 
-            if (!accept(s, RBRACKET)) {
+            if (!accept(s, TOKEN_RBRACKET)) {
                 decl->len = 0;
                 decl->following_suffixes = NULL;
                 free_direct_abs_declarator(decl);
@@ -82,7 +82,7 @@ static bool parse_abs_decl_or_decl(struct parser_state* s,
             decl->is_id = false;
             decl->bracket_decl = bracket_decl.decl;
 
-            if (!accept(s, RBRACKET)) {
+            if (!accept(s, TOKEN_RBRACKET)) {
                 decl->len = 0;
                 decl->suffixes = NULL;
                 free_direct_declarator(decl);
@@ -132,7 +132,7 @@ static bool parse_param_declaration_inplace(struct parser_state* s,
         return false;
     }
 
-    if (s->it->kind == COMMA || s->it->kind == RBRACKET) {
+    if (s->it->kind == TOKEN_COMMA || s->it->kind == TOKEN_RBRACKET) {
         res->kind = PARAM_DECL_NONE;
         res->decl = NULL;
     } else {
@@ -180,7 +180,7 @@ static bool parse_param_list_inplace(struct parser_state* s,
     }
 
     size_t alloc_len = res->len;
-    while (s->it->kind == COMMA && s->it[1].kind != ELLIPSIS) {
+    while (s->it->kind == TOKEN_COMMA && s->it[1].kind != TOKEN_ELLIPSIS) {
         accept_it(s);
 
         if (res->len == alloc_len) {
@@ -216,9 +216,9 @@ bool parse_param_type_list(struct parser_state* s,
     }
 
     res->is_variadic = false;
-    if (s->it->kind == COMMA) {
+    if (s->it->kind == TOKEN_COMMA) {
         accept_it(s);
-        if (!accept(s, ELLIPSIS)) {
+        if (!accept(s, TOKEN_ELLIPSIS)) {
             free_param_list(&res->param_list);
             return false;
         }

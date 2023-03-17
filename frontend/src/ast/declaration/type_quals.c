@@ -19,16 +19,16 @@ void update_type_quals(struct parser_state* s, struct type_quals* quals) {
     assert(is_type_qual(s->it->kind));
 
     switch (s->it->kind) {
-        case CONST:
+        case TOKEN_CONST:
             quals->is_const = true;
             break;
-        case RESTRICT:
+        case TOKEN_RESTRICT:
             quals->is_restrict = true;
             break;
-        case VOLATILE:
+        case TOKEN_VOLATILE:
             quals->is_volatile = true;
             break;
-        case ATOMIC:
+        case TOKEN_ATOMIC:
             quals->is_atomic = true;
             break;
         default:
@@ -42,7 +42,12 @@ bool parse_type_qual_list(struct parser_state* s, struct type_quals* res) {
     *res = create_type_quals();
 
     if (!is_type_qual(s->it->kind)) {
-        enum token_kind expected[] = {CONST, RESTRICT, VOLATILE, ATOMIC};
+        enum token_kind expected[] = {
+            TOKEN_CONST,
+            TOKEN_RESTRICT,
+            TOKEN_VOLATILE,
+            TOKEN_ATOMIC,
+        };
 
         expected_tokens_error(s, expected, ARR_LEN(expected));
         return false;

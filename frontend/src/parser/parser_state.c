@@ -65,7 +65,7 @@ bool accept(struct parser_state* s, enum token_kind expected) {
 }
 
 void accept_it(struct parser_state* s) {
-    assert(s->it->kind != INVALID);
+    assert(s->it->kind != TOKEN_INVALID);
     ++s->it;
 }
 
@@ -126,7 +126,7 @@ static bool register_identifier(struct parser_state* s,
                                 const struct token* token,
                                 enum identifier_kind kind) {
     assert(kind != ID_TYPE_NONE);
-    assert(token->kind == IDENTIFIER);
+    assert(token->kind == TOKEN_IDENTIFIER);
 
     // TODO: Add a warning when an identifier from a previous scope is shadowed
 

@@ -11,7 +11,7 @@ static size_t get_tokens_len(const struct token* tokens) {
     size_t len = 0;
     const struct token* it = tokens;
 
-    while (it->kind != INVALID) {
+    while (it->kind != TOKEN_INVALID) {
         ++len;
         ++it;
     }
@@ -73,11 +73,11 @@ TEST(object_like) {
     // #define MACRO 1 + 2
     struct token_or_arg expansion[] = {
         {.is_arg = false,
-         .token = {I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 15}}}},
+         .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 15}}}},
         {.is_arg = false,
-         .token = {ADD, .spelling = create_null_str(), {0, {1, 17}}}},
+         .token = {TOKEN_ADD, .spelling = create_null_str(), {0, {1, 17}}}},
         {.is_arg = false,
-         .token = {I_CONSTANT, .spelling = STR_NON_HEAP("2"), {0, {1, 19}}}},
+         .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("2"), {0, {1, 19}}}},
     };
     enum {
         EXP_LEN = ARR_LEN(expansion)
@@ -131,7 +131,7 @@ TEST(object_like_empty) {
 TEST(recursive) {
     struct token_or_arg rec_obj_ex[] = {
         {.is_arg = false,
-         .token = {IDENTIFIER,
+         .token = {TOKEN_IDENTIFIER,
                    .spelling = STR_NON_HEAP("REC_MACRO"),
                    {0, {1, 1}}}},
     };
@@ -160,13 +160,13 @@ TEST(recursive) {
 
     struct token_or_arg rec_func_ex[] = {
         {.is_arg = false,
-         .token = {IDENTIFIER,
+         .token = {TOKEN_IDENTIFIER,
                    .spelling = STR_NON_HEAP("REC_FUNC_MACRO"),
                    {0, {1, 1}}}},
         {.is_arg = false,
-         .token = {LBRACKET, .spelling = create_null_str(), {0, {1, 1}}}},
+         .token = {TOKEN_LBRACKET, .spelling = create_null_str(), {0, {1, 1}}}},
         {.is_arg = false,
-         .token = {RBRACKET, .spelling = create_null_str(), {0, {1, 1}}}},
+         .token = {TOKEN_RBRACKET, .spelling = create_null_str(), {0, {1, 1}}}},
     };
 
     // #define REC_FUNC_MACRO() REC_FUNC_MACRO()
@@ -197,14 +197,14 @@ TEST(func_like) {
     struct token_or_arg ex1[] = {
         {.is_arg = true, .arg_num = 0},
         {.is_arg = false,
-         .token = {ADD, .spelling = create_null_str(), {0, {1, 33}}}},
+         .token = {TOKEN_ADD, .spelling = create_null_str(), {0, {1, 33}}}},
         {.is_arg = true, .arg_num = 1},
         {.is_arg = false,
-         .token = {ASTERISK, .spelling = create_null_str(), {0, {1, 37}}}},
+         .token = {TOKEN_ASTERISK, .spelling = create_null_str(), {0, {1, 37}}}},
         {.is_arg = false,
-         .token = {I_CONSTANT, .spelling = STR_NON_HEAP("3"), {0, {1, 39}}}},
+         .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("3"), {0, {1, 39}}}},
         {.is_arg = false,
-         .token = {SUB, .spelling = create_null_str(), {0, {1, 41}}}},
+         .token = {TOKEN_SUB, .spelling = create_null_str(), {0, {1, 41}}}},
         {.is_arg = true, .arg_num = 1},
     };
 
@@ -269,11 +269,11 @@ TEST(func_like) {
     // #define YET_ANOTHER_FUNC_LIKE() 1 + 1
     struct token_or_arg ex3[] = {
         {.is_arg = false,
-         .token = {I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 33}}}},
+         .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 33}}}},
         {.is_arg = false,
-         .token = {ADD, .spelling = create_null_str(), {0, {1, 35}}}},
+         .token = {TOKEN_ADD, .spelling = create_null_str(), {0, {1, 35}}}},
         {.is_arg = false,
-         .token = {I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 37}}}},
+         .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 37}}}},
     };
 
     const struct preproc_macro macro3 = {
@@ -316,10 +316,10 @@ TEST(func_like_variadic) {
     struct token_or_arg ex1[] = {
         {.is_arg = true, .arg_num = 0},
         {.is_arg = false,
-         .token = {LBRACKET, .spelling = create_null_str(), {0, {1, 33}}}},
+         .token = {TOKEN_LBRACKET, .spelling = create_null_str(), {0, {1, 33}}}},
         {.is_arg = true, .arg_num = 1},
         {.is_arg = false,
-         .token = {RBRACKET, .spelling = create_null_str(), {0, {1, 45}}}},
+         .token = {TOKEN_RBRACKET, .spelling = create_null_str(), {0, {1, 45}}}},
     };
 
     const struct preproc_macro macro1 = {
@@ -343,13 +343,13 @@ TEST(func_like_variadic) {
     // #define ONLY_VARARGS(...) 1, 2, __VA_ARGS__
     struct token_or_arg ex2[] = {
         {.is_arg = false,
-         .token = {I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 27}}}},
+         .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 27}}}},
         {.is_arg = false,
-         .token = {COMMA, .spelling = create_null_str(), {0, {1, 28}}}},
+         .token = {TOKEN_COMMA, .spelling = create_null_str(), {0, {1, 28}}}},
         {.is_arg = false,
-         .token = {I_CONSTANT, .spelling = STR_NON_HEAP("2"), {0, {1, 30}}}},
+         .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("2"), {0, {1, 30}}}},
         {.is_arg = false,
-         .token = {COMMA, .spelling = create_null_str(), {0, {1, 31}}}},
+         .token = {TOKEN_COMMA, .spelling = create_null_str(), {0, {1, 31}}}},
         {.is_arg = true, .arg_num = 0},
     };
 

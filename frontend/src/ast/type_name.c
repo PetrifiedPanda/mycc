@@ -19,17 +19,19 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
         // might be better for the error to just say "Expected type specifier or
         // type qualifier"
         enum token_kind expected[] = {
-            VOID,     CHAR,     SHORT,    INT,  LONG,         FLOAT,
-            DOUBLE,   SIGNED,   UNSIGNED, BOOL, COMPLEX,      IMAGINARY,
-            ATOMIC,   STRUCT,   UNION,    ENUM, TYPEDEF_NAME, CONST,
-            RESTRICT, VOLATILE, ATOMIC,
+            TOKEN_VOID,         TOKEN_CHAR,   TOKEN_SHORT,    TOKEN_INT,
+            TOKEN_LONG,         TOKEN_FLOAT,  TOKEN_DOUBLE,   TOKEN_SIGNED,
+            TOKEN_UNSIGNED,     TOKEN_BOOL,   TOKEN_COMPLEX,  TOKEN_IMAGINARY,
+            TOKEN_ATOMIC,       TOKEN_STRUCT, TOKEN_UNION,    TOKEN_ENUM,
+            TOKEN_TYPEDEF_NAME, TOKEN_CONST,  TOKEN_RESTRICT, TOKEN_VOLATILE,
+            TOKEN_ATOMIC,
         };
         expected_tokens_error(s, expected, ARR_LEN(expected));
         return false;
     }
 
-    if (s->it->kind == ASTERISK || s->it->kind == LBRACKET
-        || s->it->kind == LINDEX) {
+    if (s->it->kind == TOKEN_ASTERISK || s->it->kind == TOKEN_LBRACKET
+        || s->it->kind == TOKEN_LINDEX) {
         res->abstract_decl = parse_abs_declarator(s);
         if (!res->abstract_decl) {
             free_spec_qual_list(res->spec_qual_list);

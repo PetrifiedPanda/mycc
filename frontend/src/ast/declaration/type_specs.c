@@ -9,18 +9,18 @@
 
 static inline bool is_standalone_type_spec(enum token_kind t) {
     switch (t) {
-        case VOID:
-        case CHAR:
-        case SHORT:
-        case INT:
-        case LONG:
-        case FLOAT:
-        case DOUBLE:
-        case SIGNED:
-        case UNSIGNED:
-        case BOOL:
-        case COMPLEX:
-        case IMAGINARY:
+        case TOKEN_VOID:
+        case TOKEN_CHAR:
+        case TOKEN_SHORT:
+        case TOKEN_INT:
+        case TOKEN_LONG:
+        case TOKEN_FLOAT:
+        case TOKEN_DOUBLE:
+        case TOKEN_SIGNED:
+        case TOKEN_UNSIGNED:
+        case TOKEN_BOOL:
+        case TOKEN_COMPLEX:
+        case TOKEN_IMAGINARY:
             return true;
         default:
             return false;
@@ -51,17 +51,17 @@ static void cannot_combine_with_spec_err(const struct parser_state* s,
 
 static enum type_spec_kind get_predef_type_spec(enum token_kind t) {
     switch (t) {
-        case VOID:
+        case TOKEN_VOID:
             return TYPE_SPEC_VOID;
-        case CHAR:
+        case TOKEN_CHAR:
             return TYPE_SPEC_CHAR;
-        case INT:
+        case TOKEN_INT:
             return TYPE_SPEC_INT;
-        case FLOAT:
+        case TOKEN_FLOAT:
             return TYPE_SPEC_FLOAT;
-        case DOUBLE:
+        case TOKEN_DOUBLE:
             return TYPE_SPEC_DOUBLE;
-        case BOOL:
+        case TOKEN_BOOL:
             return TYPE_SPEC_BOOL;
 
         default:
@@ -72,12 +72,12 @@ static enum type_spec_kind get_predef_type_spec(enum token_kind t) {
 static bool update_standalone_type_spec(struct parser_state* s,
                                         struct type_specs* res) {
     switch (s->it->kind) {
-        case VOID:
-        case CHAR:
-        case INT:
-        case FLOAT:
-        case DOUBLE:
-        case BOOL:
+        case TOKEN_VOID:
+        case TOKEN_CHAR:
+        case TOKEN_INT:
+        case TOKEN_FLOAT:
+        case TOKEN_DOUBLE:
+        case TOKEN_BOOL:
             if (res->kind != TYPE_SPEC_NONE) {
                 set_parser_err(s->err,
                                PARSER_ERR_DISALLOWED_TYPE_QUALS,
@@ -88,18 +88,18 @@ static bool update_standalone_type_spec(struct parser_state* s,
             }
             res->kind = get_predef_type_spec(s->it->kind);
             break;
-        case SHORT:
+        case TOKEN_SHORT:
             if (res->mods.num_long != 0) {
-                cannot_combine_with_spec_err(s, LONG);
+                cannot_combine_with_spec_err(s, TOKEN_LONG);
                 free_type_specs_children(res);
                 return false;
             }
 
             res->mods.is_short = true;
             break;
-        case LONG:
+        case TOKEN_LONG:
             if (res->mods.is_short) {
-                cannot_combine_with_spec_err(s, SHORT);
+                cannot_combine_with_spec_err(s, TOKEN_SHORT);
                 free_type_specs_children(res);
                 return false;
             } else if (res->mods.num_long == 2) {
@@ -108,26 +108,26 @@ static bool update_standalone_type_spec(struct parser_state* s,
             }
             res->mods.num_long += 1;
             break;
-        case SIGNED:
+        case TOKEN_SIGNED:
             if (res->mods.is_unsigned) {
-                cannot_combine_with_spec_err(s, UNSIGNED);
+                cannot_combine_with_spec_err(s, TOKEN_UNSIGNED);
                 free_type_specs_children(res);
                 return false;
             }
             res->mods.is_signed = true;
             break;
-        case UNSIGNED:
+        case TOKEN_UNSIGNED:
             if (res->mods.is_signed) {
-                cannot_combine_with_spec_err(s, SIGNED);
+                cannot_combine_with_spec_err(s, TOKEN_SIGNED);
                 free_type_specs_children(res);
                 return false;
             }
             res->mods.is_unsigned = true;
             break;
-        case COMPLEX:
+        case TOKEN_COMPLEX:
             res->mods.is_complex = true;
             break;
-        case IMAGINARY:
+        case TOKEN_IMAGINARY:
             res->mods.is_imaginary = true;
             break;
 
@@ -141,7 +141,7 @@ static bool update_standalone_type_spec(struct parser_state* s,
 static bool update_non_standalone_type_spec(struct parser_state* s,
                                             struct type_specs* res) {
     switch (s->it->kind) {
-        case ATOMIC: {
+        case TOKEN_ATOMIC: {
             res->kind = TYPE_SPEC_ATOMIC;
             res->atomic_spec = parse_atomic_type_spec(s);
             if (!res->atomic_spec) {
@@ -150,8 +150,8 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
             }
             break;
         }
-        case STRUCT:
-        case UNION: {
+        case TOKEN_STRUCT:
+        case TOKEN_UNION: {
             res->kind = TYPE_SPEC_STRUCT;
             res->struct_union_spec = parse_struct_union_spec(s);
             if (!res->struct_union_spec) {
@@ -160,7 +160,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
             }
             break;
         }
-        case ENUM: {
+        case TOKEN_ENUM: {
             res->kind = TYPE_SPEC_ENUM;
             res->enum_spec = parse_enum_spec(s);
             if (!res->enum_spec) {
@@ -169,7 +169,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
             }
             break;
         }
-        case IDENTIFIER: {
+        case TOKEN_IDENTIFIER: {
             if (is_typedef_name(s, &s->it->spelling)) {
                 res->kind = TYPE_SPEC_TYPENAME;
                 const struct str spell = token_take_spelling(s->it);
@@ -187,23 +187,23 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
         }
         default: {
             enum token_kind expected[] = {
-                ATOMIC,
-                STRUCT,
-                UNION,
-                ENUM,
-                TYPEDEF_NAME,
-                VOID,
-                CHAR,
-                SHORT,
-                INT,
-                LONG,
-                FLOAT,
-                DOUBLE,
-                SIGNED,
-                UNSIGNED,
-                BOOL,
-                COMPLEX,
-                IMAGINARY,
+                TOKEN_ATOMIC,
+                TOKEN_STRUCT,
+                TOKEN_UNION,
+                TOKEN_ENUM,
+                TOKEN_TYPEDEF_NAME,
+                TOKEN_VOID,
+                TOKEN_CHAR,
+                TOKEN_SHORT,
+                TOKEN_INT,
+                TOKEN_LONG,
+                TOKEN_FLOAT,
+                TOKEN_DOUBLE,
+                TOKEN_SIGNED,
+                TOKEN_UNSIGNED,
+                TOKEN_BOOL,
+                TOKEN_COMPLEX,
+                TOKEN_IMAGINARY,
             };
             expected_tokens_error(s, expected, ARR_LEN(expected));
             res->kind = TYPE_SPEC_NONE;

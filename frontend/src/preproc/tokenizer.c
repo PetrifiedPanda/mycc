@@ -69,7 +69,7 @@ bool next_preproc_token(struct token* res,
     if (*s.it == '\0') {
         const struct str null_str = create_null_str();
         *res = (struct token){
-            .kind = INVALID,
+            .kind = TOKEN_INVALID,
             .spelling = null_str,
             .loc =
                 {
@@ -103,8 +103,8 @@ bool next_preproc_token(struct token* res,
     }
 
     enum token_kind kind = singlec_token_kind(*s.it);
-    if (kind != INVALID && is_singlec_token(&s, kind)) {
-        if (kind == DIV && (s.it[1] == '/' || s.it[1] == '*')) {
+    if (kind != TOKEN_INVALID && is_singlec_token(&s, kind)) {
+        if (kind == TOKEN_DIV && (s.it[1] == '/' || s.it[1] == '*')) {
             handle_comments(&s, &info->is_in_comment);
             write_line_info(&s, info);
             return next_preproc_token(res, err, info);
@@ -142,9 +142,9 @@ bool tokenize_line(struct token_arr* res,
             if (!next_preproc_token(&curr, err, info)) {
                 return false;
             }
-        } while (curr.kind == INVALID && *info->next != '\0');
+        } while (curr.kind == TOKEN_INVALID && *info->next != '\0');
 
-        if (curr.kind != INVALID) {
+        if (curr.kind != TOKEN_INVALID) {
             if (res->len == res->cap) {
                 mycc_grow_alloc((void**)&res->tokens,
                                 &res->cap,
@@ -160,57 +160,57 @@ bool tokenize_line(struct token_arr* res,
 static enum token_kind singlec_token_kind(char c) {
     switch (c) {
         case ';':
-            return SEMICOLON;
+            return TOKEN_SEMICOLON;
         case '(':
-            return LBRACKET;
+            return TOKEN_LBRACKET;
         case ')':
-            return RBRACKET;
+            return TOKEN_RBRACKET;
         case '{':
-            return LBRACE;
+            return TOKEN_LBRACE;
         case '}':
-            return RBRACE;
+            return TOKEN_RBRACE;
         case '[':
-            return LINDEX;
+            return TOKEN_LINDEX;
         case ']':
-            return RINDEX;
+            return TOKEN_RINDEX;
         case '.':
-            return DOT;
+            return TOKEN_DOT;
         case '&':
-            return AND;
+            return TOKEN_AND;
         case '|':
-            return OR;
+            return TOKEN_OR;
         case '^':
-            return XOR;
+            return TOKEN_XOR;
         case '!':
-            return NOT;
+            return TOKEN_NOT;
         case '~':
-            return BNOT;
+            return TOKEN_BNOT;
         case '-':
-            return SUB;
+            return TOKEN_SUB;
         case '+':
-            return ADD;
+            return TOKEN_ADD;
         case '*':
-            return ASTERISK;
+            return TOKEN_ASTERISK;
         case '/':
-            return DIV;
+            return TOKEN_DIV;
         case '%':
-            return MOD;
+            return TOKEN_MOD;
         case '<':
-            return LT;
+            return TOKEN_LT;
         case '>':
-            return GT;
+            return TOKEN_GT;
         case '?':
-            return QMARK;
+            return TOKEN_QMARK;
         case ':':
-            return COLON;
+            return TOKEN_COLON;
         case '=':
-            return ASSIGN;
+            return TOKEN_ASSIGN;
         case ',':
-            return COMMA;
+            return TOKEN_COMMA;
         case '#':
-            return STRINGIFY_OP;
+            return TOKEN_PP_STRINGIFY;
         default:
-            return INVALID;
+            return TOKEN_INVALID;
     }
 }
 
@@ -225,105 +225,105 @@ static bool check_kind(enum token_kind kind, const char* next_chars) {
 static enum token_kind check_next(enum token_kind kind, const char* next) {
     assert(next[0] != '\0');
     switch (kind) {
-        case ADD:
-            if (check_kind(ADD_ASSIGN, next)) {
-                return ADD_ASSIGN;
-            } else if (check_kind(INC_OP, next)) {
-                return INC_OP;
+        case TOKEN_ADD:
+            if (check_kind(TOKEN_ADD_ASSIGN, next)) {
+                return TOKEN_ADD_ASSIGN;
+            } else if (check_kind(TOKEN_INC, next)) {
+                return TOKEN_INC;
             } else {
                 break;
             }
-        case SUB:
-            if (check_kind(PTR_OP, next)) {
-                return PTR_OP;
-            } else if (check_kind(DEC_OP, next)) {
-                return DEC_OP;
-            } else if (check_kind(SUB_ASSIGN, next)) {
-                return SUB_ASSIGN;
+        case TOKEN_SUB:
+            if (check_kind(TOKEN_PTR_OP, next)) {
+                return TOKEN_PTR_OP;
+            } else if (check_kind(TOKEN_DEC, next)) {
+                return TOKEN_DEC;
+            } else if (check_kind(TOKEN_SUB_ASSIGN, next)) {
+                return TOKEN_SUB_ASSIGN;
             } else {
                 break;
             }
-        case ASTERISK:
-            if (check_kind(MUL_ASSIGN, next)) {
-                return MUL_ASSIGN;
+        case TOKEN_ASTERISK:
+            if (check_kind(TOKEN_MUL_ASSIGN, next)) {
+                return TOKEN_MUL_ASSIGN;
             } else {
                 break;
             }
-        case DIV:
-            if (check_kind(DIV_ASSIGN, next)) {
-                return DIV_ASSIGN;
+        case TOKEN_DIV:
+            if (check_kind(TOKEN_DIV_ASSIGN, next)) {
+                return TOKEN_DIV_ASSIGN;
             } else {
                 break;
             }
-        case LT:
-            if (check_kind(LEFT_ASSIGN, next)) {
-                return LEFT_ASSIGN;
-            } else if (check_kind(LEFT_OP, next)) {
-                return LEFT_OP;
-            } else if (check_kind(LE_OP, next)) {
-                return LE_OP;
+        case TOKEN_LT:
+            if (check_kind(TOKEN_LSHIFT_ASSIGN, next)) {
+                return TOKEN_LSHIFT_ASSIGN;
+            } else if (check_kind(TOKEN_LSHIFT, next)) {
+                return TOKEN_LSHIFT;
+            } else if (check_kind(TOKEN_LE, next)) {
+                return TOKEN_LE;
             } else {
                 break;
             }
-        case GT:
-            if (check_kind(RIGHT_ASSIGN, next)) {
-                return RIGHT_ASSIGN;
-            } else if (check_kind(RIGHT_OP, next)) {
-                return RIGHT_OP;
-            } else if (check_kind(GE_OP, next)) {
-                return GE_OP;
+        case TOKEN_GT:
+            if (check_kind(TOKEN_RSHIFT_ASSIGN, next)) {
+                return TOKEN_RSHIFT_ASSIGN;
+            } else if (check_kind(TOKEN_RSHIFT, next)) {
+                return TOKEN_RSHIFT;
+            } else if (check_kind(TOKEN_GE, next)) {
+                return TOKEN_GE;
             } else {
                 break;
             }
-        case AND:
-            if (check_kind(AND_OP, next)) {
-                return AND_OP;
-            } else if (check_kind(AND_ASSIGN, next)) {
-                return AND_ASSIGN;
+        case TOKEN_AND:
+            if (check_kind(TOKEN_LAND, next)) {
+                return TOKEN_LAND;
+            } else if (check_kind(TOKEN_AND_ASSIGN, next)) {
+                return TOKEN_AND_ASSIGN;
             } else {
                 break;
             }
-        case OR:
-            if (check_kind(OR_OP, next)) {
-                return OR_OP;
-            } else if (check_kind(OR_ASSIGN, next)) {
-                return OR_ASSIGN;
+        case TOKEN_OR:
+            if (check_kind(TOKEN_LOR, next)) {
+                return TOKEN_LOR;
+            } else if (check_kind(TOKEN_OR_ASSIGN, next)) {
+                return TOKEN_OR_ASSIGN;
             } else {
                 break;
             }
-        case XOR:
-            if (check_kind(XOR_ASSIGN, next)) {
-                return XOR_ASSIGN;
+        case TOKEN_XOR:
+            if (check_kind(TOKEN_XOR_ASSIGN, next)) {
+                return TOKEN_XOR_ASSIGN;
             } else {
                 break;
             }
-        case MOD:
-            if (check_kind(MOD_ASSIGN, next)) {
-                return MOD_ASSIGN;
+        case TOKEN_MOD:
+            if (check_kind(TOKEN_MOD_ASSIGN, next)) {
+                return TOKEN_MOD_ASSIGN;
             } else {
                 break;
             }
-        case DOT:
-            if (check_kind(ELLIPSIS, next)) {
-                return ELLIPSIS;
+        case TOKEN_DOT:
+            if (check_kind(TOKEN_ELLIPSIS, next)) {
+                return TOKEN_ELLIPSIS;
             } else {
                 break;
             }
-        case ASSIGN:
-            if (check_kind(EQ_OP, next)) {
-                return EQ_OP;
+        case TOKEN_ASSIGN:
+            if (check_kind(TOKEN_EQ, next)) {
+                return TOKEN_EQ;
             } else {
                 break;
             }
-        case NOT:
-            if (check_kind(NE_OP, next)) {
-                return NE_OP;
+        case TOKEN_NOT:
+            if (check_kind(TOKEN_NE, next)) {
+                return TOKEN_NE;
             } else {
                 break;
             }
-        case STRINGIFY_OP:
-            if (check_kind(CONCAT_OP, next)) {
-                return CONCAT_OP;
+        case TOKEN_PP_STRINGIFY:
+            if (check_kind(TOKEN_PP_CONCAT, next)) {
+                return TOKEN_PP_CONCAT;
             } else {
                 break;
             }
@@ -337,7 +337,7 @@ static enum token_kind check_next(enum token_kind kind, const char* next) {
 static bool is_singlec_token(const struct tokenizer_state* s,
                              enum token_kind t) {
     switch (t) {
-        case DOT:
+        case TOKEN_DOT:
             return !isdigit(s->it[1]);
         default:
             return true;
@@ -414,11 +414,11 @@ static enum token_kind get_char_lit_kind(const char* buf,
                                          size_t len,
                                          char terminator) {
     if (terminator == '\"' && is_string_literal(buf, len)) {
-        return STRING_LITERAL;
+        return TOKEN_STRING_LITERAL;
     } else if (terminator == '\'' && is_char_const(buf, len)) {
-        return I_CONSTANT;
+        return TOKEN_I_CONSTANT;
     } else {
-        return INVALID;
+        return TOKEN_INVALID;
     }
 }
 
@@ -502,7 +502,7 @@ static bool handle_character_literal(struct tokenizer_state* s,
         enum token_kind kind = get_char_lit_kind(str_get_data(&spell),
                                                  str_len(&spell),
                                                  terminator);
-        assert(kind != INVALID);
+        assert(kind != TOKEN_INVALID);
         *res = create_token(kind, &spell, start_loc, s->current_file_idx);
 
         write_line_info(s, info);
@@ -515,16 +515,16 @@ static bool token_is_over(const struct tokenizer_state* s, bool is_num) {
         return true;
     }
     enum token_kind kind = singlec_token_kind(*s->it);
-    if (kind == INVALID) {
+    if (kind == TOKEN_INVALID) {
         return false;
     } else if (is_num) {
         switch (kind) {
-            case SUB:
-            case ADD: {
+            case TOKEN_SUB:
+            case TOKEN_ADD: {
                 char prev = (char)tolower((unsigned char)s->prev);
                 return (prev != 'e' && prev != 'p');
             }
-            case DOT:
+            case TOKEN_DOT:
                 return false;
             default:
                 return true;
@@ -571,9 +571,9 @@ static bool handle_other(struct tokenizer_state* s,
     const size_t spell_len = str_len(&spell);
     if (is_num) {
         if (is_int_const(spell_data, spell_len)) {
-            kind = I_CONSTANT;
+            kind = TOKEN_I_CONSTANT;
         } else if (is_float_const(spell_data, spell_len)) {
-            kind = F_CONSTANT;
+            kind = TOKEN_F_CONSTANT;
         } else {
             struct source_loc loc = {
                 .file_idx = s->current_file_idx,
@@ -584,7 +584,7 @@ static bool handle_other(struct tokenizer_state* s,
             return false;
         }
     } else if (is_valid_identifier(spell_data, spell_len)) {
-        kind = IDENTIFIER;
+        kind = TOKEN_IDENTIFIER;
     } else {
         struct source_loc loc = {
             .file_idx = s->current_file_idx,

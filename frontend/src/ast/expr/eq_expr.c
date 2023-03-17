@@ -8,8 +8,8 @@
 
 static bool is_eq_op(enum token_kind t) {
     switch (t) {
-        case EQ_OP:
-        case NE_OP:
+        case TOKEN_EQ:
+        case TOKEN_NE:
             return true;
         default:
             return false;
@@ -39,7 +39,7 @@ static bool parse_eq_expr_eq_chain(struct parser_state* s,
         if (!curr->rhs) {
             goto fail;
         }
-        curr->op = op == EQ_OP ? EQ_EXPR_EQ : EQ_EXPR_NE;
+        curr->op = op == TOKEN_EQ ? EQ_EXPR_EQ : EQ_EXPR_NE;
 
         ++res->len;
     }

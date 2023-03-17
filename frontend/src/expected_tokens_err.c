@@ -30,7 +30,7 @@ void print_expected_tokens_err(FILE* out,
         printf(", %s", get_token_kind_str(err->expected[i]));
     }
 
-    if (err->got == INVALID) {
+    if (err->got == TOKEN_INVALID) {
         fprintf(out, " but got to end of file");
     } else {
         fprintf(out, " but got token of kind %s", get_token_kind_str(err->got));

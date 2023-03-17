@@ -9,8 +9,8 @@
 static bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* res) {
     assert(res);
 
-    if (s->it->kind != IDENTIFIER) {
-        expected_token_error(s, IDENTIFIER);
+    if (s->it->kind != TOKEN_IDENTIFIER) {
+        expected_token_error(s, TOKEN_IDENTIFIER);
         return false;
     }
 
@@ -25,7 +25,7 @@ static bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* 
     struct source_loc loc = id_token->loc;
 
     struct const_expr* enum_val = NULL;
-    if (s->it->kind == ASSIGN) {
+    if (s->it->kind == TOKEN_ASSIGN) {
         accept_it(s);
         enum_val = parse_const_expr(s);
         if (!enum_val) {
@@ -56,7 +56,7 @@ static bool parse_enum_list(struct parser_state* s, struct enum_list* res) {
     }
 
     size_t alloc_len = 1;
-    while (s->it->kind == COMMA && s->it[1].kind == IDENTIFIER) {
+    while (s->it->kind == TOKEN_COMMA && s->it[1].kind == TOKEN_IDENTIFIER) {
         accept_it(s);
 
         if (res->len == alloc_len) {
@@ -98,12 +98,12 @@ static struct enum_spec* create_enum_spec(struct source_loc loc,
 
 struct enum_spec* parse_enum_spec(struct parser_state* s) {
     const struct source_loc loc = s->it->loc;
-    if (!accept(s, ENUM)) {
+    if (!accept(s, TOKEN_ENUM)) {
         return NULL;
     }
 
     struct identifier* id = NULL;
-    if (s->it->kind == IDENTIFIER) {
+    if (s->it->kind == TOKEN_IDENTIFIER) {
         const struct str spell = token_take_spelling(s->it);
         const struct source_loc id_loc = s->it->loc;
         accept_it(s);
@@ -111,22 +111,22 @@ struct enum_spec* parse_enum_spec(struct parser_state* s) {
     }
 
     struct enum_list enums = {.len = 0, .enums = NULL};
-    if (s->it->kind == LBRACE) {
+    if (s->it->kind == TOKEN_LBRACE) {
         accept_it(s);
         if (!parse_enum_list(s, &enums)) {
             goto fail;
         }
         assert(enums.len > 0);
 
-        if (s->it->kind == COMMA) {
+        if (s->it->kind == TOKEN_COMMA) {
             accept_it(s);
         }
-        if (!accept(s, RBRACE)) {
+        if (!accept(s, TOKEN_RBRACE)) {
             free_enum_list(&enums);
             goto fail;
         }
     } else if (id == NULL) {
-        expected_token_error(s, LBRACE);
+        expected_token_error(s, TOKEN_LBRACE);
         goto fail;
     }
 

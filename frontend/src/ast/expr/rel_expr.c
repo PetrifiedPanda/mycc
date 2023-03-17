@@ -9,10 +9,10 @@
 
 static bool is_rel_op(enum token_kind k) {
     switch (k) {
-        case LE_OP:
-        case GE_OP:
-        case LT:
-        case GT:
+        case TOKEN_LE:
+        case TOKEN_GE:
+        case TOKEN_LT:
+        case TOKEN_GT:
             return true;
         default:
             return false;
@@ -22,13 +22,13 @@ static bool is_rel_op(enum token_kind k) {
 static enum rel_expr_op token_type_to_rel_op(enum token_kind t) {
     assert(is_rel_op(t));
     switch (t) {
-        case LT:
+        case TOKEN_LT:
             return REL_EXPR_LT;
-        case GT:
+        case TOKEN_GT:
             return REL_EXPR_GT;
-        case LE_OP:
+        case TOKEN_LE:
             return REL_EXPR_LE;
-        case GE_OP:
+        case TOKEN_GE:
             return REL_EXPR_GE;
 
         default:

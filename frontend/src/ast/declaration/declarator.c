@@ -6,7 +6,7 @@ static struct declarator* parse_declarator_base(
     struct parser_state* s,
     struct direct_declarator* (*parse_func)(struct parser_state* s)) {
     struct declarator* res = mycc_alloc(sizeof *res);
-    if (s->it->kind == ASTERISK) {
+    if (s->it->kind == TOKEN_ASTERISK) {
         res->ptr = parse_pointer(s);
         if (!res->ptr) {
             mycc_free(res);

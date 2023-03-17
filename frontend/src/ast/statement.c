@@ -14,7 +14,7 @@ static struct labeled_statement* parse_labeled_statement(
     struct labeled_statement* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
     switch (s->it->kind) {
-        case CASE: {
+        case TOKEN_CASE: {
             res->kind = LABELED_STATEMENT_CASE;
             accept_it(s);
             struct const_expr* case_expr = parse_const_expr(s);
@@ -26,7 +26,7 @@ static struct labeled_statement* parse_labeled_statement(
             break;
         }
 
-        case IDENTIFIER: {
+        case TOKEN_IDENTIFIER: {
             res->kind = LABELED_STATEMENT_LABEL;
             const struct str spelling = token_take_spelling(s->it);
             struct source_loc loc = s->it->loc;
@@ -35,7 +35,7 @@ static struct labeled_statement* parse_labeled_statement(
             break;
         }
 
-        case DEFAULT: {
+        case TOKEN_DEFAULT: {
             res->kind = LABELED_STATEMENT_DEFAULT;
             accept_it(s);
             res->case_expr = NULL;
@@ -44,14 +44,14 @@ static struct labeled_statement* parse_labeled_statement(
 
         default: {
             mycc_free(res);
-            enum token_kind expected[] = {IDENTIFIER, CASE, DEFAULT};
+            enum token_kind expected[] = {TOKEN_IDENTIFIER, TOKEN_CASE, TOKEN_DEFAULT};
 
             expected_tokens_error(s, expected, ARR_LEN(expected));
             return NULL;
         }
     }
 
-    if (!accept(s, COLON)) {
+    if (!accept(s, TOKEN_COLON)) {
         goto fail;
     }
 
@@ -130,7 +130,7 @@ void free_compound_statement(struct compound_statement* s) {
 bool parse_compound_statement_inplace(struct parser_state* s,
                                       struct compound_statement* res) {
     res->info = create_ast_node_info(s->it->loc);
-    if (!accept(s, LBRACE)) {
+    if (!accept(s, TOKEN_LBRACE)) {
         return false;
     }
 
@@ -139,7 +139,7 @@ bool parse_compound_statement_inplace(struct parser_state* s,
     res->len = 0;
 
     size_t alloc_len = res->len;
-    while (s->it->kind != RBRACE) {
+    while (s->it->kind != TOKEN_RBRACE) {
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->items,
                             &alloc_len,
@@ -156,7 +156,7 @@ bool parse_compound_statement_inplace(struct parser_state* s,
 
     res->items = mycc_realloc(res->items, sizeof *res->items * res->len);
 
-    assert(s->it->kind == RBRACE);
+    assert(s->it->kind == TOKEN_RBRACE);
     accept_it(s);
 
     parser_pop_scope(s);
@@ -179,7 +179,7 @@ void free_expr_statement(struct expr_statement* s);
 static struct expr_statement* parse_expr_statement(struct parser_state* s) {
     struct expr_statement* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
-    if (s->it->kind == SEMICOLON) {
+    if (s->it->kind == TOKEN_SEMICOLON) {
         accept_it(s);
         res->expr.len = 0;
         res->expr.assign_exprs = NULL;
@@ -190,7 +190,7 @@ static struct expr_statement* parse_expr_statement(struct parser_state* s) {
             return NULL;
         }
 
-        if (!accept(s, SEMICOLON)) {
+        if (!accept(s, TOKEN_SEMICOLON)) {
             free_expr_statement(res);
             return NULL;
         }
@@ -212,13 +212,13 @@ static struct selection_statement* parse_selection_statement(
     struct parser_state* s) {
     struct selection_statement* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
-    if (s->it->kind == IF) {
+    if (s->it->kind == TOKEN_IF) {
         res->is_if = true;
         accept_it(s);
     } else {
-        if (!accept(s, SWITCH)) {
+        if (!accept(s, TOKEN_SWITCH)) {
             mycc_free(res);
-            enum token_kind expected[] = {IF, SWITCH};
+            enum token_kind expected[] = {TOKEN_IF, TOKEN_SWITCH};
 
             expected_tokens_error(s, expected, ARR_LEN(expected));
             return NULL;
@@ -226,7 +226,7 @@ static struct selection_statement* parse_selection_statement(
         res->is_if = false;
     }
 
-    if (!accept(s, LBRACKET)) {
+    if (!accept(s, TOKEN_LBRACKET)) {
         mycc_free(res);
         return NULL;
     }
@@ -237,7 +237,7 @@ static struct selection_statement* parse_selection_statement(
         return NULL;
     }
 
-    if (!accept(s, RBRACKET)) {
+    if (!accept(s, TOKEN_RBRACKET)) {
         free_expr(res->sel_expr);
         mycc_free(res);
         return NULL;
@@ -250,7 +250,7 @@ static struct selection_statement* parse_selection_statement(
         return NULL;
     }
 
-    if (res->is_if && s->it->kind == ELSE) {
+    if (res->is_if && s->it->kind == TOKEN_ELSE) {
         accept_it(s);
         res->else_stat = parse_statement(s);
         if (!res->else_stat) {
@@ -330,11 +330,11 @@ static struct iteration_statement* create_for_loop(
 static struct iteration_statement* parse_while_statement(
     struct parser_state* s,
     struct source_loc loc) {
-    assert(s->it->kind == WHILE);
+    assert(s->it->kind == TOKEN_WHILE);
 
     accept_it(s);
 
-    if (!accept(s, LBRACKET)) {
+    if (!accept(s, TOKEN_LBRACKET)) {
         return NULL;
     }
 
@@ -343,7 +343,7 @@ static struct iteration_statement* parse_while_statement(
         return NULL;
     }
 
-    if (!accept(s, RBRACKET)) {
+    if (!accept(s, TOKEN_RBRACKET)) {
         free_expr(while_cond);
         return NULL;
     }
@@ -359,7 +359,7 @@ static struct iteration_statement* parse_while_statement(
 
 static struct iteration_statement* parse_do_loop(struct parser_state* s,
                                                  struct source_loc loc) {
-    assert(s->it->kind == DO);
+    assert(s->it->kind == TOKEN_DO);
 
     accept_it(s);
 
@@ -368,13 +368,13 @@ static struct iteration_statement* parse_do_loop(struct parser_state* s,
         return NULL;
     }
 
-    if (!accept(s, WHILE) || !accept(s, LBRACKET)) {
+    if (!accept(s, TOKEN_WHILE) || !accept(s, TOKEN_LBRACKET)) {
         free_statement(loop_body);
         return NULL;
     }
 
     struct expr* while_cond = parse_expr(s);
-    if (!(while_cond && accept(s, RBRACKET) && accept(s, SEMICOLON))) {
+    if (!(while_cond && accept(s, TOKEN_RBRACKET) && accept(s, TOKEN_SEMICOLON))) {
         free_statement(loop_body);
         return NULL;
     }
@@ -384,11 +384,11 @@ static struct iteration_statement* parse_do_loop(struct parser_state* s,
 
 static struct iteration_statement* parse_for_loop(struct parser_state* s,
                                                   struct source_loc loc) {
-    assert(s->it->kind == FOR);
+    assert(s->it->kind == TOKEN_FOR);
 
     accept_it(s);
 
-    if (!accept(s, LBRACKET)) {
+    if (!accept(s, TOKEN_LBRACKET)) {
         return NULL;
     }
 
@@ -416,7 +416,7 @@ static struct iteration_statement* parse_for_loop(struct parser_state* s,
         return NULL;
     }
 
-    if (s->it->kind != RBRACKET) {
+    if (s->it->kind != TOKEN_RBRACKET) {
         loop.incr_expr = parse_expr(s);
         if (!loop.incr_expr) {
             goto fail;
@@ -425,7 +425,7 @@ static struct iteration_statement* parse_for_loop(struct parser_state* s,
         loop.incr_expr = NULL;
     }
 
-    if (!accept(s, RBRACKET)) {
+    if (!accept(s, TOKEN_RBRACKET)) {
         goto fail;
     }
 
@@ -449,17 +449,17 @@ static struct iteration_statement* parse_iteration_statement(
     struct parser_state* s) {
     const struct source_loc loc = s->it->loc;
     switch (s->it->kind) {
-        case WHILE:
+        case TOKEN_WHILE:
             return parse_while_statement(s, loc);
-        case DO:
+        case TOKEN_DO:
             return parse_do_loop(s, loc);
 
-        case FOR: {
+        case TOKEN_FOR: {
             return parse_for_loop(s, loc);
         }
 
         default: {
-            enum token_kind expected[] = {WHILE, DO, FOR};
+            enum token_kind expected[] = {TOKEN_WHILE, TOKEN_DO, TOKEN_FOR};
 
             expected_tokens_error(s, expected, ARR_LEN(expected));
             return NULL;
@@ -531,9 +531,9 @@ static struct jump_statement* parse_jump_statement(struct parser_state* s) {
     const struct source_loc loc = s->it->loc;
     struct jump_statement* res = NULL;
     switch (s->it->kind) {
-        case GOTO: {
+        case TOKEN_GOTO: {
             accept_it(s);
-            if (s->it->kind == IDENTIFIER) {
+            if (s->it->kind == TOKEN_IDENTIFIER) {
                 const struct str spell = token_take_spelling(s->it);
                 const struct source_loc id_loc = s->it->loc;
                 accept_it(s);
@@ -541,24 +541,24 @@ static struct jump_statement* parse_jump_statement(struct parser_state* s) {
                                             create_identifier(&spell, id_loc));
                 break;
             } else {
-                expected_token_error(s, IDENTIFIER);
+                expected_token_error(s, TOKEN_IDENTIFIER);
                 return NULL;
             }
         }
-        case CONTINUE:
-        case BREAK: {
+        case TOKEN_CONTINUE:
+        case TOKEN_BREAK: {
             const enum token_kind t = s->it->kind;
             accept_it(s);
             res = create_jump_statement(loc,
-                                        t == CONTINUE ? JUMP_STATEMENT_CONTINUE
+                                        t == TOKEN_CONTINUE ? JUMP_STATEMENT_CONTINUE
                                                       : JUMP_STATEMENT_BREAK);
             res->ret_val = NULL;
             break;
         }
-        case RETURN: {
+        case TOKEN_RETURN: {
             accept_it(s);
             struct expr* ret_val;
-            if (s->it->kind == SEMICOLON) {
+            if (s->it->kind == TOKEN_SEMICOLON) {
                 ret_val = NULL;
             } else {
                 ret_val = parse_expr(s);
@@ -572,13 +572,13 @@ static struct jump_statement* parse_jump_statement(struct parser_state* s) {
         }
 
         default: {
-            enum token_kind expected[] = {GOTO, CONTINUE, BREAK, RETURN};
+            enum token_kind expected[] = {TOKEN_GOTO, TOKEN_CONTINUE, TOKEN_BREAK, TOKEN_RETURN};
             expected_tokens_error(s, expected, ARR_LEN(expected));
             return NULL;
         }
     }
 
-    if (!accept(s, SEMICOLON)) {
+    if (!accept(s, TOKEN_SEMICOLON)) {
         free_jump_statement(res);
         return NULL;
     }
@@ -611,7 +611,7 @@ bool parse_statement_inplace(struct parser_state* s, struct statement* res) {
     assert(res);
 
     switch (s->it->kind) {
-        case LBRACE: {
+        case TOKEN_LBRACE: {
             res->kind = STATEMENT_COMPOUND;
             res->comp = parse_compound_statement(s);
             if (!res->comp) {
@@ -620,9 +620,9 @@ bool parse_statement_inplace(struct parser_state* s, struct statement* res) {
             break;
         }
 
-        case FOR:
-        case WHILE:
-        case DO: {
+        case TOKEN_FOR:
+        case TOKEN_WHILE:
+        case TOKEN_DO: {
             res->kind = STATEMENT_ITERATION;
             res->it = parse_iteration_statement(s);
             if (!res->it) {
@@ -631,10 +631,10 @@ bool parse_statement_inplace(struct parser_state* s, struct statement* res) {
             break;
         }
 
-        case GOTO:
-        case CONTINUE:
-        case BREAK:
-        case RETURN: {
+        case TOKEN_GOTO:
+        case TOKEN_CONTINUE:
+        case TOKEN_BREAK:
+        case TOKEN_RETURN: {
             res->kind = STATEMENT_JUMP;
             res->jmp = parse_jump_statement(s);
             if (!res->jmp) {
@@ -643,8 +643,8 @@ bool parse_statement_inplace(struct parser_state* s, struct statement* res) {
             break;
         }
 
-        case IF:
-        case SWITCH: {
+        case TOKEN_IF:
+        case TOKEN_SWITCH: {
             res->kind = STATEMENT_SELECTION;
             res->sel = parse_selection_statement(s);
             if (!res->sel) {
@@ -653,8 +653,8 @@ bool parse_statement_inplace(struct parser_state* s, struct statement* res) {
             break;
         }
 
-        case CASE:
-        case DEFAULT: {
+        case TOKEN_CASE:
+        case TOKEN_DEFAULT: {
             res->kind = STATEMENT_LABELED;
             res->labeled = parse_labeled_statement(s);
             if (!res->labeled) {
@@ -663,8 +663,8 @@ bool parse_statement_inplace(struct parser_state* s, struct statement* res) {
             break;
         }
 
-        case IDENTIFIER: {
-            if (s->it[1].kind == COLON) {
+        case TOKEN_IDENTIFIER: {
+            if (s->it[1].kind == TOKEN_COLON) {
                 res->kind = STATEMENT_LABELED;
                 res->labeled = parse_labeled_statement(s);
                 if (!res->labeled) {

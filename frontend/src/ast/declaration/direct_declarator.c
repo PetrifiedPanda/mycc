@@ -15,7 +15,7 @@ static void free_arr_suffix(struct arr_suffix* s) {
 
 static bool parse_arr_suffix(struct parser_state* s,
                              struct arr_or_func_suffix* res) {
-    assert(s->it->kind == LINDEX);
+    assert(s->it->kind == TOKEN_LINDEX);
 
     res->kind = ARR_OR_FUNC_ARRAY;
     struct arr_suffix* suffix = &res->arr_suffix;
@@ -26,19 +26,19 @@ static bool parse_arr_suffix(struct parser_state* s,
         .arr_len = NULL,
     };
     accept_it(s);
-    if (s->it->kind == ASTERISK) {
+    if (s->it->kind == TOKEN_ASTERISK) {
         accept_it(s);
         suffix->is_asterisk = true;
-        if (!accept(s, RINDEX)) {
+        if (!accept(s, TOKEN_RINDEX)) {
             return false;
         }
         return true;
-    } else if (s->it->kind == RINDEX) {
+    } else if (s->it->kind == TOKEN_RINDEX) {
         accept_it(s);
         return true;
     }
 
-    if (s->it->kind == STATIC) {
+    if (s->it->kind == TOKEN_STATIC) {
         accept_it(s);
         suffix->is_static = true;
     }
@@ -48,7 +48,7 @@ static bool parse_arr_suffix(struct parser_state* s,
             return false;
         }
 
-        if (s->it->kind == ASTERISK) {
+        if (s->it->kind == TOKEN_ASTERISK) {
             if (suffix->is_static) {
                 set_parser_err(s->err,
                                PARSER_ERR_ARR_STATIC_ASTERISK,
@@ -58,7 +58,7 @@ static bool parse_arr_suffix(struct parser_state* s,
             }
             accept_it(s);
             suffix->is_asterisk = true;
-            if (!accept(s, RINDEX)) {
+            if (!accept(s, TOKEN_RINDEX)) {
                 free_arr_suffix(suffix);
                 return false;
             }
@@ -66,7 +66,7 @@ static bool parse_arr_suffix(struct parser_state* s,
         }
     }
 
-    if (s->it->kind == STATIC) {
+    if (s->it->kind == TOKEN_STATIC) {
         if (suffix->is_static) {
             set_parser_err(s->err, PARSER_ERR_ARR_DOUBLE_STATIC, s->it->loc);
             free_arr_suffix(suffix);
@@ -76,7 +76,7 @@ static bool parse_arr_suffix(struct parser_state* s,
         accept_it(s);
     }
 
-    if (s->it->kind == RINDEX) {
+    if (s->it->kind == TOKEN_RINDEX) {
         if (suffix->is_static) {
             set_parser_err(s->err, PARSER_ERR_ARR_STATIC_NO_LEN, s->it->loc);
             free_arr_suffix(suffix);
@@ -85,7 +85,7 @@ static bool parse_arr_suffix(struct parser_state* s,
         accept_it(s);
     } else {
         suffix->arr_len = parse_assign_expr(s);
-        if (!(suffix->arr_len && accept(s, RINDEX))) {
+        if (!(suffix->arr_len && accept(s, TOKEN_RINDEX))) {
             free_arr_suffix(suffix);
             return false;
         }
@@ -96,20 +96,20 @@ static bool parse_arr_suffix(struct parser_state* s,
 
 static bool parse_func_suffix(struct parser_state* s,
                               struct arr_or_func_suffix* res) {
-    assert(s->it->kind == LBRACKET);
+    assert(s->it->kind == TOKEN_LBRACKET);
 
     accept_it(s);
-    if (s->it->kind == IDENTIFIER && !is_typedef_name(s, &s->it->spelling)) {
+    if (s->it->kind == TOKEN_IDENTIFIER && !is_typedef_name(s, &s->it->spelling)) {
         res->kind = ARR_OR_FUNC_FUN_OLD_PARAMS;
         if (!parse_identifier_list(s, &res->fun_params)) {
             return false;
         }
 
-        if (!accept(s, RBRACKET)) {
+        if (!accept(s, TOKEN_RBRACKET)) {
             free_identifier_list(&res->fun_params);
             return false;
         }
-    } else if (s->it->kind == RBRACKET) {
+    } else if (s->it->kind == TOKEN_RBRACKET) {
         accept_it(s);
         res->kind = ARR_OR_FUNC_FUN_EMPTY;
     } else {
@@ -118,7 +118,7 @@ static bool parse_func_suffix(struct parser_state* s,
             return false;
         }
 
-        if (!accept(s, RBRACKET)) {
+        if (!accept(s, TOKEN_RBRACKET)) {
             free_param_type_list(&res->fun_types);
             return false;
         }
@@ -129,13 +129,13 @@ static bool parse_func_suffix(struct parser_state* s,
 static bool parse_arr_or_func_suffix(struct parser_state* s,
                                      struct arr_or_func_suffix* res) {
     assert(res);
-    assert(s->it->kind == LINDEX || s->it->kind == LBRACKET);
+    assert(s->it->kind == TOKEN_LINDEX || s->it->kind == TOKEN_LBRACKET);
     res->info = create_ast_node_info(s->it->loc);
     switch (s->it->kind) {
-        case LINDEX:
+        case TOKEN_LINDEX:
             return parse_arr_suffix(s, res);
 
-        case LBRACKET:
+        case TOKEN_LBRACKET:
             return parse_func_suffix(s, res);
 
         default:
@@ -148,7 +148,7 @@ bool parse_arr_or_func_suffixes(struct parser_state* s,
     res->suffixes = NULL;
     res->len = 0;
     size_t alloc_len = res->len;
-    while (s->it->kind == LBRACKET || s->it->kind == LINDEX) {
+    while (s->it->kind == TOKEN_LBRACKET || s->it->kind == TOKEN_LINDEX) {
         if (alloc_len == res->len) {
             mycc_grow_alloc((void**)&res->suffixes,
                        &alloc_len,
@@ -174,7 +174,7 @@ static struct direct_declarator* parse_direct_declarator_base(
     bool (*identifier_handler)(struct parser_state*, const struct token*)) {
     struct direct_declarator* res = mycc_alloc(sizeof *res);
     res->info = create_ast_node_info(s->it->loc);
-    if (s->it->kind == LBRACKET) {
+    if (s->it->kind == TOKEN_LBRACKET) {
         accept_it(s);
         res->is_id = false;
         res->bracket_decl = parse_func(s);
@@ -183,12 +183,12 @@ static struct direct_declarator* parse_direct_declarator_base(
             return NULL;
         }
 
-        if (!accept(s, RBRACKET)) {
+        if (!accept(s, TOKEN_RBRACKET)) {
             free_declarator(res->bracket_decl);
             mycc_free(res);
             return NULL;
         }
-    } else if (s->it->kind == IDENTIFIER) {
+    } else if (s->it->kind == TOKEN_IDENTIFIER) {
         res->is_id = true;
         if (!identifier_handler(s, s->it)) {
             mycc_free(res);
@@ -200,7 +200,7 @@ static struct direct_declarator* parse_direct_declarator_base(
         res->id = create_identifier(&spelling, loc);
     } else {
         mycc_free(res);
-        enum token_kind expected[] = {LBRACKET, IDENTIFIER};
+        enum token_kind expected[] = {TOKEN_LBRACKET, TOKEN_IDENTIFIER};
         expected_tokens_error(s, expected, ARR_LEN(expected));
         return NULL;
     }

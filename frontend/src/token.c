@@ -50,7 +50,7 @@ struct str token_take_spelling(struct token* t) {
 }
 
 struct str_lit token_take_str_lit(struct token* t) {
-    assert(t->kind == STRING_LITERAL);
+    assert(t->kind == TOKEN_STRING_LITERAL);
     struct str_lit res = t->str_lit;
     t->str_lit.contents = create_null_str();
     return res;
@@ -58,9 +58,9 @@ struct str_lit token_take_str_lit(struct token* t) {
 
 void free_token(struct token* t) {
     assert(t);
-    if (t->kind == STRING_LITERAL) {
+    if (t->kind == TOKEN_STRING_LITERAL) {
         free_str_lit(&t->str_lit);
-    } else if (t->kind != I_CONSTANT && t->kind != F_CONSTANT) {
+    } else if (t->kind != TOKEN_I_CONSTANT && t->kind != TOKEN_F_CONSTANT) {
         free_str(&t->spelling);
     }
 }

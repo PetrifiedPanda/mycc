@@ -7,7 +7,7 @@
 #include "../test_helpers.h"
 
 TEST(parser_state) {
-    struct token dummy = {.kind = INVALID};
+    struct token dummy = {.kind = TOKEN_INVALID};
     struct parser_err err = create_parser_err();
     struct parser_state s = create_parser_state(&dummy, &err);
 
@@ -32,7 +32,7 @@ TEST(parser_state) {
         const struct str to_insert = str_non_heap(i + 1, insert_string);
 
         struct token* item = &dummy_string_tokens[i];
-        *item = create_token_copy(IDENTIFIER,
+        *item = create_token_copy(TOKEN_IDENTIFIER,
                                   &to_insert,
                                   (struct file_loc){0, 0},
                                   0);
@@ -98,7 +98,7 @@ TEST(parser_state) {
     ASSERT(err.kind == PARSER_ERR_NONE);
 
     struct token insert_test_token = {
-        .kind = IDENTIFIER,
+        .kind = TOKEN_IDENTIFIER,
         .spelling = STR_NON_HEAP("Test"),
         .loc =
             {

@@ -6,191 +6,191 @@
 
 const char* get_token_kind_spelling(enum token_kind kind) {
     switch (kind) {
-        case FUNC_NAME:
+        case TOKEN_FUNC_NAME:
             return "__func__";
-        case SIZEOF:
+        case TOKEN_SIZEOF:
             return "sizeof";
-        case PTR_OP:
+        case TOKEN_PTR_OP:
             return "->";
-        case INC_OP:
+        case TOKEN_INC:
             return "++";
-        case DEC_OP:
+        case TOKEN_DEC:
             return "--";
-        case LEFT_OP:
+        case TOKEN_LSHIFT:
             return "<<";
-        case RIGHT_OP:
+        case TOKEN_RSHIFT:
             return ">>";
-        case LE_OP:
+        case TOKEN_LE:
             return "<=";
-        case GE_OP:
+        case TOKEN_GE:
             return ">=";
-        case EQ_OP:
+        case TOKEN_EQ:
             return "==";
-        case NE_OP:
+        case TOKEN_NE:
             return "!=";
-        case AND_OP:
+        case TOKEN_LAND:
             return "&&";
-        case OR_OP:
+        case TOKEN_LOR:
             return "||";
-        case MUL_ASSIGN:
+        case TOKEN_MUL_ASSIGN:
             return "*=";
-        case DIV_ASSIGN:
+        case TOKEN_DIV_ASSIGN:
             return "/=";
-        case MOD_ASSIGN:
+        case TOKEN_MOD_ASSIGN:
             return "%=";
-        case ADD_ASSIGN:
+        case TOKEN_ADD_ASSIGN:
             return "+=";
-        case SUB_ASSIGN:
+        case TOKEN_SUB_ASSIGN:
             return "-=";
-        case LEFT_ASSIGN:
+        case TOKEN_LSHIFT_ASSIGN:
             return "<<=";
-        case RIGHT_ASSIGN:
+        case TOKEN_RSHIFT_ASSIGN:
             return ">>=";
-        case AND_ASSIGN:
+        case TOKEN_AND_ASSIGN:
             return "&=";
-        case OR_ASSIGN:
+        case TOKEN_OR_ASSIGN:
             return "|=";
-        case XOR_ASSIGN:
+        case TOKEN_XOR_ASSIGN:
             return "^=";
-        case TYPEDEF:
+        case TOKEN_TYPEDEF:
             return "typedef";
-        case EXTERN:
+        case TOKEN_EXTERN:
             return "extern";
-        case STATIC:
+        case TOKEN_STATIC:
             return "static";
-        case AUTO:
+        case TOKEN_AUTO:
             return "auto";
-        case REGISTER:
+        case TOKEN_REGISTER:
             return "register";
-        case INLINE:
+        case TOKEN_INLINE:
             return "inline";
-        case BOOL:
+        case TOKEN_BOOL:
             return "_Bool";
-        case CHAR:
+        case TOKEN_CHAR:
             return "char";
-        case SHORT:
+        case TOKEN_SHORT:
             return "short";
-        case INT:
+        case TOKEN_INT:
             return "int";
-        case LONG:
+        case TOKEN_LONG:
             return "long";
-        case SIGNED:
+        case TOKEN_SIGNED:
             return "signed";
-        case UNSIGNED:
+        case TOKEN_UNSIGNED:
             return "unsigned";
-        case FLOAT:
+        case TOKEN_FLOAT:
             return "float";
-        case DOUBLE:
+        case TOKEN_DOUBLE:
             return "double";
-        case VOID:
+        case TOKEN_VOID:
             return "void";
-        case COMPLEX:
+        case TOKEN_COMPLEX:
             return "_Complex";
-        case IMAGINARY:
+        case TOKEN_IMAGINARY:
             return "_Imaginary";
-        case CONST:
+        case TOKEN_CONST:
             return "const";
-        case VOLATILE:
+        case TOKEN_VOLATILE:
             return "volatile";
-        case RESTRICT:
+        case TOKEN_RESTRICT:
             return "restrict";
-        case ATOMIC:
+        case TOKEN_ATOMIC:
             return "_Atomic";
-        case STRUCT:
+        case TOKEN_STRUCT:
             return "struct";
-        case UNION:
+        case TOKEN_UNION:
             return "union";
-        case ENUM:
+        case TOKEN_ENUM:
             return "enum";
-        case ELLIPSIS:
+        case TOKEN_ELLIPSIS:
             return "...";
-        case CASE:
+        case TOKEN_CASE:
             return "case";
-        case DEFAULT:
+        case TOKEN_DEFAULT:
             return "default";
-        case IF:
+        case TOKEN_IF:
             return "if";
-        case ELSE:
+        case TOKEN_ELSE:
             return "else";
-        case SWITCH:
+        case TOKEN_SWITCH:
             return "switch";
-        case WHILE:
+        case TOKEN_WHILE:
             return "while";
-        case DO:
+        case TOKEN_DO:
             return "do";
-        case FOR:
+        case TOKEN_FOR:
             return "for";
-        case GOTO:
+        case TOKEN_GOTO:
             return "goto";
-        case CONTINUE:
+        case TOKEN_CONTINUE:
             return "continue";
-        case BREAK:
+        case TOKEN_BREAK:
             return "break";
-        case RETURN:
+        case TOKEN_RETURN:
             return "return";
-        case ALIGNAS:
+        case TOKEN_ALIGNAS:
             return "_Alignas";
-        case ALIGNOF:
+        case TOKEN_ALIGNOF:
             return "_Alignof";
-        case GENERIC:
+        case TOKEN_GENERIC:
             return "_Generic";
-        case NORETURN:
+        case TOKEN_NORETURN:
             return "_Noreturn";
-        case STATIC_ASSERT:
+        case TOKEN_STATIC_ASSERT:
             return "_Static_assert";
-        case THREAD_LOCAL:
+        case TOKEN_THREAD_LOCAL:
             return "_Thread_local";
-        case SEMICOLON:
+        case TOKEN_SEMICOLON:
             return ";";
-        case LBRACKET:
+        case TOKEN_LBRACKET:
             return "(";
-        case RBRACKET:
+        case TOKEN_RBRACKET:
             return ")";
-        case LBRACE:
+        case TOKEN_LBRACE:
             return "{";
-        case RBRACE:
+        case TOKEN_RBRACE:
             return "}";
-        case LINDEX:
+        case TOKEN_LINDEX:
             return "[";
-        case RINDEX:
+        case TOKEN_RINDEX:
             return "]";
-        case DOT:
+        case TOKEN_DOT:
             return ".";
-        case AND:
+        case TOKEN_AND:
             return "&";
-        case OR:
+        case TOKEN_OR:
             return "|";
-        case XOR:
+        case TOKEN_XOR:
             return "^";
-        case NOT:
+        case TOKEN_NOT:
             return "!";
-        case BNOT:
+        case TOKEN_BNOT:
             return "~";
-        case SUB:
+        case TOKEN_SUB:
             return "-";
-        case ADD:
+        case TOKEN_ADD:
             return "+";
-        case ASTERISK:
+        case TOKEN_ASTERISK:
             return "*";
-        case DIV:
+        case TOKEN_DIV:
             return "/";
-        case MOD:
+        case TOKEN_MOD:
             return "%";
-        case LT:
+        case TOKEN_LT:
             return "<";
-        case GT:
+        case TOKEN_GT:
             return ">";
-        case QMARK:
+        case TOKEN_QMARK:
             return "?";
-        case COLON:
+        case TOKEN_COLON:
             return ":";
-        case ASSIGN:
+        case TOKEN_ASSIGN:
             return "=";
-        case COMMA:
+        case TOKEN_COMMA:
             return ",";
-        case STRINGIFY_OP:
+        case TOKEN_PP_STRINGIFY:
             return "#";
-        case CONCAT_OP:
+        case TOKEN_PP_CONCAT:
             return "##";
 
         default:
@@ -200,203 +200,203 @@ const char* get_token_kind_spelling(enum token_kind kind) {
 
 const char* get_token_kind_str(enum token_kind kind) {
     switch (kind) {
-        case IDENTIFIER:
+        case TOKEN_IDENTIFIER:
             return "IDENTIFIER";
-        case I_CONSTANT:
+        case TOKEN_I_CONSTANT:
             return "I_CONSTANT";
-        case F_CONSTANT:
+        case TOKEN_F_CONSTANT:
             return "F_CONSTANT";
-        case STRING_LITERAL:
+        case TOKEN_STRING_LITERAL:
             return "STRING_LITERAL";
-        case FUNC_NAME:
-            return "FUNC_NAME";
-        case SIZEOF:
-            return "SIZEOF";
-        case PTR_OP:
-            return "PTR_OP";
-        case INC_OP:
-            return "INC_OP";
-        case DEC_OP:
-            return "DEC_OP";
-        case LEFT_OP:
-            return "LEFT_OP";
-        case RIGHT_OP:
-            return "RIGHT_OP";
-        case LE_OP:
-            return "LE_OP";
-        case GE_OP:
-            return "GE_OP";
-        case EQ_OP:
-            return "EQ_OP";
-        case NE_OP:
-            return "NE_OP";
-        case AND_OP:
-            return "AND_OP";
-        case OR_OP:
-            return "OR_OP";
-        case MUL_ASSIGN:
-            return "MUL_ASSIGN";
-        case DIV_ASSIGN:
-            return "DIV_ASSIGN";
-        case MOD_ASSIGN:
-            return "MOD_ASSIGN";
-        case ADD_ASSIGN:
-            return "ADD_ASSIGN";
-        case SUB_ASSIGN:
-            return "SUB_ASSIGN";
-        case LEFT_ASSIGN:
-            return "LEFT_ASSIGN";
-        case RIGHT_ASSIGN:
-            return "RIGHT_ASSIGN";
-        case AND_ASSIGN:
-            return "AND_ASSIGN";
-        case OR_ASSIGN:
-            return "OR_ASSIGN";
-        case XOR_ASSIGN:
-            return "XOR_ASSIGN";
-        case TYPEDEF_NAME:
+        case TOKEN_TYPEDEF_NAME:
             return "TYPEDEF_NAME";
-        case TYPEDEF:
+        case TOKEN_FUNC_NAME:
+            return "FUNC_NAME";
+        case TOKEN_SIZEOF:
+            return "SIZEOF";
+        case TOKEN_PTR_OP:
+            return "PTR_OP";
+        case TOKEN_INC:
+            return "INC_OP";
+        case TOKEN_DEC:
+            return "DEC_OP";
+        case TOKEN_LSHIFT:
+            return "LEFT_OP";
+        case TOKEN_RSHIFT:
+            return "RIGHT_OP";
+        case TOKEN_LE:
+            return "LE_OP";
+        case TOKEN_GE:
+            return "GE_OP";
+        case TOKEN_EQ:
+            return "EQ_OP";
+        case TOKEN_NE:
+            return "NE_OP";
+        case TOKEN_LAND:
+            return "AND_OP";
+        case TOKEN_LOR:
+            return "OR_OP";
+        case TOKEN_MUL_ASSIGN:
+            return "MUL_ASSIGN";
+        case TOKEN_DIV_ASSIGN:
+            return "DIV_ASSIGN";
+        case TOKEN_MOD_ASSIGN:
+            return "MOD_ASSIGN";
+        case TOKEN_ADD_ASSIGN:
+            return "ADD_ASSIGN";
+        case TOKEN_SUB_ASSIGN:
+            return "SUB_ASSIGN";
+        case TOKEN_LSHIFT_ASSIGN:
+            return "LEFT_ASSIGN";
+        case TOKEN_RSHIFT_ASSIGN:
+            return "RIGHT_ASSIGN";
+        case TOKEN_AND_ASSIGN:
+            return "AND_ASSIGN";
+        case TOKEN_OR_ASSIGN:
+            return "OR_ASSIGN";
+        case TOKEN_XOR_ASSIGN:
+            return "XOR_ASSIGN";
+        case TOKEN_TYPEDEF:
             return "TYPEDEF";
-        case EXTERN:
+        case TOKEN_EXTERN:
             return "EXTERN";
-        case STATIC:
+        case TOKEN_STATIC:
             return "STATIC";
-        case AUTO:
+        case TOKEN_AUTO:
             return "AUTO";
-        case REGISTER:
+        case TOKEN_REGISTER:
             return "REGISTER";
-        case INLINE:
+        case TOKEN_INLINE:
             return "INLINE";
-        case BOOL:
+        case TOKEN_BOOL:
             return "BOOL";
-        case CHAR:
+        case TOKEN_CHAR:
             return "CHAR";
-        case SHORT:
+        case TOKEN_SHORT:
             return "SHORT";
-        case INT:
+        case TOKEN_INT:
             return "INT";
-        case LONG:
+        case TOKEN_LONG:
             return "LONG";
-        case SIGNED:
+        case TOKEN_SIGNED:
             return "SIGNED";
-        case UNSIGNED:
+        case TOKEN_UNSIGNED:
             return "UNSIGNED";
-        case FLOAT:
+        case TOKEN_FLOAT:
             return "FLOAT";
-        case DOUBLE:
+        case TOKEN_DOUBLE:
             return "DOUBLE";
-        case VOID:
+        case TOKEN_VOID:
             return "VOID";
-        case COMPLEX:
+        case TOKEN_COMPLEX:
             return "COMPLEX";
-        case IMAGINARY:
+        case TOKEN_IMAGINARY:
             return "IMAGINARY";
-        case CONST:
+        case TOKEN_CONST:
             return "CONST";
-        case VOLATILE:
+        case TOKEN_VOLATILE:
             return "VOLATILE";
-        case RESTRICT:
+        case TOKEN_RESTRICT:
             return "RESTRICT";
-        case ATOMIC:
+        case TOKEN_ATOMIC:
             return "ATOMIC";
-        case STRUCT:
+        case TOKEN_STRUCT:
             return "STRUCT";
-        case UNION:
+        case TOKEN_UNION:
             return "UNION";
-        case ENUM:
+        case TOKEN_ENUM:
             return "ENUM";
-        case ELLIPSIS:
+        case TOKEN_ELLIPSIS:
             return "ELLIPSIS";
-        case CASE:
+        case TOKEN_CASE:
             return "CASE";
-        case DEFAULT:
+        case TOKEN_DEFAULT:
             return "DEFAULT";
-        case IF:
+        case TOKEN_IF:
             return "IF";
-        case ELSE:
+        case TOKEN_ELSE:
             return "ELSE";
-        case SWITCH:
+        case TOKEN_SWITCH:
             return "SWITCH";
-        case WHILE:
+        case TOKEN_WHILE:
             return "WHILE";
-        case DO:
+        case TOKEN_DO:
             return "DO";
-        case FOR:
+        case TOKEN_FOR:
             return "FOR";
-        case GOTO:
+        case TOKEN_GOTO:
             return "GOTO";
-        case CONTINUE:
+        case TOKEN_CONTINUE:
             return "CONTINUE";
-        case BREAK:
+        case TOKEN_BREAK:
             return "BREAK";
-        case RETURN:
+        case TOKEN_RETURN:
             return "RETURN";
-        case ALIGNAS:
+        case TOKEN_ALIGNAS:
             return "ALIGNAS";
-        case ALIGNOF:
+        case TOKEN_ALIGNOF:
             return "ALIGNOF";
-        case GENERIC:
+        case TOKEN_GENERIC:
             return "GENERIC";
-        case NORETURN:
+        case TOKEN_NORETURN:
             return "NORETURN";
-        case STATIC_ASSERT:
+        case TOKEN_STATIC_ASSERT:
             return "STATIC_ASSERT";
-        case THREAD_LOCAL:
+        case TOKEN_THREAD_LOCAL:
             return "THREAD_LOCAL";
-        case SEMICOLON:
+        case TOKEN_SEMICOLON:
             return "SEMICOLON";
-        case LBRACKET:
+        case TOKEN_LBRACKET:
             return "LBRACKET";
-        case RBRACKET:
+        case TOKEN_RBRACKET:
             return "RBRACKET";
-        case LBRACE:
+        case TOKEN_LBRACE:
             return "LBRACE";
-        case RBRACE:
+        case TOKEN_RBRACE:
             return "RBRACE";
-        case LINDEX:
+        case TOKEN_LINDEX:
             return "LINDEX";
-        case RINDEX:
+        case TOKEN_RINDEX:
             return "RINDEX";
-        case DOT:
+        case TOKEN_DOT:
             return "DOT";
-        case AND:
+        case TOKEN_AND:
             return "AND";
-        case OR:
+        case TOKEN_OR:
             return "OR";
-        case XOR:
+        case TOKEN_XOR:
             return "XOR";
-        case NOT:
+        case TOKEN_NOT:
             return "NOT";
-        case BNOT:
+        case TOKEN_BNOT:
             return "BNOT";
-        case SUB:
+        case TOKEN_SUB:
             return "SUB";
-        case ADD:
+        case TOKEN_ADD:
             return "ADD";
-        case ASTERISK:
+        case TOKEN_ASTERISK:
             return "ASTERISK";
-        case DIV:
+        case TOKEN_DIV:
             return "DIV";
-        case MOD:
+        case TOKEN_MOD:
             return "MOD";
-        case LT:
+        case TOKEN_LT:
             return "LT";
-        case GT:
+        case TOKEN_GT:
             return "GT";
-        case QMARK:
+        case TOKEN_QMARK:
             return "QMARK";
-        case COLON:
+        case TOKEN_COLON:
             return "COLON";
-        case ASSIGN:
+        case TOKEN_ASSIGN:
             return "ASSIGN";
-        case COMMA:
+        case TOKEN_COMMA:
             return "COMMA";
-        case STRINGIFY_OP:
+        case TOKEN_PP_STRINGIFY:
             return "STRINGIFY_OP";
-        case CONCAT_OP:
+        case TOKEN_PP_CONCAT:
             return "CONCAT_OP";
-        case INVALID:
+        case TOKEN_INVALID:
             return "INVALID";
     }
     return NULL;

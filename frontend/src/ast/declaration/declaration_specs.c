@@ -9,8 +9,8 @@
 
 static bool current_is_type_qual(const struct parser_state* s) {
     if (is_type_qual(s->it->kind)) {
-        if (s->it->kind == ATOMIC) {
-            return s->it[1].kind != LBRACKET;
+        if (s->it->kind == TOKEN_ATOMIC) {
+            return s->it[1].kind != TOKEN_LBRACKET;
         } else {
             return true;
         }
@@ -47,22 +47,22 @@ static enum parse_declaration_spec_res parse_declaration_spec(
     if (is_storage_class_spec(s->it->kind)) {
         struct storage_class* sc = &res->storage_class;
         switch (s->it->kind) {
-            case TYPEDEF:
+            case TOKEN_TYPEDEF:
                 sc->is_typedef = true;
                 break;
-            case EXTERN:
+            case TOKEN_EXTERN:
                 sc->is_extern = true;
                 break;
-            case STATIC:
+            case TOKEN_STATIC:
                 sc->is_static = true;
                 break;
-            case THREAD_LOCAL:
+            case TOKEN_THREAD_LOCAL:
                 sc->is_thread_local = true;
                 break;
-            case AUTO:
+            case TOKEN_AUTO:
                 sc->is_auto = true;
                 break;
-            case REGISTER:
+            case TOKEN_REGISTER:
                 sc->is_register = true;
                 break;
             default:
@@ -72,13 +72,13 @@ static enum parse_declaration_spec_res parse_declaration_spec(
     } else if (current_is_type_qual(s)) {
         update_type_quals(s, &res->type_quals);
     } else if (is_type_spec(s)) {
-        if (res->storage_class.is_typedef && s->it->kind == IDENTIFIER) {
+        if (res->storage_class.is_typedef && s->it->kind == TOKEN_IDENTIFIER) {
             const struct parser_identifier_data*
                 prev_def = parser_get_prev_definition(s, &s->it->spelling);
             const struct token* next = s->it + 1;
             if (prev_def != NULL && !is_storage_class_spec(next->kind)
                 && !is_type_qual(next->kind) && !is_type_spec_token(s, next)
-                && !is_func_spec(next->kind) && next->kind != ALIGNAS) {
+                && !is_func_spec(next->kind) && next->kind != TOKEN_ALIGNAS) {
                 parser_set_redefinition_err(s, prev_def, s->it);
                 return DECL_SPEC_ERROR;
             }
@@ -89,17 +89,17 @@ static enum parse_declaration_spec_res parse_declaration_spec(
     } else if (is_func_spec(s->it->kind)) {
         struct func_specs* fs = &res->func_specs;
         switch (s->it->kind) {
-            case INLINE:
+            case TOKEN_INLINE:
                 fs->is_inline = true;
                 break;
-            case NORETURN:
+            case TOKEN_NORETURN:
                 fs->is_noreturn = true;
                 break;
             default:
                 UNREACHABLE();
         }
         accept_it(s);
-    } else if (s->it->kind == ALIGNAS) {
+    } else if (s->it->kind == TOKEN_ALIGNAS) {
         if (res->num_align_specs == *alloc_len_align_specs) {
             mycc_grow_alloc((void**)&res->align_specs, alloc_len_align_specs, sizeof *res->align_specs); 
         }

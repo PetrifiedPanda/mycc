@@ -49,7 +49,7 @@ TEST(enum_list) {
         ASSERT_NOT_NULL(e_spec);
         const struct enum_list* res = &e_spec->enum_list;
         ASSERT(err.kind == PARSER_ERR_NONE);
-        ASSERT_TOKEN_KIND(s.it->kind, INVALID);
+        ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
         ASSERT_SIZE_T(res->len, (size_t)EXPECTED_LEN);
         ASSERT_NOT_NULL(res->enums);
 
@@ -83,7 +83,7 @@ TEST(enum_list) {
         ASSERT_NULL(e_spec->identifier);
         const struct enum_list* res = &e_spec->enum_list;
         ASSERT(err.kind == PARSER_ERR_NONE);
-        ASSERT_TOKEN_KIND(s.it->kind, INVALID);
+        ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
         ASSERT_SIZE_T(res->len, (size_t)EXPECTED_LEN);
         ASSERT_NOT_NULL(res->enums);
 
@@ -137,7 +137,7 @@ TEST(enum_spec) {
         struct enum_spec* res = parse_enum_spec(&s);
         ASSERT(err.kind == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
-        ASSERT_TOKEN_KIND(s.it->kind, INVALID);
+        ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
 
         ASSERT_NOT_NULL(res->identifier);
         ASSERT_STR(str_get_data(&res->identifier->spelling), "my_enum");
@@ -162,7 +162,7 @@ TEST(enum_spec) {
         struct enum_spec* res = parse_enum_spec(&s);
         ASSERT(err.kind == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
-        ASSERT_TOKEN_KIND(s.it->kind, INVALID);
+        ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
 
         ASSERT_NULL(res->identifier);
 
@@ -256,7 +256,7 @@ TEST(static_assert_declaration) {
 
     struct static_assert_declaration* res = parse_static_assert_declaration(&s);
     ASSERT_NOT_NULL(res);
-    ASSERT_TOKEN_KIND(s.it->kind, INVALID);
+    ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
     ASSERT(err.kind == PARSER_ERR_NONE);
 
     ASSERT_STR(str_get_data(&res->err_msg.lit.contents),
@@ -311,7 +311,7 @@ TEST(struct_declaration_list) {
     struct struct_union_spec* su_spec = parse_struct_union_spec(&s);
     ASSERT(su_spec->is_struct);
     ASSERT_NULL(su_spec->identifier);
-    ASSERT(s.it->kind == INVALID);
+    ASSERT(s.it->kind == TOKEN_INVALID);
     struct struct_declaration_list* res = &su_spec->decl_list;
     ASSERT_SIZE_T(res->len, (size_t)4);
 
@@ -345,7 +345,7 @@ TEST(redefine_typedef) {
     struct parser_state s = create_parser_state(preproc_res.toks, &err);
 
     const struct str spell = STR_NON_HEAP("MyInt");
-    const struct token dummy_token = create_token(IDENTIFIER,
+    const struct token dummy_token = create_token(TOKEN_IDENTIFIER,
                                                   &spell,
                                                   (struct file_loc){0, 0},
                                                   0);
@@ -405,24 +405,24 @@ TEST(type_spec_error) {
     check_too_many_long("int long long long");
     check_too_many_long("long long int long");
     check_cannot_combine_type_specs("long short",
-                                    LONG,
-                                    SHORT,
+                                    TOKEN_LONG,
+                                    TOKEN_SHORT,
                                     (struct source_loc){0, {1, 6}});
     check_cannot_combine_type_specs("long short long",
-                                    LONG,
-                                    SHORT,
+                                    TOKEN_LONG,
+                                    TOKEN_SHORT,
                                     (struct source_loc){0, {1, 6}});
     check_cannot_combine_type_specs("short long",
-                                    SHORT,
-                                    LONG,
+                                    TOKEN_SHORT,
+                                    TOKEN_LONG,
                                     (struct source_loc){0, {1, 7}});
     check_cannot_combine_type_specs("unsigned signed",
-                                    UNSIGNED,
-                                    SIGNED,
+                                    TOKEN_UNSIGNED,
+                                    TOKEN_SIGNED,
                                     (struct source_loc){0, {1, 10}});
     check_cannot_combine_type_specs("signed unsigned",
-                                    SIGNED,
-                                    UNSIGNED,
+                                    TOKEN_SIGNED,
+                                    TOKEN_UNSIGNED,
                                     (struct source_loc){0, {1, 8}});
     // TODO: DISALLOWED_TYPE_QUALS
 }

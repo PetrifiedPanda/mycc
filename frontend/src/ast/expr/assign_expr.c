@@ -20,7 +20,7 @@ static struct unary_or_cond parse_unary_or_cond(struct parser_state* s) {
         .is_cond = false,
         .cond = NULL,
     };
-    if (s->it->kind == LBRACKET && next_is_type_name(s)) {
+    if (s->it->kind == TOKEN_LBRACKET && next_is_type_name(s)) {
         const struct source_loc start_bracket_loc = s->it->loc;
         accept_it(s);
 
@@ -29,12 +29,12 @@ static struct unary_or_cond parse_unary_or_cond(struct parser_state* s) {
             return res;
         }
 
-        if (!accept(s, RBRACKET)) {
+        if (!accept(s, TOKEN_RBRACKET)) {
             free_type_name(type_name);
             return res;
         }
 
-        if (s->it->kind == LBRACE) {
+        if (s->it->kind == TOKEN_LBRACE) {
             res.is_cond = false;
             res.unary = parse_unary_expr_type_name(s, NULL, 0, type_name, start_bracket_loc);
         } else {
@@ -56,17 +56,17 @@ static struct unary_or_cond parse_unary_or_cond(struct parser_state* s) {
 
 static bool is_assign_op(enum token_kind k) {
     switch (k) {
-        case ASSIGN:
-        case MUL_ASSIGN:
-        case DIV_ASSIGN:
-        case MOD_ASSIGN:
-        case ADD_ASSIGN:
-        case SUB_ASSIGN:
-        case LEFT_ASSIGN:
-        case RIGHT_ASSIGN:
-        case AND_ASSIGN:
-        case XOR_ASSIGN:
-        case OR_ASSIGN:
+        case TOKEN_ASSIGN:
+        case TOKEN_MUL_ASSIGN:
+        case TOKEN_DIV_ASSIGN:
+        case TOKEN_MOD_ASSIGN:
+        case TOKEN_ADD_ASSIGN:
+        case TOKEN_SUB_ASSIGN:
+        case TOKEN_LSHIFT_ASSIGN:
+        case TOKEN_RSHIFT_ASSIGN:
+        case TOKEN_AND_ASSIGN:
+        case TOKEN_XOR_ASSIGN:
+        case TOKEN_OR_ASSIGN:
             return true;
         default:
             return false;
@@ -76,27 +76,27 @@ static bool is_assign_op(enum token_kind k) {
 static enum assign_expr_op token_type_to_assign_op(enum token_kind t) {
     assert(is_assign_op(t));
     switch (t) {
-        case ASSIGN:
+        case TOKEN_ASSIGN:
             return ASSIGN_EXPR_ASSIGN;
-        case MUL_ASSIGN:
+        case TOKEN_MUL_ASSIGN:
             return ASSIGN_EXPR_MUL;
-        case DIV_ASSIGN:
+        case TOKEN_DIV_ASSIGN:
             return ASSIGN_EXPR_DIV;
-        case MOD_ASSIGN:
+        case TOKEN_MOD_ASSIGN:
             return ASSIGN_EXPR_MOD;
-        case ADD_ASSIGN:
+        case TOKEN_ADD_ASSIGN:
             return ASSIGN_EXPR_ADD;
-        case SUB_ASSIGN:
+        case TOKEN_SUB_ASSIGN:
             return ASSIGN_EXPR_SUB;
-        case LEFT_ASSIGN:
+        case TOKEN_LSHIFT_ASSIGN:
             return ASSIGN_EXPR_LSHIFT;
-        case RIGHT_ASSIGN:
+        case TOKEN_RSHIFT_ASSIGN:
             return ASSIGN_EXPR_RSHIFT;
-        case AND_ASSIGN:
+        case TOKEN_AND_ASSIGN:
             return ASSIGN_EXPR_AND;
-        case XOR_ASSIGN:
+        case TOKEN_XOR_ASSIGN:
             return ASSIGN_EXPR_XOR;
-        case OR_ASSIGN:
+        case TOKEN_OR_ASSIGN:
             return ASSIGN_EXPR_OR;
 
         default:

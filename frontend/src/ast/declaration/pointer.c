@@ -6,7 +6,7 @@
 
 struct pointer* parse_pointer(struct parser_state* s) {
     const struct source_loc loc = s->it->loc;
-    if (!accept(s, ASTERISK)) {
+    if (!accept(s, TOKEN_ASTERISK)) {
         return NULL;
     }
 
@@ -26,7 +26,7 @@ struct pointer* parse_pointer(struct parser_state* s) {
     }
 
     size_t alloc_size = res->num_indirs;
-    while (s->it->kind == ASTERISK) {
+    while (s->it->kind == TOKEN_ASTERISK) {
         accept_it(s);
 
         if (res->num_indirs == alloc_size) {

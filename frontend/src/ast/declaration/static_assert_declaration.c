@@ -6,7 +6,7 @@
 
 struct static_assert_declaration* parse_static_assert_declaration(
     struct parser_state* s) {
-    if (!(accept(s, STATIC_ASSERT) && accept(s, LBRACKET))) {
+    if (!(accept(s, TOKEN_STATIC_ASSERT) && accept(s, TOKEN_LBRACKET))) {
         return NULL;
     }
 
@@ -15,13 +15,13 @@ struct static_assert_declaration* parse_static_assert_declaration(
         return NULL;
     }
 
-    if (!accept(s, COMMA)) {
+    if (!accept(s, TOKEN_COMMA)) {
         free_const_expr(const_expr);
         return NULL;
     }
 
-    if (s->it->kind != STRING_LITERAL) {
-        expected_token_error(s, STRING_LITERAL);
+    if (s->it->kind != TOKEN_STRING_LITERAL) {
+        expected_token_error(s, TOKEN_STRING_LITERAL);
         free_const_expr(const_expr);
         return NULL;
     }
@@ -30,7 +30,7 @@ struct static_assert_declaration* parse_static_assert_declaration(
     struct source_loc loc = s->it->loc;
     accept_it(s);
 
-    if (!(accept(s, RBRACKET) && accept(s, SEMICOLON))) {
+    if (!(accept(s, TOKEN_RBRACKET) && accept(s, TOKEN_SEMICOLON))) {
         free_const_expr(const_expr);
         free_str_lit(&lit);
         return NULL;

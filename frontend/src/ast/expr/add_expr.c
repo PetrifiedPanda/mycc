@@ -8,8 +8,8 @@
 
 static bool is_add_op(enum token_kind k) {
     switch (k) {
-        case ADD:
-        case SUB:
+        case TOKEN_ADD:
+        case TOKEN_SUB:
             return true;
         default:
             return false;
@@ -37,7 +37,7 @@ static bool parse_add_expr_add_chain(struct parser_state* s,
             return false;
         }
 
-        curr->op = op == ADD ? ADD_EXPR_ADD : ADD_EXPR_SUB;
+        curr->op = op == TOKEN_ADD ? ADD_EXPR_ADD : ADD_EXPR_SUB;
 
         ++res->len;
     }

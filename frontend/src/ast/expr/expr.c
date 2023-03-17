@@ -17,7 +17,7 @@ bool parse_expr_inplace(struct parser_state* s, struct expr* res) {
     }
     res->len = 1;
     size_t alloc_len = res->len;
-    while (s->it->kind == COMMA) {
+    while (s->it->kind == TOKEN_COMMA) {
         accept_it(s);
         if (alloc_len == res->len) {
             mycc_grow_alloc((void**)&res->assign_exprs,

@@ -11,13 +11,13 @@ static bool parse_designator_inplace(struct parser_state* s,
                                      struct designator* res) {
     res->info = create_ast_node_info(s->it->loc);
     switch (s->it->kind) {
-        case LINDEX: {
+        case TOKEN_LINDEX: {
             accept_it(s);
             struct const_expr* index = parse_const_expr(s);
             if (!index) {
                 return false;
             }
-            if (!accept(s, RINDEX)) {
+            if (!accept(s, TOKEN_RINDEX)) {
                 free_const_expr(index);
                 return false;
             }
@@ -26,9 +26,9 @@ static bool parse_designator_inplace(struct parser_state* s,
             res->arr_index = index;
             return true;
         }
-        case DOT: {
+        case TOKEN_DOT: {
             accept_it(s);
-            if (s->it->kind == IDENTIFIER) {
+            if (s->it->kind == TOKEN_IDENTIFIER) {
                 const struct str spell = token_take_spelling(s->it);
                 struct source_loc loc = s->it->loc;
                 accept_it(s);
@@ -36,12 +36,12 @@ static bool parse_designator_inplace(struct parser_state* s,
                 res->identifier = create_identifier(&spell, loc);
                 return true;
             } else {
-                expected_token_error(s, IDENTIFIER);
+                expected_token_error(s, TOKEN_IDENTIFIER);
                 return false;
             }
         }
         default: {
-            enum token_kind expected[] = {LINDEX, DOT};
+            enum token_kind expected[] = {TOKEN_LINDEX, TOKEN_DOT};
             expected_tokens_error(s, expected, ARR_LEN(expected));
             return false;
         }
@@ -71,7 +71,7 @@ static bool parse_designator_list(struct parser_state* s,
     }
 
     size_t alloc_len = res->len;
-    while (s->it->kind == LINDEX || s->it->kind == DOT) {
+    while (s->it->kind == TOKEN_LINDEX || s->it->kind == TOKEN_DOT) {
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->designators,
                             &alloc_len,
@@ -107,7 +107,7 @@ static bool parse_designation_inplace(struct parser_state* s,
         return false;
     }
 
-    if (!accept(s, ASSIGN)) {
+    if (!accept(s, TOKEN_ASSIGN)) {
         free_designator_list(&res->designators);
         return false;
     }
@@ -140,7 +140,7 @@ struct designation create_invalid_designation(void) {
 
 static bool parse_designation_init(struct parser_state* s,
                                    struct designation_init* res) {
-    if (s->it->kind == LINDEX || s->it->kind == DOT) {
+    if (s->it->kind == TOKEN_LINDEX || s->it->kind == TOKEN_DOT) {
         if (!parse_designation_inplace(s, &res->designation)) {
             return false;
         }
@@ -170,7 +170,7 @@ bool parse_init_list(struct parser_state* s, struct init_list* res) {
     }
 
     size_t alloc_len = res->len;
-    while (s->it->kind == COMMA && s->it[1].kind != RBRACE) {
+    while (s->it->kind == TOKEN_COMMA && s->it[1].kind != TOKEN_RBRACE) {
         accept_it(s);
 
         if (res->len == alloc_len) {
@@ -212,18 +212,18 @@ void free_init_list_children(struct init_list* l) {
 static bool parse_initializer_inplace(struct parser_state* s,
                                       struct initializer* res) {
     res->info = create_ast_node_info(s->it->loc);
-    if (s->it->kind == LBRACE) {
+    if (s->it->kind == TOKEN_LBRACE) {
         res->is_assign = false;
         accept_it(s);
         if (!parse_init_list(s, &res->init_list)) {
             return false;
         }
 
-        if (s->it->kind == COMMA) {
+        if (s->it->kind == TOKEN_COMMA) {
             accept_it(s);
         }
 
-        if (!accept(s, RBRACE)) {
+        if (!accept(s, TOKEN_RBRACE)) {
             free_init_list_children(&res->init_list);
             return false;
         }

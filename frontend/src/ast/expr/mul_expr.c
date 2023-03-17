@@ -9,9 +9,9 @@
 
 static bool is_mul_op(enum token_kind k) {
     switch (k) {
-        case ASTERISK:
-        case DIV:
-        case MOD:
+        case TOKEN_ASTERISK:
+        case TOKEN_DIV:
+        case TOKEN_MOD:
             return true;
         default:
             return false;
@@ -21,11 +21,11 @@ static bool is_mul_op(enum token_kind k) {
 static enum mul_expr_op token_type_to_mul_op(enum token_kind t) {
     assert(is_mul_op(t));
     switch (t) {
-        case ASTERISK:
+        case TOKEN_ASTERISK:
             return MUL_EXPR_MUL;
-        case DIV:
+        case TOKEN_DIV:
             return MUL_EXPR_DIV;
-        case MOD:
+        case TOKEN_MOD:
             return MUL_EXPR_MOD;
 
         default:

@@ -24,7 +24,7 @@ static struct primary_expr* parse_primary_helper(const char* code) {
     struct primary_expr* res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_TOKEN_KIND(s.it->kind, INVALID);
+    ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
 
     free_parser_state(&s);
     free_preproc_res(&preproc_res);
@@ -113,7 +113,7 @@ static void primary_expr_generic_sel_test(void) {
     struct parser_err err = create_parser_err();
     struct parser_state s = create_parser_state(preproc_res.toks, &err);
     const struct token insert_token = {
-        .kind = IDENTIFIER,
+        .kind = TOKEN_IDENTIFIER,
         .spelling = STR_NON_HEAP("TypedefName"),
         .loc =
             {
@@ -126,7 +126,7 @@ static void primary_expr_generic_sel_test(void) {
     struct primary_expr* res = parse_primary_expr(&s);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_NOT_NULL(res);
-    ASSERT_TOKEN_KIND(s.it->kind, INVALID);
+    ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
 
     ASSERT(res->kind == PRIMARY_EXPR_GENERIC);
     check_assign_expr_id(res->generic->assign, "var");
@@ -389,7 +389,7 @@ static struct assign_expr* parse_assign_helper(const char* code) {
     struct assign_expr* res = parse_assign_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_TOKEN_KIND(s.it->kind, INVALID);
+    ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
 
     free_preproc_res(&preproc_res);
     free_parser_state(&s);

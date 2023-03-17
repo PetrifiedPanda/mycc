@@ -14,9 +14,9 @@ static size_t find_macro_end(struct preproc_state* state,
                              const struct token_arr* res,
                              size_t macro_start) {
     size_t i = macro_start;
-    assert(res->tokens[i].kind == IDENTIFIER);
+    assert(res->tokens[i].kind == TOKEN_IDENTIFIER);
     ++i;
-    assert(res->tokens[i].kind == LBRACKET);
+    assert(res->tokens[i].kind == TOKEN_LBRACKET);
     ++i;
 
     const bool can_read_new_toks = res == &state->res;
@@ -35,9 +35,9 @@ static size_t find_macro_end(struct preproc_state* state,
         }
 
         const struct token* curr = &res->tokens[i];
-        if (curr->kind == LBRACKET) {
+        if (curr->kind == TOKEN_LBRACKET) {
             ++open_bracket_count;
-        } else if (curr->kind == RBRACKET) {
+        } else if (curr->kind == TOKEN_RBRACKET) {
             --open_bracket_count;
             if (open_bracket_count == 0) {
                 break;
@@ -46,7 +46,7 @@ static size_t find_macro_end(struct preproc_state* state,
         ++i;
     }
 
-    if (res->tokens[i].kind != RBRACKET) {
+    if (res->tokens[i].kind != TOKEN_RBRACKET) {
         set_preproc_err(state->err,
                         PREPROC_ERR_UNTERMINATED_MACRO,
                         res->tokens[macro_start].loc);
@@ -122,7 +122,7 @@ static struct expansion_info find_and_expand_macro(
     size_t i,
     struct expanded_macro_stack* expanded) {
     const struct token* curr = &res->tokens[i];
-    if (curr->kind != IDENTIFIER) {
+    if (curr->kind != TOKEN_IDENTIFIER) {
         return (struct expansion_info){0, i + 1};
     }
     const struct preproc_macro* macro = find_preproc_macro(state,
@@ -133,7 +133,7 @@ static struct expansion_info find_and_expand_macro(
     size_t macro_end;
     if (macro->is_func_macro) {
         const size_t next_idx = i + 1;
-        if (next_idx < res->len && res->tokens[next_idx].kind == LBRACKET) {
+        if (next_idx < res->len && res->tokens[next_idx].kind == TOKEN_LBRACKET) {
             macro_end = find_macro_end(state, res, i);
             if (state->err->kind != PREPROC_ERR_NONE) {
                 return (struct expansion_info){0, (size_t)-1};
@@ -224,15 +224,15 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
 
     const char** arg_spells = NULL;
     size_t arg_spells_cap = 0;
-    while (it < arr->len && arr->tokens[it].kind != RBRACKET
-           && arr->tokens[it].kind != ELLIPSIS) {
-        if (arr->tokens[it].kind != IDENTIFIER) {
+    while (it < arr->len && arr->tokens[it].kind != TOKEN_RBRACKET
+           && arr->tokens[it].kind != TOKEN_ELLIPSIS) {
+        if (arr->tokens[it].kind != TOKEN_IDENTIFIER) {
             set_preproc_err(err,
                             PREPROC_ERR_EXPECTED_TOKENS,
                             arr->tokens[it].loc);
             const enum token_kind ex[] = {
-                ELLIPSIS,
-                IDENTIFIER,
+                TOKEN_ELLIPSIS,
+                TOKEN_IDENTIFIER,
             };
             err->expected_tokens_err = create_expected_tokens_err(
                 arr->tokens[it].kind,
@@ -255,14 +255,14 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
         ++res.num_args;
         ++it;
 
-        if (arr->tokens[it].kind != RBRACKET) {
-            if (arr->tokens[it].kind != COMMA) {
+        if (arr->tokens[it].kind != TOKEN_RBRACKET) {
+            if (arr->tokens[it].kind != TOKEN_COMMA) {
                 set_preproc_err(err,
                                 PREPROC_ERR_EXPECTED_TOKENS,
                                 arr->tokens[it].loc);
                 const enum token_kind ex[] = {
-                    COMMA,
-                    RBRACKET,
+                    TOKEN_COMMA,
+                    TOKEN_RBRACKET,
                 };
                 err->expected_tokens_err = create_expected_tokens_err(
                     arr->tokens[it].kind,
@@ -275,30 +275,30 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
     }
 
     if (it == arr->len) {
-        assert(arr->tokens[3].kind == LBRACKET);
+        assert(arr->tokens[3].kind == TOKEN_LBRACKET);
         set_preproc_err(err,
                         PREPROC_ERR_UNTERMINATED_MACRO,
                         arr->tokens[3].loc);
         goto fail;
     }
 
-    if (arr->tokens[it].kind == ELLIPSIS) {
+    if (arr->tokens[it].kind == TOKEN_ELLIPSIS) {
         ++it;
         res.is_variadic = true;
-        if (arr->tokens[it].kind != RBRACKET) {
+        if (arr->tokens[it].kind != TOKEN_RBRACKET) {
             set_preproc_err(err,
                             PREPROC_ERR_EXPECTED_TOKENS,
                             arr->tokens[it].loc);
             err->expected_tokens_err = create_expected_token_err(
                 arr->tokens[it].kind,
-                RBRACKET);
+                TOKEN_RBRACKET);
             goto fail;
         }
     } else {
         res.is_variadic = false;
     }
 
-    assert(arr->tokens[it].kind == RBRACKET);
+    assert(arr->tokens[it].kind == TOKEN_RBRACKET);
 
     res.expansion_len = arr->len - it - 1; // TODO: not sure about - 1
     res.expansion = res.expansion_len == 0
@@ -310,7 +310,7 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
 
         struct token* curr_tok = &arr->tokens[i];
         struct token_or_arg* res_curr = &res.expansion[res_idx];
-        if (curr_tok->kind == IDENTIFIER) {
+        if (curr_tok->kind == TOKEN_IDENTIFIER) {
             if (res.is_variadic
                 && strcmp(str_get_data(&curr_tok->spelling), "__VA_ARGS__")
                        == 0) {
@@ -369,21 +369,21 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr,
                                          struct preproc_err* err) {
     assert(arr);
     assert(arr->len >= 2);
-    assert(arr->tokens[0].kind == STRINGIFY_OP);
-    assert(arr->tokens[1].kind == IDENTIFIER);
+    assert(arr->tokens[0].kind == TOKEN_PP_STRINGIFY);
+    assert(arr->tokens[1].kind == TOKEN_IDENTIFIER);
     assert(strcmp(str_get_data(&arr->tokens[1].spelling), "define") == 0);
 
     if (arr->len < 3) {
         assert(arr->len > 0);
         set_preproc_err(err, PREPROC_ERR_EMPTY_DEFINE, arr->tokens[0].loc);
         return (struct preproc_macro){0};
-    } else if (arr->tokens[2].kind != IDENTIFIER) {
+    } else if (arr->tokens[2].kind != TOKEN_IDENTIFIER) {
         set_preproc_err(err, PREPROC_ERR_DEFINE_NOT_ID, arr->tokens[2].loc);
         err->type_instead_of_identifier = arr->tokens[2].kind;
         return (struct preproc_macro){0};
     }
 
-    if (arr->len > 3 && arr->tokens[3].kind == LBRACKET) {
+    if (arr->len > 3 && arr->tokens[3].kind == TOKEN_LBRACKET) {
         return parse_func_like_macro(arr, err);
     } else {
         return parse_object_like_macro(arr);
@@ -432,10 +432,10 @@ static struct token_arr collect_macro_arg(struct token* it,
                                           const struct token* limit_ptr) {
     size_t num_open_brackets = 0;
     struct token* arg_start = it;
-    while (it != limit_ptr && (it->kind != COMMA || num_open_brackets != 0)) {
-        if (it->kind == LBRACKET) {
+    while (it != limit_ptr && (it->kind != TOKEN_COMMA || num_open_brackets != 0)) {
+        if (it->kind == TOKEN_LBRACKET) {
             ++num_open_brackets;
-        } else if (it->kind == RBRACKET) {
+        } else if (it->kind == TOKEN_RBRACKET) {
             --num_open_brackets;
         }
 
@@ -474,7 +474,7 @@ struct macro_args collect_macro_args(struct token* args_start,
                                      size_t expected_args,
                                      bool is_variadic,
                                      struct preproc_err* err) {
-    assert(args_start->kind == LBRACKET);
+    assert(args_start->kind == TOKEN_LBRACKET);
 
     const size_t cap = is_variadic ? expected_args + 1 : expected_args;
     assert(!is_variadic || cap != 0);
@@ -490,7 +490,7 @@ struct macro_args collect_macro_args(struct token* args_start,
         it += res.arrs[res.len].len;
 
         ++res.len;
-        if (it->kind == COMMA) {
+        if (it->kind == TOKEN_COMMA) {
             if ((it + 1 == limit_ptr && res.len < expected_args)
                 || (is_variadic && res.len == expected_args)) {
                 break;
@@ -501,7 +501,7 @@ struct macro_args collect_macro_args(struct token* args_start,
         }
     }
 
-    if (it->kind == COMMA
+    if (it->kind == TOKEN_COMMA
         && ((it + 1 == limit_ptr && res.len < expected_args) || is_variadic)) {
         free_token(it);
         ++it;
@@ -591,7 +591,7 @@ static struct expansion_info expand_func_macro(
     struct expanded_macro_stack* expanded) {
     assert(macro->is_func_macro);
     assert(macro_end < res->len);
-    assert(res->tokens[macro_idx + 1].kind == LBRACKET);
+    assert(res->tokens[macro_idx + 1].kind == TOKEN_LBRACKET);
     struct macro_args args = collect_macro_args(res->tokens + macro_idx + 1,
                                                 &res->tokens[macro_end],
                                                 macro->num_args,
