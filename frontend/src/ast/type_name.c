@@ -18,7 +18,7 @@ bool parse_type_name_inplace(struct parser_state* s, struct type_name* res) {
     } else {
         // might be better for the error to just say "Expected type specifier or
         // type qualifier"
-        enum token_kind expected[] = {
+        static const enum token_kind expected[] = {
             TOKEN_VOID,         TOKEN_CHAR,   TOKEN_SHORT,    TOKEN_INT,
             TOKEN_LONG,         TOKEN_FLOAT,  TOKEN_DOUBLE,   TOKEN_SIGNED,
             TOKEN_UNSIGNED,     TOKEN_BOOL,   TOKEN_COMPLEX,  TOKEN_IMAGINARY,

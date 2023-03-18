@@ -41,7 +41,7 @@ static bool parse_designator_inplace(struct parser_state* s,
             }
         }
         default: {
-            enum token_kind expected[] = {TOKEN_LINDEX, TOKEN_DOT};
+            static const enum token_kind expected[] = {TOKEN_LINDEX, TOKEN_DOT};
             expected_tokens_error(s, expected, ARR_LEN(expected));
             return false;
         }

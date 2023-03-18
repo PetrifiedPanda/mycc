@@ -99,7 +99,8 @@ static bool parse_func_suffix(struct parser_state* s,
     assert(s->it->kind == TOKEN_LBRACKET);
 
     parser_accept_it(s);
-    if (s->it->kind == TOKEN_IDENTIFIER && !parser_is_typedef_name(s, &s->it->spelling)) {
+    if (s->it->kind == TOKEN_IDENTIFIER
+        && !parser_is_typedef_name(s, &s->it->spelling)) {
         res->kind = ARR_OR_FUNC_FUN_OLD_PARAMS;
         if (!parse_identifier_list(s, &res->fun_params)) {
             return false;
@@ -151,8 +152,8 @@ bool parse_arr_or_func_suffixes(struct parser_state* s,
     while (s->it->kind == TOKEN_LBRACKET || s->it->kind == TOKEN_LINDEX) {
         if (alloc_len == res->len) {
             mycc_grow_alloc((void**)&res->suffixes,
-                       &alloc_len,
-                       sizeof *res->suffixes);
+                            &alloc_len,
+                            sizeof *res->suffixes);
         }
 
         if (!parse_arr_or_func_suffix(s, &res->suffixes[res->len])) {
@@ -163,7 +164,8 @@ bool parse_arr_or_func_suffixes(struct parser_state* s,
         ++res->len;
     }
 
-    res->suffixes = mycc_realloc(res->suffixes, sizeof *res->suffixes * res->len);
+    res->suffixes = mycc_realloc(res->suffixes,
+                                 sizeof *res->suffixes * res->len);
 
     return true;
 }
@@ -200,7 +202,10 @@ static struct direct_declarator* parse_direct_declarator_base(
         res->id = create_identifier(&spelling, loc);
     } else {
         mycc_free(res);
-        enum token_kind expected[] = {TOKEN_LBRACKET, TOKEN_IDENTIFIER};
+        static const enum token_kind expected[] = {
+            TOKEN_LBRACKET,
+            TOKEN_IDENTIFIER,
+        };
         expected_tokens_error(s, expected, ARR_LEN(expected));
         return NULL;
     }

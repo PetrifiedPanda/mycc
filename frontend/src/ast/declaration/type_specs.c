@@ -186,7 +186,7 @@ static bool update_non_standalone_type_spec(struct parser_state* s,
             }
         }
         default: {
-            enum token_kind expected[] = {
+            static const enum token_kind expected[] = {
                 TOKEN_ATOMIC,
                 TOKEN_STRUCT,
                 TOKEN_UNION,

@@ -42,7 +42,7 @@ bool parse_type_qual_list(struct parser_state* s, struct type_quals* res) {
     *res = create_type_quals();
 
     if (!is_type_qual(s->it->kind)) {
-        enum token_kind expected[] = {
+        static const enum token_kind expected[] = {
             TOKEN_CONST,
             TOKEN_RESTRICT,
             TOKEN_VOLATILE,
