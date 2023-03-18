@@ -146,10 +146,10 @@ extern jmp_buf test_jump_buf;
     const struct timespec diff = mycc_time_diff(&end, &start);                 \
     const double msecs = mycc_get_msecs_double(&diff);                         \
     if (num_failed == 0) {                                                     \
-        printf("All tests successful in %f\n", msecs);                         \
+        printf("All tests successful in %f ms\n", msecs);                      \
         return EXIT_SUCCESS;                                                   \
     } else {                                                                   \
-        printf("%zu tests failed in %f\n", num_failed, msecs);                 \
+        printf("%zu tests failed in %f ms\n", num_failed, msecs);              \
         return EXIT_FAILURE;                                                   \
     }                                                                          \
     }
