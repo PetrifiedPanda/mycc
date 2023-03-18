@@ -230,7 +230,7 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
             set_preproc_err(err,
                             PREPROC_ERR_EXPECTED_TOKENS,
                             arr->tokens[it].loc);
-            const enum token_kind ex[] = {
+            static const enum token_kind ex[] = {
                 TOKEN_ELLIPSIS,
                 TOKEN_IDENTIFIER,
             };
@@ -260,7 +260,7 @@ static struct preproc_macro parse_func_like_macro(struct token_arr* arr,
                 set_preproc_err(err,
                                 PREPROC_ERR_EXPECTED_TOKENS,
                                 arr->tokens[it].loc);
-                const enum token_kind ex[] = {
+                static const enum token_kind ex[] = {
                     TOKEN_COMMA,
                     TOKEN_RBRACKET,
                 };
