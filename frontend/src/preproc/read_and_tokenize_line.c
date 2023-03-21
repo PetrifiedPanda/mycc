@@ -223,8 +223,12 @@ static bool handle_include(struct preproc_state* state, struct token_arr* arr) {
     
     // TODO: "<" ">" string literals
     if (arr->tokens[2].kind == TOKEN_STRING_LITERAL) {
-        const struct str filename = str_take(&arr->tokens[2].str_lit.contents);
-        if (!preproc_state_open_file(state, &filename, arr->tokens[2].loc)) {
+        struct str_lit filename = convert_to_str_lit(&arr->tokens[2].spelling);
+        if (filename.kind != STR_LIT_DEFAULT) {
+            // TODO: errror
+            return false;
+        }
+        if (!preproc_state_open_file(state, &filename.contents, arr->tokens[2].loc)) {
             // TODO: do we need to free filename here
             return false;
         }
