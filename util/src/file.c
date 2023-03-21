@@ -11,7 +11,7 @@ static void handle_win_line_ending(int newline_char, FILE* file) {
     if (newline_char == '\r') {
         int next = getc(file);
         if (next != '\n') {
-            putc(next, file);
+            ungetc(next, file);
         }
     }
 }
