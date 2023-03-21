@@ -142,45 +142,15 @@ void free_preproc_res(struct preproc_res* res) {
     free_file_info(&res->file_info);
 }
 
-static void convert_string_literal(struct token* t) {
+static bool convert_string_literal(struct token* t) {
     struct str spelling = t->spelling;
-    // TODO: change this assert when '<' '>' literals are there
-    assert(str_get_data(&spelling)[str_len(&spelling) - 1] == '"');
-    str_pop_back(&spelling);
-    const char* data = str_get_data(&spelling);
-    enum str_lit_kind kind;
-    size_t chars_to_remove;
-    switch (data[0]) {
-        case '"':
-            kind = STR_LIT_DEFAULT;
-            chars_to_remove = 1;
-            break;
-        case 'u':
-            if (data[1] == '8') {
-                assert(data[2] == '"');
-                kind = STR_LIT_U8;
-                chars_to_remove = 3;
-            } else {
-                assert(data[1] == '"');
-                kind = STR_LIT_LOWER_U;
-                chars_to_remove = 2;
-            }
-            break;
-        case 'U':
-            kind = STR_LIT_UPPER_U;
-            chars_to_remove = 2;
-            break;
-        case 'L':
-            kind = STR_LIT_L;
-            chars_to_remove = 2;
-            break;
-        default:
-            UNREACHABLE();
+    t->str_lit = convert_to_str_lit(&spelling);
+    if (t->str_lit.kind == STR_LIT_INCLUDE) {
+        free_str_lit(&t->str_lit);
+        // TODO: error
+        return false;
     }
-    // TODO: still need to convert escape sequences
-    str_remove_front(&spelling, chars_to_remove);
-    str_shrink_to_fit(&spelling);
-    t->str_lit = create_str_lit(kind, &spelling);
+    return true;
 }
 
 static bool convert_preproc_token(struct token* t,
@@ -239,7 +209,9 @@ static bool convert_preproc_token(struct token* t,
             }
             break;
         case TOKEN_STRING_LITERAL:
-            convert_string_literal(t);
+            if (!convert_string_literal(t)) {
+                return false;
+            }
             break;
         case TOKEN_PP_STRINGIFY:
         case TOKEN_PP_CONCAT:
