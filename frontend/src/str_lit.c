@@ -2,6 +2,55 @@
 
 #include "util/macro_util.h"
 
+struct str_lit convert_to_str_lit(struct str* spell) {
+    struct str cont = str_take(spell);
+    assert(str_get_data(&cont)[str_len(&cont) - 1] == '"' || str_get_data(&cont)[str_len(&cont) - 1] == '>');
+    str_pop_back(&cont);
+
+    const char* data = str_get_data(&cont);
+    enum str_lit_kind kind;
+    size_t chars_to_remove;
+    switch (data[0]) {
+        case '"':
+            kind = STR_LIT_DEFAULT;
+            chars_to_remove = 1;
+            break;
+        case '<':
+            kind = STR_LIT_INCLUDE;
+            chars_to_remove = 1;
+            break;
+        case 'u':
+            if (data[1] == '8') {
+                assert(data[2] == '"');
+                kind = STR_LIT_U8;
+                chars_to_remove = 3;
+            } else {
+                assert(data[1] == '"');
+                kind = STR_LIT_LOWER_U;
+                chars_to_remove = 2;
+            }
+            break;
+        case 'U':
+            kind = STR_LIT_UPPER_U;
+            chars_to_remove = 2;
+            break;
+        case 'L':
+            kind = STR_LIT_L;
+            chars_to_remove = 2;
+            break;
+        default:
+            UNREACHABLE();
+    }
+
+    // TODO: still need to convert escape sequences
+    str_remove_front(&cont, chars_to_remove);
+    str_shrink_to_fit(&cont);
+    return (struct str_lit){
+        .kind = kind,
+        .contents = cont,
+    };
+}
+
 struct str_lit create_str_lit(enum str_lit_kind kind,
                               const struct str* contents) {
     return (struct str_lit){

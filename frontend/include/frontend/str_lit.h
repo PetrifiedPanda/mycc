@@ -5,6 +5,7 @@
 
 enum str_lit_kind {
     STR_LIT_DEFAULT,
+    STR_LIT_INCLUDE,
     STR_LIT_U8,
     STR_LIT_LOWER_U,
     STR_LIT_UPPER_U,
@@ -17,6 +18,7 @@ struct str_lit {
     struct str contents;
 };
 
+struct str_lit convert_to_str_lit(struct str* spell);
 struct str_lit create_str_lit(enum str_lit_kind kind,
                               const struct str* contents);
 
