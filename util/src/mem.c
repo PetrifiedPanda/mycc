@@ -217,7 +217,7 @@ static void memdebug_cleanup(void) {
     
     fputs("Of ", stderr);
     pretty_print_size_t(stderr, g_alloc_stats.bytes_alloced);
-    fputs(" bytes allocations, ", stderr);
+    fputs(" bytes allocated, ", stderr);
     pretty_print_size_t(stderr, g_alloc_stats.bytes_freed);
     fputs(" bytes were freed\n", stderr);
 
