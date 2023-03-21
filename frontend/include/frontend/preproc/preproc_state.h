@@ -71,7 +71,6 @@ const struct preproc_macro* find_preproc_macro(
 bool preproc_state_open_file(struct preproc_state* s,
                              const struct str* filename_str,
                              struct source_loc include_loc);
-void preproc_state_close_file(struct preproc_state* s);
 
 void register_preproc_macro(struct preproc_state* state,
                             const struct str* spelling,
