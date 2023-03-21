@@ -10,9 +10,8 @@
 #include "frontend/preproc/preproc_macro.h"
 
 struct opened_file_info {
-    size_t idx;
     long pos;
-    struct file_loc file_loc;
+    struct source_loc loc;
 };
 
 struct file_data {
@@ -45,9 +44,8 @@ static struct file_data create_file_data(const char* start_file,
             .opened_info_cap = 1,
         };
         *fm.opened_info = (struct opened_file_info){
-            .idx = 0,
             .pos = -1,
-            .file_loc = {0, 0},
+            .loc = {0, {0, 0}},
         };
     }
 
@@ -154,6 +152,31 @@ static FILE* get_current_file(const struct preproc_state* state) {
     return state->file_manager.files[state->file_manager.current_file_idx];
 }
 
+static bool current_file_over(const struct preproc_state* state) {
+    FILE* file = get_current_file(state);
+    bool file_is_over;
+    if (file != NULL) {
+        // TODO: there might be a better way to do this
+        int next_char = getc(file);
+        if (next_char == EOF) {
+            file_is_over = true;
+        } else {
+            file_is_over = false;
+            ungetc(next_char, file);
+        }
+    } else {
+        file_is_over = true;
+    }
+    return (state->line_info.next == NULL || *state->line_info.next == '\0')
+           && file_is_over;
+}
+
+static bool is_start_file(const struct preproc_state* state) {
+    return state->file_manager.opened_info_len <= 1;
+}
+
+static void preproc_state_close_file(struct preproc_state* s);
+
 void preproc_state_read_line(struct preproc_state* state) {
     assert(state);
     str_clear(&state->line_info.line);
@@ -161,6 +184,9 @@ void preproc_state_read_line(struct preproc_state* state) {
     enum {
         STATIC_BUF_LEN = ARR_LEN(state->line_info.static_buf),
     };
+    if (current_file_over(state) && !is_start_file(state)) {
+        preproc_state_close_file(state);
+    }
     char* static_buf = state->line_info.static_buf;
     struct str* line = &state->line_info.line;
     FILE* file = get_current_file(state);
@@ -193,9 +219,7 @@ void preproc_state_read_line(struct preproc_state* state) {
 }
 
 bool preproc_state_over(const struct preproc_state* state) {
-    FILE* file = get_current_file(state);
-    return (state->line_info.next == NULL || *state->line_info.next == '\0')
-           && (file == NULL || feof(file));
+    return current_file_over(state) && is_start_file(state);
 }
 
 bool preproc_state_open_file(struct preproc_state* s,
@@ -228,37 +252,45 @@ bool preproc_state_open_file(struct preproc_state* s,
     }
     // The file that is currently open needs its file_loc stored for when we get
     // back to it
-    fm->opened_info[fm->opened_info_len - 1].file_loc = s->line_info.curr_loc
-                                                            .file_loc;
+    assert(s->line_info.curr_loc.file_idx
+           == fm->opened_info[fm->opened_info_len - 1].loc.file_idx);
+    fm->opened_info[fm->opened_info_len - 1].loc = s->line_info.curr_loc;
+    struct source_loc new_loc = {
+        .file_idx = idx,
+        .file_loc = {0, 1},
+    };
+
+    s->line_info.curr_loc = new_loc;
     fm->opened_info[fm->opened_info_len] = (struct opened_file_info){
-        .idx = idx,
         .pos = -1,
-        .file_loc = (struct file_loc){1, 1}};
+        .loc = new_loc,
+    };
     ++fm->opened_info_len;
 
     fm->files[fm->current_file_idx] = file;
     return true;
 }
 
-void preproc_state_close_file(struct preproc_state* s) {
+static void preproc_state_close_file(struct preproc_state* s) {
     struct file_manager* fm = &s->file_manager;
     fclose(fm->files[fm->current_file_idx]);
     --fm->opened_info_len;
+    const struct opened_file_info*
+        info = &fm->opened_info[fm->opened_info_len - 1];
     if (fm->current_file_idx == 0) {
-        const struct opened_file_info*
-            info = &fm->opened_info[fm->opened_info_len - 1];
-        const char* filename = str_get_data(&s->file_info.paths[info->idx]);
+        const char* filename = str_get_data(
+            &s->file_info.paths[info->loc.file_idx]);
         FILE* file = fopen(filename, "r");
         int res = fseek(file, info->pos, SEEK_SET);
         assert(res == 0);
         UNUSED(res);
 
         fm->files[fm->current_file_idx] = file;
-        s->line_info.next = NULL;
-        s->line_info.curr_loc = (struct source_loc){info->idx, info->file_loc};
     } else {
         --fm->current_file_idx;
     }
+    s->line_info.next = NULL;
+    s->line_info.curr_loc = info->loc;
 }
 
 const struct preproc_macro* find_preproc_macro(
