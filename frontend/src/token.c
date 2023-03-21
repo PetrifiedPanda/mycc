@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "util/mem.h"
+#include "util/macro_util.h"
 
 struct token create_token(enum token_kind kind,
                           const struct str* spelling,
@@ -63,5 +64,23 @@ void free_token(struct token* t) {
     } else if (t->kind != TOKEN_I_CONSTANT && t->kind != TOKEN_F_CONSTANT) {
         free_str(&t->spelling);
     }
+}
+
+const char* get_token_kind_spelling(enum token_kind kind) {
+    switch (kind) {
+#define TOKEN_MACRO(kind, str) case kind: return str;
+#include "frontend/token_kind.inc"
+#undef TOKEN_MACRO
+    }
+    UNREACHABLE();
+}
+
+const char* get_token_kind_str(enum token_kind kind) {
+    switch (kind) {
+#define TOKEN_MACRO(kind, str) case kind: return #kind;
+#include "frontend/token_kind.inc"
+#undef TOKEN_MACRO
+    }
+    UNREACHABLE();
 }
 

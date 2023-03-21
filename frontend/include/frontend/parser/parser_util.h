@@ -3,7 +3,6 @@
 
 #include <stddef.h>
 
-#include "frontend/token_kind.h"
 #include "frontend/token.h"
 
 #include "parser_state.h"

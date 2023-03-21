@@ -1,7 +1,7 @@
 #ifndef PRIMARY_EXPR_H
 #define PRIMARY_EXPR_H
 
-#include "frontend/token_kind.h"
+#include "frontend/token.h"
 
 #include "constant.h"
 #include "string_constant.h"

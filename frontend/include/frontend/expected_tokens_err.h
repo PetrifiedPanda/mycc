@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "frontend/token_kind.h"
+#include "frontend/token.h"
 #include "frontend/file_info.h"
 
 struct expected_tokens_err {

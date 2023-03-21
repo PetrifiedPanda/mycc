@@ -10,8 +10,6 @@
 #include "util/mem.h"
 #include "util/file.h"
 
-#include "frontend/token_kind.h"
-
 #include "frontend/preproc/preproc_macro.h"
 #include "frontend/preproc/preproc_state.h"
 #include "frontend/preproc/tokenizer.h"

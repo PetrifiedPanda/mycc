@@ -6,8 +6,6 @@
 #include "util/mem.h"
 #include "util/macro_util.h"
 
-#include "frontend/token_kind.h"
-
 struct parser_err create_parser_err(void) {
     return (struct parser_err){
         .kind = PARSER_ERR_NONE,

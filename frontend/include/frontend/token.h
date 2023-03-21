@@ -6,9 +6,16 @@
 
 #include "util/str.h"
 
-#include "token_kind.h"
 #include "str_lit.h"
 #include "value.h"
+
+enum token_kind {
+#define TOKEN_MACRO(name, str) name,
+#define META_TOKEN_MACRO(name, synonym) name = synonym,
+#include "token_kind.inc"
+#undef TOKEN_MACRO
+#undef META_TOKEN_MACRO
+};
 
 struct file_loc {
     size_t line, index;
@@ -61,6 +68,23 @@ struct str token_take_spelling(struct token* t);
 struct str_lit token_take_str_lit(struct token* t);
 
 void free_token(struct token* t);
+
+/**
+ * @brief Gets a spelling for the given token_kind
+ *
+ * @param kind Type to get the spelling for
+ * @return const char* The spelling of the given token kind, if it is
+ * unambiguous, otherwise NULL
+ */
+const char* get_token_kind_spelling(enum token_kind kind);
+
+/**
+ * @brief Gets a string to identify the token_kind
+ * 
+ * @return const char* A string that is identical to the spelling of the enum
+ * value
+ */
+const char* get_token_kind_str(enum token_kind kind);
 
 #endif
 

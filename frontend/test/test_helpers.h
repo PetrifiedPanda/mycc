@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "frontend/token_kind.h"
+#include "frontend/token.h"
 
 #include "util/macro_util.h"
 

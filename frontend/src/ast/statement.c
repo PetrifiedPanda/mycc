@@ -5,8 +5,6 @@
 #include "util/mem.h"
 #include "util/macro_util.h"
 
-#include "frontend/token_kind.h"
-
 #include "frontend/parser/parser_util.h"
 
 static struct labeled_statement* parse_labeled_statement(

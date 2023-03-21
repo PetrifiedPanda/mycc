@@ -1,7 +1,7 @@
 #ifndef TYPE_SPEC_H
 #define TYPE_SPEC_H
 
-#include "frontend/token_kind.h"
+#include "frontend/token.h"
 
 #include "frontend/parser/parser_state.h"
 
