@@ -6,3 +6,5 @@ extern int n;
 char start_char;
 
 #include "long_include_name_that_will_not_fit_in_static_buffer.h"
+
+#include "i1.h"
