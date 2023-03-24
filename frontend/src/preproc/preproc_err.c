@@ -39,26 +39,14 @@ void print_preproc_err(FILE* out,
         case PREPROC_ERR_NONE:
             UNREACHABLE();
             break;
-        case PREPROC_ERR_FILE_FAIL:
+        case PREPROC_ERR_OPEN_FILE:
             if (err->base.loc.file_idx != (size_t)-1) {
                 print_err_base(out, file_info, &err->base);
             }
-            
-            assert(err->fail_file < file_info->len);
-            const char* fail_path = str_get_data(
-                &file_info->paths[err->fail_file]);
+
+            const char* fail_path = str_get_data(&err->fail_filename);
             const char* err_string = strerror(err->errno_state);
-            if (err->open_fail) {
-                fprintf(out,
-                        "Failed to open file %s: %s",
-                        fail_path,
-                        err_string);
-            } else {
-                fprintf(out,
-                        "Failed to close file %s: %s",
-                        fail_path,
-                        err_string);
-            }
+            fprintf(out, "Failed to open file %s: %s", fail_path, err_string);
             break;
         case PREPROC_ERR_UNTERMINATED_LIT:
             print_err_base(out, file_info, &err->base);
@@ -200,7 +188,9 @@ void print_preproc_err(FILE* out,
             break;
         case PREPROC_ERR_DUPLICATE_MACRO_PARAM:
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Duplicate macro argument name \"%s\"", str_get_data(&err->duplicate_arg_name));
+            fprintf(out,
+                    "Duplicate macro argument name \"%s\"",
+                    str_get_data(&err->duplicate_arg_name));
             break;
         case PREPROC_ERR_INVALID_BACKSLASH:
             print_err_base(out, file_info, &err->base);
@@ -237,15 +227,14 @@ static const char* get_else_op_str(enum else_op_kind type) {
 }
 
 void set_preproc_file_err(struct preproc_err* err,
-                          size_t fail_file,
-                          struct source_loc include_loc,
-                          bool open_fail) {
-    assert(fail_file != (size_t)-1);
+                          const struct str* fail_filename,
+                          struct source_loc include_loc) {
+    assert(fail_filename);
+    assert(str_is_valid(fail_filename));
 
-    set_preproc_err(err, PREPROC_ERR_FILE_FAIL, include_loc);
-    err->open_fail = open_fail;
+    set_preproc_err(err, PREPROC_ERR_OPEN_FILE, include_loc);
     err->errno_state = errno;
-    err->fail_file = fail_file;
+    err->fail_filename = *fail_filename;
     errno = 0;
 }
 
@@ -267,7 +256,9 @@ void free_preproc_err(struct preproc_err* err) {
         case PREPROC_ERR_DUPLICATE_MACRO_PARAM:
             free_str(&err->duplicate_arg_name);
             break;
-        case PREPROC_ERR_FILE_FAIL:
+        case PREPROC_ERR_OPEN_FILE:
+            free_str(&err->fail_filename);
+            break;
         case PREPROC_ERR_MACRO_ARG_COUNT:
         case PREPROC_ERR_NONE:
         case PREPROC_ERR_UNTERMINATED_LIT:

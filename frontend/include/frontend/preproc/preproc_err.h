@@ -12,7 +12,7 @@
 
 enum preproc_err_kind {
     PREPROC_ERR_NONE = 0,
-    PREPROC_ERR_FILE_FAIL,
+    PREPROC_ERR_OPEN_FILE,
     PREPROC_ERR_UNTERMINATED_LIT,
     PREPROC_ERR_INVALID_ID,
     PREPROC_ERR_INVALID_NUMBER,
@@ -51,9 +51,8 @@ struct preproc_err {
     struct err_base base;
     union {
         struct {
-            bool open_fail;
             int errno_state;
-            size_t fail_file;
+            struct str fail_filename;
         };
         bool is_char_lit;
         struct str invalid_id;
@@ -102,9 +101,8 @@ void print_preproc_err(FILE* out,
                        struct preproc_err* err);
 
 void set_preproc_file_err(struct preproc_err* err,
-                          size_t fail_file,
-                          struct source_loc include_loc,
-                          bool open_fail);
+                          const struct str* fail_filename,
+                          struct source_loc include_loc);
 
 void free_preproc_err(struct preproc_err* err);
 
