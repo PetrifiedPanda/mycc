@@ -93,8 +93,10 @@ static bool is_cond_directive(const char* line) {
         return false;
     } else if (strncmp(it, else_dir, sizeof else_dir) == 0
                || strncmp(it, elif_dir, sizeof elif_dir) == 0
-               || strncmp(it, endif_dir, sizeof endif_dir)) {
+               || strncmp(it, endif_dir, sizeof endif_dir) == 0) {
         return true;
+    } else {
+        return false;
     }
 
     UNREACHABLE();
