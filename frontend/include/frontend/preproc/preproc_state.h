@@ -32,9 +32,12 @@ struct opened_file_info;
 
 struct file_manager {
     FILE* files[FOPEN_MAX];
+    size_t opened_info_indices[FOPEN_MAX];
     size_t current_file_idx;
-    struct opened_file_info* opened_info;
     size_t opened_info_len, opened_info_cap;
+    struct opened_file_info* opened_info;
+    size_t prefixes_len, prefixes_cap;
+    struct str* prefixes;
 };
 
 struct preproc_state {

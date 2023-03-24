@@ -11,6 +11,7 @@
 
 struct opened_file_info {
     long pos;
+    size_t prefix_idx;
     struct source_loc loc;
 };
 
@@ -20,34 +21,73 @@ struct file_data {
     struct file_info fi;
 };
 
+static bool is_file_sep(char c) {
+    switch (c) {
+        case '/':
+#ifdef _WIN32
+        case '\\':
+#endif
+            return true;
+        default:
+            return false;
+    }
+}
+
+static size_t get_last_file_sep(size_t len, const char* path) {
+    const char* it = path + len - 1;
+    const char* limit = path - 1;
+    while (it != limit && !is_file_sep(*it)) {
+        --it;
+    }
+    if (it == limit) {
+        return (size_t)-1;
+    } else {
+        return it - path;
+    }
+}
+
+static struct str get_path_prefix(size_t len, const char* path) {
+    size_t sep_idx = get_last_file_sep(len, path);
+    if (sep_idx == (size_t)-1) {
+        return create_empty_str();
+    } else {
+        return create_str(sep_idx + 1, path);
+    }
+}
+
 static struct file_data create_file_data(const char* start_file,
                                          struct preproc_err* err) {
     struct str file_name = create_str(strlen(start_file), start_file);
-    struct file_info fi = create_file_info(&file_name);
     struct file_manager fm;
     bool is_valid = true;
 
     FILE* file = fopen(start_file, "r");
     if (!file) {
         set_preproc_file_err(err,
-                             0,
-                             (struct source_loc){(size_t)-1, {0, 0}},
-                             true);
+                             &file_name,
+                             (struct source_loc){(size_t)-1, {0, 0}});
         fm = (struct file_manager){0};
         is_valid = false;
     } else {
         fm = (struct file_manager){
             .files = {[0] = file},
+            .opened_info_indices = {[0] = 0},
             .current_file_idx = 0,
-            .opened_info = mycc_alloc(sizeof *fm.opened_info),
             .opened_info_len = 1,
             .opened_info_cap = 1,
+            .opened_info = mycc_alloc(sizeof *fm.opened_info),
+            .prefixes_len = 1,
+            .prefixes_cap = 1,
+            .prefixes = mycc_alloc(sizeof *fm.prefixes),
         };
-        *fm.opened_info = (struct opened_file_info){
+        fm.opened_info[0] = (struct opened_file_info){
             .pos = -1,
+            .prefix_idx = 0,
             .loc = {0, {0, 0}},
         };
+        fm.prefixes[0] = get_path_prefix(strlen(start_file), start_file);
     }
+    struct file_info fi = create_file_info(&file_name);
 
     return (struct file_data){
         .is_valid = is_valid,
@@ -184,7 +224,7 @@ void preproc_state_read_line(struct preproc_state* state) {
     enum {
         STATIC_BUF_LEN = ARR_LEN(state->line_info.static_buf),
     };
-    if (current_file_over(state) && !is_start_file(state)) {
+    while (current_file_over(state) && !is_start_file(state)) {
         preproc_state_close_file(state);
     }
     char* static_buf = state->line_info.static_buf;
@@ -222,28 +262,93 @@ bool preproc_state_over(const struct preproc_state* state) {
     return current_file_over(state) && is_start_file(state);
 }
 
+struct file_open_res {
+    FILE* file;
+    struct str path;
+    size_t prefix_idx;
+};
+
+static size_t get_current_prefix_idx(const struct file_manager* fm) {
+    return fm->opened_info[fm->opened_info_len - 1].prefix_idx;
+}
+
+static void add_prefix(struct file_manager* fm, const struct str* prefix) {
+    if (fm->prefixes_len == fm->prefixes_cap) {
+        mycc_grow_alloc((void**)&fm->prefixes,
+                        &fm->prefixes_cap,
+                        sizeof *fm->prefixes);
+    }
+
+    fm->prefixes[fm->prefixes_len] = *prefix;
+    ++fm->prefixes_len;
+}
+
+// TODO: maybe use filename instead of creating a new string
+static struct file_open_res resolve_path_and_open(
+    struct preproc_state* s,
+    const struct str* filename,
+    struct source_loc include_loc) {
+    const size_t filename_len = str_len(filename);
+    const char* filename_data = str_get_data(filename);
+    const size_t sep_idx = get_last_file_sep(filename_len, filename_data);
+
+    const size_t current_prefix_idx = get_current_prefix_idx(&s->file_manager);
+    const struct str* prefix = &s->file_manager.prefixes[current_prefix_idx];
+
+    const size_t prefix_len = str_len(prefix);
+    const char* prefix_data = str_get_data(prefix);
+    struct str full_path = str_concat(prefix_len,
+                                      prefix_data,
+                                      filename_len,
+                                      filename_data);
+    FILE* file = fopen(str_get_data(&full_path), "r");
+    if (!file) {
+        // TODO: check include dirs (and system dirs)
+        set_preproc_file_err(s->err, filename, include_loc);
+        return (struct file_open_res){0};
+    }
+
+    size_t prefix_idx;
+    if (sep_idx != (size_t)-1) {
+        struct str new_prefix = str_concat(prefix_len,
+                                           prefix_data,
+                                           sep_idx + 1,
+                                           filename_data);
+        add_prefix(&s->file_manager, &new_prefix);
+        prefix_idx = s->file_manager.prefixes_len - 1;
+    } else {
+        prefix_idx = current_prefix_idx;
+    }
+    free_str(filename);
+    return (struct file_open_res){
+        file,
+        full_path,
+        prefix_idx,
+    };
+}
+
 bool preproc_state_open_file(struct preproc_state* s,
-                             const struct str* filename_str,
+                             const struct str* filename,
                              struct source_loc include_loc) {
     struct file_manager* fm = &s->file_manager;
     if (fm->current_file_idx == FOPEN_MAX - 1) {
         long pos = ftell(fm->files[0]);
         fclose(fm->files[0]);
+        fm->opened_info[fm->opened_info_indices[0]].pos = pos;
         memmove(fm->files, fm->files + 1, sizeof fm->files - sizeof(FILE*));
-        // TODO: when the index calculation is sus
-        fm->opened_info[fm->opened_info_len - 1 - FOPEN_MAX - 1].pos = pos;
+        memmove(fm->opened_info_indices,
+                fm->opened_info_indices + 1,
+                sizeof fm->opened_info_indices
+                    - sizeof *fm->opened_info_indices);
         --fm->current_file_idx;
     }
 
-    // TODO: find actual file path and check if file already is in file_info
-    file_info_add(&s->file_info, filename_str);
-    const size_t idx = s->file_info.len - 1;
-    const char* filename = str_get_data(&s->file_info.paths[idx]);
-    FILE* file = fopen(filename, "r");
-    if (!file) {
-        set_preproc_file_err(s->err, idx, include_loc, true);
+    struct file_open_res fp = resolve_path_and_open(s, filename, include_loc);
+    if (!fp.file) {
         return false;
     }
+    file_info_add(&s->file_info, &fp.path);
+    const size_t idx = s->file_info.len - 1;
     ++fm->current_file_idx;
     if (fm->opened_info_len == fm->opened_info_cap) {
         mycc_grow_alloc((void**)&fm->opened_info,
@@ -263,11 +368,13 @@ bool preproc_state_open_file(struct preproc_state* s,
     s->line_info.curr_loc = new_loc;
     fm->opened_info[fm->opened_info_len] = (struct opened_file_info){
         .pos = -1,
+        .prefix_idx = fp.prefix_idx,
         .loc = new_loc,
     };
     ++fm->opened_info_len;
 
-    fm->files[fm->current_file_idx] = file;
+    fm->files[fm->current_file_idx] = fp.file;
+    fm->opened_info_indices[fm->current_file_idx] = fm->opened_info_len - 1;
     return true;
 }
 
@@ -358,6 +465,10 @@ static void free_file_manager(struct file_manager* fm) {
     for (size_t i = 0; i <= fm->current_file_idx; ++i) {
         fclose(fm->files[i]);
     }
+    for (size_t i = 0; i < fm->prefixes_len; ++i) {
+        free_str(&fm->prefixes[i]);
+    }
+    mycc_free(fm->prefixes);
 }
 
 void free_preproc_state(struct preproc_state* state) {
