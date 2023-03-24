@@ -1,0 +1,1752 @@
+translation_unit:
+  len: 29
+  external_declaration:
+    declaration:
+      declaration_specs: start.c:2,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: true
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          int
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: start.c:2,12
+              identifier: start.c:2,12
+                spelling: n
+  external_declaration:
+    declaration:
+      declaration_specs: i1.h:4,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          enum_spec: i1.h:4,1
+            identifier: i1.h:4,6
+              spelling: i1_test_enum
+            enum_list:
+              len: 3
+              enumerator:
+                identifier: i1.h:5,5
+                  spelling: I1_ENUM_1
+              enumerator:
+                identifier: i1.h:6,5
+                  spelling: I1_ENUM_2
+              enumerator:
+                identifier: i1.h:7,5
+                  spelling: I1_ENUM_3
+      init_declarator_list:
+        len: 0
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../i6.h:3,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          char
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/innerception/../../i6.h:3,6
+              identifier: inner/../inner2/innerception/../../i6.h:3,6
+                spelling: i6_test_func
+              arr_or_func_suffix: inner/../inner2/innerception/../../i6.h:3,18
+                param_type_list:
+                  is_variadic: false
+                  param_type_list:
+                    len: 1
+                    param_declaration:
+                      declaration_specs: inner/../inner2/innerception/../../i6.h:3,19
+                        func_specs:
+                          is_inline: false
+                          is_noreturn: false
+                        storage_class:
+                          is_typedef: false
+                          is_extern: false
+                          is_static: false
+                          is_thread_local: false
+                          is_auto: false
+                          is_register: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        num_align_specs: 0
+                        type_specs:
+                          type_modifiers:
+                            is_unsigned: false
+                            is_signed: false
+                            is_short: false
+                            num_long: 1
+                            is_complex: false
+                            is_imaginary: false
+                          NO_TYPE_SPEC
+                      declarator:
+                        direct_declarator: inner/../inner2/innerception/../../i6.h:3,24
+                          identifier: inner/../inner2/innerception/../../i6.h:3,24
+                            spelling: b
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/i10.h:2,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: true
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          char
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/innerception/../../inner/i10.h:2,13
+              identifier: inner/../inner2/innerception/../../inner/i10.h:2,13
+                spelling: i11_chr
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/i11.h:2,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: true
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          void
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/innerception/../../inner/i11.h:2,13
+              identifier: inner/../inner2/innerception/../../inner/i11.h:2,13
+                spelling: i11_func
+              arr_or_func_suffix: inner/../inner2/innerception/../../inner/i11.h:2,21
+                param_type_list:
+                  is_variadic: false
+                  param_type_list:
+                    len: 1
+                    param_declaration:
+                      declaration_specs: inner/../inner2/innerception/../../inner/i11.h:2,22
+                        func_specs:
+                          is_inline: false
+                          is_noreturn: false
+                        storage_class:
+                          is_typedef: false
+                          is_extern: false
+                          is_static: false
+                          is_thread_local: false
+                          is_auto: false
+                          is_register: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        num_align_specs: 0
+                        type_specs:
+                          type_modifiers:
+                            is_unsigned: false
+                            is_signed: false
+                            is_short: false
+                            num_long: 0
+                            is_complex: false
+                            is_imaginary: false
+                          int
+                      no_decl
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/i13.h:2,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: true
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          char
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/innerception/../../inner/i13.h:2,13
+              identifier: inner/../inner2/innerception/../../inner/i13.h:2,13
+                spelling: i13_srsdfkjsdfkl
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/../inner2/i14.h:2,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          int
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/innerception/../../inner/../inner2/i14.h:2,5
+              identifier: inner/../inner2/innerception/../../inner/../inner2/i14.h:2,5
+                spelling: i_14_n
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/../inner2/i15.h:3,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 1
+            is_complex: false
+            is_imaginary: false
+          NO_TYPE_SPEC
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            pointer: inner/../inner2/innerception/../../inner/../inner2/i15.h:3,5
+              num_indirs: 1
+              type_quals:
+                is_const: false
+                is_restrict: false
+                is_volatile: false
+                is_atomic: false
+            direct_declarator: inner/../inner2/innerception/../../inner/../inner2/i15.h:3,7
+              identifier: inner/../inner2/innerception/../../inner/../inner2/i15.h:3,7
+                spelling: i15_ptr
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/../inner2/i17.h:1,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: true
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          int
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/innerception/../../inner/../inner2/i17.h:1,13
+              identifier: inner/../inner2/innerception/../../inner/../inner2/i17.h:1,13
+                spelling: I17Typedef
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/../inner2/i19.h:2,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          char
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            pointer: inner/../inner2/innerception/../../inner/../inner2/i19.h:2,6
+              num_indirs: 1
+              type_quals:
+                is_const: false
+                is_restrict: false
+                is_volatile: false
+                is_atomic: false
+            direct_declarator: inner/../inner2/innerception/../../inner/../inner2/i19.h:2,7
+              identifier: inner/../inner2/innerception/../../inner/../inner2/i19.h:2,7
+                spelling: i19_str
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/../inner2/../i20.h:2,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          void
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            pointer: inner/../inner2/innerception/../../inner/../inner2/../i20.h:2,5
+              num_indirs: 1
+              type_quals:
+                is_const: false
+                is_restrict: false
+                is_volatile: false
+                is_atomic: false
+            direct_declarator: inner/../inner2/innerception/../../inner/../inner2/../i20.h:2,7
+              identifier: inner/../inner2/innerception/../../inner/../inner2/../i20.h:2,7
+                spelling: i20_malloc
+              arr_or_func_suffix: inner/../inner2/innerception/../../inner/../inner2/../i20.h:2,17
+                identifier_list:
+                  len: 1
+                  identifier: inner/../inner2/innerception/../../inner/../inner2/../i20.h:2,18
+                    spelling: size_t
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/../inner2/../i21.h:2,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          int
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/innerception/../../inner/../inner2/../i21.h:2,5
+              identifier: inner/../inner2/innerception/../../inner/../inner2/../i21.h:2,5
+                spelling: i21_nonono
+              arr_or_func_suffix: inner/../inner2/innerception/../../inner/../inner2/../i21.h:2,15
+                param_type_list:
+                  is_variadic: false
+                  param_type_list:
+                    len: 1
+                    param_declaration:
+                      declaration_specs: inner/../inner2/innerception/../../inner/../inner2/../i21.h:2,16
+                        func_specs:
+                          is_inline: false
+                          is_noreturn: false
+                        storage_class:
+                          is_typedef: false
+                          is_extern: false
+                          is_static: false
+                          is_thread_local: false
+                          is_auto: false
+                          is_register: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        num_align_specs: 0
+                        type_specs:
+                          type_modifiers:
+                            is_unsigned: false
+                            is_signed: false
+                            is_short: false
+                            num_long: 0
+                            is_complex: false
+                            is_imaginary: false
+                          char
+                      no_decl
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/../inner2/../i22.h:3,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          void
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            pointer: inner/../inner2/innerception/../../inner/../inner2/../i22.h:3,5
+              num_indirs: 1
+              type_quals:
+                is_const: false
+                is_restrict: false
+                is_volatile: false
+                is_atomic: false
+            direct_declarator: inner/../inner2/innerception/../../inner/../inner2/../i22.h:3,7
+              identifier: inner/../inner2/innerception/../../inner/../inner2/../i22.h:3,7
+                spelling: i22_no
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/../inner2/../i21.h:6,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          void
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/innerception/../../inner/../inner2/../i21.h:6,6
+              identifier: inner/../inner2/innerception/../../inner/../inner2/../i21.h:6,6
+                spelling: i21_when_will_this_end
+              arr_or_func_suffix: inner/../inner2/innerception/../../inner/../inner2/../i21.h:6,28
+                param_type_list:
+                  is_variadic: false
+                  param_type_list:
+                    len: 1
+                    param_declaration:
+                      declaration_specs: inner/../inner2/innerception/../../inner/../inner2/../i21.h:6,29
+                        func_specs:
+                          is_inline: false
+                          is_noreturn: false
+                        storage_class:
+                          is_typedef: false
+                          is_extern: false
+                          is_static: false
+                          is_thread_local: false
+                          is_auto: false
+                          is_register: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        num_align_specs: 0
+                        type_specs:
+                          type_modifiers:
+                            is_unsigned: false
+                            is_signed: false
+                            is_short: false
+                            num_long: 0
+                            is_complex: false
+                            is_imaginary: false
+                          void
+                      no_decl
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/../inner2/i18.h:3,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          struct_union_spec: inner/../inner2/innerception/../../inner/../inner2/i18.h:3,1
+            union
+            identifier: inner/../inner2/innerception/../../inner/../inner2/i18.h:3,7
+              spelling: i18_union
+            struct_declaration_list:
+              len: 2
+              struct_declaration
+                declaration_specs: inner/../inner2/innerception/../../inner/../inner2/i18.h:4,5
+                  func_specs:
+                    is_inline: false
+                    is_noreturn: false
+                  storage_class:
+                    is_typedef: false
+                    is_extern: false
+                    is_static: false
+                    is_thread_local: false
+                    is_auto: false
+                    is_register: false
+                  type_quals:
+                    is_const: false
+                    is_restrict: false
+                    is_volatile: false
+                    is_atomic: false
+                  num_align_specs: 0
+                  type_specs:
+                    type_modifiers:
+                      is_unsigned: false
+                      is_signed: false
+                      is_short: false
+                      num_long: 0
+                      is_complex: false
+                      is_imaginary: false
+                    int
+                struct_declarator_list:
+                  len: 1
+                  struct_declarator:
+                    declarator:
+                      direct_declarator: inner/../inner2/innerception/../../inner/../inner2/i18.h:4,9
+                        identifier: inner/../inner2/innerception/../../inner/../inner2/i18.h:4,9
+                          spelling: i
+              struct_declaration
+                declaration_specs: inner/../inner2/innerception/../../inner/../inner2/i18.h:5,5
+                  func_specs:
+                    is_inline: false
+                    is_noreturn: false
+                  storage_class:
+                    is_typedef: false
+                    is_extern: false
+                    is_static: false
+                    is_thread_local: false
+                    is_auto: false
+                    is_register: false
+                  type_quals:
+                    is_const: false
+                    is_restrict: false
+                    is_volatile: false
+                    is_atomic: false
+                  num_align_specs: 0
+                  type_specs:
+                    type_modifiers:
+                      is_unsigned: false
+                      is_signed: false
+                      is_short: false
+                      num_long: 0
+                      is_complex: false
+                      is_imaginary: false
+                    float
+                struct_declarator_list:
+                  len: 1
+                  struct_declarator:
+                    declarator:
+                      direct_declarator: inner/../inner2/innerception/../../inner/../inner2/i18.h:5,11
+                        identifier: inner/../inner2/innerception/../../inner/../inner2/i18.h:5,11
+                          spelling: f
+      init_declarator_list:
+        len: 0
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/../inner2/i16.h:3,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: true
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          NO_TYPE_SPEC
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/innerception/../../inner/../inner2/i16.h:3,8
+              identifier: inner/../inner2/innerception/../../inner/../inner2/i16.h:3,8
+                spelling: i16_signed_int
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/../inner2/i15.h:7,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          struct_union_spec: inner/../inner2/innerception/../../inner/../inner2/i15.h:7,1
+            struct
+            identifier: inner/../inner2/innerception/../../inner/../inner2/i15.h:7,8
+              spelling: i15_struct
+            struct_declaration_list:
+              len: 2
+              struct_declaration
+                declaration_specs: inner/../inner2/innerception/../../inner/../inner2/i15.h:8,5
+                  func_specs:
+                    is_inline: false
+                    is_noreturn: false
+                  storage_class:
+                    is_typedef: false
+                    is_extern: false
+                    is_static: false
+                    is_thread_local: false
+                    is_auto: false
+                    is_register: false
+                  type_quals:
+                    is_const: false
+                    is_restrict: false
+                    is_volatile: false
+                    is_atomic: false
+                  num_align_specs: 0
+                  type_specs:
+                    type_modifiers:
+                      is_unsigned: false
+                      is_signed: false
+                      is_short: false
+                      num_long: 0
+                      is_complex: false
+                      is_imaginary: false
+                    int
+                struct_declarator_list:
+                  len: 1
+                  struct_declarator:
+                    declarator:
+                      pointer: inner/../inner2/innerception/../../inner/../inner2/i15.h:8,8
+                        num_indirs: 1
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                      direct_declarator: inner/../inner2/innerception/../../inner/../inner2/i15.h:8,10
+                        identifier: inner/../inner2/innerception/../../inner/../inner2/i15.h:8,10
+                          spelling: data
+              struct_declaration
+                declaration_specs: inner/../inner2/innerception/../../inner/../inner2/i15.h:9,5
+                  func_specs:
+                    is_inline: false
+                    is_noreturn: false
+                  storage_class:
+                    is_typedef: false
+                    is_extern: false
+                    is_static: false
+                    is_thread_local: false
+                    is_auto: false
+                    is_register: false
+                  type_quals:
+                    is_const: false
+                    is_restrict: false
+                    is_volatile: false
+                    is_atomic: false
+                  num_align_specs: 0
+                  type_specs:
+                    type_modifiers:
+                      is_unsigned: false
+                      is_signed: false
+                      is_short: false
+                      num_long: 0
+                      is_complex: false
+                      is_imaginary: false
+                    int
+                struct_declarator_list:
+                  len: 1
+                  struct_declarator:
+                    declarator:
+                      direct_declarator: inner/../inner2/innerception/../../inner/../inner2/i15.h:9,9
+                        identifier: inner/../inner2/innerception/../../inner/../inner2/i15.h:9,9
+                          spelling: len
+      init_declarator_list:
+        len: 0
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/i12.h:4,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          int
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/innerception/../../inner/i12.h:4,5
+              identifier: inner/../inner2/innerception/../../inner/i12.h:4,5
+                spelling: i12_int
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../inner/i12.h:7,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          struct_union_spec: inner/../inner2/innerception/../../inner/i12.h:7,1
+            struct
+            identifier: inner/../inner2/innerception/../../inner/i12.h:7,8
+              spelling: i12_struct
+            struct_declaration_list:
+              len: 1
+              struct_declaration
+                declaration_specs: inner/../inner2/innerception/../../inner/i12.h:8,5
+                  func_specs:
+                    is_inline: false
+                    is_noreturn: false
+                  storage_class:
+                    is_typedef: false
+                    is_extern: false
+                    is_static: false
+                    is_thread_local: false
+                    is_auto: false
+                    is_register: false
+                  type_quals:
+                    is_const: false
+                    is_restrict: false
+                    is_volatile: false
+                    is_atomic: false
+                  num_align_specs: 0
+                  type_specs:
+                    type_modifiers:
+                      is_unsigned: false
+                      is_signed: false
+                      is_short: false
+                      num_long: 0
+                      is_complex: false
+                      is_imaginary: false
+                    void
+                struct_declarator_list:
+                  len: 1
+                  struct_declarator:
+                    declarator:
+                      pointer: inner/../inner2/innerception/../../inner/i12.h:8,9
+                        num_indirs: 6
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                      direct_declarator: inner/../inner2/innerception/../../inner/i12.h:8,16
+                        identifier: inner/../inner2/innerception/../../inner/i12.h:8,16
+                          spelling: ptr
+      init_declarator_list:
+        len: 0
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../i9.h:5,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          int
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/innerception/../../i9.h:5,5
+              identifier: inner/../inner2/innerception/../../i9.h:5,5
+                spelling: intel_i9_processor
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../i8.h:4,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          void
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/innerception/../../i8.h:4,6
+              identifier: inner/../inner2/innerception/../../i8.h:4,6
+                spelling: i8_func
+              arr_or_func_suffix: inner/../inner2/innerception/../../i8.h:4,13
+                param_type_list:
+                  is_variadic: false
+                  param_type_list:
+                    len: 1
+                    param_declaration:
+                      declaration_specs: inner/../inner2/innerception/../../i8.h:4,14
+                        func_specs:
+                          is_inline: false
+                          is_noreturn: false
+                        storage_class:
+                          is_typedef: false
+                          is_extern: false
+                          is_static: false
+                          is_thread_local: false
+                          is_auto: false
+                          is_register: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        num_align_specs: 0
+                        type_specs:
+                          type_modifiers:
+                            is_unsigned: false
+                            is_signed: false
+                            is_short: false
+                            num_long: 0
+                            is_complex: false
+                            is_imaginary: false
+                          void
+                      no_decl
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../i7.h:4,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          enum_spec: inner/../inner2/innerception/../../i7.h:4,1
+            identifier: inner/../inner2/innerception/../../i7.h:4,6
+              spelling: i7_enum
+            enum_list:
+              len: 1
+              enumerator:
+                identifier: inner/../inner2/innerception/../../i7.h:4,16
+                  spelling: I7_ENUM_ONLY_VALUE
+      init_declarator_list:
+        len: 0
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/../../i6.h:7,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          char
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/innerception/../../i6.h:7,6
+              identifier: inner/../inner2/innerception/../../i6.h:7,6
+                spelling: i6_second_test
+              arr_or_func_suffix: inner/../inner2/innerception/../../i6.h:7,20
+                param_type_list:
+                  is_variadic: false
+                  param_type_list:
+                    len: 1
+                    param_declaration:
+                      declaration_specs: inner/../inner2/innerception/../../i6.h:7,21
+                        func_specs:
+                          is_inline: false
+                          is_noreturn: false
+                        storage_class:
+                          is_typedef: false
+                          is_extern: false
+                          is_static: false
+                          is_thread_local: false
+                          is_auto: false
+                          is_register: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        num_align_specs: 0
+                        type_specs:
+                          type_modifiers:
+                            is_unsigned: false
+                            is_signed: false
+                            is_short: true
+                            num_long: 0
+                            is_complex: false
+                            is_imaginary: false
+                          NO_TYPE_SPEC
+                      declarator:
+                        direct_declarator: inner/../inner2/innerception/../../i6.h:7,27
+                          identifier: inner/../inner2/innerception/../../i6.h:7,27
+                            spelling: s
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/innerception/i5.h:4,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: true
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          struct_union_spec: inner/../inner2/innerception/i5.h:4,9
+            struct
+            struct_declaration_list:
+              len: 2
+              struct_declaration
+                declaration_specs: inner/../inner2/innerception/i5.h:5,5
+                  func_specs:
+                    is_inline: false
+                    is_noreturn: false
+                  storage_class:
+                    is_typedef: false
+                    is_extern: false
+                    is_static: false
+                    is_thread_local: false
+                    is_auto: false
+                    is_register: false
+                  type_quals:
+                    is_const: false
+                    is_restrict: false
+                    is_volatile: false
+                    is_atomic: false
+                  num_align_specs: 0
+                  type_specs:
+                    type_modifiers:
+                      is_unsigned: false
+                      is_signed: false
+                      is_short: false
+                      num_long: 0
+                      is_complex: false
+                      is_imaginary: false
+                    char
+                struct_declarator_list:
+                  len: 1
+                  struct_declarator:
+                    declarator:
+                      direct_declarator: inner/../inner2/innerception/i5.h:5,10
+                        identifier: inner/../inner2/innerception/i5.h:5,10
+                          spelling: c
+              struct_declaration
+                declaration_specs: inner/../inner2/innerception/i5.h:6,5
+                  func_specs:
+                    is_inline: false
+                    is_noreturn: false
+                  storage_class:
+                    is_typedef: false
+                    is_extern: false
+                    is_static: false
+                    is_thread_local: false
+                    is_auto: false
+                    is_register: false
+                  type_quals:
+                    is_const: false
+                    is_restrict: false
+                    is_volatile: false
+                    is_atomic: false
+                  num_align_specs: 0
+                  type_specs:
+                    type_modifiers:
+                      is_unsigned: false
+                      is_signed: false
+                      is_short: false
+                      num_long: 0
+                      is_complex: false
+                      is_imaginary: false
+                    void
+                struct_declarator_list:
+                  len: 1
+                  struct_declarator:
+                    declarator:
+                      pointer: inner/../inner2/innerception/i5.h:6,9
+                        num_indirs: 1
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                      direct_declarator: inner/../inner2/innerception/i5.h:6,11
+                        identifier: inner/../inner2/innerception/i5.h:6,11
+                          spelling: ptr
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/innerception/i5.h:7,3
+              identifier: inner/../inner2/innerception/i5.h:7,3
+                spelling: I5TypedefStruct
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../inner2/i4.h:4,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          void
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/../inner2/i4.h:4,6
+              identifier: inner/../inner2/i4.h:4,6
+                spelling: i4_test
+              arr_or_func_suffix: inner/../inner2/i4.h:4,13
+                param_type_list:
+                  is_variadic: false
+                  param_type_list:
+                    len: 1
+                    param_declaration:
+                      declaration_specs: inner/../inner2/i4.h:4,14
+                        func_specs:
+                          is_inline: false
+                          is_noreturn: false
+                        storage_class:
+                          is_typedef: false
+                          is_extern: false
+                          is_static: false
+                          is_thread_local: false
+                          is_auto: false
+                          is_register: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        num_align_specs: 0
+                        type_specs:
+                          type_modifiers:
+                            is_unsigned: false
+                            is_signed: false
+                            is_short: false
+                            num_long: 0
+                            is_complex: false
+                            is_imaginary: false
+                          void
+                      no_decl
+  external_declaration:
+    declaration:
+      declaration_specs: inner/../i3.h:5,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          struct_union_spec: inner/../i3.h:5,1
+            struct
+            identifier: inner/../i3.h:5,8
+              spelling: i3_struct
+            struct_declaration_list:
+              len: 2
+              struct_declaration
+                declaration_specs: inner/../i3.h:6,5
+                  func_specs:
+                    is_inline: false
+                    is_noreturn: false
+                  storage_class:
+                    is_typedef: false
+                    is_extern: false
+                    is_static: false
+                    is_thread_local: false
+                    is_auto: false
+                    is_register: false
+                  type_quals:
+                    is_const: false
+                    is_restrict: false
+                    is_volatile: false
+                    is_atomic: false
+                  num_align_specs: 0
+                  type_specs:
+                    type_modifiers:
+                      is_unsigned: false
+                      is_signed: false
+                      is_short: false
+                      num_long: 0
+                      is_complex: false
+                      is_imaginary: false
+                    int
+                struct_declarator_list:
+                  len: 1
+                  struct_declarator:
+                    declarator:
+                      direct_declarator: inner/../i3.h:6,9
+                        identifier: inner/../i3.h:6,9
+                          spelling: n
+              struct_declaration
+                declaration_specs: inner/../i3.h:7,5
+                  func_specs:
+                    is_inline: false
+                    is_noreturn: false
+                  storage_class:
+                    is_typedef: false
+                    is_extern: false
+                    is_static: false
+                    is_thread_local: false
+                    is_auto: false
+                    is_register: false
+                  type_quals:
+                    is_const: false
+                    is_restrict: false
+                    is_volatile: false
+                    is_atomic: false
+                  num_align_specs: 0
+                  type_specs:
+                    type_modifiers:
+                      is_unsigned: false
+                      is_signed: false
+                      is_short: false
+                      num_long: 0
+                      is_complex: false
+                      is_imaginary: false
+                    int
+                struct_declarator_list:
+                  len: 1
+                  struct_declarator:
+                    declarator:
+                      direct_declarator: inner/../i3.h:7,9
+                        identifier: inner/../i3.h:7,9
+                          spelling: m
+      init_declarator_list:
+        len: 0
+  external_declaration:
+    declaration:
+      declaration_specs: inner/i2.h:4,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          void
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: inner/i2.h:4,6
+              identifier: inner/i2.h:4,6
+                spelling: i2_func_decl
+              arr_or_func_suffix: inner/i2.h:4,18
+                param_type_list:
+                  is_variadic: false
+                  param_type_list:
+                    len: 2
+                    param_declaration:
+                      declaration_specs: inner/i2.h:4,19
+                        func_specs:
+                          is_inline: false
+                          is_noreturn: false
+                        storage_class:
+                          is_typedef: false
+                          is_extern: false
+                          is_static: false
+                          is_thread_local: false
+                          is_auto: false
+                          is_register: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        num_align_specs: 0
+                        type_specs:
+                          type_modifiers:
+                            is_unsigned: false
+                            is_signed: false
+                            is_short: false
+                            num_long: 0
+                            is_complex: false
+                            is_imaginary: false
+                          int
+                      declarator:
+                        direct_declarator: inner/i2.h:4,23
+                          identifier: inner/i2.h:4,23
+                            spelling: m
+                    param_declaration:
+                      declaration_specs: inner/i2.h:4,26
+                        func_specs:
+                          is_inline: false
+                          is_noreturn: false
+                        storage_class:
+                          is_typedef: false
+                          is_extern: false
+                          is_static: false
+                          is_thread_local: false
+                          is_auto: false
+                          is_register: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        num_align_specs: 0
+                        type_specs:
+                          type_modifiers:
+                            is_unsigned: false
+                            is_signed: false
+                            is_short: false
+                            num_long: 0
+                            is_complex: false
+                            is_imaginary: false
+                          int
+                      declarator:
+                        direct_declarator: inner/i2.h:4,30
+                          identifier: inner/i2.h:4,30
+                            spelling: n
+  external_declaration:
+    declaration:
+      declaration_specs: i1.h:12,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          void
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: i1.h:12,6
+              identifier: i1.h:12,6
+                spelling: i1_test_func
+              arr_or_func_suffix: i1.h:12,18
+                param_type_list:
+                  is_variadic: false
+                  param_type_list:
+                    len: 1
+                    param_declaration:
+                      declaration_specs: i1.h:12,19
+                        func_specs:
+                          is_inline: false
+                          is_noreturn: false
+                        storage_class:
+                          is_typedef: false
+                          is_extern: false
+                          is_static: false
+                          is_thread_local: false
+                          is_auto: false
+                          is_register: false
+                        type_quals:
+                          is_const: false
+                          is_restrict: false
+                          is_volatile: false
+                          is_atomic: false
+                        num_align_specs: 0
+                        type_specs:
+                          type_modifiers:
+                            is_unsigned: false
+                            is_signed: false
+                            is_short: false
+                            num_long: 0
+                            is_complex: false
+                            is_imaginary: false
+                          void
+                      no_decl
+  external_declaration:
+    declaration:
+      declaration_specs: start.c:6,1
+        func_specs:
+          is_inline: false
+          is_noreturn: false
+        storage_class:
+          is_typedef: false
+          is_extern: false
+          is_static: false
+          is_thread_local: false
+          is_auto: false
+          is_register: false
+        type_quals:
+          is_const: false
+          is_restrict: false
+          is_volatile: false
+          is_atomic: false
+        num_align_specs: 0
+        type_specs:
+          type_modifiers:
+            is_unsigned: false
+            is_signed: false
+            is_short: false
+            num_long: 0
+            is_complex: false
+            is_imaginary: false
+          char
+      init_declarator_list:
+        len: 1
+        init_declarator:
+          declarator:
+            direct_declarator: start.c:6,6
+              identifier: start.c:6,6
+                spelling: start_char

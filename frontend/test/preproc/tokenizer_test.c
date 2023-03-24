@@ -7,6 +7,8 @@
 
 #include "../test_helpers.h"
 
+static struct token create_file(enum token_kind kind, struct str spelling, size_t line, size_t idx, size_t file);
+
 static struct token create(enum token_kind kind,
                            struct str spelling,
                            size_t line,
@@ -816,6 +818,258 @@ TEST(file) {
     check_token_arr_file(filename, expected, ARR_LEN(expected));
 }
 
+TEST(include) {
+    const char* filename = "../frontend/test/files/include_test/start.c";
+    const struct token expected[] = {
+        create_file(TOKEN_EXTERN, create_null_str(), 2, 1, 0),
+        create_file(TOKEN_INT, create_null_str(), 2, 8, 0),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("n"), 2, 12, 0),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 2, 13, 0),
+        // i1
+        create_file(TOKEN_ENUM, create_null_str(), 4, 1, 1),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i1_test_enum"), 4, 6, 1),
+        create_file(TOKEN_LBRACE, create_null_str(), 4, 19, 1),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("I1_ENUM_1"), 5, 5, 1),
+        create_file(TOKEN_COMMA, create_null_str(), 5, 14, 1),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("I1_ENUM_2"), 6, 5, 1),
+        create_file(TOKEN_COMMA, create_null_str(), 6, 14, 1),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("I1_ENUM_3"), 7, 5, 1),
+        create_file(TOKEN_COMMA, create_null_str(), 7, 14, 1),
+        create_file(TOKEN_RBRACE, create_null_str(), 8, 1, 1),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 8, 2, 1),
+        // i2
+        // i3
+        // i4
+        // i5
+        // i6
+        create_file(TOKEN_CHAR, create_null_str(), 3, 1, 6),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i6_test_func"), 3, 6, 6),
+        create_file(TOKEN_LBRACKET, create_null_str(), 3, 18, 6),
+        create_file(TOKEN_LONG, create_null_str(), 3, 19, 6),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("b"), 3, 24, 6),
+        create_file(TOKEN_RBRACKET, create_null_str(), 3, 25, 6),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 3, 26, 6),
+        // i7
+        // i8
+        // i9
+        // i10
+        create_file(TOKEN_EXTERN, create_null_str(), 2, 1, 10),
+        create_file(TOKEN_CHAR, create_null_str(), 2, 8, 10),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i11_chr"), 2, 13, 10),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 2, 20, 10),
+        // i11
+        create_file(TOKEN_EXTERN, create_null_str(), 2, 1, 11),
+        create_file(TOKEN_VOID, create_null_str(), 2, 8, 11),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i11_func"), 2, 13, 11),
+        create_file(TOKEN_LBRACKET, create_null_str(), 2, 21, 11),
+        create_file(TOKEN_INT, create_null_str(), 2, 22, 11),
+        create_file(TOKEN_RBRACKET, create_null_str(), 2, 25, 11),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 2, 26, 11),
+        // i13
+        create_file(TOKEN_EXTERN, create_null_str(), 2, 1, 13),
+        create_file(TOKEN_CHAR, create_null_str(), 2, 8, 13),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i13_srsdfkjsdfkl"), 2, 13, 13),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 2, 29, 13),
+        // i14
+        create_file(TOKEN_INT, create_null_str(), 2, 1, 14),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i_14_n"), 2, 5, 14),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 2, 11, 14),
+        // i15
+        create_file(TOKEN_LONG, create_null_str(), 3, 1, 15),
+        create_file(TOKEN_ASTERISK, create_null_str(), 3, 5, 15),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i15_ptr"), 3, 7, 15),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 3, 14, 15),
+        // i17
+        create_file(TOKEN_TYPEDEF, create_null_str(), 1, 1, 17),
+        create_file(TOKEN_INT, create_null_str(), 1, 9, 17),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("I17Typedef"), 1, 13, 17),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 1, 23, 17),
+        // i19
+        create_file(TOKEN_CHAR, create_null_str(), 2, 1, 19),
+        create_file(TOKEN_ASTERISK, create_null_str(), 2, 6, 19),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i19_str"), 2, 7, 19),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 2, 14, 19),
+        // i20
+        create_file(TOKEN_VOID, create_null_str(), 2, 1, 20),
+        create_file(TOKEN_ASTERISK, create_null_str(), 2, 5, 20),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i20_malloc"), 2, 7, 20),
+        create_file(TOKEN_LBRACKET, create_null_str(), 2, 17, 20),
+        create_file(TOKEN_INT, create_null_str(), 2, 18, 20),
+        create_file(TOKEN_RBRACKET, create_null_str(), 2, 21, 20),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 2, 22, 20),
+        // i21
+        create_file(TOKEN_INT, create_null_str(), 2, 1, 21),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i21_nonono"), 2, 5, 21),
+        create_file(TOKEN_LBRACKET, create_null_str(), 2, 15, 21),
+        create_file(TOKEN_CHAR, create_null_str(), 2, 16, 21),
+        create_file(TOKEN_RBRACKET, create_null_str(), 2, 20, 21),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 2, 21, 21),
+        // i23
+        create_file(TOKEN_CHAR, create_null_str(), 2, 1, 23),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i23_char"), 2, 6, 23),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 2, 14, 23),
+        // i24
+        create_file(TOKEN_VOID, create_null_str(), 3, 1, 24),
+        create_file(TOKEN_LBRACKET, create_null_str(), 3, 6, 24),
+        create_file(TOKEN_ASTERISK, create_null_str(), 3, 7, 24),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i24_void"), 3, 8, 24),
+        create_file(TOKEN_RBRACKET, create_null_str(), 3, 16, 24),
+        create_file(TOKEN_LBRACKET, create_null_str(), 3, 17, 24),
+        create_file(TOKEN_VOID, create_null_str(), 3, 18, 24),
+        create_file(TOKEN_RBRACKET, create_null_str(), 3, 22, 24),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 3, 23, 24),
+        // i23
+        create_file(TOKEN_INT, create_null_str(), 6, 1, 23),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i23_int"), 6, 5, 23),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 6, 12, 23),
+        // i22
+        create_file(TOKEN_VOID, create_null_str(), 3, 1, 22),
+        create_file(TOKEN_ASTERISK, create_null_str(), 3, 5, 22), 
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i22_no"), 3, 7, 22), 
+        create_file(TOKEN_SEMICOLON, create_null_str(), 3, 13, 22), 
+        // i21
+        create_file(TOKEN_VOID, create_null_str(), 6, 1, 21),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i21_when_will_this_end"), 6, 6, 21),
+        create_file(TOKEN_LBRACKET, create_null_str(), 6, 28, 21),
+        create_file(TOKEN_VOID, create_null_str(), 6, 29, 21),
+        create_file(TOKEN_RBRACKET, create_null_str(), 6, 33, 21),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 6, 34, 21),
+        // i18
+        create_file(TOKEN_UNION, create_null_str(), 3, 1, 18),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i18_union"), 3, 7, 18),
+        create_file(TOKEN_LBRACE, create_null_str(), 3, 17, 18),
+        create_file(TOKEN_INT, create_null_str(), 4, 5, 18),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i"), 4, 9, 18),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 4, 10, 18),  
+        create_file(TOKEN_FLOAT, create_null_str(), 5, 5, 18),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("f"), 5, 11, 18),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 5, 12, 18),
+        create_file(TOKEN_RBRACE, create_null_str(), 6, 1, 18),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 6, 2, 18),
+        // i16
+        create_file(TOKEN_SIGNED, create_null_str(), 3, 1, 16),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i16_signed_int"), 3, 8, 16),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 3, 22, 16),
+        // i15
+        create_file(TOKEN_STRUCT, create_null_str(), 7, 1, 15),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i15_struct"), 7, 8, 15),
+        create_file(TOKEN_LBRACE, create_null_str(), 7, 19, 15),
+        create_file(TOKEN_INT, create_null_str(), 8, 5, 15),
+        create_file(TOKEN_ASTERISK, create_null_str(), 8, 8, 15),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("data"), 8, 10, 15),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 8, 14, 15),
+        create_file(TOKEN_INT, create_null_str(), 9, 5, 15),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("len"), 9, 9, 15),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 9, 12, 15),
+        create_file(TOKEN_RBRACE, create_null_str(), 10, 1, 15),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 10, 2, 15),
+        // i12
+        create_file(TOKEN_INT, create_null_str(), 4, 1, 12),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i12_int"), 4, 5, 12),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 4, 12, 12),
+        create_file(TOKEN_STRUCT, create_null_str(), 7, 1, 12),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i12_struct"), 7, 8, 12),
+        create_file(TOKEN_LBRACE, create_null_str(), 7, 19, 12),
+        create_file(TOKEN_VOID, create_null_str(), 8, 5, 12),
+        create_file(TOKEN_ASTERISK, create_null_str(), 8, 9, 12),
+        create_file(TOKEN_ASTERISK, create_null_str(), 8, 10, 12),
+        create_file(TOKEN_ASTERISK, create_null_str(), 8, 11, 12),
+        create_file(TOKEN_ASTERISK, create_null_str(), 8, 12, 12),
+        create_file(TOKEN_ASTERISK, create_null_str(), 8, 13, 12),
+        create_file(TOKEN_ASTERISK, create_null_str(), 8, 14, 12),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("ptr"), 8, 16, 12),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 8, 19, 12),
+        create_file(TOKEN_RBRACE, create_null_str(), 9, 1, 12),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 9, 2, 12),
+        // i9
+        create_file(TOKEN_INT, create_null_str(), 5, 1, 9),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("intel_i9_processor"), 5, 5, 9),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 5, 23, 9),
+        // i8
+        create_file(TOKEN_VOID, create_null_str(), 4, 1, 8),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i8_func"), 4, 6, 8),
+        create_file(TOKEN_LBRACKET, create_null_str(), 4, 13, 8),
+        create_file(TOKEN_VOID, create_null_str(), 4, 14, 8),
+        create_file(TOKEN_RBRACKET, create_null_str(), 4, 18, 8),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 4, 19, 8),
+        // i7
+        create_file(TOKEN_ENUM, create_null_str(), 4, 1, 7),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i7_enum"), 4, 6, 7),
+        create_file(TOKEN_LBRACE, create_null_str(), 4, 14, 7),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("I7_ENUM_ONLY_VALUE"), 4, 16, 7),
+        create_file(TOKEN_RBRACE, create_null_str(), 4, 35, 7),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 4, 36, 7),
+        // i6
+        create_file(TOKEN_CHAR, create_null_str(), 7, 1, 6),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i6_second_test"), 7, 6, 6),
+        create_file(TOKEN_LBRACKET, create_null_str(), 7, 20, 6),
+        create_file(TOKEN_SHORT, create_null_str(), 7, 21, 6),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("s"), 7, 27, 6),
+        create_file(TOKEN_RBRACKET, create_null_str(), 7, 28, 6),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 7, 29, 6),
+        // i5
+        create_file(TOKEN_TYPEDEF, create_null_str(), 4, 1, 5),
+        create_file(TOKEN_STRUCT, create_null_str(), 4, 9, 5),
+        create_file(TOKEN_LBRACE, create_null_str(), 4, 16, 5),
+        create_file(TOKEN_CHAR, create_null_str(), 5, 5, 5),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("c"), 5, 10, 5),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 5, 11, 5),
+        create_file(TOKEN_VOID, create_null_str(), 6, 5, 5),
+        create_file(TOKEN_ASTERISK, create_null_str(), 6, 9, 5),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("ptr"), 6, 11, 5),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 6, 14, 5),
+        create_file(TOKEN_RBRACE, create_null_str(), 7, 1, 5),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("I5TypedefStruct"), 7, 3, 5),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 7, 18, 5),
+        // i4
+        create_file(TOKEN_VOID, create_null_str(), 4, 1, 4),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i4_test"), 4, 6, 4),
+        create_file(TOKEN_LBRACKET, create_null_str(), 4, 13, 4),
+        create_file(TOKEN_VOID, create_null_str(), 4, 14, 4),
+        create_file(TOKEN_RBRACKET, create_null_str(), 4, 18, 4),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 4, 19, 4),
+        // i3
+        create_file(TOKEN_STRUCT, create_null_str(), 5, 1, 3),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i3_struct"), 5, 8, 3),
+        create_file(TOKEN_LBRACE, create_null_str(), 5, 18, 3),
+        create_file(TOKEN_INT, create_null_str(), 6, 5, 3),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("n"), 6, 9, 3),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 6, 10, 3),
+        create_file(TOKEN_INT, create_null_str(), 7, 5, 3),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("m"), 7, 9, 3),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 7, 10, 3),
+        create_file(TOKEN_RBRACE, create_null_str(), 8, 1, 3),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 8, 2, 3),
+        // i2
+        create_file(TOKEN_VOID, create_null_str(), 4, 1, 2),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i2_func_decl"), 4, 6, 2),
+        create_file(TOKEN_LBRACKET, create_null_str(), 4, 18, 2),
+        create_file(TOKEN_INT, create_null_str(), 4, 19, 2),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("m"), 4, 23, 2),
+        create_file(TOKEN_COMMA, create_null_str(), 4, 24, 2),
+        create_file(TOKEN_INT, create_null_str(), 4, 26, 2),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("n"), 4, 30, 2),
+        create_file(TOKEN_RBRACKET, create_null_str(), 4, 31, 2),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 4, 32, 2),
+        // i1
+        create_file(TOKEN_VOID, create_null_str(), 12, 1, 1),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("i1_test_func"), 12, 6, 1),
+        create_file(TOKEN_LBRACKET, create_null_str(), 12, 18, 1),
+        create_file(TOKEN_VOID, create_null_str(), 12, 19, 1),
+        create_file(TOKEN_RBRACKET, create_null_str(), 12, 23, 1),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 12, 24, 1),
+        // start.c
+        create_file(TOKEN_CHAR, create_null_str(), 6, 1, 0),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("start_char"), 6, 6, 0),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 6, 16, 0),
+        // long_include_that_will_not_fit_in_static_buffer.h
+        create_file(TOKEN_INT, create_null_str(), 2, 1, 25),
+        create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("long_test"), 2, 5, 25),
+        create_file(TOKEN_SEMICOLON, create_null_str(), 2, 14, 25),
+    };
+    check_token_arr_file(filename, expected, ARR_LEN(expected));
+}
+
 TEST(hex_literal_or_var) {
     {
         const char* code = "vare-10";
@@ -863,27 +1117,32 @@ TEST(dot_float_literal_or_op) {
     }
 }
 
-TEST_SUITE_BEGIN(tokenizer, 4) {
+TEST_SUITE_BEGIN(tokenizer, 5) {
     REGISTER_TEST(simple);
     REGISTER_TEST(file);
+    REGISTER_TEST(include);
     REGISTER_TEST(hex_literal_or_var);
     REGISTER_TEST(dot_float_literal_or_op);
 }
 TEST_SUITE_END()
 
-static struct token create(enum token_kind kind,
-                           struct str spelling,
-                           size_t line,
-                           size_t index) {
+static struct token create_file(enum token_kind kind, struct str spelling, size_t line, size_t idx, size_t file) {
     return (struct token){
         .kind = kind,
         .spelling = spelling,
         .loc =
             {
-                .file_idx = 0,
-                .file_loc = {line, index},
+                .file_idx = file,
+                .file_loc = {line, idx},
             },
     };
+}
+
+static struct token create(enum token_kind kind,
+                           struct str spelling,
+                           size_t line,
+                           size_t index) {
+    return create_file(kind, spelling, line, index, 0);
 }
 
 static struct token create_tok_int(struct int_value val,
@@ -939,12 +1198,6 @@ static void check_size(const struct token* tokens, size_t expected) {
     ASSERT_SIZE_T(size, expected);
 }
 
-static void check_file(const struct token* tokens, size_t file_idx) {
-    for (const struct token* it = tokens; it->kind != TOKEN_INVALID; ++it) {
-        ASSERT_SIZE_T(it->loc.file_idx, file_idx);
-    }
-}
-
 static void check_token(const struct token* t, const struct token* expected) {
     ASSERT_TOKEN_KIND(t->kind, expected->kind);
 
@@ -969,6 +1222,7 @@ static void check_token(const struct token* t, const struct token* expected) {
 
     ASSERT_SIZE_T(t->loc.file_loc.line, expected->loc.file_loc.line);
     ASSERT_SIZE_T(t->loc.file_loc.index, expected->loc.file_loc.index);
+    ASSERT_SIZE_T(t->loc.file_idx, expected->loc.file_idx);
 }
 
 static void compare_tokens(const struct token* got,
@@ -985,8 +1239,13 @@ static void check_token_arr_helper(const char* file_or_code,
                                    struct preproc_res (*func)(const char*)) {
     struct preproc_res preproc_res = func(file_or_code);
     ASSERT_NOT_NULL(preproc_res.toks);
+    FILE* out = fopen("outfile.txt", "a");
+    fprintf(out, "Section:\n\n\n\n");
+    for (struct token* it = preproc_res.toks; it->kind != TOKEN_INVALID; ++it) {
+        fprintf(out, "%s\n", get_token_kind_str(it->kind));
+    }
+    fclose(out);
     check_size(preproc_res.toks, expected_len);
-    check_file(preproc_res.toks, 0);
 
     compare_tokens(preproc_res.toks, expected, expected_len);
 
