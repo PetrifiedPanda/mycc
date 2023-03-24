@@ -1239,12 +1239,6 @@ static void check_token_arr_helper(const char* file_or_code,
                                    struct preproc_res (*func)(const char*)) {
     struct preproc_res preproc_res = func(file_or_code);
     ASSERT_NOT_NULL(preproc_res.toks);
-    FILE* out = fopen("outfile.txt", "a");
-    fprintf(out, "Section:\n\n\n\n");
-    for (struct token* it = preproc_res.toks; it->kind != TOKEN_INVALID; ++it) {
-        fprintf(out, "%s\n", get_token_kind_str(it->kind));
-    }
-    fclose(out);
     check_size(preproc_res.toks, expected_len);
 
     compare_tokens(preproc_res.toks, expected, expected_len);
