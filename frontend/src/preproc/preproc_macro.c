@@ -390,10 +390,14 @@ struct preproc_macro parse_preproc_macro(struct token_arr* arr,
     }
 }
 
+static void free_preproc_token(struct token* tok) {
+    free_str(&tok->spelling);
+}
+
 void free_preproc_macro(struct preproc_macro* m) {
     for (size_t i = 0; i < m->expansion_len; ++i) {
         if (!m->expansion[i].is_arg) {
-            free_token(&m->expansion[i].token);
+            free_preproc_token(&m->expansion[i].token);
         }
     }
     mycc_free(m->expansion);
