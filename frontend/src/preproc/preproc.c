@@ -73,6 +73,11 @@ static bool preproc_impl(struct preproc_state* state) {
             return false;
         }
     }
+    if (state->conds_len != 0) {
+        set_preproc_err(state->err, PREPROC_ERR_UNTERMINATED_COND, state->line_info.curr_loc);
+        state->err->unterminated_cond_loc = state->conds[state->conds_len - 1].loc;
+        return false;
+    }
     append_terminator_token(&state->res);
     return true;
 }

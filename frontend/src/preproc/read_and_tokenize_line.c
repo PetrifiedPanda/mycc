@@ -122,13 +122,15 @@ static bool skip_until_next_cond(struct preproc_state* state) {
             return stat_res;
         }
     }
-
-    return true;
+    
+    set_preproc_err(state->err, PREPROC_ERR_UNTERMINATED_COND, state->line_info.curr_loc);
+    state->err->unterminated_cond_loc = state->conds[state->conds_len - 1].loc;
+    return false;
 }
 
 static bool handle_preproc_if(struct preproc_state* state,
-                              bool cond) {
-    struct source_loc loc = state->line_info.curr_loc;
+                              bool cond,
+                              struct source_loc loc) {
     push_preproc_cond(state, loc, cond);
 
     if (!cond) {
@@ -148,6 +150,7 @@ static bool handle_ifdef_ifndef(struct preproc_state* state,
          && strcmp(str_get_data(&arr->tokens[1].spelling), "ifdef") == 0)
         || (is_ifndef
             && strcmp(str_get_data(&arr->tokens[1].spelling), "ifndef") == 0));
+    const struct source_loc loc = arr->tokens[0].loc;
 
     if (arr->len < 3) {
         set_preproc_err(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[1].loc);
@@ -178,7 +181,7 @@ static bool handle_ifdef_ifndef(struct preproc_state* state,
     const struct preproc_macro* macro = find_preproc_macro(state, macro_spell);
 
     const bool cond = is_ifndef ? macro == NULL : macro != NULL;
-    return handle_preproc_if(state, cond);
+    return handle_preproc_if(state, cond, loc);
 }
 
 static bool handle_else_elif(struct preproc_state* state,

@@ -83,6 +83,17 @@ void print_preproc_err(FILE* out,
             print_err_base(out, file_info, &err->base);
             fputs("Unterminated macro", out);
             break;
+        case PREPROC_ERR_UNTERMINATED_COND:
+            print_err_base(out, file_info, &err->base);
+            const struct source_loc* loc = &err->unterminated_cond_loc;
+            const char* cond_file = str_get_data(
+                &file_info->paths[loc->file_idx]);
+            fprintf(out,
+                    "Conditional started at %s:%zu,%zu not terminated",
+                    cond_file,
+                    loc->file_loc.line,
+                    loc->file_loc.index);
+            break;
         case PREPROC_ERR_ARG_COUNT: {
             print_err_base(out, file_info, &err->base);
             const char* dir_str = get_single_macro_op_str(err->count_dir_kind);
@@ -263,6 +274,7 @@ void free_preproc_err(struct preproc_err* err) {
         case PREPROC_ERR_NONE:
         case PREPROC_ERR_UNTERMINATED_LIT:
         case PREPROC_ERR_UNTERMINATED_MACRO:
+        case PREPROC_ERR_UNTERMINATED_COND:
         case PREPROC_ERR_ARG_COUNT:
         case PREPROC_ERR_IFDEF_NOT_ID:
         case PREPROC_ERR_MISSING_IF:

@@ -18,6 +18,7 @@ enum preproc_err_kind {
     PREPROC_ERR_INVALID_NUMBER,
     PREPROC_ERR_MACRO_ARG_COUNT,
     PREPROC_ERR_UNTERMINATED_MACRO,
+    PREPROC_ERR_UNTERMINATED_COND,
     PREPROC_ERR_ARG_COUNT,
     PREPROC_ERR_IFDEF_NOT_ID,
     PREPROC_ERR_MISSING_IF,
@@ -62,6 +63,7 @@ struct preproc_err {
             bool too_few_args;
             bool is_variadic;
         };
+        struct source_loc unterminated_cond_loc;
         struct {
             enum single_macro_op_kind count_dir_kind;
             bool count_empty;
