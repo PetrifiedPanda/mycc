@@ -98,8 +98,6 @@ static bool is_cond_directive(const char* line) {
     } else {
         return false;
     }
-
-    UNREACHABLE();
 }
 
 // TODO: could probably be optimized
