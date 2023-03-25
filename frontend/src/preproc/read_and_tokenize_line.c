@@ -85,9 +85,9 @@ static bool is_cond_directive(const char* line) {
         ++it;
     }
 
-    const char else_dir[] = "else";
-    const char elif_dir[] = "elif";
-    const char endif_dir[] = "endif";
+    static const char else_dir[] = "else";
+    static const char elif_dir[] = "elif";
+    static const char endif_dir[] = "endif";
 
     if (*it == '\0') {
         return false;
