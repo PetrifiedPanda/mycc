@@ -185,7 +185,7 @@ void str_pop_back(struct str* str) {
 void str_shrink_to_fit(struct str* str) {
     assert(str);
     assert(str_is_valid(str));
-    if (!str->_is_static_buf && str->_len + 1 != str->_cap) {
+    if (!str->_is_static_buf && (size_t)str->_len + 1 != str->_cap) {
         if (str->_len < STATIC_BUF_LEN) {
             char* data = str->_data;
             const size_t len = str->_len;

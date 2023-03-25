@@ -193,19 +193,20 @@ TEST(str_append_c_str) {
 TEST(str_reserve) {
     struct str str = create_empty_str();
     enum {
-        TO_RESERVE_1 = 20,
-        TO_RESERVE_2 = 32,
+	STATIC_BUF_SIZE = sizeof str._static_buf,
+        TO_RESERVE_1 = STATIC_BUF_SIZE - 3,
+        TO_RESERVE_2 = TO_RESERVE_1 + 12,
         TO_RESERVE_3 = TO_RESERVE_2 + 8
     };
     str_reserve(&str, TO_RESERVE_1);
-    ASSERT_SIZE_T(str_cap(&str), sizeof str._static_buf - 1);
+    ASSERT_SIZE_T(str_cap(&str), STATIC_BUF_SIZE - 1);
 
     char expected[TO_RESERVE_3 + 1] = {0};
     for (size_t i = 0; i < TO_RESERVE_1; ++i) {
         str_push_back(&str, 'a');
         expected[i] = 'a';
     }
-    ASSERT_SIZE_T(str_cap(&str), sizeof str._static_buf - 1);
+    ASSERT_SIZE_T(str_cap(&str), STATIC_BUF_SIZE - 1);
 
     ASSERT_STR(str_get_data(&str), expected);
     str_reserve(&str, TO_RESERVE_2);
