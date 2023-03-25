@@ -223,6 +223,12 @@ static bool handle_include(struct preproc_state* state, struct token_arr* arr) {
         // TODO: error too many arguments to include
         return false;
     }
+
+    if (arr->tokens[2].kind != TOKEN_STRING_LITERAL) {
+        if (!expand_all_macros(state, arr, 2)) {
+            return false;
+        }
+    }
     
     // TODO: "<" ">" string literals
     if (arr->tokens[2].kind == TOKEN_STRING_LITERAL) {
@@ -232,7 +238,6 @@ static bool handle_include(struct preproc_state* state, struct token_arr* arr) {
             return false;
         }
         if (!preproc_state_open_file(state, &filename.contents, arr->tokens[2].loc)) {
-            // TODO: do we need to free filename here
             return false;
         }
         return true;
