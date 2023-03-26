@@ -83,7 +83,7 @@ void print_preproc_err(FILE* out,
             print_err_base(out, file_info, &err->base);
             fputs("Unterminated macro", out);
             break;
-        case PREPROC_ERR_UNTERMINATED_COND:
+        case PREPROC_ERR_UNTERMINATED_COND: {
             print_err_base(out, file_info, &err->base);
             const struct source_loc* loc = &err->unterminated_cond_loc;
             const char* cond_file = str_get_data(
@@ -94,6 +94,7 @@ void print_preproc_err(FILE* out,
                     loc->file_loc.line,
                     loc->file_loc.index);
             break;
+        }
         case PREPROC_ERR_ARG_COUNT: {
             print_err_base(out, file_info, &err->base);
             const char* dir_str = get_single_macro_op_str(err->count_dir_kind);
