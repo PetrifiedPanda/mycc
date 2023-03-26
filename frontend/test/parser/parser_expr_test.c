@@ -618,11 +618,11 @@ TEST(expr) {
     free_preproc_res(&preproc_res);
 }
 
-TEST_SUITE_BEGIN(parser_expr, 5) {
-    REGISTER_TEST(primary_expr);
-    REGISTER_TEST(unary_expr);
-    REGISTER_TEST(postfix_expr);
-    REGISTER_TEST(assign_expr);
-    REGISTER_TEST(expr);
+TEST_SUITE_BEGIN(parser_expr) {
+    REGISTER_TEST(primary_expr),
+    REGISTER_TEST(unary_expr),
+    REGISTER_TEST(postfix_expr),
+    REGISTER_TEST(assign_expr),
+    REGISTER_TEST(expr),
 }
 TEST_SUITE_END()

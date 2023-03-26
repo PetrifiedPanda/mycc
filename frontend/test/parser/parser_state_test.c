@@ -135,7 +135,7 @@ TEST(parser_state) {
     free_parser_state(&s);
 }
 
-TEST_SUITE_BEGIN(parser_state, 1) {
-    REGISTER_TEST(parser_state);
+TEST_SUITE_BEGIN(parser_state) {
+    REGISTER_TEST(parser_state),
 }
 TEST_SUITE_END()

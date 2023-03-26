@@ -77,9 +77,9 @@ TEST(invalid_number) {
 
 }
 
-TEST_SUITE_BEGIN(tokenizer_error, 3) {
-    REGISTER_TEST(unterminated_literal);
-    REGISTER_TEST(invalid_identifier);
-    REGISTER_TEST(invalid_number);
+TEST_SUITE_BEGIN(tokenizer_error) {
+    REGISTER_TEST(unterminated_literal),
+    REGISTER_TEST(invalid_identifier),
+    REGISTER_TEST(invalid_number),
 }
 TEST_SUITE_END()

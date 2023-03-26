@@ -372,11 +372,11 @@ TEST(func_like_variadic) {
                        "m = 1, 2, 3, 4;");
 }
 
-TEST_SUITE_BEGIN(preproc_macro_expansion, 5) {
-    REGISTER_TEST(object_like);
-    REGISTER_TEST(object_like_empty);
-    REGISTER_TEST(recursive);
-    REGISTER_TEST(func_like);
-    REGISTER_TEST(func_like_variadic);
+TEST_SUITE_BEGIN(preproc_macro_expansion) {
+    REGISTER_TEST(object_like),
+    REGISTER_TEST(object_like_empty),
+    REGISTER_TEST(recursive),
+    REGISTER_TEST(func_like),
+    REGISTER_TEST(func_like_variadic),
 }
 TEST_SUITE_END()

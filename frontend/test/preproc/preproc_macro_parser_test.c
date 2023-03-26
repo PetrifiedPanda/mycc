@@ -517,10 +517,10 @@ TEST(duplicate_arg_name) {
     }
 }
 
-TEST_SUITE_BEGIN(preproc_macro_parser, 4) {
-    REGISTER_TEST(object_like);
-    REGISTER_TEST(func_like);
-    REGISTER_TEST(variadic);
-    REGISTER_TEST(duplicate_arg_name);
+TEST_SUITE_BEGIN(preproc_macro_parser) {
+    REGISTER_TEST(object_like),
+    REGISTER_TEST(func_like),
+    REGISTER_TEST(variadic),
+    REGISTER_TEST(duplicate_arg_name),
 }
 TEST_SUITE_END()

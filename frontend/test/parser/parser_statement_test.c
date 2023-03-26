@@ -235,8 +235,8 @@ TEST(statement) {
     // TODO: Add tests with declarations when implemented
 }
 
-TEST_SUITE_BEGIN(parser_statement, 2) {
-    REGISTER_TEST(jump_statement);
-    REGISTER_TEST(statement);
+TEST_SUITE_BEGIN(parser_statement) {
+    REGISTER_TEST(jump_statement),
+    REGISTER_TEST(statement),
 }
 TEST_SUITE_END()

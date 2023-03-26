@@ -355,18 +355,18 @@ TEST(str_pop_back) {
     free_str(&str);
 }
 
-TEST_SUITE_BEGIN(str, 11) {
-    REGISTER_TEST(push_back_to_empty);
-    REGISTER_TEST(push_back_to_empty_with_cap);
-    REGISTER_TEST(push_back_to_nonempty);
-    REGISTER_TEST(concat);
-    REGISTER_TEST(copy_take);
-    REGISTER_TEST(str_append_c_str);
-    REGISTER_TEST(str_reserve);
-    REGISTER_TEST(str_concat);
-    REGISTER_TEST(str_shrink_to_fit);
-    REGISTER_TEST(str_remove_front);
-    REGISTER_TEST(str_pop_back);
+TEST_SUITE_BEGIN(str) {
+    REGISTER_TEST(push_back_to_empty),
+    REGISTER_TEST(push_back_to_empty_with_cap),
+    REGISTER_TEST(push_back_to_nonempty),
+    REGISTER_TEST(concat),
+    REGISTER_TEST(copy_take),
+    REGISTER_TEST(str_append_c_str),
+    REGISTER_TEST(str_reserve),
+    REGISTER_TEST(str_concat),
+    REGISTER_TEST(str_shrink_to_fit),
+    REGISTER_TEST(str_remove_front),
+    REGISTER_TEST(str_pop_back),
 }
 TEST_SUITE_END()
 

@@ -172,15 +172,15 @@ TEST(float_suffix_error) {
 
 // TODO: float too large
 
-TEST_SUITE_BEGIN(num_parse, 8) {
-    REGISTER_TEST(integer);
-    REGISTER_TEST(floating);
-    REGISTER_TEST(int_min_fitting_type_decimal);
-    REGISTER_TEST(int_min_fitting_type_hex);
-    REGISTER_TEST(int_min_fitting_type_oct);
-    REGISTER_TEST(int_too_large);
-    REGISTER_TEST(int_suffix_error);
-    REGISTER_TEST(float_suffix_error);
+TEST_SUITE_BEGIN(num_parse) {
+    REGISTER_TEST(integer),
+    REGISTER_TEST(floating),
+    REGISTER_TEST(int_min_fitting_type_decimal),
+    REGISTER_TEST(int_min_fitting_type_hex),
+    REGISTER_TEST(int_min_fitting_type_oct),
+    REGISTER_TEST(int_too_large),
+    REGISTER_TEST(int_suffix_error),
+    REGISTER_TEST(float_suffix_error),
 }
 TEST_SUITE_END()
 

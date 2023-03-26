@@ -10,6 +10,7 @@
 #include <errno.h>
 
 #include "util/timing.h"
+#include "util/macro_util.h"
 
 /**
  * Jump buffer for unit tests
@@ -24,44 +25,42 @@ extern jmp_buf test_jump_buf;
  * @param max_num_tests determines how many tests can fit into this suite
  *                      must be a compile-time constant
  */
-#define TEST_SUITE_BEGIN(name, max_num_tests)                                  \
-    size_t name##_test_suite(void) {                                           \
-        printf("Starting %s tests\n", #name);                                  \
-        enum {                                                                 \
-            MAX_NUM_TESTS = (max_num_tests)                                    \
+#define TEST_SUITE_BEGIN(this_suite_name)                                      \
+    size_t this_suite_name##_test_suite(void) {                                \
+        const char* suite_name = #this_suite_name;                             \
+        printf("Starting %s tests\n", suite_name);                             \
+        struct test_and_name {                                                 \
+            void (*test)(void);                                                \
+            const char* name;                                                  \
         };                                                                     \
-        void (*tests[MAX_NUM_TESTS])(void);                                    \
-        char* test_names[MAX_NUM_TESTS];                                       \
-        const char* suite_name = #name;                                        \
-        size_t num_tests = 0;
+        const struct test_and_name tests[] =
 
 /**
  * Register a test inside this test suite, must be between TEST_SUITE_BEGIN and
  * TEST_SUITE_END
  */
 #define REGISTER_TEST(test_name)                                               \
-    do {                                                                       \
-        assert(num_tests < MAX_NUM_TESTS);                                     \
-        tests[num_tests] = test_name##_test;                                   \
-        test_names[num_tests] = #test_name;                                    \
-        ++num_tests;                                                           \
-    } while (0)
+    (struct test_and_name) { test_name##_test, #test_name }
 
 /**
  * Terminate a test suite
  */
 #define TEST_SUITE_END()                                                       \
+    ;                                                                          \
     size_t num_succeeded = 0;                                                  \
-    for (size_t i = 0; i < num_tests; ++i) {                                   \
+    enum {                                                                     \
+        NUM_TESTS = ARR_LEN(tests),                                            \
+    };                                                                         \
+    for (size_t i = 0; i < NUM_TESTS; ++i) {                                   \
         if (setjmp(test_jump_buf)) {                                           \
-            printf("\tTest %s failed", test_names[i]);                         \
+            printf("\tTest %s failed", tests[i].name);                         \
         } else {                                                               \
             const struct timespec start = mycc_current_time();                 \
-            tests[i]();                                                        \
+            tests[i].test();                                                   \
             const struct timespec end = mycc_current_time();                   \
             const struct timespec diff = mycc_time_diff(&end, &start);         \
             printf("\tTest %s succeeded in %f ms",                             \
-                   test_names[i],                                              \
+                   tests[i].name,                                              \
                    mycc_get_msecs_double(&diff));                              \
             ++num_succeeded;                                                   \
         }                                                                      \
@@ -69,12 +68,12 @@ extern jmp_buf test_jump_buf;
         printf("\n");                                                          \
     }                                                                          \
                                                                                \
-    printf("%zu/%zu of %s tests successful\n\n",                               \
+    printf("%zu/%d of %s tests successful\n\n",                                \
            num_succeeded,                                                      \
-           num_tests,                                                          \
+           NUM_TESTS,                                                          \
            suite_name);                                                        \
                                                                                \
-    return num_tests - num_succeeded; /* return how many tests failed */       \
+    return NUM_TESTS - num_succeeded; /* return how many tests failed */       \
     }
 
 /**

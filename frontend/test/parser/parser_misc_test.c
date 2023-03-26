@@ -427,13 +427,13 @@ TEST(type_spec_error) {
     // TODO: DISALLOWED_TYPE_QUALS
 }
 
-TEST_SUITE_BEGIN(parser_misc, 7) {
-    REGISTER_TEST(enum_list);
-    REGISTER_TEST(enum_spec);
-    REGISTER_TEST(designation);
-    REGISTER_TEST(static_assert_declaration);
-    REGISTER_TEST(struct_declaration_list);
-    REGISTER_TEST(redefine_typedef);
-    REGISTER_TEST(type_spec_error);
+TEST_SUITE_BEGIN(parser_misc) {
+    REGISTER_TEST(enum_list),
+    REGISTER_TEST(enum_spec),
+    REGISTER_TEST(designation),
+    REGISTER_TEST(static_assert_declaration),
+    REGISTER_TEST(struct_declaration_list),
+    REGISTER_TEST(redefine_typedef),
+    REGISTER_TEST(type_spec_error),
 }
 TEST_SUITE_END()

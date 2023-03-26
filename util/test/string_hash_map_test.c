@@ -175,8 +175,8 @@ TEST(remove) {
     free_string_hash_map(&map);
 }
 
-TEST_SUITE_BEGIN(string_hash_map, 2) {
-    REGISTER_TEST(insert);
-    REGISTER_TEST(remove);
+TEST_SUITE_BEGIN(string_hash_map) {
+    REGISTER_TEST(insert),
+    REGISTER_TEST(remove),
 }
 TEST_SUITE_END()

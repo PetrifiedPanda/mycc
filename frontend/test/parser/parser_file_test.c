@@ -512,9 +512,9 @@ TEST(large_testfile) {
     free_preproc_res(&res);
 }
 
-TEST_SUITE_BEGIN(parser_file, 3) {
-    REGISTER_TEST(no_preproc);
-    REGISTER_TEST(parser_testfile);
-    REGISTER_TEST(large_testfile);
+TEST_SUITE_BEGIN(parser_file) {
+    REGISTER_TEST(no_preproc),
+    REGISTER_TEST(parser_testfile),
+    REGISTER_TEST(large_testfile),
 }
 TEST_SUITE_END()

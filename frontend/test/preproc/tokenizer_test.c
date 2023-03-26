@@ -1117,12 +1117,12 @@ TEST(dot_float_literal_or_op) {
     }
 }
 
-TEST_SUITE_BEGIN(tokenizer, 5) {
-    REGISTER_TEST(simple);
-    REGISTER_TEST(file);
-    REGISTER_TEST(include);
-    REGISTER_TEST(hex_literal_or_var);
-    REGISTER_TEST(dot_float_literal_or_op);
+TEST_SUITE_BEGIN(tokenizer) {
+    REGISTER_TEST(simple),
+    REGISTER_TEST(file),
+    REGISTER_TEST(include),
+    REGISTER_TEST(hex_literal_or_var),
+    REGISTER_TEST(dot_float_literal_or_op),
 }
 TEST_SUITE_END()
 
