@@ -160,6 +160,7 @@ extern jmp_buf test_jump_buf;
     printf("\tAssertion failure in %s, %d\n\t\t", __FILE__, __LINE__);         \
     printf(format, __VA_ARGS__);                                               \
     printf("\n");                                                              \
+    MYCC_DEBUG_BREAK();                                                        \
     longjmp(test_jump_buf, 0)
 
 #endif

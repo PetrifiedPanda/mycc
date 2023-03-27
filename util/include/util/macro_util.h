@@ -1,6 +1,8 @@
 #ifndef UTIL_ANNOTATIONS_H
 #define UTIL_ANNOTATIONS_H
 
+#include <stdbool.h>
+
 /**
  * This should be used when a variable is unused, not because something
  * is unimplemented, but by design
@@ -29,13 +31,36 @@
 
 #if defined(_MSC_VER) && !defined(__clang__)
 
-#define PRINTF_FORMAT(format_idx, params_index) 
+#define PRINTF_FORMAT(format_idx, params_index)
 
 #else
 
-#define PRINTF_FORMAT(format_idx, params_index) __attribute__((format (printf, format_idx, params_index)))
+#define PRINTF_FORMAT(format_idx, params_index)                                \
+    __attribute__((format(printf, format_idx, params_index)))
 
 #endif
+
+#ifdef _WIN32
+
+#define MYCC_INTERNAL_BREAK() __debugbreak()
+
+#elif defined(__clang__)
+
+#define MYCC_INTERNAL_BREAK() __builtin_debugtrap()
+
+#else
+
+#include <signal.h>
+#define MYCC_INTERNAL_BREAK() raise(SIGINT)
+
+#endif
+
+bool mycc_debugger_present(void);
+
+#define MYCC_DEBUG_BREAK()                                                     \
+    if (mycc_debugger_present()) {                                             \
+        MYCC_INTERNAL_BREAK();                                                 \
+    }
 
 #define ARR_LEN(arr) sizeof arr / sizeof *arr
 
