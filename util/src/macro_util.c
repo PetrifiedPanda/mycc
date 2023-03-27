@@ -5,6 +5,8 @@
 #include <errno.h>
 
 #ifdef _WIN32
+// warning for defined operator in macro expansion (in windows.h)
+#pragma warning(disable : 5105)
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
