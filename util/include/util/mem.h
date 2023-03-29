@@ -49,36 +49,52 @@ void mycc_grow_alloc(void** alloc, size_t* alloc_len, size_t elem_size);
 
 #ifdef MYCC_MEMDEBUG
 
-void* mycc_memdebug_alloc_wrapper(size_t bytes, const char* file, size_t line);
+void* mycc_memdebug_alloc_wrapper(size_t bytes,
+                                  const char* func,
+                                  const char* file,
+                                  size_t line);
 void* mycc_memdebug_alloc_zeroed_wrapper(size_t len,
                                          size_t elem_size,
+                                         const char* func,
                                          const char* file,
                                          size_t line);
 void* mycc_memdebug_realloc_wrapper(void* alloc,
                                     size_t bytes,
+                                    const char* func,
                                     const char* file,
                                     size_t line);
 
-void mycc_memdebug_free_wrapper(void* alloc, const char* file, size_t line);
+void mycc_memdebug_free_wrapper(void* alloc,
+                                const char* func,
+                                const char* file,
+                                size_t line);
 
 void mycc_memdebug_grow_alloc_wrapper(void** alloc,
                                       size_t* alloc_len,
                                       size_t elem_size,
+                                      const char* func,
                                       const char* file,
                                       size_t line);
 
-#define mycc_alloc(bytes) mycc_memdebug_alloc_wrapper(bytes, __FILE__, __LINE__)
+#define mycc_alloc(bytes)                                                      \
+    mycc_memdebug_alloc_wrapper(bytes, __func__, __FILE__, __LINE__)
 #define mycc_alloc_zeroed(len, elem_size)                                      \
-    mycc_memdebug_alloc_zeroed_wrapper(len, elem_size, __FILE__, __LINE__)
+    mycc_memdebug_alloc_zeroed_wrapper(len,                                    \
+                                       elem_size,                              \
+                                       __func__,                               \
+                                       __FILE__,                               \
+                                       __LINE__)
 
 #define mycc_realloc(alloc, bytes)                                             \
-    mycc_memdebug_realloc_wrapper(alloc, bytes, __FILE__, __LINE__)
-#define mycc_free(alloc) mycc_memdebug_free_wrapper(alloc, __FILE__, __LINE__)
+    mycc_memdebug_realloc_wrapper(alloc, bytes, __func__, __FILE__, __LINE__)
+#define mycc_free(alloc)                                                       \
+    mycc_memdebug_free_wrapper(alloc, __func__, __FILE__, __LINE__)
 
 #define mycc_grow_alloc(alloc, alloc_len, elem_size)                           \
     mycc_memdebug_grow_alloc_wrapper(alloc,                                    \
                                      alloc_len,                                \
                                      elem_size,                                \
+                                     __func__,                                 \
                                      __FILE__,                                 \
                                      __LINE__)
 
