@@ -58,39 +58,35 @@ static struct str get_path_prefix(size_t len, const char* path) {
 static struct file_data create_file_data(const char* start_file,
                                          struct preproc_err* err) {
     struct str file_name = create_str(strlen(start_file), start_file);
-    struct file_manager fm;
-    bool is_valid = true;
 
     FILE* file = fopen(start_file, "r");
     if (!file) {
         set_preproc_file_err(err,
                              &file_name,
                              (struct source_loc){(size_t)-1, {0, 0}});
-        fm = (struct file_manager){0};
-        is_valid = false;
-    } else {
-        fm = (struct file_manager){
-            .files = {[0] = file},
-            .opened_info_indices = {[0] = 0},
-            .current_file_idx = 0,
-            .opened_info_len = 1,
-            .opened_info_cap = 1,
-            .opened_info = mycc_alloc(sizeof *fm.opened_info),
-            .prefixes_len = 1,
-            .prefixes_cap = 1,
-            .prefixes = mycc_alloc(sizeof *fm.prefixes),
-        };
-        fm.opened_info[0] = (struct opened_file_info){
-            .pos = -1,
-            .prefix_idx = 0,
-            .loc = {0, {0, 0}},
-        };
-        fm.prefixes[0] = get_path_prefix(strlen(start_file), start_file);
+        return (struct file_data){0};
     }
+    struct file_manager fm = {
+        .files = {[0] = file},
+        .opened_info_indices = {[0] = 0},
+        .current_file_idx = 0,
+        .opened_info_len = 1,
+        .opened_info_cap = 1,
+        .opened_info = mycc_alloc(sizeof *fm.opened_info),
+        .prefixes_len = 1,
+        .prefixes_cap = 1,
+        .prefixes = mycc_alloc(sizeof *fm.prefixes),
+    };
+    fm.opened_info[0] = (struct opened_file_info){
+        .pos = -1,
+        .prefix_idx = 0,
+        .loc = {0, {0, 0}},
+    };
+    fm.prefixes[0] = get_path_prefix(strlen(start_file), start_file);
     struct file_info fi = create_file_info(&file_name);
 
     return (struct file_data){
-        .is_valid = is_valid,
+        .is_valid = true,
         .fm = fm,
         .fi = fi,
     };
