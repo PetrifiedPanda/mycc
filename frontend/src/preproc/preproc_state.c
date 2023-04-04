@@ -185,7 +185,8 @@ static bool is_escaped_newline(const char* line, size_t len) {
 }
 
 static FILE* get_current_file(const struct preproc_state* state) {
-    return state->file_manager.files[state->file_manager.current_file_idx];
+    const struct file_manager* fm = &state->file_manager;
+    return fm->files[fm->current_file_idx];
 }
 
 static bool current_file_over(const struct preproc_state* state) {
