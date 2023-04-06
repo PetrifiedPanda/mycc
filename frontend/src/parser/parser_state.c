@@ -8,9 +8,9 @@
 #include "frontend/parser/parser_util.h"
 
 enum identifier_kind {
-    ID_TYPE_NONE,
-    ID_TYPE_TYPEDEF_NAME,
-    ID_TYPE_ENUM_CONSTANT
+    ID_KIND_NONE,
+    ID_KIND_TYPEDEF_NAME,
+    ID_KIND_ENUM_CONSTANT
 };
 
 struct parser_identifier_data {
@@ -89,19 +89,19 @@ void parser_pop_scope(struct parser_state* s) {
 }
 
 bool parser_register_enum_constant(struct parser_state* s, const struct token* token) {
-    return register_identifier(s, token, ID_TYPE_ENUM_CONSTANT);
+    return register_identifier(s, token, ID_KIND_ENUM_CONSTANT);
 }
 
 bool parser_register_typedef_name(struct parser_state* s, const struct token* token) {
-    return register_identifier(s, token, ID_TYPE_TYPEDEF_NAME);
+    return register_identifier(s, token, ID_KIND_TYPEDEF_NAME);
 }
 
 bool parser_is_enum_constant(const struct parser_state* s, const struct str* spell) {
-    return get_item(s, spell) == ID_TYPE_ENUM_CONSTANT;
+    return get_item(s, spell) == ID_KIND_ENUM_CONSTANT;
 }
 
 bool parser_is_typedef_name(const struct parser_state* s, const struct str* spell) {
-    return get_item(s, spell) == ID_TYPE_TYPEDEF_NAME;
+    return get_item(s, spell) == ID_KIND_TYPEDEF_NAME;
 }
 
 const struct parser_identifier_data* parser_get_prev_definition(
@@ -117,7 +117,7 @@ void parser_set_redefinition_err(struct parser_state* s,
     set_parser_err(s->err, PARSER_ERR_REDEFINED_SYMBOL, redef_tok->loc);
 
     s->err->redefined_symbol = str_copy(&redef_tok->spelling);
-    s->err->was_typedef_name = prev_def->kind == ID_TYPE_TYPEDEF_NAME;
+    s->err->was_typedef_name = prev_def->kind == ID_KIND_TYPEDEF_NAME;
     s->err->prev_def_file = prev_def->loc.file_idx;
     s->err->prev_def_loc = prev_def->loc.file_loc;
 }
@@ -125,7 +125,7 @@ void parser_set_redefinition_err(struct parser_state* s,
 static bool register_identifier(struct parser_state* s,
                                 const struct token* token,
                                 enum identifier_kind kind) {
-    assert(kind != ID_TYPE_NONE);
+    assert(kind != ID_KIND_NONE);
     assert(token->kind == TOKEN_IDENTIFIER);
 
     // TODO: Add a warning when an identifier from a previous scope is shadowed
@@ -157,5 +157,5 @@ static enum identifier_kind get_item(const struct parser_state* s,
         }
     }
 
-    return ID_TYPE_NONE;
+    return ID_KIND_NONE;
 }
