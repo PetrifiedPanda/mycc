@@ -36,6 +36,7 @@ struct parser_state create_parser_state(struct token* tokens,
     struct parser_state res = {
         .it = tokens,
         ._len = 1,
+        ._cap = 1,
         ._scope_maps = mycc_alloc(sizeof *res._scope_maps),
         .err = err,
     };
@@ -70,9 +71,12 @@ void parser_accept_it(struct parser_state* s) {
 }
 
 void parser_push_scope(struct parser_state* s) {
+    if (s->_len == s->_cap) {
+        ++s->_cap;
+        s->_scope_maps = mycc_realloc(s->_scope_maps,
+                                      sizeof *s->_scope_maps * s->_cap);
+    }
     ++s->_len;
-    s->_scope_maps = mycc_realloc(s->_scope_maps,
-                                  sizeof *s->_scope_maps * s->_len);
     s->_scope_maps[s->_len - 1] = create_string_hash_map(
         sizeof(struct parser_identifier_data),
         SCOPE_MAP_INIT_CAP,
@@ -84,23 +88,25 @@ void parser_pop_scope(struct parser_state* s) {
     assert(s->_len > 1);
     --s->_len;
     free_string_hash_map(&s->_scope_maps[s->_len]);
-    s->_scope_maps = mycc_realloc(s->_scope_maps,
-                                  sizeof *s->_scope_maps * s->_len);
 }
 
-bool parser_register_enum_constant(struct parser_state* s, const struct token* token) {
+bool parser_register_enum_constant(struct parser_state* s,
+                                   const struct token* token) {
     return register_identifier(s, token, ID_KIND_ENUM_CONSTANT);
 }
 
-bool parser_register_typedef_name(struct parser_state* s, const struct token* token) {
+bool parser_register_typedef_name(struct parser_state* s,
+                                  const struct token* token) {
     return register_identifier(s, token, ID_KIND_TYPEDEF_NAME);
 }
 
-bool parser_is_enum_constant(const struct parser_state* s, const struct str* spell) {
+bool parser_is_enum_constant(const struct parser_state* s,
+                             const struct str* spell) {
     return get_item(s, spell) == ID_KIND_ENUM_CONSTANT;
 }
 
-bool parser_is_typedef_name(const struct parser_state* s, const struct str* spell) {
+bool parser_is_typedef_name(const struct parser_state* s,
+                            const struct str* spell) {
     return get_item(s, spell) == ID_KIND_TYPEDEF_NAME;
 }
 
