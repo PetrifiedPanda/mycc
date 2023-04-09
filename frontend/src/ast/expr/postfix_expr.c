@@ -70,8 +70,9 @@ static bool parse_postfix_access_suffix(struct parser_state* s,
                                         struct postfix_suffix* res) {
     assert(res);
     assert(s->it->kind == TOKEN_DOT || s->it->kind == TOKEN_PTR_OP);
-    enum postfix_suffix_kind kind = s->it->kind == TOKEN_PTR_OP ? POSTFIX_PTR_ACCESS
-                                                          : POSTFIX_ACCESS;
+    enum postfix_suffix_kind kind = s->it->kind == TOKEN_PTR_OP
+                                        ? POSTFIX_PTR_ACCESS
+                                        : POSTFIX_ACCESS;
     parser_accept_it(s);
     if (s->it->kind != TOKEN_IDENTIFIER) {
         return false;
@@ -86,7 +87,7 @@ static bool parse_postfix_access_suffix(struct parser_state* s,
 }
 
 struct postfix_suffix parse_postfix_inc_dec_suffix(struct parser_state* s) {
-    assert(s->it->kind == TOKEN_INC|| s->it->kind == TOKEN_DEC);
+    assert(s->it->kind == TOKEN_INC || s->it->kind == TOKEN_DEC);
     const enum token_kind op = s->it->kind;
     parser_accept_it(s);
     return (struct postfix_suffix){
@@ -100,8 +101,8 @@ static bool parse_postfix_suffixes(struct parser_state* s,
     while (is_posfix_op(s->it->kind)) {
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->suffixes,
-                       &alloc_len,
-                       sizeof *res->suffixes);
+                            &alloc_len,
+                            sizeof *res->suffixes);
         }
 
         switch (s->it->kind) {
@@ -138,7 +139,7 @@ static bool parse_postfix_suffixes(struct parser_state* s,
 
     if (alloc_len != res->len) {
         res->suffixes = mycc_realloc(res->suffixes,
-                                 sizeof *res->suffixes * res->len);
+                                     sizeof *res->suffixes * res->len);
     }
 
     return true;
@@ -161,7 +162,8 @@ struct postfix_expr* parse_postfix_expr(struct parser_state* s) {
             return NULL;
         }
 
-        if (!(parser_accept(s, TOKEN_RBRACKET) && parser_accept(s, TOKEN_LBRACE))) {
+        if (!(parser_accept(s, TOKEN_RBRACKET)
+              && parser_accept(s, TOKEN_LBRACE))) {
             free_type_name(res->type_name);
             mycc_free(res);
             return NULL;
@@ -244,7 +246,7 @@ fail:
     return NULL;
 }
 
-static void free_children(struct postfix_expr* p) {
+static void free_postfix_expr_children(struct postfix_expr* p) {
     if (p->is_primary) {
         free_primary_expr(p->primary);
     } else {
@@ -273,7 +275,7 @@ static void free_children(struct postfix_expr* p) {
 }
 
 void free_postfix_expr(struct postfix_expr* p) {
-    free_children(p);
+    free_postfix_expr_children(p);
     mycc_free(p);
 }
 

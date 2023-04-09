@@ -6,7 +6,8 @@
 
 #include "frontend/parser/parser_util.h"
 
-static bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* res) {
+static bool parse_enumerator_inplace(struct parser_state* s,
+                                     struct enumerator* res) {
     assert(res);
 
     if (s->it->kind != TOKEN_IDENTIFIER) {
@@ -33,7 +34,7 @@ static bool parse_enumerator_inplace(struct parser_state* s, struct enumerator* 
             return false;
         }
     }
-    
+
     res->identifier = create_identifier(&spell, loc);
     res->enum_val = enum_val;
 
@@ -60,7 +61,9 @@ static bool parse_enum_list(struct parser_state* s, struct enum_list* res) {
         parser_accept_it(s);
 
         if (res->len == alloc_len) {
-            mycc_grow_alloc((void**)&res->enums, &alloc_len, sizeof *res->enums);
+            mycc_grow_alloc((void**)&res->enums,
+                            &alloc_len,
+                            sizeof *res->enums);
         }
 
         if (!parse_enumerator_inplace(s, &res->enums[res->len])) {
@@ -138,7 +141,7 @@ fail:
     return NULL;
 }
 
-static void free_children(struct enum_spec* s) {
+static void free_enum_spec_children(struct enum_spec* s) {
     if (s->identifier) {
         free_identifier(s->identifier);
     }
@@ -146,7 +149,7 @@ static void free_children(struct enum_spec* s) {
 }
 
 void free_enum_spec(struct enum_spec* s) {
-    free_children(s);
+    free_enum_spec_children(s);
     mycc_free(s);
 }
 

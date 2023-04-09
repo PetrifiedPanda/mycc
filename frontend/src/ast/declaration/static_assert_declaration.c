@@ -6,7 +6,8 @@
 
 struct static_assert_declaration* parse_static_assert_declaration(
     struct parser_state* s) {
-    if (!(parser_accept(s, TOKEN_STATIC_ASSERT) && parser_accept(s, TOKEN_LBRACKET))) {
+    if (!(parser_accept(s, TOKEN_STATIC_ASSERT)
+          && parser_accept(s, TOKEN_LBRACKET))) {
         return NULL;
     }
 
@@ -30,7 +31,8 @@ struct static_assert_declaration* parse_static_assert_declaration(
     struct source_loc loc = s->it->loc;
     parser_accept_it(s);
 
-    if (!(parser_accept(s, TOKEN_RBRACKET) && parser_accept(s, TOKEN_SEMICOLON))) {
+    if (!(parser_accept(s, TOKEN_RBRACKET)
+          && parser_accept(s, TOKEN_SEMICOLON))) {
         free_const_expr(const_expr);
         free_str_lit(&lit);
         return NULL;
@@ -38,18 +40,19 @@ struct static_assert_declaration* parse_static_assert_declaration(
 
     struct static_assert_declaration* res = mycc_alloc(sizeof *res);
     res->const_expr = const_expr;
-    res->err_msg = create_string_literal_node(&lit, loc); 
+    res->err_msg = create_string_literal_node(&lit, loc);
 
     return res;
 }
 
-static void free_children(struct static_assert_declaration* d) {
+static void free_static_assert_declaration_children(
+    struct static_assert_declaration* d) {
     free_const_expr(d->const_expr);
     free_string_literal(&d->err_msg);
 }
 
 void free_static_assert_declaration(struct static_assert_declaration* d) {
-    free_children(d);
+    free_static_assert_declaration_children(d);
 
     mycc_free(d);
 }

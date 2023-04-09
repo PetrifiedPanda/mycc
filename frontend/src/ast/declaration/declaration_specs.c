@@ -101,7 +101,9 @@ static enum parse_declaration_spec_res parse_declaration_spec(
         parser_accept_it(s);
     } else if (s->it->kind == TOKEN_ALIGNAS) {
         if (res->num_align_specs == *alloc_len_align_specs) {
-            mycc_grow_alloc((void**)&res->align_specs, alloc_len_align_specs, sizeof *res->align_specs); 
+            mycc_grow_alloc((void**)&res->align_specs,
+                            alloc_len_align_specs,
+                            sizeof *res->align_specs);
         }
 
         if (!parse_align_spec_inplace(
@@ -161,14 +163,16 @@ struct declaration_specs* parse_declaration_specs(struct parser_state* s,
         }
     }
 
-    res->align_specs = mycc_realloc(res->align_specs, sizeof *res->align_specs * res->num_align_specs);
+    res->align_specs = mycc_realloc(res->align_specs,
+                                    sizeof *res->align_specs
+                                        * res->num_align_specs);
 
     *found_typedef = res->storage_class.is_typedef;
 
     return res;
 }
 
-static void free_children(struct declaration_specs* s) {
+static void free_declaration_specs_children(struct declaration_specs* s) {
     for (size_t i = 0; i < s->num_align_specs; ++i) {
         free_align_spec_children(&s->align_specs[i]);
     }
@@ -177,7 +181,7 @@ static void free_children(struct declaration_specs* s) {
 }
 
 void free_declaration_specs(struct declaration_specs* s) {
-    free_children(s);
+    free_declaration_specs_children(s);
 
     mycc_free(s);
 }

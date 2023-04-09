@@ -44,7 +44,9 @@ static bool parse_mul_expr_mul_chain(struct parser_state* s,
         parser_accept_it(s);
 
         if (res->len == alloc_len) {
-            mycc_grow_alloc((void**)&res->mul_chain, &alloc_len, sizeof *res->mul_chain);
+            mycc_grow_alloc((void**)&res->mul_chain,
+                            &alloc_len,
+                            sizeof *res->mul_chain);
         }
 
         struct cast_expr_and_op* curr = &res->mul_chain[res->len];
@@ -58,7 +60,8 @@ static bool parse_mul_expr_mul_chain(struct parser_state* s,
         ++res->len;
     }
 
-    res->mul_chain = mycc_realloc(res->mul_chain, sizeof *res->mul_chain * res->len);
+    res->mul_chain = mycc_realloc(res->mul_chain,
+                                  sizeof *res->mul_chain * res->len);
 
     return true;
 }
@@ -70,7 +73,7 @@ struct mul_expr* parse_mul_expr(struct parser_state* s) {
     }
 
     struct mul_expr* res = mycc_alloc(sizeof *res);
-    
+
     res->lhs = lhs;
 
     if (!parse_mul_expr_mul_chain(s, res)) {
@@ -94,7 +97,7 @@ struct mul_expr* parse_mul_expr_cast(struct parser_state* s,
     return res;
 }
 
-static void free_children(struct mul_expr* e) {
+static void free_mul_expr_children(struct mul_expr* e) {
     free_cast_expr(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         free_cast_expr(e->mul_chain[i].rhs);
@@ -103,6 +106,6 @@ static void free_children(struct mul_expr* e) {
 }
 
 void free_mul_expr(struct mul_expr* e) {
-    free_children(e);
+    free_mul_expr_children(e);
     mycc_free(e);
 }

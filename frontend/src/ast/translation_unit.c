@@ -11,8 +11,8 @@ struct translation_unit parse_translation_unit(struct parser_state* s) {
     while (s->it->kind != TOKEN_INVALID) {
         if (res.len == alloc_num) {
             mycc_grow_alloc((void**)&res.external_decls,
-                       &alloc_num,
-                       sizeof *res.external_decls);
+                            &alloc_num,
+                            sizeof *res.external_decls);
         }
 
         if (!parse_external_declaration_inplace(s,
@@ -25,12 +25,12 @@ struct translation_unit parse_translation_unit(struct parser_state* s) {
     }
 
     res.external_decls = mycc_realloc(res.external_decls,
-                                  sizeof *res.external_decls * res.len);
+                                      sizeof *res.external_decls * res.len);
 
     return res;
 }
 
-static void free_children(struct translation_unit* u) {
+static void free_translation_unit_children(struct translation_unit* u) {
     for (size_t i = 0; i < u->len; ++i) {
         free_external_declaration_children(&u->external_decls[i]);
     }
@@ -38,6 +38,6 @@ static void free_children(struct translation_unit* u) {
 }
 
 void free_translation_unit(struct translation_unit* u) {
-    free_children(u);
+    free_translation_unit_children(u);
 }
 

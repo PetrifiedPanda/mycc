@@ -19,8 +19,8 @@ static bool parse_cast_expr_rest(struct parser_state* s,
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->type_names,
-                       &alloc_len,
-                       sizeof *res->type_names);
+                            &alloc_len,
+                            sizeof *res->type_names);
         }
 
         if (!parse_type_name_inplace(s, &res->type_names[res->len])) {
@@ -42,7 +42,7 @@ static bool parse_cast_expr_rest(struct parser_state* s,
 
         if (res->type_names) {
             res->type_names = mycc_realloc(res->type_names,
-                                       sizeof *res->type_names * res->len);
+                                           sizeof *res->type_names * res->len);
         }
 
         res->rhs = parse_unary_expr_type_name(s,
@@ -53,7 +53,7 @@ static bool parse_cast_expr_rest(struct parser_state* s,
     } else {
         if (res->type_names) {
             res->type_names = mycc_realloc(res->type_names,
-                                       sizeof *res->type_names * res->len);
+                                           sizeof *res->type_names * res->len);
         }
         res->rhs = parse_unary_expr(s);
     }
@@ -115,7 +115,7 @@ struct cast_expr* create_cast_expr_unary(struct unary_expr* start) {
     return res;
 }
 
-static void free_children(struct cast_expr* e) {
+static void free_cast_expr_children(struct cast_expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         free_type_name_children(&e->type_names[i]);
     }
@@ -124,6 +124,6 @@ static void free_children(struct cast_expr* e) {
 }
 
 void free_cast_expr(struct cast_expr* e) {
-    free_children(e);
+    free_cast_expr_children(e);
     mycc_free(e);
 }

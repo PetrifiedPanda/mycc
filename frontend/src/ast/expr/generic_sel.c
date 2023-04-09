@@ -137,12 +137,12 @@ fail:
     return NULL;
 }
 
-static void free_children(struct generic_sel* s) {
+static void free_generic_sel_children(struct generic_sel* s) {
     free_assign_expr(s->assign);
     free_generic_assoc_list(&s->assocs);
 }
 
 void free_generic_sel(struct generic_sel* s) {
-    free_children(s);
+    free_generic_sel_children(s);
     mycc_free(s);
 }

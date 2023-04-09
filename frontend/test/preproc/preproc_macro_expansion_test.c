@@ -69,7 +69,7 @@ static void test_preproc_macro(const struct preproc_macro* macro,
     free_preproc_state(&state);
 }
 
-TEST(object_like) {
+TEST(expand_obj_like) {
     // #define MACRO 1 + 2
     struct token_or_arg expansion[] = {
         {.is_arg = false,
@@ -104,7 +104,7 @@ TEST(object_like) {
                        "int x = 1000; 1 + 2");
 }
 
-TEST(object_like_empty) {
+TEST(expand_obj_like_empty) {
     const struct preproc_macro macro = {
         .is_func_macro = false,
         .num_args = 0,
@@ -128,7 +128,7 @@ TEST(object_like_empty) {
                        "while (true) x *= 2 * 2;\n;");
 }
 
-TEST(recursive) {
+TEST(expand_recursive) {
     struct token_or_arg rec_obj_ex[] = {
         {.is_arg = false,
          .token = {TOKEN_IDENTIFIER,
@@ -192,7 +192,7 @@ TEST(recursive) {
                        "x = REC_FUNC_MACRO() - 10;REC_FUNC_MACRO()");
 }
 
-TEST(func_like) {
+TEST(expand_func_like) {
     // #define FUNC_LIKE_MACRO(x, y) x + y * 3 - y
     struct token_or_arg ex1[] = {
         {.is_arg = true, .arg_num = 0},
@@ -311,7 +311,7 @@ TEST(func_like) {
                        "+ 10");
 }
 
-TEST(func_like_variadic) {
+TEST(expand_func_like_variadic) {
     // #define CALL_FUNC(func, ...) func(__VA_ARGS__)
     struct token_or_arg ex1[] = {
         {.is_arg = true, .arg_num = 0},
@@ -373,10 +373,10 @@ TEST(func_like_variadic) {
 }
 
 TEST_SUITE_BEGIN(preproc_macro_expansion) {
-    REGISTER_TEST(object_like),
-    REGISTER_TEST(object_like_empty),
-    REGISTER_TEST(recursive),
-    REGISTER_TEST(func_like),
-    REGISTER_TEST(func_like_variadic),
+    REGISTER_TEST(expand_obj_like),
+    REGISTER_TEST(expand_obj_like_empty),
+    REGISTER_TEST(expand_recursive),
+    REGISTER_TEST(expand_func_like),
+    REGISTER_TEST(expand_func_like_variadic),
 }
 TEST_SUITE_END()

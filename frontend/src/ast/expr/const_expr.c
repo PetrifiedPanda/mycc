@@ -11,12 +11,12 @@ struct const_expr* parse_const_expr(struct parser_state* s) {
     return res;
 }
 
-static void free_children(struct const_expr* e) {
+static void free_const_expr_children(struct const_expr* e) {
     free_cond_expr_children(&e->expr);
 }
 
 void free_const_expr(struct const_expr* e) {
-    free_children(e);
+    free_const_expr_children(e);
     mycc_free(e);
 }
 

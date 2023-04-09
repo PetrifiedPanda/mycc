@@ -31,8 +31,8 @@ struct pointer* parse_pointer(struct parser_state* s) {
 
         if (res->num_indirs == alloc_size) {
             mycc_grow_alloc((void**)&res->quals_after_ptr,
-                       &alloc_size,
-                       sizeof *res->quals_after_ptr);
+                            &alloc_size,
+                            sizeof *res->quals_after_ptr);
         }
 
         if (is_type_qual(s->it->kind)) {
@@ -49,18 +49,18 @@ struct pointer* parse_pointer(struct parser_state* s) {
     }
 
     res->quals_after_ptr = mycc_realloc(res->quals_after_ptr,
-                                    sizeof *res->quals_after_ptr
-                                        * res->num_indirs);
+                                        sizeof *res->quals_after_ptr
+                                            * res->num_indirs);
 
     return res;
 }
 
-static void free_children(struct pointer* p) {
+static void free_pointer_children(struct pointer* p) {
     mycc_free(p->quals_after_ptr);
 }
 
 void free_pointer(struct pointer* p) {
-    free_children(p);
+    free_pointer_children(p);
     mycc_free(p);
 }
 

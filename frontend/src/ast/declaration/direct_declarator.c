@@ -235,7 +235,7 @@ struct direct_declarator* parse_direct_declarator_typedef(
                                         parser_register_typedef_name);
 }
 
-static void free_children(struct direct_declarator* d) {
+static void free_direct_declarator_children(struct direct_declarator* d) {
     if (d->is_id) {
         free_identifier(d->id);
     } else {
@@ -264,7 +264,7 @@ static void free_children(struct direct_declarator* d) {
 }
 
 void free_direct_declarator(struct direct_declarator* d) {
-    free_children(d);
+    free_direct_declarator_children(d);
     mycc_free(d);
 }
 

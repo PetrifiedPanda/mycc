@@ -188,7 +188,8 @@ static void free_abs_arr_or_func_suffix(struct abs_arr_or_func_suffix* s) {
     }
 }
 
-static void free_children(struct direct_abs_declarator* d) {
+static void free_direct_abs_declarator_children(
+    struct direct_abs_declarator* d) {
     if (d->bracket_decl) {
         free_abs_declarator(d->bracket_decl);
     }
@@ -200,7 +201,7 @@ static void free_children(struct direct_abs_declarator* d) {
 }
 
 void free_direct_abs_declarator(struct direct_abs_declarator* d) {
-    free_children(d);
+    free_direct_abs_declarator_children(d);
     mycc_free(d);
 }
 

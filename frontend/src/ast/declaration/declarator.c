@@ -36,7 +36,7 @@ struct declarator* parse_declarator(struct parser_state* s) {
     return parse_declarator_base(s, parse_direct_declarator);
 }
 
-static void free_children(struct declarator* d) {
+static void free_declarator_children(struct declarator* d) {
     if (d->ptr) {
         free_pointer(d->ptr);
     }
@@ -44,6 +44,6 @@ static void free_children(struct declarator* d) {
 }
 
 void free_declarator(struct declarator* d) {
-    free_children(d);
+    free_declarator_children(d);
     mycc_free(d);
 }

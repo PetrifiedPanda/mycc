@@ -123,7 +123,7 @@ struct primary_expr* parse_primary_expr(struct parser_state* s) {
     return NULL;
 }
 
-static void free_children(struct primary_expr* e) {
+static void free_primary_expr_children(struct primary_expr* e) {
     switch (e->kind) {
         case PRIMARY_EXPR_IDENTIFIER:
             free_identifier(e->identifier);
@@ -148,6 +148,6 @@ static void free_children(struct primary_expr* e) {
 }
 
 void free_primary_expr(struct primary_expr* e) {
-    free_children(e);
+    free_primary_expr_children(e);
     mycc_free(e);
 }

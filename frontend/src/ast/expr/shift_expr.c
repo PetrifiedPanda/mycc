@@ -28,8 +28,8 @@ static bool parse_shift_expr_shift_chain(struct parser_state* s,
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->shift_chain,
-                       &alloc_len,
-                       sizeof *res->shift_chain);
+                            &alloc_len,
+                            sizeof *res->shift_chain);
         }
 
         struct add_expr_and_op* curr = &res->shift_chain[res->len];
@@ -43,7 +43,7 @@ static bool parse_shift_expr_shift_chain(struct parser_state* s,
     }
 
     res->shift_chain = mycc_realloc(res->shift_chain,
-                                sizeof *res->shift_chain * res->len);
+                                    sizeof *res->shift_chain * res->len);
 
     return true;
 
@@ -87,7 +87,7 @@ struct shift_expr* parse_shift_expr_cast(struct parser_state* s,
     return res;
 }
 
-static void free_children(struct shift_expr* e) {
+static void free_shift_expr_children(struct shift_expr* e) {
     free_add_expr(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         free_add_expr(e->shift_chain[i].rhs);
@@ -96,6 +96,6 @@ static void free_children(struct shift_expr* e) {
 }
 
 void free_shift_expr(struct shift_expr* e) {
-    free_children(e);
+    free_shift_expr_children(e);
     mycc_free(e);
 }

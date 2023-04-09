@@ -38,13 +38,15 @@ static void compare_preproc_macros(const struct preproc_macro* got,
     }
 }
 
-TEST(object_like) {
+TEST(parse_obj_like) {
     {
         // #define TEST_MACRO
         struct token tokens[] = {
             {TOKEN_PP_STRINGIFY, .spelling = create_null_str(), {0, {1, 1}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
-            {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("TEST_MACRO"), {0, {1, 9}}},
+            {TOKEN_IDENTIFIER,
+             .spelling = STR_NON_HEAP("TEST_MACRO"),
+             {0, {1, 9}}},
         };
 
         struct token_arr arr = {
@@ -126,13 +128,15 @@ TEST(object_like) {
     }
 }
 
-TEST(func_like) {
+TEST(parse_func_like) {
     {
         // #define FUNC_LIKE(a, b, c) a != 38 ? b * other_name : c + a
         struct token tokens[] = {
             {TOKEN_PP_STRINGIFY, .spelling = create_null_str(), {0, {1, 1}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
-            {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("FUNC_LIKE"), {0, {1, 9}}},
+            {TOKEN_IDENTIFIER,
+             .spelling = STR_NON_HEAP("FUNC_LIKE"),
+             {0, {1, 9}}},
             {TOKEN_LBRACKET, .spelling = create_null_str(), {0, {1, 18}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 19}}},
             {TOKEN_COMMA, .spelling = create_null_str(), {0, {1, 20}}},
@@ -146,7 +150,9 @@ TEST(func_like) {
             {TOKEN_QMARK, .spelling = create_null_str(), {0, {1, 36}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("b"), {0, {1, 38}}},
             {TOKEN_ASTERISK, .spelling = create_null_str(), {0, {1, 40}}},
-            {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("other_name"), {0, {1, 42}}},
+            {TOKEN_IDENTIFIER,
+             .spelling = STR_NON_HEAP("other_name"),
+             {0, {1, 42}}},
             {TOKEN_COLON, .spelling = create_null_str(), {0, {1, 53}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("c"), {0, {1, 55}}},
             {TOKEN_ADD, .spelling = create_null_str(), {0, {1, 57}}},
@@ -199,7 +205,9 @@ TEST(func_like) {
         struct token tokens[] = {
             {TOKEN_PP_STRINGIFY, .spelling = create_null_str(), {0, {1, 1}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
-            {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("NO_PARAMS"), {0, {1, 9}}},
+            {TOKEN_IDENTIFIER,
+             .spelling = STR_NON_HEAP("NO_PARAMS"),
+             {0, {1, 9}}},
             {TOKEN_LBRACKET, .spelling = create_null_str(), {0, {1, 18}}},
             {TOKEN_RBRACKET, .spelling = create_null_str(), {0, {1, 19}}},
             {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 21}}},
@@ -284,13 +292,15 @@ TEST(func_like) {
     }
 }
 
-TEST(variadic) {
+TEST(parse_variadic) {
     {
         // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name : c + a
         struct token tokens[] = {
             {TOKEN_PP_STRINGIFY, .spelling = create_null_str(), {0, {1, 1}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
-            {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("FUNC_LIKE"), {0, {1, 9}}},
+            {TOKEN_IDENTIFIER,
+             .spelling = STR_NON_HEAP("FUNC_LIKE"),
+             {0, {1, 9}}},
             {TOKEN_LBRACKET, .spelling = create_null_str(), {0, {1, 18}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 19}}},
             {TOKEN_COMMA, .spelling = create_null_str(), {0, {1, 20}}},
@@ -306,7 +316,9 @@ TEST(variadic) {
             {TOKEN_QMARK, .spelling = create_null_str(), {0, {1, 41}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("b"), {0, {1, 43}}},
             {TOKEN_ASTERISK, .spelling = create_null_str(), {0, {1, 45}}},
-            {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("other_name"), {0, {1, 47}}},
+            {TOKEN_IDENTIFIER,
+             .spelling = STR_NON_HEAP("other_name"),
+             {0, {1, 47}}},
             {TOKEN_COLON, .spelling = create_null_str(), {0, {1, 58}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("c"), {0, {1, 60}}},
             {TOKEN_ADD, .spelling = create_null_str(), {0, {1, 62}}},
@@ -360,7 +372,9 @@ TEST(variadic) {
         struct token tokens[] = {
             {TOKEN_PP_STRINGIFY, .spelling = create_null_str(), {0, {1, 1}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
-            {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("FUNC_LIKE"), {0, {1, 9}}},
+            {TOKEN_IDENTIFIER,
+             .spelling = STR_NON_HEAP("FUNC_LIKE"),
+             {0, {1, 9}}},
             {TOKEN_LBRACKET, .spelling = create_null_str(), {0, {1, 18}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("a"), {0, {1, 19}}},
             {TOKEN_COMMA, .spelling = create_null_str(), {0, {1, 20}}},
@@ -376,9 +390,13 @@ TEST(variadic) {
             {TOKEN_QMARK, .spelling = create_null_str(), {0, {1, 41}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("b"), {0, {1, 43}}},
             {TOKEN_ASTERISK, .spelling = create_null_str(), {0, {1, 45}}},
-            {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("other_name"), {0, {1, 47}}},
+            {TOKEN_IDENTIFIER,
+             .spelling = STR_NON_HEAP("other_name"),
+             {0, {1, 47}}},
             {TOKEN_LBRACKET, .spelling = create_null_str(), {0, {1, 48}}},
-            {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("__VA_ARGS__"), {0, {1, 49}}},
+            {TOKEN_IDENTIFIER,
+             .spelling = STR_NON_HEAP("__VA_ARGS__"),
+             {0, {1, 49}}},
             {TOKEN_RBRACKET, .spelling = create_null_str(), {0, {1, 60}}},
             {TOKEN_COLON, .spelling = create_null_str(), {0, {1, 62}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("c"), {0, {1, 64}}},
@@ -440,7 +458,7 @@ static void is_zeroed_macro(const struct preproc_macro* got) {
     ASSERT_NULL(got->expansion);
 }
 
-TEST(duplicate_arg_name) {
+TEST(parse_duplicate_arg_name) {
     // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name(__VA_ARGS__)
     // : c + a
     struct token tokens[] = {
@@ -462,9 +480,13 @@ TEST(duplicate_arg_name) {
         {TOKEN_QMARK, .spelling = create_null_str(), {0, {1, 41}}},
         {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("b"), {0, {1, 43}}},
         {TOKEN_ASTERISK, .spelling = create_null_str(), {0, {1, 45}}},
-        {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("other_name"), {0, {1, 47}}},
+        {TOKEN_IDENTIFIER,
+         .spelling = STR_NON_HEAP("other_name"),
+         {0, {1, 47}}},
         {TOKEN_LBRACKET, .spelling = create_null_str(), {0, {1, 48}}},
-        {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("__VA_ARGS__"), {0, {1, 49}}},
+        {TOKEN_IDENTIFIER,
+         .spelling = STR_NON_HEAP("__VA_ARGS__"),
+         {0, {1, 49}}},
         {TOKEN_RBRACKET, .spelling = create_null_str(), {0, {1, 60}}},
         {TOKEN_COLON, .spelling = create_null_str(), {0, {1, 62}}},
         {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("c"), {0, {1, 64}}},
@@ -517,10 +539,9 @@ TEST(duplicate_arg_name) {
     }
 }
 
-TEST_SUITE_BEGIN(preproc_macro_parser) {
-    REGISTER_TEST(object_like),
-    REGISTER_TEST(func_like),
-    REGISTER_TEST(variadic),
-    REGISTER_TEST(duplicate_arg_name),
-}
-TEST_SUITE_END()
+TEST_SUITE_BEGIN(preproc_macro_parser){
+    REGISTER_TEST(parse_obj_like),
+    REGISTER_TEST(parse_func_like),
+    REGISTER_TEST(parse_variadic),
+    REGISTER_TEST(parse_duplicate_arg_name),
+} TEST_SUITE_END()

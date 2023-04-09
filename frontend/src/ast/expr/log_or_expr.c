@@ -6,7 +6,7 @@
 
 #include "frontend/parser/parser_util.h"
 
-static void free_children(struct log_or_expr* e);
+static void free_log_or_expr_children(struct log_or_expr* e);
 
 static bool parse_log_or_expr_ops(struct parser_state* s,
                                   struct log_or_expr* res) {
@@ -19,8 +19,8 @@ static bool parse_log_or_expr_ops(struct parser_state* s,
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->log_ands,
-                       &alloc_len,
-                       sizeof *res->log_ands);
+                            &alloc_len,
+                            sizeof *res->log_ands);
         }
 
         if (!parse_log_and_expr_inplace(s, &res->log_ands[res->len])) {
@@ -30,11 +30,12 @@ static bool parse_log_or_expr_ops(struct parser_state* s,
         ++res->len;
     }
 
-    res->log_ands = mycc_realloc(res->log_ands, sizeof *res->log_ands * res->len);
+    res->log_ands = mycc_realloc(res->log_ands,
+                                 sizeof *res->log_ands * res->len);
 
     return true;
 fail:
-    free_children(res);
+    free_log_or_expr_children(res);
     return false;
 }
 
@@ -78,7 +79,7 @@ struct log_or_expr* parse_log_or_expr_cast(struct parser_state* s,
     return res;
 }
 
-static void free_children(struct log_or_expr* e) {
+static void free_log_or_expr_children(struct log_or_expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         free_log_and_expr_children(&e->log_ands[i]);
     }
@@ -86,7 +87,7 @@ static void free_children(struct log_or_expr* e) {
 }
 
 void free_log_or_expr(struct log_or_expr* e) {
-    free_children(e);
+    free_log_or_expr_children(e);
     mycc_free(e);
 }
 

@@ -14,8 +14,7 @@ struct abs_declarator* parse_abs_declarator(struct parser_state* s) {
         res->ptr = NULL;
     }
 
-    if (s->it->kind == TOKEN_LBRACKET
-        || s->it->kind == TOKEN_LINDEX) {
+    if (s->it->kind == TOKEN_LBRACKET || s->it->kind == TOKEN_LINDEX) {
         res->direct_abs_decl = parse_direct_abs_declarator(s);
         if (!res->direct_abs_decl) {
             if (res->ptr) {
@@ -37,7 +36,7 @@ struct abs_declarator* parse_abs_declarator(struct parser_state* s) {
     return res;
 }
 
-static void free_children(struct abs_declarator* d) {
+static void free_abs_declarator_children(struct abs_declarator* d) {
     if (d->ptr) {
         free_pointer(d->ptr);
     }
@@ -47,6 +46,6 @@ static void free_children(struct abs_declarator* d) {
 }
 
 void free_abs_declarator(struct abs_declarator* d) {
-    free_children(d);
+    free_abs_declarator_children(d);
     mycc_free(d);
 }
