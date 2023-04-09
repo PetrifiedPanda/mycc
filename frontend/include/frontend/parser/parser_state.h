@@ -11,7 +11,7 @@
 
 struct parser_state {
     struct token* it;
-    size_t _len;
+    size_t _len, _cap;
     struct string_hash_map* _scope_maps;
     struct parser_err* err;
 };
