@@ -1,4 +1,4 @@
-#include "util/string_hash_map.h"
+#include "util/string_map.h"
 
 #include "testing/testing.h"
 #include "testing/asserts.h"
@@ -64,17 +64,17 @@ static struct str str_from_generated(char* str) {
     };
 }
 
-static void insert_items(struct string_hash_map* map,
+static void insert_items(struct string_map* map,
                          char keys[][KEY_CHAR_ARR_LEN],
                          size_t num_inserts) {
     assert(map->_item_size == sizeof(size_t));
     for (size_t i = 0; i < num_inserts; ++i) {
         const struct str to_insert = str_from_generated(keys[i]);
-        const size_t* ret = string_hash_map_insert(map, &to_insert, &i);
+        const size_t* ret = string_map_insert(map, &to_insert, &i);
         ASSERT(ret == &i);
 
         // check if the item is present directly after insertions
-        const size_t* item = string_hash_map_get(map, &to_insert);
+        const size_t* item = string_map_get(map, &to_insert);
         ASSERT_SIZE_T(*item, i);
     }
 }
@@ -84,10 +84,10 @@ TEST(insert) {
         INIT_CAP = 20,
         NUM_INSERTS = INIT_CAP * 4,
     };
-    struct string_hash_map map = create_string_hash_map(sizeof(size_t),
-                                                        INIT_CAP,
-                                                        false,
-                                                        NULL);
+    struct string_map map = create_string_map(sizeof(size_t),
+                                              INIT_CAP,
+                                              false,
+                                              NULL);
 
     char keys[NUM_INSERTS][KEY_CHAR_ARR_LEN];
 
@@ -100,15 +100,15 @@ TEST(insert) {
     for (size_t i = 0; i < NUM_INSERTS; ++i) {
         // try to insert already existing item
         const struct str insert_key = str_from_generated(keys[i]);
-        const size_t* ret = string_hash_map_insert(&map, &insert_key, &to_insert);
+        const size_t* ret = string_map_insert(&map, &insert_key, &to_insert);
         ASSERT_SIZE_T(*ret, i);
 
         // check if item was overwritten
-        const size_t* item = string_hash_map_get(&map, &insert_key);
+        const size_t* item = string_map_get(&map, &insert_key);
         ASSERT_SIZE_T(*item, i);
     }
 
-    free_string_hash_map(&map);
+    free_string_map(&map);
 }
 
 TEST(remove) {
@@ -117,10 +117,10 @@ TEST(remove) {
         NUM_INSERTS = INIT_CAP * 2
     };
 
-    struct string_hash_map map = create_string_hash_map(sizeof(size_t),
-                                                        INIT_CAP,
-                                                        false,
-                                                        NULL);
+    struct string_map map = create_string_map(sizeof(size_t),
+                                              INIT_CAP,
+                                              false,
+                                              NULL);
 
     char keys[NUM_INSERTS][KEY_CHAR_ARR_LEN];
 
@@ -131,27 +131,27 @@ TEST(remove) {
 
     for (size_t i = 0; i < NUM_INSERTS; ++i) {
         const struct str key = str_from_generated(keys[i]);
-        string_hash_map_remove(&map, &key);
-        ASSERT_SIZE_T(map._len, (size_t)NUM_INSERTS - 1); 
+        string_map_remove(&map, &key);
+        ASSERT_SIZE_T(map._len, (size_t)NUM_INSERTS - 1);
 
-        const void* item = string_hash_map_get(&map, &key);
+        const void* item = string_map_get(&map, &key);
         ASSERT_NULL(item);
         for (size_t j = 0; j < NUM_INSERTS; ++j) {
             if (j == i) {
                 continue;
             }
             const struct str other_key = str_from_generated(keys[j]);
-            const size_t* ret = string_hash_map_get(&map, &other_key);
+            const size_t* ret = string_map_get(&map, &other_key);
             ASSERT_NOT_NULL(ret);
             ASSERT_SIZE_T(*ret, j);
         }
 
-        const size_t* insert_ret = string_hash_map_insert(&map, &key, &i);
+        const size_t* insert_ret = string_map_insert(&map, &key, &i);
         ASSERT_SIZE_T(*insert_ret, i);
         ASSERT_SIZE_T(map._len, (size_t)NUM_INSERTS);
         for (size_t j = 0; j < NUM_INSERTS; ++j) {
             const struct str other_key = str_from_generated(keys[j]);
-            const size_t* ret = string_hash_map_get(&map, &other_key);
+            const size_t* ret = string_map_get(&map, &other_key);
             ASSERT_NOT_NULL(ret);
             ASSERT_SIZE_T(*ret, j);
         }
@@ -160,23 +160,22 @@ TEST(remove) {
     for (size_t i = 0; i < NUM_INSERTS; ++i) {
         ASSERT_SIZE_T(map._len, (size_t)NUM_INSERTS - i);
         const struct str to_remove = str_from_generated(keys[i]);
-        string_hash_map_remove(&map, &to_remove);
+        string_map_remove(&map, &to_remove);
 
-        const void* item = string_hash_map_get(&map, &to_remove);
+        const void* item = string_map_get(&map, &to_remove);
         ASSERT_NULL(item);
         for (size_t j = i + 1; j < NUM_INSERTS; ++j) {
             const struct str other_key = str_from_generated(keys[j]);
-            const size_t* ret = string_hash_map_get(&map, &other_key);
+            const size_t* ret = string_map_get(&map, &other_key);
             ASSERT_NOT_NULL(ret);
             ASSERT_SIZE_T(*ret, j);
         }
     }
 
-    free_string_hash_map(&map);
+    free_string_map(&map);
 }
 
-TEST_SUITE_BEGIN(string_hash_map) {
+TEST_SUITE_BEGIN(string_map){
     REGISTER_TEST(insert),
     REGISTER_TEST(remove),
-}
-TEST_SUITE_END()
+} TEST_SUITE_END()

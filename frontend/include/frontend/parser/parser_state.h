@@ -7,12 +7,12 @@
 
 #include "parser_err.h"
 
-#include "util/string_hash_map.h"
+#include "util/string_map.h"
 
 struct parser_state {
     struct token* it;
     size_t _len, _cap;
-    struct string_hash_map* _scope_maps;
+    struct string_map* _scope_maps;
     struct parser_err* err;
 };
 

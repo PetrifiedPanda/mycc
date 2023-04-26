@@ -40,7 +40,7 @@ struct parser_state create_parser_state(struct token* tokens,
         ._scope_maps = mycc_alloc(sizeof *res._scope_maps),
         .err = err,
     };
-    res._scope_maps[0] = create_string_hash_map(
+    res._scope_maps[0] = create_string_map(
         sizeof(struct parser_identifier_data),
         SCOPE_MAP_INIT_CAP,
         false,
@@ -50,7 +50,7 @@ struct parser_state create_parser_state(struct token* tokens,
 
 void free_parser_state(struct parser_state* s) {
     for (size_t i = 0; i < s->_len; ++i) {
-        free_string_hash_map(&s->_scope_maps[i]);
+        free_string_map(&s->_scope_maps[i]);
     }
     mycc_free(s->_scope_maps);
 }
@@ -77,7 +77,7 @@ void parser_push_scope(struct parser_state* s) {
                                       sizeof *s->_scope_maps * s->_cap);
     }
     ++s->_len;
-    s->_scope_maps[s->_len - 1] = create_string_hash_map(
+    s->_scope_maps[s->_len - 1] = create_string_map(
         sizeof(struct parser_identifier_data),
         SCOPE_MAP_INIT_CAP,
         false,
@@ -87,7 +87,7 @@ void parser_push_scope(struct parser_state* s) {
 void parser_pop_scope(struct parser_state* s) {
     assert(s->_len > 1);
     --s->_len;
-    free_string_hash_map(&s->_scope_maps[s->_len]);
+    free_string_map(&s->_scope_maps[s->_len]);
 }
 
 bool parser_register_enum_constant(struct parser_state* s,
@@ -113,8 +113,8 @@ bool parser_is_typedef_name(const struct parser_state* s,
 const struct parser_identifier_data* parser_get_prev_definition(
     const struct parser_state* s,
     const struct str* spell) {
-    const struct string_hash_map* current_map = &s->_scope_maps[s->_len - 1];
-    return string_hash_map_get(current_map, spell);
+    const struct string_map* current_map = &s->_scope_maps[s->_len - 1];
+    return string_map_get(current_map, spell);
 }
 
 void parser_set_redefinition_err(struct parser_state* s,
@@ -140,7 +140,7 @@ static bool register_identifier(struct parser_state* s,
         .loc = token->loc,
         .kind = kind,
     };
-    const struct parser_identifier_data* item = string_hash_map_insert(
+    const struct parser_identifier_data* item = string_map_insert(
         &s->_scope_maps[s->_len - 1],
         &token->spelling,
         &to_insert);
@@ -155,7 +155,7 @@ static bool register_identifier(struct parser_state* s,
 static enum identifier_kind get_item(const struct parser_state* s,
                                      const struct str* spell) {
     for (size_t i = 0; i < s->_len; ++i) {
-        const struct parser_identifier_data* data = string_hash_map_get(
+        const struct parser_identifier_data* data = string_map_get(
             &s->_scope_maps[i],
             spell);
         if (data != NULL) {

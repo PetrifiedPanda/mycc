@@ -122,7 +122,7 @@ struct preproc_state create_preproc_state(const char* start_file,
         .conds_cap = 0,
         .conds = NULL,
         .err = err,
-        ._macro_map = create_string_hash_map(
+        ._macro_map = create_string_map(
             sizeof(struct preproc_macro),
             100,
             true,
@@ -164,7 +164,7 @@ struct preproc_state create_preproc_state_string(const char* code,
         .conds_cap = 0,
         .conds = NULL,
         .err = err,
-        ._macro_map = create_string_hash_map(
+        ._macro_map = create_string_map(
             sizeof(struct preproc_macro),
             100,
             true,
@@ -400,13 +400,13 @@ static void preproc_state_close_file(struct preproc_state* s) {
 const struct preproc_macro* find_preproc_macro(
     const struct preproc_state* state,
     const struct str* spelling) {
-    return string_hash_map_get(&state->_macro_map, spelling);
+    return string_map_get(&state->_macro_map, spelling);
 }
 
 void register_preproc_macro(struct preproc_state* state,
                             const struct str* spelling,
                             const struct preproc_macro* macro) {
-    bool overwritten = string_hash_map_insert_overwrite(&state->_macro_map,
+    bool overwritten = string_map_insert_overwrite(&state->_macro_map,
                                                         spelling,
                                                         macro);
     (void)overwritten; // TODO: warning if redefined
@@ -414,7 +414,7 @@ void register_preproc_macro(struct preproc_state* state,
 
 void remove_preproc_macro(struct preproc_state* state,
                           const struct str* spelling) {
-    string_hash_map_remove(&state->_macro_map, spelling);
+    string_map_remove(&state->_macro_map, spelling);
 }
 
 void push_preproc_cond(struct preproc_state* state,
@@ -473,7 +473,7 @@ void free_preproc_state(struct preproc_state* state) {
     free_line_info(&state->line_info);
     free_file_manager(&state->file_manager);
     mycc_free(state->conds);
-    free_string_hash_map(&state->_macro_map);
+    free_string_map(&state->_macro_map);
     free_file_info(&state->file_info);
 }
 

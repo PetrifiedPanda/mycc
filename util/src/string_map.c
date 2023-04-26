@@ -1,4 +1,4 @@
-#include "util/string_hash_map.h"
+#include "util/string_map.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -7,27 +7,27 @@
 #include "util/mem.h"
 #include "util/macro_util.h"
 
-struct string_hash_map_key {
+struct string_map_key {
     bool was_deleted;
     struct str str;
 };
 
-struct string_hash_map create_string_hash_map(size_t elem_size,
-                                              size_t init_cap,
-                                              bool free_keys,
-                                              void (*item_free)(void*)) {
-    return (struct string_hash_map){
+struct string_map create_string_map(size_t elem_size,
+                                    size_t init_cap,
+                                    bool free_keys,
+                                    void (*item_free)(void*)) {
+    return (struct string_map){
         ._len = 0,
         ._cap = init_cap,
         ._item_size = elem_size,
         ._free_keys = free_keys,
         ._item_free = item_free,
-        ._keys = mycc_alloc_zeroed(init_cap, sizeof(struct string_hash_map_key)),
+        ._keys = mycc_alloc_zeroed(init_cap, sizeof(struct string_map_key)),
         ._items = mycc_alloc_zeroed(init_cap, elem_size),
     };
 }
 
-void free_string_hash_map(struct string_hash_map* map) {
+void free_string_map(struct string_map* map) {
     if (map->_item_free) {
         char* items_char = map->_items;
         for (size_t i = 0; i < map->_cap; ++i) {
@@ -49,20 +49,19 @@ void free_string_hash_map(struct string_hash_map* map) {
 }
 
 static size_t hash_string(const struct str* str);
-static void resize_map(struct string_hash_map* map);
+static void resize_map(struct string_map* map);
 
-static size_t find_item_index_insert(const struct string_hash_map* map,
+static size_t find_item_index_insert(const struct string_map* map,
                                      const struct str* key) {
     const size_t hash = hash_string(key);
     size_t i = hash % map->_cap;
     bool found_deleted = false;
     size_t deleted_idx = (size_t)-1;
     size_t it_count = 0;
-    while (
-        it_count != map->_cap
-        && (map->_keys[i].was_deleted
-            || (str_is_valid(&map->_keys[i].str)
-                && !str_eq(&map->_keys[i].str, key)))) {
+    while (it_count != map->_cap
+           && (map->_keys[i].was_deleted
+               || (str_is_valid(&map->_keys[i].str)
+                   && !str_eq(&map->_keys[i].str, key)))) {
         if (map->_keys[i].was_deleted && !found_deleted) {
             deleted_idx = i;
             found_deleted = true;
@@ -70,7 +69,7 @@ static size_t find_item_index_insert(const struct string_hash_map* map,
         i = (i + 1) % map->_cap;
         ++it_count;
     }
-    
+
     if (!str_is_valid(&map->_keys[i].str) && found_deleted) {
         return deleted_idx;
     } else {
@@ -78,7 +77,7 @@ static size_t find_item_index_insert(const struct string_hash_map* map,
     }
 }
 
-static size_t find_item_index(const struct string_hash_map* map,
+static size_t find_item_index(const struct string_map* map,
                               const struct str* key) {
     const size_t hash = hash_string(key);
     size_t i = hash % map->_cap;
@@ -91,15 +90,15 @@ static size_t find_item_index(const struct string_hash_map* map,
     return i;
 }
 
-static void rehash_if_necessary(struct string_hash_map* map) {
+static void rehash_if_necessary(struct string_map* map) {
     if (map->_len == map->_cap) {
         resize_map(map);
     }
 }
 
-const void* string_hash_map_insert(struct string_hash_map* map,
-                                   const struct str* key,
-                                   const void* item) {
+const void* string_map_insert(struct string_map* map,
+                              const struct str* key,
+                              const void* item) {
     assert(key);
     assert(item);
     rehash_if_necessary(map);
@@ -111,7 +110,7 @@ const void* string_hash_map_insert(struct string_hash_map* map,
         return found;
     }
 
-    map->_keys[idx] = (struct string_hash_map_key){
+    map->_keys[idx] = (struct string_map_key){
         .was_deleted = false,
         .str = *key,
     };
@@ -121,9 +120,9 @@ const void* string_hash_map_insert(struct string_hash_map* map,
     return item;
 }
 
-bool string_hash_map_insert_overwrite(struct string_hash_map* map,
-                                      const struct str* key,
-                                      const void* item) {
+bool string_map_insert_overwrite(struct string_map* map,
+                                 const struct str* key,
+                                 const void* item) {
     assert(key);
     assert(item);
 
@@ -143,7 +142,7 @@ bool string_hash_map_insert_overwrite(struct string_hash_map* map,
         }
         overwritten = true;
     } else {
-        map->_keys[idx] = (struct string_hash_map_key){
+        map->_keys[idx] = (struct string_map_key){
             .was_deleted = false,
             .str = *key,
         };
@@ -155,8 +154,8 @@ bool string_hash_map_insert_overwrite(struct string_hash_map* map,
     return overwritten;
 }
 
-const void* string_hash_map_get(const struct string_hash_map* map,
-                                const struct str* key) {
+const void* string_map_get(const struct string_map* map,
+                           const struct str* key) {
     assert(key);
     const size_t idx = find_item_index(map, key);
 
@@ -167,8 +166,7 @@ const void* string_hash_map_get(const struct string_hash_map* map,
     return (char*)map->_items + idx * map->_item_size;
 }
 
-void string_hash_map_remove(struct string_hash_map* map,
-                            const struct str* key) {
+void string_map_remove(struct string_map* map, const struct str* key) {
     const size_t idx = find_item_index(map, key);
 
     struct str* key_to_remove = &map->_keys[idx].str;
@@ -178,7 +176,7 @@ void string_hash_map_remove(struct string_hash_map* map,
     if (map->_free_keys) {
         free_str(key_to_remove);
     }
-    map->_keys[idx] = (struct string_hash_map_key){
+    map->_keys[idx] = (struct string_map_key){
         .was_deleted = true,
         .str = create_null_str(),
     };
@@ -190,10 +188,10 @@ void string_hash_map_remove(struct string_hash_map* map,
     --map->_len;
 }
 
-static void resize_map(struct string_hash_map* map) {
+static void resize_map(struct string_map* map) {
     const size_t prev_cap = map->_cap;
     const size_t prev_len = map->_len;
-    struct string_hash_map_key* old_keys = map->_keys;
+    struct string_map_key* old_keys = map->_keys;
     void* old_items = map->_items;
 
     map->_len = 0;
@@ -203,10 +201,10 @@ static void resize_map(struct string_hash_map* map) {
 
     for (size_t i = 0; i < prev_cap; ++i) {
         if (str_is_valid(&old_keys[i].str)) {
-            const void* success = string_hash_map_insert(
-                map,
-                &old_keys[i].str,
-                (char*)old_items + i * map->_item_size);
+            const void* success = string_map_insert(map,
+                                                    &old_keys[i].str,
+                                                    (char*)old_items
+                                                        + i * map->_item_size);
             UNUSED(success);
             assert(success != NULL);
         }
