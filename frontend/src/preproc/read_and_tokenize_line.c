@@ -42,9 +42,7 @@ bool read_and_tokenize_line(struct preproc_state* state) {
                 .tokens = NULL,
             };
 
-            const bool res = tokenize_line(&arr,
-                                           state->err,
-                                           &state->line_info);
+            const bool res = tokenize_line(&arr, state->err, &state->line_info);
             if (!res) {
                 free_token_arr(&arr);
                 return false;
@@ -110,9 +108,7 @@ static bool skip_until_next_cond(struct preproc_state* state) {
                 .cap = 0,
                 .tokens = NULL,
             };
-            const bool res = tokenize_line(&arr,
-                                           state->err,
-                                           &state->line_info);
+            const bool res = tokenize_line(&arr, state->err, &state->line_info);
             if (!res) {
                 return false;
             }
@@ -122,8 +118,10 @@ static bool skip_until_next_cond(struct preproc_state* state) {
             return stat_res;
         }
     }
-    
-    set_preproc_err(state->err, PREPROC_ERR_UNTERMINATED_COND, state->line_info.curr_loc);
+
+    set_preproc_err(state->err,
+                    PREPROC_ERR_UNTERMINATED_COND,
+                    state->line_info.curr_loc);
     state->err->unterminated_cond_loc = state->conds[state->conds_len - 1].loc;
     return false;
 }
@@ -216,11 +214,11 @@ static bool handle_else_elif(struct preproc_state* state,
 }
 
 static bool handle_include(struct preproc_state* state, struct token_arr* arr) {
-    if (arr->len == 2) {
-        // TODO: error empty include
-        return false;
-    } else if (arr->len > 3) {
-        // TODO: error too many arguments to include
+    assert(arr->len >= 2);
+    if (arr->len == 2 || arr->len > 3) {
+        set_preproc_err(state->err,
+                        PREPROC_ERR_INCLUDE_NUM_ARGS,
+                        arr->tokens[1].loc);
         return false;
     }
 
@@ -229,20 +227,26 @@ static bool handle_include(struct preproc_state* state, struct token_arr* arr) {
             return false;
         }
     }
-    
+
     // TODO: "<" ">" string literals
     if (arr->tokens[2].kind == TOKEN_STRING_LITERAL) {
         struct str_lit filename = convert_to_str_lit(&arr->tokens[2].spelling);
         if (filename.kind != STR_LIT_DEFAULT) {
-            // TODO: errror
+            set_preproc_err(state->err,
+                            PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL,
+                            arr->tokens[2].loc);
             return false;
         }
-        if (!preproc_state_open_file(state, &filename.contents, arr->tokens[2].loc)) {
+        if (!preproc_state_open_file(state,
+                                     &filename.contents,
+                                     arr->tokens[2].loc)) {
             return false;
         }
         return true;
     } else {
-        // TODO: error wrong token for include
+        set_preproc_err(state->err,
+                        PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL,
+                        arr->tokens[2].loc);
         return false;
     }
 }
@@ -272,8 +276,7 @@ static bool preproc_statement(struct preproc_state* state,
         return handle_ifdef_ifndef(state, arr, true);
     } else if (strcmp(directive, "define") == 0) {
         const struct str spell = token_take_spelling(&arr->tokens[2]);
-        struct preproc_macro macro = parse_preproc_macro(arr,
-                                                         state->err);
+        struct preproc_macro macro = parse_preproc_macro(arr, state->err);
         if (state->err->kind != PREPROC_ERR_NONE) {
             return false;
         }

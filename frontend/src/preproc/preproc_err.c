@@ -208,6 +208,14 @@ void print_preproc_err(FILE* out,
             print_err_base(out, file_info, &err->base);
             fputs("Backslash \'\\\' only allowed at the end of a line", out);
             break;
+        case PREPROC_ERR_INCLUDE_NUM_ARGS:
+            print_err_base(out, file_info, &err->base);
+            fputs("Include directive must have exactly one argument", out);
+            break;
+        case PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL:
+            print_err_base(out, file_info, &err->base);
+            fputs("Include directive only takes '\"' or '<' '>' literals", out);
+            break;
     }
     fputc('\n', out);
 }
@@ -286,6 +294,8 @@ void free_preproc_err(struct preproc_err* err) {
         case PREPROC_ERR_DEFINE_NOT_ID:
         case PREPROC_ERR_EXPECTED_TOKENS:
         case PREPROC_ERR_INVALID_BACKSLASH:
+        case PREPROC_ERR_INCLUDE_NUM_ARGS:
+        case PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL:
             break;
     }
 }
