@@ -5,11 +5,8 @@
 #include <stdarg.h>
 #include <assert.h>
 
+#include "util/mem.h"
 #include "util/macro_util.h"
-
-enum {
-    ARG_PARSE_MAX_ALLOWED_FILES = ARR_LEN((struct cmd_args){0}.files),
-};
 
 static PRINTF_FORMAT(1, 2) _Noreturn void exit_with_err(const char* format,
                                                         ...) {
@@ -24,7 +21,7 @@ static PRINTF_FORMAT(1, 2) _Noreturn void exit_with_err(const char* format,
 struct cmd_args parse_cmd_args(int argc, char** argv) {
     struct cmd_args res = {
         .num_files = 0,
-        .files = {0},
+        .files = NULL,
         .output_file = NULL,
         .action = ARG_ACTION_OUTPUT_TEXT,
     };
@@ -51,13 +48,9 @@ struct cmd_args parse_cmd_args(int argc, char** argv) {
                                   item[1]);
             }
         } else {
-            if (res.num_files >= ARG_PARSE_MAX_ALLOWED_FILES) {
-                exit_with_err(
-                    "Too many files given as argument, maximum is %d\n",
-                    ARG_PARSE_MAX_ALLOWED_FILES);
-            }
-            res.files[res.num_files] = item;
             ++res.num_files;
+            res.files = mycc_realloc(res.files, res.num_files * sizeof *res.files);
+            res.files[res.num_files - 1] = item;
         }
     }
 
@@ -67,4 +60,8 @@ struct cmd_args parse_cmd_args(int argc, char** argv) {
         exit_with_err("Cannot write output of multiple sources in one file\n");
     }
     return res;
+}
+
+void free_cmd_args(const struct cmd_args* args) {
+    mycc_free(args->files);
 }
