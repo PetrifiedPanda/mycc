@@ -97,12 +97,7 @@ static bool convert_bin_to_text(const struct cmd_args* args,
         fclose(in_file);
         return false;
     }
-    if (fclose(in_file) != 0) {
-        fprintf(stderr, "Failed to close file %s\n", filename);
-        free_translation_unit(&res.tl);
-        free_file_info(&res.file_info);
-        return false;
-    }
+    fclose(in_file);
 
     struct str out_filename_str = args->output_file == NULL
                                       ? get_out_filename(filename, ".ast")
@@ -113,28 +108,29 @@ static bool convert_bin_to_text(const struct cmd_args* args,
     FILE* out_file = fopen(out_filename, "w");
     if (!out_file) {
         fprintf(stderr, "Failed to open file %s\n", out_filename);
-        return EXIT_FAILURE;
+        goto fail_with_out_file_closed;
     }
     if (!dump_ast(&res.tl, &res.file_info, out_file)) {
         fprintf(stderr, "Failed to write ast to textfile %s\n", out_filename);
-        fclose(out_file);
-        free_str(&out_filename_str);
-        free_translation_unit(&res.tl);
-        free_file_info(&res.file_info);
-        return EXIT_FAILURE;
+        goto fail_with_out_file_open;
     }
-    fflush(out_file);
-    if (fclose(out_file) != 0) {
-        fprintf(stderr, "Failed to close output file %s\n", out_filename);
-        free_str(&out_filename_str);
-        free_translation_unit(&res.tl);
-        free_file_info(&res.file_info);
-        return EXIT_FAILURE;
+    if (fflush(out_file) != 0) {
+        fprintf(stderr, "Failed to flush output file %s\n", out_filename);
+        goto fail_with_out_file_open;
     }
+    fclose(out_file);
     free_str(&out_filename_str);
     free_translation_unit(&res.tl);
     free_file_info(&res.file_info);
     return true;
+
+fail_with_out_file_open:
+    fclose(out_file);
+fail_with_out_file_closed:
+    free_str(&out_filename_str);
+    free_translation_unit(&res.tl);
+    free_file_info(&res.file_info);
+    return false;
 }
 
 static bool output_ast(const struct cmd_args* args,
@@ -145,14 +141,12 @@ static bool output_ast(const struct cmd_args* args,
     if (preproc_err.kind != PREPROC_ERR_NONE) {
         print_preproc_err(stderr, &preproc_res.file_info, &preproc_err);
         free_preproc_err(&preproc_err);
-        free_preproc_res(&preproc_res);
-        return false;
+        goto fail_before_ast_generated;
     }
     if (!convert_preproc_tokens(preproc_res.toks, type_info, &preproc_err)) {
         print_preproc_err(stderr, &preproc_res.file_info, &preproc_err);
         free_preproc_err(&preproc_err);
-        free_preproc_res(&preproc_res);
-        return false;
+        goto fail_before_ast_generated;
     }
 
     struct parser_err parser_err = create_parser_err();
@@ -160,8 +154,7 @@ static bool output_ast(const struct cmd_args* args,
     if (parser_err.kind != PARSER_ERR_NONE) {
         print_parser_err(stderr, &preproc_res.file_info, &parser_err);
         free_parser_err(&parser_err);
-        free_preproc_res(&preproc_res);
-        return false;
+        goto fail_before_ast_generated;
     }
 
     const char* suffix = args->action == ARG_ACTION_OUTPUT_BIN ? ".binast"
@@ -172,45 +165,41 @@ static bool output_ast(const struct cmd_args* args,
     const char* out_filename = str_is_valid(&out_filename_str)
                                    ? str_get_data(&out_filename_str)
                                    : args->output_file;
-    FILE* outfile = fopen(out_filename, "wb");
-    if (!outfile) {
+    FILE* out_file = fopen(out_filename, "wb");
+    if (!out_file) {
         fprintf(stderr, "Failed to open output file %s\n", out_filename);
-        free_str(&out_filename_str);
-        free_translation_unit(&tl);
-        free_preproc_res(&preproc_res);
-        return false;
+        goto fail_with_out_file_closed;
     }
 
     const bool success = args->action == ARG_ACTION_OUTPUT_BIN
                              ? serialize_ast(&tl,
                                              &preproc_res.file_info,
-                                             outfile)
-                             : dump_ast(&tl, &preproc_res.file_info, outfile);
+                                             out_file)
+                             : dump_ast(&tl, &preproc_res.file_info, out_file);
     if (!success) {
         fprintf(stderr, "Failed to write ast to file %s\n", out_filename);
-
-        if (fclose(outfile) != 0) {
-            fprintf(stderr, "Failed to close output file %s\n", out_filename);
+        if (fflush(out_file) != 0) {
+            fprintf(stderr, "Failed to flush output file %s\n", out_filename);
         }
-
-        free_str(&out_filename_str);
-        free_translation_unit(&tl);
-        free_preproc_res(&preproc_res);
-        return false;
+        goto fail_with_out_file_open;
     }
 
-    fflush(outfile);
-    if (fclose(outfile) != 0) {
-        fprintf(stderr, "Failed to close output file %s\n", out_filename);
-        free_str(&out_filename_str);
-        free_translation_unit(&tl);
-        free_preproc_res(&preproc_res);
-        return false;
+    if (fflush(out_file) != 0) {
+        fprintf(stderr, "Failed to flush output file %s\n", out_filename);
+        goto fail_with_out_file_open;
     }
+    fclose(out_file);
     free_str(&out_filename_str);
-
     free_translation_unit(&tl);
     free_preproc_res(&preproc_res);
     return true;
+fail_with_out_file_open:
+    fclose(out_file);
+fail_with_out_file_closed:
+    free_str(&out_filename_str);
+    free_translation_unit(&tl);
+fail_before_ast_generated:
+    free_preproc_res(&preproc_res);
+    return false;
 }
 
