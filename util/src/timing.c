@@ -8,15 +8,15 @@
 struct timespec mycc_current_time(void) {
     struct timespec res;
     int err = timespec_get(&res, TIME_UTC);
-    assert(err != 0);
+    assert(err == TIME_UTC);
     UNUSED(err);
     return res;
 }
 
 enum {
     NSECS_IN_SEC = 1000000000,
-        MSECS_IN_SECS = 1000,
-        NSECS_IN_MSECS = 1000000, 
+    MSECS_IN_SECS = 1000,
+    NSECS_IN_MSECS = 1000000,
 };
 
 struct timespec mycc_time_diff(const struct timespec* end,
