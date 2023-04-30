@@ -3,7 +3,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include "frontend/token.h"
 #include "util/mem.h"
 #include "util/macro_util.h"
 
