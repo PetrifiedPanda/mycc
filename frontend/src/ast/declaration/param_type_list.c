@@ -175,7 +175,6 @@ static bool parse_param_list_inplace(struct parser_state* s,
 
     if (!parse_param_declaration_inplace(s, &res->decls[0])) {
         mycc_free(res->decls);
-        mycc_free(res);
         return false;
     }
 
