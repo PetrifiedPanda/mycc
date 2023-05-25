@@ -3,26 +3,26 @@
 
 #include <stddef.h>
 
-#include "frontend/token.h"
+#include "frontend/Token.h"
 
-#include "parser_state.h"
+#include "ParserState.h"
 
-void expected_token_error(struct parser_state* s, enum token_kind expected);
+void expected_token_error(ParserState* s, TokenKind expected);
 
-void expected_tokens_error(struct parser_state* s,
-                           const enum token_kind* expected,
+void expected_tokens_error(ParserState* s,
+                           const TokenKind* expected,
                            size_t num_expected);
 
-bool is_storage_class_spec(enum token_kind k);
-bool is_type_qual(enum token_kind k);
-bool is_func_spec(enum token_kind k);
+bool is_storage_class_spec(TokenKind k);
+bool is_type_qual(TokenKind k);
+bool is_func_spec(TokenKind k);
 
 /**
  *
  * @param s current state
  * @return bool whether the next token could be the start of a type name
  */
-bool next_is_type_name(const struct parser_state* s);
+bool next_is_type_name(const ParserState* s);
 
 /**
  *
@@ -30,21 +30,21 @@ bool next_is_type_name(const struct parser_state* s);
  * @param token token to check
  * @return whether token is a type specifier
  */
-bool is_type_spec_token(const struct parser_state* s,
-                        const struct token* token);
+bool is_type_spec_token(const ParserState* s,
+                        const Token* token);
 /**
  *
  * @param s The current parser_state
  * @return Whether the current token is a type specifier
  */
-bool is_type_spec(const struct parser_state* s);
+bool is_type_spec(const ParserState* s);
 
 /**
  *
  * @param s The current parser_state
  * @return Whether the current token is the start of a declaration
  */
-bool is_declaration(const struct parser_state* s);
+bool is_declaration(const ParserState* s);
 
 #endif
 

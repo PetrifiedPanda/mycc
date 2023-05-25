@@ -1,15 +1,15 @@
 #ifndef PREPROC_H
 #define PREPROC_H
 
-#include "frontend/file_info.h"
-#include "frontend/token.h"
+#include "frontend/FileInfo.h"
+#include "frontend/Token.h"
 
-#include "preproc_err.h"
+#include "PreprocErr.h"
 
-struct preproc_res {
-    struct token* toks;
-    struct file_info file_info;
-};
+typedef struct {
+    Token* toks;
+    FileInfo file_info;
+} PreprocRes;
 
 /**
  * @param path path to file
@@ -17,7 +17,7 @@ struct preproc_res {
  * @return preprocessed tokens from this file, or NULL if an error occurred
  *         note that these tokens still need to be converted
  */
-struct preproc_res preproc(const char* path, struct preproc_err* err);
+PreprocRes preproc(const char* path, PreprocErr* err);
 
 #ifdef MYCC_TEST_FUNCTIONALITY
 /**
@@ -27,27 +27,24 @@ struct preproc_res preproc(const char* path, struct preproc_err* err);
  * @return preprocessed tokens from this string, or NULL if an error occurred
  *         note that these tokens still need to be converted
  */
-struct preproc_res preproc_string(const char* str,
-                                  const char* path,
-                                  struct preproc_err* err);
+PreprocRes preproc_string(const char* str, const char* path, PreprocErr* err);
+
 #endif
 
 /**
  * Converts the given preprocessor tokens to parser tokens
  */
-bool convert_preproc_tokens(struct token* tokens,
-                            const struct arch_type_info* info,
-                            struct preproc_err* err);
+bool convert_preproc_tokens(Token* tokens, const ArchTypeInfo* info, PreprocErr* err);
 
 /**
  * Frees tokens before calling convert_preproc_tokens
  */
-void free_preproc_res_preproc_tokens(struct preproc_res* res);
+void free_preproc_res_preproc_tokens(PreprocRes* res);
 
 /**
  * Frees tokens after calling convert_preproc_tokens
  */
-void free_preproc_res(struct preproc_res* res);
+void free_preproc_res(PreprocRes* res);
 
 #endif
 

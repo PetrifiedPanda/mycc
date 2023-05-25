@@ -7,25 +7,25 @@
 
 #include "frontend/preproc/preproc.h"
 
-struct preproc_res tokenize(const char* file) {
-    struct preproc_err err = create_preproc_err();
-    struct preproc_res res = preproc(file, &err);
+PreprocRes tokenize(const char* file) {
+    PreprocErr err = create_preproc_err();
+    PreprocRes res = preproc(file, &err);
     ASSERT_NOT_NULL(res.toks);
     ASSERT_NOT_NULL(res.file_info.paths);
     ASSERT(err.kind == PREPROC_ERR_NONE);
-    const struct arch_type_info type_info = get_arch_type_info(ARCH_X86_64,
+    const ArchTypeInfo type_info = get_arch_type_info(ARCH_X86_64,
                                                                false);
     ASSERT(convert_preproc_tokens(res.toks, &type_info, &err));
     ASSERT(err.kind == PREPROC_ERR_NONE);
     return res;
 }
 
-struct preproc_res tokenize_string(const char* str, const char* file) {
-    struct preproc_err err = create_preproc_err();
-    struct preproc_res res = preproc_string(str, file, &err);
+PreprocRes tokenize_string(const char* str, const char* file) {
+    PreprocErr err = create_preproc_err();
+    PreprocRes res = preproc_string(str, file, &err);
     ASSERT_NOT_NULL(res.toks);
     ASSERT(err.kind == PREPROC_ERR_NONE);
-    const struct arch_type_info type_info = get_arch_type_info(ARCH_X86_64,
+    const ArchTypeInfo type_info = get_arch_type_info(ARCH_X86_64,
                                                                false);
     ASSERT(convert_preproc_tokens(res.toks, &type_info, &err));
     ASSERT(err.kind == PREPROC_ERR_NONE);
@@ -39,8 +39,8 @@ void test_compare_files(const char* got_file, const char* ex_file) {
     enum {
         BUF_LEN = 500
     };
-    struct str got_str = create_empty_str();
-    struct str ex_str = create_empty_str();
+    Str got_str = create_empty_str();
+    Str ex_str = create_empty_str();
     char got_buf[BUF_LEN] = {0};
     char ex_buf[BUF_LEN] = {0};
 
@@ -101,8 +101,8 @@ void test_compare_files(const char* got_file, const char* ex_file) {
     remove(got_file);
 }
 
-struct str str_non_heap(size_t len, const char* str) {
-    return (struct str){
+Str str_non_heap(size_t len, const char* str) {
+    return (Str){
         ._is_static_buf = false,
         ._cap = len + 1,
         ._len = len,

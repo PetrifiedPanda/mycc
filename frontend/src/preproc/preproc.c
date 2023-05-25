@@ -10,51 +10,51 @@
 #include "util/mem.h"
 #include "util/file.h"
 
-#include "frontend/preproc/preproc_macro.h"
-#include "frontend/preproc/preproc_state.h"
+#include "frontend/preproc/PreprocMacro.h"
+#include "frontend/preproc/PreprocState.h"
 #include "frontend/preproc/tokenizer.h"
 #include "frontend/preproc/num_parse.h"
 #include "frontend/preproc/read_and_tokenize_line.h"
 
-static enum token_kind keyword_kind(const char* spelling);
+static TokenKind keyword_kind(const char* spelling);
 
-static void append_terminator_token(struct token_arr* arr);
+static void append_terminator_token(TokenArr* arr);
 
-static bool preproc_impl(struct preproc_state* state);
+static bool preproc_impl(PreprocState* state);
 
-struct preproc_res preproc(const char* path, struct preproc_err* err) {
+PreprocRes preproc(const char* path, PreprocErr* err) {
     assert(err);
 
-    struct preproc_state state = create_preproc_state(path, err);
+    PreprocState state = create_preproc_state(path, err);
     if (err->kind != PREPROC_ERR_NONE) {
-        return (struct preproc_res){
+        return (PreprocRes){
             .toks = NULL,
             .file_info = state.file_info,
         };
     }
     if (!preproc_impl(&state)) {
-        struct file_info info = state.file_info;
-        state.file_info = (struct file_info){
+        FileInfo info = state.file_info;
+        state.file_info = (FileInfo){
             .len = 0,
             .paths = NULL,
         };
         free_preproc_state(&state);
-        return (struct preproc_res){
+        return (PreprocRes){
             .toks = NULL,
             .file_info = info,
         };
     }
 
-    struct preproc_res res = {
+    PreprocRes res = {
         .toks = state.res.tokens,
         .file_info = state.file_info,
     };
-    state.res = (struct token_arr){
+    state.res = (TokenArr){
         .len = 0,
         .cap = 0,
         .tokens = NULL,
     };
-    state.file_info = (struct file_info){
+    state.file_info = (FileInfo){
         .len = 0,
         .paths = NULL,
     };
@@ -62,7 +62,7 @@ struct preproc_res preproc(const char* path, struct preproc_err* err) {
     return res;
 }
 
-static bool preproc_impl(struct preproc_state* state) {
+static bool preproc_impl(PreprocState* state) {
     while (!preproc_state_over(state)) {
         const size_t prev_len = state->res.len;
         if (!read_and_tokenize_line(state)) {
@@ -83,16 +83,14 @@ static bool preproc_impl(struct preproc_state* state) {
 }
 
 #ifdef MYCC_TEST_FUNCTIONALITY
-struct preproc_res preproc_string(const char* str,
-                                  const char* path,
-                                  struct preproc_err* err) {
+PreprocRes preproc_string(const char* str, const char* path, PreprocErr* err) {
     assert(err);
 
-    struct preproc_state state = create_preproc_state_string(str, path, err);
+    PreprocState state = create_preproc_state_string(str, path, err);
 
     if (!preproc_impl(&state)) {
         free_preproc_state(&state);
-        return (struct preproc_res){
+        return (PreprocRes){
             .toks = NULL,
             .file_info =
                 {
@@ -102,16 +100,16 @@ struct preproc_res preproc_string(const char* str,
         };
     }
 
-    struct preproc_res res = {
+    PreprocRes res = {
         .toks = state.res.tokens,
         .file_info = state.file_info,
     };
-    state.res = (struct token_arr){
+    state.res = (TokenArr){
         .len = 0,
         .cap = 0,
         .tokens = NULL,
     };
-    state.file_info = (struct file_info){
+    state.file_info = (FileInfo){
         .len = 0,
         .paths = NULL,
     };
@@ -121,34 +119,34 @@ struct preproc_res preproc_string(const char* str,
 }
 #endif // MYCC_TEST_FUNCTIONALITY
 
-static void free_tokens(struct token* tokens) {
-    for (struct token* it = tokens; it->kind != TOKEN_INVALID; ++it) {
+static void free_tokens(Token* tokens) {
+    for (Token* it = tokens; it->kind != TOKEN_INVALID; ++it) {
         free_token(it);
     }
     mycc_free(tokens);
 }
 
-static void free_preproc_tokens(struct token* tokens) {
-    for (struct token* it = tokens; it->kind != TOKEN_INVALID; ++it) {
+static void free_preproc_tokens(Token* tokens) {
+    for (Token* it = tokens; it->kind != TOKEN_INVALID; ++it) {
         free_str(&it->spelling);
     }
     mycc_free(tokens);
 }
 
-void free_preproc_res_preproc_tokens(struct preproc_res* res) {
+void free_preproc_res_preproc_tokens(PreprocRes* res) {
     free_preproc_tokens(res->toks);
     free_file_info(&res->file_info);
 }
 
-void free_preproc_res(struct preproc_res* res) {
+void free_preproc_res(PreprocRes* res) {
     if (res->toks) {
         free_tokens(res->toks);
     }
     free_file_info(&res->file_info);
 }
 
-static bool convert_string_literal(struct token* t) {
-    struct str spelling = t->spelling;
+static bool convert_string_literal(Token* t) {
+    Str spelling = t->spelling;
     t->str_lit = convert_to_str_lit(&spelling);
     if (t->str_lit.kind == STR_LIT_INCLUDE) {
         free_str_lit(&t->str_lit);
@@ -158,18 +156,16 @@ static bool convert_string_literal(struct token* t) {
     return true;
 }
 
-static bool convert_preproc_token(struct token* t,
-                                  const struct arch_type_info* info,
-                                  struct preproc_err* err) {
+static bool convert_preproc_token(Token* t,
+                                  const ArchTypeInfo* info,
+                                  PreprocErr* err) {
     assert(t);
     assert(info);
     assert(err);
     switch (t->kind) {
         case TOKEN_I_CONSTANT: {
             if (str_char_at(&t->spelling, 0) == '\'') {
-                struct parse_char_const_res res = parse_char_const(
-                    str_get_data(&t->spelling),
-                    info);
+                ParseCharConstRes res = parse_char_const(str_get_data(&t->spelling), info);
                 if (res.err.kind != CHAR_CONST_ERR_NONE) {
                     set_preproc_err(err, PREPROC_ERR_CHAR_CONST, t->loc);
                     err->char_const_err = res.err;
@@ -179,9 +175,7 @@ static bool convert_preproc_token(struct token* t,
                 free_str(&t->spelling);
                 t->int_val = res.res;
             } else {
-                struct parse_int_const_res res = parse_int_const(
-                    str_get_data(&t->spelling),
-                    info);
+                ParseIntConstRes res = parse_int_const(str_get_data(&t->spelling), info);
                 if (res.err.kind != INT_CONST_ERR_NONE) {
                     set_preproc_err(err, PREPROC_ERR_INT_CONST, t->loc);
                     err->int_const_err = res.err;
@@ -194,8 +188,7 @@ static bool convert_preproc_token(struct token* t,
             break;
         }
         case TOKEN_F_CONSTANT: {
-            struct parse_float_const_res res = parse_float_const(
-                str_get_data(&t->spelling));
+            ParseFloatConstRes res = parse_float_const(str_get_data(&t->spelling));
             if (res.err.kind != FLOAT_CONST_ERR_NONE) {
                 set_preproc_err(err, PREPROC_ERR_FLOAT_CONST, t->loc);
                 err->float_const_err = res.err;
@@ -229,12 +222,12 @@ static bool convert_preproc_token(struct token* t,
     return true;
 }
 
-bool convert_preproc_tokens(struct token* tokens,
-                            const struct arch_type_info* info,
-                            struct preproc_err* err) {
+bool convert_preproc_tokens(Token* tokens,
+                            const ArchTypeInfo* info,
+                            PreprocErr* err) {
     assert(tokens);
     assert(info);
-    for (struct token* t = tokens; t->kind != TOKEN_INVALID; ++t) {
+    for (Token* t = tokens; t->kind != TOKEN_INVALID; ++t) {
         if (!convert_preproc_token(t, info, err)) {
             return false;
         }
@@ -242,9 +235,9 @@ bool convert_preproc_tokens(struct token* tokens,
     return true;
 }
 
-static void append_terminator_token(struct token_arr* arr) {
+static void append_terminator_token(TokenArr* arr) {
     arr->tokens = mycc_realloc(arr->tokens, sizeof *arr->tokens * (arr->len + 1));
-    arr->tokens[arr->len] = (struct token){
+    arr->tokens[arr->len] = (Token){
         .kind = TOKEN_INVALID,
         .spelling = create_null_str(),
         .loc =
@@ -255,14 +248,14 @@ static void append_terminator_token(struct token_arr* arr) {
     };
 }
 
-static inline bool is_spelling(const char* spelling, enum token_kind type) {
+static inline bool is_spelling(const char* spelling, TokenKind type) {
     const char* expected_spell = get_token_kind_spelling(type);
     assert(expected_spell != NULL);
     return strcmp(spelling, expected_spell) == 0;
 }
 
-static enum token_kind keyword_kind(const char* spell) {
-    for (enum token_kind e = TOKEN_KEYWORDS_START; e < TOKEN_KEYWORDS_END; ++e) {
+static TokenKind keyword_kind(const char* spell) {
+    for (TokenKind e = TOKEN_KEYWORDS_START; e < TOKEN_KEYWORDS_END; ++e) {
         if (is_spelling(spell, e)) {
             return e;
         }

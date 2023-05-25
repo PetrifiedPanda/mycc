@@ -6,22 +6,22 @@
 
 #include "util/macro_util.h"
 
-struct ast_dumper {
+typedef struct {
     jmp_buf err_buf;
     FILE* file;
     size_t num_indents;
-    const struct file_info* file_info;
-};
+    const FileInfo* file_info;
+} AstDumper;
 
-static void add_indent(struct ast_dumper* d) {
+static void add_indent(AstDumper* d) {
     d->num_indents += 1;
 }
 
-static void remove_indent(struct ast_dumper* d) {
+static void remove_indent(AstDumper* d) {
     d->num_indents -= 1;
 }
 
-static void print_indents(struct ast_dumper* d) {
+static void print_indents(AstDumper* d) {
     for (size_t i = 0; i < d->num_indents; ++i) {
         if (fputs("  ", d->file) < 0) {
             longjmp(d->err_buf, 0);
@@ -29,7 +29,7 @@ static void print_indents(struct ast_dumper* d) {
     }
 }
 
-static PRINTF_FORMAT(2, 3) void dumper_println(struct ast_dumper* d,
+static PRINTF_FORMAT(2, 3) void dumper_println(AstDumper* d,
                                                const char* format,
                                                ...) {
     print_indents(d);
@@ -48,7 +48,7 @@ static PRINTF_FORMAT(2, 3) void dumper_println(struct ast_dumper* d,
     }
 }
 
-static void dumper_puts(struct ast_dumper* d, const char* str) {
+static void dumper_puts(AstDumper* d, const char* str) {
     print_indents(d);
 
     if (fputs(str, d->file) < 0) {
@@ -60,10 +60,10 @@ static void dumper_puts(struct ast_dumper* d, const char* str) {
     }
 }
 
-static void dumper_print_node_head(struct ast_dumper* d,
+static void dumper_print_node_head(AstDumper* d,
                                    const char* name,
-                                   const struct ast_node_info* node) {
-    const struct source_loc* loc = &node->loc;
+                                   const AstNodeInfo* node) {
+    const SourceLoc* loc = &node->loc;
     assert(loc->file_idx < d->file_info->len);
     const char* file_path = str_get_data(&d->file_info->paths[loc->file_idx]);
     dumper_println(d,
@@ -74,13 +74,10 @@ static void dumper_print_node_head(struct ast_dumper* d,
                    loc->file_loc.index);
 }
 
-static void dump_translation_unit(struct ast_dumper* d,
-                                  const struct translation_unit* tl);
+static void dump_translation_unit(AstDumper* d, const TranslationUnit* tl);
 
-bool dump_ast(const struct translation_unit* tl,
-              const struct file_info* file_info,
-              FILE* f) {
-    struct ast_dumper d = {
+bool dump_ast(const TranslationUnit* tl, const FileInfo* file_info, FILE* f) {
+    AstDumper d = {
         .file = f,
         .file_info = file_info,
         .num_indents = 0,
@@ -99,7 +96,7 @@ static const char* bool_to_str(bool b) {
     return b ? "true" : "false";
 }
 
-static void dump_func_specs(struct ast_dumper* d, const struct func_specs* s) {
+static void dump_func_specs(AstDumper* d, const FuncSpecs* s) {
     assert(s);
 
     dumper_println(d, "func_specs:");
@@ -112,8 +109,7 @@ static void dump_func_specs(struct ast_dumper* d, const struct func_specs* s) {
     remove_indent(d);
 }
 
-static void dump_storage_class(struct ast_dumper* d,
-                               const struct storage_class* c) {
+static void dump_storage_class(AstDumper* d, const StorageClass* c) {
     assert(c);
 
     dumper_println(d, "storage_class:");
@@ -130,7 +126,7 @@ static void dump_storage_class(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_type_quals(struct ast_dumper* d, const struct type_quals* q) {
+static void dump_type_quals(AstDumper* d, const TypeQuals* q) {
     assert(q);
 
     dumper_println(d, "type_quals:");
@@ -145,10 +141,10 @@ static void dump_type_quals(struct ast_dumper* d, const struct type_quals* q) {
     remove_indent(d);
 }
 
-static void dump_type_name(struct ast_dumper* d, const struct type_name* n);
-static void dump_const_expr(struct ast_dumper* d, const struct const_expr* e);
+static void dump_type_name(AstDumper* d, const TypeName* n);
+static void dump_const_expr(AstDumper* d, const ConstExpr* e);
 
-static void dump_align_spec(struct ast_dumper* d, const struct align_spec* s) {
+static void dump_align_spec(AstDumper* d, const AlignSpec* s) {
     assert(s);
 
     dumper_print_node_head(d, "align_spec", &s->info);
@@ -164,10 +160,9 @@ static void dump_align_spec(struct ast_dumper* d, const struct align_spec* s) {
     remove_indent(d);
 }
 
-static void dump_type_specs(struct ast_dumper* d, const struct type_specs* s);
+static void dump_type_specs(AstDumper* d, const TypeSpecs* s);
 
-static void dump_declaration_specs(struct ast_dumper* d,
-                                   const struct declaration_specs* s) {
+static void dump_declaration_specs(AstDumper* d, const DeclarationSpecs* s) {
     assert(s);
 
     dumper_print_node_head(d, "declaration_specs", &s->info);
@@ -189,7 +184,7 @@ static void dump_declaration_specs(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_pointer(struct ast_dumper* d, const struct pointer* p) {
+static void dump_pointer(AstDumper* d, const Pointer* p) {
     assert(p);
 
     dumper_print_node_head(d, "pointer", &p->info);
@@ -204,7 +199,7 @@ static void dump_pointer(struct ast_dumper* d, const struct pointer* p) {
     remove_indent(d);
 }
 
-static void dump_identifier(struct ast_dumper* d, struct identifier* i) {
+static void dump_identifier(AstDumper* d, Identifier* i) {
     assert(i);
 
     dumper_print_node_head(d, "identifier", &i->info);
@@ -214,7 +209,7 @@ static void dump_identifier(struct ast_dumper* d, struct identifier* i) {
     remove_indent(d);
 }
 
-static void dump_int_value(struct ast_dumper* d, struct int_value val) {
+static void dump_int_value(AstDumper* d, IntValue val) {
     dumper_println(d, "int_value:");
 
     add_indent(d);
@@ -229,7 +224,7 @@ static void dump_int_value(struct ast_dumper* d, struct int_value val) {
     remove_indent(d);
 }
 
-static void dump_float_value(struct ast_dumper* d, struct float_value val) {
+static void dump_float_value(AstDumper* d, FloatValue val) {
     dumper_println(d, "float_value:");
 
     add_indent(d);
@@ -240,7 +235,7 @@ static void dump_float_value(struct ast_dumper* d, struct float_value val) {
     remove_indent(d);
 }
 
-static void dump_constant(struct ast_dumper* d, const struct constant* c) {
+static void dump_constant(AstDumper* d, const Constant* c) {
     assert(c);
 
     dumper_print_node_head(d, "constant", &c->info);
@@ -262,7 +257,7 @@ static void dump_constant(struct ast_dumper* d, const struct constant* c) {
     remove_indent(d);
 }
 
-static void dump_str_lit(struct ast_dumper* d, const struct str_lit* l) {
+static void dump_str_lit(AstDumper* d, const StrLit* l) {
     assert(l);
     dumper_puts(d, "str_lit:");
 
@@ -272,8 +267,7 @@ static void dump_str_lit(struct ast_dumper* d, const struct str_lit* l) {
     remove_indent(d);
 }
 
-static void dump_string_literal(struct ast_dumper* d,
-                                const struct string_literal_node* l) {
+static void dump_string_literal(AstDumper* d, const StringLiteralNode* l) {
     assert(l);
     dumper_print_node_head(d, "string_literal", &l->info);
 
@@ -282,8 +276,7 @@ static void dump_string_literal(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_string_constant(struct ast_dumper* d,
-                                 const struct string_constant* c) {
+static void dump_string_constant(AstDumper* d, const StringConstant* c) {
     assert(c);
 
     add_indent(d);
@@ -299,10 +292,9 @@ static void dump_string_constant(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_assign_expr(struct ast_dumper* d, const struct assign_expr* e);
+static void dump_assign_expr(AstDumper* d, const AssignExpr* e);
 
-static void dump_generic_assoc(struct ast_dumper* d,
-                               const struct generic_assoc* a) {
+static void dump_generic_assoc(AstDumper* d, const GenericAssoc* a) {
     assert(a);
 
     dumper_print_node_head(d, "generic_assoc", &a->info);
@@ -320,8 +312,7 @@ static void dump_generic_assoc(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_generic_assoc_list(struct ast_dumper* d,
-                                    const struct generic_assoc_list* l) {
+static void dump_generic_assoc_list(AstDumper* d, const GenericAssocList* l) {
     assert(l);
 
     dumper_print_node_head(d, "generic_assoc_list", &l->info);
@@ -337,8 +328,7 @@ static void dump_generic_assoc_list(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_generic_sel(struct ast_dumper* d,
-                             const struct generic_sel* s) {
+static void dump_generic_sel(AstDumper* d, const GenericSel* s) {
     assert(d);
 
     dumper_print_node_head(d, "generic_sel", &s->info);
@@ -352,10 +342,9 @@ static void dump_generic_sel(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_expr(struct ast_dumper* d, const struct expr* e);
+static void dump_expr(AstDumper* d, const Expr* e);
 
-static void dump_primary_expr(struct ast_dumper* d,
-                              const struct primary_expr* e) {
+static void dump_primary_expr(AstDumper* d, const PrimaryExpr* e) {
     assert(e);
 
     switch (e->kind) {
@@ -403,8 +392,7 @@ static void dump_primary_expr(struct ast_dumper* d,
     }
 }
 
-static void dump_type_modifiers(struct ast_dumper* d,
-                                const struct type_modifiers* m) {
+static void dump_type_modifiers(AstDumper* d, const TypeModifiers* m) {
     assert(m);
 
     dumper_println(d, "type_modifiers:");
@@ -421,8 +409,7 @@ static void dump_type_modifiers(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_atomic_type_spec(struct ast_dumper* d,
-                                  const struct atomic_type_spec* s) {
+static void dump_atomic_type_spec(AstDumper* d, const AtomicTypeSpec* s) {
     assert(s);
 
     dumper_print_node_head(d, "atomic_type_spec", &s->info);
@@ -434,11 +421,9 @@ static void dump_atomic_type_spec(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_declarator(struct ast_dumper* d,
-                            const struct declarator* decl);
+static void dump_declarator(AstDumper* d, const Declarator* decl);
 
-static void dump_struct_declarator(struct ast_dumper* d,
-                                   struct struct_declarator* decl) {
+static void dump_struct_declarator(AstDumper* d, StructDeclarator* decl) {
     assert(decl);
 
     dumper_println(d, "struct_declarator:");
@@ -455,9 +440,7 @@ static void dump_struct_declarator(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_struct_declarator_list(
-    struct ast_dumper* d,
-    const struct struct_declarator_list* l) {
+static void dump_struct_declarator_list(AstDumper* d, const StructDeclaratorList* l) {
     assert(l);
 
     dumper_println(d, "struct_declarator_list:");
@@ -473,12 +456,9 @@ static void dump_struct_declarator_list(
     remove_indent(d);
 }
 
-static void dump_static_assert_declaration(
-    struct ast_dumper* d,
-    const struct static_assert_declaration* decl);
+static void dump_static_assert_declaration(AstDumper* d, const StaticAssertDeclaration* decl);
 
-static void dump_struct_declaration(struct ast_dumper* d,
-                                    const struct struct_declaration* decl) {
+static void dump_struct_declaration(AstDumper* d, const StructDeclaration* decl) {
     assert(decl);
 
     dumper_println(d, "struct_declaration");
@@ -495,9 +475,7 @@ static void dump_struct_declaration(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_struct_declaration_list(
-    struct ast_dumper* d,
-    const struct struct_declaration_list* l) {
+static void dump_struct_declaration_list(AstDumper* d, const StructDeclarationList* l) {
     assert(l);
 
     dumper_println(d, "struct_declaration_list:");
@@ -512,8 +490,7 @@ static void dump_struct_declaration_list(
     remove_indent(d);
 }
 
-static void dump_struct_union_spec(struct ast_dumper* d,
-                                   const struct struct_union_spec* s) {
+static void dump_struct_union_spec(AstDumper* d, const StructUnionSpec* s) {
     assert(d);
 
     dumper_print_node_head(d, "struct_union_spec", &s->info);
@@ -535,7 +512,7 @@ static void dump_struct_union_spec(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_enumerator(struct ast_dumper* d, const struct enumerator* e) {
+static void dump_enumerator(AstDumper* d, const Enumerator* e) {
     assert(e);
 
     dumper_println(d, "enumerator:");
@@ -550,7 +527,7 @@ static void dump_enumerator(struct ast_dumper* d, const struct enumerator* e) {
     remove_indent(d);
 }
 
-static void dump_enum_list(struct ast_dumper* d, const struct enum_list* l) {
+static void dump_enum_list(AstDumper* d, const EnumList* l) {
     assert(l);
 
     dumper_println(d, "enum_list:");
@@ -565,7 +542,7 @@ static void dump_enum_list(struct ast_dumper* d, const struct enum_list* l) {
     remove_indent(d);
 }
 
-static void dump_enum_spec(struct ast_dumper* d, const struct enum_spec* s) {
+static void dump_enum_spec(AstDumper* d, const EnumSpec* s) {
     assert(s);
 
     dumper_print_node_head(d, "enum_spec", &s->info);
@@ -581,7 +558,7 @@ static void dump_enum_spec(struct ast_dumper* d, const struct enum_spec* s) {
     remove_indent(d);
 }
 
-static const char* type_spec_kind_str(enum type_spec_kind k) {
+static const char* type_spec_kind_str(TypeSpecKind k) {
     switch (k) {
         case TYPE_SPEC_NONE:
             return "NO_TYPE_SPEC";
@@ -602,7 +579,7 @@ static const char* type_spec_kind_str(enum type_spec_kind k) {
     }
 }
 
-static void dump_type_specs(struct ast_dumper* d, const struct type_specs* s) {
+static void dump_type_specs(AstDumper* d, const TypeSpecs* s) {
     assert(s);
 
     dumper_println(d, "type_specs:");
@@ -638,8 +615,7 @@ static void dump_type_specs(struct ast_dumper* d, const struct type_specs* s) {
     remove_indent(d);
 }
 
-static void dump_spec_qual_list(struct ast_dumper* d,
-                                const struct spec_qual_list* l) {
+static void dump_spec_qual_list(AstDumper* d, const SpecQualList* l) {
     assert(l);
 
     dumper_print_node_head(d, "spec_qual_list", &l->info);
@@ -652,10 +628,9 @@ static void dump_spec_qual_list(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_abs_declarator(struct ast_dumper* d,
-                                const struct abs_declarator* decl);
+static void dump_abs_declarator(AstDumper* d, const AbsDeclarator* decl);
 
-static void dump_type_name(struct ast_dumper* d, const struct type_name* n) {
+static void dump_type_name(AstDumper* d, const TypeName* n) {
     assert(n);
 
     dumper_println(d, "type_name:");
@@ -670,8 +645,7 @@ static void dump_type_name(struct ast_dumper* d, const struct type_name* n) {
     remove_indent(d);
 }
 
-static void dump_arg_expr_list(struct ast_dumper* d,
-                               const struct arg_expr_list* l) {
+static void dump_arg_expr_list(AstDumper* d, const ArgExprList* l) {
     assert(l);
 
     dumper_println(d, "arg_expr_list:");
@@ -686,8 +660,7 @@ static void dump_arg_expr_list(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_postfix_suffix(struct ast_dumper* d,
-                                const struct postfix_suffix* s) {
+static void dump_postfix_suffix(AstDumper* d, const PostfixSuffix* s) {
     assert(s);
 
     dumper_println(d, "postfix_suffix:");
@@ -718,9 +691,9 @@ static void dump_postfix_suffix(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_init_list(struct ast_dumper* d, const struct init_list* l);
+static void dump_init_list(AstDumper* d, const InitList* l);
 
-static void dump_postfix_expr(struct ast_dumper* d, struct postfix_expr* e) {
+static void dump_postfix_expr(AstDumper* d, PostfixExpr* e) {
     assert(e);
 
     if (e->is_primary) {
@@ -746,9 +719,9 @@ static void dump_postfix_expr(struct ast_dumper* d, struct postfix_expr* e) {
     remove_indent(d);
 }
 
-static void dump_unary_expr(struct ast_dumper* d, const struct unary_expr* e);
+static void dump_unary_expr(AstDumper* d, const UnaryExpr* e);
 
-static void dump_cast_expr(struct ast_dumper* d, const struct cast_expr* e) {
+static void dump_cast_expr(AstDumper* d, const CastExpr* e) {
     assert(e);
 
     dumper_print_node_head(d, "cast_expr", &e->info);
@@ -765,7 +738,7 @@ static void dump_cast_expr(struct ast_dumper* d, const struct cast_expr* e) {
     remove_indent(d);
 }
 
-static const char* unary_expr_kind_str(enum unary_expr_kind k) {
+static const char* unary_expr_kind_str(UnaryExprKind k) {
     assert(k != UNARY_POSTFIX && k != UNARY_SIZEOF_TYPE && k != UNARY_ALIGNOF);
     switch (k) {
         case UNARY_ADDRESSOF:
@@ -786,7 +759,7 @@ static const char* unary_expr_kind_str(enum unary_expr_kind k) {
     }
 }
 
-static const char* unary_expr_op_str(enum unary_expr_op o) {
+static const char* unary_expr_op_str(UnaryExprOp o) {
     switch (o) {
         case UNARY_OP_INC:
             return get_token_kind_spelling(TOKEN_INC);
@@ -798,7 +771,7 @@ static const char* unary_expr_op_str(enum unary_expr_op o) {
     UNREACHABLE();
 }
 
-static void dump_unary_expr(struct ast_dumper* d, const struct unary_expr* e) {
+static void dump_unary_expr(AstDumper* d, const UnaryExpr* e) {
     assert(e);
 
     dumper_print_node_head(d, "unary_expr", &e->info);
@@ -836,7 +809,7 @@ static void dump_unary_expr(struct ast_dumper* d, const struct unary_expr* e) {
     remove_indent(d);
 }
 
-static const char* assign_expr_op_str(enum assign_expr_op o) {
+static const char* assign_expr_op_str(AssignExprOp o) {
     switch (o) {
         case ASSIGN_EXPR_ASSIGN:
             return get_token_kind_spelling(TOKEN_ASSIGN);
@@ -865,10 +838,9 @@ static const char* assign_expr_op_str(enum assign_expr_op o) {
     UNREACHABLE();
 }
 
-static void dump_cond_expr(struct ast_dumper* d, const struct cond_expr* e);
+static void dump_cond_expr(AstDumper* d, const CondExpr* e);
 
-static void dump_assign_expr(struct ast_dumper* d,
-                             const struct assign_expr* e) {
+static void dump_assign_expr(AstDumper* d, const AssignExpr* e) {
     assert(e);
 
     dumper_println(d, "assign_expr:");
@@ -880,7 +852,7 @@ static void dump_assign_expr(struct ast_dumper* d,
         dumper_println(d, "unary_and_op:");
         add_indent(d);
 
-        struct unary_and_op* item = &e->assign_chain[i];
+        UnaryAndOp* item = &e->assign_chain[i];
 
         dump_unary_expr(d, item->unary);
 
@@ -892,12 +864,9 @@ static void dump_assign_expr(struct ast_dumper* d,
 
     remove_indent(d);
 }
-static void dump_param_type_list(struct ast_dumper* d,
-                                 const struct param_type_list* l);
+static void dump_param_type_list(AstDumper* d, const ParamTypeList* l);
 
-static void dump_abs_arr_or_func_suffix(
-    struct ast_dumper* d,
-    const struct abs_arr_or_func_suffix* s) {
+static void dump_abs_arr_or_func_suffix(AstDumper* d, const AbsArrOrFuncSuffix* s) {
     assert(s);
 
     dumper_print_node_head(d, "abs_arr_or_func_suffix", &s->info);
@@ -923,9 +892,7 @@ static void dump_abs_arr_or_func_suffix(
     remove_indent(d);
 }
 
-static void dump_direct_abs_declarator(
-    struct ast_dumper* d,
-    const struct direct_abs_declarator* decl) {
+static void dump_direct_abs_declarator(AstDumper* d, const DirectAbsDeclarator* decl) {
     assert(decl);
 
     dumper_print_node_head(d, "direct_abs_declarator", &decl->info);
@@ -942,8 +909,7 @@ static void dump_direct_abs_declarator(
     remove_indent(d);
 }
 
-static void dump_abs_declarator(struct ast_dumper* d,
-                                const struct abs_declarator* decl) {
+static void dump_abs_declarator(AstDumper* d, const AbsDeclarator* decl) {
     assert(decl);
 
     dumper_println(d, "abs_declarator:");
@@ -959,11 +925,9 @@ static void dump_abs_declarator(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_declarator(struct ast_dumper* d,
-                            const struct declarator* decl);
+static void dump_declarator(AstDumper* d, const Declarator* decl);
 
-static void dump_param_declaration(struct ast_dumper* d,
-                                   const struct param_declaration* decl) {
+static void dump_param_declaration(AstDumper* d, const ParamDeclaration* decl) {
     assert(decl);
 
     dumper_println(d, "param_declaration:");
@@ -986,7 +950,7 @@ static void dump_param_declaration(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_param_list(struct ast_dumper* d, const struct param_list* l) {
+static void dump_param_list(AstDumper* d, const ParamList* l) {
     assert(l);
 
     dumper_println(d, "param_type_list:");
@@ -1001,8 +965,7 @@ static void dump_param_list(struct ast_dumper* d, const struct param_list* l) {
     remove_indent(d);
 }
 
-static void dump_param_type_list(struct ast_dumper* d,
-                                 const struct param_type_list* l) {
+static void dump_param_type_list(AstDumper* d, const ParamTypeList* l) {
     assert(l);
 
     dumper_println(d, "param_type_list:");
@@ -1015,8 +978,7 @@ static void dump_param_type_list(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_identifier_list(struct ast_dumper* d,
-                                 const struct identifier_list* l) {
+static void dump_identifier_list(AstDumper* d, const IdentifierList* l) {
     assert(l);
     dumper_println(d, "identifier_list:");
 
@@ -1030,7 +992,7 @@ static void dump_identifier_list(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_arr_suffix(struct ast_dumper* d, const struct arr_suffix* s) {
+static void dump_arr_suffix(AstDumper* d, const ArrSuffix* s) {
     assert(s);
 
     dumper_println(d, "arr_suffix:");
@@ -1047,8 +1009,8 @@ static void dump_arr_suffix(struct ast_dumper* d, const struct arr_suffix* s) {
     remove_indent(d);
 }
 
-static void dump_arr_or_func_suffix(struct ast_dumper* d,
-                                    const struct arr_or_func_suffix* s) {
+static void dump_arr_or_func_suffix(AstDumper* d,
+                                    const ArrOrFuncSuffix* s) {
     dumper_print_node_head(d, "arr_or_func_suffix", &s->info);
 
     add_indent(d);
@@ -1071,8 +1033,7 @@ static void dump_arr_or_func_suffix(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_direct_declarator(struct ast_dumper* d,
-                                   struct direct_declarator* decl) {
+static void dump_direct_declarator(AstDumper* d, DirectDeclarator* decl) {
     assert(decl);
 
     dumper_print_node_head(d, "direct_declarator", &decl->info);
@@ -1086,15 +1047,14 @@ static void dump_direct_declarator(struct ast_dumper* d,
     }
 
     for (size_t i = 0; i < decl->len; ++i) {
-        struct arr_or_func_suffix* item = &decl->suffixes[i];
+        ArrOrFuncSuffix* item = &decl->suffixes[i];
         dump_arr_or_func_suffix(d, item);
     }
 
     remove_indent(d);
 }
 
-static void dump_declarator(struct ast_dumper* d,
-                            const struct declarator* decl) {
+static void dump_declarator(AstDumper* d, const Declarator* decl) {
     assert(decl);
 
     dumper_println(d, "declarator:");
@@ -1109,11 +1069,9 @@ static void dump_declarator(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_declaration(struct ast_dumper* d,
-                             const struct declaration* decl);
+static void dump_declaration(AstDumper* d, const Declaration* decl);
 
-static void dump_declaration_list(struct ast_dumper* d,
-                                  const struct declaration_list* l) {
+static void dump_declaration_list(AstDumper* d, const DeclarationList* l) {
     assert(l);
 
     dumper_println(d, "declaration_list:");
@@ -1128,10 +1086,10 @@ static void dump_declaration_list(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_statement(struct ast_dumper* d, const struct statement* s);
+static void dump_statement(AstDumper* d, const Statement* s);
 
-static void dump_labeled_statement(struct ast_dumper* d,
-                                   const struct labeled_statement* s) {
+static void dump_labeled_statement(AstDumper* d,
+                                   const struct LabeledStatement* s) {
     assert(s);
 
     dumper_print_node_head(d, "labeled_statement", &s->info);
@@ -1157,7 +1115,7 @@ static void dump_labeled_statement(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_expr(struct ast_dumper* d, const struct expr* e) {
+static void dump_expr(AstDumper* d, const Expr* e) {
     assert(e);
 
     dumper_println(d, "expr:");
@@ -1172,11 +1130,9 @@ static void dump_expr(struct ast_dumper* d, const struct expr* e) {
     remove_indent(d);
 }
 
-static void dump_compound_statement(struct ast_dumper* d,
-                                    const struct compound_statement* s);
+static void dump_compound_statement(AstDumper* d, const CompoundStatement* s);
 
-static void dump_expr_statement(struct ast_dumper* d,
-                                const struct expr_statement* s) {
+static void dump_expr_statement(AstDumper* d, const ExprStatement* s) {
     assert(s);
     dumper_print_node_head(d, "expr_statement", &s->info);
 
@@ -1189,8 +1145,7 @@ static void dump_expr_statement(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_selection_statement(struct ast_dumper* d,
-                                     const struct selection_statement* s) {
+static void dump_selection_statement(AstDumper* d, const SelectionStatement* s) {
     assert(s);
 
     dumper_print_node_head(d, "selection_statement", &s->info);
@@ -1209,8 +1164,7 @@ static void dump_selection_statement(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_iteration_statement(struct ast_dumper* d,
-                                     const struct iteration_statement* s) {
+static void dump_iteration_statement(AstDumper* d, const IterationStatement* s) {
     assert(s);
 
     dumper_print_node_head(d, "iteration_statement", &s->info);
@@ -1246,8 +1200,7 @@ static void dump_iteration_statement(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_jump_statement(struct ast_dumper* d,
-                                const struct jump_statement* s) {
+static void dump_jump_statement(AstDumper* d, const JumpStatement* s) {
     assert(s);
     dumper_print_node_head(d, "jump_statement", &s->info);
 
@@ -1277,7 +1230,7 @@ static void dump_jump_statement(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_statement(struct ast_dumper* d, const struct statement* s) {
+static void dump_statement(AstDumper* d, const Statement* s) {
     assert(s);
 
     dumper_println(d, "statement:");
@@ -1308,10 +1261,9 @@ static void dump_statement(struct ast_dumper* d, const struct statement* s) {
     remove_indent(d);
 }
 
-static void dump_declaration(struct ast_dumper* s,
-                             const struct declaration* decl);
+static void dump_declaration(AstDumper* s, const Declaration* decl);
 
-static void dump_block_item(struct ast_dumper* d, const struct block_item* i) {
+static void dump_block_item(AstDumper* d, const BlockItem* i) {
     assert(i);
 
     dumper_println(d, "block_item:");
@@ -1327,8 +1279,8 @@ static void dump_block_item(struct ast_dumper* d, const struct block_item* i) {
     remove_indent(d);
 }
 
-static void dump_compound_statement(struct ast_dumper* d,
-                                    const struct compound_statement* s) {
+static void dump_compound_statement(AstDumper* d,
+                                    const struct CompoundStatement* s) {
     assert(s);
 
     dumper_print_node_head(d, "compound_statement", &s->info);
@@ -1343,7 +1295,7 @@ static void dump_compound_statement(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_func_def(struct ast_dumper* d, const struct func_def* f) {
+static void dump_func_def(AstDumper* d, const FuncDef* f) {
     assert(f);
 
     dumper_println(d, "func_def:");
@@ -1358,8 +1310,8 @@ static void dump_func_def(struct ast_dumper* d, const struct func_def* f) {
     remove_indent(d);
 }
 
-static void dump_designator(struct ast_dumper* d,
-                            const struct designator* des) {
+static void dump_designator(AstDumper* d,
+                            const struct Designator* des) {
     assert(des);
     dumper_print_node_head(d, "designator", &des->info);
 
@@ -1374,8 +1326,7 @@ static void dump_designator(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_designator_list(struct ast_dumper* d,
-                                 const struct designator_list* l) {
+static void dump_designator_list(AstDumper* d, const DesignatorList* l) {
     assert(l);
 
     dumper_println(d, "designator_list:");
@@ -1390,8 +1341,7 @@ static void dump_designator_list(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_designation(struct ast_dumper* d,
-                             const struct designation* des) {
+static void dump_designation(AstDumper* d, const Designation* des) {
     assert(des);
 
     dumper_println(d, "designation:");
@@ -1403,10 +1353,9 @@ static void dump_designation(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_initializer(struct ast_dumper* d, const struct initializer* i);
+static void dump_initializer(AstDumper* d, const Initializer* i);
 
-static void dump_designation_init(struct ast_dumper* d,
-                                  const struct designation_init* i) {
+static void dump_designation_init(AstDumper* d, const DesignationInit* i) {
     assert(i);
 
     dumper_println(d, "designation_init:");
@@ -1421,7 +1370,7 @@ static void dump_designation_init(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_init_list(struct ast_dumper* d, const struct init_list* l) {
+static void dump_init_list(AstDumper* d, const InitList* l) {
     assert(l);
 
     dumper_println(d, "init_list:");
@@ -1436,8 +1385,8 @@ static void dump_init_list(struct ast_dumper* d, const struct init_list* l) {
     remove_indent(d);
 }
 
-static void dump_initializer(struct ast_dumper* d,
-                             const struct initializer* i) {
+static void dump_initializer(AstDumper* d,
+                             const struct Initializer* i) {
     assert(i);
 
     dumper_print_node_head(d, "initializer", &i->info);
@@ -1453,8 +1402,7 @@ static void dump_initializer(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_init_declarator(struct ast_dumper* d,
-                                 const struct init_declarator* decl) {
+static void dump_init_declarator(AstDumper* d, const InitDeclarator* decl) {
     assert(decl);
 
     dumper_println(d, "init_declarator:");
@@ -1469,8 +1417,7 @@ static void dump_init_declarator(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_init_declarator_list(struct ast_dumper* d,
-                                      const struct init_declarator_list* l) {
+static void dump_init_declarator_list(AstDumper* d, const InitDeclaratorList* l) {
     assert(l);
 
     dumper_println(d, "init_declarator_list:");
@@ -1485,7 +1432,7 @@ static void dump_init_declarator_list(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static const char* mul_expr_op_str(enum mul_expr_op o) {
+static const char* mul_expr_op_str(MulExprOp o) {
     switch (o) {
         case MUL_EXPR_MUL:
             return get_token_kind_spelling(TOKEN_ASTERISK);
@@ -1497,7 +1444,7 @@ static const char* mul_expr_op_str(enum mul_expr_op o) {
     UNREACHABLE();
 }
 
-static void dump_mul_expr(struct ast_dumper* d, const struct mul_expr* e) {
+static void dump_mul_expr(AstDumper* d, const MulExpr* e) {
     assert(e);
 
     dumper_println(d, "mul_expr:");
@@ -1507,7 +1454,7 @@ static void dump_mul_expr(struct ast_dumper* d, const struct mul_expr* e) {
     dumper_println(d, "len: %zu", e->len);
     dump_cast_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
-        struct cast_expr_and_op* item = &e->mul_chain[i];
+        CastExprAndOp* item = &e->mul_chain[i];
         dumper_println(d, "mul_op: %s", mul_expr_op_str(item->op));
         dump_cast_expr(d, item->rhs);
     }
@@ -1515,7 +1462,7 @@ static void dump_mul_expr(struct ast_dumper* d, const struct mul_expr* e) {
     remove_indent(d);
 }
 
-static const char* add_expr_op_str(enum add_expr_op op) {
+static const char* add_expr_op_str(AddExprOp op) {
     switch (op) {
         case ADD_EXPR_ADD:
             return get_token_kind_spelling(TOKEN_ADD);
@@ -1525,7 +1472,7 @@ static const char* add_expr_op_str(enum add_expr_op op) {
     UNREACHABLE();
 }
 
-static void dump_add_expr(struct ast_dumper* d, const struct add_expr* e) {
+static void dump_add_expr(AstDumper* d, const AddExpr* e) {
     assert(e);
 
     dumper_println(d, "add_expr:");
@@ -1535,7 +1482,7 @@ static void dump_add_expr(struct ast_dumper* d, const struct add_expr* e) {
     dumper_println(d, "len: %zu", e->len);
     dump_mul_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
-        struct mul_expr_and_op* item = &e->add_chain[i];
+        MulExprAndOp* item = &e->add_chain[i];
         dumper_println(d, "add_op: %s", add_expr_op_str(item->op));
         dump_mul_expr(d, item->rhs);
     }
@@ -1543,7 +1490,7 @@ static void dump_add_expr(struct ast_dumper* d, const struct add_expr* e) {
     remove_indent(d);
 }
 
-static const char* shift_expr_op_str(enum shift_expr_op o) {
+static const char* shift_expr_op_str(ShiftExprOp o) {
     switch (o) {
         case SHIFT_EXPR_LEFT:
             return get_token_kind_spelling(TOKEN_LSHIFT);
@@ -1553,7 +1500,7 @@ static const char* shift_expr_op_str(enum shift_expr_op o) {
     UNREACHABLE();
 }
 
-static void dump_shift_expr(struct ast_dumper* d, const struct shift_expr* e) {
+static void dump_shift_expr(AstDumper* d, const ShiftExpr* e) {
     assert(e);
 
     dumper_println(d, "shift_expr:");
@@ -1563,7 +1510,7 @@ static void dump_shift_expr(struct ast_dumper* d, const struct shift_expr* e) {
     dumper_println(d, "len: %zu", e->len);
     dump_add_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
-        struct add_expr_and_op* item = &e->shift_chain[i];
+        AddExprAndOp* item = &e->shift_chain[i];
         dumper_println(d, "shift_op: %s", shift_expr_op_str(item->op));
         dump_add_expr(d, item->rhs);
     }
@@ -1571,7 +1518,7 @@ static void dump_shift_expr(struct ast_dumper* d, const struct shift_expr* e) {
     remove_indent(d);
 }
 
-static const char* rel_expr_op_str(enum rel_expr_op o) {
+static const char* rel_expr_op_str(RelExprOp o) {
     switch (o) {
         case REL_EXPR_LT:
             return get_token_kind_spelling(TOKEN_LT);
@@ -1585,7 +1532,7 @@ static const char* rel_expr_op_str(enum rel_expr_op o) {
     UNREACHABLE();
 }
 
-static void dump_rel_expr(struct ast_dumper* d, const struct rel_expr* e) {
+static void dump_rel_expr(AstDumper* d, const RelExpr* e) {
     assert(e);
 
     dumper_println(d, "rel_expr:");
@@ -1595,7 +1542,7 @@ static void dump_rel_expr(struct ast_dumper* d, const struct rel_expr* e) {
     dumper_println(d, "len: %zu", e->len);
     dump_shift_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
-        struct shift_expr_and_op* item = &e->rel_chain[i];
+        ShiftExprAndOp* item = &e->rel_chain[i];
         dumper_println(d, "rel_op: %s", rel_expr_op_str(item->op));
         dump_shift_expr(d, item->rhs);
     }
@@ -1603,7 +1550,7 @@ static void dump_rel_expr(struct ast_dumper* d, const struct rel_expr* e) {
     remove_indent(d);
 }
 
-static const char* eq_expr_op_str(enum eq_expr_op o) {
+static const char* eq_expr_op_str(EqExprOp o) {
     switch (o) {
         case EQ_EXPR_EQ:
             return get_token_kind_spelling(TOKEN_EQ);
@@ -1613,7 +1560,7 @@ static const char* eq_expr_op_str(enum eq_expr_op o) {
     UNREACHABLE();
 }
 
-static void dump_eq_expr(struct ast_dumper* d, const struct eq_expr* e) {
+static void dump_eq_expr(AstDumper* d, const EqExpr* e) {
     assert(e);
 
     dumper_println(d, "eq_expr:");
@@ -1623,7 +1570,7 @@ static void dump_eq_expr(struct ast_dumper* d, const struct eq_expr* e) {
     dumper_println(d, "len: %zu", e->len);
     dump_rel_expr(d, e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
-        struct rel_expr_and_op* item = &e->eq_chain[i];
+        RelExprAndOp* item = &e->eq_chain[i];
         dumper_println(d, "eq_op: %s", eq_expr_op_str(item->op));
         dump_rel_expr(d, item->rhs);
     }
@@ -1631,7 +1578,7 @@ static void dump_eq_expr(struct ast_dumper* d, const struct eq_expr* e) {
     remove_indent(d);
 }
 
-static void dump_and_expr(struct ast_dumper* d, const struct and_expr* e) {
+static void dump_and_expr(AstDumper* d, const AndExpr* e) {
     assert(e);
 
     dumper_println(d, "and_expr:");
@@ -1646,7 +1593,7 @@ static void dump_and_expr(struct ast_dumper* d, const struct and_expr* e) {
     remove_indent(d);
 }
 
-static void dump_xor_expr(struct ast_dumper* d, const struct xor_expr* e) {
+static void dump_xor_expr(AstDumper* d, const XorExpr* e) {
     assert(e);
 
     dumper_println(d, "xor_expr:");
@@ -1661,7 +1608,7 @@ static void dump_xor_expr(struct ast_dumper* d, const struct xor_expr* e) {
     remove_indent(d);
 }
 
-static void dump_or_expr(struct ast_dumper* d, const struct or_expr* e) {
+static void dump_or_expr(AstDumper* d, const OrExpr* e) {
     assert(e);
 
     dumper_println(d, "or_expr:");
@@ -1676,8 +1623,7 @@ static void dump_or_expr(struct ast_dumper* d, const struct or_expr* e) {
     remove_indent(d);
 }
 
-static void dump_log_and_expr(struct ast_dumper* d,
-                              const struct log_and_expr* e) {
+static void dump_log_and_expr(AstDumper* d, const LogAndExpr* e) {
     assert(e);
 
     dumper_println(d, "log_and_expr:");
@@ -1692,8 +1638,7 @@ static void dump_log_and_expr(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_log_or_expr(struct ast_dumper* d,
-                             const struct log_or_expr* e) {
+static void dump_log_or_expr(AstDumper* d, const LogOrExpr* e) {
     assert(e);
 
     dumper_println(d, "log_or_expr:");
@@ -1708,7 +1653,7 @@ static void dump_log_or_expr(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_cond_expr(struct ast_dumper* d, const struct cond_expr* e) {
+static void dump_cond_expr(AstDumper* d, const CondExpr* e) {
     assert(e);
 
     dumper_println(d, "cond_expr:");
@@ -1717,7 +1662,7 @@ static void dump_cond_expr(struct ast_dumper* d, const struct cond_expr* e) {
 
     dumper_println(d, "len: %zu", e->len);
     for (size_t i = 0; i < e->len; ++i) {
-        struct log_or_and_expr* item = &e->conditionals[i];
+        LogOrAndExpr* item = &e->conditionals[i];
         dump_log_or_expr(d, item->log_or);
         dump_expr(d, item->expr);
     }
@@ -1726,7 +1671,7 @@ static void dump_cond_expr(struct ast_dumper* d, const struct cond_expr* e) {
     remove_indent(d);
 }
 
-static void dump_const_expr(struct ast_dumper* d, const struct const_expr* e) {
+static void dump_const_expr(AstDumper* d, const ConstExpr* e) {
     assert(e);
 
     dumper_println(d, "const_expr:");
@@ -1738,9 +1683,7 @@ static void dump_const_expr(struct ast_dumper* d, const struct const_expr* e) {
     remove_indent(d);
 }
 
-static void dump_static_assert_declaration(
-    struct ast_dumper* d,
-    const struct static_assert_declaration* decl) {
+static void dump_static_assert_declaration(AstDumper* d, const StaticAssertDeclaration* decl) {
     assert(decl);
 
     dumper_println(d, "static_assert_declaration:");
@@ -1753,8 +1696,7 @@ static void dump_static_assert_declaration(
     remove_indent(d);
 }
 
-static void dump_declaration(struct ast_dumper* d,
-                             const struct declaration* decl) {
+static void dump_declaration(AstDumper* d, const Declaration* decl) {
     assert(decl);
 
     dumper_println(d, "declaration:");
@@ -1771,8 +1713,7 @@ static void dump_declaration(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_external_declaration(struct ast_dumper* d,
-                                      const struct external_declaration* decl) {
+static void dump_external_declaration(AstDumper* d, const ExternalDeclaration* decl) {
     assert(decl);
 
     dumper_println(d, "external_declaration:");
@@ -1788,8 +1729,7 @@ static void dump_external_declaration(struct ast_dumper* d,
     remove_indent(d);
 }
 
-static void dump_translation_unit(struct ast_dumper* d,
-                                  const struct translation_unit* tl) {
+static void dump_translation_unit(AstDumper* d, const TranslationUnit* tl) {
     assert(tl);
 
     dumper_println(d, "translation_unit:");

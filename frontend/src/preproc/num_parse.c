@@ -8,18 +8,18 @@
 
 #include "util/macro_util.h"
 
-struct parse_float_const_res parse_float_const(const char* spell) {
+ParseFloatConstRes parse_float_const(const char* spell) {
     const char* end = spell; // so end is set
     assert(errno == 0);
     double val = strtod(spell, (char**)&end);
     if (errno != 0) {
         assert(errno == ERANGE);
         errno = 0;
-        return (struct parse_float_const_res){
+        return (ParseFloatConstRes){
             .err.kind = FLOAT_CONST_ERR_TOO_LARGE,
         };
     }
-    enum float_value_kind t = FLOAT_VALUE_D;
+    FloatValueKind t = FLOAT_VALUE_D;
     assert(spell <= end);
     if (*end != '\0') {
         if (*end == 'f' || *end == 'F') {
@@ -27,7 +27,7 @@ struct parse_float_const_res parse_float_const(const char* spell) {
         } else if (*end == 'l' || *end == 'L') {
             t = FLOAT_VALUE_LD;
         } else {
-            return (struct parse_float_const_res){
+            return (ParseFloatConstRes){
                 .err =
                     {
                         .kind = FLOAT_CONST_ERR_INVALID_CHAR,
@@ -37,19 +37,19 @@ struct parse_float_const_res parse_float_const(const char* spell) {
         }
         ++end;
         if (*end != '\0') {
-            return (struct parse_float_const_res){
+            return (ParseFloatConstRes){
                 .err.kind = FLOAT_CONST_ERR_SUFFIX_TOO_LONG,
             };
         }
     }
 
-    return (struct parse_float_const_res){
+    return (ParseFloatConstRes){
         .err.kind = FLOAT_CONST_ERR_NONE,
         .res = create_float_value(t, val),
     };
 }
 
-void print_float_const_err(FILE* out, const struct float_const_err* err) {
+void print_float_const_err(FILE* out, const FloatConstErr* err) {
     assert(err != FLOAT_CONST_ERR_NONE);
 
     switch (err->kind) {
@@ -70,29 +70,28 @@ void print_float_const_err(FILE* out, const struct float_const_err* err) {
     fprintf(out, "\n");
 }
 
-struct int_type_attrs {
+typedef struct {
     unsigned short num_long;
     bool is_unsigned;
-};
+} IntTypeAttrs;
 
-static struct int_type_attrs get_int_attrs(const char* suffix,
-                                           struct int_const_err* err);
+static IntTypeAttrs get_int_attrs(const char* suffix, IntConstErr* err);
 
-static enum int_value_kind get_value_type_dec(
-    struct int_type_attrs attrs,
+static IntValueKind get_value_type_dec(
+    IntTypeAttrs attrs,
     uintmax_t val,
-    const struct arch_type_info* type_info,
-    struct int_const_err* err);
+    const ArchTypeInfo* type_info,
+    IntConstErr* err);
 
-static enum int_value_kind get_value_type_other(
-    struct int_type_attrs attrs,
+static IntValueKind get_value_type_other(
+    IntTypeAttrs attrs,
     uintmax_t val,
-    const struct arch_type_info* type_info,
-    struct int_const_err* err);
+    const ArchTypeInfo* type_info,
+    IntConstErr* err);
 
-struct parse_int_const_res parse_int_const(
+ParseIntConstRes parse_int_const(
     const char* spell,
-    const struct arch_type_info* type_info) {
+    const ArchTypeInfo* type_info) {
     const enum {
         DEC = 10,
         HEX = 16,
@@ -104,38 +103,38 @@ struct parse_int_const_res parse_int_const(
     if (errno != 0) {
         assert(errno == ERANGE);
         errno = 0;
-        return (struct parse_int_const_res){
+        return (ParseIntConstRes){
             .err.kind = INT_CONST_ERR_TOO_LARGE,
         };
     }
 
     assert(spell <= suffix);
 
-    struct int_const_err err = {
+    IntConstErr err = {
         .kind = INT_CONST_ERR_NONE,
     };
-    struct int_type_attrs attrs = get_int_attrs(suffix, &err);
+    IntTypeAttrs attrs = get_int_attrs(suffix, &err);
     if (err.kind != INT_CONST_ERR_NONE) {
-        return (struct parse_int_const_res){
+        return (ParseIntConstRes){
             .err = err,
         };
     }
-    const enum int_value_kind
+    const IntValueKind
         kind = base == DEC ? get_value_type_dec(attrs, val, type_info, &err)
                            : get_value_type_other(attrs, val, type_info, &err);
     if (err.kind != INT_CONST_ERR_NONE) {
-        return (struct parse_int_const_res){
+        return (ParseIntConstRes){
             .err = err,
         };
     }
-    return (struct parse_int_const_res){
+    return (ParseIntConstRes){
         .err.kind = INT_CONST_ERR_NONE,
         .res = int_value_is_signed(kind) ? create_int_value(kind, (intmax_t)val)
                                          : create_uint_value(kind, val),
     };
 }
 
-void print_int_const_err(FILE* out, const struct int_const_err* err) {
+void print_int_const_err(FILE* out, const IntConstErr* err) {
     assert(out);
     assert(err);
     assert(err->kind != INT_CONST_ERR_NONE);
@@ -172,9 +171,8 @@ void print_int_const_err(FILE* out, const struct int_const_err* err) {
     fprintf(out, "\n");
 }
 
-static struct int_type_attrs get_int_attrs(const char* suffix,
-                                           struct int_const_err* err) {
-    struct int_type_attrs res = {
+static IntTypeAttrs get_int_attrs(const char* suffix, IntConstErr* err) {
+    IntTypeAttrs res = {
         .num_long = 0,
         .is_unsigned = false,
     };
@@ -183,19 +181,19 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
     for (size_t i = 0; suffix[i] != '\0'; ++i) {
         if (i == 3) {
             err->kind = INT_CONST_ERR_SUFFIX_TOO_LONG;
-            return (struct int_type_attrs){0};
+            return (IntTypeAttrs){0};
         }
         switch (suffix[i]) {
             case 'l':
                 if (res.num_long > 0 && l_is_upper) {
                     err->kind = INT_CONST_ERR_CASE_MIXING;
-                    return (struct int_type_attrs){0};
+                    return (IntTypeAttrs){0};
                 } else if (res.num_long > 0 && last_was_u) {
                     err->kind = INT_CONST_ERR_U_BETWEEN_LS;
-                    return (struct int_type_attrs){0};
+                    return (IntTypeAttrs){0};
                 } else if (res.num_long == 2) {
                     err->kind = INT_CONST_ERR_TRIPLE_LONG;
-                    return (struct int_type_attrs){0};
+                    return (IntTypeAttrs){0};
                 } else {
                     ++res.num_long;
                     last_was_u = false;
@@ -204,13 +202,13 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
             case 'L':
                 if (res.num_long > 0 && !l_is_upper) {
                     err->kind = INT_CONST_ERR_CASE_MIXING;
-                    return (struct int_type_attrs){0};
+                    return (IntTypeAttrs){0};
                 } else if (res.num_long > 0 && last_was_u) {
                     err->kind = INT_CONST_ERR_U_BETWEEN_LS;
-                    return (struct int_type_attrs){0};
+                    return (IntTypeAttrs){0};
                 } else if (res.num_long == 2) {
                     err->kind = INT_CONST_ERR_TRIPLE_LONG;
-                    return (struct int_type_attrs){0};
+                    return (IntTypeAttrs){0};
                 } else {
                     ++res.num_long;
                     last_was_u = false;
@@ -221,7 +219,7 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
             case 'U':
                 if (res.is_unsigned) {
                     err->kind = INT_CONST_ERR_DOUBLE_U;
-                    return (struct int_type_attrs){0};
+                    return (IntTypeAttrs){0};
                 } else {
                     res.is_unsigned = true;
                     last_was_u = true;
@@ -230,7 +228,7 @@ static struct int_type_attrs get_int_attrs(const char* suffix,
             default:
                 err->kind = INT_CONST_ERR_INVALID_CHAR;
                 err->invalid_char = suffix[i];
-                return (struct int_type_attrs){0};
+                return (IntTypeAttrs){0};
         }
     }
     return res;
@@ -263,13 +261,12 @@ static uintmax_t max_int(uintmax_t num_bits) {
     return int_pow2(num_bits - 1) - 1;
 }
 
-static uintmax_t get_max_int(const struct arch_type_info* type_info,
-                             enum int_value_kind kind) {
+static uintmax_t get_max_int(const ArchTypeInfo* type_info, IntValueKind kind) {
     assert(kind == INT_VALUE_UI || kind == INT_VALUE_UL || kind == INT_VALUE_ULL
            || kind == INT_VALUE_I || kind == INT_VALUE_L
            || kind == INT_VALUE_LL);
 
-    const struct arch_int_info* info = &type_info->int_info;
+    const ArchIntInfo* info = &type_info->int_info;
     const uint8_t bits_in_char = type_info->bits_in_char;
     switch (kind) {
         case INT_VALUE_I:
@@ -290,10 +287,10 @@ static uintmax_t get_max_int(const struct arch_type_info* type_info,
     }
 }
 
-static enum int_value_kind get_value_type_unsigned(
-    struct int_type_attrs attrs,
+static IntValueKind get_value_type_unsigned(
+    IntTypeAttrs attrs,
     uintmax_t val,
-    const struct arch_type_info* type_info) {
+    const ArchTypeInfo* type_info) {
     assert(attrs.is_unsigned);
     assert(attrs.num_long <= 2);
 
@@ -320,11 +317,11 @@ static enum int_value_kind get_value_type_unsigned(
     }
 }
 
-static enum int_value_kind get_value_type_dec(
-    struct int_type_attrs attrs,
+static IntValueKind get_value_type_dec(
+    IntTypeAttrs attrs,
     uintmax_t val,
-    const struct arch_type_info* type_info,
-    struct int_const_err* err) {
+    const ArchTypeInfo* type_info,
+    IntConstErr* err) {
     assert(attrs.num_long <= 2);
     if (attrs.is_unsigned) {
         return get_value_type_unsigned(attrs, val, type_info);
@@ -353,11 +350,11 @@ static enum int_value_kind get_value_type_dec(
     }
 }
 
-static enum int_value_kind get_value_type_other(
-    struct int_type_attrs attrs,
+static IntValueKind get_value_type_other(
+    IntTypeAttrs attrs,
     uintmax_t val,
-    const struct arch_type_info* type_info,
-    struct int_const_err* err) {
+    const ArchTypeInfo* type_info,
+    IntConstErr* err) {
     assert(attrs.num_long <= 2);
 
     if (attrs.is_unsigned) {
@@ -393,17 +390,17 @@ static enum int_value_kind get_value_type_other(
     }
 }
 
-static enum int_value_kind get_uint_leastn_t_type(
+static IntValueKind get_uint_leastn_t_type(
     size_t n,
-    const struct arch_type_info* type_info);
+    const ArchTypeInfo* type_info);
 
-struct parse_char_const_res parse_char_const(
+ParseCharConstRes parse_char_const(
     const char* spell,
-    const struct arch_type_info* type_info) {
+    const ArchTypeInfo* type_info) {
     assert(spell);
     assert(type_info);
 
-    enum int_value_kind kind;
+    IntValueKind kind;
     switch (*spell) {
         case '\'':
             kind = INT_VALUE_I;
@@ -415,7 +412,7 @@ struct parse_char_const_res parse_char_const(
             } else if (spell[1] == '\'') {
                 kind = get_uint_leastn_t_type(16, type_info);
             } else {
-                return (struct parse_char_const_res){
+                return (ParseCharConstRes){
                     .err =
                         {
                             .kind = CHAR_CONST_ERR_EXPECTED_CHAR,
@@ -430,7 +427,7 @@ struct parse_char_const_res parse_char_const(
         case 'U':
             kind = get_uint_leastn_t_type(32, type_info);
             if (spell[1] != '\'') {
-                return (struct parse_char_const_res){
+                return (ParseCharConstRes){
                     .err =
                         {
                             .kind = CHAR_CONST_ERR_EXPECTED_CHAR,
@@ -447,7 +444,7 @@ struct parse_char_const_res parse_char_const(
                                               * type_info->bits_in_char,
                                           type_info);
             if (spell[1] != '\'') {
-                return (struct parse_char_const_res){
+                return (ParseCharConstRes){
                     .err =
                         {
                             .kind = CHAR_CONST_ERR_EXPECTED_CHAR,
@@ -460,7 +457,7 @@ struct parse_char_const_res parse_char_const(
             spell += 2;
             break;
         default:
-            return (struct parse_char_const_res){
+            return (ParseCharConstRes){
                 .err =
                     {
                         .kind = CHAR_CONST_ERR_EXPECTED_CHAR,
@@ -509,7 +506,7 @@ struct parse_char_const_res parse_char_const(
                         break;
                     default:
                         // TODO: other escape stuff
-                        return (struct parse_char_const_res){
+                        return (ParseCharConstRes){
                             .err =
                                 {
                                     .kind = CHAR_CONST_ERR_INVALID_ESCAPE,
@@ -525,7 +522,7 @@ struct parse_char_const_res parse_char_const(
 
         ++spell;
         if (*spell != '\'') {
-            return (struct parse_char_const_res){
+            return (ParseCharConstRes){
                 .err =
                     {
                         .kind = CHAR_CONST_ERR_EXPECTED_CHAR,
@@ -537,7 +534,7 @@ struct parse_char_const_res parse_char_const(
         }
         assert(spell[1] == '\0');
 
-        return (struct parse_char_const_res){
+        return (ParseCharConstRes){
             .err.kind = CHAR_CONST_ERR_NONE,
             .res = create_uint_value(kind, val),
         };
@@ -580,7 +577,7 @@ struct parse_char_const_res parse_char_const(
                         break;
                     default:
                         // TODO: other escape stuff
-                        return (struct parse_char_const_res){
+                        return (ParseCharConstRes){
                             .err =
                                 {
                                     .kind = CHAR_CONST_ERR_INVALID_ESCAPE,
@@ -596,7 +593,7 @@ struct parse_char_const_res parse_char_const(
 
         ++spell;
         if (*spell != '\'') {
-            return (struct parse_char_const_res){
+            return (ParseCharConstRes){
                 .err =
                     {
                         .kind = CHAR_CONST_ERR_EXPECTED_CHAR,
@@ -608,14 +605,14 @@ struct parse_char_const_res parse_char_const(
         }
         assert(spell[1] == '\0');
 
-        return (struct parse_char_const_res){
+        return (ParseCharConstRes){
             .err.kind = CHAR_CONST_ERR_NONE,
             .res = create_int_value(kind, val),
         };
     }
 }
 
-void print_char_const_err(FILE* out, const struct char_const_err* err) {
+void print_char_const_err(FILE* out, const CharConstErr* err) {
     assert(err->kind != CHAR_CONST_ERR_NONE);
     switch (err->kind) {
         case CHAR_CONST_ERR_NONE:
@@ -638,12 +635,12 @@ void print_char_const_err(FILE* out, const struct char_const_err* err) {
     fputc('\n', out);
 }
 
-static enum int_value_kind get_uint_leastn_t_type(
+static IntValueKind get_uint_leastn_t_type(
     size_t n,
-    const struct arch_type_info* type_info) {
+    const ArchTypeInfo* type_info) {
     assert(n == 8 || n == 16 || n == 32 || n == 64);
 
-    const struct arch_int_info* info = &type_info->int_info;
+    const ArchIntInfo* info = &type_info->int_info;
     const uint8_t bits_in_char = type_info->bits_in_char;
     if (bits_in_char >= n) {
         return INT_VALUE_UC;

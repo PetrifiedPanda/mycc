@@ -18,8 +18,8 @@ static PRINTF_FORMAT(1, 2) _Noreturn void exit_with_err(const char* format,
     exit(EXIT_FAILURE);
 }
 
-struct cmd_args parse_cmd_args(int argc, char** argv) {
-    struct cmd_args res = {
+CmdArgs parse_cmd_args(int argc, char** argv) {
+    CmdArgs res = {
         .num_files = 0,
         .files = NULL,
         .output_file = NULL,
@@ -62,6 +62,6 @@ struct cmd_args parse_cmd_args(int argc, char** argv) {
     return res;
 }
 
-void free_cmd_args(const struct cmd_args* args) {
+void free_cmd_args(const CmdArgs* args) {
     mycc_free(args->files);
 }

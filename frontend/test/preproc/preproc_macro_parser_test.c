@@ -1,4 +1,4 @@
-#include "frontend/preproc/preproc_macro.h"
+#include "frontend/preproc/PreprocMacro.h"
 
 #include "util/mem.h"
 
@@ -6,8 +6,8 @@
 
 #include "../test_helpers.h"
 
-static void compare_preproc_macros(const struct preproc_macro* got,
-                                   const struct preproc_macro* ex) {
+static void compare_preproc_macros(const PreprocMacro* got,
+                                   const PreprocMacro* ex) {
     ASSERT_BOOL(got->is_func_macro, ex->is_func_macro);
     ASSERT_SIZE_T(got->num_args, ex->num_args);
     ASSERT_BOOL(got->is_variadic, ex->is_variadic);
@@ -15,15 +15,15 @@ static void compare_preproc_macros(const struct preproc_macro* got,
     ASSERT_SIZE_T(got->expansion_len, ex->expansion_len);
 
     for (size_t i = 0; i < got->expansion_len; ++i) {
-        const struct token_or_arg* got_item = &got->expansion[i];
-        const struct token_or_arg* ex_item = &ex->expansion[i];
+        const TokenOrArg* got_item = &got->expansion[i];
+        const TokenOrArg* ex_item = &ex->expansion[i];
         ASSERT_BOOL(got_item->is_arg, ex_item->is_arg);
 
         if (got_item->is_arg) {
             ASSERT_SIZE_T(got_item->arg_num, ex_item->arg_num);
         } else {
-            const struct token* got_tok = &got_item->token;
-            const struct token* ex_tok = &ex_item->token;
+            const Token* got_tok = &got_item->token;
+            const Token* ex_tok = &ex_item->token;
 
             ASSERT_TOKEN_KIND(got_tok->kind, ex_tok->kind);
             ASSERT_STR(str_get_data(&got_tok->spelling),
@@ -41,7 +41,7 @@ static void compare_preproc_macros(const struct preproc_macro* got,
 TEST(parse_obj_like) {
     {
         // #define TEST_MACRO
-        struct token tokens[] = {
+        Token tokens[] = {
             {TOKEN_PP_STRINGIFY, .spelling = create_null_str(), {0, {1, 1}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
             {TOKEN_IDENTIFIER,
@@ -49,17 +49,17 @@ TEST(parse_obj_like) {
              {0, {1, 9}}},
         };
 
-        struct token_arr arr = {
+        TokenArr arr = {
             .len = ARR_LEN(tokens),
             .cap = arr.len,
             .tokens = tokens,
         };
 
-        struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        PreprocErr err = create_preproc_err();
+        PreprocMacro got = parse_preproc_macro(&arr, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
-        struct preproc_macro ex = {
+        PreprocMacro ex = {
             .is_func_macro = false,
             .num_args = 0,
             .is_variadic = false,
@@ -73,7 +73,7 @@ TEST(parse_obj_like) {
     }
     {
         // #define ANOTHER_MACRO 1 + 2 * 3 - func(a, b)
-        struct token tokens[] = {
+        Token tokens[] = {
             {TOKEN_PP_STRINGIFY, .spelling = create_null_str(), {0, {1, 1}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
             {TOKEN_IDENTIFIER,
@@ -97,24 +97,24 @@ TEST(parse_obj_like) {
             TOKENS_LEN = ARR_LEN(tokens),
             EXPANSION_LEN = TOKENS_LEN - 3
         };
-        struct token_or_arg expansion[EXPANSION_LEN];
+        TokenOrArg expansion[EXPANSION_LEN];
         for (size_t i = 0; i < EXPANSION_LEN; ++i) {
-            expansion[i] = (struct token_or_arg){
+            expansion[i] = (TokenOrArg){
                 .is_arg = false,
                 .token = tokens[i + 3],
             };
         }
 
-        struct token_arr arr = {
+        TokenArr arr = {
             .len = TOKENS_LEN,
             .cap = arr.len,
             .tokens = tokens,
         };
 
-        struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        PreprocErr err = create_preproc_err();
+        PreprocMacro got = parse_preproc_macro(&arr, &err);
 
-        struct preproc_macro ex = {
+        PreprocMacro ex = {
             .is_func_macro = false,
             .num_args = 0,
             .is_variadic = false,
@@ -131,7 +131,7 @@ TEST(parse_obj_like) {
 TEST(parse_func_like) {
     {
         // #define FUNC_LIKE(a, b, c) a != 38 ? b * other_name : c + a
-        struct token tokens[] = {
+        Token tokens[] = {
             {TOKEN_PP_STRINGIFY, .spelling = create_null_str(), {0, {1, 1}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
             {TOKEN_IDENTIFIER,
@@ -164,7 +164,7 @@ TEST(parse_func_like) {
             EXPANSION_LEN = TOKENS_LEN - 10
         };
 
-        struct token_or_arg expansion[EXPANSION_LEN] = {
+        TokenOrArg expansion[EXPANSION_LEN] = {
             {.is_arg = true, .arg_num = 0},
             {.is_arg = false, .token = tokens[11]},
             {.is_arg = false, .token = tokens[12]},
@@ -178,7 +178,7 @@ TEST(parse_func_like) {
             {.is_arg = true, .arg_num = 0},
         };
 
-        struct preproc_macro ex = {
+        PreprocMacro ex = {
             .is_func_macro = true,
             .num_args = 3,
             .is_variadic = false,
@@ -187,14 +187,14 @@ TEST(parse_func_like) {
             .expansion = expansion,
         };
 
-        struct token_arr arr = {
+        TokenArr arr = {
             .len = TOKENS_LEN,
             .cap = TOKENS_LEN,
             .tokens = tokens,
         };
 
-        struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        PreprocErr err = create_preproc_err();
+        PreprocMacro got = parse_preproc_macro(&arr, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
@@ -202,7 +202,7 @@ TEST(parse_func_like) {
     }
     {
         // #define NO_PARAMS() 1 + 2 + 3
-        struct token tokens[] = {
+        Token tokens[] = {
             {TOKEN_PP_STRINGIFY, .spelling = create_null_str(), {0, {1, 1}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
             {TOKEN_IDENTIFIER,
@@ -222,15 +222,15 @@ TEST(parse_func_like) {
             EXPANSION_LEN = TOKENS_LEN - 5
         };
 
-        struct token_or_arg expansion[EXPANSION_LEN];
+        TokenOrArg expansion[EXPANSION_LEN];
         for (size_t i = 0; i < EXPANSION_LEN; ++i) {
-            expansion[i] = (struct token_or_arg){
+            expansion[i] = (TokenOrArg){
                 .is_arg = false,
                 .token = tokens[i + 5],
             };
         }
 
-        struct preproc_macro ex = {
+        PreprocMacro ex = {
             .is_func_macro = true,
             .num_args = 0,
             .is_variadic = false,
@@ -239,14 +239,14 @@ TEST(parse_func_like) {
             .expansion = expansion,
         };
 
-        struct token_arr arr = {
+        TokenArr arr = {
             .len = TOKENS_LEN,
             .cap = TOKENS_LEN,
             .tokens = tokens,
         };
 
-        struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        PreprocErr err = create_preproc_err();
+        PreprocMacro got = parse_preproc_macro(&arr, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
@@ -254,7 +254,7 @@ TEST(parse_func_like) {
     }
     {
         // #define NO_PARAMS_EMPTY()
-        struct token tokens[] = {
+        Token tokens[] = {
             {TOKEN_PP_STRINGIFY, .spelling = create_null_str(), {0, {1, 1}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
             {TOKEN_IDENTIFIER,
@@ -268,7 +268,7 @@ TEST(parse_func_like) {
             TOKENS_LEN = ARR_LEN(tokens),
         };
 
-        struct preproc_macro ex = {
+        PreprocMacro ex = {
             .is_func_macro = true,
             .num_args = 0,
             .is_variadic = false,
@@ -277,14 +277,14 @@ TEST(parse_func_like) {
             .expansion = NULL,
         };
 
-        struct token_arr arr = {
+        TokenArr arr = {
             .len = TOKENS_LEN,
             .cap = TOKENS_LEN,
             .tokens = tokens,
         };
 
-        struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        PreprocErr err = create_preproc_err();
+        PreprocMacro got = parse_preproc_macro(&arr, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
@@ -295,7 +295,7 @@ TEST(parse_func_like) {
 TEST(parse_variadic) {
     {
         // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name : c + a
-        struct token tokens[] = {
+        Token tokens[] = {
             {TOKEN_PP_STRINGIFY, .spelling = create_null_str(), {0, {1, 1}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
             {TOKEN_IDENTIFIER,
@@ -330,7 +330,7 @@ TEST(parse_variadic) {
             EXPANSION_LEN = TOKENS_LEN - 12,
         };
 
-        struct token_or_arg expansion[EXPANSION_LEN] = {
+        TokenOrArg expansion[EXPANSION_LEN] = {
             {.is_arg = true, .arg_num = 0},
             {.is_arg = false, .token = tokens[13]},
             {.is_arg = false, .token = tokens[14]},
@@ -344,7 +344,7 @@ TEST(parse_variadic) {
             {.is_arg = true, .arg_num = 0},
         };
 
-        struct preproc_macro ex = {
+        PreprocMacro ex = {
             .is_func_macro = true,
             .num_args = 3,
             .is_variadic = true,
@@ -353,14 +353,14 @@ TEST(parse_variadic) {
             .expansion = expansion,
         };
 
-        struct token_arr arr = {
+        TokenArr arr = {
             .len = TOKENS_LEN,
             .cap = TOKENS_LEN,
             .tokens = tokens,
         };
 
-        struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        PreprocErr err = create_preproc_err();
+        PreprocMacro got = parse_preproc_macro(&arr, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
@@ -369,7 +369,7 @@ TEST(parse_variadic) {
     {
         // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name(__VA_ARGS__)
         // : c + a
-        struct token tokens[] = {
+        Token tokens[] = {
             {TOKEN_PP_STRINGIFY, .spelling = create_null_str(), {0, {1, 1}}},
             {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
             {TOKEN_IDENTIFIER,
@@ -409,7 +409,7 @@ TEST(parse_variadic) {
             EXPANSION_LEN = TOKENS_LEN - 12,
         };
 
-        struct token_or_arg expansion[EXPANSION_LEN] = {
+        TokenOrArg expansion[EXPANSION_LEN] = {
             {.is_arg = true, .arg_num = 0},
             {.is_arg = false, .token = tokens[13]},
             {.is_arg = false, .token = tokens[14]},
@@ -426,7 +426,7 @@ TEST(parse_variadic) {
             {.is_arg = true, .arg_num = 0},
         };
 
-        struct preproc_macro ex = {
+        PreprocMacro ex = {
             .is_func_macro = true,
             .num_args = 3,
             .is_variadic = true,
@@ -435,14 +435,14 @@ TEST(parse_variadic) {
             .expansion = expansion,
         };
 
-        struct token_arr arr = {
+        TokenArr arr = {
             .len = TOKENS_LEN,
             .cap = TOKENS_LEN,
             .tokens = tokens,
         };
 
-        struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        PreprocErr err = create_preproc_err();
+        PreprocMacro got = parse_preproc_macro(&arr, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex);
@@ -450,7 +450,7 @@ TEST(parse_variadic) {
     }
 }
 
-static void is_zeroed_macro(const struct preproc_macro* got) {
+static void is_zeroed_macro(const PreprocMacro* got) {
     ASSERT_BOOL(got->is_func_macro, false);
     ASSERT_BOOL(got->is_variadic, false);
     ASSERT_SIZE_T(got->num_args, 0);
@@ -461,7 +461,7 @@ static void is_zeroed_macro(const struct preproc_macro* got) {
 TEST(parse_duplicate_arg_name) {
     // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name(__VA_ARGS__)
     // : c + a
-    struct token tokens[] = {
+    Token tokens[] = {
         {TOKEN_PP_STRINGIFY, .spelling = create_null_str(), {0, {1, 1}}},
         {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("define"), {0, {1, 2}}},
         {TOKEN_IDENTIFIER, .spelling = STR_NON_HEAP("FUNC_LIKE"), {0, {1, 9}}},
@@ -496,7 +496,7 @@ TEST(parse_duplicate_arg_name) {
     enum {
         TOKENS_LEN = ARR_LEN(tokens),
     };
-    struct token_arr arr = {
+    TokenArr arr = {
         .len = TOKENS_LEN,
         .cap = TOKENS_LEN,
         .tokens = tokens,
@@ -504,8 +504,8 @@ TEST(parse_duplicate_arg_name) {
     // change c to a
     tokens[8].spelling = STR_NON_HEAP("a");
     {
-        struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        PreprocErr err = create_preproc_err();
+        PreprocMacro got = parse_preproc_macro(&arr, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(str_get_data(&err.duplicate_arg_name), "a");
@@ -517,8 +517,8 @@ TEST(parse_duplicate_arg_name) {
     tokens[8].spelling = STR_NON_HEAP("c");
     tokens[6].spelling = STR_NON_HEAP("c");
     {
-        struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        PreprocErr err = create_preproc_err();
+        PreprocMacro got = parse_preproc_macro(&arr, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(str_get_data(&err.duplicate_arg_name), "c");
@@ -528,8 +528,8 @@ TEST(parse_duplicate_arg_name) {
     }
     tokens[6].spelling = STR_NON_HEAP("a");
     {
-        struct preproc_err err = create_preproc_err();
-        struct preproc_macro got = parse_preproc_macro(&arr, &err);
+        PreprocErr err = create_preproc_err();
+        PreprocMacro got = parse_preproc_macro(&arr, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(str_get_data(&err.duplicate_arg_name), "a");

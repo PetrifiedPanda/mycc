@@ -3,11 +3,9 @@
 
 #include <stdbool.h>
 
-#include "frontend/ast/translation_unit.h"
+#include "TranslationUnit.h"
 
-bool compare_asts(const struct translation_unit* tl1,
-                  const struct file_info* i1,
-                  const struct translation_unit* tl2,
-                  const struct file_info* i2);
+bool compare_asts(const TranslationUnit* tl1, const FileInfo* i1,
+                  const TranslationUnit* tl2, const FileInfo* i2);
 #endif
 

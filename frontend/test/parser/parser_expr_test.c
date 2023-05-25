@@ -4,10 +4,10 @@
 
 #include "testing/asserts.h"
 
-#include "frontend/parser/parser_state.h"
+#include "frontend/parser/ParserState.h"
 #include "frontend/parser/parser.h"
 
-#include "frontend/token.h"
+#include "frontend/Token.h"
 
 #include "frontend/preproc/preproc.h"
 
@@ -15,13 +15,13 @@
 
 #include "parser_test_util.h"
 
-static struct primary_expr* parse_primary_helper(const char* code) {
-    struct preproc_res preproc_res = tokenize_string(code, "not_file.c");
+static PrimaryExpr* parse_primary_helper(const char* code) {
+    PreprocRes preproc_res = tokenize_string(code, "not_file.c");
 
-    struct parser_err err = create_parser_err();
-    struct parser_state s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = create_parser_err();
+    ParserState s = create_parser_state(preproc_res.toks, &err);
 
-    struct primary_expr* res = parse_primary_expr(&s);
+    PrimaryExpr* res = parse_primary_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
@@ -31,10 +31,10 @@ static struct primary_expr* parse_primary_helper(const char* code) {
     return res;
 }
 
-static void check_primary_expr_int_constant(enum constant_kind type,
+static void check_primary_expr_int_constant(ConstantKind type,
                                             const char* spell,
-                                            struct int_value expected) {
-    struct primary_expr* res = parse_primary_helper(spell);
+                                            IntValue expected) {
+    PrimaryExpr* res = parse_primary_helper(spell);
 
     ASSERT(res->kind == PRIMARY_EXPR_CONSTANT);
     ASSERT(res->constant.kind == type);
@@ -45,10 +45,10 @@ static void check_primary_expr_int_constant(enum constant_kind type,
     free_primary_expr(res);
 }
 
-static void check_primary_expr_float_constant(enum constant_kind type,
+static void check_primary_expr_float_constant(ConstantKind type,
                                               const char* spell,
-                                              struct float_value expected) {
-    struct primary_expr* res = parse_primary_helper(spell);
+                                              FloatValue expected) {
+    PrimaryExpr* res = parse_primary_helper(spell);
 
     ASSERT(res->kind == PRIMARY_EXPR_CONSTANT);
     ASSERT(res->constant.kind == type);
@@ -60,7 +60,7 @@ static void check_primary_expr_float_constant(enum constant_kind type,
 }
 
 static void check_primary_expr_string(const char* spell, const char* expected) {
-    struct primary_expr* res = parse_primary_helper(spell);
+    PrimaryExpr* res = parse_primary_helper(spell);
 
     ASSERT(res->kind == PRIMARY_EXPR_STRING_LITERAL);
     ASSERT(res->string.is_func == false);
@@ -70,7 +70,7 @@ static void check_primary_expr_string(const char* spell, const char* expected) {
 }
 
 static void check_primary_expr_func_name(void) {
-    struct primary_expr* res = parse_primary_helper("__func__");
+    PrimaryExpr* res = parse_primary_helper("__func__");
 
     ASSERT(res->string.is_func == true);
 
@@ -78,7 +78,7 @@ static void check_primary_expr_func_name(void) {
 }
 
 static void check_primary_expr_identifier(const char* spell) {
-    struct primary_expr* res = parse_primary_helper(spell);
+    PrimaryExpr* res = parse_primary_helper(spell);
 
     ASSERT(res->kind == PRIMARY_EXPR_IDENTIFIER);
     ASSERT_STR(str_get_data(&res->identifier->spelling), spell);
@@ -88,7 +88,7 @@ static void check_primary_expr_identifier(const char* spell) {
 
 static void check_primary_expr_bracket_id(const char* code,
                                           const char* bracket_spell) {
-    struct primary_expr* res = parse_primary_helper(code);
+    PrimaryExpr* res = parse_primary_helper(code);
     ASSERT(res->kind == PRIMARY_EXPR_BRACKET);
     check_expr_id(res->bracket_expr, bracket_spell);
 
@@ -96,8 +96,8 @@ static void check_primary_expr_bracket_id(const char* code,
 }
 
 static void check_primary_expr_bracket_float(const char* code,
-                                             struct float_value val) {
-    struct primary_expr* res = parse_primary_helper(code);
+                                             FloatValue val) {
+    PrimaryExpr* res = parse_primary_helper(code);
     ASSERT(res->kind == PRIMARY_EXPR_BRACKET);
     check_expr_float(res->bracket_expr, val);
 
@@ -105,14 +105,14 @@ static void check_primary_expr_bracket_float(const char* code,
 }
 
 static void primary_expr_generic_sel_test(void) {
-    struct preproc_res preproc_res = tokenize_string(
+    PreprocRes preproc_res = tokenize_string(
         "_Generic(var, int: 0, TypedefName: oops, struct a_struct: 5.0, "
         "default: default_value )",
         "not_file.c");
 
-    struct parser_err err = create_parser_err();
-    struct parser_state s = create_parser_state(preproc_res.toks, &err);
-    const struct token insert_token = {
+    ParserErr err = create_parser_err();
+    ParserState s = create_parser_state(preproc_res.toks, &err);
+    const Token insert_token = {
         .kind = TOKEN_IDENTIFIER,
         .spelling = STR_NON_HEAP("TypedefName"),
         .loc =
@@ -123,7 +123,7 @@ static void primary_expr_generic_sel_test(void) {
     };
 
     parser_register_typedef_name(&s, &insert_token);
-    struct primary_expr* res = parse_primary_expr(&s);
+    PrimaryExpr* res = parse_primary_expr(&s);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_NOT_NULL(res);
     ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
@@ -132,7 +132,7 @@ static void primary_expr_generic_sel_test(void) {
     check_assign_expr_id(res->generic->assign, "var");
 
     ASSERT_SIZE_T(res->generic->assocs.len, (size_t)4);
-    struct generic_assoc* assoc = res->generic->assocs.assocs;
+    GenericAssoc* assoc = res->generic->assocs.assocs;
 
     ASSERT_NULL(assoc->type_name->abstract_decl);
     ASSERT(assoc->type_name->spec_qual_list->specs.kind == TYPE_SPEC_INT);
@@ -192,12 +192,12 @@ TEST(primary_expr) {
     primary_expr_generic_sel_test();
 }
 
-static struct unary_expr* parse_unary_helper(const char* code) {
-    struct preproc_res preproc_res = tokenize_string(code, "skfjdlfs");
+static UnaryExpr* parse_unary_helper(const char* code) {
+    PreprocRes preproc_res = tokenize_string(code, "skfjdlfs");
 
-    struct parser_err err = create_parser_err();
-    struct parser_state s = create_parser_state(preproc_res.toks, &err);
-    struct unary_expr* res = parse_unary_expr(&s);
+    ParserErr err = create_parser_err();
+    ParserState s = create_parser_state(preproc_res.toks, &err);
+    UnaryExpr* res = parse_unary_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT(err.kind == PARSER_ERR_NONE);
 
@@ -209,7 +209,7 @@ static struct unary_expr* parse_unary_helper(const char* code) {
 
 TEST(unary_expr) {
     {
-        struct unary_expr* res = parse_unary_helper("++-- sizeof *name");
+        UnaryExpr* res = parse_unary_helper("++-- sizeof *name");
 
         ASSERT(res->kind == UNARY_DEREF);
 
@@ -224,7 +224,7 @@ TEST(unary_expr) {
         free_unary_expr(res);
     }
     {
-        struct unary_expr* res = parse_unary_helper("++++--++--100");
+        UnaryExpr* res = parse_unary_helper("++++--++--100");
 
         ASSERT_SIZE_T(res->len, (size_t)5);
         ASSERT(res->kind == UNARY_POSTFIX);
@@ -243,7 +243,7 @@ TEST(unary_expr) {
     }
 
     {
-        struct unary_expr* res = parse_unary_helper("sizeof(int)");
+        UnaryExpr* res = parse_unary_helper("sizeof(int)");
 
         ASSERT(res->kind == UNARY_SIZEOF_TYPE);
         ASSERT(res->type_name->spec_qual_list->specs.kind == TYPE_SPEC_INT);
@@ -252,13 +252,13 @@ TEST(unary_expr) {
     }
 
     {
-        struct unary_expr* res = parse_unary_helper("~*var");
+        UnaryExpr* res = parse_unary_helper("~*var");
 
         ASSERT(res->kind == UNARY_BNOT);
 
-        struct cast_expr* cast = res->cast_expr;
+        CastExpr* cast = res->cast_expr;
         ASSERT_SIZE_T(cast->len, (size_t)0);
-        struct unary_expr* child_unary = cast->rhs;
+        UnaryExpr* child_unary = cast->rhs;
 
         ASSERT(child_unary->kind == UNARY_DEREF);
         check_cast_expr_id(child_unary->cast_expr, "var");
@@ -267,13 +267,13 @@ TEST(unary_expr) {
     }
 }
 
-static struct postfix_expr* parse_postfix_helper(const char* code) {
-    struct preproc_res preproc_res = tokenize_string(code, "sjfkds");
+static PostfixExpr* parse_postfix_helper(const char* code) {
+    PreprocRes preproc_res = tokenize_string(code, "sjfkds");
 
-    struct parser_err err = create_parser_err();
-    struct parser_state s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = create_parser_err();
+    ParserState s = create_parser_state(preproc_res.toks, &err);
 
-    struct postfix_expr* res = parse_postfix_expr(&s);
+    PostfixExpr* res = parse_postfix_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT(err.kind == PARSER_ERR_NONE);
 
@@ -288,7 +288,7 @@ static void test_postfix_expr_intializer(bool tailing_comma) {
     if (tailing_comma) {
         code[30] = ',';
     }
-    struct postfix_expr* res = parse_postfix_helper(code);
+    PostfixExpr* res = parse_postfix_helper(code);
 
     ASSERT(res->is_primary == false);
     ASSERT_SIZE_T(res->init_list.len, (size_t)2);
@@ -307,7 +307,7 @@ static void test_postfix_expr_intializer(bool tailing_comma) {
 
 TEST(postfix_expr) {
     {
-        struct postfix_expr* res = parse_postfix_helper(
+        PostfixExpr* res = parse_postfix_helper(
             "test.ident->other++--++");
 
         ASSERT(res->is_primary);
@@ -334,11 +334,11 @@ TEST(postfix_expr) {
     }
 
     {
-        struct postfix_expr* res = parse_postfix_helper(
+        PostfixExpr* res = parse_postfix_helper(
             "test[i_am_id]()[23](another_id, 34, id)");
 
         ASSERT_SIZE_T(res->len, (size_t)4);
-        struct postfix_suffix* suffix = res->suffixes;
+        PostfixSuffix* suffix = res->suffixes;
 
         ASSERT(suffix->kind == POSTFIX_INDEX);
         check_expr_id(suffix->index_expr, "i_am_id");
@@ -370,23 +370,23 @@ TEST(postfix_expr) {
     test_postfix_expr_intializer(false);
 }
 
-static void check_assign_expr_cast_int(struct cond_expr* expr,
-                                       enum type_spec_kind cast_type,
-                                       struct int_value val) {
-    struct cast_expr* cast = expr->last_else->log_ands->or_exprs->xor_exprs
+static void check_assign_expr_cast_int(CondExpr* expr,
+                                       TypeSpecKind cast_type,
+                                       IntValue val) {
+    CastExpr* cast = expr->last_else->log_ands->or_exprs->xor_exprs
                                  ->and_exprs->eq_exprs->lhs->lhs->lhs->lhs->lhs;
     ASSERT_SIZE_T(cast->len, (size_t)1);
     ASSERT(cast->type_names[0].spec_qual_list->specs.kind == cast_type);
     check_unary_expr_int(cast->rhs, val);
 }
 
-static struct assign_expr* parse_assign_helper(const char* code) {
-    struct preproc_res preproc_res = tokenize_string(code, "blah");
+static AssignExpr* parse_assign_helper(const char* code) {
+    PreprocRes preproc_res = tokenize_string(code, "blah");
 
-    struct parser_err err = create_parser_err();
-    struct parser_state s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = create_parser_err();
+    ParserState s = create_parser_state(preproc_res.toks, &err);
 
-    struct assign_expr* res = parse_assign_expr(&s);
+    AssignExpr* res = parse_assign_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
@@ -399,7 +399,7 @@ static struct assign_expr* parse_assign_helper(const char* code) {
 
 TEST(assign_expr) {
     {
-        struct assign_expr* res = parse_assign_helper("10");
+        AssignExpr* res = parse_assign_helper("10");
 
         check_assign_expr_int(res, create_int_value(INT_VALUE_I, 10));
 
@@ -407,31 +407,31 @@ TEST(assign_expr) {
     }
 
     {
-        struct assign_expr* res = parse_assign_helper(
+        AssignExpr* res = parse_assign_helper(
             "x = 100 += y *= 100.0 /= 2");
         ASSERT_NOT_NULL(res);
         ASSERT_SIZE_T(res->len, (size_t)4);
 
-        enum assign_expr_op expected_ops[] = {
+        AssignExprOp expected_ops[] = {
             ASSIGN_EXPR_ASSIGN,
             ASSIGN_EXPR_ADD,
             ASSIGN_EXPR_MUL,
             ASSIGN_EXPR_DIV,
         };
 
-        struct val_or_str {
+        typedef struct {
             enum {
                 INT_VAL,
                 FLOAT_VAL,
                 STR
             } type;
             union {
-                struct int_value int_val;
-                struct float_value float_val;
+                IntValue int_val;
+                FloatValue float_val;
                 const char* str;
             };
-        };
-        struct val_or_str expected_spellings[] = {
+        } ValOrStr;
+        ValOrStr expected_spellings[] = {
             {STR, .str = "x"},
             {INT_VAL, .int_val = create_int_value(INT_VALUE_I, 100)},
             {STR, .str = "y"},
@@ -445,7 +445,7 @@ TEST(assign_expr) {
         for (size_t i = 0; i < LEN; ++i) {
             ASSERT(res->assign_chain[i].op == expected_ops[i]);
 
-            struct val_or_str curr = expected_spellings[i];
+            ValOrStr curr = expected_spellings[i];
             switch (curr.type) {
                 case INT_VAL:
                     check_unary_expr_int(res->assign_chain[i].unary,
@@ -471,7 +471,7 @@ TEST(assign_expr) {
     }
 
     {
-        struct assign_expr* res = parse_assign_helper("(char)100");
+        AssignExpr* res = parse_assign_helper("(char)100");
 
         ASSERT_SIZE_T(res->len, (size_t)0);
         check_assign_expr_cast_int(res->value,
@@ -482,14 +482,14 @@ TEST(assign_expr) {
     }
 
     {
-        struct assign_expr* res = parse_assign_helper(
+        AssignExpr* res = parse_assign_helper(
             "(struct a_struct){1, var} = 0.0");
 
         ASSERT_SIZE_T(res->len, (size_t)1);
 
         ASSERT(res->assign_chain[0].op == ASSIGN_EXPR_ASSIGN);
 
-        struct unary_expr* unary = res->assign_chain[0].unary;
+        UnaryExpr* unary = res->assign_chain[0].unary;
         ASSERT(unary->kind == UNARY_POSTFIX);
         ASSERT_SIZE_T(unary->len, (size_t)0);
 
@@ -509,7 +509,7 @@ TEST(assign_expr) {
     }
 
     {
-        struct assign_expr* res = parse_assign_helper("var *= (double)12");
+        AssignExpr* res = parse_assign_helper("var *= (double)12");
 
         ASSERT_SIZE_T(res->len, (size_t)1);
 
@@ -524,7 +524,7 @@ TEST(assign_expr) {
     }
 
     {
-        struct assign_expr* res = parse_assign_helper(
+        AssignExpr* res = parse_assign_helper(
             "var ^= (struct a_struct){1, var}");
 
         ASSERT_SIZE_T(res->len, (size_t)1);
@@ -532,7 +532,7 @@ TEST(assign_expr) {
         ASSERT(res->assign_chain[0].op == ASSIGN_EXPR_XOR);
         check_unary_expr_id(res->assign_chain[0].unary, "var");
 
-        struct unary_expr* unary = res->value->last_else->log_ands->or_exprs
+        UnaryExpr* unary = res->value->last_else->log_ands->or_exprs
                                        ->xor_exprs->and_exprs->eq_exprs->lhs
                                        ->lhs->lhs->lhs->lhs->rhs;
 
@@ -556,9 +556,9 @@ TEST(assign_expr) {
     }
 }
 
-void check_assign_expr_single_assign_id(struct assign_expr* expr,
+void check_assign_expr_single_assign_id(AssignExpr* expr,
                                         const char* lhs,
-                                        enum assign_expr_op op,
+                                        AssignExprOp op,
                                         const char* rhs) {
     ASSERT_SIZE_T(expr->len, (size_t)1);
     ASSERT(expr->assign_chain[0].op == op);
@@ -566,20 +566,20 @@ void check_assign_expr_single_assign_id(struct assign_expr* expr,
     check_cond_expr_id(expr->value, rhs);
 }
 
-void check_assign_expr_single_assign_int(struct assign_expr* expr,
+void check_assign_expr_single_assign_int(AssignExpr* expr,
                                          const char* lhs,
-                                         enum assign_expr_op op,
-                                         struct int_value rhs) {
+                                         AssignExprOp op,
+                                         IntValue rhs) {
     ASSERT_SIZE_T(expr->len, (size_t)1);
     ASSERT(expr->assign_chain[0].op == op);
     check_unary_expr_id(expr->assign_chain[0].unary, lhs);
     check_cond_expr_int(expr->value, rhs);
 }
 
-void check_assign_expr_single_assign_float(struct assign_expr* expr,
+void check_assign_expr_single_assign_float(AssignExpr* expr,
                                            const char* lhs,
-                                           enum assign_expr_op op,
-                                           struct float_value rhs) {
+                                           AssignExprOp op,
+                                           FloatValue rhs) {
     ASSERT_SIZE_T(expr->len, (size_t)1);
     ASSERT(expr->assign_chain[0].op == op);
     check_unary_expr_id(expr->assign_chain[0].unary, lhs);
@@ -587,14 +587,14 @@ void check_assign_expr_single_assign_float(struct assign_expr* expr,
 }
 
 TEST(expr) {
-    struct preproc_res preproc_res = tokenize_string("a = 10, b *= x, c += 3.1",
+    PreprocRes preproc_res = tokenize_string("a = 10, b *= x, c += 3.1",
                                                      "file.c");
     ASSERT_NOT_NULL(preproc_res.toks);
 
-    struct parser_err err = create_parser_err();
-    struct parser_state s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = create_parser_err();
+    ParserState s = create_parser_state(preproc_res.toks, &err);
 
-    struct expr* expr = parse_expr(&s);
+    Expr* expr = parse_expr(&s);
     ASSERT_NOT_NULL(expr);
     ASSERT(err.kind == PARSER_ERR_NONE);
 

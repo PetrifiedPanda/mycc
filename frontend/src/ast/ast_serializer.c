@@ -3,12 +3,12 @@
 #include <setjmp.h>
 #include <string.h>
 
-struct ast_serializer {
+typedef struct {
     jmp_buf err_buf;
     FILE* file;
-};
+} AstSerializer;
 
-static void serializer_write(struct ast_serializer* d,
+static void serializer_write(AstSerializer* d,
                              const void* buffer,
                              size_t size,
                              size_t count) {
@@ -17,16 +17,13 @@ static void serializer_write(struct ast_serializer* d,
     }
 }
 
-static void serialize_file_info(struct ast_serializer* d,
-                                const struct file_info* info);
+static void serialize_file_info(AstSerializer* d,
+                                const FileInfo* info);
 
-static void serialize_translation_unit(struct ast_serializer* d,
-                                       const struct translation_unit* tl);
+static void serialize_translation_unit(AstSerializer* d, const TranslationUnit* tl);
 
-bool serialize_ast(const struct translation_unit* tl,
-                   const struct file_info* file_info,
-                   FILE* f) {
-    struct ast_serializer d = {
+bool serialize_ast(const TranslationUnit* tl, const FileInfo* file_info, FILE* f) {
+    AstSerializer d = {
         .file = f,
     };
 
@@ -39,69 +36,64 @@ bool serialize_ast(const struct translation_unit* tl,
     return true;
 }
 
-static void serialize_bool(struct ast_serializer* d, bool b) {
+static void serialize_bool(AstSerializer* d, bool b) {
     serializer_write(d, &b, sizeof b, 1);
 }
 
-static void serialize_uint(struct ast_serializer* d, uint64_t i) {
+static void serialize_uint(AstSerializer* d, uint64_t i) {
     serializer_write(d, &i, sizeof i, 1);
 }
 
-static void serialize_int(struct ast_serializer* d, int64_t i) {
+static void serialize_int(AstSerializer* d, int64_t i) {
     serializer_write(d, &i, sizeof i, 1);
 }
 
-static void serialize_float(struct ast_serializer* d, double f) {
+static void serialize_float(AstSerializer* d, double f) {
     serializer_write(d, &f, sizeof f, 1);
 }
 
-static void serialize_str(struct ast_serializer* d, const struct str* str) {
+static void serialize_str(AstSerializer* d, const Str* str) {
     const size_t len = str_len(str);
     serialize_uint(d, len);
     const char* data = str_get_data(str);
     serializer_write(d, data, sizeof *data, len);
 }
 
-static void serialize_file_info(struct ast_serializer* d,
-                                const struct file_info* info) {
+static void serialize_file_info(AstSerializer* d,
+                                const FileInfo* info) {
     serialize_uint(d, info->len);
     for (size_t i = 0; i < info->len; ++i) {
         serialize_str(d, &info->paths[i]);
     }
 }
 
-static void serialize_ast_node_info(struct ast_serializer* d,
-                                    const struct ast_node_info* info) {
+static void serialize_ast_node_info(AstSerializer* d, const AstNodeInfo* info) {
     serialize_uint(d, info->loc.file_idx);
     serialize_uint(d, info->loc.file_loc.line);
     serialize_uint(d, info->loc.file_loc.index);
 }
 
-static void serialize_type_quals(struct ast_serializer* d,
-                                 const struct type_quals* quals) {
+static void serialize_type_quals(AstSerializer* d, const TypeQuals* quals) {
     serialize_bool(d, quals->is_const);
     serialize_bool(d, quals->is_restrict);
     serialize_bool(d, quals->is_volatile);
     serialize_bool(d, quals->is_atomic);
 }
 
-static void serialize_type_name(struct ast_serializer* d,
-                                const struct type_name* name);
+static void serialize_type_name(AstSerializer* d, const TypeName* name);
 
-static void serialize_atomic_type_spec(struct ast_serializer* d,
-                                       const struct atomic_type_spec* spec) {
+static void serialize_atomic_type_spec(AstSerializer* d, const AtomicTypeSpec* spec) {
     serialize_ast_node_info(d, &spec->info);
     serialize_type_name(d, spec->type_name);
 }
 
-static void serialize_identifier(struct ast_serializer* d,
-                                 const struct identifier* id) {
+static void serialize_identifier(AstSerializer* d, const Identifier* id) {
     serialize_ast_node_info(d, &id->info);
     serialize_str(d, &id->spelling);
 }
 
-static void serialize_int_value(struct ast_serializer* d,
-                                const struct int_value* val) {
+static void serialize_int_value(AstSerializer* d,
+                                const IntValue* val) {
     serialize_uint(d, val->kind);
     if (int_value_is_signed(val->kind)) {
         serialize_int(d, val->int_val);
@@ -110,17 +102,16 @@ static void serialize_int_value(struct ast_serializer* d,
     }
 }
 
-static void serialize_float_value(struct ast_serializer* d,
-                                  const struct float_value* val) {
+static void serialize_float_value(AstSerializer* d,
+                                  const FloatValue* val) {
     serialize_uint(d, val->kind);
     serialize_float(d, val->val);
 }
 
-static void serialize_constant(struct ast_serializer* d,
-                               const struct constant* constant) {
+static void serialize_constant(AstSerializer* d, const Constant* constant) {
     serialize_ast_node_info(d, &constant->info);
     const uint64_t kind = constant->kind;
-    assert((enum constant_kind)kind == constant->kind);
+    assert((ConstantKind)kind == constant->kind);
     serialize_uint(d, kind);
     switch (constant->kind) {
         case CONSTANT_ENUM:
@@ -135,23 +126,22 @@ static void serialize_constant(struct ast_serializer* d,
     }
 }
 
-static void serialize_str_lit(struct ast_serializer* d,
-                              const struct str_lit* lit) {
+static void serialize_str_lit(AstSerializer* d,
+                              const StrLit* lit) {
     const uint64_t kind = lit->kind;
-    assert((enum str_lit_kind)kind == lit->kind);
+    assert((StrLitKind)kind == lit->kind);
     serialize_uint(d, kind);
     serialize_str(d, &lit->contents);
 }
 
 static void serialize_string_literal_node(
-    struct ast_serializer* d,
-    const struct string_literal_node* lit) {
+    AstSerializer* d,
+    const StringLiteralNode* lit) {
     serialize_ast_node_info(d, &lit->info);
     serialize_str_lit(d, &lit->lit);
 }
 
-static void serialize_string_constant(struct ast_serializer* d,
-                                      const struct string_constant* constant) {
+static void serialize_string_constant(AstSerializer* d, const StringConstant* constant) {
     serialize_bool(d, constant->is_func);
     if (constant->is_func) {
         serialize_ast_node_info(d, &constant->info);
@@ -160,34 +150,31 @@ static void serialize_string_constant(struct ast_serializer* d,
     }
 }
 
-static void serialize_unary_expr(struct ast_serializer* d,
-                                 const struct unary_expr* expr);
+static void serialize_unary_expr(AstSerializer* d, const UnaryExpr* expr);
 
-static void serialize_cond_expr(struct ast_serializer* d,
-                                const struct cond_expr* expr);
+static void serialize_cond_expr(AstSerializer* d,
+                                const CondExpr* expr);
 
-static void serialize_assign_expr(struct ast_serializer* d,
-                                  const struct assign_expr* expr) {
+static void serialize_assign_expr(AstSerializer* d, const AssignExpr* expr) {
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
-        const struct unary_and_op* item = &expr->assign_chain[i];
+        const UnaryAndOp* item = &expr->assign_chain[i];
         serialize_unary_expr(d, item->unary);
         const uint64_t op = item->op;
-        assert((enum assign_expr_op)op == item->op);
+        assert((AssignExprOp)op == item->op);
         serialize_uint(d, op);
     }
     serialize_cond_expr(d, expr->value);
 }
 
-static void serialize_expr(struct ast_serializer* d, const struct expr* expr) {
+static void serialize_expr(AstSerializer* d, const Expr* expr) {
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
         serialize_assign_expr(d, &expr->assign_exprs[i]);
     }
 }
 
-static void serialize_generic_assoc(struct ast_serializer* d,
-                                    const struct generic_assoc* assoc) {
+static void serialize_generic_assoc(AstSerializer* d, const GenericAssoc* assoc) {
     serialize_ast_node_info(d, &assoc->info);
     const bool has_type_name = assoc->type_name != NULL;
     serialize_bool(d, has_type_name);
@@ -197,8 +184,7 @@ static void serialize_generic_assoc(struct ast_serializer* d,
     serialize_assign_expr(d, assoc->assign);
 }
 
-static void serialize_generic_assoc_list(struct ast_serializer* d,
-                                         const struct generic_assoc_list* lst) {
+static void serialize_generic_assoc_list(AstSerializer* d, const GenericAssocList* lst) {
     serialize_ast_node_info(d, &lst->info);
     serialize_uint(d, lst->len);
     for (size_t i = 0; i < lst->len; ++i) {
@@ -206,18 +192,16 @@ static void serialize_generic_assoc_list(struct ast_serializer* d,
     }
 }
 
-static void serialize_generic_sel(struct ast_serializer* d,
-                                  const struct generic_sel* sel) {
+static void serialize_generic_sel(AstSerializer* d, const GenericSel* sel) {
     serialize_ast_node_info(d, &sel->info);
     serialize_assign_expr(d, sel->assign);
     serialize_generic_assoc_list(d, &sel->assocs);
 }
 
-static void serialize_primary_expr(struct ast_serializer* d,
-                                   const struct primary_expr* expr) {
+static void serialize_primary_expr(AstSerializer* d, const PrimaryExpr* expr) {
     const uint64_t kind = expr->kind;
     serialize_uint(d, kind);
-    assert((enum primary_expr_kind)kind == expr->kind);
+    assert((PrimaryExprKind)kind == expr->kind);
     switch (expr->kind) {
         case PRIMARY_EXPR_IDENTIFIER:
             serialize_identifier(d, expr->identifier);
@@ -238,11 +222,10 @@ static void serialize_primary_expr(struct ast_serializer* d,
     }
 }
 
-static void serialize_const_expr(struct ast_serializer* d,
-                                 const struct const_expr* expr);
+static void serialize_const_expr(AstSerializer* d, const ConstExpr* expr);
 
-static void serialize_designator(struct ast_serializer* d,
-                                 const struct designator* des) {
+static void serialize_designator(AstSerializer* d,
+                                 const struct Designator* des) {
     serialize_ast_node_info(d, &des->info);
     serialize_bool(d, des->is_index);
     if (des->is_index) {
@@ -252,24 +235,24 @@ static void serialize_designator(struct ast_serializer* d,
     }
 }
 
-static void serialize_designator_list(struct ast_serializer* d,
-                                      const struct designator_list* des) {
+static void serialize_designator_list(AstSerializer* d,
+                                      const DesignatorList* des) {
     serialize_uint(d, des->len);
     for (size_t i = 0; i < des->len; ++i) {
         serialize_designator(d, &des->designators[i]);
     }
 }
 
-static void serialize_designation(struct ast_serializer* d,
-                                  const struct designation* des) {
+static void serialize_designation(AstSerializer* d,
+                                  const Designation* des) {
     serialize_designator_list(d, &des->designators);
 }
 
-static void serialize_init_list(struct ast_serializer* d,
-                                const struct init_list* lst);
+static void serialize_init_list(AstSerializer* d,
+                                const InitList* lst);
 
-static void serialize_initializer(struct ast_serializer* d,
-                                  const struct initializer* init) {
+static void serialize_initializer(AstSerializer* d,
+                                  const Initializer* init) {
     serialize_ast_node_info(d, &init->info);
     serialize_bool(d, init->is_assign);
     if (init->is_assign) {
@@ -279,8 +262,8 @@ static void serialize_initializer(struct ast_serializer* d,
     }
 }
 
-static void serialize_designation_init(struct ast_serializer* d,
-                                       const struct designation_init* init) {
+static void serialize_designation_init(AstSerializer* d,
+                                       const DesignationInit* init) {
     const bool has_designation = is_valid_designation(&init->designation);
     serialize_bool(d, has_designation);
     if (has_designation) {
@@ -289,27 +272,25 @@ static void serialize_designation_init(struct ast_serializer* d,
     serialize_initializer(d, &init->init);
 }
 
-static void serialize_init_list(struct ast_serializer* d,
-                                const struct init_list* lst) {
+static void serialize_init_list(AstSerializer* d,
+                                const InitList* lst) {
     serialize_uint(d, lst->len);
     for (size_t i = 0; i < lst->len; ++i) {
         serialize_designation_init(d, &lst->inits[i]);
     }
 }
 
-static void serialize_arg_expr_list(struct ast_serializer* d,
-                                    const struct arg_expr_list* lst) {
+static void serialize_arg_expr_list(AstSerializer* d, const ArgExprList* lst) {
     serialize_uint(d, lst->len);
     for (size_t i = 0; i < lst->len; ++i) {
         serialize_assign_expr(d, &lst->assign_exprs[i]);
     }
 }
 
-static void serialize_postfix_suffix(struct ast_serializer* d,
-                                     const struct postfix_suffix* suffix) {
+static void serialize_postfix_suffix(AstSerializer* d, const PostfixSuffix* suffix) {
     const uint64_t kind = suffix->kind;
     serialize_uint(d, kind);
-    assert((enum postfix_suffix_kind)kind == suffix->kind);
+    assert((PostfixSuffixKind)kind == suffix->kind);
 
     switch (suffix->kind) {
         case POSTFIX_INDEX:
@@ -328,8 +309,7 @@ static void serialize_postfix_suffix(struct ast_serializer* d,
     }
 }
 
-static void serialize_postfix_expr(struct ast_serializer* d,
-                                   const struct postfix_expr* expr) {
+static void serialize_postfix_expr(AstSerializer* d, const PostfixExpr* expr) {
     serialize_bool(d, expr->is_primary);
     if (expr->is_primary) {
         serialize_primary_expr(d, expr->primary);
@@ -344,21 +324,19 @@ static void serialize_postfix_expr(struct ast_serializer* d,
     }
 }
 
-static void serialize_cast_expr(struct ast_serializer* d,
-                                const struct cast_expr* expr);
+static void serialize_cast_expr(AstSerializer* d, const CastExpr* expr);
 
-static void serialize_unary_expr(struct ast_serializer* d,
-                                 const struct unary_expr* expr) {
+static void serialize_unary_expr(AstSerializer* d, const UnaryExpr* expr) {
     serialize_ast_node_info(d, &expr->info);
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
         const uint64_t unary_op = expr->ops_before[i];
-        assert((enum unary_expr_op)unary_op == expr->ops_before[i]);
+        assert((UnaryExprOp)unary_op == expr->ops_before[i]);
         serialize_uint(d, unary_op);
     }
     const uint64_t kind = expr->kind;
     serialize_uint(d, kind);
-    assert((enum unary_expr_kind)kind == expr->kind);
+    assert((UnaryExprKind)kind == expr->kind);
     switch (expr->kind) {
         case UNARY_POSTFIX:
             serialize_postfix_expr(d, expr->postfix);
@@ -378,8 +356,7 @@ static void serialize_unary_expr(struct ast_serializer* d,
     }
 }
 
-static void serialize_cast_expr(struct ast_serializer* d,
-                                const struct cast_expr* expr) {
+static void serialize_cast_expr(AstSerializer* d, const CastExpr* expr) {
     serialize_ast_node_info(d, &expr->info);
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
@@ -388,136 +365,122 @@ static void serialize_cast_expr(struct ast_serializer* d,
     serialize_unary_expr(d, expr->rhs);
 }
 
-static void serialize_mul_expr(struct ast_serializer* d,
-                               const struct mul_expr* expr) {
+static void serialize_mul_expr(AstSerializer* d, const MulExpr* expr) {
     serialize_cast_expr(d, expr->lhs);
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
-        const struct cast_expr_and_op* item = &expr->mul_chain[i];
+        const CastExprAndOp* item = &expr->mul_chain[i];
         const uint64_t mul_op = item->op;
-        assert((enum mul_expr_op)mul_op == item->op);
+        assert((MulExprOp)mul_op == item->op);
         serialize_uint(d, mul_op);
         serialize_cast_expr(d, item->rhs);
     }
 }
 
-static void serialize_add_expr(struct ast_serializer* d,
-                               const struct add_expr* expr) {
+static void serialize_add_expr(AstSerializer* d, const AddExpr* expr) {
     serialize_mul_expr(d, expr->lhs);
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
-        const struct mul_expr_and_op* item = &expr->add_chain[i];
+        const MulExprAndOp* item = &expr->add_chain[i];
         const uint64_t add_op = item->op;
-        assert((enum add_expr_op)add_op == item->op);
+        assert((AddExprOp)add_op == item->op);
         serialize_uint(d, add_op);
         serialize_mul_expr(d, item->rhs);
     }
 }
 
-static void serialize_shift_expr(struct ast_serializer* d,
-                                 const struct shift_expr* expr) {
+static void serialize_shift_expr(AstSerializer* d, const ShiftExpr* expr) {
     serialize_add_expr(d, expr->lhs);
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
-        const struct add_expr_and_op* item = &expr->shift_chain[i];
+        const AddExprAndOp* item = &expr->shift_chain[i];
         const uint64_t shift_op = item->op;
-        assert((enum shift_expr_op)shift_op == item->op);
+        assert((ShiftExprOp)shift_op == item->op);
         serialize_uint(d, shift_op);
         serialize_add_expr(d, item->rhs);
     }
 }
 
-static void serialize_rel_expr(struct ast_serializer* d,
-                               const struct rel_expr* expr) {
+static void serialize_rel_expr(AstSerializer* d, const RelExpr* expr) {
     serialize_shift_expr(d, expr->lhs);
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
-        const struct shift_expr_and_op* item = &expr->rel_chain[i];
+        const ShiftExprAndOp* item = &expr->rel_chain[i];
         const uint64_t rel_op = item->op;
-        assert((enum rel_expr_op)rel_op == item->op);
+        assert((RelExprOp)rel_op == item->op);
         serialize_uint(d, rel_op);
         serialize_shift_expr(d, item->rhs);
     }
 }
 
-static void serialize_eq_expr(struct ast_serializer* d,
-                              const struct eq_expr* expr) {
+static void serialize_eq_expr(AstSerializer* d, const EqExpr* expr) {
     serialize_rel_expr(d, expr->lhs);
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
-        const struct rel_expr_and_op* item = &expr->eq_chain[i];
+        const RelExprAndOp* item = &expr->eq_chain[i];
         const uint64_t eq_op = item->op;
-        assert((enum eq_expr_op)eq_op == item->op);
+        assert((EqExprOp)eq_op == item->op);
         serialize_uint(d, eq_op);
         serialize_rel_expr(d, item->rhs);
     }
 }
 
-static void serialize_and_expr(struct ast_serializer* d,
-                               const struct and_expr* expr) {
+static void serialize_and_expr(AstSerializer* d, const AndExpr* expr) {
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
         serialize_eq_expr(d, &expr->eq_exprs[i]);
     }
 }
 
-static void serialize_xor_expr(struct ast_serializer* d,
-                               const struct xor_expr* expr) {
+static void serialize_xor_expr(AstSerializer* d, const XorExpr* expr) {
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
         serialize_and_expr(d, &expr->and_exprs[i]);
     }
 }
 
-static void serialize_or_expr(struct ast_serializer* d,
-                              const struct or_expr* expr) {
+static void serialize_or_expr(AstSerializer* d, const OrExpr* expr) {
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
         serialize_xor_expr(d, &expr->xor_exprs[i]);
     }
 }
 
-static void serialize_log_and_expr(struct ast_serializer* d,
-                                   const struct log_and_expr* expr) {
+static void serialize_log_and_expr(AstSerializer* d, const LogAndExpr* expr) {
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
         serialize_or_expr(d, &expr->or_exprs[i]);
     }
 }
 
-static void serialize_log_or_expr(struct ast_serializer* d,
-                                  const struct log_or_expr* expr) {
+static void serialize_log_or_expr(AstSerializer* d, const LogOrExpr* expr) {
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
         serialize_log_and_expr(d, &expr->log_ands[i]);
     }
 }
 
-static void serialize_cond_expr(struct ast_serializer* d,
-                                const struct cond_expr* expr) {
+static void serialize_cond_expr(AstSerializer* d,
+                                const CondExpr* expr) {
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
-        const struct log_or_and_expr* item = &expr->conditionals[i];
+        const LogOrAndExpr* item = &expr->conditionals[i];
         serialize_log_or_expr(d, item->log_or);
         serialize_expr(d, item->expr);
     }
     serialize_log_or_expr(d, expr->last_else);
 }
 
-static void serialize_const_expr(struct ast_serializer* d,
-                                 const struct const_expr* expr) {
+static void serialize_const_expr(AstSerializer* d, const ConstExpr* expr) {
     serialize_cond_expr(d, &expr->expr);
 }
 
-static void serialize_static_assert_declaration(
-    struct ast_serializer* d,
-    const struct static_assert_declaration* decl) {
+static void serialize_static_assert_declaration(AstSerializer* d, const StaticAssertDeclaration* decl) {
     serialize_const_expr(d, decl->const_expr);
     serialize_string_literal_node(d, &decl->err_msg);
 }
 
-static void serialize_pointer(struct ast_serializer* d,
-                              const struct pointer* ptr) {
+static void serialize_pointer(AstSerializer* d, const Pointer* ptr) {
     serialize_ast_node_info(d, &ptr->info);
     serialize_uint(d, ptr->num_indirs);
     for (size_t i = 0; i < ptr->num_indirs; ++i) {
@@ -525,15 +488,12 @@ static void serialize_pointer(struct ast_serializer* d,
     }
 }
 
-static void serialize_param_type_list(struct ast_serializer* d,
-                                      const struct param_type_list* lst);
+static void serialize_param_type_list(AstSerializer* d, const ParamTypeList* lst);
 
-static void serialize_abs_arr_or_func_suffix(
-    struct ast_serializer* d,
-    const struct abs_arr_or_func_suffix* suffix) {
+static void serialize_abs_arr_or_func_suffix(AstSerializer* d, const AbsArrOrFuncSuffix* suffix) {
     serialize_ast_node_info(d, &suffix->info);
     const uint64_t kind = suffix->kind;
-    assert((enum abs_arr_or_func_suffix_kind)kind == suffix->kind);
+    assert((AbsArrOrFuncSuffixKind)kind == suffix->kind);
     serialize_uint(d, kind);
     switch (suffix->kind) {
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
@@ -554,12 +514,9 @@ static void serialize_abs_arr_or_func_suffix(
     }
 }
 
-static void serialize_abs_declarator(struct ast_serializer* d,
-                                     const struct abs_declarator* decl);
+static void serialize_abs_declarator(AstSerializer* d, const AbsDeclarator* decl);
 
-static void serialize_direct_abs_declarator(
-    struct ast_serializer* d,
-    const struct direct_abs_declarator* decl) {
+static void serialize_direct_abs_declarator(AstSerializer* d, const DirectAbsDeclarator* decl) {
     serialize_ast_node_info(d, &decl->info);
     const bool has_bracket_decl = decl->bracket_decl != NULL;
     serialize_bool(d, has_bracket_decl);
@@ -572,8 +529,7 @@ static void serialize_direct_abs_declarator(
     }
 }
 
-static void serialize_abs_declarator(struct ast_serializer* d,
-                                     const struct abs_declarator* decl) {
+static void serialize_abs_declarator(AstSerializer* d, const AbsDeclarator* decl) {
     const bool has_ptr = decl->ptr != NULL;
     serialize_bool(d, has_ptr);
     if (has_ptr) {
@@ -586,17 +542,15 @@ static void serialize_abs_declarator(struct ast_serializer* d,
     }
 }
 
-static void serialize_declaration_specs(struct ast_serializer* d,
-                                        const struct declaration_specs* specs);
+static void serialize_declaration_specs(AstSerializer* d,
+                                        const DeclarationSpecs* specs);
 
-static void serialize_declarator(struct ast_serializer* d,
-                                 const struct declarator* decl);
+static void serialize_declarator(AstSerializer* d, const Declarator* decl);
 
-static void serialize_param_declaration(struct ast_serializer* d,
-                                        const struct param_declaration* decl) {
+static void serialize_param_declaration(AstSerializer* d, const ParamDeclaration* decl) {
     serialize_declaration_specs(d, decl->decl_specs);
     const uint64_t kind = decl->kind;
-    assert((enum param_decl_kind)kind == decl->kind);
+    assert((ParamDeclKind)kind == decl->kind);
     serialize_uint(d, kind);
     switch (decl->kind) {
         case PARAM_DECL_DECL:
@@ -610,30 +564,27 @@ static void serialize_param_declaration(struct ast_serializer* d,
     }
 }
 
-static void serialize_param_list(struct ast_serializer* d,
-                                 const struct param_list* lst) {
+static void serialize_param_list(AstSerializer* d,
+                                 const ParamList* lst) {
     serialize_uint(d, lst->len);
     for (size_t i = 0; i < lst->len; ++i) {
         serialize_param_declaration(d, &lst->decls[i]);
     }
 }
 
-static void serialize_param_type_list(struct ast_serializer* d,
-                                      const struct param_type_list* lst) {
+static void serialize_param_type_list(AstSerializer* d, const ParamTypeList* lst) {
     serialize_bool(d, lst->is_variadic);
     serialize_param_list(d, &lst->param_list);
 }
 
-static void serialize_identifier_list(struct ast_serializer* d,
-                                      const struct identifier_list* lst) {
+static void serialize_identifier_list(AstSerializer* d, const IdentifierList* lst) {
     serialize_uint(d, lst->len);
     for (size_t i = 0; i < lst->len; ++i) {
         serialize_identifier(d, &lst->identifiers[i]);
     }
 }
 
-static void serialize_arr_suffix(struct ast_serializer* d,
-                                 const struct arr_suffix* suffix) {
+static void serialize_arr_suffix(AstSerializer* d, const ArrSuffix* suffix) {
     serialize_bool(d, suffix->is_static);
     serialize_type_quals(d, &suffix->type_quals);
     serialize_bool(d, suffix->is_asterisk);
@@ -644,12 +595,10 @@ static void serialize_arr_suffix(struct ast_serializer* d,
     }
 }
 
-static void serialize_arr_or_func_suffix(
-    struct ast_serializer* d,
-    const struct arr_or_func_suffix* suffix) {
+static void serialize_arr_or_func_suffix(AstSerializer* d, const ArrOrFuncSuffix* suffix) {
     serialize_ast_node_info(d, &suffix->info);
     const uint64_t kind = suffix->kind;
-    assert((enum arr_or_func_suffix_kind)kind == suffix->kind);
+    assert((ArrOrFuncSuffixKind)kind == suffix->kind);
     serialize_uint(d, kind);
     switch (suffix->kind) {
         case ARR_OR_FUNC_ARRAY:
@@ -666,8 +615,7 @@ static void serialize_arr_or_func_suffix(
     }
 }
 
-static void serialize_direct_declarator(struct ast_serializer* d,
-                                        const struct direct_declarator* decl) {
+static void serialize_direct_declarator(AstSerializer* d, const DirectDeclarator* decl) {
     serialize_ast_node_info(d, &decl->info);
     serialize_bool(d, decl->is_id);
     if (decl->is_id) {
@@ -681,8 +629,7 @@ static void serialize_direct_declarator(struct ast_serializer* d,
     }
 }
 
-static void serialize_declarator(struct ast_serializer* d,
-                                 const struct declarator* decl) {
+static void serialize_declarator(AstSerializer* d, const Declarator* decl) {
     const bool has_ptr = decl->ptr != NULL;
     serialize_bool(d, has_ptr);
     if (has_ptr) {
@@ -691,8 +638,7 @@ static void serialize_declarator(struct ast_serializer* d,
     serialize_direct_declarator(d, decl->direct_decl);
 }
 
-static void serialize_struct_declarator(struct ast_serializer* d,
-                                        const struct struct_declarator* decl) {
+static void serialize_struct_declarator(AstSerializer* d, const StructDeclarator* decl) {
     const bool has_decl = decl->decl != NULL;
     serialize_bool(d, has_decl);
     if (has_decl) {
@@ -705,18 +651,14 @@ static void serialize_struct_declarator(struct ast_serializer* d,
     }
 }
 
-static void serialize_struct_declarator_list(
-    struct ast_serializer* d,
-    const struct struct_declarator_list* decls) {
+static void serialize_struct_declarator_list(AstSerializer* d, const StructDeclaratorList* decls) {
     serialize_uint(d, decls->len);
     for (size_t i = 0; i < decls->len; ++i) {
         serialize_struct_declarator(d, &decls->decls[i]);
     }
 }
 
-static void serialize_struct_declaration(
-    struct ast_serializer* d,
-    const struct struct_declaration* decl) {
+static void serialize_struct_declaration(AstSerializer* d, const StructDeclaration* decl) {
     serialize_bool(d, decl->is_static_assert);
     if (decl->is_static_assert) {
         serialize_static_assert_declaration(d, decl->assert);
@@ -726,17 +668,14 @@ static void serialize_struct_declaration(
     }
 }
 
-static void serialize_struct_declaration_list(
-    struct ast_serializer* d,
-    const struct struct_declaration_list* lst) {
+static void serialize_struct_declaration_list(AstSerializer* d, const StructDeclarationList* lst) {
     serialize_uint(d, lst->len);
     for (size_t i = 0; i < lst->len; ++i) {
         serialize_struct_declaration(d, &lst->decls[i]);
     }
 }
 
-static void serialize_struct_union_spec(struct ast_serializer* d,
-                                        const struct struct_union_spec* spec) {
+static void serialize_struct_union_spec(AstSerializer* d, const StructUnionSpec* spec) {
     serialize_ast_node_info(d, &spec->info);
     serialize_bool(d, spec->is_struct);
     const bool has_identifier = spec->identifier != NULL;
@@ -747,8 +686,7 @@ static void serialize_struct_union_spec(struct ast_serializer* d,
     serialize_struct_declaration_list(d, &spec->decl_list);
 }
 
-static void serialize_enumerator(struct ast_serializer* d,
-                                 const struct enumerator* enumerator) {
+static void serialize_enumerator(AstSerializer* d, const Enumerator* enumerator) {
     serialize_identifier(d, enumerator->identifier);
     const bool has_enum_val = enumerator->enum_val != NULL;
     serialize_bool(d, has_enum_val);
@@ -757,16 +695,14 @@ static void serialize_enumerator(struct ast_serializer* d,
     }
 }
 
-static void serialize_enum_list(struct ast_serializer* d,
-                                const struct enum_list* lst) {
+static void serialize_enum_list(AstSerializer* d, const EnumList* lst) {
     serialize_uint(d, lst->len);
     for (size_t i = 0; i < lst->len; ++i) {
         serialize_enumerator(d, &lst->enums[i]);
     }
 }
 
-static void serialize_enum_spec(struct ast_serializer* d,
-                                const struct enum_spec* spec) {
+static void serialize_enum_spec(AstSerializer* d, const EnumSpec* spec) {
     serialize_ast_node_info(d, &spec->info);
     const bool has_identifier = spec->identifier != NULL;
     serialize_bool(d, has_identifier);
@@ -776,8 +712,7 @@ static void serialize_enum_spec(struct ast_serializer* d,
     serialize_enum_list(d, &spec->enum_list);
 }
 
-static void serialize_type_modifiers(struct ast_serializer* d,
-                                     const struct type_modifiers* mods) {
+static void serialize_type_modifiers(AstSerializer* d, const TypeModifiers* mods) {
     serialize_bool(d, mods->is_unsigned);
     serialize_bool(d, mods->is_signed);
     serialize_bool(d, mods->is_short);
@@ -786,11 +721,10 @@ static void serialize_type_modifiers(struct ast_serializer* d,
     serialize_bool(d, mods->is_imaginary);
 }
 
-static void serialize_type_specs(struct ast_serializer* d,
-                                 const struct type_specs* specs) {
+static void serialize_type_specs(AstSerializer* d, const TypeSpecs* specs) {
     serialize_type_modifiers(d, &specs->mods);
     const uint64_t kind = specs->kind;
-    assert((enum type_spec_kind)kind == specs->kind);
+    assert((TypeSpecKind)kind == specs->kind);
     serialize_uint(d, kind);
     switch (specs->kind) {
         case TYPE_SPEC_NONE:
@@ -816,15 +750,13 @@ static void serialize_type_specs(struct ast_serializer* d,
     }
 }
 
-static void serialize_spec_qual_list(struct ast_serializer* d,
-                                     const struct spec_qual_list* lst) {
+static void serialize_spec_qual_list(AstSerializer* d, const SpecQualList* lst) {
     serialize_ast_node_info(d, &lst->info);
     serialize_type_quals(d, &lst->quals);
     serialize_type_specs(d, &lst->specs);
 }
 
-static void serialize_type_name(struct ast_serializer* d,
-                                const struct type_name* name) {
+static void serialize_type_name(AstSerializer* d, const TypeName* name) {
     serialize_spec_qual_list(d, name->spec_qual_list);
     const bool has_abs_decl = name->abstract_decl != NULL;
     serialize_bool(d, has_abs_decl);
@@ -833,8 +765,7 @@ static void serialize_type_name(struct ast_serializer* d,
     }
 }
 
-static void serialize_align_spec(struct ast_serializer* d,
-                                 const struct align_spec* spec) {
+static void serialize_align_spec(AstSerializer* d, const AlignSpec* spec) {
     serialize_ast_node_info(d, &spec->info);
     serialize_bool(d, spec->is_type_name);
     if (spec->is_type_name) {
@@ -844,14 +775,12 @@ static void serialize_align_spec(struct ast_serializer* d,
     }
 }
 
-static void serialize_func_specs(struct ast_serializer* d,
-                                 const struct func_specs* specs) {
+static void serialize_func_specs(AstSerializer* d, const FuncSpecs* specs) {
     serialize_bool(d, specs->is_inline);
     serialize_bool(d, specs->is_noreturn);
 }
 
-static void serialize_storage_class(struct ast_serializer* d,
-                                    const struct storage_class* class) {
+static void serialize_storage_class(AstSerializer* d, const StorageClass* class) {
     serialize_bool(d, class->is_typedef);
     serialize_bool(d, class->is_extern);
     serialize_bool(d, class->is_static);
@@ -860,8 +789,7 @@ static void serialize_storage_class(struct ast_serializer* d,
     serialize_bool(d, class->is_register);
 }
 
-static void serialize_declaration_specs(struct ast_serializer* d,
-                                        const struct declaration_specs* specs) {
+static void serialize_declaration_specs(AstSerializer* d, const DeclarationSpecs* specs) {
     serialize_ast_node_info(d, &specs->info);
     serialize_func_specs(d, &specs->func_specs);
     serialize_storage_class(d, &specs->storage_class);
@@ -874,25 +802,21 @@ static void serialize_declaration_specs(struct ast_serializer* d,
     serialize_type_specs(d, &specs->type_specs);
 }
 
-static void serialize_declaration(struct ast_serializer* d,
-                                  const struct declaration* decl);
+static void serialize_declaration(AstSerializer* d, const Declaration* decl);
 
-static void serialize_declaration_list(struct ast_serializer* d,
-                                       const struct declaration_list* decls) {
+static void serialize_declaration_list(AstSerializer* d, const DeclarationList* decls) {
     serialize_uint(d, decls->len);
     for (size_t i = 0; i < decls->len; ++i) {
         serialize_declaration(d, &decls->decls[i]);
     }
 }
 
-static void serialize_statement(struct ast_serializer* d,
-                                const struct statement* stat);
+static void serialize_statement(AstSerializer* d, const Statement* stat);
 
-static void serialize_labeled_statement(struct ast_serializer* d,
-                                        const struct labeled_statement* stat) {
+static void serialize_labeled_statement(AstSerializer* d, const LabeledStatement* stat) {
     serialize_ast_node_info(d, &stat->info);
     const uint64_t kind = stat->kind;
-    assert((enum labeled_statement_kind)kind == stat->kind);
+    assert((LabeledStatementKind)kind == stat->kind);
     serialize_uint(d, kind);
     switch (stat->kind) {
         case LABELED_STATEMENT_CASE:
@@ -907,15 +831,12 @@ static void serialize_labeled_statement(struct ast_serializer* d,
     serialize_statement(d, stat->stat);
 }
 
-static void serialize_expr_statement(struct ast_serializer* d,
-                                     const struct expr_statement* stat) {
+static void serialize_expr_statement(AstSerializer* d, const ExprStatement* stat) {
     serialize_ast_node_info(d, &stat->info);
     serialize_expr(d, &stat->expr);
 }
 
-static void serialize_selection_statement(
-    struct ast_serializer* d,
-    const struct selection_statement* stat) {
+static void serialize_selection_statement(AstSerializer* d, const SelectionStatement* stat) {
     serialize_ast_node_info(d, &stat->info);
     serialize_bool(d, stat->is_if);
     serialize_expr(d, stat->sel_expr);
@@ -927,8 +848,7 @@ static void serialize_selection_statement(
     }
 }
 
-static void serialize_for_loop(struct ast_serializer* d,
-                               const struct for_loop* loop) {
+static void serialize_for_loop(AstSerializer* d, const ForLoop* loop) {
     serialize_bool(d, loop->is_decl);
     if (loop->is_decl) {
         serialize_declaration(d, &loop->init_decl);
@@ -940,11 +860,11 @@ static void serialize_for_loop(struct ast_serializer* d,
 }
 
 static void serialize_iteration_statement(
-    struct ast_serializer* d,
-    const struct iteration_statement* stat) {
+    AstSerializer* d,
+    const struct IterationStatement* stat) {
     serialize_ast_node_info(d, &stat->info);
     const uint64_t kind = stat->kind;
-    assert((enum iteration_statement_kind)kind == stat->kind);
+    assert((IterationStatementKind)kind == stat->kind);
     serialize_uint(d, kind);
     serialize_statement(d, stat->loop_body);
     switch (stat->kind) {
@@ -958,11 +878,10 @@ static void serialize_iteration_statement(
     }
 }
 
-static void serialize_jump_statement(struct ast_serializer* d,
-                                     const struct jump_statement* stat) {
+static void serialize_jump_statement(AstSerializer* d, const JumpStatement* stat) {
     serialize_ast_node_info(d, &stat->info);
     const uint64_t kind = stat->kind;
-    assert((enum jump_statement_kind)kind == stat->kind);
+    assert((JumpStatementKind)kind == stat->kind);
     serialize_uint(d, kind);
     switch (stat->kind) {
         case JUMP_STATEMENT_GOTO:
@@ -982,13 +901,11 @@ static void serialize_jump_statement(struct ast_serializer* d,
     }
 }
 
-static void serialize_compound_statement(struct ast_serializer* d,
-                                         const struct compound_statement* stat);
+static void serialize_compound_statement(AstSerializer* d, const CompoundStatement* stat);
 
-static void serialize_statement(struct ast_serializer* d,
-                                const struct statement* stat) {
+static void serialize_statement(AstSerializer* d, const Statement* stat) {
     const uint64_t kind = stat->kind;
-    assert((enum statement_kind)kind == stat->kind);
+    assert((StatementKind)kind == stat->kind);
     serialize_uint(d, kind);
     switch (stat->kind) {
         case STATEMENT_LABELED:
@@ -1012,8 +929,7 @@ static void serialize_statement(struct ast_serializer* d,
     }
 }
 
-static void serialize_block_item(struct ast_serializer* d,
-                                 const struct block_item* item) {
+static void serialize_block_item(AstSerializer* d, const BlockItem* item) {
     serialize_bool(d, item->is_decl);
     if (item->is_decl) {
         serialize_declaration(d, &item->decl);
@@ -1022,9 +938,7 @@ static void serialize_block_item(struct ast_serializer* d,
     }
 }
 
-static void serialize_compound_statement(
-    struct ast_serializer* d,
-    const struct compound_statement* stat) {
+static void serialize_compound_statement(AstSerializer* d, const CompoundStatement* stat) {
     serialize_ast_node_info(d, &stat->info);
     serialize_uint(d, stat->len);
     for (size_t i = 0; i < stat->len; ++i) {
@@ -1032,16 +946,14 @@ static void serialize_compound_statement(
     }
 }
 
-static void serialize_func_def(struct ast_serializer* d,
-                               const struct func_def* def) {
+static void serialize_func_def(AstSerializer* d, const FuncDef* def) {
     serialize_declaration_specs(d, def->specs);
     serialize_declarator(d, def->decl);
     serialize_declaration_list(d, &def->decl_list);
     serialize_compound_statement(d, &def->comp);
 }
 
-static void serialize_init_declarator(struct ast_serializer* d,
-                                      const struct init_declarator* decl) {
+static void serialize_init_declarator(AstSerializer* d, const InitDeclarator* decl) {
     serialize_declarator(d, decl->decl);
     const bool has_init = decl->init != NULL;
     serialize_bool(d, has_init);
@@ -1050,17 +962,14 @@ static void serialize_init_declarator(struct ast_serializer* d,
     }
 }
 
-static void serialize_init_declarator_list(
-    struct ast_serializer* d,
-    const struct init_declarator_list* decls) {
+static void serialize_init_declarator_list(AstSerializer* d, const InitDeclaratorList* decls) {
     serialize_uint(d, decls->len);
     for (size_t i = 0; i < decls->len; ++i) {
         serialize_init_declarator(d, &decls->decls[i]);
     }
 }
 
-static void serialize_declaration(struct ast_serializer* d,
-                                  const struct declaration* decl) {
+static void serialize_declaration(AstSerializer* d, const Declaration* decl) {
     serialize_bool(d, decl->is_normal_decl);
     if (decl->is_normal_decl) {
         serialize_declaration_specs(d, decl->decl_specs);
@@ -1070,9 +979,7 @@ static void serialize_declaration(struct ast_serializer* d,
     }
 }
 
-static void serialize_external_declaration(
-    struct ast_serializer* d,
-    const struct external_declaration* decl) {
+static void serialize_external_declaration(AstSerializer* d, const ExternalDeclaration* decl) {
     serialize_bool(d, decl->is_func_def);
     if (decl->is_func_def) {
         serialize_func_def(d, &decl->func_def);
@@ -1081,8 +988,7 @@ static void serialize_external_declaration(
     }
 }
 
-static void serialize_translation_unit(struct ast_serializer* d,
-                                       const struct translation_unit* tl) {
+static void serialize_translation_unit(AstSerializer* d, const TranslationUnit* tl) {
     serialize_uint(d, tl->len);
     for (size_t i = 0; i < tl->len; ++i) {
         serialize_external_declaration(d, &tl->external_decls[i]);

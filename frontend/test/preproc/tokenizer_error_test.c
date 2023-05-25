@@ -5,8 +5,8 @@
 
 TEST(unterminated_literal) {
     {
-        struct preproc_err err = create_preproc_err();
-        struct preproc_res res = preproc_string("\"this is a string literal",
+        PreprocErr err = create_preproc_err();
+        PreprocRes res = preproc_string("\"this is a string literal",
                                               "file.c",
                                               &err);
         ASSERT_NULL(res.toks);
@@ -22,8 +22,8 @@ TEST(unterminated_literal) {
         free_preproc_err(&err);
     }
     {
-        struct preproc_err err = create_preproc_err();
-        struct preproc_res res = preproc_string(
+        PreprocErr err = create_preproc_err();
+        PreprocRes res = preproc_string(
             "int n = 10;\nchar c = \'char literal that cannot exist",
             "file.c",
             &err);
@@ -43,8 +43,8 @@ TEST(unterminated_literal) {
 }
 
 TEST(invalid_identifier) {
-    struct preproc_err err = create_preproc_err();
-    struct preproc_res res = preproc_string("int in$valid = 10;", "file.c", &err);
+    PreprocErr err = create_preproc_err();
+    PreprocRes res = preproc_string("int in$valid = 10;", "file.c", &err);
     ASSERT_NULL(res.toks);
     ASSERT_SIZE_T(res.file_info.len, (size_t)0);
     ASSERT_NULL(res.file_info.paths);
@@ -60,8 +60,8 @@ TEST(invalid_identifier) {
 }
 
 TEST(invalid_number) {
-    struct preproc_err err = create_preproc_err();
-    struct preproc_res res = preproc_string("int 10in$valid = 10;", "file.c", &err);
+    PreprocErr err = create_preproc_err();
+    PreprocRes res = preproc_string("int 10in$valid = 10;", "file.c", &err);
     ASSERT_NULL(res.toks);
     ASSERT_SIZE_T(res.file_info.len, (size_t)0);
     ASSERT_NULL(res.file_info.paths);

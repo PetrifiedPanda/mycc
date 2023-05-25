@@ -3,23 +3,22 @@
 #include "util/mem.h"
 #include "util/macro_util.h"
 
-struct ast_deserializer {
+typedef struct {
     FILE* file;
-};
+} AstDeserializer;
 
-static struct file_info deserialize_file_info(struct ast_deserializer* r);
+static FileInfo deserialize_file_info(AstDeserializer* r);
 
-static struct translation_unit deserialize_translation_unit(
-    struct ast_deserializer* r);
+static TranslationUnit deserialize_translation_unit(AstDeserializer* r);
 
-struct deserialize_ast_res deserialize_ast(FILE* f) {
-    struct ast_deserializer r = {
+DeserializeAstRes deserialize_ast(FILE* f) {
+    AstDeserializer r = {
         .file = f,
     };
 
-    struct file_info file_info = deserialize_file_info(&r);
+    FileInfo file_info = deserialize_file_info(&r);
     if (file_info.len == 0) {
-        return (struct deserialize_ast_res){
+        return (DeserializeAstRes){
             .is_valid = false,
             .file_info =
                 {
@@ -34,9 +33,9 @@ struct deserialize_ast_res deserialize_ast(FILE* f) {
         };
     }
 
-    struct translation_unit tl = deserialize_translation_unit(&r);
+    TranslationUnit tl = deserialize_translation_unit(&r);
     if (tl.len == 0) {
-        return (struct deserialize_ast_res){
+        return (DeserializeAstRes){
             .is_valid = false,
             .file_info =
                 {
@@ -51,33 +50,33 @@ struct deserialize_ast_res deserialize_ast(FILE* f) {
         };
     }
 
-    return (struct deserialize_ast_res){
+    return (DeserializeAstRes){
         .is_valid = true,
         .file_info = file_info,
         .tl = tl,
     };
 }
 
-static bool deserializer_read(struct ast_deserializer* r,
+static bool deserializer_read(AstDeserializer* r,
                               void* res,
                               size_t size,
                               size_t count) {
     return fread(res, size, count, r->file) == count;
 }
 
-static bool deserialize_bool(struct ast_deserializer* r, bool* res) {
+static bool deserialize_bool(AstDeserializer* r, bool* res) {
     return deserializer_read(r, res, sizeof *res, 1);
 }
 
-static bool deserialize_uint(struct ast_deserializer* r, uint64_t* res) {
+static bool deserialize_uint(AstDeserializer* r, uint64_t* res) {
     return deserializer_read(r, res, sizeof *res, 1);
 }
 
-static bool deserialize_int(struct ast_deserializer* r, int64_t* res) {
+static bool deserialize_int(AstDeserializer* r, int64_t* res) {
     return deserializer_read(r, res, sizeof *res, 1);
 }
 
-static bool deserialize_float(struct ast_deserializer* r, double* res) {
+static bool deserialize_float(AstDeserializer* r, double* res) {
     return deserializer_read(r, res, sizeof *res, 1);
 }
 
@@ -89,13 +88,13 @@ static void* alloc_or_null(size_t num_bytes) {
     }
 }
 
-static struct str deserialize_str(struct ast_deserializer* r) {
+static Str deserialize_str(AstDeserializer* r) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return create_null_str();
     }
 
-    struct str res = create_empty_str_with_cap(len);
+    Str res = create_empty_str_with_cap(len);
     for (size_t i = 0; i < len; ++i) {
         int c = fgetc(r->file);
         if (c == EOF) {
@@ -108,16 +107,16 @@ static struct str deserialize_str(struct ast_deserializer* r) {
     return res;
 }
 
-static struct file_info deserialize_file_info(struct ast_deserializer* r) {
+static FileInfo deserialize_file_info(AstDeserializer* r) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
-        return (struct file_info){
+        return (FileInfo){
             .len = 0,
             .paths = NULL,
         };
     }
 
-    struct file_info res = {
+    FileInfo res = {
         .len = len,
         .paths = mycc_alloc(sizeof *res.paths * len),
     };
@@ -128,7 +127,7 @@ static struct file_info deserialize_file_info(struct ast_deserializer* r) {
                 free_str(&res.paths[j]);
             }
             mycc_free(res.paths);
-            return (struct file_info){
+            return (FileInfo){
                 .len = 0,
                 .paths = NULL,
             };
@@ -137,14 +136,13 @@ static struct file_info deserialize_file_info(struct ast_deserializer* r) {
     return res;
 }
 
-static bool deserialize_ast_node_info(struct ast_deserializer* r,
-                                      struct ast_node_info* info) {
+static bool deserialize_ast_node_info(AstDeserializer* r, AstNodeInfo* info) {
     uint64_t file_idx, line, idx;
     if (!(deserialize_uint(r, &file_idx) && deserialize_uint(r, &line)
           && deserialize_uint(r, &idx))) {
         return false;
     }
-    *info = (struct ast_node_info){
+    *info = (AstNodeInfo){
         .loc =
             {
                 .file_idx = file_idx,
@@ -158,30 +156,28 @@ static bool deserialize_ast_node_info(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_type_quals(struct ast_deserializer* r,
-                                   struct type_quals* res) {
+static bool deserialize_type_quals(AstDeserializer* r, TypeQuals* res) {
     return (deserialize_bool(r, &res->is_const)
             && deserialize_bool(r, &res->is_restrict)
             && deserialize_bool(r, &res->is_volatile)
             && deserialize_bool(r, &res->is_atomic));
 }
 
-static struct type_name* deserialize_type_name(struct ast_deserializer* r);
+static TypeName* deserialize_type_name(AstDeserializer* r);
 
-static struct atomic_type_spec* deserialize_atomic_type_spec(
-    struct ast_deserializer* r) {
-    struct ast_node_info info;
+static AtomicTypeSpec* deserialize_atomic_type_spec(AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
 
-    struct type_name* type_name = deserialize_type_name(r);
+    TypeName* type_name = deserialize_type_name(r);
     if (!type_name) {
         return NULL;
     }
 
-    struct atomic_type_spec* res = mycc_alloc(sizeof *res);
-    *res = (struct atomic_type_spec){
+    AtomicTypeSpec* res = mycc_alloc(sizeof *res);
+    *res = (AtomicTypeSpec){
         .info = info,
         .type_name = type_name,
     };
@@ -189,8 +185,7 @@ static struct atomic_type_spec* deserialize_atomic_type_spec(
     return res;
 }
 
-static bool deserialize_identifier_inplace(struct ast_deserializer* r,
-                                           struct identifier* res) {
+static bool deserialize_identifier_inplace(AstDeserializer* r, Identifier* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
@@ -202,8 +197,8 @@ static bool deserialize_identifier_inplace(struct ast_deserializer* r,
     return true;
 }
 
-static struct identifier* deserialize_identifier(struct ast_deserializer* r) {
-    struct identifier* res = mycc_alloc(sizeof *res);
+static Identifier* deserialize_identifier(AstDeserializer* r) {
+    Identifier* res = mycc_alloc(sizeof *res);
     if (!deserialize_identifier_inplace(r, res)) {
         mycc_free(res);
         return NULL;
@@ -211,8 +206,8 @@ static struct identifier* deserialize_identifier(struct ast_deserializer* r) {
     return res;
 }
 
-static bool deserialize_int_value(struct ast_deserializer* r,
-                                  struct int_value* res) {
+static bool deserialize_int_value(AstDeserializer* r,
+                                  IntValue* res) {
     uint64_t kind;
     if (!deserialize_uint(r, &kind)) {
         return false;
@@ -237,8 +232,8 @@ static bool deserialize_int_value(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_float_value(struct ast_deserializer* r,
-                                    struct float_value* res) {
+static bool deserialize_float_value(AstDeserializer* r,
+                                    FloatValue* res) {
     uint64_t kind;
     if (!deserialize_uint(r, &kind)) {
         return false;
@@ -254,8 +249,7 @@ static bool deserialize_float_value(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_constant(struct ast_deserializer* r,
-                                 struct constant* res) {
+static bool deserialize_constant(AstDeserializer* r, Constant* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
@@ -278,8 +272,7 @@ static bool deserialize_constant(struct ast_deserializer* r,
     UNREACHABLE();
 }
 
-static bool deserialize_str_lit(struct ast_deserializer* r,
-                                struct str_lit* res) {
+static bool deserialize_str_lit(AstDeserializer* r, StrLit* res) {
     uint64_t kind;
     if (!deserialize_uint(r, &kind)) {
         return false;
@@ -291,8 +284,7 @@ static bool deserialize_str_lit(struct ast_deserializer* r,
     return str_is_valid(&res->contents);
 }
 
-static bool deserialize_string_literal_node(struct ast_deserializer* r,
-                                            struct string_literal_node* res) {
+static bool deserialize_string_literal_node(AstDeserializer* r, StringLiteralNode* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
@@ -300,8 +292,7 @@ static bool deserialize_string_literal_node(struct ast_deserializer* r,
     return deserialize_str_lit(r, &res->lit);
 }
 
-static bool deserialize_string_constant(struct ast_deserializer* r,
-                                        struct string_constant* constant) {
+static bool deserialize_string_constant(AstDeserializer* r, StringConstant* constant) {
     if (!deserialize_bool(r, &constant->is_func)) {
         return false;
     }
@@ -312,20 +303,19 @@ static bool deserialize_string_constant(struct ast_deserializer* r,
     }
 }
 
-static struct unary_expr* deserialize_unary_expr(struct ast_deserializer* r);
+static UnaryExpr* deserialize_unary_expr(AstDeserializer* r);
 
-static struct cond_expr* deserialize_cond_expr(struct ast_deserializer* r);
+static CondExpr* deserialize_cond_expr(AstDeserializer* r);
 
-static void free_assign_chain(struct unary_and_op* assign_chain, size_t len) {
+static void free_assign_chain(UnaryAndOp* assign_chain, size_t len) {
     for (size_t i = 0; i < len; ++i) {
-        struct unary_and_op* item = &assign_chain[i];
+        UnaryAndOp* item = &assign_chain[i];
         free_unary_expr(item->unary);
     }
     mycc_free(assign_chain);
 }
 
-static bool deserialize_assign_expr_inplace(struct ast_deserializer* r,
-                                            struct assign_expr* res) {
+static bool deserialize_assign_expr_inplace(AstDeserializer* r, AssignExpr* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -334,7 +324,7 @@ static bool deserialize_assign_expr_inplace(struct ast_deserializer* r,
     res->len = len;
     res->assign_chain = alloc_or_null(sizeof *res->assign_chain * len);
     for (size_t i = 0; i < len; ++i) {
-        struct unary_and_op* item = &res->assign_chain[i];
+        UnaryAndOp* item = &res->assign_chain[i];
         item->unary = deserialize_unary_expr(r);
         if (!item->unary) {
             free_assign_chain(res->assign_chain, i);
@@ -358,8 +348,8 @@ static bool deserialize_assign_expr_inplace(struct ast_deserializer* r,
     return true;
 }
 
-static struct assign_expr* deserialize_assign_expr(struct ast_deserializer* r) {
-    struct assign_expr* res = mycc_alloc(sizeof *res);
+static struct AssignExpr* deserialize_assign_expr(AstDeserializer* r) {
+    struct AssignExpr* res = mycc_alloc(sizeof *res);
     if (!deserialize_assign_expr_inplace(r, res)) {
         mycc_free(res);
         return NULL;
@@ -367,8 +357,7 @@ static struct assign_expr* deserialize_assign_expr(struct ast_deserializer* r) {
     return res;
 }
 
-static bool deserialize_expr_inplace(struct ast_deserializer* r,
-                                     struct expr* res) {
+static bool deserialize_expr_inplace(AstDeserializer* r, Expr* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -384,8 +373,8 @@ static bool deserialize_expr_inplace(struct ast_deserializer* r,
     return true;
 }
 
-static struct expr* deserialize_expr(struct ast_deserializer* r) {
-    struct expr* res = mycc_alloc(sizeof *res);
+static Expr* deserialize_expr(AstDeserializer* r) {
+    Expr* res = mycc_alloc(sizeof *res);
     if (!deserialize_expr_inplace(r, res)) {
         mycc_free(res);
         return NULL;
@@ -393,8 +382,7 @@ static struct expr* deserialize_expr(struct ast_deserializer* r) {
     return res;
 }
 
-static bool deserialize_generic_assoc(struct ast_deserializer* r,
-                                      struct generic_assoc* res) {
+static bool deserialize_generic_assoc(AstDeserializer* r, GenericAssoc* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
@@ -415,8 +403,7 @@ static bool deserialize_generic_assoc(struct ast_deserializer* r,
     return res->assign != NULL;
 }
 
-static bool deserialize_generic_assoc_list(struct ast_deserializer* r,
-                                           struct generic_assoc_list* res) {
+static bool deserialize_generic_assoc_list(AstDeserializer* r, GenericAssocList* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
@@ -436,24 +423,24 @@ static bool deserialize_generic_assoc_list(struct ast_deserializer* r,
     return true;
 }
 
-static struct generic_sel* deserialize_generic_sel(struct ast_deserializer* r) {
-    struct ast_node_info info;
+static struct GenericSel* deserialize_generic_sel(AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
 
-    struct assign_expr* assign = deserialize_assign_expr(r);
+    struct AssignExpr* assign = deserialize_assign_expr(r);
     if (!assign) {
         return NULL;
     }
 
-    struct generic_assoc_list assocs;
+    GenericAssocList assocs;
     if (!deserialize_generic_assoc_list(r, &assocs)) {
         free_assign_expr(assign);
         return NULL;
     }
-    struct generic_sel* res = mycc_alloc(sizeof *res);
-    *res = (struct generic_sel){
+    struct GenericSel* res = mycc_alloc(sizeof *res);
+    *res = (struct GenericSel){
         .info = info,
         .assign = assign,
         .assocs = assocs,
@@ -461,14 +448,14 @@ static struct generic_sel* deserialize_generic_sel(struct ast_deserializer* r) {
     return res;
 }
 
-static struct primary_expr* deserialize_primary_expr(
-    struct ast_deserializer* r) {
+static PrimaryExpr* deserialize_primary_expr(
+    AstDeserializer* r) {
     uint64_t kind;
     if (!deserialize_uint(r, &kind)) {
         return NULL;
     }
 
-    struct primary_expr* res = mycc_alloc(sizeof *res);
+    PrimaryExpr* res = mycc_alloc(sizeof *res);
     res->kind = kind;
     assert((uint64_t)res->kind == kind);
     switch (res->kind) {
@@ -509,10 +496,10 @@ fail:
     return NULL;
 }
 
-static struct const_expr* deserialize_const_expr(struct ast_deserializer* r);
+static ConstExpr* deserialize_const_expr(AstDeserializer* r);
 
-static bool deserialize_designator(struct ast_deserializer* r,
-                                   struct designator* res) {
+static bool deserialize_designator(AstDeserializer* r,
+                                   struct Designator* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
@@ -528,8 +515,7 @@ static bool deserialize_designator(struct ast_deserializer* r,
     }
 }
 
-static bool deserialize_designator_list(struct ast_deserializer* r,
-                                        struct designator_list* res) {
+static bool deserialize_designator_list(AstDeserializer* r, DesignatorList* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -545,19 +531,16 @@ static bool deserialize_designator_list(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_designation(struct ast_deserializer* r,
-                                    struct designation* res) {
+static bool deserialize_designation(AstDeserializer* r, Designation* res) {
     if (!deserialize_designator_list(r, &res->designators)) {
         return false;
     }
     return true;
 }
 
-static bool deserialize_init_list(struct ast_deserializer* r,
-                                  struct init_list* res);
+static bool deserialize_init_list(AstDeserializer* r, InitList* res);
 
-static bool deserialize_initializer_inplace(struct ast_deserializer* r,
-                                            struct initializer* res) {
+static bool deserialize_initializer_inplace(AstDeserializer* r, Initializer* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
@@ -578,8 +561,8 @@ static bool deserialize_initializer_inplace(struct ast_deserializer* r,
     return true;
 }
 
-static struct initializer* deserialize_initializer(struct ast_deserializer* r) {
-    struct initializer* res = mycc_alloc(sizeof *res);
+static struct Initializer* deserialize_initializer(AstDeserializer* r) {
+    Initializer* res = mycc_alloc(sizeof *res);
     if (!deserialize_initializer_inplace(r, res)) {
         mycc_free(res);
         return NULL;
@@ -587,8 +570,7 @@ static struct initializer* deserialize_initializer(struct ast_deserializer* r) {
     return res;
 }
 
-static bool deserialize_designation_init(struct ast_deserializer* r,
-                                         struct designation_init* res) {
+static bool deserialize_designation_init(AstDeserializer* r, DesignationInit* res) {
     bool has_designation;
     if (!deserialize_bool(r, &has_designation)) {
         return false;
@@ -611,8 +593,7 @@ static bool deserialize_designation_init(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_init_list(struct ast_deserializer* r,
-                                  struct init_list* res) {
+static bool deserialize_init_list(AstDeserializer* r, InitList* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -628,8 +609,7 @@ static bool deserialize_init_list(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_arg_expr_list(struct ast_deserializer* r,
-                                      struct arg_expr_list* res) {
+static bool deserialize_arg_expr_list(AstDeserializer* r, ArgExprList* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -645,8 +625,7 @@ static bool deserialize_arg_expr_list(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_postfix_suffix(struct ast_deserializer* r,
-                                       struct postfix_suffix* res) {
+static bool deserialize_postfix_suffix(AstDeserializer* r, PostfixSuffix* res) {
     uint64_t kind;
     if (!deserialize_uint(r, &kind)) {
         return false;
@@ -671,9 +650,9 @@ static bool deserialize_postfix_suffix(struct ast_deserializer* r,
     UNREACHABLE();
 }
 
-static struct postfix_expr* deserialize_postfix_expr(
-    struct ast_deserializer* r) {
-    struct postfix_expr* res = mycc_alloc(sizeof *res);
+static PostfixExpr* deserialize_postfix_expr(
+    AstDeserializer* r) {
+    PostfixExpr* res = mycc_alloc(sizeof *res);
     if (!deserialize_bool(r, &res->is_primary)) {
         mycc_free(res);
         return NULL;
@@ -723,10 +702,10 @@ fail:
     return NULL;
 }
 
-static struct cast_expr* deserialize_cast_expr(struct ast_deserializer* r);
+static CastExpr* deserialize_cast_expr(AstDeserializer* r);
 
-static struct unary_expr* deserialize_unary_expr(struct ast_deserializer* r) {
-    struct ast_node_info info;
+static UnaryExpr* deserialize_unary_expr(AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
@@ -736,7 +715,7 @@ static struct unary_expr* deserialize_unary_expr(struct ast_deserializer* r) {
         return NULL;
     }
 
-    enum unary_expr_op* ops_before = alloc_or_null(sizeof *ops_before * len);
+    UnaryExprOp* ops_before = alloc_or_null(sizeof *ops_before * len);
     for (size_t i = 0; i < len; ++i) {
         uint64_t unary_op;
         if (!deserialize_uint(r, &unary_op)) {
@@ -744,17 +723,17 @@ static struct unary_expr* deserialize_unary_expr(struct ast_deserializer* r) {
             return NULL;
         }
         ops_before[i] = unary_op;
-        assert((enum unary_expr_op)unary_op == ops_before[i]);
+        assert((UnaryExprOp)unary_op == ops_before[i]);
     }
     uint64_t expr_kind;
     if (!deserialize_uint(r, &expr_kind)) {
         mycc_free(ops_before);
         return NULL;
     }
-    enum unary_expr_kind kind = expr_kind;
+    UnaryExprKind kind = expr_kind;
     assert((uint64_t)kind == expr_kind);
 
-    struct unary_expr* res = mycc_alloc(sizeof *res);
+    UnaryExpr* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->len = len;
     res->ops_before = ops_before;
@@ -793,18 +772,17 @@ fail:
     return NULL;
 }
 
-static bool deserialize_type_name_inplace(struct ast_deserializer* r,
-                                          struct type_name* res);
+static bool deserialize_type_name_inplace(AstDeserializer* r, TypeName* res);
 
-static void free_type_names_up_to(struct type_name* type_names, size_t len) {
+static void free_type_names_up_to(TypeName* type_names, size_t len) {
     for (size_t i = 0; i < len; ++i) {
         free_type_name_children(&type_names[i]);
     }
     mycc_free(type_names);
 }
 
-static struct cast_expr* deserialize_cast_expr(struct ast_deserializer* r) {
-    struct ast_node_info info;
+static CastExpr* deserialize_cast_expr(AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
@@ -813,21 +791,21 @@ static struct cast_expr* deserialize_cast_expr(struct ast_deserializer* r) {
         return NULL;
     }
 
-    struct type_name* type_names = alloc_or_null(sizeof *type_names * len);
+    TypeName* type_names = alloc_or_null(sizeof *type_names * len);
     for (size_t i = 0; i < len; ++i) {
         if (!deserialize_type_name_inplace(r, &type_names[i])) {
             free_type_names_up_to(type_names, i);
             return NULL;
         }
     }
-    struct unary_expr* rhs = deserialize_unary_expr(r);
+    UnaryExpr* rhs = deserialize_unary_expr(r);
     if (!rhs) {
         free_type_names_up_to(type_names, len);
         return NULL;
     }
 
-    struct cast_expr* res = mycc_alloc(sizeof *res);
-    *res = (struct cast_expr){
+    CastExpr* res = mycc_alloc(sizeof *res);
+    *res = (CastExpr){
         .info = info,
         .len = len,
         .type_names = type_names,
@@ -837,8 +815,8 @@ static struct cast_expr* deserialize_cast_expr(struct ast_deserializer* r) {
     return res;
 }
 
-static struct mul_expr* deserialize_mul_expr(struct ast_deserializer* r) {
-    struct mul_expr* res = mycc_alloc(sizeof *res);
+static MulExpr* deserialize_mul_expr(AstDeserializer* r) {
+    MulExpr* res = mycc_alloc(sizeof *res);
     res->lhs = deserialize_cast_expr(r);
     if (!res->lhs) {
         mycc_free(res);
@@ -859,7 +837,7 @@ static struct mul_expr* deserialize_mul_expr(struct ast_deserializer* r) {
             goto fail;
         }
 
-        struct cast_expr_and_op* item = &res->mul_chain[res->len];
+        CastExprAndOp* item = &res->mul_chain[res->len];
         item->op = mul_op;
         assert((uint64_t)item->op == mul_op);
 
@@ -875,8 +853,8 @@ fail:
     return NULL;
 }
 
-static struct add_expr* deserialize_add_expr(struct ast_deserializer* r) {
-    struct add_expr* res = mycc_alloc(sizeof *res);
+static AddExpr* deserialize_add_expr(AstDeserializer* r) {
+    AddExpr* res = mycc_alloc(sizeof *res);
     res->lhs = deserialize_mul_expr(r);
     if (!res->lhs) {
         mycc_free(res);
@@ -897,7 +875,7 @@ static struct add_expr* deserialize_add_expr(struct ast_deserializer* r) {
             goto fail;
         }
 
-        struct mul_expr_and_op* item = &res->add_chain[res->len];
+        MulExprAndOp* item = &res->add_chain[res->len];
         item->op = add_op;
         assert((uint64_t)item->op == add_op);
 
@@ -913,8 +891,8 @@ fail:
     return NULL;
 }
 
-static struct shift_expr* deserialize_shift_expr(struct ast_deserializer* r) {
-    struct shift_expr* res = mycc_alloc(sizeof *res);
+static ShiftExpr* deserialize_shift_expr(AstDeserializer* r) {
+    ShiftExpr* res = mycc_alloc(sizeof *res);
     res->lhs = deserialize_add_expr(r);
     if (!res->lhs) {
         mycc_free(res);
@@ -934,7 +912,7 @@ static struct shift_expr* deserialize_shift_expr(struct ast_deserializer* r) {
             goto fail;
         }
 
-        struct add_expr_and_op* item = &res->shift_chain[res->len];
+        AddExprAndOp* item = &res->shift_chain[res->len];
         item->op = shift_op;
         assert((uint64_t)item->op == shift_op);
 
@@ -950,8 +928,8 @@ fail:
     return NULL;
 }
 
-static struct rel_expr* deserialize_rel_expr(struct ast_deserializer* r) {
-    struct rel_expr* res = mycc_alloc(sizeof *res);
+static RelExpr* deserialize_rel_expr(AstDeserializer* r) {
+    RelExpr* res = mycc_alloc(sizeof *res);
     res->lhs = deserialize_shift_expr(r);
     if (!res->lhs) {
         mycc_free(res);
@@ -971,7 +949,7 @@ static struct rel_expr* deserialize_rel_expr(struct ast_deserializer* r) {
             goto fail;
         }
 
-        struct shift_expr_and_op* item = &res->rel_chain[res->len];
+        ShiftExprAndOp* item = &res->rel_chain[res->len];
         item->op = rel_op;
         assert((uint64_t)item->op == rel_op);
 
@@ -986,8 +964,7 @@ fail:
     return NULL;
 }
 
-static bool deserialize_eq_expr(struct ast_deserializer* r,
-                                struct eq_expr* res) {
+static bool deserialize_eq_expr(AstDeserializer* r, EqExpr* res) {
     res->lhs = deserialize_rel_expr(r);
     if (!res->lhs) {
         return false;
@@ -1007,7 +984,7 @@ static bool deserialize_eq_expr(struct ast_deserializer* r,
             goto fail;
         }
 
-        struct rel_expr_and_op* item = &res->eq_chain[res->len];
+        RelExprAndOp* item = &res->eq_chain[res->len];
         item->op = eq_op;
         assert((uint64_t)item->op == eq_op);
         item->rhs = deserialize_rel_expr(r);
@@ -1022,8 +999,7 @@ fail:
     return false;
 }
 
-static bool deserialize_and_expr(struct ast_deserializer* r,
-                                 struct and_expr* res) {
+static bool deserialize_and_expr(AstDeserializer* r, AndExpr* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -1039,8 +1015,7 @@ static bool deserialize_and_expr(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_xor_expr(struct ast_deserializer* r,
-                                 struct xor_expr* res) {
+static bool deserialize_xor_expr(AstDeserializer* r, XorExpr* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -1056,8 +1031,7 @@ static bool deserialize_xor_expr(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_or_expr(struct ast_deserializer* r,
-                                struct or_expr* res) {
+static bool deserialize_or_expr(AstDeserializer* r, OrExpr* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -1073,8 +1047,7 @@ static bool deserialize_or_expr(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_log_and_expr(struct ast_deserializer* r,
-                                     struct log_and_expr* res) {
+static bool deserialize_log_and_expr(AstDeserializer* r, LogAndExpr* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -1090,13 +1063,13 @@ static bool deserialize_log_and_expr(struct ast_deserializer* r,
     return true;
 }
 
-static struct log_or_expr* deserialize_log_or_expr(struct ast_deserializer* r) {
+static LogOrExpr* deserialize_log_or_expr(AstDeserializer* r) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return NULL;
     }
 
-    struct log_or_expr* res = mycc_alloc(sizeof *res);
+    LogOrExpr* res = mycc_alloc(sizeof *res);
     res->log_ands = mycc_alloc(sizeof *res->log_ands * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_log_and_expr(r, &res->log_ands[res->len])) {
@@ -1108,17 +1081,16 @@ static struct log_or_expr* deserialize_log_or_expr(struct ast_deserializer* r) {
     return res;
 }
 
-static void free_cond_expr_conds(struct cond_expr* cond, size_t len) {
+static void free_cond_expr_conds(CondExpr* cond, size_t len) {
     for (size_t i = 0; i < len; ++i) {
-        struct log_or_and_expr* item = &cond->conditionals[i];
+        LogOrAndExpr* item = &cond->conditionals[i];
         free_log_or_expr(item->log_or);
         free_expr(item->expr);
     }
     mycc_free(cond->conditionals);
 }
 
-static bool deserialize_cond_expr_inplace(struct ast_deserializer* r,
-                                          struct cond_expr* res) {
+static bool deserialize_cond_expr_inplace(AstDeserializer* r, CondExpr* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -1127,7 +1099,7 @@ static bool deserialize_cond_expr_inplace(struct ast_deserializer* r,
     res->len = len;
     res->conditionals = alloc_or_null(sizeof *res->conditionals * res->len);
     for (size_t i = 0; i < res->len; ++i) {
-        struct log_or_and_expr* item = &res->conditionals[i];
+        LogOrAndExpr* item = &res->conditionals[i];
         item->log_or = deserialize_log_or_expr(r);
         if (!item->log_or) {
             free_cond_expr_conds(res, i);
@@ -1151,8 +1123,8 @@ static bool deserialize_cond_expr_inplace(struct ast_deserializer* r,
     return true;
 }
 
-static struct cond_expr* deserialize_cond_expr(struct ast_deserializer* r) {
-    struct cond_expr* res = mycc_alloc(sizeof *res);
+static CondExpr* deserialize_cond_expr(AstDeserializer* r) {
+    CondExpr* res = mycc_alloc(sizeof *res);
     if (!deserialize_cond_expr_inplace(r, res)) {
         mycc_free(res);
         return NULL;
@@ -1160,40 +1132,40 @@ static struct cond_expr* deserialize_cond_expr(struct ast_deserializer* r) {
     return res;
 }
 
-static struct const_expr* deserialize_const_expr(struct ast_deserializer* r) {
-    struct cond_expr cond;
+static ConstExpr* deserialize_const_expr(AstDeserializer* r) {
+    CondExpr cond;
     if (!deserialize_cond_expr_inplace(r, &cond)) {
         return NULL;
     }
 
-    struct const_expr* res = mycc_alloc(sizeof *res);
+    ConstExpr* res = mycc_alloc(sizeof *res);
     res->expr = cond;
     return res;
 }
 
-static struct static_assert_declaration* deserialize_static_assert_declaration(
-    struct ast_deserializer* r) {
-    struct const_expr* expr = deserialize_const_expr(r);
+static StaticAssertDeclaration* deserialize_static_assert_declaration(
+    AstDeserializer* r) {
+    ConstExpr* expr = deserialize_const_expr(r);
     if (!expr) {
         return NULL;
     }
 
-    struct string_literal_node lit;
+    StringLiteralNode lit;
     if (!deserialize_string_literal_node(r, &lit)) {
         free_const_expr(expr);
         return NULL;
     }
 
-    struct static_assert_declaration* res = mycc_alloc(sizeof *res);
-    *res = (struct static_assert_declaration){
+    StaticAssertDeclaration* res = mycc_alloc(sizeof *res);
+    *res = (StaticAssertDeclaration){
         .const_expr = expr,
         .err_msg = lit,
     };
     return res;
 }
 
-static struct pointer* deserialize_pointer(struct ast_deserializer* r) {
-    struct ast_node_info info;
+static Pointer* deserialize_pointer(AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
@@ -1203,7 +1175,7 @@ static struct pointer* deserialize_pointer(struct ast_deserializer* r) {
         return NULL;
     }
 
-    struct pointer* res = mycc_alloc(sizeof *res);
+    Pointer* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->quals_after_ptr = mycc_alloc(sizeof *res->quals_after_ptr
                                       * num_indirs);
@@ -1218,12 +1190,9 @@ static struct pointer* deserialize_pointer(struct ast_deserializer* r) {
     return res;
 }
 
-static bool deserialize_param_type_list(struct ast_deserializer* r,
-                                        struct param_type_list* res);
+static bool deserialize_param_type_list(AstDeserializer* r, ParamTypeList* res);
 
-static bool deserialize_abs_arr_or_func_suffix(
-    struct ast_deserializer* r,
-    struct abs_arr_or_func_suffix* res) {
+static bool deserialize_abs_arr_or_func_suffix(AstDeserializer* r, AbsArrOrFuncSuffix* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
@@ -1261,12 +1230,11 @@ static bool deserialize_abs_arr_or_func_suffix(
     UNREACHABLE();
 }
 
-static struct abs_declarator* deserialize_abs_declarator(
-    struct ast_deserializer* r);
+static AbsDeclarator* deserialize_abs_declarator(AstDeserializer* r);
 
-static struct direct_abs_declarator* deserialize_direct_abs_declarator(
-    struct ast_deserializer* r) {
-    struct ast_node_info info;
+static DirectAbsDeclarator* deserialize_direct_abs_declarator(
+    AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
@@ -1276,7 +1244,7 @@ static struct direct_abs_declarator* deserialize_direct_abs_declarator(
         return NULL;
     }
 
-    struct abs_declarator* bracket_decl;
+    AbsDeclarator* bracket_decl;
     if (has_bracket_decl) {
         bracket_decl = deserialize_abs_declarator(r);
         if (!bracket_decl) {
@@ -1294,7 +1262,7 @@ static struct direct_abs_declarator* deserialize_direct_abs_declarator(
         return NULL;
     }
 
-    struct direct_abs_declarator* res = mycc_alloc(sizeof *res);
+    DirectAbsDeclarator* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->bracket_decl = bracket_decl;
     res->following_suffixes = mycc_alloc(sizeof *res->following_suffixes * len);
@@ -1309,13 +1277,12 @@ static struct direct_abs_declarator* deserialize_direct_abs_declarator(
     return res;
 }
 
-static struct abs_declarator* deserialize_abs_declarator(
-    struct ast_deserializer* r) {
+static AbsDeclarator* deserialize_abs_declarator(AstDeserializer* r) {
     bool has_ptr;
     if (!deserialize_bool(r, &has_ptr)) {
         return NULL;
     }
-    struct pointer* ptr = NULL;
+    Pointer* ptr = NULL;
     if (has_ptr) {
         ptr = deserialize_pointer(r);
         if (!ptr) {
@@ -1330,7 +1297,7 @@ static struct abs_declarator* deserialize_abs_declarator(
         return false;
     }
 
-    struct direct_abs_declarator* direct_abs_decl = NULL;
+    DirectAbsDeclarator* direct_abs_decl = NULL;
     if (has_direct_abs_decl) {
         direct_abs_decl = deserialize_direct_abs_declarator(r);
         if (!direct_abs_decl) {
@@ -1340,21 +1307,19 @@ static struct abs_declarator* deserialize_abs_declarator(
             return false;
         }
     }
-    struct abs_declarator* res = mycc_alloc(sizeof *res);
-    *res = (struct abs_declarator){
+    AbsDeclarator* res = mycc_alloc(sizeof *res);
+    *res = (AbsDeclarator){
         .ptr = ptr,
         .direct_abs_decl = direct_abs_decl,
     };
     return res;
 }
 
-static struct declaration_specs* deserialize_declaration_specs(
-    struct ast_deserializer* r);
+static DeclarationSpecs* deserialize_declaration_specs(AstDeserializer* r);
 
-static struct declarator* deserialize_declarator(struct ast_deserializer* r);
+static Declarator* deserialize_declarator(AstDeserializer* r);
 
-static bool deserialize_param_declaration(struct ast_deserializer* r,
-                                          struct param_declaration* res) {
+static bool deserialize_param_declaration(AstDeserializer* r, ParamDeclaration* res) {
     res->decl_specs = deserialize_declaration_specs(r);
     if (!res->decl_specs) {
         return false;
@@ -1380,8 +1345,7 @@ static bool deserialize_param_declaration(struct ast_deserializer* r,
     UNREACHABLE();
 }
 
-static bool deserialize_param_list(struct ast_deserializer* r,
-                                   struct param_list* res) {
+static bool deserialize_param_list(AstDeserializer* r, ParamList* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -1397,16 +1361,14 @@ static bool deserialize_param_list(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_param_type_list(struct ast_deserializer* r,
-                                        struct param_type_list* res) {
+static bool deserialize_param_type_list(AstDeserializer* r, ParamTypeList* res) {
     if (!deserialize_bool(r, &res->is_variadic)) {
         return false;
     }
     return deserialize_param_list(r, &res->param_list);
 }
 
-static bool deserialize_identifier_list(struct ast_deserializer* r,
-                                        struct identifier_list* res) {
+static bool deserialize_identifier_list(AstDeserializer* r, IdentifierList* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -1421,8 +1383,7 @@ static bool deserialize_identifier_list(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_arr_suffix(struct ast_deserializer* r,
-                                   struct arr_suffix* res) {
+static bool deserialize_arr_suffix(AstDeserializer* r, ArrSuffix* res) {
     if (!(deserialize_bool(r, &res->is_static)
           && deserialize_type_quals(r, &res->type_quals)
           && deserialize_bool(r, &res->is_asterisk))) {
@@ -1444,8 +1405,7 @@ static bool deserialize_arr_suffix(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_arr_or_func_suffix(struct ast_deserializer* r,
-                                           struct arr_or_func_suffix* res) {
+static bool deserialize_arr_or_func_suffix(AstDeserializer* r, ArrOrFuncSuffix* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
@@ -1468,9 +1428,9 @@ static bool deserialize_arr_or_func_suffix(struct ast_deserializer* r,
     UNREACHABLE();
 }
 
-static struct direct_declarator* deserialize_direct_declarator(
-    struct ast_deserializer* r) {
-    struct ast_node_info info;
+static DirectDeclarator* deserialize_direct_declarator(
+    AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
@@ -1480,7 +1440,7 @@ static struct direct_declarator* deserialize_direct_declarator(
         return NULL;
     }
 
-    struct direct_declarator* res = mycc_alloc(sizeof *res);
+    DirectDeclarator* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->is_id = is_id;
     if (res->is_id) {
@@ -1518,13 +1478,13 @@ static struct direct_declarator* deserialize_direct_declarator(
     return res;
 }
 
-static struct declarator* deserialize_declarator(struct ast_deserializer* r) {
+static Declarator* deserialize_declarator(AstDeserializer* r) {
     bool has_ptr;
     if (!deserialize_bool(r, &has_ptr)) {
         return NULL;
     }
 
-    struct pointer* ptr = NULL;
+    Pointer* ptr = NULL;
     if (has_ptr) {
         ptr = deserialize_pointer(r);
         if (!ptr) {
@@ -1532,21 +1492,20 @@ static struct declarator* deserialize_declarator(struct ast_deserializer* r) {
         }
     }
 
-    struct direct_declarator* direct_decl = deserialize_direct_declarator(r);
+    DirectDeclarator* direct_decl = deserialize_direct_declarator(r);
     if (!direct_decl) {
         if (has_ptr) {
             free_pointer(ptr);
         }
         return NULL;
     }
-    struct declarator* res = mycc_alloc(sizeof *res);
+    Declarator* res = mycc_alloc(sizeof *res);
     res->ptr = ptr;
     res->direct_decl = direct_decl;
     return res;
 }
 
-static bool deserialize_struct_declarator(struct ast_deserializer* r,
-                                          struct struct_declarator* res) {
+static bool deserialize_struct_declarator(AstDeserializer* r, StructDeclarator* res) {
     bool has_decl;
     if (!deserialize_bool(r, &has_decl)) {
         return false;
@@ -1581,9 +1540,7 @@ static bool deserialize_struct_declarator(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_struct_declarator_list(
-    struct ast_deserializer* r,
-    struct struct_declarator_list* res) {
+static bool deserialize_struct_declarator_list(AstDeserializer* r, StructDeclaratorList* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -1599,8 +1556,7 @@ static bool deserialize_struct_declarator_list(
     return true;
 }
 
-static bool deserialize_struct_declaration(struct ast_deserializer* r,
-                                           struct struct_declaration* res) {
+static bool deserialize_struct_declaration(AstDeserializer* r, StructDeclaration* res) {
     if (!deserialize_bool(r, &res->is_static_assert)) {
         return false;
     }
@@ -1620,9 +1576,7 @@ static bool deserialize_struct_declaration(struct ast_deserializer* r,
     }
 }
 
-static bool deserialize_struct_declaration_list(
-    struct ast_deserializer* r,
-    struct struct_declaration_list* res) {
+static bool deserialize_struct_declaration_list(AstDeserializer* r, StructDeclarationList* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -1638,9 +1592,8 @@ static bool deserialize_struct_declaration_list(
     return true;
 }
 
-static struct struct_union_spec* deserialize_struct_union_spec(
-    struct ast_deserializer* r) {
-    struct ast_node_info info;
+static StructUnionSpec* deserialize_struct_union_spec(AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
@@ -1655,7 +1608,7 @@ static struct struct_union_spec* deserialize_struct_union_spec(
         return NULL;
     }
 
-    struct identifier* id;
+    Identifier* id;
     if (has_identifier) {
         id = deserialize_identifier(r);
         if (!id) {
@@ -1665,7 +1618,7 @@ static struct struct_union_spec* deserialize_struct_union_spec(
         id = NULL;
     }
 
-    struct struct_declaration_list lst;
+    StructDeclarationList lst;
     if (!deserialize_struct_declaration_list(r, &lst)) {
         if (has_identifier) {
             free_identifier(id);
@@ -1673,8 +1626,8 @@ static struct struct_union_spec* deserialize_struct_union_spec(
         return NULL;
     }
 
-    struct struct_union_spec* res = mycc_alloc(sizeof *res);
-    *res = (struct struct_union_spec){
+    StructUnionSpec* res = mycc_alloc(sizeof *res);
+    *res = (StructUnionSpec){
         .info = info,
         .is_struct = is_struct,
         .identifier = id,
@@ -1683,8 +1636,7 @@ static struct struct_union_spec* deserialize_struct_union_spec(
     return res;
 }
 
-static bool deserialize_enumerator(struct ast_deserializer* r,
-                                   struct enumerator* res) {
+static bool deserialize_enumerator(AstDeserializer* r, Enumerator* res) {
     res->identifier = deserialize_identifier(r);
     if (!res->identifier) {
         return false;
@@ -1707,8 +1659,7 @@ static bool deserialize_enumerator(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_enum_list(struct ast_deserializer* r,
-                                  struct enum_list* res) {
+static bool deserialize_enum_list(AstDeserializer* r, EnumList* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -1723,8 +1674,8 @@ static bool deserialize_enum_list(struct ast_deserializer* r,
     return true;
 }
 
-static struct enum_spec* deserialize_enum_spec(struct ast_deserializer* r) {
-    struct ast_node_info info;
+static EnumSpec* deserialize_enum_spec(AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
@@ -1733,7 +1684,7 @@ static struct enum_spec* deserialize_enum_spec(struct ast_deserializer* r) {
         return NULL;
     }
 
-    struct identifier* id;
+    Identifier* id;
     if (has_identifier) {
         id = deserialize_identifier(r);
         if (!id) {
@@ -1743,7 +1694,7 @@ static struct enum_spec* deserialize_enum_spec(struct ast_deserializer* r) {
         id = NULL;
     }
 
-    struct enum_list lst;
+    EnumList lst;
     if (!deserialize_enum_list(r, &lst)) {
         if (has_identifier) {
             free_identifier(id);
@@ -1751,8 +1702,8 @@ static struct enum_spec* deserialize_enum_spec(struct ast_deserializer* r) {
         return NULL;
     }
 
-    struct enum_spec* res = mycc_alloc(sizeof *res);
-    *res = (struct enum_spec){
+    EnumSpec* res = mycc_alloc(sizeof *res);
+    *res = (EnumSpec){
         .info = info,
         .identifier = id,
         .enum_list = lst,
@@ -1760,8 +1711,7 @@ static struct enum_spec* deserialize_enum_spec(struct ast_deserializer* r) {
     return res;
 }
 
-static bool deserialize_type_modifiers(struct ast_deserializer* r,
-                                       struct type_modifiers* res) {
+static bool deserialize_type_modifiers(AstDeserializer* r, TypeModifiers* res) {
     if (!(deserialize_bool(r, &res->is_unsigned)
           && deserialize_bool(r, &res->is_signed)
           && deserialize_bool(r, &res->is_short))) {
@@ -1778,8 +1728,7 @@ static bool deserialize_type_modifiers(struct ast_deserializer* r,
            && deserialize_bool(r, &res->is_imaginary);
 }
 
-static bool deserialize_type_specs(struct ast_deserializer* r,
-                                   struct type_specs* res) {
+static bool deserialize_type_specs(AstDeserializer* r, TypeSpecs* res) {
     if (!deserialize_type_modifiers(r, &res->mods)) {
         return false;
     }
@@ -1787,7 +1736,7 @@ static bool deserialize_type_specs(struct ast_deserializer* r,
     if (!deserialize_uint(r, &kind)) {
         return false;
     }
-    res->kind = (enum type_spec_kind)kind;
+    res->kind = (TypeSpecKind)kind;
     assert((uint64_t)res->kind == kind);
 
     switch (res->kind) {
@@ -1815,25 +1764,24 @@ static bool deserialize_type_specs(struct ast_deserializer* r,
     UNREACHABLE();
 }
 
-static struct spec_qual_list* deserialize_spec_qual_list(
-    struct ast_deserializer* r) {
-    struct ast_node_info info;
+static SpecQualList* deserialize_spec_qual_list(AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
 
-    struct type_quals quals;
+    TypeQuals quals;
     if (!deserialize_type_quals(r, &quals)) {
         return NULL;
     }
 
-    struct type_specs specs;
+    TypeSpecs specs;
     if (!deserialize_type_specs(r, &specs)) {
         return NULL;
     }
 
-    struct spec_qual_list* res = mycc_alloc(sizeof *res);
-    *res = (struct spec_qual_list){
+    SpecQualList* res = mycc_alloc(sizeof *res);
+    *res = (SpecQualList){
         .info = info,
         .quals = quals,
         .specs = specs,
@@ -1841,8 +1789,7 @@ static struct spec_qual_list* deserialize_spec_qual_list(
     return res;
 }
 
-static bool deserialize_type_name_inplace(struct ast_deserializer* r,
-                                          struct type_name* res) {
+static bool deserialize_type_name_inplace(AstDeserializer* r, TypeName* res) {
     res->spec_qual_list = deserialize_spec_qual_list(r);
     if (!res->spec_qual_list) {
         return false;
@@ -1867,8 +1814,8 @@ fail:
     return false;
 }
 
-static struct type_name* deserialize_type_name(struct ast_deserializer* r) {
-    struct type_name* res = mycc_alloc(sizeof *res);
+static TypeName* deserialize_type_name(AstDeserializer* r) {
+    TypeName* res = mycc_alloc(sizeof *res);
     if (!deserialize_type_name_inplace(r, res)) {
         mycc_free(res);
         return NULL;
@@ -1876,8 +1823,7 @@ static struct type_name* deserialize_type_name(struct ast_deserializer* r) {
     return res;
 }
 
-static bool deserialize_align_spec(struct ast_deserializer* r,
-                                   struct align_spec* res) {
+static bool deserialize_align_spec(AstDeserializer* r, AlignSpec* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
@@ -1894,14 +1840,12 @@ static bool deserialize_align_spec(struct ast_deserializer* r,
     }
 }
 
-static bool deserialize_func_specs(struct ast_deserializer* r,
-                                   struct func_specs* res) {
+static bool deserialize_func_specs(AstDeserializer* r, FuncSpecs* res) {
     return deserialize_bool(r, &res->is_inline)
            && deserialize_bool(r, &res->is_noreturn);
 }
 
-static bool deserialize_storage_class(struct ast_deserializer* r,
-                                      struct storage_class* res) {
+static bool deserialize_storage_class(AstDeserializer* r, StorageClass* res) {
     return deserialize_bool(r, &res->is_typedef)
            && deserialize_bool(r, &res->is_extern)
            && deserialize_bool(r, &res->is_static)
@@ -1910,23 +1854,22 @@ static bool deserialize_storage_class(struct ast_deserializer* r,
            && deserialize_bool(r, &res->is_register);
 }
 
-static struct declaration_specs* deserialize_declaration_specs(
-    struct ast_deserializer* r) {
-    struct ast_node_info info;
+static DeclarationSpecs* deserialize_declaration_specs(AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
-    struct func_specs func_specs;
+    FuncSpecs func_specs;
     if (!deserialize_func_specs(r, &func_specs)) {
         return NULL;
     }
 
-    struct storage_class storage_class;
+    StorageClass storage_class;
     if (!deserialize_storage_class(r, &storage_class)) {
         return NULL;
     }
 
-    struct type_quals quals;
+    TypeQuals quals;
     if (!deserialize_type_quals(r, &quals)) {
         return NULL;
     }
@@ -1936,8 +1879,7 @@ static struct declaration_specs* deserialize_declaration_specs(
         return NULL;
     }
 
-    struct align_spec* align_specs = alloc_or_null(sizeof *align_specs
-                                                   * num_align_specs);
+    AlignSpec* align_specs = alloc_or_null(sizeof *align_specs * num_align_specs);
     for (size_t i = 0; i < num_align_specs; ++i) {
         if (!deserialize_align_spec(r, &align_specs[i])) {
             for (size_t j = 0; j < i; ++j) {
@@ -1948,7 +1890,7 @@ static struct declaration_specs* deserialize_declaration_specs(
         }
     }
 
-    struct type_specs type_specs;
+    TypeSpecs type_specs;
     if (!deserialize_type_specs(r, &type_specs)) {
         for (size_t i = 0; i < num_align_specs; ++i) {
             free_align_spec_children(&align_specs[i]);
@@ -1957,8 +1899,8 @@ static struct declaration_specs* deserialize_declaration_specs(
         return NULL;
     }
 
-    struct declaration_specs* res = mycc_alloc(sizeof *res);
-    *res = (struct declaration_specs){
+    DeclarationSpecs* res = mycc_alloc(sizeof *res);
+    *res = (DeclarationSpecs){
         .info = info,
         .func_specs = func_specs,
         .storage_class = storage_class,
@@ -1971,11 +1913,9 @@ static struct declaration_specs* deserialize_declaration_specs(
     return res;
 }
 
-static bool deserialize_declaration_inplace(struct ast_deserializer* r,
-                                            struct declaration* res);
+static bool deserialize_declaration_inplace(AstDeserializer* r, Declaration* res);
 
-static bool deserialize_declaration_list(struct ast_deserializer* r,
-                                         struct declaration_list* res) {
+static bool deserialize_declaration_list(AstDeserializer* r, DeclarationList* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -1990,11 +1930,11 @@ static bool deserialize_declaration_list(struct ast_deserializer* r,
     return true;
 }
 
-static struct statement* deserialize_statement(struct ast_deserializer* r);
+static Statement* deserialize_statement(AstDeserializer* r);
 
-static struct labeled_statement* deserialize_labeled_statement(
-    struct ast_deserializer* r) {
-    struct ast_node_info info;
+static LabeledStatement* deserialize_labeled_statement(
+    AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
@@ -2004,7 +1944,7 @@ static struct labeled_statement* deserialize_labeled_statement(
         return NULL;
     }
 
-    struct labeled_statement* res = mycc_alloc(sizeof *res);
+    LabeledStatement* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->kind = kind;
     assert((uint64_t)res->kind == kind);
@@ -2047,28 +1987,27 @@ fail:
     return NULL;
 }
 
-static struct expr_statement* deserialize_expr_statement(
-    struct ast_deserializer* r) {
-    struct ast_node_info info;
+static ExprStatement* deserialize_expr_statement(
+    AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
 
-    struct expr expr;
+    Expr expr;
     if (!deserialize_expr_inplace(r, &expr)) {
         return NULL;
     }
-    struct expr_statement* res = mycc_alloc(sizeof *res);
-    *res = (struct expr_statement){
+    ExprStatement* res = mycc_alloc(sizeof *res);
+    *res = (ExprStatement){
         .info = info,
         .expr = expr,
     };
     return res;
 }
 
-static struct selection_statement* deserialize_selection_statement(
-    struct ast_deserializer* r) {
-    struct ast_node_info info;
+static SelectionStatement* deserialize_selection_statement(AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
@@ -2078,12 +2017,12 @@ static struct selection_statement* deserialize_selection_statement(
         return NULL;
     }
 
-    struct expr* sel_expr = deserialize_expr(r);
+    Expr* sel_expr = deserialize_expr(r);
     if (!sel_expr) {
         return NULL;
     }
 
-    struct statement* sel_stat = deserialize_statement(r);
+    Statement* sel_stat = deserialize_statement(r);
     if (!sel_stat) {
         goto fail_after_expr;
     }
@@ -2093,7 +2032,7 @@ static struct selection_statement* deserialize_selection_statement(
         goto fail_after_stat;
     }
 
-    struct statement* else_stat;
+    Statement* else_stat;
     if (has_else) {
         else_stat = deserialize_statement(r);
         if (!else_stat) {
@@ -2103,8 +2042,8 @@ static struct selection_statement* deserialize_selection_statement(
         else_stat = NULL;
     }
 
-    struct selection_statement* res = mycc_alloc(sizeof *res);
-    *res = (struct selection_statement){
+    SelectionStatement* res = mycc_alloc(sizeof *res);
+    *res = (SelectionStatement){
         .info = info,
         .is_if = is_if,
         .sel_expr = sel_expr,
@@ -2119,8 +2058,7 @@ fail_after_expr:
     return NULL;
 }
 
-static bool deserialize_for_loop(struct ast_deserializer* r,
-                                 struct for_loop* res) {
+static bool deserialize_for_loop(AstDeserializer* r, ForLoop* res) {
     if (!deserialize_bool(r, &res->is_decl)) {
         return false;
     }
@@ -2157,9 +2095,8 @@ fail_before_cond:
     return false;
 }
 
-static struct iteration_statement* deserialize_iteration_statement(
-    struct ast_deserializer* r) {
-    struct ast_node_info info;
+static IterationStatement* deserialize_iteration_statement(AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return false;
     }
@@ -2168,7 +2105,7 @@ static struct iteration_statement* deserialize_iteration_statement(
         return false;
     }
 
-    struct iteration_statement* res = mycc_alloc(sizeof *res);
+    IterationStatement* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->kind = kind;
     assert((uint64_t)res->kind == kind);
@@ -2200,9 +2137,9 @@ fail_before_loop_body:
     return NULL;
 }
 
-static struct jump_statement* deserialize_jump_statement(
-    struct ast_deserializer* r) {
-    struct ast_node_info info;
+static JumpStatement* deserialize_jump_statement(
+    AstDeserializer* r) {
+    AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
         return NULL;
     }
@@ -2212,7 +2149,7 @@ static struct jump_statement* deserialize_jump_statement(
         return NULL;
     }
 
-    struct jump_statement* res = mycc_alloc(sizeof *res);
+    JumpStatement* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->kind = kind;
     assert((uint64_t)res->kind == kind);
@@ -2248,11 +2185,9 @@ static struct jump_statement* deserialize_jump_statement(
     return res;
 }
 
-static struct compound_statement* deserialize_compound_statement(
-    struct ast_deserializer* r);
+static CompoundStatement* deserialize_compound_statement(AstDeserializer* r);
 
-static bool deserialize_statement_inplace(struct ast_deserializer* r,
-                                          struct statement* res) {
+static bool deserialize_statement_inplace(AstDeserializer* r, Statement* res) {
     uint64_t kind;
     if (!deserialize_uint(r, &kind)) {
         return false;
@@ -2282,8 +2217,8 @@ static bool deserialize_statement_inplace(struct ast_deserializer* r,
     UNREACHABLE();
 }
 
-static struct statement* deserialize_statement(struct ast_deserializer* r) {
-    struct statement* res = mycc_alloc(sizeof *res);
+static Statement* deserialize_statement(AstDeserializer* r) {
+    Statement* res = mycc_alloc(sizeof *res);
     if (!deserialize_statement_inplace(r, res)) {
         mycc_free(res);
         return NULL;
@@ -2291,8 +2226,7 @@ static struct statement* deserialize_statement(struct ast_deserializer* r) {
     return res;
 }
 
-static bool deserialize_block_item(struct ast_deserializer* r,
-                                   struct block_item* res) {
+static bool deserialize_block_item(AstDeserializer* r, BlockItem* res) {
     if (!deserialize_bool(r, &res->is_decl)) {
         return false;
     }
@@ -2304,9 +2238,7 @@ static bool deserialize_block_item(struct ast_deserializer* r,
     }
 }
 
-static bool deserialize_compound_statement_inplace(
-    struct ast_deserializer* r,
-    struct compound_statement* res) {
+static bool deserialize_compound_statement_inplace(AstDeserializer* r, CompoundStatement* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
@@ -2327,9 +2259,8 @@ static bool deserialize_compound_statement_inplace(
     return true;
 }
 
-static struct compound_statement* deserialize_compound_statement(
-    struct ast_deserializer* r) {
-    struct compound_statement* res = mycc_alloc(sizeof *res);
+static CompoundStatement* deserialize_compound_statement(AstDeserializer* r) {
+    CompoundStatement* res = mycc_alloc(sizeof *res);
     if (!deserialize_compound_statement_inplace(r, res)) {
         mycc_free(res);
         return NULL;
@@ -2337,8 +2268,7 @@ static struct compound_statement* deserialize_compound_statement(
     return res;
 }
 
-static bool deserialize_func_def(struct ast_deserializer* r,
-                                 struct func_def* res) {
+static bool deserialize_func_def(AstDeserializer* r, FuncDef* res) {
     res->specs = deserialize_declaration_specs(r);
     if (!res->specs) {
         return false;
@@ -2362,8 +2292,7 @@ static bool deserialize_func_def(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_init_declarator(struct ast_deserializer* r,
-                                        struct init_declarator* res) {
+static bool deserialize_init_declarator(AstDeserializer* r, InitDeclarator* res) {
     res->decl = deserialize_declarator(r);
     if (!res->decl) {
         return false;
@@ -2385,8 +2314,7 @@ static bool deserialize_init_declarator(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_init_declarator_list(struct ast_deserializer* r,
-                                             struct init_declarator_list* res) {
+static bool deserialize_init_declarator_list(AstDeserializer* r, InitDeclaratorList* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return false;
@@ -2402,8 +2330,7 @@ static bool deserialize_init_declarator_list(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_declaration_inplace(struct ast_deserializer* r,
-                                            struct declaration* res) {
+static bool deserialize_declaration_inplace(AstDeserializer* r, Declaration* res) {
     if (!deserialize_bool(r, &res->is_normal_decl)) {
         return false;
     }
@@ -2425,8 +2352,8 @@ static bool deserialize_declaration_inplace(struct ast_deserializer* r,
     return true;
 }
 
-static bool deserialize_external_declaration(struct ast_deserializer* r,
-                                             struct external_declaration* res) {
+static bool deserialize_external_declaration(AstDeserializer* r,
+                                             struct ExternalDeclaration* res) {
     if (!deserialize_bool(r, &res->is_func_def)) {
         return false;
     }
@@ -2437,12 +2364,11 @@ static bool deserialize_external_declaration(struct ast_deserializer* r,
     }
 }
 
-static struct translation_unit deserialize_translation_unit(
-    struct ast_deserializer* r) {
-    struct translation_unit res;
+static TranslationUnit deserialize_translation_unit(AstDeserializer* r) {
+    TranslationUnit res;
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
-        return (struct translation_unit){
+        return (TranslationUnit){
             .len = 0,
             .external_decls = NULL,
         };
@@ -2456,7 +2382,7 @@ static struct translation_unit deserialize_translation_unit(
                 free_external_declaration_children(&res.external_decls[j]);
             }
             mycc_free(res.external_decls);
-            return (struct translation_unit){
+            return (TranslationUnit){
                 .len = 0,
                 .external_decls = NULL,
             };

@@ -3,13 +3,11 @@
 
 #include <stdio.h>
 
-#include "frontend/file_info.h"
+#include "frontend/FileInfo.h"
 
-#include "translation_unit.h"
+#include "TranslationUnit.h"
 
-bool dump_ast(const struct translation_unit* tl,
-              const struct file_info* file_info,
-              FILE* f);
+bool dump_ast(const TranslationUnit* tl, const FileInfo* file_info, FILE* f);
 
 #endif
 

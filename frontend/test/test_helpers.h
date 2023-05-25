@@ -4,7 +4,9 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "frontend/token.h"
+#include "frontend/Token.h"
+
+#include "frontend/preproc/preproc.h"
 
 #include "util/macro_util.h"
 
@@ -44,14 +46,14 @@
         }                                                                      \
     } while (0)
 
-struct preproc_res tokenize(const char* file);
-struct preproc_res tokenize_string(const char* str, const char* file);
+PreprocRes tokenize(const char* file);
+PreprocRes tokenize_string(const char* str, const char* file);
 
 void test_compare_files(const char* got_file, const char* ex_file);
 
 #define STR_NON_HEAP(lit) str_non_heap(ARR_LEN(lit) - 1, lit)
 
-struct str str_non_heap(size_t len, const char* str);
+Str str_non_heap(size_t len, const char* str);
 
 #endif
 

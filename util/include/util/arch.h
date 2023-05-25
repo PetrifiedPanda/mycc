@@ -1,9 +1,9 @@
 #ifndef ARCH_H
 #define ARCH_H
 
-enum arch {
+typedef enum {
     ARCH_X86_64,
-};
+} TargetArch;
 
 #endif
 

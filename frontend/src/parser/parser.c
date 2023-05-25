@@ -2,14 +2,13 @@
 
 #include <assert.h>
 
-#include "frontend/parser/parser_state.h"
+#include "frontend/parser/ParserState.h"
 
-struct translation_unit parse_tokens(struct token* tokens,
-                                     struct parser_err* err) {
+TranslationUnit parse_tokens(Token* tokens, ParserErr* err) {
     assert(tokens);
 
-    struct parser_state state = create_parser_state(tokens, err);
-    struct translation_unit res = parse_translation_unit(&state);
+    ParserState state = create_parser_state(tokens, err);
+    TranslationUnit res = parse_translation_unit(&state);
     free_parser_state(&state);
     return res;
 }

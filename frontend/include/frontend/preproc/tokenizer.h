@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "preproc_state.h"
+#include "PreprocState.h"
 
 /**
  * Tokenizes a line of source code for the preprocessor, meaning that
@@ -14,9 +14,7 @@
  * @param comment_not_terminated A pointer to a boolean, that signifies whether
  *        a multi-line comment was started in a previous line
  */
-bool tokenize_line(struct token_arr* res,
-                   struct preproc_err* err,
-                   struct line_info* info);
+bool tokenize_line(TokenArr* res, PreprocErr* err, LineInfo* info);
 
 /**
  * @param res The token where the result is written in
@@ -24,8 +22,6 @@ bool tokenize_line(struct token_arr* res,
  * 
  * @returns false if an error occured
  */
-bool next_preproc_token(struct token* res,
-                        struct preproc_err* err,
-                        struct line_info* info);
+bool next_preproc_token(Token* res, PreprocErr* err, LineInfo* info);
 
 #endif

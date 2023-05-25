@@ -3,22 +3,22 @@
 
 #include <stdbool.h>
 
-enum arg_action {
+typedef enum {
     ARG_ACTION_OUTPUT_TEXT,
     ARG_ACTION_OUTPUT_BIN,
     ARG_ACTION_CONVERT_BIN_TO_TEXT,
-};
+} ArgAction;
 
-struct cmd_args {
+typedef struct {
     int num_files;
     const char** files;
     const char* output_file;
-    enum arg_action action;
-};
+    ArgAction action;
+} CmdArgs;
 
-struct cmd_args parse_cmd_args(int argc, char** argv);
+CmdArgs parse_cmd_args(int argc, char** argv);
 
-void free_cmd_args(const struct cmd_args* args);
+void free_cmd_args(const CmdArgs* args);
 
 #endif
 

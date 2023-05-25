@@ -10,13 +10,13 @@
 
 #include "parser_test_util.h"
 
-static struct jump_statement* parse_jump_statement_helper(const char* code) {
-    struct preproc_res preproc_res = tokenize_string(code, "skfjlskf");
+static JumpStatement* parse_jump_statement_helper(const char* code) {
+    PreprocRes preproc_res = tokenize_string(code, "skfjlskf");
 
-    struct parser_err err = create_parser_err();
-    struct parser_state s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = create_parser_err();
+    ParserState s = create_parser_state(preproc_res.toks, &err);
     
-    struct statement stat;
+    Statement stat;
     bool res = parse_statement_inplace(&s, &stat);
     ASSERT(res);
     ASSERT(err.kind == PARSER_ERR_NONE);
@@ -30,9 +30,8 @@ static struct jump_statement* parse_jump_statement_helper(const char* code) {
     return stat.jmp;
 }
 
-static void check_jump_statement(const char* spell,
-                                 enum jump_statement_kind t) {
-    struct jump_statement* res = parse_jump_statement_helper(spell);
+static void check_jump_statement(const char* spell, JumpStatementKind t) {
+    JumpStatement* res = parse_jump_statement_helper(spell);
 
     ASSERT(res->kind == t);
 
@@ -40,16 +39,16 @@ static void check_jump_statement(const char* spell,
 }
 
 static void check_expected_semicolon_jump_statement(const char* spell) {
-    struct preproc_res preproc_res = tokenize_string(spell, "file.c");
+    PreprocRes preproc_res = tokenize_string(spell, "file.c");
 
-    struct parser_err err = create_parser_err();
-    struct parser_state s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = create_parser_err();
+    ParserState s = create_parser_state(preproc_res.toks, &err);
 
-    struct statement* res = parse_statement(&s);
+    Statement* res = parse_statement(&s);
     ASSERT_NULL(res);
 
     ASSERT(err.kind == PARSER_ERR_EXPECTED_TOKENS);
-    const struct expected_tokens_err* ex_tokens_err = &err.expected_tokens_err;
+    const ExpectedTokensErr* ex_tokens_err = &err.expected_tokens_err;
     ASSERT_SIZE_T(ex_tokens_err->num_expected, (size_t)1);
     ASSERT_TOKEN_KIND(ex_tokens_err->expected[0], TOKEN_SEMICOLON);
     ASSERT_TOKEN_KIND(ex_tokens_err->got, TOKEN_INVALID);
@@ -61,7 +60,7 @@ static void check_expected_semicolon_jump_statement(const char* spell) {
 
 TEST(jump_statement) {
     {
-        struct jump_statement* res = parse_jump_statement_helper(
+        JumpStatement* res = parse_jump_statement_helper(
             "goto my_cool_label;");
 
         ASSERT(res->kind == JUMP_STATEMENT_GOTO);
@@ -81,7 +80,7 @@ TEST(jump_statement) {
     check_expected_semicolon_jump_statement("return *id += (int)100");
 
     {
-        struct jump_statement* res = parse_jump_statement_helper("return 600;");
+        JumpStatement* res = parse_jump_statement_helper("return 600;");
 
         ASSERT(res->kind == JUMP_STATEMENT_RETURN);
         ASSERT_NOT_NULL(res->ret_val);
@@ -105,18 +104,18 @@ TEST(statement) {
                        "        ; "
                        "    } else b = 0;"
                        "}";
-    struct preproc_res preproc_res = tokenize_string(code, "file.c");
+    PreprocRes preproc_res = tokenize_string(code, "file.c");
 
-    struct parser_err err = create_parser_err();
-    struct parser_state s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = create_parser_err();
+    ParserState s = create_parser_state(preproc_res.toks, &err);
 
-    struct statement* res = parse_statement(&s);
+    Statement* res = parse_statement(&s);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
     ASSERT_NOT_NULL(res);
 
     ASSERT(res->kind == STATEMENT_ITERATION);
-    struct iteration_statement* iteration = res->it;
+    IterationStatement* iteration = res->it;
     ASSERT(iteration->kind == ITERATION_STATEMENT_FOR);
 
     ASSERT(iteration->for_loop.is_decl == false);
@@ -125,7 +124,7 @@ TEST(statement) {
     ASSERT_SIZE_T(iteration->for_loop.cond->expr.assign_exprs[0].len,
                   (size_t)0);
 
-    struct rel_expr* rel = iteration->for_loop.cond->expr.assign_exprs[0]
+    RelExpr* rel = iteration->for_loop.cond->expr.assign_exprs[0]
                                .value->last_else->log_ands->or_exprs->xor_exprs
                                ->and_exprs->eq_exprs->lhs;
     ASSERT_SIZE_T(rel->len, (size_t)1);
@@ -134,7 +133,7 @@ TEST(statement) {
     check_shift_expr_int(rel->rel_chain[0].rhs,
                          create_int_value(INT_VALUE_I, 100));
 
-    struct unary_expr* unary = iteration->for_loop.incr_expr->assign_exprs
+    UnaryExpr* unary = iteration->for_loop.incr_expr->assign_exprs
                                    ->value->last_else->log_ands->or_exprs
                                    ->xor_exprs->and_exprs->eq_exprs->lhs->lhs
                                    ->lhs->lhs->lhs->rhs;
@@ -144,20 +143,18 @@ TEST(statement) {
     check_postfix_expr_id(unary->postfix, "i");
 
     ASSERT(iteration->loop_body->kind == STATEMENT_COMPOUND);
-    struct compound_statement* compound = iteration->loop_body->comp;
+    CompoundStatement* compound = iteration->loop_body->comp;
     ASSERT_SIZE_T(compound->len, (size_t)2);
 
-    struct selection_statement* switch_stat = compound->items[0].stat.sel;
+    SelectionStatement* switch_stat = compound->items[0].stat.sel;
     ASSERT(switch_stat->is_if == false);
     check_expr_id(switch_stat->sel_expr, "c");
     ASSERT(switch_stat->sel_stat->kind == STATEMENT_COMPOUND);
     {
-        struct compound_statement* switch_compound = switch_stat->sel_stat
-                                                         ->comp;
+        CompoundStatement* switch_compound = switch_stat->sel_stat->comp;
         ASSERT_SIZE_T(switch_compound->len, (size_t)3);
         ASSERT(switch_compound->items[0].stat.kind == STATEMENT_LABELED);
-        struct labeled_statement* labeled = switch_compound->items[0]
-                                                .stat.labeled;
+        LabeledStatement* labeled = switch_compound->items[0].stat.labeled;
         ASSERT(labeled->kind == LABELED_STATEMENT_CASE);
 
         ASSERT_NOT_NULL(labeled->case_expr);
@@ -165,7 +162,7 @@ TEST(statement) {
                              create_int_value(INT_VALUE_I, 2));
 
         ASSERT(labeled->stat->kind == STATEMENT_EXPRESSION);
-        struct expr* case_expr = &labeled->stat->expr->expr;
+        Expr* case_expr = &labeled->stat->expr->expr;
         ASSERT_SIZE_T(case_expr->assign_exprs->len, (size_t)1);
 
         check_cond_expr_int(case_expr->assign_exprs->value,
@@ -175,19 +172,19 @@ TEST(statement) {
                             "d");
 
         ASSERT(switch_compound->items[1].stat.kind == STATEMENT_JUMP);
-        struct jump_statement* break_stat = switch_compound->items[1].stat.jmp;
+        JumpStatement* break_stat = switch_compound->items[1].stat.jmp;
         ASSERT(break_stat->kind == JUMP_STATEMENT_BREAK);
         ASSERT_NULL(break_stat->ret_val);
 
         ASSERT(switch_compound->items[2].stat.kind == STATEMENT_LABELED);
-        struct labeled_statement* default_stat = switch_compound->items[2]
+        LabeledStatement* default_stat = switch_compound->items[2]
                                                      .stat.labeled;
 
         ASSERT(default_stat->kind == LABELED_STATEMENT_DEFAULT);
         ASSERT_NULL(default_stat->case_expr);
 
         ASSERT(default_stat->stat->kind == STATEMENT_EXPRESSION);
-        struct expr* default_expr = &default_stat->stat->expr->expr;
+        Expr* default_expr = &default_stat->stat->expr->expr;
 
         ASSERT_SIZE_T(default_expr->assign_exprs->len, (size_t)1);
         check_cond_expr_int(default_expr->assign_exprs->value,
@@ -199,11 +196,11 @@ TEST(statement) {
     }
 
     ASSERT(compound->items[1].stat.kind == STATEMENT_SELECTION);
-    struct selection_statement* if_stat = compound->items[1].stat.sel;
+    SelectionStatement* if_stat = compound->items[1].stat.sel;
 
     ASSERT(if_stat->is_if);
 
-    struct rel_expr* if_cond = if_stat->sel_expr->assign_exprs->value->last_else
+    RelExpr* if_cond = if_stat->sel_expr->assign_exprs->value->last_else
                                    ->log_ands->or_exprs->xor_exprs->and_exprs
                                    ->eq_exprs->lhs;
 
@@ -215,13 +212,13 @@ TEST(statement) {
 
     ASSERT(if_stat->sel_stat->kind == STATEMENT_COMPOUND);
     ASSERT_SIZE_T(if_stat->sel_stat->comp->len, (size_t)1);
-    struct expr* if_cont = &if_stat->sel_stat->comp->items->stat.expr->expr;
+    Expr* if_cont = &if_stat->sel_stat->comp->items->stat.expr->expr;
     ASSERT_NULL(if_cont->assign_exprs);
     ASSERT_SIZE_T(if_cont->len, (size_t)0);
 
     ASSERT_NOT_NULL(if_stat->else_stat);
     ASSERT(if_stat->else_stat->kind == STATEMENT_EXPRESSION);
-    struct expr* else_expr = &if_stat->else_stat->expr->expr;
+    Expr* else_expr = &if_stat->else_stat->expr->expr;
     check_cond_expr_int(else_expr->assign_exprs->value,
                         create_int_value(INT_VALUE_I, 0));
     ASSERT_SIZE_T(else_expr->assign_exprs->len, (size_t)1);

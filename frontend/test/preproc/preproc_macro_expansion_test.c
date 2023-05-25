@@ -1,5 +1,5 @@
 #include "frontend/preproc/preproc.h"
-#include "frontend/preproc/preproc_macro.h"
+#include "frontend/preproc/PreprocMacro.h"
 
 #include "util/mem.h"
 
@@ -7,9 +7,9 @@
 
 #include "../test_helpers.h"
 
-static size_t get_tokens_len(const struct token* tokens) {
+static size_t get_tokens_len(const Token* tokens) {
     size_t len = 0;
-    const struct token* it = tokens;
+    const Token* it = tokens;
 
     while (it->kind != TOKEN_INVALID) {
         ++len;
@@ -19,33 +19,33 @@ static size_t get_tokens_len(const struct token* tokens) {
     return len;
 }
 
-static void test_preproc_macro(const struct preproc_macro* macro,
+static void test_preproc_macro(const PreprocMacro* macro,
                                const char* spell,
                                const char* input,
                                const char* output) {
-    struct preproc_err input_err = create_preproc_err();
-    struct preproc_res res = preproc_string(input, "source_file.c", &input_err);
+    PreprocErr input_err = create_preproc_err();
+    PreprocRes res = preproc_string(input, "source_file.c", &input_err);
     ASSERT(input_err.kind == PREPROC_ERR_NONE);
 
     const size_t tokens_len = get_tokens_len(res.toks);
 
-    struct preproc_err err = create_preproc_err();
-    struct preproc_state state = create_preproc_state_string(input, "source_file.c", &err);
-    state.res = (struct token_arr){
+    PreprocErr err = create_preproc_err();
+    PreprocState state = create_preproc_state_string(input, "source_file.c", &err);
+    state.res = (TokenArr){
         .len = tokens_len,
         .cap = tokens_len,
         .tokens = res.toks,
     };
     // Do not free stack allocated macros
     state._macro_map._item_free = NULL;
-    struct str macro_str = create_str(strlen(spell), spell);
+    Str macro_str = create_str(strlen(spell), spell);
     register_preproc_macro(&state, &macro_str, macro);
 
     ASSERT(expand_all_macros(&state, &state.res, 0));
     ASSERT(err.kind == PREPROC_ERR_NONE);
 
-    struct preproc_err output_err = create_preproc_err();
-    struct preproc_res expected = preproc_string(output,
+    PreprocErr output_err = create_preproc_err();
+    PreprocRes expected = preproc_string(output,
                                                  "source_file.c",
                                                  &output_err);
     ASSERT(output_err.kind == PREPROC_ERR_NONE);
@@ -61,7 +61,7 @@ static void test_preproc_macro(const struct preproc_macro* macro,
     mycc_free(state.res.tokens);
     free_file_info(&res.file_info);
     free_preproc_res_preproc_tokens(&expected);
-    state.res = (struct token_arr){
+    state.res = (TokenArr){
         .tokens = NULL,
         .len = 0,
         .cap = 0,
@@ -71,7 +71,7 @@ static void test_preproc_macro(const struct preproc_macro* macro,
 
 TEST(expand_obj_like) {
     // #define MACRO 1 + 2
-    struct token_or_arg expansion[] = {
+    TokenOrArg expansion[] = {
         {.is_arg = false,
          .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 15}}}},
         {.is_arg = false,
@@ -83,7 +83,7 @@ TEST(expand_obj_like) {
         EXP_LEN = ARR_LEN(expansion)
     };
 
-    struct preproc_macro macro = {
+    PreprocMacro macro = {
         .is_func_macro = false,
         .num_args = 0,
         .expansion_len = EXP_LEN,
@@ -105,7 +105,7 @@ TEST(expand_obj_like) {
 }
 
 TEST(expand_obj_like_empty) {
-    const struct preproc_macro macro = {
+    const PreprocMacro macro = {
         .is_func_macro = false,
         .num_args = 0,
         .is_variadic = false,
@@ -129,14 +129,14 @@ TEST(expand_obj_like_empty) {
 }
 
 TEST(expand_recursive) {
-    struct token_or_arg rec_obj_ex[] = {
+    TokenOrArg rec_obj_ex[] = {
         {.is_arg = false,
          .token = {TOKEN_IDENTIFIER,
                    .spelling = STR_NON_HEAP("REC_MACRO"),
                    {0, {1, 1}}}},
     };
     // #define REC_MACRO REC_MACRO
-    const struct preproc_macro rec_obj = {
+    const PreprocMacro rec_obj = {
         .is_func_macro = false,
         .num_args = 0,
         .is_variadic = false,
@@ -158,7 +158,7 @@ TEST(expand_recursive) {
                        "x = REC_MACRO - 10;REC_MACRO",
                        "x = REC_MACRO - 10;REC_MACRO");
 
-    struct token_or_arg rec_func_ex[] = {
+    TokenOrArg rec_func_ex[] = {
         {.is_arg = false,
          .token = {TOKEN_IDENTIFIER,
                    .spelling = STR_NON_HEAP("REC_FUNC_MACRO"),
@@ -170,7 +170,7 @@ TEST(expand_recursive) {
     };
 
     // #define REC_FUNC_MACRO() REC_FUNC_MACRO()
-    const struct preproc_macro rec_func = {
+    const PreprocMacro rec_func = {
         .is_func_macro = true,
         .num_args = 0,
         .is_variadic = false,
@@ -194,7 +194,7 @@ TEST(expand_recursive) {
 
 TEST(expand_func_like) {
     // #define FUNC_LIKE_MACRO(x, y) x + y * 3 - y
-    struct token_or_arg ex1[] = {
+    TokenOrArg ex1[] = {
         {.is_arg = true, .arg_num = 0},
         {.is_arg = false,
          .token = {TOKEN_ADD, .spelling = create_null_str(), {0, {1, 33}}}},
@@ -208,7 +208,7 @@ TEST(expand_func_like) {
         {.is_arg = true, .arg_num = 1},
     };
 
-    const struct preproc_macro macro1 = {
+    const PreprocMacro macro1 = {
         .is_func_macro = true,
         .num_args = 2,
         .is_variadic = false,
@@ -239,11 +239,11 @@ TEST(expand_func_like) {
                        "f = f + * 3 -;");
 
     // #define OTHER_FUNC_LIKE(x, y, z, a, b, c) x
-    struct token_or_arg ex2[] = {
+    TokenOrArg ex2[] = {
         {.is_arg = true, .arg_num = 0},
     };
 
-    const struct preproc_macro macro2 = {
+    const PreprocMacro macro2 = {
         .is_func_macro = true,
         .num_args = 6,
         .is_variadic = false,
@@ -267,7 +267,7 @@ TEST(expand_func_like) {
                        "int n = 1;");
 
     // #define YET_ANOTHER_FUNC_LIKE() 1 + 1
-    struct token_or_arg ex3[] = {
+    TokenOrArg ex3[] = {
         {.is_arg = false,
          .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 33}}}},
         {.is_arg = false,
@@ -276,7 +276,7 @@ TEST(expand_func_like) {
          .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 37}}}},
     };
 
-    const struct preproc_macro macro3 = {
+    const PreprocMacro macro3 = {
         .is_func_macro = true,
         .num_args = 0,
         .is_variadic = false,
@@ -295,7 +295,7 @@ TEST(expand_func_like) {
                        "const float stuff = 1 + 1;");
 
     // #define TEST_MACRON()
-    const struct preproc_macro macro4 = {
+    const PreprocMacro macro4 = {
         .is_func_macro = true,
         .num_args = 0,
         .is_variadic = false,
@@ -313,7 +313,7 @@ TEST(expand_func_like) {
 
 TEST(expand_func_like_variadic) {
     // #define CALL_FUNC(func, ...) func(__VA_ARGS__)
-    struct token_or_arg ex1[] = {
+    TokenOrArg ex1[] = {
         {.is_arg = true, .arg_num = 0},
         {.is_arg = false,
          .token = {TOKEN_LBRACKET, .spelling = create_null_str(), {0, {1, 33}}}},
@@ -322,7 +322,7 @@ TEST(expand_func_like_variadic) {
          .token = {TOKEN_RBRACKET, .spelling = create_null_str(), {0, {1, 45}}}},
     };
 
-    const struct preproc_macro macro1 = {
+    const PreprocMacro macro1 = {
         .is_func_macro = true,
         .num_args = 1,
         .is_variadic = true,
@@ -341,7 +341,7 @@ TEST(expand_func_like_variadic) {
                        "function();");
 
     // #define ONLY_VARARGS(...) 1, 2, __VA_ARGS__
-    struct token_or_arg ex2[] = {
+    TokenOrArg ex2[] = {
         {.is_arg = false,
          .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 27}}}},
         {.is_arg = false,
@@ -353,7 +353,7 @@ TEST(expand_func_like_variadic) {
         {.is_arg = true, .arg_num = 0},
     };
 
-    const struct preproc_macro macro2 = {
+    const PreprocMacro macro2 = {
         .is_func_macro = true,
         .num_args = 0,
         .is_variadic = true,

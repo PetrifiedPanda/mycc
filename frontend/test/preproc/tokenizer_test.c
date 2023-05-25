@@ -7,29 +7,19 @@
 
 #include "../test_helpers.h"
 
-static struct token create_file(enum token_kind kind, struct str spelling, size_t line, size_t idx, size_t file);
+static Token create_file(TokenKind kind, Str spelling, size_t line, size_t idx, size_t file);
 
-static struct token create(enum token_kind kind,
-                           struct str spelling,
-                           size_t line,
-                           size_t index);
-static struct token create_tok_int(struct int_value val,
-                                   size_t line,
-                                   size_t index);
-static struct token create_tok_float(struct float_value val,
-                                     size_t line,
-                                     size_t index);
+static Token create(TokenKind kind, Str spelling, size_t line, size_t index);
+static Token create_tok_int(IntValue val, size_t line, size_t index);
+static Token create_tok_float(FloatValue val, size_t line, size_t index);
 
-static struct token create_tok_str_lit(enum str_lit_kind kind,
-                                       struct str cont,
-                                       size_t line,
-                                       size_t index);
+static Token create_tok_str_lit(StrLitKind kind, Str cont, size_t line, size_t index);
 
 static void check_token_arr_file(const char* filename,
-                                 const struct token* expected,
+                                 const Token* expected,
                                  size_t expected_len);
 static void check_token_arr_str(const char* code,
-                                const struct token* expected,
+                                const Token* expected,
                                 size_t expected_len);
 
 TEST(simple) {
@@ -48,7 +38,7 @@ TEST(simple) {
                "const char* str = \"Normal string literal\";\n"
                "int arr[1 ? 100 : 1000];\n";
 
-    const struct token expected[] = {
+    const Token expected[] = {
         create(TOKEN_TYPEDEF, create_null_str(), 1, 1),
         create(TOKEN_STRUCT, create_null_str(), 1, 9),
         create(TOKEN_IDENTIFIER, STR_NON_HEAP("typedeftest"), 1, 16),
@@ -117,7 +107,7 @@ TEST(simple) {
 TEST(file) {
     const char* filename = "../frontend/test/files/no_preproc.c";
 
-    const struct token expected[] = {
+    const Token expected[] = {
         create(TOKEN_TYPEDEF, create_null_str(), 3, 1),
         create(TOKEN_STRUCT, create_null_str(), 3, 9),
         create(TOKEN_LBRACE, create_null_str(), 3, 16),
@@ -820,7 +810,7 @@ TEST(file) {
 
 TEST(include) {
     const char* filename = "../frontend/test/files/include_test/start.c";
-    const struct token expected[] = {
+    const Token expected[] = {
         create_file(TOKEN_EXTERN, create_null_str(), 2, 1, 0),
         create_file(TOKEN_INT, create_null_str(), 2, 8, 0),
         create_file(TOKEN_IDENTIFIER, STR_NON_HEAP("n"), 2, 12, 0),
@@ -1074,7 +1064,7 @@ TEST(hex_literal_or_var) {
     {
         const char* code = "vare-10";
 
-        const struct token expected[] = {
+        const Token expected[] = {
             create(TOKEN_IDENTIFIER, STR_NON_HEAP("vare"), 1, 1),
             create(TOKEN_SUB, create_null_str(), 1, 5),
             create_tok_int(create_int_value(INT_VALUE_I, 10), 1, 6),
@@ -1084,7 +1074,7 @@ TEST(hex_literal_or_var) {
     {
         const char* code = "var2e-10";
 
-        const struct token expected[] = {
+        const Token expected[] = {
             create(TOKEN_IDENTIFIER, STR_NON_HEAP("var2e"), 1, 1),
             create(TOKEN_SUB, create_null_str(), 1, 6),
             create_tok_int(create_int_value(INT_VALUE_I, 10), 1, 7),
@@ -1094,7 +1084,7 @@ TEST(hex_literal_or_var) {
     {
         const char* code = "var2p-10";
 
-        const struct token expected[] = {
+        const Token expected[] = {
             create(TOKEN_IDENTIFIER, STR_NON_HEAP("var2p"), 1, 1),
             create(TOKEN_SUB, create_null_str(), 1, 6),
             create_tok_int(create_int_value(INT_VALUE_I, 10), 1, 7),
@@ -1107,7 +1097,7 @@ TEST(dot_float_literal_or_op) {
     {
         const char* code = "int n = .001";
 
-        const struct token expected[] = {
+        const Token expected[] = {
             create(TOKEN_INT, create_null_str(), 1, 1),
             create(TOKEN_IDENTIFIER, STR_NON_HEAP("n"), 1, 5),
             create(TOKEN_ASSIGN, create_null_str(), 1, 7),
@@ -1126,8 +1116,8 @@ TEST_SUITE_BEGIN(tokenizer) {
 }
 TEST_SUITE_END()
 
-static struct token create_file(enum token_kind kind, struct str spelling, size_t line, size_t idx, size_t file) {
-    return (struct token){
+static Token create_file(TokenKind kind, Str spelling, size_t line, size_t idx, size_t file) {
+    return (Token){
         .kind = kind,
         .spelling = spelling,
         .loc =
@@ -1138,17 +1128,12 @@ static struct token create_file(enum token_kind kind, struct str spelling, size_
     };
 }
 
-static struct token create(enum token_kind kind,
-                           struct str spelling,
-                           size_t line,
-                           size_t index) {
+static Token create(TokenKind kind, Str spelling, size_t line, size_t index) {
     return create_file(kind, spelling, line, index, 0);
 }
 
-static struct token create_tok_int(struct int_value val,
-                                   size_t line,
-                                   size_t index) {
-    return (struct token){
+static Token create_tok_int(IntValue val, size_t line, size_t index) {
+    return (Token){
         .kind = TOKEN_I_CONSTANT,
         .int_val = val,
         .loc =
@@ -1159,10 +1144,8 @@ static struct token create_tok_int(struct int_value val,
     };
 }
 
-static struct token create_tok_float(struct float_value val,
-                                     size_t line,
-                                     size_t index) {
-    return (struct token){
+static Token create_tok_float(FloatValue val, size_t line, size_t index) {
+    return (Token){
         .kind = TOKEN_F_CONSTANT,
         .float_val = val,
         .loc =
@@ -1173,11 +1156,8 @@ static struct token create_tok_float(struct float_value val,
     };
 }
 
-static struct token create_tok_str_lit(enum str_lit_kind kind,
-                                       struct str cont,
-                                       size_t line,
-                                       size_t index) {
-    return (struct token){
+static Token create_tok_str_lit(StrLitKind kind, Str cont, size_t line, size_t index) {
+    return (Token){
         .kind = TOKEN_STRING_LITERAL, 
         .str_lit = create_str_lit(kind, &cont),
         .loc = {
@@ -1187,9 +1167,9 @@ static struct token create_tok_str_lit(enum str_lit_kind kind,
     };
 }
 
-static void check_size(const struct token* tokens, size_t expected) {
+static void check_size(const Token* tokens, size_t expected) {
     size_t size = 0;
-    const struct token* it = tokens;
+    const Token* it = tokens;
 
     while (it->kind != TOKEN_INVALID) {
         ++it;
@@ -1198,7 +1178,7 @@ static void check_size(const struct token* tokens, size_t expected) {
     ASSERT_SIZE_T(size, expected);
 }
 
-static void check_token(const struct token* t, const struct token* expected) {
+static void check_token(const Token* t, const Token* expected) {
     ASSERT_TOKEN_KIND(t->kind, expected->kind);
 
     if (t->kind == TOKEN_I_CONSTANT) {
@@ -1225,19 +1205,17 @@ static void check_token(const struct token* t, const struct token* expected) {
     ASSERT_SIZE_T(t->loc.file_idx, expected->loc.file_idx);
 }
 
-static void compare_tokens(const struct token* got,
-                           const struct token* expected,
-                           size_t len) {
+static void compare_tokens(const Token* got, const Token* expected, size_t len) {
     for (size_t i = 0; i < len; ++i) {
         check_token(&got[i], &expected[i]);
     }
 }
 
 static void check_token_arr_helper(const char* file_or_code,
-                                   const struct token* expected,
+                                   const Token* expected,
                                    size_t expected_len,
-                                   struct preproc_res (*func)(const char*)) {
-    struct preproc_res preproc_res = func(file_or_code);
+                                   PreprocRes (*func)(const char*)) {
+    PreprocRes preproc_res = func(file_or_code);
     ASSERT_NOT_NULL(preproc_res.toks);
     check_size(preproc_res.toks, expected_len);
 
@@ -1247,17 +1225,17 @@ static void check_token_arr_helper(const char* file_or_code,
 }
 
 static void check_token_arr_file(const char* filename,
-                                 const struct token* expected,
+                                 const Token* expected,
                                  size_t expected_len) {
     check_token_arr_helper(filename, expected, expected_len, tokenize);
 }
 
-static struct preproc_res tokenize_string_wrapper(const char* code) {
+static PreprocRes tokenize_string_wrapper(const char* code) {
     return tokenize_string(code, "code.c");
 }
 
 static void check_token_arr_str(const char* code,
-                                const struct token* expected,
+                                const Token* expected,
                                 size_t expected_len) {
     check_token_arr_helper(code,
                            expected,

@@ -12,25 +12,23 @@
 
 #include "frontend/arg_parse.h"
 
-#include "util/str.h"
+#include "util/Str.h"
 
-static bool convert_bin_to_text(const struct cmd_args* args,
-                                const char* filename);
+static bool convert_bin_to_text(const CmdArgs* args, const char* filename);
 
-static bool output_ast(const struct cmd_args* args,
-                       const struct arch_type_info* type_info,
+static bool output_ast(const CmdArgs* args,
+                       const ArchTypeInfo* type_info,
                        const char* filename);
 
 int main(int argc, char** argv) {
-    const struct cmd_args args = parse_cmd_args(argc, argv);
+    const CmdArgs args = parse_cmd_args(argc, argv);
     const bool is_windows =
 #ifdef _WIN32
         true;
 #else
         false;
 #endif
-    const struct arch_type_info type_info = get_arch_type_info(ARCH_X86_64,
-                                                               is_windows);
+    const ArchTypeInfo type_info = get_arch_type_info(ARCH_X86_64, is_windows);
 
     for (int i = 0; i < args.num_files; ++i) {
         const char* filename = args.files[i];
@@ -75,8 +73,7 @@ static const char* strip_file_location(const char* filename) {
     return res;
 }
 
-static struct str get_out_filename(const char* origin_file,
-                                   const char* suffix) {
+static Str get_out_filename(const char* origin_file, const char* suffix) {
     const char* filename_only = strip_file_location(origin_file);
     return str_concat(strlen(filename_only),
                       filename_only,
@@ -84,14 +81,13 @@ static struct str get_out_filename(const char* origin_file,
                       suffix);
 }
 
-static bool convert_bin_to_text(const struct cmd_args* args,
-                                const char* filename) {
+static bool convert_bin_to_text(const CmdArgs* args, const char* filename) {
     FILE* in_file = fopen(filename, "rb");
     if (!in_file) {
         fprintf(stderr, "Failed to open file %s\n", filename);
         return false;
     }
-    struct deserialize_ast_res res = deserialize_ast(in_file);
+    DeserializeAstRes res = deserialize_ast(in_file);
     if (!res.is_valid) {
         fprintf(stderr, "Failed to read ast from file %s\n", filename);
         fclose(in_file);
@@ -99,9 +95,9 @@ static bool convert_bin_to_text(const struct cmd_args* args,
     }
     fclose(in_file);
 
-    struct str out_filename_str = args->output_file == NULL
-                                      ? get_out_filename(filename, ".ast")
-                                      : create_null_str();
+    Str out_filename_str = args->output_file == NULL
+                               ? get_out_filename(filename, ".ast")
+                               : create_null_str();
     const char* out_filename = str_is_valid(&out_filename_str)
                                    ? str_get_data(&out_filename_str)
                                    : args->output_file;
@@ -133,11 +129,11 @@ fail_with_out_file_closed:
     return false;
 }
 
-static bool output_ast(const struct cmd_args* args,
-                       const struct arch_type_info* type_info,
+static bool output_ast(const CmdArgs* args,
+                       const ArchTypeInfo* type_info,
                        const char* filename) {
-    struct preproc_err preproc_err = create_preproc_err();
-    struct preproc_res preproc_res = preproc(filename, &preproc_err);
+    PreprocErr preproc_err = create_preproc_err();
+    PreprocRes preproc_res = preproc(filename, &preproc_err);
     if (preproc_err.kind != PREPROC_ERR_NONE) {
         print_preproc_err(stderr, &preproc_res.file_info, &preproc_err);
         free_preproc_err(&preproc_err);
@@ -149,8 +145,8 @@ static bool output_ast(const struct cmd_args* args,
         goto fail_before_ast_generated;
     }
 
-    struct parser_err parser_err = create_parser_err();
-    struct translation_unit tl = parse_tokens(preproc_res.toks, &parser_err);
+    ParserErr parser_err = create_parser_err();
+    TranslationUnit tl = parse_tokens(preproc_res.toks, &parser_err);
     if (parser_err.kind != PARSER_ERR_NONE) {
         print_parser_err(stderr, &preproc_res.file_info, &parser_err);
         free_parser_err(&parser_err);
@@ -159,9 +155,9 @@ static bool output_ast(const struct cmd_args* args,
 
     const char* suffix = args->action == ARG_ACTION_OUTPUT_BIN ? ".binast"
                                                                : ".ast";
-    struct str out_filename_str = args->output_file == NULL
-                                      ? get_out_filename(filename, suffix)
-                                      : create_null_str();
+    Str out_filename_str = args->output_file == NULL
+                               ? get_out_filename(filename, suffix)
+                               : create_null_str();
     const char* out_filename = str_is_valid(&out_filename_str)
                                    ? str_get_data(&out_filename_str)
                                    : args->output_file;

@@ -6,9 +6,8 @@
     do {                                                                       \
         const char spell[] = #constant;                                        \
         const uintmax_t num = constant;                                        \
-        const struct arch_type_info info = get_arch_type_info(ARCH_X86_64,     \
-                                                              false);          \
-        const struct parse_int_const_res res = parse_int_const(spell, &info);  \
+        const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);      \
+        const ParseIntConstRes res = parse_int_const(spell, &info);  \
         ASSERT(res.err.kind == INT_CONST_ERR_NONE);                            \
         ASSERT(res.res.kind == expected_val_type);                             \
         ASSERT_UINTMAX_T(num, res.res.uint_val);                               \
@@ -18,9 +17,8 @@
     do {                                                                       \
         const char spell[] = #constant;                                        \
         const intmax_t num = constant;                                         \
-        const struct arch_type_info info = get_arch_type_info(ARCH_X86_64,     \
-                                                              false);          \
-        const struct parse_int_const_res res = parse_int_const(spell, &info);  \
+        const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);      \
+        const ParseIntConstRes res = parse_int_const(spell, &info);  \
         ASSERT(res.err.kind == INT_CONST_ERR_NONE);                            \
         ASSERT(res.res.kind == expected_val_type);                             \
         ASSERT_UINTMAX_T(num, res.res.int_val);                                \
@@ -42,7 +40,7 @@ TEST(integer) {
     do {                                                                       \
         const char spell[] = #constant;                                        \
         const double num = constant;                                           \
-        const struct parse_float_const_res res = parse_float_const(spell);     \
+        const ParseFloatConstRes res = parse_float_const(spell);     \
         ASSERT(res.err.kind == FLOAT_CONST_ERR_NONE);                          \
         ASSERT_DOUBLE(num, res.res.val, 0.000000001l);                         \
         ASSERT(res.res.kind == expected_val_type);                             \
@@ -105,27 +103,26 @@ TEST(int_min_fitting_type_oct) {
     TEST_UINT_LITERAL(01777777777777777777777u, INT_VALUE_UL);
 }
 
-static void test_parse_int_err(const char* spell, enum int_const_err_kind err) {
-    const struct arch_type_info info = get_arch_type_info(ARCH_X86_64, false);
-    const struct parse_int_const_res res = parse_int_const(spell, &info);
+static void test_parse_int_err(const char* spell, IntConstErrKind err) {
+    const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
+    const ParseIntConstRes res = parse_int_const(spell, &info);
     ASSERT(res.err.kind == err);
 }
-static void test_parse_float_err(const char* spell,
-                                 enum float_const_err_kind err) {
-    const struct parse_float_const_res res = parse_float_const(spell);
+static void test_parse_float_err(const char* spell, FloatConstErrKind err) {
+    const ParseFloatConstRes res = parse_float_const(spell);
     ASSERT(res.err.kind == err);
 }
 
 static void test_parse_int_invalid_char(const char* spell, char invalid_char) {
-    const struct arch_type_info info = get_arch_type_info(ARCH_X86_64, false);
-    const struct parse_int_const_res res = parse_int_const(spell, &info);
+    const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
+    const ParseIntConstRes res = parse_int_const(spell, &info);
     ASSERT(res.err.kind == INT_CONST_ERR_INVALID_CHAR);
     ASSERT_CHAR(res.err.invalid_char, invalid_char);
 }
 
 static void test_parse_float_invalid_char(const char* spell,
                                           char invalid_char) {
-    const struct parse_float_const_res res = parse_float_const(spell);
+    const ParseFloatConstRes res = parse_float_const(spell);
     ASSERT(res.err.kind == FLOAT_CONST_ERR_INVALID_CHAR);
     ASSERT_CHAR(res.err.invalid_char, invalid_char);
 }
@@ -172,7 +169,7 @@ TEST(float_suffix_error) {
 
 // TODO: float too large
 
-TEST_SUITE_BEGIN(num_parse) {
+TEST_SUITE_BEGIN(num_parse){
     REGISTER_TEST(integer),
     REGISTER_TEST(floating),
     REGISTER_TEST(int_min_fitting_type_decimal),
@@ -181,6 +178,5 @@ TEST_SUITE_BEGIN(num_parse) {
     REGISTER_TEST(int_too_large),
     REGISTER_TEST(int_suffix_error),
     REGISTER_TEST(float_suffix_error),
-}
-TEST_SUITE_END()
+} TEST_SUITE_END()
 

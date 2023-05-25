@@ -19,7 +19,7 @@ static void handle_win_line_ending(int newline_char, FILE* file) {
 #endif
 
 const char* file_read_line(FILE* file,
-                           struct str* str,
+                           Str* str,
                            size_t* res_len,
                            char* static_buf,
                            size_t static_buf_len) {

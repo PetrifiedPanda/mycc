@@ -1,0 +1,24 @@
+#ifndef FUNC_DEF_H
+#define FUNC_DEF_H
+
+#include "DeclarationList.h"
+
+#include "frontend/ast/Statement.h"
+
+typedef struct DeclarationSpecs DeclarationSpecs;
+typedef struct Declarator Declarator;
+
+typedef struct {
+    DeclarationSpecs* specs;
+    Declarator* decl;
+    DeclarationList decl_list;
+    CompoundStatement comp;
+} FuncDef;
+
+void free_func_def_children(FuncDef* d);
+
+#include "DeclarationSpecs.h"
+#include "Declarator.h"
+
+#endif
+

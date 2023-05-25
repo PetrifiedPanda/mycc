@@ -21,10 +21,9 @@ static bool is_preproc_directive(const char* line) {
     return *it == '#';
 }
 
-static bool preproc_statement(struct preproc_state* state,
-                              struct token_arr* arr);
+static bool preproc_statement(PreprocState* state, TokenArr* arr);
 
-bool read_and_tokenize_line(struct preproc_state* state) {
+bool read_and_tokenize_line(PreprocState* state) {
     assert(state);
 
     while (true) {
@@ -36,7 +35,7 @@ bool read_and_tokenize_line(struct preproc_state* state) {
         }
 
         if (is_preproc_directive(state->line_info.next)) {
-            struct token_arr arr = {
+            TokenArr arr = {
                 .len = 0,
                 .cap = 0,
                 .tokens = NULL,
@@ -99,11 +98,11 @@ static bool is_cond_directive(const char* line) {
 }
 
 // TODO: could probably be optimized
-static bool skip_until_next_cond(struct preproc_state* state) {
+static bool skip_until_next_cond(PreprocState* state) {
     while (!preproc_state_over(state)) {
         preproc_state_read_line(state);
         if (is_cond_directive(state->line_info.next)) {
-            struct token_arr arr = {
+            TokenArr arr = {
                 .len = 0,
                 .cap = 0,
                 .tokens = NULL,
@@ -126,9 +125,7 @@ static bool skip_until_next_cond(struct preproc_state* state) {
     return false;
 }
 
-static bool handle_preproc_if(struct preproc_state* state,
-                              bool cond,
-                              struct source_loc loc) {
+static bool handle_preproc_if(PreprocState* state, bool cond, SourceLoc loc) {
     push_preproc_cond(state, loc, cond);
 
     if (!cond) {
@@ -138,9 +135,7 @@ static bool handle_preproc_if(struct preproc_state* state,
     return true;
 }
 
-static bool handle_ifdef_ifndef(struct preproc_state* state,
-                                struct token_arr* arr,
-                                bool is_ifndef) {
+static bool handle_ifdef_ifndef(PreprocState* state, TokenArr* arr, bool is_ifndef) {
     assert(arr);
     assert(arr->tokens[0].kind == TOKEN_PP_STRINGIFY);
     assert(
@@ -148,7 +143,7 @@ static bool handle_ifdef_ifndef(struct preproc_state* state,
          && strcmp(str_get_data(&arr->tokens[1].spelling), "ifdef") == 0)
         || (is_ifndef
             && strcmp(str_get_data(&arr->tokens[1].spelling), "ifndef") == 0));
-    const struct source_loc loc = arr->tokens[0].loc;
+    const SourceLoc loc = arr->tokens[0].loc;
 
     if (arr->len < 3) {
         set_preproc_err(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[1].loc);
@@ -173,18 +168,16 @@ static bool handle_ifdef_ifndef(struct preproc_state* state,
         return false;
     }
 
-    const struct str* macro_spell = &arr->tokens[2].spelling;
+    const Str* macro_spell = &arr->tokens[2].spelling;
     assert(macro_spell);
     assert(str_is_valid(macro_spell));
-    const struct preproc_macro* macro = find_preproc_macro(state, macro_spell);
+    const PreprocMacro* macro = find_preproc_macro(state, macro_spell);
 
     const bool cond = is_ifndef ? macro == NULL : macro != NULL;
     return handle_preproc_if(state, cond, loc);
 }
 
-static bool handle_else_elif(struct preproc_state* state,
-                             struct token_arr* arr,
-                             bool is_else) {
+static bool handle_else_elif(PreprocState* state, TokenArr* arr, bool is_else) {
     assert(arr->len > 1);
     if (state->conds_len == 0) {
         set_preproc_err(state->err, PREPROC_ERR_MISSING_IF, arr->tokens[1].loc);
@@ -192,7 +185,7 @@ static bool handle_else_elif(struct preproc_state* state,
         return false;
     }
 
-    struct preproc_cond* curr_if = peek_preproc_cond(state);
+    PreprocCond* curr_if = peek_preproc_cond(state);
     if (curr_if->had_else) {
         set_preproc_err(state->err,
                         PREPROC_ERR_ELIF_ELSE_AFTER_ELSE,
@@ -213,7 +206,7 @@ static bool handle_else_elif(struct preproc_state* state,
     return false;
 }
 
-static bool handle_include(struct preproc_state* state, struct token_arr* arr) {
+static bool handle_include(PreprocState* state, TokenArr* arr) {
     assert(arr->len >= 2);
     if (arr->len == 2 || arr->len > 3) {
         set_preproc_err(state->err,
@@ -230,7 +223,7 @@ static bool handle_include(struct preproc_state* state, struct token_arr* arr) {
 
     // TODO: "<" ">" string literals
     if (arr->tokens[2].kind == TOKEN_STRING_LITERAL) {
-        struct str_lit filename = convert_to_str_lit(&arr->tokens[2].spelling);
+        StrLit filename = convert_to_str_lit(&arr->tokens[2].spelling);
         if (filename.kind != STR_LIT_DEFAULT) {
             set_preproc_err(state->err,
                             PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL,
@@ -251,8 +244,7 @@ static bool handle_include(struct preproc_state* state, struct token_arr* arr) {
     }
 }
 
-static bool preproc_statement(struct preproc_state* state,
-                              struct token_arr* arr) {
+static bool preproc_statement(PreprocState* state, TokenArr* arr) {
     assert(arr);
     assert(arr->tokens);
     assert(arr->tokens[0].kind == TOKEN_PP_STRINGIFY);
@@ -275,8 +267,8 @@ static bool preproc_statement(struct preproc_state* state,
     } else if (strcmp(directive, "ifndef") == 0) {
         return handle_ifdef_ifndef(state, arr, true);
     } else if (strcmp(directive, "define") == 0) {
-        const struct str spell = token_take_spelling(&arr->tokens[2]);
-        struct preproc_macro macro = parse_preproc_macro(arr, state->err);
+        const Str spell = token_take_spelling(&arr->tokens[2]);
+        PreprocMacro macro = parse_preproc_macro(arr, state->err);
         if (state->err->kind != PREPROC_ERR_NONE) {
             return false;
         }

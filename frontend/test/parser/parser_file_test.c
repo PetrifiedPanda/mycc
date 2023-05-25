@@ -12,14 +12,12 @@
 
 #include "parser_test_util.h"
 
-static void check_func_specs(const struct func_specs* got,
-                             const struct func_specs* expected) {
+static void check_func_specs(const FuncSpecs* got, const FuncSpecs* expected) {
     ASSERT_BOOL(got->is_inline, expected->is_inline);
     ASSERT_BOOL(got->is_noreturn, expected->is_noreturn);
 }
 
-static void check_storage_class(const struct storage_class* got,
-                                const struct storage_class* expected) {
+static void check_storage_class(const StorageClass* got, const StorageClass* expected) {
     ASSERT_BOOL(got->is_typedef, expected->is_typedef);
     ASSERT_BOOL(got->is_extern, expected->is_extern);
     ASSERT_BOOL(got->is_static, expected->is_static);
@@ -28,7 +26,7 @@ static void check_storage_class(const struct storage_class* got,
     ASSERT_BOOL(got->is_register, expected->is_register);
 }
 
-static void check_external_decl_struct(struct external_declaration* d,
+static void check_external_decl_struct(ExternalDeclaration* d,
                                        bool is_typedef,
                                        bool is_struct,
                                        const char* id_spell,
@@ -36,10 +34,10 @@ static void check_external_decl_struct(struct external_declaration* d,
     ASSERT(d->is_func_def == false);
     ASSERT(d->decl.is_normal_decl);
     ASSERT(d->decl.decl_specs->type_specs.kind == TYPE_SPEC_STRUCT);
-    const struct func_specs none = {false, false};
+    const FuncSpecs none = {false, false};
     check_func_specs(&d->decl.decl_specs->func_specs, &none);
 
-    struct storage_class sc = {.is_typedef = is_typedef};
+    StorageClass sc = {.is_typedef = is_typedef};
     check_storage_class(&d->decl.decl_specs->storage_class, &sc);
 
     ASSERT_BOOL(d->decl.decl_specs->type_specs.struct_union_spec->is_struct,
@@ -53,16 +51,16 @@ static void check_external_decl_struct(struct external_declaration* d,
         decl_list_len);
 }
 
-static void check_external_decl_enum(struct external_declaration* d,
+static void check_external_decl_enum(ExternalDeclaration* d,
                                      bool is_typedef,
                                      const char* id_spell,
                                      size_t enum_list_len) {
     ASSERT(d->is_func_def == false);
     ASSERT(d->decl.is_normal_decl);
     ASSERT(d->decl.decl_specs->type_specs.kind == TYPE_SPEC_ENUM);
-    const struct func_specs none = {false, false};
+    const FuncSpecs none = {false, false};
     check_func_specs(&d->decl.decl_specs->func_specs, &none);
-    struct storage_class sc = {.is_typedef = is_typedef};
+    StorageClass sc = {.is_typedef = is_typedef};
     check_storage_class(&d->decl.decl_specs->storage_class, &sc);
     check_identifier(d->decl.decl_specs->type_specs.enum_spec->identifier,
                      id_spell);
@@ -71,7 +69,7 @@ static void check_external_decl_enum(struct external_declaration* d,
                   enum_list_len);
 }
 
-static void check_pointer_indirs(struct pointer* ptr, size_t num_indirs) {
+static void check_pointer_indirs(Pointer* ptr, size_t num_indirs) {
     if (num_indirs == 0) {
         ASSERT_NULL(ptr);
     } else {
@@ -81,9 +79,9 @@ static void check_pointer_indirs(struct pointer* ptr, size_t num_indirs) {
 }
 
 static void check_external_decl_func_def(
-    struct external_declaration* d,
-    const struct storage_class* storage_class,
-    const struct func_specs* func_specs,
+    ExternalDeclaration* d,
+    const StorageClass* storage_class,
+    const FuncSpecs* func_specs,
     size_t num_indirs,
     const char* id_spell,
     size_t body_len) {
@@ -98,9 +96,9 @@ static void check_external_decl_func_def(
 }
 
 static void check_external_decl_func_def_enum(
-    struct external_declaration* d,
-    struct storage_class storage_class,
-    struct func_specs func_specs,
+    ExternalDeclaration* d,
+    StorageClass storage_class,
+    FuncSpecs func_specs,
     const char* enum_name,
     size_t num_indirs,
     const char* func_name,
@@ -120,9 +118,9 @@ static void check_external_decl_func_def_enum(
 }
 
 static void check_external_decl_func_def_struct(
-    struct external_declaration* d,
-    struct storage_class storage_class,
-    struct func_specs func_specs,
+    ExternalDeclaration* d,
+    StorageClass storage_class,
+    FuncSpecs func_specs,
     const char* struct_name,
     size_t num_indirs,
     const char* func_name,
@@ -145,11 +143,11 @@ static void check_external_decl_func_def_struct(
 }
 
 static void check_external_decl_func_def_predef(
-    struct external_declaration* d,
-    struct storage_class storage_class,
-    struct func_specs func_specs,
+    ExternalDeclaration* d,
+    StorageClass storage_class,
+    FuncSpecs func_specs,
     size_t num_indirs,
-    enum type_spec_kind ret_type,
+    TypeSpecKind ret_type,
     const char* id_spell,
     size_t body_len) {
     check_external_decl_func_def(d,
@@ -163,9 +161,9 @@ static void check_external_decl_func_def_predef(
 }
 
 static void check_external_decl_func_def_typedef(
-    struct external_declaration* d,
-    struct storage_class storage_class,
-    struct func_specs func_specs,
+    ExternalDeclaration* d,
+    StorageClass storage_class,
+    FuncSpecs func_specs,
     size_t num_indirs,
     const char* ret_type,
     const char* func_name,
@@ -183,12 +181,12 @@ static void check_external_decl_func_def_typedef(
         ret_type);
 }
 
-static void compare_with_ex_file(const struct translation_unit* got,
-                                 const struct file_info* file_info,
+static void compare_with_ex_file(const TranslationUnit* got,
+                                 const FileInfo* file_info,
                                  const char* ex_filename) {
     FILE* ex_file = fopen(ex_filename, "rb");
     ASSERT(ex_file);
-    struct deserialize_ast_res expected = deserialize_ast(ex_file);
+    DeserializeAstRes expected = deserialize_ast(ex_file);
     ASSERT(expected.is_valid);
     ASSERT(fclose(ex_file) == 0);
 
@@ -200,10 +198,10 @@ static void compare_with_ex_file(const struct translation_unit* got,
 
 TEST(no_preproc) {
     const char* file = "../frontend/test/files/no_preproc.c";
-    struct preproc_res res = tokenize(file);
+    PreprocRes res = tokenize(file);
 
-    struct parser_err err = create_parser_err();
-    struct translation_unit tl = parse_tokens(res.toks, &err);
+    ParserErr err = create_parser_err();
+    TranslationUnit tl = parse_tokens(res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)10);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
@@ -212,9 +210,9 @@ TEST(no_preproc) {
                          &res.file_info,
                          "../frontend/test/files/no_preproc.c.binast");
 
-    const struct storage_class sc = {false, false, false, false, false, false};
-    const struct storage_class sc_static = {.is_static = true};
-    const struct func_specs fs = (struct func_specs){false, false};
+    const StorageClass sc = {false, false, false, false, false, false};
+    const StorageClass sc_static = {.is_static = true};
+    const FuncSpecs fs = (FuncSpecs){false, false};
 
     check_external_decl_struct(&tl.external_decls[0], true, true, NULL, 2);
     check_external_decl_struct(&tl.external_decls[1],
@@ -240,7 +238,7 @@ TEST(no_preproc) {
     check_external_decl_func_def_predef(
         &tl.external_decls[8],
         sc_static,
-        (struct func_specs){.is_noreturn = true},
+        (FuncSpecs){.is_noreturn = true},
         0,
         TYPE_SPEC_VOID,
         "variadic",
@@ -252,10 +250,10 @@ TEST(no_preproc) {
 
 TEST(parser_testfile) {
     const char* file = "../frontend/test/files/parser_testfile.c";
-    struct preproc_res res = tokenize(file);
+    PreprocRes res = tokenize(file);
 
-    struct parser_err err = create_parser_err();
-    struct translation_unit tl = parse_tokens(res.toks, &err);
+    ParserErr err = create_parser_err();
+    TranslationUnit tl = parse_tokens(res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)18);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
@@ -274,9 +272,9 @@ TEST(parser_testfile) {
     test_compare_files(tmp_filename,
                        "../frontend/test/files/parser_testfile.c.ast");
 
-    const struct storage_class sc = {false, false, false, false, false, false};
-    const struct storage_class sc_static = {.is_static = true};
-    const struct func_specs fs = {false, false};
+    const StorageClass sc = {false, false, false, false, false, false};
+    const StorageClass sc_static = {.is_static = true};
+    const FuncSpecs fs = {false, false};
 
     check_external_decl_struct(&tl.external_decls[0], true, true, NULL, 2);
 
@@ -309,7 +307,7 @@ TEST(parser_testfile) {
     check_external_decl_func_def_predef(
         &tl.external_decls[9],
         sc_static,
-        (struct func_specs){.is_noreturn = true},
+        (FuncSpecs){.is_noreturn = true},
         0,
         TYPE_SPEC_VOID,
         "variadic",
@@ -328,10 +326,10 @@ TEST(parser_testfile) {
 
 TEST(large_testfile) {
     const char* file = "../frontend/test/files/large_testfile.c";
-    struct preproc_res res = tokenize(file);
+    PreprocRes res = tokenize(file);
 
-    struct parser_err err = create_parser_err();
-    struct translation_unit tl = parse_tokens(res.toks, &err);
+    ParserErr err = create_parser_err();
+    TranslationUnit tl = parse_tokens(res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)88);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
@@ -340,9 +338,9 @@ TEST(large_testfile) {
                          &res.file_info,
                          "../frontend/test/files/large_testfile.c.binast");
 
-    const struct storage_class sc = {false, false, false, false, false, false};
-    const struct storage_class sc_static = {.is_static = true};
-    const struct func_specs fs = {false, false};
+    const StorageClass sc = {false, false, false, false, false, false};
+    const StorageClass sc_static = {.is_static = true};
+    const FuncSpecs fs = {false, false};
 
     check_external_decl_enum(&tl.external_decls[21], false, "token_type", 97);
 
@@ -383,7 +381,7 @@ TEST(large_testfile) {
     check_external_decl_func_def_typedef(
         &tl.external_decls[70],
         sc_static,
-        (struct func_specs){.is_inline = true, .is_noreturn = false},
+        (FuncSpecs){.is_inline = true, .is_noreturn = false},
         0,
         "bool",
         "is_spelling",
