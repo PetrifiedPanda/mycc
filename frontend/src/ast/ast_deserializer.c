@@ -206,46 +206,50 @@ static Identifier* deserialize_identifier(AstDeserializer* r) {
     return res;
 }
 
-static bool deserialize_int_value(AstDeserializer* r,
-                                  IntValue* res) {
+static bool deserialize_value(AstDeserializer* r, Value* res) {
     uint64_t kind;
     if (!deserialize_uint(r, &kind)) {
         return false;
     }
+    
     res->kind = kind;
     assert((uint64_t)res->kind == kind);
-    if (int_value_is_signed(res->kind)) {
-        int64_t int_val;
-        if (!deserialize_int(r, &int_val)) {
-            return false;
+    switch (res->kind) {
+        case VALUE_C:
+        case VALUE_S:
+        case VALUE_I:
+        case VALUE_L:
+        case VALUE_LL: {
+            int64_t val;
+            if (!deserialize_int(r, &val)) {
+                return false;
+            }
+            res->sint_val = val;
+            break;
         }
-        res->int_val = int_val;
-        assert((int64_t)res->int_val == int_val);
-    } else {
-        uint64_t uint_val;
-        if (!deserialize_uint(r, &uint_val)) {
-            return false;
+        case VALUE_UC:
+        case VALUE_US:
+        case VALUE_UI:
+        case VALUE_UL:
+        case VALUE_ULL: {
+            uint64_t val;
+            if (!deserialize_uint(r, &val)) {
+                return false;
+            }
+            res->uint_val = val;
+            break;
         }
-        res->uint_val = uint_val;
-        assert((uint64_t)res->uint_val == uint_val);
+        case VALUE_F:
+        case VALUE_D:
+        case VALUE_LD: {
+            double val;
+            if (!deserialize_float(r, &val)) {
+                return false;
+            }
+            res->float_val = val;
+            break;
+        }
     }
-    return true;
-}
-
-static bool deserialize_float_value(AstDeserializer* r,
-                                    FloatValue* res) {
-    uint64_t kind;
-    if (!deserialize_uint(r, &kind)) {
-        return false;
-    }
-    res->kind = kind;
-    assert((uint64_t)res->kind == kind);
-    double val;
-    if (!deserialize_float(r, &val)) {
-        return false;
-    }
-    res->val = val;
-    assert((long double)res->val == val);
     return true;
 }
 
@@ -264,10 +268,8 @@ static bool deserialize_constant(AstDeserializer* r, Constant* res) {
         case CONSTANT_ENUM:
             res->spelling = deserialize_str(r);
             return Str_is_valid(&res->spelling);
-        case CONSTANT_INT:
-            return deserialize_int_value(r, &res->int_val);
-        case CONSTANT_FLOAT:
-            return deserialize_float_value(r, &res->float_val);
+        case CONSTANT_VAL:
+            return deserialize_value(r, &res->val);
     }
     UNREACHABLE();
 }

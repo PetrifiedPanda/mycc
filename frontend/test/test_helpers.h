@@ -19,21 +19,13 @@
         }                                                                      \
     } while (0)
 
-#define ASSERT_INT_VALUE_KIND(got, expected)                                   \
+#define ASSERT_VALUE_KIND(got, expected)                                       \
     do {                                                                       \
-        if ((got) != (expected)) {                                             \
+        ValueKind got_kind = got, expected_kind = expected;                    \
+        if (got_kind != expected_kind) {                                       \
             PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             IntValueKind_str(expected),                       \
-                             IntValueKind_str(got));                           \
-        }                                                                      \
-    } while (0)
-
-#define ASSERT_FLOAT_VALUE_KIND(got, expected)                                 \
-    do {                                                                       \
-        if ((got) != (expected)) {                                             \
-            PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             FloatValueKind_str(expected),                     \
-                             FloatValueKind_str(got));                         \
+                             ValueKind_str(expected_kind),                     \
+                             ValueKind_str(got_kind));                         \
         }                                                                      \
     } while (0)
 

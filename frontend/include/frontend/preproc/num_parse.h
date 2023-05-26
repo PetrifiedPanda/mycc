@@ -21,7 +21,7 @@ typedef struct {
 
 typedef struct {
     FloatConstErr err;
-    FloatValue res;
+    Value res;
 } ParseFloatConstRes;
 
 ParseFloatConstRes parse_float_const(const char* spell);
@@ -46,7 +46,7 @@ typedef struct {
 
 typedef struct {
     IntConstErr err;
-    IntValue res;
+    Value res;
 } ParseIntConstRes;
 
 ParseIntConstRes parse_int_const(const char* spell, const ArchTypeInfo* type_info);
@@ -73,7 +73,7 @@ typedef struct {
 
 typedef struct {
     CharConstErr err;
-    IntValue res;
+    Value res;
 } ParseCharConstRes;
 
 ParseCharConstRes parse_char_const(const char* spell, const ArchTypeInfo* type_info);

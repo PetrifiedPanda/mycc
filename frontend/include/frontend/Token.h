@@ -30,8 +30,7 @@ typedef struct {
     TokenKind kind;
     union {
         Str spelling;
-        IntValue int_val;
-        FloatValue float_val;
+        Value val;
         StrLit str_lit;
     };
     SourceLoc loc;

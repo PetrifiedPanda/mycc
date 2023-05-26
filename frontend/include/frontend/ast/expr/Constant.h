@@ -5,8 +5,7 @@
 
 typedef enum {
     CONSTANT_ENUM,
-    CONSTANT_INT,
-    CONSTANT_FLOAT,
+    CONSTANT_VAL,
 } ConstantKind;
 
 typedef struct {
@@ -14,15 +13,11 @@ typedef struct {
     ConstantKind kind;
     union {
         Str spelling;
-        IntValue int_val;
-        FloatValue float_val;
+        Value val;
     };
 } Constant;
 
-Constant Constant_create_int(IntValue val,
-                                    SourceLoc loc);
-Constant Constant_create_float(FloatValue val,
-                                      SourceLoc loc);
+Constant Constant_create(Value val, SourceLoc loc);
 
 Constant Constant_create_enum(const Str* spelling,
                                      SourceLoc loc);

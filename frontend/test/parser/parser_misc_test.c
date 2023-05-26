@@ -92,12 +92,12 @@ TEST(enum_list) {
         }
 
         ASSERT_NOT_NULL(res->enums[0].enum_val);
-        check_const_expr_int(res->enums[0].enum_val,
-                             IntValue_create_signed(INT_VALUE_I, 0));
+        check_const_expr_val(res->enums[0].enum_val,
+                             Value_create_sint(VALUE_I, 0));
 
         ASSERT_NOT_NULL(res->enums[1].enum_val);
-        check_const_expr_float(res->enums[1].enum_val,
-                               FloatValue_create(FLOAT_VALUE_D, 1000.0));
+        check_const_expr_val(res->enums[1].enum_val,
+                               Value_create_float(VALUE_D, 1000.0));
 
         ASSERT_NOT_NULL(res->enums[2].enum_val);
         check_const_expr_id(res->enums[2].enum_val, "n");
@@ -201,8 +201,8 @@ TEST(designation) {
     check_identifier(designators[0].identifier, "test");
 
     ASSERT(designators[1].is_index == true);
-    check_cond_expr_int(&designators[1].arr_index->expr,
-                        IntValue_create_signed(INT_VALUE_I, 19));
+    check_cond_expr_val(&designators[1].arr_index->expr,
+                        Value_create_sint(VALUE_I, 19));
 
     ASSERT(designators[2].is_index == false);
     check_identifier(designators[2].identifier, "what_is_this");
@@ -213,32 +213,32 @@ TEST(designation) {
     const Designation* des2 = &list->inits[1].designation;
     const Initializer* val2 = &list->inits[1].init;
     ASSERT(val2->is_assign);
-    check_assign_expr_int(val2->assign, IntValue_create_signed(INT_VALUE_I, 2));
+    check_assign_expr_val(val2->assign, Value_create_sint(VALUE_I, 2));
 
     ASSERT_SIZE_T(des2->designators.len, (size_t)6);
 
     designators = des2->designators.designators;
     ASSERT(designators[0].is_index == true);
-    check_cond_expr_float(&designators[0].arr_index->expr,
-                          FloatValue_create(FLOAT_VALUE_D, 0.5));
+    check_cond_expr_val(&designators[0].arr_index->expr,
+                          Value_create_float(VALUE_D, 0.5));
 
     ASSERT(designators[1].is_index == false);
     check_identifier(designators[1].identifier, "blah");
 
     ASSERT(designators[2].is_index == true);
-    check_cond_expr_int(&designators[2].arr_index->expr,
-                        IntValue_create_signed(INT_VALUE_I, 420));
+    check_cond_expr_val(&designators[2].arr_index->expr,
+                        Value_create_sint(VALUE_I, 420));
 
     ASSERT(designators[3].is_index == false);
     check_identifier(designators[3].identifier, "oof");
 
     ASSERT(designators[4].is_index == true);
-    check_cond_expr_int(&designators[4].arr_index->expr,
-                        IntValue_create_signed(INT_VALUE_I, 2));
+    check_cond_expr_val(&designators[4].arr_index->expr,
+                        Value_create_sint(VALUE_I, 2));
 
     ASSERT(designators[5].is_index == true);
-    check_cond_expr_int(&designators[5].arr_index->expr,
-                        IntValue_create_signed(INT_VALUE_I, 10));
+    check_cond_expr_val(&designators[5].arr_index->expr,
+                        Value_create_sint(VALUE_I, 10));
 
     Initializer_free(init);
 
@@ -261,7 +261,7 @@ TEST(static_assert_declaration) {
 
     ASSERT_STR(Str_get_data(&res->err_msg.lit.contents),
                "This is a string literal");
-    check_const_expr_int(res->const_expr, IntValue_create_signed(INT_VALUE_I, 12345));
+    check_const_expr_val(res->const_expr, Value_create_sint(VALUE_I, 12345));
 
     PreprocRes_free(&preproc_res);
     ParserState_free(&s);
@@ -282,8 +282,8 @@ static void check_struct_declaration_non_static_assert(
     }
     const StructDeclarator* declarator = &decl->decls.decls[0];
     if (bit_field > 0) {
-        check_const_expr_int(declarator->bit_field,
-                             IntValue_create_signed(INT_VALUE_I, bit_field));
+        check_const_expr_val(declarator->bit_field,
+                             Value_create_sint(VALUE_I, bit_field));
     }
     if (identifier) {
         const Declarator* inner_decl = declarator->decl;

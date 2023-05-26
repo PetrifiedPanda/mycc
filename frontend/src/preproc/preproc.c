@@ -173,7 +173,7 @@ static bool convert_preproc_token(Token* t,
                     return false;
                 }
                 Str_free(&t->spelling);
-                t->int_val = res.res;
+                t->val = res.res;
             } else {
                 ParseIntConstRes res = parse_int_const(Str_get_data(&t->spelling), info);
                 if (res.err.kind != INT_CONST_ERR_NONE) {
@@ -183,7 +183,7 @@ static bool convert_preproc_token(Token* t,
                     return false;
                 }
                 Str_free(&t->spelling);
-                t->int_val = res.res;
+                t->val = res.res;
             }
             break;
         }
@@ -196,7 +196,7 @@ static bool convert_preproc_token(Token* t,
                 return false;
             }
             Str_free(&t->spelling);
-            t->float_val = res.res;
+            t->val = res.res;
             break;
         }
         case TOKEN_IDENTIFIER:

@@ -5,9 +5,9 @@
 #define TEST_UINT_LITERAL(constant, expected_val_type)                         \
     do {                                                                       \
         const char spell[] = #constant;                                        \
-        const uintmax_t num = constant;                                        \
+        const uint64_t num = constant;                                         \
         const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);      \
-        const ParseIntConstRes res = parse_int_const(spell, &info);  \
+        const ParseIntConstRes res = parse_int_const(spell, &info);            \
         ASSERT(res.err.kind == INT_CONST_ERR_NONE);                            \
         ASSERT(res.res.kind == expected_val_type);                             \
         ASSERT_UINTMAX_T(num, res.res.uint_val);                               \
@@ -16,23 +16,23 @@
 #define TEST_INT_LITERAL(constant, expected_val_type)                          \
     do {                                                                       \
         const char spell[] = #constant;                                        \
-        const intmax_t num = constant;                                         \
+        const int64_t num = constant;                                          \
         const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);      \
-        const ParseIntConstRes res = parse_int_const(spell, &info);  \
+        const ParseIntConstRes res = parse_int_const(spell, &info);            \
         ASSERT(res.err.kind == INT_CONST_ERR_NONE);                            \
         ASSERT(res.res.kind == expected_val_type);                             \
-        ASSERT_UINTMAX_T(num, res.res.int_val);                                \
+        ASSERT_UINTMAX_T(num, res.res.sint_val);                               \
     } while (0)
 
 TEST(integer) {
-    TEST_UINT_LITERAL(0x100ULL, INT_VALUE_ULL);
-    TEST_UINT_LITERAL(031uLL, INT_VALUE_ULL);
-    TEST_UINT_LITERAL(20000ull, INT_VALUE_ULL);
-    TEST_UINT_LITERAL(1000Ull, INT_VALUE_ULL);
-    TEST_INT_LITERAL(0x1000l, INT_VALUE_L);
-    TEST_INT_LITERAL(200L, INT_VALUE_L);
-    TEST_UINT_LITERAL(070u, INT_VALUE_UI);
-    TEST_UINT_LITERAL(0xabU, INT_VALUE_UI);
+    TEST_UINT_LITERAL(0x100ULL, VALUE_ULL);
+    TEST_UINT_LITERAL(031uLL, VALUE_ULL);
+    TEST_UINT_LITERAL(20000ull, VALUE_ULL);
+    TEST_UINT_LITERAL(1000Ull, VALUE_ULL);
+    TEST_INT_LITERAL(0x1000l, VALUE_L);
+    TEST_INT_LITERAL(200L, VALUE_L);
+    TEST_UINT_LITERAL(070u, VALUE_UI);
+    TEST_UINT_LITERAL(0xabU, VALUE_UI);
 }
 
 // TODO: weirdly different values
@@ -40,67 +40,67 @@ TEST(integer) {
     do {                                                                       \
         const char spell[] = #constant;                                        \
         const double num = constant;                                           \
-        const ParseFloatConstRes res = parse_float_const(spell);     \
+        const ParseFloatConstRes res = parse_float_const(spell);               \
         ASSERT(res.err.kind == FLOAT_CONST_ERR_NONE);                          \
-        ASSERT_DOUBLE(num, res.res.val, 0.000000001l);                         \
+        ASSERT_DOUBLE(num, res.res.float_val, 0.000000001l);                   \
         ASSERT(res.res.kind == expected_val_type);                             \
     } while (0)
 
 TEST(floating) {
-    TEST_FLOAT_LITERAL(1.0f, FLOAT_VALUE_F);
-    TEST_FLOAT_LITERAL(1.0, FLOAT_VALUE_D);
-    TEST_FLOAT_LITERAL(0.05F, FLOAT_VALUE_F);
-    TEST_FLOAT_LITERAL(.0l, FLOAT_VALUE_LD);
-    TEST_FLOAT_LITERAL(2.02342L, FLOAT_VALUE_LD);
-    TEST_FLOAT_LITERAL(1e-10f, FLOAT_VALUE_F);
-    TEST_FLOAT_LITERAL(1e-10, FLOAT_VALUE_D);
-    TEST_FLOAT_LITERAL(0xabcdef0p-10, FLOAT_VALUE_D);
-    TEST_FLOAT_LITERAL(0xdeadbeefp-10L, FLOAT_VALUE_LD);
-    TEST_FLOAT_LITERAL(0xdeadp+10f, FLOAT_VALUE_F);
+    TEST_FLOAT_LITERAL(1.0f, VALUE_F);
+    TEST_FLOAT_LITERAL(1.0, VALUE_D);
+    TEST_FLOAT_LITERAL(0.05F, VALUE_F);
+    TEST_FLOAT_LITERAL(.0l, VALUE_LD);
+    TEST_FLOAT_LITERAL(2.02342L, VALUE_LD);
+    TEST_FLOAT_LITERAL(1e-10f, VALUE_F);
+    TEST_FLOAT_LITERAL(1e-10, VALUE_D);
+    TEST_FLOAT_LITERAL(0xabcdef0p-10, VALUE_D);
+    TEST_FLOAT_LITERAL(0xdeadbeefp-10L, VALUE_LD);
+    TEST_FLOAT_LITERAL(0xdeadp+10f, VALUE_F);
 }
 
 TEST(int_min_fitting_type_decimal) {
-    TEST_INT_LITERAL(10, INT_VALUE_I);
-    TEST_INT_LITERAL(2147483647, INT_VALUE_I);
-    TEST_INT_LITERAL(2147483648, INT_VALUE_L);
-    TEST_INT_LITERAL(9223372036854775807, INT_VALUE_L);
+    TEST_INT_LITERAL(10, VALUE_I);
+    TEST_INT_LITERAL(2147483647, VALUE_I);
+    TEST_INT_LITERAL(2147483648, VALUE_L);
+    TEST_INT_LITERAL(9223372036854775807, VALUE_L);
 
-    TEST_UINT_LITERAL(10u, INT_VALUE_UI);
-    TEST_UINT_LITERAL(4294967295u, INT_VALUE_UI);
-    TEST_UINT_LITERAL(4294967296u, INT_VALUE_UL);
-    TEST_UINT_LITERAL(18446744073709551615u, INT_VALUE_UL);
+    TEST_UINT_LITERAL(10u, VALUE_UI);
+    TEST_UINT_LITERAL(4294967295u, VALUE_UI);
+    TEST_UINT_LITERAL(4294967296u, VALUE_UL);
+    TEST_UINT_LITERAL(18446744073709551615u, VALUE_UL);
 }
 
 TEST(int_min_fitting_type_hex) {
-    TEST_INT_LITERAL(0xa, INT_VALUE_I);
-    TEST_INT_LITERAL(0x7FFFFFFF, INT_VALUE_I);
-    TEST_UINT_LITERAL(0x80000000, INT_VALUE_UI);
-    TEST_UINT_LITERAL(0xFFFFFFFF, INT_VALUE_UI);
-    TEST_INT_LITERAL(0x100000000, INT_VALUE_L);
-    TEST_INT_LITERAL(0x7FFFFFFFFFFFFFFF, INT_VALUE_L);
-    TEST_UINT_LITERAL(0x8000000000000000, INT_VALUE_UL);
-    TEST_UINT_LITERAL(0xFFFFFFFFFFFFFFFF, INT_VALUE_UL);
+    TEST_INT_LITERAL(0xa, VALUE_I);
+    TEST_INT_LITERAL(0x7FFFFFFF, VALUE_I);
+    TEST_UINT_LITERAL(0x80000000, VALUE_UI);
+    TEST_UINT_LITERAL(0xFFFFFFFF, VALUE_UI);
+    TEST_INT_LITERAL(0x100000000, VALUE_L);
+    TEST_INT_LITERAL(0x7FFFFFFFFFFFFFFF, VALUE_L);
+    TEST_UINT_LITERAL(0x8000000000000000, VALUE_UL);
+    TEST_UINT_LITERAL(0xFFFFFFFFFFFFFFFF, VALUE_UL);
 
-    TEST_UINT_LITERAL(0xau, INT_VALUE_UI);
-    TEST_UINT_LITERAL(0xFFFFFFFFu, INT_VALUE_UI);
-    TEST_UINT_LITERAL(0x100000000u, INT_VALUE_UL);
-    TEST_UINT_LITERAL(0xFFFFFFFFFFFFFFFFu, INT_VALUE_UL);
+    TEST_UINT_LITERAL(0xau, VALUE_UI);
+    TEST_UINT_LITERAL(0xFFFFFFFFu, VALUE_UI);
+    TEST_UINT_LITERAL(0x100000000u, VALUE_UL);
+    TEST_UINT_LITERAL(0xFFFFFFFFFFFFFFFFu, VALUE_UL);
 }
 
 TEST(int_min_fitting_type_oct) {
-    TEST_INT_LITERAL(012, INT_VALUE_I);
-    TEST_INT_LITERAL(017777777777, INT_VALUE_I);
-    TEST_UINT_LITERAL(020000000000, INT_VALUE_UI);
-    TEST_UINT_LITERAL(037777777777, INT_VALUE_UI);
-    TEST_INT_LITERAL(040000000000, INT_VALUE_L);
-    TEST_INT_LITERAL(0777777777777777777777, INT_VALUE_L);
-    TEST_UINT_LITERAL(01000000000000000000000, INT_VALUE_UL);
-    TEST_UINT_LITERAL(01777777777777777777777, INT_VALUE_UL);
+    TEST_INT_LITERAL(012, VALUE_I);
+    TEST_INT_LITERAL(017777777777, VALUE_I);
+    TEST_UINT_LITERAL(020000000000, VALUE_UI);
+    TEST_UINT_LITERAL(037777777777, VALUE_UI);
+    TEST_INT_LITERAL(040000000000, VALUE_L);
+    TEST_INT_LITERAL(0777777777777777777777, VALUE_L);
+    TEST_UINT_LITERAL(01000000000000000000000, VALUE_UL);
+    TEST_UINT_LITERAL(01777777777777777777777, VALUE_UL);
 
-    TEST_UINT_LITERAL(012u, INT_VALUE_UI);
-    TEST_UINT_LITERAL(037777777777u, INT_VALUE_UI);
-    TEST_UINT_LITERAL(040000000000u, INT_VALUE_UL);
-    TEST_UINT_LITERAL(01777777777777777777777u, INT_VALUE_UL);
+    TEST_UINT_LITERAL(012u, VALUE_UI);
+    TEST_UINT_LITERAL(037777777777u, VALUE_UI);
+    TEST_UINT_LITERAL(040000000000u, VALUE_UL);
+    TEST_UINT_LITERAL(01777777777777777777777u, VALUE_UL);
 }
 
 static void test_parse_int_err(const char* spell, IntConstErrKind err) {

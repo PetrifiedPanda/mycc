@@ -92,20 +92,15 @@ static void serialize_identifier(AstSerializer* d, const Identifier* id) {
     serialize_str(d, &id->spelling);
 }
 
-static void serialize_int_value(AstSerializer* d,
-                                const IntValue* val) {
+static void serialize_value(AstSerializer* d, const Value* val) {
     serialize_uint(d, val->kind);
-    if (int_value_is_signed(val->kind)) {
-        serialize_int(d, val->int_val);
-    } else {
+    if (ValueKind_is_sint(val->kind)) {
+        serialize_int(d, val->sint_val);
+    } else if (ValueKind_is_uint(val->kind)) {
         serialize_uint(d, val->uint_val);
+    } else {
+        serialize_float(d, val->float_val);
     }
-}
-
-static void serialize_float_value(AstSerializer* d,
-                                  const FloatValue* val) {
-    serialize_uint(d, val->kind);
-    serialize_float(d, val->val);
 }
 
 static void serialize_constant(AstSerializer* d, const Constant* constant) {
@@ -117,11 +112,8 @@ static void serialize_constant(AstSerializer* d, const Constant* constant) {
         case CONSTANT_ENUM:
             serialize_str(d, &constant->spelling);
             break;
-        case CONSTANT_INT:
-            serialize_int_value(d, &constant->int_val);
-            break;
-        case CONSTANT_FLOAT:
-            serialize_float_value(d, &constant->float_val);
+        case CONSTANT_VAL:
+            serialize_value(d, &constant->val);
             break;
     }
 }

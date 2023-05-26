@@ -67,18 +67,12 @@ PrimaryExpr* parse_primary_expr(ParserState* s) {
             return create_primary_expr_identifier(
                 Identifier_create(&spelling, loc));
         }
-        case TOKEN_F_CONSTANT: {
-            const SourceLoc loc = s->it->loc;
-            const FloatValue val = s->it->float_val;
-            parser_accept_it(s);
-            return create_primary_expr_constant(
-                Constant_create_float(val, loc));
-        }
+        case TOKEN_F_CONSTANT:
         case TOKEN_I_CONSTANT: {
             const SourceLoc loc = s->it->loc;
-            IntValue val = s->it->int_val;
+            const Value val = s->it->val;
             parser_accept_it(s);
-            return create_primary_expr_constant(Constant_create_int(val, loc));
+            return create_primary_expr_constant(Constant_create(val, loc));
         }
         case TOKEN_STRING_LITERAL: {
             const StrLit lit = Token_take_str_lit(s->it);

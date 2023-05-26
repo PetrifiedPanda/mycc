@@ -121,9 +121,9 @@ translation_unit:
                                                 postfix_expr:
                                                   primary_expr:
                                                     constant: ../frontend/test/files/no_preproc.c:5,14
-                                                      int_value:
-                                                        type: INT_VALUE_I
-                                                        int_val: 16
+                                                      value:
+                                                        type: VALUE_I
+                                                        sint_val: 16
                                                   len: 0
                   type_specs:
                     type_modifiers:
@@ -252,9 +252,9 @@ translation_unit:
                                                 postfix_expr:
                                                   primary_expr:
                                                     constant: ../frontend/test/files/no_preproc.c:9,19
-                                                      int_value:
-                                                        type: INT_VALUE_I
-                                                        int_val: 4
+                                                      value:
+                                                        type: VALUE_I
+                                                        sint_val: 4
                                                   len: 0
                   struct_declarator:
                     const_expr:
@@ -287,9 +287,9 @@ translation_unit:
                                                 postfix_expr:
                                                   primary_expr:
                                                     constant: ../frontend/test/files/no_preproc.c:9,24
-                                                      int_value:
-                                                        type: INT_VALUE_I
-                                                        int_val: 4
+                                                      value:
+                                                        type: VALUE_I
+                                                        sint_val: 4
                                                   len: 0
               struct_declaration
                 declaration_specs: ../frontend/test/files/no_preproc.c:10,5
@@ -864,9 +864,9 @@ translation_unit:
                                                               postfix_expr:
                                                                 primary_expr:
                                                                   constant: ../frontend/test/files/no_preproc.c:33,21
-                                                                    int_value:
-                                                                      type: INT_VALUE_L
-                                                                      int_val: 1000
+                                                                    value:
+                                                                      type: VALUE_L
+                                                                      sint_val: 1000
                                                                 len: 0
                                                           mul_op: %
                                                           cast_expr: ../frontend/test/files/no_preproc.c:33,29
@@ -876,9 +876,9 @@ translation_unit:
                                                               postfix_expr:
                                                                 primary_expr:
                                                                   constant: ../frontend/test/files/no_preproc.c:33,29
-                                                                    int_value:
-                                                                      type: INT_VALUE_I
-                                                                      int_val: 5
+                                                                    value:
+                                                                      type: VALUE_I
+                                                                      sint_val: 5
                                                                 len: 0
                   block_item:
                     statement:
@@ -932,9 +932,9 @@ translation_unit:
                                                           postfix_expr:
                                                             primary_expr:
                                                               constant: ../frontend/test/files/no_preproc.c:37,21
-                                                                int_value:
-                                                                  type: INT_VALUE_L
-                                                                  int_val: 30
+                                                                value:
+                                                                  type: VALUE_L
+                                                                  sint_val: 30
                                                             len: 0
                   block_item:
                     statement:
@@ -1012,9 +1012,9 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/no_preproc.c:46,19
-                                                          int_value:
-                                                            type: INT_VALUE_I
-                                                            int_val: 0
+                                                          value:
+                                                            type: VALUE_I
+                                                            sint_val: 0
                                                       len: 0
                     designation_init:
                       initializer: ../frontend/test/files/no_preproc.c:46,22
@@ -1121,9 +1121,9 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:47,19
-                                                    int_value:
-                                                      type: INT_VALUE_I
-                                                      int_val: 512
+                                                    value:
+                                                      type: VALUE_I
+                                                      sint_val: 512
                                                 len: 0
                                       shift_op: <<
                                       add_expr:
@@ -1137,9 +1137,9 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:47,28
-                                                    int_value:
-                                                      type: INT_VALUE_I
-                                                      int_val: 10
+                                                    value:
+                                                      type: VALUE_I
+                                                      sint_val: 10
                                                 len: 0
         block_item:
           statement:
@@ -1566,9 +1566,9 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/no_preproc.c:55,22
-                                                  int_value:
-                                                    type: INT_VALUE_I
-                                                    int_val: 4096
+                                                  value:
+                                                    type: VALUE_I
+                                                    sint_val: 4096
                                               len: 0
                                       add_op: +
                                       mul_expr:
@@ -1580,9 +1580,9 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/no_preproc.c:55,31
-                                                  int_value:
-                                                    type: INT_VALUE_I
-                                                    int_val: 13986
+                                                  value:
+                                                    type: VALUE_I
+                                                    sint_val: 13986
                                               len: 0
         block_item:
           declaration:
@@ -1925,8 +1925,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:66,16
-                                                    float_value:
-                                                      type: FLOAT_VALUE_D
+                                                    value:
+                                                      type: VALUE_D
                                                       float_val: 1e-10
                                                 len: 0
                                         add_op: -
@@ -1939,8 +1939,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:66,24
-                                                    float_value:
-                                                      type: FLOAT_VALUE_D
+                                                    value:
+                                                      type: VALUE_D
                                                       float_val: 4.50683e+07
                                                 len: 0
         block_item:
@@ -2161,9 +2161,9 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:70,14
-                                                    int_value:
-                                                      type: INT_VALUE_I
-                                                      int_val: 10
+                                                    value:
+                                                      type: VALUE_I
+                                                      sint_val: 10
                                                 len: 0
         block_item:
           declaration:
@@ -2646,9 +2646,9 @@ translation_unit:
                                                   postfix_expr:
                                                     primary_expr:
                                                       constant: ../frontend/test/files/no_preproc.c:74,20
-                                                        int_value:
-                                                          type: INT_VALUE_I
-                                                          int_val: 50000
+                                                        value:
+                                                          type: VALUE_I
+                                                          sint_val: 50000
                                                     len: 0
             init_declarator_list:
               len: 0
@@ -2765,9 +2765,9 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/no_preproc.c:75,24
-                                                          int_value:
-                                                            type: INT_VALUE_I
-                                                            int_val: 0
+                                                          value:
+                                                            type: VALUE_I
+                                                            sint_val: 0
                                                       len: 0
         block_item:
           statement:
@@ -2839,9 +2839,9 @@ translation_unit:
                                                   postfix_expr:
                                                     primary_expr:
                                                       constant: ../frontend/test/files/no_preproc.c:76,18
-                                                        int_value:
-                                                          type: INT_VALUE_I
-                                                          int_val: 0
+                                                        value:
+                                                          type: VALUE_I
+                                                          sint_val: 0
                                                     len: 0
                   init_declarator:
                     declarator:
@@ -2973,9 +2973,9 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:76,49
-                                                    int_value:
-                                                      type: INT_VALUE_I
-                                                      int_val: 0
+                                                    value:
+                                                      type: VALUE_I
+                                                      sint_val: 0
                                                 len: 0
               expr:
                 len: 2
@@ -3171,9 +3171,9 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/no_preproc.c:77,28
-                                                            int_value:
-                                                              type: INT_VALUE_I
-                                                              int_val: 5
+                                                            value:
+                                                              type: VALUE_I
+                                                              sint_val: 5
                                                         len: 0
                   block_item:
                     statement:
@@ -3282,9 +3282,9 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/no_preproc.c:78,28
-                                                            int_value:
-                                                              type: INT_VALUE_I
-                                                              int_val: 4
+                                                            value:
+                                                              type: VALUE_I
+                                                              sint_val: 4
                                                         len: 0
                                       and_expr:
                                         len: 1
@@ -3379,9 +3379,9 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:81,13
-                                                    int_value:
-                                                      type: INT_VALUE_I
-                                                      int_val: 0
+                                                    value:
+                                                      type: VALUE_I
+                                                      sint_val: 0
                                                 len: 0
         block_item:
           declaration:
@@ -3450,8 +3450,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:82,18
-                                                    int_value:
-                                                      type: INT_VALUE_UI
+                                                    value:
+                                                      type: VALUE_UI
                                                       uint_val: 3735928559
                                                 len: 0
         block_item:
@@ -3820,9 +3820,9 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/no_preproc.c:96,23
-                                                            int_value:
-                                                              type: INT_VALUE_I
-                                                              int_val: 4
+                                                            value:
+                                                              type: VALUE_I
+                                                              sint_val: 4
                                                         len: 0
                   block_item:
                     statement:
@@ -3869,9 +3869,9 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/no_preproc.c:97,23
-                                                            int_value:
-                                                              type: INT_VALUE_I
-                                                              int_val: 5
+                                                            value:
+                                                              type: VALUE_I
+                                                              sint_val: 5
                                                         len: 0
                   block_item:
                     statement:
@@ -3954,9 +3954,9 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/no_preproc.c:98,19
-                                                            int_value:
-                                                              type: INT_VALUE_I
-                                                              int_val: 9025
+                                                            value:
+                                                              type: VALUE_I
+                                                              sint_val: 9025
                                                         len: 0
                   block_item:
                     statement:
@@ -4019,9 +4019,9 @@ translation_unit:
                                                                   postfix_expr:
                                                                     primary_expr:
                                                                       constant: ../frontend/test/files/no_preproc.c:99,17
-                                                                        int_value:
-                                                                          type: INT_VALUE_I
-                                                                          int_val: 1
+                                                                        value:
+                                                                          type: VALUE_I
+                                                                          sint_val: 1
                                                                     len: 0
                               |=
                             cond_expr:
@@ -4053,9 +4053,9 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/no_preproc.c:99,23
-                                                            int_value:
-                                                              type: INT_VALUE_I
-                                                              int_val: 1
+                                                            value:
+                                                              type: VALUE_I
+                                                              sint_val: 1
                                                         len: 0
                   block_item:
                     statement:
@@ -4106,9 +4106,9 @@ translation_unit:
                                                                   postfix_expr:
                                                                     primary_expr:
                                                                       constant: ../frontend/test/files/no_preproc.c:100,13
-                                                                        int_value:
-                                                                          type: INT_VALUE_I
-                                                                          int_val: 0
+                                                                        value:
+                                                                          type: VALUE_I
+                                                                          sint_val: 0
                                                                     len: 0
                               ^=
                             cond_expr:
@@ -4140,9 +4140,9 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/no_preproc.c:100,19
-                                                            int_value:
-                                                              type: INT_VALUE_I
-                                                              int_val: 10423
+                                                            value:
+                                                              type: VALUE_I
+                                                              sint_val: 10423
                                                         len: 0
               expr:
                 len: 1
@@ -4177,9 +4177,9 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/no_preproc.c:101,14
-                                                  int_value:
-                                                    type: INT_VALUE_I
-                                                    int_val: 1
+                                                  value:
+                                                    type: VALUE_I
+                                                    sint_val: 1
                                               len: 0
         block_item:
           statement:
@@ -4218,9 +4218,9 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/no_preproc.c:103,12
-                                                  int_value:
-                                                    type: INT_VALUE_I
-                                                    int_val: 1
+                                                  value:
+                                                    type: VALUE_I
+                                                    sint_val: 1
                                               len: 0
               statement:
                 compound_statement: ../frontend/test/files/no_preproc.c:103,15
@@ -4334,9 +4334,9 @@ translation_unit:
                                                                                                                 postfix_expr:
                                                                                                                   primary_expr:
                                                                                                                     constant: ../frontend/test/files/no_preproc.c:107,17
-                                                                                                                      int_value:
-                                                                                                                        type: INT_VALUE_I
-                                                                                                                        int_val: 0
+                                                                                                                      value:
+                                                                                                                        type: VALUE_I
+                                                                                                                        sint_val: 0
                                                                                                                   len: 0
                                                                   eq_op: ==
                                                                   rel_expr:
@@ -4354,9 +4354,9 @@ translation_unit:
                                                                               postfix_expr:
                                                                                 primary_expr:
                                                                                   constant: ../frontend/test/files/no_preproc.c:107,23
-                                                                                    int_value:
-                                                                                      type: INT_VALUE_I
-                                                                                      int_val: 37
+                                                                                    value:
+                                                                                      type: VALUE_I
+                                                                                      sint_val: 37
                                                                                 len: 0
                                                       expr:
                                                         len: 1
@@ -4488,9 +4488,9 @@ translation_unit:
                                                                                                                                                   postfix_expr:
                                                                                                                                                     primary_expr:
                                                                                                                                                       constant: ../frontend/test/files/no_preproc.c:107,40
-                                                                                                                                                        int_value:
-                                                                                                                                                          type: INT_VALUE_I
-                                                                                                                                                          int_val: 1
+                                                                                                                                                        value:
+                                                                                                                                                          type: VALUE_I
+                                                                                                                                                          sint_val: 1
                                                                                                                                                     len: 0
                                                                                                     eq_op: ==
                                                                                                     rel_expr:
@@ -4508,9 +4508,9 @@ translation_unit:
                                                                                                                 postfix_expr:
                                                                                                                   primary_expr:
                                                                                                                     constant: ../frontend/test/files/no_preproc.c:107,46
-                                                                                                                      int_value:
-                                                                                                                        type: INT_VALUE_I
-                                                                                                                        int_val: 37
+                                                                                                                      value:
+                                                                                                                        type: VALUE_I
+                                                                                                                        sint_val: 37
                                                                                                                   len: 0
                                                                                         expr:
                                                                                           len: 1
@@ -4579,9 +4579,9 @@ translation_unit:
                                                                                                                     postfix_expr:
                                                                                                                       primary_expr:
                                                                                                                         constant: ../frontend/test/files/no_preproc.c:107,64
-                                                                                                                          int_value:
-                                                                                                                            type: INT_VALUE_I
-                                                                                                                            int_val: 123123
+                                                                                                                          value:
+                                                                                                                            type: VALUE_I
+                                                                                                                            sint_val: 123123
                                                                                                                       len: 0
                                                                                                         shift_op: >>
                                                                                                         add_expr:
@@ -4595,9 +4595,9 @@ translation_unit:
                                                                                                                 postfix_expr:
                                                                                                                   primary_expr:
                                                                                                                     constant: ../frontend/test/files/no_preproc.c:107,74
-                                                                                                                      int_value:
-                                                                                                                        type: INT_VALUE_I
-                                                                                                                        int_val: 4
+                                                                                                                      value:
+                                                                                                                        type: VALUE_I
+                                                                                                                        sint_val: 4
                                                                                                                   len: 0
                                                                                 len: 0
                                               len: 0
@@ -4740,9 +4740,9 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:111,23
-                                                    int_value:
-                                                      type: INT_VALUE_I
-                                                      int_val: 10
+                                                    value:
+                                                      type: VALUE_I
+                                                      sint_val: 10
                                                 len: 0
         block_item:
           declaration:
@@ -4887,9 +4887,9 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:114,30
-                                                    int_value:
-                                                      type: INT_VALUE_I
-                                                      int_val: 0
+                                                    value:
+                                                      type: VALUE_I
+                                                      sint_val: 0
                                                 len: 0
         block_item:
           declaration:
@@ -4989,8 +4989,8 @@ translation_unit:
                                                                                 postfix_expr:
                                                                                   primary_expr:
                                                                                     constant: ../frontend/test/files/no_preproc.c:115,39
-                                                                                      float_value:
-                                                                                        type: FLOAT_VALUE_D
+                                                                                      value:
+                                                                                        type: VALUE_D
                                                                                         float_val: 1
                                                                                   len: 0
                                                     generic_assoc_list: ../frontend/test/files/no_preproc.c:115,44
@@ -5043,8 +5043,8 @@ translation_unit:
                                                                                     postfix_expr:
                                                                                       primary_expr:
                                                                                         constant: ../frontend/test/files/no_preproc.c:115,51
-                                                                                          float_value:
-                                                                                            type: FLOAT_VALUE_F
+                                                                                          value:
+                                                                                            type: VALUE_F
                                                                                             float_val: 4
                                                                                       len: 0
                                                       generic_assoc: ../frontend/test/files/no_preproc.c:115,60
@@ -5095,8 +5095,8 @@ translation_unit:
                                                                                     postfix_expr:
                                                                                       primary_expr:
                                                                                         constant: ../frontend/test/files/no_preproc.c:115,68
-                                                                                          float_value:
-                                                                                            type: FLOAT_VALUE_LD
+                                                                                          value:
+                                                                                            type: VALUE_LD
                                                                                             float_val: 0.0175781
                                                                                       len: 0
                                                 len: 0
@@ -5133,9 +5133,9 @@ translation_unit:
                                           postfix_expr:
                                             primary_expr:
                                               constant: ../frontend/test/files/no_preproc.c:116,20
-                                                int_value:
-                                                  type: INT_VALUE_I
-                                                  int_val: 1
+                                                value:
+                                                  type: VALUE_I
+                                                  sint_val: 1
                                             len: 0
               string_literal: ../frontend/test/files/no_preproc.c:116,23
                 str_lit:
@@ -5212,9 +5212,9 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:118,14
-                                                    int_value:
-                                                      type: INT_VALUE_I
-                                                      int_val: 92
+                                                    value:
+                                                      type: VALUE_I
+                                                      sint_val: 92
                                                 len: 0
               init_declarator:
                 declarator:
@@ -5253,9 +5253,9 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:118,24
-                                                    int_value:
-                                                      type: INT_VALUE_I
-                                                      int_val: 39
+                                                    value:
+                                                      type: VALUE_I
+                                                      sint_val: 39
                                                 len: 0
               init_declarator:
                 declarator:
@@ -5294,9 +5294,9 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:118,34
-                                                    int_value:
-                                                      type: INT_VALUE_I
-                                                      int_val: 34
+                                                    value:
+                                                      type: VALUE_I
+                                                      sint_val: 34
                                                 len: 0
               init_declarator:
                 declarator:
@@ -5335,9 +5335,9 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:118,43
-                                                    int_value:
-                                                      type: INT_VALUE_I
-                                                      int_val: 0
+                                                    value:
+                                                      type: VALUE_I
+                                                      sint_val: 0
                                                 len: 0
         block_item:
           declaration:
@@ -5406,9 +5406,9 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/no_preproc.c:119,13
-                                                    int_value:
-                                                      type: INT_VALUE_I
-                                                      int_val: 115
+                                                    value:
+                                                      type: VALUE_I
+                                                      sint_val: 115
                                                 len: 0
   external_declaration:
     declaration:

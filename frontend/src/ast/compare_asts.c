@@ -76,18 +76,15 @@ static bool compare_identifiers(const Identifier* i1, const Identifier* i2) {
     return compare_strs(&i1->spelling, &i2->spelling);
 }
 
-static bool compare_int_value(const IntValue* v1, const IntValue* v2) {
+static bool compare_values(const Value* v1, const Value* v2) {
     ASSERT(v1->kind == v2->kind);
-    if (int_value_is_signed(v1->kind)) {
-        return v1->int_val == v2->int_val;
+    if (ValueKind_is_sint(v1->kind)) {
+        return v1->sint_val == v2->sint_val;
+    } else if (ValueKind_is_uint(v1->kind)) {
+        return v1->uint_val == v2->uint_val; 
     } else {
-        return v1->uint_val == v2->uint_val;
+        return v1->float_val == v2->float_val;
     }
-}
-
-static bool compare_float_value(const FloatValue* v1, const FloatValue* v2) {
-    ASSERT(v1->kind == v2->kind);
-    return v1->val == v2->val;
 }
 
 static bool compare_constants(const Constant* c1, const Constant* c2) {
@@ -96,10 +93,8 @@ static bool compare_constants(const Constant* c1, const Constant* c2) {
     switch (c1->kind) {
         case CONSTANT_ENUM:
             return compare_strs(&c1->spelling, &c2->spelling);
-        case CONSTANT_INT:
-            return compare_int_value(&c1->int_val, &c2->int_val);
-        case CONSTANT_FLOAT:
-            return compare_float_value(&c1->float_val, &c2->float_val);
+        case CONSTANT_VAL:
+            return compare_values(&c1->val, &c2->val);
     }
     UNREACHABLE();
 }

@@ -2,21 +2,11 @@
 
 #include <assert.h>
 
-Constant Constant_create_int(IntValue val,
-                                    SourceLoc loc) {
+Constant Constant_create(Value val, SourceLoc loc) {
     return (Constant){
         .info = AstNodeInfo_create(loc),
-        .kind = CONSTANT_INT,
-        .int_val = val,
-    };
-}
-
-Constant Constant_create_float(FloatValue val,
-                                      SourceLoc loc) {
-    return (Constant){
-        .info = AstNodeInfo_create(loc),
-        .kind = CONSTANT_FLOAT,
-        .float_val = val,
+        .kind = CONSTANT_VAL,
+        .val = val,
     };
 }
 
