@@ -30,7 +30,7 @@ static UnaryOrCond parse_unary_or_cond(ParserState* s) {
         }
 
         if (!parser_accept(s, TOKEN_RBRACKET)) {
-            free_type_name(type_name);
+            TypeName_free(type_name);
             return res;
         }
 
@@ -128,7 +128,7 @@ bool parse_assign_expr_inplace(ParserState* s, AssignExpr* res) {
 
         opt = parse_unary_or_cond(s);
         if (opt.unary == NULL) {
-            free_unary_expr(last_unary);
+            UnaryExpr_free(last_unary);
             goto fail;
         } else if (opt.is_cond) {
             res->value = opt.cond;
@@ -158,7 +158,7 @@ bool parse_assign_expr_inplace(ParserState* s, AssignExpr* res) {
 
     res->assign_chain = mycc_realloc(res->assign_chain, sizeof *res->assign_chain * res->len);
 
-    res->value = parse_cond_expr_cast(s, create_cast_expr_unary(last_unary));
+    res->value = parse_cond_expr_cast(s, CastExpr_create_unary(last_unary));
     if (!res->value) {
         goto fail;
     }
@@ -166,7 +166,7 @@ bool parse_assign_expr_inplace(ParserState* s, AssignExpr* res) {
     return true;
 fail:
     for (size_t i = 0; i < res->len; ++i) {
-        free_unary_expr(res->assign_chain[i].unary);
+        UnaryExpr_free(res->assign_chain[i].unary);
     }
     mycc_free(res->assign_chain);
 
@@ -182,16 +182,16 @@ struct AssignExpr* parse_assign_expr(ParserState* s) {
     return res;
 }
 
-void free_assign_expr_children(struct AssignExpr* e) {
+void AssignExpr_free_children(struct AssignExpr* e) {
     for (size_t i = 0; i < e->len; ++i) {
-        free_unary_expr(e->assign_chain[i].unary);
+        UnaryExpr_free(e->assign_chain[i].unary);
     }
     mycc_free(e->assign_chain);
 
-    free_cond_expr(e->value);
+    CondExpr_free(e->value);
 }
 
-void free_assign_expr(struct AssignExpr* e) {
-    free_assign_expr_children(e);
+void AssignExpr_free(struct AssignExpr* e) {
+    AssignExpr_free_children(e);
     mycc_free(e);
 }

@@ -21,13 +21,13 @@ static bool parse_struct_declarator_inplace(ParserState* s, StructDeclarator* re
         parser_accept_it(s);
         res->bit_field = parse_const_expr(s);
         if (!res->bit_field) {
-            free_struct_declarator_children(res);
+            StructDeclarator_free_children(res);
             return false;
         }
     } else {
         res->bit_field = NULL;
         if (!res->decl) {
-            set_parser_err(s->err,
+            ParserErr_set(s->err,
                            PARSER_ERR_EMPTY_STRUCT_DECLARATOR,
                            s->it->loc);
             return false;
@@ -37,12 +37,12 @@ static bool parse_struct_declarator_inplace(ParserState* s, StructDeclarator* re
     return true;
 }
 
-void free_struct_declarator_children(StructDeclarator* d) {
+void StructDeclarator_free_children(StructDeclarator* d) {
     if (d->decl) {
-        free_declarator(d->decl);
+        Declarator_free(d->decl);
     }
     if (d->bit_field) {
-        free_const_expr(d->bit_field);
+        ConstExpr_free(d->bit_field);
     }
 }
 
@@ -65,7 +65,7 @@ static bool parse_struct_declarator_list(ParserState* s, StructDeclaratorList* r
         }
 
         if (!parse_struct_declarator_inplace(s, &res->decls[res->len])) {
-            free_struct_declarator_list(res);
+            StructDeclaratorList_free(res);
             return false;
         }
 
@@ -77,9 +77,9 @@ static bool parse_struct_declarator_list(ParserState* s, StructDeclaratorList* r
     return res;
 }
 
-void free_struct_declarator_list(StructDeclaratorList* l) {
+void StructDeclaratorList_free(StructDeclaratorList* l) {
     for (size_t i = 0; i < l->len; ++i) {
-        free_struct_declarator_children(&l->decls[i]);
+        StructDeclarator_free_children(&l->decls[i]);
     }
     mycc_free(l->decls);
 }
@@ -100,12 +100,12 @@ static bool parse_struct_declaration_inplace(ParserState* s, StructDeclaration* 
         }
 
         if (found_typedef) {
-            set_parser_err(s->err, PARSER_ERR_TYPEDEF_STRUCT, s->it->loc);
+            ParserErr_set(s->err, PARSER_ERR_TYPEDEF_STRUCT, s->it->loc);
         }
 
         if (s->it->kind != TOKEN_SEMICOLON) {
             if (!parse_struct_declarator_list(s, &res->decls)) {
-                free_declaration_specs(res->decl_specs);
+                DeclarationSpecs_free(res->decl_specs);
                 return false;
             }
         } else {
@@ -116,7 +116,7 @@ static bool parse_struct_declaration_inplace(ParserState* s, StructDeclaration* 
         }
 
         if (!parser_accept(s, TOKEN_SEMICOLON)) {
-            free_struct_declaration_children(res);
+            StructDeclaration_free_children(res);
             return false;
         }
     }
@@ -124,12 +124,12 @@ static bool parse_struct_declaration_inplace(ParserState* s, StructDeclaration* 
     return true;
 }
 
-void free_struct_declaration_children(StructDeclaration* d) {
+void StructDeclaration_free_children(StructDeclaration* d) {
     if (d->is_static_assert) {
-        free_static_assert_declaration(d->assert);
+        StaticAssertDeclaration_free(d->assert);
     } else {
-        free_declaration_specs(d->decl_specs);
-        free_struct_declarator_list(&d->decls);
+        DeclarationSpecs_free(d->decl_specs);
+        StructDeclaratorList_free(&d->decls);
     }
 }
 
@@ -139,7 +139,7 @@ static StructUnionSpec* create_struct_union(
     Identifier* identifier,
     StructDeclarationList decl_list) {
     StructUnionSpec* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(loc);
+    res->info = AstNodeInfo_create(loc);
     res->is_struct = is_struct;
     res->identifier = identifier;
     res->decl_list = decl_list;
@@ -165,7 +165,7 @@ static bool parse_struct_declaration_list(ParserState* s, StructDeclarationList*
         }
 
         if (!parse_struct_declaration_inplace(s, &res->decls[res->len])) {
-            free_struct_declaration_list(res);
+            StructDeclarationList_free(res);
             return false;
         }
 
@@ -177,9 +177,9 @@ static bool parse_struct_declaration_list(ParserState* s, StructDeclarationList*
     return res;
 }
 
-void free_struct_declaration_list(StructDeclarationList* l) {
+void StructDeclarationList_free(StructDeclarationList* l) {
     for (size_t i = 0; i < l->len; ++i) {
-        free_struct_declaration_children(&l->decls[i]);
+        StructDeclaration_free_children(&l->decls[i]);
     }
     mycc_free(l->decls);
 }
@@ -198,10 +198,10 @@ StructUnionSpec* parse_struct_union_spec(ParserState* s) {
     }
     Identifier* id = NULL;
     if (s->it->kind == TOKEN_IDENTIFIER) {
-        const Str spell = token_take_spelling(s->it);
+        const Str spell = Token_take_spelling(s->it);
         const SourceLoc id_loc = s->it->loc;
         parser_accept_it(s);
-        id = create_identifier(&spell, id_loc);
+        id = Identifier_create(&spell, id_loc);
     }
 
     StructDeclarationList list = {.len = 0, .decls = NULL};
@@ -212,7 +212,7 @@ StructUnionSpec* parse_struct_union_spec(ParserState* s) {
         }
 
         if (!parser_accept(s, TOKEN_RBRACE)) {
-            free_struct_declaration_list(&list);
+            StructDeclarationList_free(&list);
             goto fail;
         }
     }
@@ -220,19 +220,19 @@ StructUnionSpec* parse_struct_union_spec(ParserState* s) {
 
 fail:
     if (id) {
-        free_identifier(id);
+        Identifier_free(id);
     }
     return NULL;
 }
 
 static void free_struct_union_spec_children(StructUnionSpec* s) {
     if (s->identifier) {
-        free_identifier(s->identifier);
+        Identifier_free(s->identifier);
     }
-    free_struct_declaration_list(&s->decl_list);
+    StructDeclarationList_free(&s->decl_list);
 }
 
-void free_struct_union_spec(StructUnionSpec* s) {
+void StructUnionSpec_free(StructUnionSpec* s) {
     free_struct_union_spec_children(s);
     mycc_free(s);
 }

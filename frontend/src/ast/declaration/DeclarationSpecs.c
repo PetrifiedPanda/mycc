@@ -122,7 +122,7 @@ DeclarationSpecs* parse_declaration_specs(ParserState* s, bool* found_typedef) {
     assert(*found_typedef == false);
 
     DeclarationSpecs* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(s->it->loc);
+    res->info = AstNodeInfo_create(s->it->loc);
     res->func_specs = (FuncSpecs){
         .is_inline = false,
         .is_noreturn = false,
@@ -137,13 +137,13 @@ DeclarationSpecs* parse_declaration_specs(ParserState* s, bool* found_typedef) {
         .is_register = false,
     };
 
-    res->type_quals = create_type_quals();
+    res->type_quals = TypeQuals_create();
 
     res->align_specs = NULL;
     res->num_align_specs = 0;
     size_t alloc_len_align_specs = 0;
 
-    res->type_specs = create_type_specs();
+    res->type_specs = TypeSpecs_create();
 
     while (true) {
         ParseDeclarationSpecRes success = parse_declaration_spec(
@@ -152,7 +152,7 @@ DeclarationSpecs* parse_declaration_specs(ParserState* s, bool* found_typedef) {
             &alloc_len_align_specs);
 
         if (success == DECL_SPEC_ERROR) {
-            free_declaration_specs(res);
+            DeclarationSpecs_free(res);
             return NULL;
         } else if (success == DECL_SPEC_LAST) {
             break;
@@ -170,13 +170,13 @@ DeclarationSpecs* parse_declaration_specs(ParserState* s, bool* found_typedef) {
 
 static void free_declaration_specs_children(DeclarationSpecs* s) {
     for (size_t i = 0; i < s->num_align_specs; ++i) {
-        free_align_spec_children(&s->align_specs[i]);
+        AlignSpec_free_children(&s->align_specs[i]);
     }
     mycc_free(s->align_specs);
-    free_type_specs_children(&s->type_specs);
+    TypeSpecs_free_children(&s->type_specs);
 }
 
-void free_declaration_specs(DeclarationSpecs* s) {
+void DeclarationSpecs_free(DeclarationSpecs* s) {
     free_declaration_specs_children(s);
 
     mycc_free(s);

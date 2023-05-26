@@ -12,7 +12,7 @@ typedef struct StringMapKey {
     Str str;
 } StringMapKey;
 
-StringMap create_string_map(size_t elem_size,
+StringMap StringMap_create(size_t elem_size,
                                     size_t init_cap,
                                     bool free_keys,
                                     void (*item_free)(void*)) {
@@ -27,7 +27,7 @@ StringMap create_string_map(size_t elem_size,
     };
 }
 
-void free_string_map(StringMap* map) {
+void StringMap_free(StringMap* map) {
     if (map->_item_free) {
         char* items_char = map->_items;
         for (size_t i = 0; i < map->_cap; ++i) {
@@ -94,7 +94,7 @@ static void rehash_if_necessary(StringMap* map) {
     }
 }
 
-const void* string_map_insert(StringMap* map,
+const void* StringMap_insert(StringMap* map,
                               const Str* key,
                               const void* item) {
     assert(key);
@@ -118,7 +118,7 @@ const void* string_map_insert(StringMap* map,
     return item;
 }
 
-bool string_map_insert_overwrite(StringMap* map, const Str* key, const void* item) {
+bool StringMap_insert_overwrite(StringMap* map, const Str* key, const void* item) {
     assert(key);
     assert(item);
 
@@ -150,7 +150,7 @@ bool string_map_insert_overwrite(StringMap* map, const Str* key, const void* ite
     return overwritten;
 }
 
-const void* string_map_get(const StringMap* map, const Str* key) {
+const void* StringMap_get(const StringMap* map, const Str* key) {
     assert(key);
     const size_t idx = find_item_index(map, key);
 
@@ -161,7 +161,7 @@ const void* string_map_get(const StringMap* map, const Str* key) {
     return (char*)map->_items + idx * map->_item_size;
 }
 
-void string_map_remove(StringMap* map, const Str* key) {
+void StringMap_remove(StringMap* map, const Str* key) {
     const size_t idx = find_item_index(map, key);
 
     Str* key_to_remove = &map->_keys[idx].str;
@@ -196,7 +196,7 @@ static void resize_map(StringMap* map) {
 
     for (size_t i = 0; i < prev_cap; ++i) {
         if (Str_is_valid(&old_keys[i].str)) {
-            const void* success = string_map_insert(map,
+            const void* success = StringMap_insert(map,
                                                     &old_keys[i].str,
                                                     (char*)old_items
                                                         + i * map->_item_size);

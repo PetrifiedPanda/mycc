@@ -18,7 +18,7 @@ typedef struct CastExpr CastExpr;
 
 LogOrExpr* parse_log_or_expr_cast(ParserState* s, CastExpr* start);
 
-void free_log_or_expr(LogOrExpr* e);
+void LogOrExpr_free(LogOrExpr* e);
 
 #include "LogAndExpr.h"
 #include "CastExpr.h"

@@ -27,7 +27,7 @@ static UnaryExpr* create_unary_expr_postfix(
     SourceLoc loc) {
     assert(postfix);
     UnaryExpr* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(loc);
+    res->info = AstNodeInfo_create(loc);
     assign_operators_before(res, ops_before, len);
     res->kind = UNARY_POSTFIX;
     res->postfix = postfix;
@@ -78,7 +78,7 @@ static UnaryExpr* create_unary_expr_unary_op(
     assert(is_unary_op(unary_op));
     assert(cast_expr);
     UnaryExpr* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(loc);
+    res->info = AstNodeInfo_create(loc);
     assign_operators_before(res, ops_before, len);
     res->kind = token_type_to_unary_expr_type(unary_op);
     res->cast_expr = cast_expr;
@@ -93,7 +93,7 @@ static UnaryExpr* create_unary_expr_sizeof_type(
     SourceLoc loc) {
     assert(type_name);
     UnaryExpr* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(loc);
+    res->info = AstNodeInfo_create(loc);
     assign_operators_before(res, ops_before, len);
     res->kind = UNARY_SIZEOF_TYPE;
     res->type_name = type_name;
@@ -108,7 +108,7 @@ static UnaryExpr* create_unary_expr_alignof(
     SourceLoc loc) {
     assert(type_name);
     UnaryExpr* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(loc);
+    res->info = AstNodeInfo_create(loc);
     assign_operators_before(res, ops_before, len);
     res->kind = UNARY_ALIGNOF;
     res->type_name = type_name;
@@ -216,7 +216,7 @@ UnaryExpr* parse_unary_expr(ParserState* s) {
                             type_name,
                             start_bracket_loc);
                         if (!res) {
-                            free_type_name(type_name);
+                            TypeName_free(type_name);
                             goto fail;
                         }
                         return res;
@@ -275,11 +275,11 @@ fail:
     return NULL;
 }
 
-void free_unary_expr_children(UnaryExpr* u) {
+void UnaryExpr_free_children(UnaryExpr* u) {
     mycc_free(u->ops_before);
     switch (u->kind) {
         case UNARY_POSTFIX:
-            free_postfix_expr(u->postfix);
+            PostfixExpr_free(u->postfix);
             break;
         case UNARY_ADDRESSOF:
         case UNARY_DEREF:
@@ -287,17 +287,17 @@ void free_unary_expr_children(UnaryExpr* u) {
         case UNARY_MINUS:
         case UNARY_BNOT:
         case UNARY_NOT:
-            free_cast_expr(u->cast_expr);
+            CastExpr_free(u->cast_expr);
             break;
         case UNARY_SIZEOF_TYPE:
         case UNARY_ALIGNOF:
-            free_type_name(u->type_name);
+            TypeName_free(u->type_name);
             break;
     }
 }
 
-void free_unary_expr(UnaryExpr* u) {
-    free_unary_expr_children(u);
+void UnaryExpr_free(UnaryExpr* u) {
+    UnaryExpr_free_children(u);
     mycc_free(u);
 }
 

@@ -5,13 +5,13 @@
 
 #include "util/mem.h"
 
-ErrBase create_err_base(SourceLoc loc) {
+ErrBase ErrBase_create(SourceLoc loc) {
     return (ErrBase){
         .loc = loc
     };
 }
 
-void print_err_base(FILE* out, const FileInfo* file_info, const ErrBase* err) {
+void ErrBase_print(FILE* out, const FileInfo* file_info, const ErrBase* err) {
     assert(err->loc.file_idx < file_info->len);
     const char* path = Str_get_data(&file_info->paths[err->loc.file_idx]);
     fprintf(out,

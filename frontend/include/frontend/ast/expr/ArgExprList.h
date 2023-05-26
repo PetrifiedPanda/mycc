@@ -14,7 +14,7 @@ typedef struct {
 
 bool parse_arg_expr_list(ParserState* s, ArgExprList* res);
 
-void free_arg_expr_list(ArgExprList* l);
+void ArgExprList_free(ArgExprList* l);
 
 #include "AssignExpr.h"
 

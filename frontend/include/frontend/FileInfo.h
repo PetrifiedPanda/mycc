@@ -10,11 +10,11 @@ typedef struct {
     Str* paths;
 } FileInfo;
 
-FileInfo create_file_info(const Str* start_file);
+FileInfo FileInfo_create(const Str* start_file);
 
-void file_info_add(FileInfo* i, const Str* path);
+void FileInfo_add(FileInfo* i, const Str* path);
 
-void free_file_info(FileInfo* i);
+void FileInfo_free(FileInfo* i);
 
 #endif
 

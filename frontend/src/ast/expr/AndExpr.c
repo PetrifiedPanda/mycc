@@ -28,7 +28,7 @@ static bool parse_and_expr_rest(ParserState* s, AndExpr* res) {
 
     return true;
 fail:
-    free_and_expr_children(res);
+    AndExpr_free_children(res);
     return false;
 }
 
@@ -63,9 +63,9 @@ AndExpr* parse_and_expr_cast(ParserState* s, CastExpr* start) {
     return res;
 }
 
-void free_and_expr_children(AndExpr* e) {
+void AndExpr_free_children(AndExpr* e) {
     for (size_t i = 0; i < e->len; ++i) {
-        free_eq_expr_children(&e->eq_exprs[i]);
+        EqExpr_free_children(&e->eq_exprs[i]);
     }
     mycc_free(e->eq_exprs);
 }

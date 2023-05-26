@@ -31,11 +31,11 @@ typedef struct GenericSel {
 
 GenericSel* parse_generic_sel(ParserState* s);
 
-void free_generic_sel(GenericSel* s);
+void GenericSel_free(GenericSel* s);
 
-void free_generic_assoc_list(GenericAssocList* l);
+void GenericAssocList_free(GenericAssocList* l);
 
-void free_generic_assoc_children(GenericAssoc* a);
+void GenericAssoc_free_children(GenericAssoc* a);
 
 #include "AssignExpr.h"
 

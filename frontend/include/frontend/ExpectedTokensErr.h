@@ -14,11 +14,11 @@ typedef struct {
     TokenKind expected[21];
 } ExpectedTokensErr;
 
-ExpectedTokensErr create_expected_token_err(TokenKind got, TokenKind ex);
+ExpectedTokensErr ExpectedTokensErr_create_single_token(TokenKind got, TokenKind ex);
 
-ExpectedTokensErr create_expected_tokens_err(TokenKind got, const TokenKind* expected, size_t num_expected);
+ExpectedTokensErr ExpectedTokensErr_create(TokenKind got, const TokenKind* expected, size_t num_expected);
 
-void print_expected_tokens_err(FILE* f, const ExpectedTokensErr* err);
+void ExpectedTokensErr_print(FILE* f, const ExpectedTokensErr* err);
 
 #endif
 

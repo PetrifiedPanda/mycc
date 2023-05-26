@@ -14,7 +14,7 @@ typedef struct {
 
 TranslationUnit parse_translation_unit(ParserState* s);
 
-void free_translation_unit(TranslationUnit* u);
+void TranslationUnit_free(TranslationUnit* u);
 
 #include "frontend/ast/declaration/ExternalDeclaration.h"
 

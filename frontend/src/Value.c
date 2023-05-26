@@ -30,7 +30,7 @@ bool int_value_is_unsigned(IntValueKind t) {
     }
 }
 
-IntValue create_int_value(IntValueKind t, int64_t val) {
+IntValue IntValue_create_signed(IntValueKind t, int64_t val) {
     assert(int_value_is_signed(t));
     return (IntValue){
         .kind = t,
@@ -38,7 +38,7 @@ IntValue create_int_value(IntValueKind t, int64_t val) {
     };
 }
 
-IntValue create_uint_value(IntValueKind t, uint64_t val) {
+IntValue IntValue_create_unsigned(IntValueKind t, uint64_t val) {
     assert(int_value_is_unsigned(t));
     return (IntValue){
         .kind = t,
@@ -46,14 +46,14 @@ IntValue create_uint_value(IntValueKind t, uint64_t val) {
     };
 }
 
-FloatValue create_float_value(FloatValueKind t, double val) {
+FloatValue FloatValue_create(FloatValueKind t, double val) {
     return (FloatValue){
         .kind = t,
         .val = val,
     };
 }
 
-const char* get_int_value_kind_str(IntValueKind k) {
+const char* IntValueKind_str(IntValueKind k) {
     switch (k) {
         case INT_VALUE_C:
             return "INT_VALUE_C";
@@ -78,7 +78,7 @@ const char* get_int_value_kind_str(IntValueKind k) {
     }
     UNREACHABLE();
 }
-const char* get_float_value_kind_str(FloatValueKind k) {
+const char* FloatValueKind_str(FloatValueKind k) {
     switch (k) {
         case FLOAT_VALUE_F:
             return "FLOAT_VALUE_F";

@@ -18,7 +18,7 @@ typedef struct CastExpr CastExpr;
 
 OrExpr* parse_or_expr_cast(ParserState* s, CastExpr* start);
 
-void free_or_expr_children(OrExpr* e);
+void OrExpr_free_children(OrExpr* e);
 
 #include "XorExpr.h"
 #include "CastExpr.h"

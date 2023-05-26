@@ -14,7 +14,7 @@ typedef struct InitDeclarator {
 bool parse_init_declarator_typedef_inplace(ParserState* s, InitDeclarator* res);
 bool parse_init_declarator_inplace(ParserState* s, InitDeclarator* res);
 
-void free_init_declarator_children(InitDeclarator* d);
+void InitDeclarator_free_children(InitDeclarator* d);
 
 #include "frontend/ast/declaration/Declarator.h"
 

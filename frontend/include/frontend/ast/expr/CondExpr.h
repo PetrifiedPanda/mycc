@@ -25,8 +25,8 @@ typedef struct CastExpr CastExpr;
 
 CondExpr* parse_cond_expr_cast(ParserState* s, CastExpr* start);
 
-void free_cond_expr_children(CondExpr* e);
-void free_cond_expr(CondExpr* e);
+void CondExpr_free_children(CondExpr* e);
+void CondExpr_free(CondExpr* e);
 
 #include "Expr.h"
 #include "LogOrExpr.h"

@@ -20,9 +20,9 @@ static bool parse_spec_or_qual(ParserState* s, SpecQualList* res) {
 
 bool parse_spec_qual_list(ParserState* s, SpecQualList* res) {
     *res = (SpecQualList){
-        .info = create_ast_node_info(s->it->loc),
-        .quals = create_type_quals(),
-        .specs = create_type_specs(),
+        .info = AstNodeInfo_create(s->it->loc),
+        .quals = TypeQuals_create(),
+        .specs = TypeSpecs_create(),
     };
 
     if (!parse_spec_or_qual(s, res)) {
@@ -31,7 +31,7 @@ bool parse_spec_qual_list(ParserState* s, SpecQualList* res) {
 
     while (is_type_spec(s) || is_type_qual(s->it->kind)) {
         if (!parse_spec_or_qual(s, res)) {
-            free_spec_qual_list_children(res);
+            SpecQualList_free_children(res);
             return false;
         }
     }
@@ -39,12 +39,12 @@ bool parse_spec_qual_list(ParserState* s, SpecQualList* res) {
     return res;
 }
 
-void free_spec_qual_list_children(SpecQualList* l) {
-    free_type_specs_children(&l->specs);
+void SpecQualList_free_children(SpecQualList* l) {
+    TypeSpecs_free_children(&l->specs);
 }
 
-void free_spec_qual_list(SpecQualList* l) {
-    free_spec_qual_list_children(l);
+void SpecQualList_free(SpecQualList* l) {
+    SpecQualList_free_children(l);
     mycc_free(l);
 }
 

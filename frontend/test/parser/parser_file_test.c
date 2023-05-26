@@ -192,15 +192,15 @@ static void compare_with_ex_file(const TranslationUnit* got,
 
     ASSERT(expected.file_info.len == file_info->len);
     ASSERT(compare_asts(got, file_info, &expected.tl, &expected.file_info));
-    free_translation_unit(&expected.tl);
-    free_file_info(&expected.file_info);
+    TranslationUnit_free(&expected.tl);
+    FileInfo_free(&expected.file_info);
 }
 
 TEST(no_preproc) {
     const char* file = "../frontend/test/files/no_preproc.c";
     PreprocRes res = tokenize(file);
 
-    ParserErr err = create_parser_err();
+    ParserErr err = ParserErr_create();
     TranslationUnit tl = parse_tokens(res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)10);
@@ -244,15 +244,15 @@ TEST(no_preproc) {
         "variadic",
         8);
 
-    free_translation_unit(&tl);
-    free_preproc_res(&res);
+    TranslationUnit_free(&tl);
+    PreprocRes_free(&res);
 }
 
 TEST(parser_testfile) {
     const char* file = "../frontend/test/files/parser_testfile.c";
     PreprocRes res = tokenize(file);
 
-    ParserErr err = create_parser_err();
+    ParserErr err = ParserErr_create();
     TranslationUnit tl = parse_tokens(res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)18);
@@ -320,15 +320,15 @@ TEST(parser_testfile) {
                                         "strcpy_for_some_reason",
                                         2);
 
-    free_translation_unit(&tl);
-    free_preproc_res(&res);
+    TranslationUnit_free(&tl);
+    PreprocRes_free(&res);
 }
 
 TEST(large_testfile) {
     const char* file = "../frontend/test/files/large_testfile.c";
     PreprocRes res = tokenize(file);
 
-    ParserErr err = create_parser_err();
+    ParserErr err = ParserErr_create();
     TranslationUnit tl = parse_tokens(res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_SIZE_T(tl.len, (size_t)88);
@@ -506,8 +506,8 @@ TEST(large_testfile) {
                                          "handle_other",
                                          11);
 
-    free_translation_unit(&tl);
-    free_preproc_res(&res);
+    TranslationUnit_free(&tl);
+    PreprocRes_free(&res);
 }
 
 TEST_SUITE_BEGIN(parser_file) {

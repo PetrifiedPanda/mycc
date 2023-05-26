@@ -264,7 +264,7 @@ static void serialize_initializer(AstSerializer* d,
 
 static void serialize_designation_init(AstSerializer* d,
                                        const DesignationInit* init) {
-    const bool has_designation = is_valid_designation(&init->designation);
+    const bool has_designation = Designation_is_valid(&init->designation);
     serialize_bool(d, has_designation);
     if (has_designation) {
         serialize_designation(d, &init->designation);

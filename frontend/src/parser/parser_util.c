@@ -9,16 +9,16 @@
 #include "frontend/parser/ParserErr.h"
 
 void expected_token_error(ParserState* s, TokenKind expected) {
-    set_parser_err(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it->loc);
-    s->err->expected_tokens_err = create_expected_token_err(s->it->kind, expected);
+    ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it->loc);
+    s->err->expected_tokens_err = ExpectedTokensErr_create_single_token(s->it->kind, expected);
 }
 
 void expected_tokens_error(ParserState* s,
                            const TokenKind* expected,
                            size_t num_expected) {
     assert(expected);
-    set_parser_err(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it->loc);
-    s->err->expected_tokens_err = create_expected_tokens_err(s->it->kind,
+    ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it->loc);
+    s->err->expected_tokens_err = ExpectedTokensErr_create(s->it->kind,
                                                              expected,
                                                              num_expected);
 }

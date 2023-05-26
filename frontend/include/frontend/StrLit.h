@@ -19,11 +19,11 @@ typedef struct {
 } StrLit;
 
 StrLit convert_to_str_lit(Str* spell);
-StrLit create_str_lit(StrLitKind kind, const Str* contents);
+StrLit StrLit_create(StrLitKind kind, const Str* contents);
 
-void free_str_lit(const StrLit* lit);
+void StrLit_free(const StrLit* lit);
 
-const char* get_str_lit_kind_str(StrLitKind kind);
+const char* StrLitKind_str(StrLitKind kind);
 
 #endif
 

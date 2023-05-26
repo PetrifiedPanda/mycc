@@ -14,7 +14,7 @@ typedef struct StaticAssertDeclaration {
 
 StaticAssertDeclaration* parse_static_assert_declaration(ParserState* s);
 
-void free_static_assert_declaration(StaticAssertDeclaration* d);
+void StaticAssertDeclaration_free(StaticAssertDeclaration* d);
 
 #include "frontend/ast/expr/ConstExpr.h"
 

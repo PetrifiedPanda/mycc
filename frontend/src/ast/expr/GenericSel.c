@@ -9,7 +9,7 @@
 static bool parse_generic_assoc_inplace(ParserState* s, GenericAssoc* res) {
     assert(res);
 
-    res->info = create_ast_node_info(s->it->loc);
+    res->info = AstNodeInfo_create(s->it->loc);
     if (s->it->kind == TOKEN_DEFAULT) {
         parser_accept_it(s);
         res->type_name = NULL;
@@ -32,22 +32,22 @@ static bool parse_generic_assoc_inplace(ParserState* s, GenericAssoc* res) {
     return true;
 fail:
     if (res->type_name) {
-        free_type_name(res->type_name);
+        TypeName_free(res->type_name);
     }
     return false;
 }
 
-void free_generic_assoc_children(GenericAssoc* a) {
+void GenericAssoc_free_children(GenericAssoc* a) {
     if (a->type_name) {
-        free_type_name(a->type_name);
+        TypeName_free(a->type_name);
     }
-    free_assign_expr(a->assign);
+    AssignExpr_free(a->assign);
 }
 
 static bool parse_generic_assoc_list(ParserState* s, GenericAssocList* res) {
     size_t alloc_len = 1;
     *res = (GenericAssocList){
-        .info = create_ast_node_info(s->it->loc),
+        .info = AstNodeInfo_create(s->it->loc),
         .len = 1,
         .assocs = mycc_alloc(sizeof *res->assocs * alloc_len),
     };
@@ -76,13 +76,13 @@ static bool parse_generic_assoc_list(ParserState* s, GenericAssocList* res) {
     return res;
 
 fail:
-    free_generic_assoc_list(res);
+    GenericAssocList_free(res);
     return false;
 }
 
-void free_generic_assoc_list(GenericAssocList* l) {
+void GenericAssocList_free(GenericAssocList* l) {
     for (size_t i = 0; i < l->len; ++i) {
-        free_generic_assoc_children(&l->assocs[i]);
+        GenericAssoc_free_children(&l->assocs[i]);
     }
     mycc_free(l->assocs);
 }
@@ -94,7 +94,7 @@ static GenericSel* create_generic_sel(AssignExpr* assign,
     assert(assocs.len != 0);
     GenericSel* res = mycc_alloc(sizeof *res);
 
-    res->info = create_ast_node_info(loc);
+    res->info = AstNodeInfo_create(loc);
     res->assign = assign;
     res->assocs = assocs;
     return res;
@@ -124,23 +124,23 @@ GenericSel* parse_generic_sel(ParserState* s) {
     }
 
     if (!parser_accept(s, TOKEN_RBRACKET)) {
-        free_generic_assoc_list(&assocs);
+        GenericAssocList_free(&assocs);
         goto fail;
     }
 
     return create_generic_sel(assign, assocs, loc);
 
 fail:
-    free_assign_expr(assign);
+    AssignExpr_free(assign);
     return NULL;
 }
 
 static void free_generic_sel_children(GenericSel* s) {
-    free_assign_expr(s->assign);
-    free_generic_assoc_list(&s->assocs);
+    AssignExpr_free(s->assign);
+    GenericAssocList_free(&s->assocs);
 }
 
-void free_generic_sel(GenericSel* s) {
+void GenericSel_free(GenericSel* s) {
     free_generic_sel_children(s);
     mycc_free(s);
 }

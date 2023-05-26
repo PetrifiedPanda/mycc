@@ -26,7 +26,7 @@ static bool register_identifier(ParserState* s, const Token* token, IdentifierKi
 
 static IdentifierKind get_item(const ParserState* s, const Str* spell);
 
-ParserState create_parser_state(Token* tokens, ParserErr* err) {
+ParserState ParserState_create(Token* tokens, ParserErr* err) {
     assert(tokens);
 
     ParserState res = {
@@ -36,7 +36,7 @@ ParserState create_parser_state(Token* tokens, ParserErr* err) {
         ._scope_maps = mycc_alloc(sizeof *res._scope_maps),
         .err = err,
     };
-    res._scope_maps[0] = create_string_map(
+    res._scope_maps[0] = StringMap_create(
         sizeof(ParserIdentifierData),
         SCOPE_MAP_INIT_CAP,
         false,
@@ -44,9 +44,9 @@ ParserState create_parser_state(Token* tokens, ParserErr* err) {
     return res;
 }
 
-void free_parser_state(ParserState* s) {
+void ParserState_free(ParserState* s) {
     for (size_t i = 0; i < s->_len; ++i) {
-        free_string_map(&s->_scope_maps[i]);
+        StringMap_free(&s->_scope_maps[i]);
     }
     mycc_free(s->_scope_maps);
 }
@@ -73,7 +73,7 @@ void parser_push_scope(ParserState* s) {
                                       sizeof *s->_scope_maps * s->_cap);
     }
     ++s->_len;
-    s->_scope_maps[s->_len - 1] = create_string_map(
+    s->_scope_maps[s->_len - 1] = StringMap_create(
         sizeof(ParserIdentifierData),
         SCOPE_MAP_INIT_CAP,
         false,
@@ -83,7 +83,7 @@ void parser_push_scope(ParserState* s) {
 void parser_pop_scope(ParserState* s) {
     assert(s->_len > 1);
     --s->_len;
-    free_string_map(&s->_scope_maps[s->_len]);
+    StringMap_free(&s->_scope_maps[s->_len]);
 }
 
 bool parser_register_enum_constant(ParserState* s,
@@ -110,13 +110,13 @@ const ParserIdentifierData* parser_get_prev_definition(
     const ParserState* s,
     const Str* spell) {
     const StringMap* current_map = &s->_scope_maps[s->_len - 1];
-    return string_map_get(current_map, spell);
+    return StringMap_get(current_map, spell);
 }
 
 void parser_set_redefinition_err(ParserState* s,
                                  const ParserIdentifierData* prev_def,
                                  const Token* redef_tok) {
-    set_parser_err(s->err, PARSER_ERR_REDEFINED_SYMBOL, redef_tok->loc);
+    ParserErr_set(s->err, PARSER_ERR_REDEFINED_SYMBOL, redef_tok->loc);
 
     s->err->redefined_symbol = Str_copy(&redef_tok->spelling);
     s->err->was_typedef_name = prev_def->kind == ID_KIND_TYPEDEF_NAME;
@@ -136,7 +136,7 @@ static bool register_identifier(ParserState* s,
         .loc = token->loc,
         .kind = kind,
     };
-    const ParserIdentifierData* item = string_map_insert(
+    const ParserIdentifierData* item = StringMap_insert(
         &s->_scope_maps[s->_len - 1],
         &token->spelling,
         &to_insert);
@@ -151,7 +151,7 @@ static bool register_identifier(ParserState* s,
 static IdentifierKind get_item(const ParserState* s,
                                      const Str* spell) {
     for (size_t i = 0; i < s->_len; ++i) {
-        const ParserIdentifierData* data = string_map_get(
+        const ParserIdentifierData* data = StringMap_get(
             &s->_scope_maps[i],
             spell);
         if (data != NULL) {

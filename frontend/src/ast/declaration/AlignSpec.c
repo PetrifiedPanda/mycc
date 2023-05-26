@@ -10,7 +10,7 @@ static void free_align_spec(AlignSpec* s);
 
 bool parse_align_spec_inplace(ParserState* s, AlignSpec* res) {
     assert(res);
-    res->info = create_ast_node_info(s->it->loc);
+    res->info = AstNodeInfo_create(s->it->loc);
     if (!(parser_accept(s, TOKEN_ALIGNAS) && parser_accept(s, TOKEN_LBRACKET))) {
         return false;
     }
@@ -39,16 +39,16 @@ bool parse_align_spec_inplace(ParserState* s, AlignSpec* res) {
     return true;
 }
 
-void free_align_spec_children(AlignSpec* s) {
+void AlignSpec_free_children(AlignSpec* s) {
     if (s->is_type_name) {
-        free_type_name(s->type_name);
+        TypeName_free(s->type_name);
     } else {
-        free_const_expr(s->const_expr);
+        ConstExpr_free(s->const_expr);
     }
 }
 
 static void free_align_spec(AlignSpec* s) {
-    free_align_spec_children(s);
+    AlignSpec_free_children(s);
     mycc_free(s);
 }
 

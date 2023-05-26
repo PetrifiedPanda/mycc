@@ -14,7 +14,7 @@ typedef struct {
 
 bool parse_declaration_list(ParserState* s, DeclarationList* res);
 
-void free_declaration_list(DeclarationList* l);
+void DeclarationList_free(DeclarationList* l);
 
 #include "Declaration.h"
 

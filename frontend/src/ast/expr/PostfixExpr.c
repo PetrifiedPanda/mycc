@@ -32,7 +32,7 @@ static bool parse_postfix_arr_suffix(ParserState* s, PostfixSuffix* res) {
         return false;
     }
     if (!parser_accept(s, TOKEN_RINDEX)) {
-        free_expr(expr);
+        Expr_free(expr);
         return false;
     }
 
@@ -56,7 +56,7 @@ static bool parse_postfix_func_suffix(ParserState* s, PostfixSuffix* res) {
         }
     }
     if (!parser_accept(s, TOKEN_RBRACKET)) {
-        free_arg_expr_list(&arg_expr_list);
+        ArgExprList_free(&arg_expr_list);
         return false;
     }
     res->kind = POSTFIX_BRACKET;
@@ -74,10 +74,10 @@ static bool parse_postfix_access_suffix(ParserState* s, PostfixSuffix* res) {
     if (s->it->kind != TOKEN_IDENTIFIER) {
         return false;
     }
-    const Str spelling = token_take_spelling(s->it);
+    const Str spelling = Token_take_spelling(s->it);
     const SourceLoc loc = s->it->loc;
     parser_accept_it(s);
-    Identifier* identifier = create_identifier(&spelling, loc);
+    Identifier* identifier = Identifier_create(&spelling, loc);
     res->kind = kind;
     res->identifier = identifier;
     return true;
@@ -147,7 +147,7 @@ PostfixExpr* parse_postfix_expr(ParserState* s) {
     res->len = 0;
 
     if (s->it->kind == TOKEN_LBRACKET && next_is_type_name(s)) {
-        res->info = create_ast_node_info(s->it->loc);
+        res->info = AstNodeInfo_create(s->it->loc);
         parser_accept_it(s);
 
         res->is_primary = false;
@@ -160,13 +160,13 @@ PostfixExpr* parse_postfix_expr(ParserState* s) {
 
         if (!(parser_accept(s, TOKEN_RBRACKET)
               && parser_accept(s, TOKEN_LBRACE))) {
-            free_type_name(res->type_name);
+            TypeName_free(res->type_name);
             mycc_free(res);
             return NULL;
         }
 
         if (!parse_init_list(s, &res->init_list)) {
-            free_type_name(res->type_name);
+            TypeName_free(res->type_name);
             mycc_free(res);
             return NULL;
         }
@@ -176,7 +176,7 @@ PostfixExpr* parse_postfix_expr(ParserState* s) {
         }
 
         if (!parser_accept(s, TOKEN_RBRACE)) {
-            free_postfix_expr(res);
+            PostfixExpr_free(res);
             return NULL;
         }
     } else {
@@ -189,7 +189,7 @@ PostfixExpr* parse_postfix_expr(ParserState* s) {
     }
 
     if (!parse_postfix_suffixes(s, res)) {
-        free_postfix_expr(res);
+        PostfixExpr_free(res);
         return NULL;
     }
 
@@ -210,7 +210,7 @@ PostfixExpr* parse_postfix_expr_type_name(ParserState* s, TypeName* type_name, S
     res->len = 0;
     res->suffixes = NULL;
     res->is_primary = false;
-    res->info = create_ast_node_info(start_bracket_loc);
+    res->info = AstNodeInfo_create(start_bracket_loc);
     res->type_name = type_name;
 
     res->init_list.len = 0;
@@ -235,29 +235,29 @@ PostfixExpr* parse_postfix_expr_type_name(ParserState* s, TypeName* type_name, S
     }
     return res;
 fail:
-    free_postfix_expr(res);
+    PostfixExpr_free(res);
     return NULL;
 }
 
 static void free_postfix_expr_children(PostfixExpr* p) {
     if (p->is_primary) {
-        free_primary_expr(p->primary);
+        PrimaryExpr_free(p->primary);
     } else {
-        free_type_name(p->type_name);
-        free_init_list_children(&p->init_list);
+        TypeName_free(p->type_name);
+        InitList_free_children(&p->init_list);
     }
     for (size_t i = 0; i < p->len; ++i) {
         PostfixSuffix* s = &p->suffixes[i];
         switch (s->kind) {
             case POSTFIX_INDEX:
-                free_expr(s->index_expr);
+                Expr_free(s->index_expr);
                 break;
             case POSTFIX_BRACKET:
-                free_arg_expr_list(&s->bracket_list);
+                ArgExprList_free(&s->bracket_list);
                 break;
             case POSTFIX_ACCESS:
             case POSTFIX_PTR_ACCESS:
-                free_identifier(s->identifier);
+                Identifier_free(s->identifier);
                 break;
             case POSTFIX_INC:
             case POSTFIX_DEC:
@@ -267,7 +267,7 @@ static void free_postfix_expr_children(PostfixExpr* p) {
     mycc_free(p->suffixes);
 }
 
-void free_postfix_expr(PostfixExpr* p) {
+void PostfixExpr_free(PostfixExpr* p) {
     free_postfix_expr_children(p);
     mycc_free(p);
 }

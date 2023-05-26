@@ -36,11 +36,11 @@ typedef struct {
 
 bool parse_param_type_list(ParserState* s, ParamTypeList* res);
 
-void free_param_type_list(ParamTypeList* l);
+void ParamTypeList_free(ParamTypeList* l);
 
-void free_param_list(ParamList* l);
+void ParamList_free(ParamList* l);
 
-void free_param_declaration_children(ParamDeclaration* d);
+void ParamDeclaration_free_children(ParamDeclaration* d);
 
 #include "DeclarationSpecs.h"
 #include "Declarator.h"

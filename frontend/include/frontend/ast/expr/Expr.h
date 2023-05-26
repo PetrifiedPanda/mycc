@@ -16,9 +16,9 @@ bool parse_expr_inplace(ParserState* s, Expr* res);
 
 Expr* parse_expr(ParserState* s);
 
-void free_expr_children(Expr* expr);
+void Expr_free_children(Expr* expr);
 
-void free_expr(Expr* expr);
+void Expr_free(Expr* expr);
 
 #include "AssignExpr.h"
 

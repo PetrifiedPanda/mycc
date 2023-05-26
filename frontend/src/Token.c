@@ -5,13 +5,13 @@
 #include "util/mem.h"
 #include "util/macro_util.h"
 
-Token create_token(TokenKind kind,
+Token Token_create(TokenKind kind,
                    const Str* spelling,
                    FileLoc file_loc,
                    size_t file_idx) {
     assert(spelling);
     assert(file_idx != (size_t)-1);
-    if (get_token_kind_spelling(kind) == NULL) {
+    if (TokenKind_get_spelling(kind) == NULL) {
         assert(Str_is_valid(spelling));
     } else {
         assert(!Str_is_valid(spelling));
@@ -28,7 +28,7 @@ Token create_token(TokenKind kind,
     };
 }
 
-Token create_token_copy(TokenKind kind,
+Token Token_create_copy(TokenKind kind,
                         const Str* spelling,
                         FileLoc file_loc,
                         size_t file_idx) {
@@ -46,29 +46,29 @@ Token create_token_copy(TokenKind kind,
     };
 }
 
-Str token_take_spelling(Token* t) {
+Str Token_take_spelling(Token* t) {
     assert(Str_is_valid(&t->spelling));
     Str spelling = Str_take(&t->spelling);
     return spelling;
 }
 
-StrLit token_take_str_lit(Token* t) {
+StrLit Token_take_str_lit(Token* t) {
     assert(t->kind == TOKEN_STRING_LITERAL);
     StrLit res = t->str_lit;
     t->str_lit.contents = Str_create_null();
     return res;
 }
 
-void free_token(Token* t) {
+void Token_free(Token* t) {
     assert(t);
     if (t->kind == TOKEN_STRING_LITERAL) {
-        free_str_lit(&t->str_lit);
+        StrLit_free(&t->str_lit);
     } else if (t->kind != TOKEN_I_CONSTANT && t->kind != TOKEN_F_CONSTANT) {
         Str_free(&t->spelling);
     }
 }
 
-const char* get_token_kind_spelling(TokenKind kind) {
+const char* TokenKind_get_spelling(TokenKind kind) {
     switch (kind) {
 #define TOKEN_MACRO(kind, str)                                                 \
     case kind:                                                                 \
@@ -79,7 +79,7 @@ const char* get_token_kind_spelling(TokenKind kind) {
     UNREACHABLE();
 }
 
-const char* get_token_kind_str(TokenKind kind) {
+const char* TokenKind_str(TokenKind kind) {
     switch (kind) {
 #define TOKEN_MACRO(kind, str)                                                 \
     case kind:                                                                 \

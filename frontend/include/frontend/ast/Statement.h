@@ -130,21 +130,21 @@ Statement* parse_statement(ParserState* s);
 
 bool parse_compound_statement_inplace(ParserState* s, CompoundStatement* res);
 
-void free_statement_children(Statement* s);
-void free_statement(Statement* s);
+void Statement_free_children(Statement* s);
+void Statement_free(Statement* s);
 
-void free_labeled_statement(LabeledStatement* s);
+void LabeledStatement_free(LabeledStatement* s);
 
-void free_compound_statement(CompoundStatement* s);
-void free_compound_statement_children(CompoundStatement* s);
+void CompoundStatement_free(CompoundStatement* s);
+void CompoundStatement_free_children(CompoundStatement* s);
 
-void free_expr_statement(ExprStatement* s);
+void ExprStatement_free(ExprStatement* s);
 
-void free_selection_statement(SelectionStatement* s);
+void SelectionStatement_free(SelectionStatement* s);
 
-void free_iteration_statement(IterationStatement* s);
+void IterationStatement_free(IterationStatement* s);
 
-void free_jump_statement(JumpStatement* s);
+void JumpStatement_free(JumpStatement* s);
 
 #include "frontend/ast/expr/ConstExpr.h"
 #include "frontend/ast/Identifier.h"

@@ -17,7 +17,7 @@ typedef struct {
     IRType* types;
 } IRModule;
 
-void free_ir_module(IRModule* mod);
+void IRModule_free(IRModule* mod);
 
 #endif
 

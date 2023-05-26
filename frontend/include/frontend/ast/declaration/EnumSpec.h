@@ -28,11 +28,11 @@ typedef struct EnumSpec {
 
 EnumSpec* parse_enum_spec(ParserState* s);
 
-void free_enum_spec(EnumSpec* s);
+void EnumSpec_free(EnumSpec* s);
 
-void free_enum_list(EnumList* l);
+void EnumList_free(EnumList* l);
 
-void free_enumerator_children(Enumerator* e);
+void Enumerator_free(Enumerator* e);
 
 #include "frontend/ast/Identifier.h"
 

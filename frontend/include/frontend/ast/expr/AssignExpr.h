@@ -36,8 +36,8 @@ typedef struct AssignExpr {
 bool parse_assign_expr_inplace(ParserState* s, AssignExpr* res);
 AssignExpr* parse_assign_expr(ParserState* s);
 
-void free_assign_expr_children(AssignExpr* e);
-void free_assign_expr(AssignExpr* e);
+void AssignExpr_free_children(AssignExpr* e);
+void AssignExpr_free(AssignExpr* e);
 
 #include "CondExpr.h"
 #include "UnaryExpr.h"

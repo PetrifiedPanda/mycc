@@ -45,11 +45,11 @@ ParseFloatConstRes parse_float_const(const char* spell) {
 
     return (ParseFloatConstRes){
         .err.kind = FLOAT_CONST_ERR_NONE,
-        .res = create_float_value(t, val),
+        .res = FloatValue_create(t, val),
     };
 }
 
-void print_float_const_err(FILE* out, const FloatConstErr* err) {
+void FloatConstErr_print(FILE* out, const FloatConstErr* err) {
     assert(err != FLOAT_CONST_ERR_NONE);
 
     switch (err->kind) {
@@ -129,12 +129,12 @@ ParseIntConstRes parse_int_const(
     }
     return (ParseIntConstRes){
         .err.kind = INT_CONST_ERR_NONE,
-        .res = int_value_is_signed(kind) ? create_int_value(kind, (intmax_t)val)
-                                         : create_uint_value(kind, val),
+        .res = int_value_is_signed(kind) ? IntValue_create_signed(kind, (intmax_t)val)
+                                         : IntValue_create_unsigned(kind, val),
     };
 }
 
-void print_int_const_err(FILE* out, const IntConstErr* err) {
+void IntConstErr_print(FILE* out, const IntConstErr* err) {
     assert(out);
     assert(err);
     assert(err->kind != INT_CONST_ERR_NONE);
@@ -536,7 +536,7 @@ ParseCharConstRes parse_char_const(
 
         return (ParseCharConstRes){
             .err.kind = CHAR_CONST_ERR_NONE,
-            .res = create_uint_value(kind, val),
+            .res = IntValue_create_unsigned(kind, val),
         };
     } else {
         assert(int_value_is_signed(kind));
@@ -607,12 +607,12 @@ ParseCharConstRes parse_char_const(
 
         return (ParseCharConstRes){
             .err.kind = CHAR_CONST_ERR_NONE,
-            .res = create_int_value(kind, val),
+            .res = IntValue_create_signed(kind, val),
         };
     }
 }
 
-void print_char_const_err(FILE* out, const CharConstErr* err) {
+void CharConstErr_print(FILE* out, const CharConstErr* err) {
     assert(err->kind != CHAR_CONST_ERR_NONE);
     switch (err->kind) {
         case CHAR_CONST_ERR_NONE:

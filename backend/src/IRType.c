@@ -2,7 +2,7 @@
 
 #include "util/mem.h"
 
-void free_ir_type(IRType* t) {
+void IRType_free(IRType* t) {
     switch (t->type) {
         case INST_TYPE_BUILTIN:
         case INST_TYPE_ARR:

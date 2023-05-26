@@ -26,7 +26,7 @@ typedef struct {
 
 ParseFloatConstRes parse_float_const(const char* spell);
 
-void print_float_const_err(FILE* out, const FloatConstErr* err);
+void FloatConstErr_print(FILE* out, const FloatConstErr* err);
 
 typedef enum {
     INT_CONST_ERR_NONE,
@@ -51,7 +51,7 @@ typedef struct {
 
 ParseIntConstRes parse_int_const(const char* spell, const ArchTypeInfo* type_info);
 
-void print_int_const_err(FILE* out, const IntConstErr* err);
+void IntConstErr_print(FILE* out, const IntConstErr* err);
 
 typedef enum {
     CHAR_CONST_ERR_NONE,
@@ -78,7 +78,7 @@ typedef struct {
 
 ParseCharConstRes parse_char_const(const char* spell, const ArchTypeInfo* type_info);
 
-void print_char_const_err(FILE* out, const CharConstErr* err);
+void CharConstErr_print(FILE* out, const CharConstErr* err);
 
 #endif
 

@@ -126,56 +126,56 @@ typedef struct {
     };
 } IRInst;
 
-void free_ir_global(IRGlobal* g);
-void free_ir_reg(IRReg* reg);
+void IRGlobal_free(IRGlobal* g);
+void IRReg_free(IRReg* reg);
 
-void free_ir_literal(IRLiteral* lit);
+void IRLiteral_free(IRLiteral* lit);
 
-IRInst create_call_inst(const IRTypeRef* type,
-                        const IRRegRef* dest,
-                        const IRInstArg* func,
-                        size_t num_args,
-                        IRInstArg* func_args);
+IRInst IRInst_create_call(const IRTypeRef* type,
+                          const IRRegRef* dest,
+                          const IRInstArg* func,
+                          size_t num_args,
+                          IRInstArg* func_args);
 
-IRInst create_assign_inst(const IRTypeRef* type,
+IRInst IRInst_create_assign(const IRTypeRef* type,
+                            const IRRegRef* dest,
+                            const IRInstArg* val);
+
+IRInst IRInst_create_cast(const IRTypeRef* type,
                           const IRRegRef* dest,
                           const IRInstArg* val);
 
-IRInst create_cast_inst(const IRTypeRef* type,
-                        const IRRegRef* dest,
-                        const IRInstArg* val);
+IRInst IRInst_create_alloca(const IRRegRef* dest, const IRTypeRef* type);
 
-IRInst create_alloca_inst(const IRRegRef* dest, const IRTypeRef* type);
+IRInst IRInst_create(IRInstOp op,
+                     const IRTypeRef* type,
+                     const IRRegRef* dest,
+                     const IRInstArg* arg1,
+                     const IRInstArg* arg2);
 
-IRInst create_inst(IRInstOp op,
-                   const IRTypeRef* type,
-                   const IRRegRef* dest,
-                   const IRInstArg* arg1,
-                   const IRInstArg* arg2);
+IRInst IRInst_create_load(const IRRegRef* dest, const IRInstArg* ptr);
 
-IRInst create_load_inst(const IRRegRef* dest, const IRInstArg* ptr);
+IRInst IRInst_create_store(const IRInstArg* ptr, const IRInstArg* to_store);
 
-IRInst create_store_inst(const IRInstArg* ptr, const IRInstArg* to_store);
+IRInst IRInst_create_getelem(const IRRegRef* dest,
+                             const IRTypeRef* type,
+                             const IRInstArg* accessed,
+                             size_t num_accesses,
+                             IRInstArg* elems);
 
-IRInst create_getelem_inst(const IRRegRef* dest,
-                           const IRTypeRef* type,
-                           const IRInstArg* accessed,
-                           size_t num_accesses,
-                           IRInstArg* elems);
-
-IRInst create_getelemptr_inst(const IRRegRef* dest,
-                              const IRTypeRef* type,
-                              const IRInstArg* accessed,
-                              size_t num_accesses,
-                              IRInstArg* elems);
-
-IRInst create_replace_elem_inst(const IRRegRef* dest,
+IRInst IRInst_create_getelemptr(const IRRegRef* dest,
                                 const IRTypeRef* type,
                                 const IRInstArg* accessed,
                                 size_t num_accesses,
-                                IRInstArg* elems,
-                                const IRInstArg* replacement);
-void free_ir_inst(IRInst* tac);
+                                IRInstArg* elems);
+
+IRInst IrInst_create_replace_elem(const IRRegRef* dest,
+                                  const IRTypeRef* type,
+                                  const IRInstArg* accessed,
+                                  size_t num_accesses,
+                                  IRInstArg* elems,
+                                  const IRInstArg* replacement);
+void IRInst_free(IRInst* tac);
 
 #endif
 

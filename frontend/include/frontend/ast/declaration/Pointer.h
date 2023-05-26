@@ -17,7 +17,7 @@ typedef struct Pointer {
 
 Pointer* parse_pointer(ParserState* s);
 
-void free_pointer(Pointer* p);
+void Pointer_free(Pointer* p);
 
 #include "TypeQuals.h"
 

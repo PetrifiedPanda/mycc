@@ -19,15 +19,15 @@ typedef struct {
     };
 } Constant;
 
-Constant create_int_constant(IntValue val,
+Constant Constant_create_int(IntValue val,
                                     SourceLoc loc);
-Constant create_float_constant(FloatValue val,
+Constant Constant_create_float(FloatValue val,
                                       SourceLoc loc);
 
-Constant create_enum_constant(const Str* spelling,
+Constant Constant_create_enum(const Str* spelling,
                                      SourceLoc loc);
 
-void free_constant(Constant* c);
+void Constant_free(Constant* c);
 
 #endif
 

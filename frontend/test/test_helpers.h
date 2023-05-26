@@ -14,8 +14,8 @@
     do {                                                                       \
         if ((got) != (expected)) {                                             \
             PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             get_token_kind_str(expected),                     \
-                             get_token_kind_str(got));                         \
+                             TokenKind_str(expected),                          \
+                             TokenKind_str(got));                              \
         }                                                                      \
     } while (0)
 
@@ -23,8 +23,8 @@
     do {                                                                       \
         if ((got) != (expected)) {                                             \
             PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             get_int_value_kind_str(expected),                 \
-                             get_int_value_kind_str(got));                     \
+                             IntValueKind_str(expected),                       \
+                             IntValueKind_str(got));                           \
         }                                                                      \
     } while (0)
 
@@ -32,8 +32,8 @@
     do {                                                                       \
         if ((got) != (expected)) {                                             \
             PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             get_float_value_kind_str(expected),               \
-                             get_float_value_kind_str(got));                   \
+                             FloatValueKind_str(expected),                     \
+                             FloatValueKind_str(got));                         \
         }                                                                      \
     } while (0)
 
@@ -41,8 +41,8 @@
     do {                                                                       \
         if ((got) != (expected)) {                                             \
             PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             get_str_lit_kind_str(expected),                   \
-                             get_str_lit_kind_str(got));                       \
+                             StrLitKind_str(expected),                         \
+                             StrLitKind_str(got));                             \
         }                                                                      \
     } while (0)
 

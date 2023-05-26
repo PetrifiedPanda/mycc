@@ -30,7 +30,7 @@ MulExpr* parse_mul_expr(ParserState* s);
 
 MulExpr* parse_mul_expr_cast(ParserState* s, CastExpr* start);
 
-void free_mul_expr(MulExpr* e);
+void MulExpr_free(MulExpr* e);
 
 #include "CastExpr.h"
 

@@ -6,7 +6,7 @@
 
 #include "frontend/parser/parser_util.h"
 
-TypeQuals create_type_quals(void) {
+TypeQuals TypeQuals_create(void) {
     return (TypeQuals){
         .is_const = false,
         .is_restrict = false,
@@ -39,7 +39,7 @@ void update_type_quals(ParserState* s, TypeQuals* quals) {
 
 bool parse_type_qual_list(ParserState* s, TypeQuals* res) {
     assert(res);
-    *res = create_type_quals();
+    *res = TypeQuals_create();
 
     if (!is_type_qual(s->it->kind)) {
         static const TokenKind expected[] = {

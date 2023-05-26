@@ -45,7 +45,7 @@ typedef struct {
  * @param file_loc The location of the token in the file
  * @param filename The file this token is in (This is copied into the token)
  */
-Token create_token(TokenKind kind,
+Token Token_create(TokenKind kind,
                    const Str* spelling,
                    FileLoc file_loc,
                    size_t file_idx);
@@ -58,16 +58,16 @@ Token create_token(TokenKind kind,
  * @param file_loc The location of the token in the file
  * @param filename The file this token is in (This is copied into the token)
  */
-Token create_token_copy(TokenKind kind,
+Token Token_create_copy(TokenKind kind,
                         const Str* spelling,
                         FileLoc file_loc,
                         size_t file_idx);
 
-Str token_take_spelling(Token* t);
+Str Token_take_spelling(Token* t);
 
-StrLit token_take_str_lit(Token* t);
+StrLit Token_take_str_lit(Token* t);
 
-void free_token(Token* t);
+void Token_free(Token* t);
 
 /**
  * @brief Gets a spelling for the given token_kind
@@ -76,7 +76,7 @@ void free_token(Token* t);
  * @return const char* The spelling of the given token kind, if it is
  * unambiguous, otherwise NULL
  */
-const char* get_token_kind_spelling(TokenKind kind);
+const char* TokenKind_get_spelling(TokenKind kind);
 
 /**
  * @brief Gets a string to identify the token_kind
@@ -84,7 +84,7 @@ const char* get_token_kind_spelling(TokenKind kind);
  * @return const char* A string that is identical to the spelling of the enum
  * value
  */
-const char* get_token_kind_str(TokenKind kind);
+const char* TokenKind_str(TokenKind kind);
 
 #endif
 

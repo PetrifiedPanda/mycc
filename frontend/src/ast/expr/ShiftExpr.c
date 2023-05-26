@@ -47,7 +47,7 @@ static bool parse_shift_expr_shift_chain(ParserState* s, ShiftExpr* res) {
     return true;
 
 fail:
-    free_shift_expr(res);
+    ShiftExpr_free(res);
     return false;
 }
 
@@ -86,14 +86,14 @@ struct ShiftExpr* parse_shift_expr_cast(ParserState* s, CastExpr* start) {
 }
 
 static void free_shift_expr_children(struct ShiftExpr* e) {
-    free_add_expr(e->lhs);
+    AddExpr_free(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
-        free_add_expr(e->shift_chain[i].rhs);
+        AddExpr_free(e->shift_chain[i].rhs);
     }
     mycc_free(e->shift_chain);
 }
 
-void free_shift_expr(struct ShiftExpr* e) {
+void ShiftExpr_free(struct ShiftExpr* e) {
     free_shift_expr_children(e);
     mycc_free(e);
 }

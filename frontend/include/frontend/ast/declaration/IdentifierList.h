@@ -14,7 +14,7 @@ typedef struct {
 
 bool parse_identifier_list(ParserState* s, IdentifierList* res);
 
-void free_identifier_list(IdentifierList* l);
+void IdentifierList_free(IdentifierList* l);
 
 #include "frontend/ast/Identifier.h"
 

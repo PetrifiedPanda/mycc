@@ -4,20 +4,20 @@
 
 #include <stdlib.h>
 
-void free_ir_module(IRModule* mod) {
+void IRModule_free(IRModule* mod) {
     Str_free(&mod->name);
     for (size_t i = 0; i < mod->num_funcs; ++i) {
-        free_cfg(&mod->funcs[i]);
+        CFG_free(&mod->funcs[i]);
     }
     mycc_free(mod->funcs);
 
     for (size_t i = 0; i < mod->num_globals; ++i) {
-        free_ir_global(&mod->globals[i]);
+        IRGlobal_free(&mod->globals[i]);
     }
     mycc_free(mod->globals);
 
     for (size_t i = 0; i < mod->num_types; ++i) {
-        free_ir_type(&mod->types[i]);
+        IRType_free(&mod->types[i]);
     }
     mycc_free(mod->types);
 }

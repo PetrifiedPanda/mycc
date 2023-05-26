@@ -59,7 +59,7 @@ bool parse_arr_or_func_suffixes(ParserState* s, DirectDeclarator* res);
 DirectDeclarator* parse_direct_declarator(ParserState* s);
 DirectDeclarator* parse_direct_declarator_typedef(ParserState* s);
 
-void free_direct_declarator(DirectDeclarator* d);
+void DirectDeclarator_free(DirectDeclarator* d);
 
 #include "Declarator.h"
 

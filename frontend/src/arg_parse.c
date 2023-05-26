@@ -62,6 +62,6 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
     return res;
 }
 
-void free_cmd_args(const CmdArgs* args) {
+void CmdArgs_free(const CmdArgs* args) {
     mycc_free(args->files);
 }

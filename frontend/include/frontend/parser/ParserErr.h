@@ -46,13 +46,13 @@ typedef struct {
     };
 } ParserErr;
 
-ParserErr create_parser_err(void);
+ParserErr ParserErr_create(void);
 
-void set_parser_err(ParserErr* err, ParserErrKind kind, SourceLoc loc);
+void ParserErr_set(ParserErr* err, ParserErrKind kind, SourceLoc loc);
 
-void print_parser_err(FILE* out, const FileInfo* file_info, const ParserErr* err);
+void ParserErr_print(FILE* out, const FileInfo* file_info, const ParserErr* err);
 
-void free_parser_err(ParserErr* err);
+void ParserErr_free(ParserErr* err);
 
 #endif
 

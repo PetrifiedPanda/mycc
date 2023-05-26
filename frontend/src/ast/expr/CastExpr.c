@@ -64,7 +64,7 @@ static bool parse_cast_expr_rest(ParserState* s, CastExpr* res) {
 
 fail:
     for (size_t i = 0; i < res->len; ++i) {
-        free_type_name_children(&res->type_names[i]);
+        TypeName_free_children(&res->type_names[i]);
     }
     mycc_free(res->type_names);
     return false;
@@ -72,7 +72,7 @@ fail:
 
 CastExpr* parse_cast_expr(ParserState* s) {
     CastExpr* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(s->it->loc);
+    res->info = AstNodeInfo_create(s->it->loc);
     res->type_names = NULL;
     res->len = 0;
 
@@ -88,7 +88,7 @@ CastExpr* parse_cast_expr_type_name(ParserState* s, TypeName* type_name, SourceL
     assert(type_name);
 
     CastExpr* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(start_bracket_loc);
+    res->info = AstNodeInfo_create(start_bracket_loc);
     res->type_names = type_name;
     res->len = 1;
 
@@ -100,11 +100,11 @@ CastExpr* parse_cast_expr_type_name(ParserState* s, TypeName* type_name, SourceL
     return res;
 }
 
-CastExpr* create_cast_expr_unary(UnaryExpr* start) {
+CastExpr* CastExpr_create_unary(UnaryExpr* start) {
     assert(start);
 
     CastExpr* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(start->info.loc);
+    res->info = AstNodeInfo_create(start->info.loc);
     res->type_names = NULL;
     res->len = 0;
     res->rhs = start;
@@ -113,13 +113,13 @@ CastExpr* create_cast_expr_unary(UnaryExpr* start) {
 
 static void free_cast_expr_children(CastExpr* e) {
     for (size_t i = 0; i < e->len; ++i) {
-        free_type_name_children(&e->type_names[i]);
+        TypeName_free_children(&e->type_names[i]);
     }
     mycc_free(e->type_names);
-    free_unary_expr(e->rhs);
+    UnaryExpr_free(e->rhs);
 }
 
-void free_cast_expr(CastExpr* e) {
+void CastExpr_free(CastExpr* e) {
     free_cast_expr_children(e);
     mycc_free(e);
 }

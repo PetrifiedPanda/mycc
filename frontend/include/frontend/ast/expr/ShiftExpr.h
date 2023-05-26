@@ -31,7 +31,7 @@ typedef struct CastExpr CastExpr;
 
 ShiftExpr* parse_shift_expr_cast(ParserState* s, CastExpr* start);
 
-void free_shift_expr(ShiftExpr* e);
+void ShiftExpr_free(ShiftExpr* e);
 
 #include "AddExpr.h"
 #include "CastExpr.h"

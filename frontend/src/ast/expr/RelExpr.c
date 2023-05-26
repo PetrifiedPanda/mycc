@@ -68,7 +68,7 @@ static bool parse_rel_expr_rel_chain(ParserState* s, RelExpr* res) {
 
     return true;
 fail:
-    free_rel_expr(res);
+    RelExpr_free(res);
     return false;
 }
 
@@ -106,15 +106,15 @@ struct RelExpr* parse_rel_expr_cast(ParserState* s, CastExpr* start) {
     return res;
 }
 
-void free_rel_expr_children(struct RelExpr* e) {
-    free_shift_expr(e->lhs);
+void RelExpr_free_children(struct RelExpr* e) {
+    ShiftExpr_free(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
-        free_shift_expr(e->rel_chain[i].rhs);
+        ShiftExpr_free(e->rel_chain[i].rhs);
     }
     mycc_free(e->rel_chain);
 }
 
-void free_rel_expr(struct RelExpr* e) {
-    free_rel_expr_children(e);
+void RelExpr_free(struct RelExpr* e) {
+    RelExpr_free_children(e);
     mycc_free(e);
 }

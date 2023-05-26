@@ -47,7 +47,7 @@ static bool parse_eq_expr_eq_chain(ParserState* s, EqExpr* res) {
 
     return true;
 fail:
-    free_eq_expr_children(res);
+    EqExpr_free_children(res);
     return false;
 }
 
@@ -84,10 +84,10 @@ EqExpr* parse_eq_expr_cast(ParserState* s, CastExpr* start) {
     return res;
 }
 
-void free_eq_expr_children(EqExpr* e) {
-    free_rel_expr(e->lhs);
+void EqExpr_free_children(EqExpr* e) {
+    RelExpr_free(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
-        free_rel_expr(e->eq_chain[i].rhs);
+        RelExpr_free(e->eq_chain[i].rhs);
     }
     mycc_free(e->eq_chain);
 }

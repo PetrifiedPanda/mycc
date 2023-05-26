@@ -32,7 +32,7 @@ static bool parse_or_expr_rest(ParserState* s, OrExpr* res) {
     return true;
 
 fail:
-    free_or_expr_children(res);
+    OrExpr_free_children(res);
     return false;
 }
 
@@ -70,9 +70,9 @@ OrExpr* parse_or_expr_cast(ParserState* s, CastExpr* start) {
     return res;
 }
 
-void free_or_expr_children(OrExpr* e) {
+void OrExpr_free_children(OrExpr* e) {
     for (size_t i = 0; i < e->len; ++i) {
-        free_xor_expr_children(&e->xor_exprs[i]);
+        XorExpr_free_children(&e->xor_exprs[i]);
     }
     mycc_free(e->xor_exprs);
 }

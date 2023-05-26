@@ -40,7 +40,7 @@ typedef struct DeclarationSpecs {
 
 DeclarationSpecs* parse_declaration_specs(ParserState* s, bool* found_typedef);
 
-void free_declaration_specs(DeclarationSpecs* s);
+void DeclarationSpecs_free(DeclarationSpecs* s);
 
 #include "AlignSpec.h"
 

@@ -15,7 +15,7 @@ typedef struct {
     CompoundStatement comp;
 } FuncDef;
 
-void free_func_def_children(FuncDef* d);
+void FuncDef_free_children(FuncDef* d);
 
 #include "DeclarationSpecs.h"
 #include "Declarator.h"

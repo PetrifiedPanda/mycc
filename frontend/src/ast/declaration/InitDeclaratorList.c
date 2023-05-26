@@ -22,7 +22,7 @@ static bool parse_init_declarator_list_first_base(
         }
 
         if (!inplace_parse_func(s, &res->decls[res->len])) {
-            free_init_declarator_list(res);
+            InitDeclaratorList_free(res);
             return false;
         }
 
@@ -86,9 +86,9 @@ bool parse_init_declarator_list_typedef(ParserState* s,
         parse_init_declarator_typedef_inplace);
 }
 
-void free_init_declarator_list(InitDeclaratorList* l) {
+void InitDeclaratorList_free(InitDeclaratorList* l) {
     for (size_t i = 0; i < l->len; ++i) {
-        free_init_declarator_children(&l->decls[i]);
+        InitDeclarator_free_children(&l->decls[i]);
     }
     mycc_free(l->decls);
 }

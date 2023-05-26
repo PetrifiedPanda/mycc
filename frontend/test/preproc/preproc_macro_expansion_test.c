@@ -23,14 +23,14 @@ static void test_preproc_macro(const PreprocMacro* macro,
                                const char* spell,
                                const char* input,
                                const char* output) {
-    PreprocErr input_err = create_preproc_err();
+    PreprocErr input_err = PreprocErr_create();
     PreprocRes res = preproc_string(input, "source_file.c", &input_err);
     ASSERT(input_err.kind == PREPROC_ERR_NONE);
 
     const size_t tokens_len = get_tokens_len(res.toks);
 
-    PreprocErr err = create_preproc_err();
-    PreprocState state = create_preproc_state_string(input, "source_file.c", &err);
+    PreprocErr err = PreprocErr_create();
+    PreprocState state = PreprocState_create_string(input, "source_file.c", &err);
     state.res = (TokenArr){
         .len = tokens_len,
         .cap = tokens_len,
@@ -44,7 +44,7 @@ static void test_preproc_macro(const PreprocMacro* macro,
     ASSERT(expand_all_macros(&state, &state.res, 0));
     ASSERT(err.kind == PREPROC_ERR_NONE);
 
-    PreprocErr output_err = create_preproc_err();
+    PreprocErr output_err = PreprocErr_create();
     PreprocRes expected = preproc_string(output,
                                                  "source_file.c",
                                                  &output_err);
@@ -59,14 +59,14 @@ static void test_preproc_macro(const PreprocMacro* macro,
         Str_free(&state.res.tokens[i].spelling);
     }
     mycc_free(state.res.tokens);
-    free_file_info(&res.file_info);
-    free_preproc_res_preproc_tokens(&expected);
+    FileInfo_free(&res.file_info);
+    PreprocRes_free_preproc_tokens(&expected);
     state.res = (TokenArr){
         .tokens = NULL,
         .len = 0,
         .cap = 0,
     };
-    free_preproc_state(&state);
+    PreprocState_free(&state);
 }
 
 TEST(expand_obj_like) {

@@ -15,8 +15,8 @@ typedef struct SpecQualList {
 
 bool parse_spec_qual_list(ParserState* s, SpecQualList* res);
 
-void free_spec_qual_list_children(SpecQualList* l);
-void free_spec_qual_list(SpecQualList* l);
+void SpecQualList_free_children(SpecQualList* l);
+void SpecQualList_free(SpecQualList* l);
 
 #endif
 

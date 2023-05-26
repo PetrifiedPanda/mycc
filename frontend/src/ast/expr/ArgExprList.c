@@ -22,7 +22,7 @@ bool parse_arg_expr_list(ParserState* s, ArgExprList* res) {
         }
 
         if (!parse_assign_expr_inplace(s, &res->assign_exprs[res->len])) {
-            free_arg_expr_list(res);
+            ArgExprList_free(res);
             return false;
         }
 
@@ -34,9 +34,9 @@ bool parse_arg_expr_list(ParserState* s, ArgExprList* res) {
     return res;
 }
 
-void free_arg_expr_list(ArgExprList* l) {
+void ArgExprList_free(ArgExprList* l) {
     for (size_t i = 0; i < l->len; ++i) {
-        free_assign_expr_children(&l->assign_exprs[i]);
+        AssignExpr_free_children(&l->assign_exprs[i]);
     }
     mycc_free(l->assign_exprs);
 }

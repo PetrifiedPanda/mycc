@@ -29,7 +29,7 @@ static bool parse_log_and_expr_rest(ParserState* s, LogAndExpr* res) {
     res->or_exprs = mycc_realloc(res->or_exprs, sizeof *res->or_exprs * res->len);
     return true;
 fail:
-    free_log_and_expr_children(res);
+    LogAndExpr_free_children(res);
     return false;
 }
 
@@ -68,9 +68,9 @@ LogAndExpr* parse_log_and_expr_cast(ParserState* s, CastExpr* start) {
     return res;
 }
 
-void free_log_and_expr_children(LogAndExpr* e) {
+void LogAndExpr_free_children(LogAndExpr* e) {
     for (size_t i = 0; i < e->len; ++i) {
-        free_or_expr_children(&e->or_exprs[i]);
+        OrExpr_free_children(&e->or_exprs[i]);
     }
     mycc_free(e->or_exprs);
 }

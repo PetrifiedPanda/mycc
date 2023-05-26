@@ -60,7 +60,7 @@ static FileData create_file_data(const char* start_file, PreprocErr* err) {
 
     FILE* file = fopen(start_file, "r");
     if (!file) {
-        set_preproc_file_err(err, &file_name, (SourceLoc){(size_t)-1, {0, 0}});
+        PreprocErr_set_file_err(err, &file_name, (SourceLoc){(size_t)-1, {0, 0}});
         return (FileData){0};
     }
     FileManager fm = {
@@ -80,7 +80,7 @@ static FileData create_file_data(const char* start_file, PreprocErr* err) {
         .loc = {0, {0, 0}},
     };
     fm.prefixes[0] = get_path_prefix(strlen(start_file), start_file);
-    FileInfo fi = create_file_info(&file_name);
+    FileInfo fi = FileInfo_create(&file_name);
 
     return (FileData){
         .is_valid = true,
@@ -89,7 +89,7 @@ static FileData create_file_data(const char* start_file, PreprocErr* err) {
     };
 }
 
-PreprocState create_preproc_state(const char* start_file, PreprocErr* err) {
+PreprocState PreprocState_create(const char* start_file, PreprocErr* err) {
     FileData fd = create_file_data(start_file, err);
     if (!fd.is_valid) {
         PreprocState res = {0};
@@ -118,15 +118,15 @@ PreprocState create_preproc_state(const char* start_file, PreprocErr* err) {
         .conds_cap = 0,
         .conds = NULL,
         .err = err,
-        ._macro_map = create_string_map(sizeof(struct PreprocMacro),
+        ._macro_map = StringMap_create(sizeof(struct PreprocMacro),
                                         100,
                                         true,
-                                        (void (*)(void*))free_preproc_macro),
+                                        (void (*)(void*))PreprocMacro_free),
         .file_info = fd.fi,
     };
 }
 
-PreprocState create_preproc_state_string(const char* code,
+PreprocState PreprocState_create_string(const char* code,
                                          const char* filename,
                                          PreprocErr* err) {
     Str filename_str = Str_create(strlen(filename), filename);
@@ -159,11 +159,11 @@ PreprocState create_preproc_state_string(const char* code,
         .conds_cap = 0,
         .conds = NULL,
         .err = err,
-        ._macro_map = create_string_map(sizeof(struct PreprocMacro),
+        ._macro_map = StringMap_create(sizeof(struct PreprocMacro),
                                         100,
                                         true,
-                                        (void (*)(void*))free_preproc_macro),
-        .file_info = create_file_info(&filename_str),
+                                        (void (*)(void*))PreprocMacro_free),
+        .file_info = FileInfo_create(&filename_str),
     };
 }
 
@@ -208,7 +208,7 @@ static bool is_start_file(const PreprocState* state) {
 
 static void preproc_state_close_file(PreprocState* s);
 
-void preproc_state_read_line(PreprocState* state) {
+void PreprocState_read_line(PreprocState* state) {
     assert(state);
     Str_clear(&state->line_info.line);
     size_t len = 0;
@@ -249,7 +249,7 @@ void preproc_state_read_line(PreprocState* state) {
     state->line_info.curr_loc.file_loc.index = 1;
 }
 
-bool preproc_state_over(const PreprocState* state) {
+bool PreprocState_over(const PreprocState* state) {
     return current_file_over(state) && is_start_file(state);
 }
 
@@ -294,7 +294,7 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
     FILE* file = fopen(Str_get_data(&full_path), "r");
     if (!file) {
         // TODO: check include dirs (and system dirs)
-        set_preproc_file_err(s->err, filename, include_loc);
+        PreprocErr_set_file_err(s->err, filename, include_loc);
         return (FileOpenRes){0};
     }
 
@@ -317,7 +317,7 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
     };
 }
 
-bool preproc_state_open_file(PreprocState* s,
+bool PreprocState_open_file(PreprocState* s,
                              const Str* filename,
                              SourceLoc include_loc) {
     FileManager* fm = &s->file_manager;
@@ -337,7 +337,7 @@ bool preproc_state_open_file(PreprocState* s,
     if (!fp.file) {
         return false;
     }
-    file_info_add(&s->file_info, &fp.path);
+    FileInfo_add(&s->file_info, &fp.path);
     const size_t idx = s->file_info.len - 1;
     ++fm->current_file_idx;
     if (fm->opened_info_len == fm->opened_info_cap) {
@@ -390,20 +390,20 @@ static void preproc_state_close_file(PreprocState* s) {
 }
 
 const PreprocMacro* find_preproc_macro(const PreprocState* state, const Str* spelling) {
-    return string_map_get(&state->_macro_map, spelling);
+    return StringMap_get(&state->_macro_map, spelling);
 }
 
 void register_preproc_macro(PreprocState* state,
                             const Str* spelling,
                             const PreprocMacro* macro) {
-    bool overwritten = string_map_insert_overwrite(&state->_macro_map,
+    bool overwritten = StringMap_insert_overwrite(&state->_macro_map,
                                                    spelling,
                                                    macro);
     (void)overwritten; // TODO: warning if redefined
 }
 
 void remove_preproc_macro(PreprocState* state, const Str* spelling) {
-    string_map_remove(&state->_macro_map, spelling);
+    StringMap_remove(&state->_macro_map, spelling);
 }
 
 void push_preproc_cond(PreprocState* state,
@@ -432,7 +432,7 @@ PreprocCond* peek_preproc_cond(PreprocState* state) {
     return &state->conds[state->conds_len - 1];
 }
 
-void free_token_arr(TokenArr* arr) {
+void TokenArr_free(TokenArr* arr) {
     for (size_t i = 0; i < arr->len; ++i) {
         Str_free(&arr->tokens[i].spelling);
     }
@@ -457,12 +457,12 @@ static void free_file_manager(FileManager* fm) {
     mycc_free(fm->prefixes);
 }
 
-void free_preproc_state(PreprocState* state) {
-    free_token_arr(&state->res);
+void PreprocState_free(PreprocState* state) {
+    TokenArr_free(&state->res);
     free_line_info(&state->line_info);
     free_file_manager(&state->file_manager);
     mycc_free(state->conds);
-    free_string_map(&state->_macro_map);
-    free_file_info(&state->file_info);
+    StringMap_free(&state->_macro_map);
+    FileInfo_free(&state->file_info);
 }
 

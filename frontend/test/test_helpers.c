@@ -8,7 +8,7 @@
 #include "frontend/preproc/preproc.h"
 
 PreprocRes tokenize(const char* file) {
-    PreprocErr err = create_preproc_err();
+    PreprocErr err = PreprocErr_create();
     PreprocRes res = preproc(file, &err);
     ASSERT_NOT_NULL(res.toks);
     ASSERT_NOT_NULL(res.file_info.paths);
@@ -21,7 +21,7 @@ PreprocRes tokenize(const char* file) {
 }
 
 PreprocRes tokenize_string(const char* str, const char* file) {
-    PreprocErr err = create_preproc_err();
+    PreprocErr err = PreprocErr_create();
     PreprocRes res = preproc_string(str, file, &err);
     ASSERT_NOT_NULL(res.toks);
     ASSERT(err.kind == PREPROC_ERR_NONE);

@@ -36,7 +36,7 @@ typedef struct PrimaryExpr {
 
 PrimaryExpr* parse_primary_expr(ParserState* s);
 
-void free_primary_expr(PrimaryExpr* bracket_expr);
+void PrimaryExpr_free(PrimaryExpr* bracket_expr);
 
 #include "Expr.h"
 #include "GenericSel.h"

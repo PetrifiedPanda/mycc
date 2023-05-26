@@ -39,12 +39,12 @@ bool convert_preproc_tokens(Token* tokens, const ArchTypeInfo* info, PreprocErr*
 /**
  * Frees tokens before calling convert_preproc_tokens
  */
-void free_preproc_res_preproc_tokens(PreprocRes* res);
+void PreprocRes_free_preproc_tokens(PreprocRes* res);
 
 /**
  * Frees tokens after calling convert_preproc_tokens
  */
-void free_preproc_res(PreprocRes* res);
+void PreprocRes_free(PreprocRes* res);
 
 #endif
 

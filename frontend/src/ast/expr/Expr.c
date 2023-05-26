@@ -26,7 +26,7 @@ bool parse_expr_inplace(ParserState* s, Expr* res) {
         }
 
         if (!parse_assign_expr_inplace(s, &res->assign_exprs[res->len])) {
-            free_expr_children(res);
+            Expr_free_children(res);
             return false;
         }
 
@@ -50,14 +50,14 @@ Expr* parse_expr(ParserState* s) {
     return res;
 }
 
-void free_expr_children(Expr* e) {
+void Expr_free_children(Expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
-        free_assign_expr_children(&e->assign_exprs[i]);
+        AssignExpr_free_children(&e->assign_exprs[i]);
     }
     mycc_free(e->assign_exprs);
 }
 
-void free_expr(Expr* e) {
-    free_expr_children(e);
+void Expr_free(Expr* e) {
+    Expr_free_children(e);
     mycc_free(e);
 }

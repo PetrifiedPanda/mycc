@@ -18,11 +18,11 @@ typedef struct {
     void* _items;
 } StringMap;
 
-StringMap create_string_map(size_t elem_size,
+StringMap StringMap_create(size_t elem_size,
                                     size_t init_cap,
                                     bool free_keys,
                                     void (*item_free)(void*));
-void free_string_map(StringMap* map);
+void StringMap_free(StringMap* map);
 
 /**
  * @brief Inserts item and key into this map, if key is not already
@@ -31,7 +31,7 @@ void free_string_map(StringMap* map);
  * @return If this key is not already in use, item, otherwise a pointer
  *         to the item associated with key
  */
-const void* string_map_insert(StringMap* map,
+const void* StringMap_insert(StringMap* map,
                               const Str* key,
                               const void* item);
 
@@ -41,7 +41,7 @@ const void* string_map_insert(StringMap* map,
  *
  * @return true if an existing entry was overwritten
  */
-bool string_map_insert_overwrite(StringMap* map,
+bool StringMap_insert_overwrite(StringMap* map,
                                  const Str* key,
                                  const void* item);
 
@@ -51,8 +51,8 @@ bool string_map_insert_overwrite(StringMap* map,
  * @return A pointer to the item associated with key, or null, if key is not
  *         present
  */
-const void* string_map_get(const StringMap* map, const Str* key);
+const void* StringMap_get(const StringMap* map, const Str* key);
 
-void string_map_remove(StringMap* map, const Str* key);
+void StringMap_remove(StringMap* map, const Str* key);
 
 #endif

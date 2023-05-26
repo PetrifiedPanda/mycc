@@ -32,7 +32,7 @@ bool parse_init_declarator_list_typedef_first(ParserState* s,
 bool parse_init_declarator_list_typedef(ParserState* s,
                                         InitDeclaratorList* res);
 
-void free_init_declarator_list(InitDeclaratorList* l);
+void InitDeclaratorList_free(InitDeclaratorList* l);
 
 #include "frontend/ast/declaration/InitDeclarator.h"
 

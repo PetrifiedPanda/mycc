@@ -43,13 +43,13 @@ static_assert(sizeof(double) * CHAR_BIT == 64, "Double is not 64 bits");
 bool int_value_is_signed(IntValueKind t);
 bool int_value_is_unsigned(IntValueKind t);
 
-IntValue create_int_value(IntValueKind t, int64_t val);
-IntValue create_uint_value(IntValueKind t, uint64_t val);
+IntValue IntValue_create_signed(IntValueKind t, int64_t val);
+IntValue IntValue_create_unsigned(IntValueKind t, uint64_t val);
 
-FloatValue create_float_value(FloatValueKind t, double val);
+FloatValue FloatValue_create(FloatValueKind t, double val);
 
-const char* get_int_value_kind_str(IntValueKind k);
-const char* get_float_value_kind_str(FloatValueKind k);
+const char* IntValueKind_str(IntValueKind k);
+const char* FloatValueKind_str(FloatValueKind k);
 
 #endif
 

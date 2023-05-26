@@ -12,10 +12,10 @@ ConstExpr* parse_const_expr(ParserState* s) {
 }
 
 static void free_const_expr_children(ConstExpr* e) {
-    free_cond_expr_children(&e->expr);
+    CondExpr_free_children(&e->expr);
 }
 
-void free_const_expr(ConstExpr* e) {
+void ConstExpr_free(ConstExpr* e) {
     free_const_expr_children(e);
     mycc_free(e);
 }

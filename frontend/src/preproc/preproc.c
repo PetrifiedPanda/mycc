@@ -25,7 +25,7 @@ static bool preproc_impl(PreprocState* state);
 PreprocRes preproc(const char* path, PreprocErr* err) {
     assert(err);
 
-    PreprocState state = create_preproc_state(path, err);
+    PreprocState state = PreprocState_create(path, err);
     if (err->kind != PREPROC_ERR_NONE) {
         return (PreprocRes){
             .toks = NULL,
@@ -38,7 +38,7 @@ PreprocRes preproc(const char* path, PreprocErr* err) {
             .len = 0,
             .paths = NULL,
         };
-        free_preproc_state(&state);
+        PreprocState_free(&state);
         return (PreprocRes){
             .toks = NULL,
             .file_info = info,
@@ -58,12 +58,12 @@ PreprocRes preproc(const char* path, PreprocErr* err) {
         .len = 0,
         .paths = NULL,
     };
-    free_preproc_state(&state);
+    PreprocState_free(&state);
     return res;
 }
 
 static bool preproc_impl(PreprocState* state) {
-    while (!preproc_state_over(state)) {
+    while (!PreprocState_over(state)) {
         const size_t prev_len = state->res.len;
         if (!read_and_tokenize_line(state)) {
             return false;
@@ -74,7 +74,7 @@ static bool preproc_impl(PreprocState* state) {
         }
     }
     if (state->conds_len != 0) {
-        set_preproc_err(state->err, PREPROC_ERR_UNTERMINATED_COND, state->line_info.curr_loc);
+        PreprocErr_set(state->err, PREPROC_ERR_UNTERMINATED_COND, state->line_info.curr_loc);
         state->err->unterminated_cond_loc = state->conds[state->conds_len - 1].loc;
         return false;
     }
@@ -86,10 +86,10 @@ static bool preproc_impl(PreprocState* state) {
 PreprocRes preproc_string(const char* str, const char* path, PreprocErr* err) {
     assert(err);
 
-    PreprocState state = create_preproc_state_string(str, path, err);
+    PreprocState state = PreprocState_create_string(str, path, err);
 
     if (!preproc_impl(&state)) {
-        free_preproc_state(&state);
+        PreprocState_free(&state);
         return (PreprocRes){
             .toks = NULL,
             .file_info =
@@ -113,7 +113,7 @@ PreprocRes preproc_string(const char* str, const char* path, PreprocErr* err) {
         .len = 0,
         .paths = NULL,
     };
-    free_preproc_state(&state);
+    PreprocState_free(&state);
 
     return res;
 }
@@ -121,7 +121,7 @@ PreprocRes preproc_string(const char* str, const char* path, PreprocErr* err) {
 
 static void free_tokens(Token* tokens) {
     for (Token* it = tokens; it->kind != TOKEN_INVALID; ++it) {
-        free_token(it);
+        Token_free(it);
     }
     mycc_free(tokens);
 }
@@ -133,23 +133,23 @@ static void free_preproc_tokens(Token* tokens) {
     mycc_free(tokens);
 }
 
-void free_preproc_res_preproc_tokens(PreprocRes* res) {
+void PreprocRes_free_preproc_tokens(PreprocRes* res) {
     free_preproc_tokens(res->toks);
-    free_file_info(&res->file_info);
+    FileInfo_free(&res->file_info);
 }
 
-void free_preproc_res(PreprocRes* res) {
+void PreprocRes_free(PreprocRes* res) {
     if (res->toks) {
         free_tokens(res->toks);
     }
-    free_file_info(&res->file_info);
+    FileInfo_free(&res->file_info);
 }
 
 static bool convert_string_literal(Token* t) {
     Str spelling = t->spelling;
     t->str_lit = convert_to_str_lit(&spelling);
     if (t->str_lit.kind == STR_LIT_INCLUDE) {
-        free_str_lit(&t->str_lit);
+        StrLit_free(&t->str_lit);
         // TODO: error
         return false;
     }
@@ -167,7 +167,7 @@ static bool convert_preproc_token(Token* t,
             if (Str_char_at(&t->spelling, 0) == '\'') {
                 ParseCharConstRes res = parse_char_const(Str_get_data(&t->spelling), info);
                 if (res.err.kind != CHAR_CONST_ERR_NONE) {
-                    set_preproc_err(err, PREPROC_ERR_CHAR_CONST, t->loc);
+                    PreprocErr_set(err, PREPROC_ERR_CHAR_CONST, t->loc);
                     err->char_const_err = res.err;
                     err->constant_spell = t->spelling;
                     return false;
@@ -177,7 +177,7 @@ static bool convert_preproc_token(Token* t,
             } else {
                 ParseIntConstRes res = parse_int_const(Str_get_data(&t->spelling), info);
                 if (res.err.kind != INT_CONST_ERR_NONE) {
-                    set_preproc_err(err, PREPROC_ERR_INT_CONST, t->loc);
+                    PreprocErr_set(err, PREPROC_ERR_INT_CONST, t->loc);
                     err->int_const_err = res.err;
                     err->constant_spell = t->spelling;
                     return false;
@@ -190,7 +190,7 @@ static bool convert_preproc_token(Token* t,
         case TOKEN_F_CONSTANT: {
             ParseFloatConstRes res = parse_float_const(Str_get_data(&t->spelling));
             if (res.err.kind != FLOAT_CONST_ERR_NONE) {
-                set_preproc_err(err, PREPROC_ERR_FLOAT_CONST, t->loc);
+                PreprocErr_set(err, PREPROC_ERR_FLOAT_CONST, t->loc);
                 err->float_const_err = res.err;
                 err->constant_spell = t->spelling;
                 return false;
@@ -213,7 +213,7 @@ static bool convert_preproc_token(Token* t,
             break;
         case TOKEN_PP_STRINGIFY:
         case TOKEN_PP_CONCAT:
-            set_preproc_err(err, PREPROC_ERR_MISPLACED_PREPROC_TOKEN, t->loc);
+            PreprocErr_set(err, PREPROC_ERR_MISPLACED_PREPROC_TOKEN, t->loc);
             err->misplaced_preproc_tok = t->kind;
             return false;
         default:
@@ -249,7 +249,7 @@ static void append_terminator_token(TokenArr* arr) {
 }
 
 static inline bool is_spelling(const char* spelling, TokenKind type) {
-    const char* expected_spell = get_token_kind_spelling(type);
+    const char* expected_spell = TokenKind_get_spelling(type);
     assert(expected_spell != NULL);
     return strcmp(spelling, expected_spell) == 0;
 }

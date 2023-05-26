@@ -79,12 +79,12 @@ LogOrExpr* parse_log_or_expr_cast(ParserState* s, CastExpr* start) {
 
 static void free_log_or_expr_children(LogOrExpr* e) {
     for (size_t i = 0; i < e->len; ++i) {
-        free_log_and_expr_children(&e->log_ands[i]);
+        LogAndExpr_free_children(&e->log_ands[i]);
     }
     mycc_free(e->log_ands);
 }
 
-void free_log_or_expr(LogOrExpr* e) {
+void LogOrExpr_free(LogOrExpr* e) {
     free_log_or_expr_children(e);
     mycc_free(e);
 }

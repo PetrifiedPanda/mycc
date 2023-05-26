@@ -48,7 +48,7 @@ bool parse_abs_arr_or_func_suffixes(ParserState* s, DirectAbsDeclarator* res);
 
 DirectAbsDeclarator* parse_direct_abs_declarator(ParserState* s);
 
-void free_direct_abs_declarator(DirectAbsDeclarator* d);
+void DirectAbsDeclarator_free(DirectAbsDeclarator* d);
 
 #include "AbsDeclarator.h"
 

@@ -29,7 +29,7 @@ static bool parse_abs_func_suffix(ParserState* s, AbsArrOrFuncSuffix* res) {
         }
 
         if (!parser_accept(s, TOKEN_RBRACKET)) {
-            free_param_type_list(&res->func_types);
+            ParamTypeList_free(&res->func_types);
             return false;
         }
     }
@@ -69,7 +69,7 @@ static bool parse_abs_arr_suffix(ParserState* s, AbsArrOrFuncSuffix* res) {
 
         if (s->it->kind == TOKEN_STATIC) {
             if (res->is_static) {
-                set_parser_err(s->err,
+                ParserErr_set(s->err,
                                PARSER_ERR_ARR_DOUBLE_STATIC,
                                s->it->loc);
                 free_abs_arr_or_func_suffix(res);
@@ -83,7 +83,7 @@ static bool parse_abs_arr_suffix(ParserState* s, AbsArrOrFuncSuffix* res) {
 
     if (s->it->kind == TOKEN_RINDEX) {
         if (res->is_static) {
-            set_parser_err(s->err, PARSER_ERR_ARR_STATIC_NO_LEN, s->it->loc);
+            ParserErr_set(s->err, PARSER_ERR_ARR_STATIC_NO_LEN, s->it->loc);
             free_abs_arr_or_func_suffix(res);
             return false;
         }
@@ -102,7 +102,7 @@ static bool parse_abs_arr_suffix(ParserState* s, AbsArrOrFuncSuffix* res) {
 static bool parse_abs_arr_or_func_suffix(ParserState* s, AbsArrOrFuncSuffix* res) {
     assert(res);
     assert(s->it->kind == TOKEN_LBRACKET || s->it->kind == TOKEN_LINDEX);
-    res->info = create_ast_node_info(s->it->loc);
+    res->info = AstNodeInfo_create(s->it->loc);
 
     switch (s->it->kind) {
         case TOKEN_LBRACKET:
@@ -127,7 +127,7 @@ bool parse_abs_arr_or_func_suffixes(ParserState* s, DirectAbsDeclarator* res) {
 
         if (!parse_abs_arr_or_func_suffix(s,
                                           &res->following_suffixes[res->len])) {
-            free_direct_abs_declarator(res);
+            DirectAbsDeclarator_free(res);
             return false;
         }
 
@@ -142,7 +142,7 @@ bool parse_abs_arr_or_func_suffixes(ParserState* s, DirectAbsDeclarator* res) {
 
 struct DirectAbsDeclarator* parse_direct_abs_declarator(ParserState* s) {
     struct DirectAbsDeclarator* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(s->it->loc);
+    res->info = AstNodeInfo_create(s->it->loc);
     if (s->it->kind == TOKEN_LBRACKET
         && (s->it[1].kind == TOKEN_LBRACKET || s->it[1].kind == TOKEN_LINDEX
             || s->it[1].kind == TOKEN_ASTERISK)) {
@@ -154,7 +154,7 @@ struct DirectAbsDeclarator* parse_direct_abs_declarator(ParserState* s) {
         }
 
         if (!parser_accept(s, TOKEN_RBRACKET)) {
-            free_abs_declarator(res->bracket_decl);
+            AbsDeclarator_free(res->bracket_decl);
             mycc_free(res);
             return NULL;
         }
@@ -174,11 +174,11 @@ static void free_abs_arr_or_func_suffix(AbsArrOrFuncSuffix* s) {
             break;
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN:
             if (s->assign) {
-                free_assign_expr(s->assign);
+                AssignExpr_free(s->assign);
             }
             break;
         case ABS_ARR_OR_FUNC_SUFFIX_FUNC:
-            free_param_type_list(&s->func_types);
+            ParamTypeList_free(&s->func_types);
             break;
     }
 }
@@ -186,7 +186,7 @@ static void free_abs_arr_or_func_suffix(AbsArrOrFuncSuffix* s) {
 static void free_direct_abs_declarator_children(
     struct DirectAbsDeclarator* d) {
     if (d->bracket_decl) {
-        free_abs_declarator(d->bracket_decl);
+        AbsDeclarator_free(d->bracket_decl);
     }
 
     for (size_t i = 0; i < d->len; ++i) {
@@ -195,7 +195,7 @@ static void free_direct_abs_declarator_children(
     mycc_free(d->following_suffixes);
 }
 
-void free_direct_abs_declarator(struct DirectAbsDeclarator* d) {
+void DirectAbsDeclarator_free(struct DirectAbsDeclarator* d) {
     free_direct_abs_declarator_children(d);
     mycc_free(d);
 }

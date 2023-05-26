@@ -14,7 +14,7 @@ typedef struct Declarator {
 Declarator* parse_declarator(ParserState* s);
 Declarator* parse_declarator_typedef(ParserState* s);
 
-void free_declarator(Declarator* d);
+void Declarator_free(Declarator* d);
 
 #include "Pointer.h"
 #include "DirectDeclarator.h"

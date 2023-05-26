@@ -31,7 +31,7 @@ typedef struct CastExpr CastExpr;
 
 AddExpr* parse_add_expr_cast(ParserState* s, CastExpr* start);
 
-void free_add_expr(AddExpr* e);
+void AddExpr_free(AddExpr* e);
 
 #include "MulExpr.h"
 #include "CastExpr.h"

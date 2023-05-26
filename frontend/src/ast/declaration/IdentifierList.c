@@ -12,10 +12,10 @@ bool parse_identifier_list(ParserState* s, IdentifierList* res) {
         .len = 1,
         .identifiers = mycc_alloc(sizeof *res->identifiers),
     };
-    Str spell = token_take_spelling(s->it);
+    Str spell = Token_take_spelling(s->it);
     SourceLoc loc = s->it->loc;
     parser_accept_it(s);
-    init_identifier(res->identifiers, &spell, loc);
+    Identifier_init(res->identifiers, &spell, loc);
 
     size_t alloc_len = res->len;
     while (s->it->kind == TOKEN_COMMA) {
@@ -28,13 +28,13 @@ bool parse_identifier_list(ParserState* s, IdentifierList* res) {
         }
 
         if (s->it->kind != TOKEN_IDENTIFIER) {
-            free_identifier_list(res);
+            IdentifierList_free(res);
             return false;
         }
-        spell = token_take_spelling(s->it);
+        spell = Token_take_spelling(s->it);
         loc = s->it->loc;
         parser_accept_it(s);
-        init_identifier(&res->identifiers[res->len], &spell, loc);
+        Identifier_init(&res->identifiers[res->len], &spell, loc);
 
         ++res->len;
     }
@@ -45,9 +45,9 @@ bool parse_identifier_list(ParserState* s, IdentifierList* res) {
     return res;
 }
 
-void free_identifier_list(IdentifierList* l) {
+void IdentifierList_free(IdentifierList* l) {
     for (size_t i = 0; i < l->len; ++i) {
-        free_identifier_children(&l->identifiers[i]);
+        Identifier_free_children(&l->identifiers[i]);
     }
     mycc_free(l->identifiers);
 }

@@ -13,7 +13,7 @@ typedef struct AbsDeclarator {
 
 AbsDeclarator* parse_abs_declarator(ParserState* s);
 
-void free_abs_declarator(AbsDeclarator* d);
+void AbsDeclarator_free(AbsDeclarator* d);
 
 #include "Pointer.h"
 #include "DirectAbsDeclarator.h"

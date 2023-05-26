@@ -21,13 +21,13 @@ static bool parse_cond_expr_conditionals(ParserState* s,
         }
 
         if (!parser_accept(s, TOKEN_COLON)) {
-            free_expr(expr);
+            Expr_free(expr);
             goto fail;
         }
 
         LogOrExpr* new_last = parse_log_or_expr(s);
         if (!new_last) {
-            free_expr(expr);
+            Expr_free(expr);
             goto fail;
         }
 
@@ -49,7 +49,7 @@ static bool parse_cond_expr_conditionals(ParserState* s,
     return true;
 
 fail:
-    free_cond_expr_children(res);
+    CondExpr_free_children(res);
     return false;
 }
 
@@ -85,19 +85,19 @@ CondExpr* parse_cond_expr_cast(ParserState* s, CastExpr* start) {
     return res;
 }
 
-void free_cond_expr_children(CondExpr* e) {
+void CondExpr_free_children(CondExpr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         LogOrAndExpr* item = &e->conditionals[i];
-        free_log_or_expr(item->log_or);
-        free_expr(item->expr);
+        LogOrExpr_free(item->log_or);
+        Expr_free(item->expr);
     }
     mycc_free(e->conditionals);
 
-    free_log_or_expr(e->last_else);
+    LogOrExpr_free(e->last_else);
 }
 
-void free_cond_expr(CondExpr* e) {
-    free_cond_expr_children(e);
+void CondExpr_free(CondExpr* e) {
+    CondExpr_free_children(e);
     mycc_free(e);
 }
 

@@ -22,7 +22,7 @@ typedef struct {
     Str* val_names;
 } SSACFG;
 
-void free_ssa_cfg(SSACFG* cfg);
+void SSACFG_free(SSACFG* cfg);
 
 #endif
 

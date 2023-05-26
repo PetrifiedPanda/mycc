@@ -10,9 +10,9 @@ typedef struct {
     SourceLoc loc;
 } ErrBase;
 
-ErrBase create_err_base(SourceLoc loc);
+ErrBase ErrBase_create(SourceLoc loc);
 
-void print_err_base(FILE* out,
+void ErrBase_print(FILE* out,
                     const FileInfo* file_info,
                     const ErrBase* err);
 

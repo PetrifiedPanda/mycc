@@ -11,7 +11,7 @@ typedef struct ConstExpr {
 
 ConstExpr* parse_const_expr(ParserState* s);
 
-void free_const_expr(ConstExpr* e);
+void ConstExpr_free(ConstExpr* e);
 
 #endif
 

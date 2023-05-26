@@ -18,7 +18,7 @@ AbsDeclarator* parse_abs_declarator(ParserState* s) {
         res->direct_abs_decl = parse_direct_abs_declarator(s);
         if (!res->direct_abs_decl) {
             if (res->ptr) {
-                free_pointer(res->ptr);
+                Pointer_free(res->ptr);
             }
             mycc_free(res);
             return NULL;
@@ -28,7 +28,7 @@ AbsDeclarator* parse_abs_declarator(ParserState* s) {
     }
 
     if (res->direct_abs_decl == NULL && res->ptr == NULL) {
-        set_parser_err(s->err, PARSER_ERR_EMPTY_DIRECT_ABS_DECL, s->it->loc);
+        ParserErr_set(s->err, PARSER_ERR_EMPTY_DIRECT_ABS_DECL, s->it->loc);
         mycc_free(res);
         return NULL;
     }
@@ -38,14 +38,14 @@ AbsDeclarator* parse_abs_declarator(ParserState* s) {
 
 static void free_abs_declarator_children(AbsDeclarator* d) {
     if (d->ptr) {
-        free_pointer(d->ptr);
+        Pointer_free(d->ptr);
     }
     if (d->direct_abs_decl) {
-        free_direct_abs_declarator(d->direct_abs_decl);
+        DirectAbsDeclarator_free(d->direct_abs_decl);
     }
 }
 
-void free_abs_declarator(AbsDeclarator* d) {
+void AbsDeclarator_free(AbsDeclarator* d) {
     free_abs_declarator_children(d);
     mycc_free(d);
 }

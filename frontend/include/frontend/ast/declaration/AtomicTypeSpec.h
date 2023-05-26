@@ -14,7 +14,7 @@ typedef struct AtomicTypeSpec {
 
 AtomicTypeSpec* parse_atomic_type_spec(ParserState* s);
 
-void free_atomic_type_spec(AtomicTypeSpec* s);
+void AtomicTypeSpec_free(AtomicTypeSpec* s);
 
 #include "frontend/ast/TypeName.h"
 

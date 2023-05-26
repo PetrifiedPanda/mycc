@@ -20,18 +20,18 @@ AtomicTypeSpec* parse_atomic_type_spec(ParserState* s) {
     }
 
     if (!parser_accept(s, TOKEN_RBRACKET)) {
-        free_type_name(type_name);
+        TypeName_free(type_name);
         return NULL;
     }
 
     AtomicTypeSpec* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(loc);
+    res->info = AstNodeInfo_create(loc);
     res->type_name = type_name;
     return res;
 }
 
-void free_atomic_type_spec(AtomicTypeSpec* s) {
-    free_type_name(s->type_name);
+void AtomicTypeSpec_free(AtomicTypeSpec* s) {
+    TypeName_free(s->type_name);
     mycc_free(s);
 }
 

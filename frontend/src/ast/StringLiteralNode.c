@@ -1,12 +1,12 @@
 #include "frontend/ast/StringLiteralNode.h"
 
-StringLiteralNode create_string_literal_node(const StrLit* lit, SourceLoc loc) {
+StringLiteralNode StringLiteralNode_create(const StrLit* lit, SourceLoc loc) {
     return (StringLiteralNode){
-        .info = create_ast_node_info(loc),
+        .info = AstNodeInfo_create(loc),
         .lit = *lit,
     };
 }
 
-void free_string_literal(StringLiteralNode* l) {
-    free_str_lit(&l->lit);
+void StringLiteralNode_free(StringLiteralNode* l) {
+    StrLit_free(&l->lit);
 }

@@ -21,8 +21,8 @@ typedef struct Declaration {
 
 bool parse_declaration_inplace(ParserState* s, Declaration* res);
 
-void free_declaration_children(Declaration* d);
-void free_declaration(Declaration* d);
+void Declaration_free_children(Declaration* d);
+void Declaration_free(Declaration* d);
 
 #include "DeclarationSpecs.h"
 #include "StaticAssertDeclaration.h"

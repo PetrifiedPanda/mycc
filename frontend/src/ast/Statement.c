@@ -11,7 +11,7 @@ static LabeledStatement* parse_labeled_statement(ParserState* s) {
     assert(s->it->kind == TOKEN_CASE || s->it->kind == TOKEN_IDENTIFIER
            || s->it->kind == TOKEN_DEFAULT);
     LabeledStatement* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(s->it->loc);
+    res->info = AstNodeInfo_create(s->it->loc);
     switch (s->it->kind) {
         case TOKEN_CASE: {
             res->kind = LABELED_STATEMENT_CASE;
@@ -27,10 +27,10 @@ static LabeledStatement* parse_labeled_statement(ParserState* s) {
 
         case TOKEN_IDENTIFIER: {
             res->kind = LABELED_STATEMENT_LABEL;
-            const Str spelling = token_take_spelling(s->it);
+            const Str spelling = Token_take_spelling(s->it);
             const SourceLoc loc = s->it->loc;
             parser_accept_it(s);
-            res->label = create_identifier(&spelling, loc);
+            res->label = Identifier_create(&spelling, loc);
             break;
         }
 
@@ -56,7 +56,7 @@ static LabeledStatement* parse_labeled_statement(ParserState* s) {
     return res;
 fail:
     if (res->kind == LABELED_STATEMENT_CASE) {
-        free_const_expr(res->case_expr);
+        ConstExpr_free(res->case_expr);
     }
     mycc_free(res);
     return NULL;
@@ -65,20 +65,20 @@ fail:
 static void free_labeled_statement_children(LabeledStatement* s) {
     switch (s->kind) {
         case LABELED_STATEMENT_LABEL:
-            free_identifier(s->label);
+            Identifier_free(s->label);
             break;
         case LABELED_STATEMENT_CASE:
-            free_const_expr(s->case_expr);
+            ConstExpr_free(s->case_expr);
             break;
         case LABELED_STATEMENT_DEFAULT:
             break;
         default:
             UNREACHABLE();
     }
-    free_statement(s->stat);
+    Statement_free(s->stat);
 }
 
-void free_labeled_statement(LabeledStatement* s) {
+void LabeledStatement_free(LabeledStatement* s) {
     free_labeled_statement_children(s);
     mycc_free(s);
 }
@@ -101,26 +101,26 @@ static bool parse_block_item_inplace(ParserState* s, BlockItem* res) {
 
 static void free_block_item_children(BlockItem* i) {
     if (i->is_decl) {
-        free_declaration_children(&i->decl);
+        Declaration_free_children(&i->decl);
     } else {
-        free_statement_children(&i->stat);
+        Statement_free_children(&i->stat);
     }
 }
 
-void free_compound_statement_children(CompoundStatement* s) {
+void CompoundStatement_free_children(CompoundStatement* s) {
     for (size_t i = 0; i < s->len; ++i) {
         free_block_item_children(&s->items[i]);
     }
     mycc_free(s->items);
 }
 
-void free_compound_statement(CompoundStatement* s) {
-    free_compound_statement_children(s);
+void CompoundStatement_free(CompoundStatement* s) {
+    CompoundStatement_free_children(s);
     mycc_free(s);
 }
 
 bool parse_compound_statement_inplace(ParserState* s, CompoundStatement* res) {
-    res->info = create_ast_node_info(s->it->loc);
+    res->info = AstNodeInfo_create(s->it->loc);
     if (!parser_accept(s, TOKEN_LBRACE)) {
         return false;
     }
@@ -138,7 +138,7 @@ bool parse_compound_statement_inplace(ParserState* s, CompoundStatement* res) {
         }
 
         if (!parse_block_item_inplace(s, &res->items[res->len])) {
-            free_compound_statement_children(res);
+            CompoundStatement_free_children(res);
             return false;
         }
 
@@ -164,11 +164,11 @@ static struct CompoundStatement* parse_compound_statement(ParserState* s) {
     return res;
 }
 
-void free_expr_statement(ExprStatement* s);
+void ExprStatement_free(ExprStatement* s);
 
 static ExprStatement* parse_expr_statement(ParserState* s) {
     ExprStatement* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(s->it->loc);
+    res->info = AstNodeInfo_create(s->it->loc);
     if (s->it->kind == TOKEN_SEMICOLON) {
         parser_accept_it(s);
         res->expr.len = 0;
@@ -181,7 +181,7 @@ static ExprStatement* parse_expr_statement(ParserState* s) {
         }
 
         if (!parser_accept(s, TOKEN_SEMICOLON)) {
-            free_expr_statement(res);
+            ExprStatement_free(res);
             return NULL;
         }
 
@@ -190,10 +190,10 @@ static ExprStatement* parse_expr_statement(ParserState* s) {
 }
 
 static void free_expr_statement_children(ExprStatement* s) {
-    free_expr_children(&s->expr);
+    Expr_free_children(&s->expr);
 }
 
-void free_expr_statement(ExprStatement* s) {
+void ExprStatement_free(ExprStatement* s) {
     free_expr_statement_children(s);
     mycc_free(s);
 }
@@ -201,7 +201,7 @@ void free_expr_statement(ExprStatement* s) {
 static SelectionStatement* parse_selection_statement(ParserState* s) {
     assert(s->it->kind == TOKEN_IF || s->it->kind == TOKEN_SWITCH);
     SelectionStatement* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(s->it->loc);
+    res->info = AstNodeInfo_create(s->it->loc);
     if (s->it->kind == TOKEN_IF) {
         res->is_if = true;
     } else {
@@ -221,14 +221,14 @@ static SelectionStatement* parse_selection_statement(ParserState* s) {
     }
 
     if (!parser_accept(s, TOKEN_RBRACKET)) {
-        free_expr(res->sel_expr);
+        Expr_free(res->sel_expr);
         mycc_free(res);
         return NULL;
     }
 
     res->sel_stat = parse_statement(s);
     if (!res->sel_stat) {
-        free_expr(res->sel_expr);
+        Expr_free(res->sel_expr);
         mycc_free(res);
         return NULL;
     }
@@ -237,8 +237,8 @@ static SelectionStatement* parse_selection_statement(ParserState* s) {
         parser_accept_it(s);
         res->else_stat = parse_statement(s);
         if (!res->else_stat) {
-            free_statement(res->sel_stat);
-            free_expr(res->sel_expr);
+            Statement_free(res->sel_stat);
+            Expr_free(res->sel_expr);
             mycc_free(res);
             return NULL;
         }
@@ -250,14 +250,14 @@ static SelectionStatement* parse_selection_statement(ParserState* s) {
 }
 
 static void free_selection_statement_children(SelectionStatement* s) {
-    free_expr(s->sel_expr);
-    free_statement(s->sel_stat);
+    Expr_free(s->sel_expr);
+    Statement_free(s->sel_stat);
     if (s->else_stat) {
-        free_statement(s->else_stat);
+        Statement_free(s->else_stat);
     }
 }
 
-void free_selection_statement(SelectionStatement* s) {
+void SelectionStatement_free(SelectionStatement* s) {
     free_selection_statement_children(s);
     mycc_free(s);
 }
@@ -269,7 +269,7 @@ static void assign_do_or_while(SourceLoc loc,
     assert(res);
     assert(while_cond);
     assert(loop_body);
-    res->info = create_ast_node_info(loc);
+    res->info = AstNodeInfo_create(loc);
     res->while_cond = while_cond;
     res->loop_body = loop_body;
 }
@@ -300,7 +300,7 @@ static IterationStatement* create_for_loop(SourceLoc loc,
     assert(for_loop.cond);
     assert(loop_body);
     struct IterationStatement* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(loc);
+    res->info = AstNodeInfo_create(loc);
     res->kind = ITERATION_STATEMENT_FOR;
     res->loop_body = loop_body;
     res->for_loop = for_loop;
@@ -324,13 +324,13 @@ static IterationStatement* parse_while_statement(ParserState* s,
     }
 
     if (!parser_accept(s, TOKEN_RBRACKET)) {
-        free_expr(while_cond);
+        Expr_free(while_cond);
         return NULL;
     }
 
     Statement* loop_body = parse_statement(s);
     if (!loop_body) {
-        free_expr(while_cond);
+        Expr_free(while_cond);
         return NULL;
     }
 
@@ -348,14 +348,14 @@ static IterationStatement* parse_do_loop(ParserState* s, SourceLoc loc) {
     }
 
     if (!parser_accept(s, TOKEN_WHILE) || !parser_accept(s, TOKEN_LBRACKET)) {
-        free_statement(loop_body);
+        Statement_free(loop_body);
         return NULL;
     }
 
     Expr* while_cond = parse_expr(s);
     if (!(while_cond && parser_accept(s, TOKEN_RBRACKET)
           && parser_accept(s, TOKEN_SEMICOLON))) {
-        free_statement(loop_body);
+        Statement_free(loop_body);
         return NULL;
     }
 
@@ -388,9 +388,9 @@ static IterationStatement* parse_for_loop(ParserState* s, SourceLoc loc) {
     loop.cond = parse_expr_statement(s);
     if (!loop.cond) {
         if (loop.is_decl) {
-            free_declaration_children(&loop.init_decl);
+            Declaration_free_children(&loop.init_decl);
         } else {
-            free_expr_statement(loop.init_expr);
+            ExprStatement_free(loop.init_expr);
         }
         return NULL;
     }
@@ -416,11 +416,11 @@ static IterationStatement* parse_for_loop(ParserState* s, SourceLoc loc) {
     return create_for_loop(loc, loop, loop_body);
 fail:
     if (loop.is_decl) {
-        free_declaration_children(&loop.init_decl);
+        Declaration_free_children(&loop.init_decl);
     } else {
-        free_expr_statement(loop.init_expr);
+        ExprStatement_free(loop.init_expr);
     }
-    free_expr_statement(loop.cond);
+    ExprStatement_free(loop.cond);
     return NULL;
 }
 
@@ -445,27 +445,27 @@ static void free_iteration_statement_children(IterationStatement* s) {
     switch (s->kind) {
         case ITERATION_STATEMENT_WHILE:
         case ITERATION_STATEMENT_DO:
-            free_expr(s->while_cond);
+            Expr_free(s->while_cond);
             break;
         case ITERATION_STATEMENT_FOR: {
             if (s->for_loop.is_decl) {
-                free_declaration_children(&s->for_loop.init_decl);
+                Declaration_free_children(&s->for_loop.init_decl);
             } else {
-                free_expr_statement(s->for_loop.init_expr);
+                ExprStatement_free(s->for_loop.init_expr);
             }
-            free_expr_statement(s->for_loop.cond);
+            ExprStatement_free(s->for_loop.cond);
             if (s->for_loop.incr_expr) {
-                free_expr(s->for_loop.incr_expr);
+                Expr_free(s->for_loop.incr_expr);
             }
             break;
         }
         default:
             UNREACHABLE();
     }
-    free_statement(s->loop_body);
+    Statement_free(s->loop_body);
 }
 
-void free_iteration_statement(IterationStatement* s) {
+void IterationStatement_free(IterationStatement* s) {
     free_iteration_statement_children(s);
     mycc_free(s);
 }
@@ -473,7 +473,7 @@ void free_iteration_statement(IterationStatement* s) {
 static JumpStatement* create_jump_statement(SourceLoc loc,
                                             JumpStatementKind kind) {
     JumpStatement* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(loc);
+    res->info = AstNodeInfo_create(loc);
     res->kind = kind;
 
     return res;
@@ -494,7 +494,7 @@ static JumpStatement* create_return_statement(SourceLoc loc, Expr* ret_val) {
     return res;
 }
 
-void free_jump_statement(JumpStatement* s);
+void JumpStatement_free(JumpStatement* s);
 
 static JumpStatement* parse_jump_statement(ParserState* s) {
     assert(s->it->kind == TOKEN_GOTO || s->it->kind == TOKEN_CONTINUE
@@ -505,11 +505,11 @@ static JumpStatement* parse_jump_statement(ParserState* s) {
         case TOKEN_GOTO: {
             parser_accept_it(s);
             if (s->it->kind == TOKEN_IDENTIFIER) {
-                const Str spell = token_take_spelling(s->it);
+                const Str spell = Token_take_spelling(s->it);
                 const SourceLoc id_loc = s->it->loc;
                 parser_accept_it(s);
                 res = create_goto_statement(loc,
-                                            create_identifier(&spell, id_loc));
+                                            Identifier_create(&spell, id_loc));
                 break;
             } else {
                 expected_token_error(s, TOKEN_IDENTIFIER);
@@ -548,7 +548,7 @@ static JumpStatement* parse_jump_statement(ParserState* s) {
     }
 
     if (!parser_accept(s, TOKEN_SEMICOLON)) {
-        free_jump_statement(res);
+        JumpStatement_free(res);
         return NULL;
     }
 
@@ -558,20 +558,20 @@ static JumpStatement* parse_jump_statement(ParserState* s) {
 static void free_jump_statement_children(JumpStatement* s) {
     switch (s->kind) {
         case JUMP_STATEMENT_GOTO:
-            free_identifier(s->goto_label);
+            Identifier_free(s->goto_label);
             break;
         case JUMP_STATEMENT_CONTINUE:
         case JUMP_STATEMENT_BREAK:
             break;
         case JUMP_STATEMENT_RETURN:
             if (s->ret_val) {
-                free_expr(s->ret_val);
+                Expr_free(s->ret_val);
             }
             break;
     }
 }
 
-void free_jump_statement(JumpStatement* s) {
+void JumpStatement_free(JumpStatement* s) {
     free_jump_statement_children(s);
     mycc_free(s);
 }
@@ -666,30 +666,30 @@ Statement* parse_statement(ParserState* s) {
     return res;
 }
 
-void free_statement_children(Statement* s) {
+void Statement_free_children(Statement* s) {
     switch (s->kind) {
         case STATEMENT_LABELED:
-            free_labeled_statement(s->labeled);
+            LabeledStatement_free(s->labeled);
             break;
         case STATEMENT_COMPOUND:
-            free_compound_statement(s->comp);
+            CompoundStatement_free(s->comp);
             break;
         case STATEMENT_EXPRESSION:
-            free_expr_statement(s->expr);
+            ExprStatement_free(s->expr);
             break;
         case STATEMENT_SELECTION:
-            free_selection_statement(s->sel);
+            SelectionStatement_free(s->sel);
             break;
         case STATEMENT_ITERATION:
-            free_iteration_statement(s->it);
+            IterationStatement_free(s->it);
             break;
         case STATEMENT_JUMP:
-            free_jump_statement(s->jmp);
+            JumpStatement_free(s->jmp);
             break;
     }
 }
 
-void free_statement(Statement* s) {
-    free_statement_children(s);
+void Statement_free(Statement* s) {
+    Statement_free_children(s);
     mycc_free(s);
 }

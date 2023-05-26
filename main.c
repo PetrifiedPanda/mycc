@@ -34,17 +34,17 @@ int main(int argc, char** argv) {
         const char* filename = args.files[i];
         if (args.action == ARG_ACTION_CONVERT_BIN_TO_TEXT) {
             if (!convert_bin_to_text(&args, filename)) {
-                free_cmd_args(&args);
+                CmdArgs_free(&args);
                 return EXIT_FAILURE;
             }
         } else {
             if (!output_ast(&args, &type_info, filename)) {
-                free_cmd_args(&args);
+                CmdArgs_free(&args);
                 return EXIT_FAILURE;
             }
         }
     }
-    free_cmd_args(&args);
+    CmdArgs_free(&args);
     return EXIT_SUCCESS;
 }
 
@@ -116,40 +116,40 @@ static bool convert_bin_to_text(const CmdArgs* args, const char* filename) {
     }
     fclose(out_file);
     Str_free(&out_filename_str);
-    free_translation_unit(&res.tl);
-    free_file_info(&res.file_info);
+    TranslationUnit_free(&res.tl);
+    FileInfo_free(&res.file_info);
     return true;
 
 fail_with_out_file_open:
     fclose(out_file);
 fail_with_out_file_closed:
     Str_free(&out_filename_str);
-    free_translation_unit(&res.tl);
-    free_file_info(&res.file_info);
+    TranslationUnit_free(&res.tl);
+    FileInfo_free(&res.file_info);
     return false;
 }
 
 static bool output_ast(const CmdArgs* args,
                        const ArchTypeInfo* type_info,
                        const char* filename) {
-    PreprocErr preproc_err = create_preproc_err();
+    PreprocErr preproc_err = PreprocErr_create();
     PreprocRes preproc_res = preproc(filename, &preproc_err);
     if (preproc_err.kind != PREPROC_ERR_NONE) {
-        print_preproc_err(stderr, &preproc_res.file_info, &preproc_err);
-        free_preproc_err(&preproc_err);
+        PreprocErr_print(stderr, &preproc_res.file_info, &preproc_err);
+        PreprocErr_free(&preproc_err);
         goto fail_before_ast_generated;
     }
     if (!convert_preproc_tokens(preproc_res.toks, type_info, &preproc_err)) {
-        print_preproc_err(stderr, &preproc_res.file_info, &preproc_err);
-        free_preproc_err(&preproc_err);
+        PreprocErr_print(stderr, &preproc_res.file_info, &preproc_err);
+        PreprocErr_free(&preproc_err);
         goto fail_before_ast_generated;
     }
 
-    ParserErr parser_err = create_parser_err();
+    ParserErr parser_err = ParserErr_create();
     TranslationUnit tl = parse_tokens(preproc_res.toks, &parser_err);
     if (parser_err.kind != PARSER_ERR_NONE) {
-        print_parser_err(stderr, &preproc_res.file_info, &parser_err);
-        free_parser_err(&parser_err);
+        ParserErr_print(stderr, &preproc_res.file_info, &parser_err);
+        ParserErr_free(&parser_err);
         goto fail_before_ast_generated;
     }
 
@@ -186,16 +186,16 @@ static bool output_ast(const CmdArgs* args,
     }
     fclose(out_file);
     Str_free(&out_filename_str);
-    free_translation_unit(&tl);
-    free_preproc_res(&preproc_res);
+    TranslationUnit_free(&tl);
+    PreprocRes_free(&preproc_res);
     return true;
 fail_with_out_file_open:
     fclose(out_file);
 fail_with_out_file_closed:
     Str_free(&out_filename_str);
-    free_translation_unit(&tl);
+    TranslationUnit_free(&tl);
 fail_before_ast_generated:
-    free_preproc_res(&preproc_res);
+    PreprocRes_free(&preproc_res);
     return false;
 }
 

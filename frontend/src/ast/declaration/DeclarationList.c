@@ -20,7 +20,7 @@ bool parse_declaration_list(ParserState* s, DeclarationList* res) {
         }
 
         if (!parse_declaration_inplace(s, &res->decls[res->len])) {
-            free_declaration_list(res);
+            DeclarationList_free(res);
             return false;
         }
 
@@ -30,9 +30,9 @@ bool parse_declaration_list(ParserState* s, DeclarationList* res) {
     return res;
 }
 
-void free_declaration_list(DeclarationList* l) {
+void DeclarationList_free(DeclarationList* l) {
     for (size_t i = 0; i < l->len; ++i) {
-        free_declaration_children(&l->decls[i]);
+        Declaration_free_children(&l->decls[i]);
     }
     mycc_free(l->decls);
 }

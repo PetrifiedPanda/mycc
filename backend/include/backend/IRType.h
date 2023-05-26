@@ -37,7 +37,7 @@ typedef struct {
     };
 } IRType;
 
-void free_ir_type(IRType* t);
+void IRType_free(IRType* t);
 
 #endif
 

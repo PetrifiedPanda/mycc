@@ -28,9 +28,9 @@ bool read_and_tokenize_line(PreprocState* state) {
 
     while (true) {
         if (state->line_info.next == NULL || *state->line_info.next == '\0') {
-            preproc_state_read_line(state);
+            PreprocState_read_line(state);
         }
-        if (preproc_state_over(state)) {
+        if (PreprocState_over(state)) {
             return true;
         }
 
@@ -43,12 +43,12 @@ bool read_and_tokenize_line(PreprocState* state) {
 
             const bool res = tokenize_line(&arr, state->err, &state->line_info);
             if (!res) {
-                free_token_arr(&arr);
+                TokenArr_free(&arr);
                 return false;
             }
 
             const bool stat_res = preproc_statement(state, &arr);
-            free_token_arr(&arr);
+            TokenArr_free(&arr);
             if (!stat_res) {
                 return false;
             }
@@ -99,8 +99,8 @@ static bool is_cond_directive(const char* line) {
 
 // TODO: could probably be optimized
 static bool skip_until_next_cond(PreprocState* state) {
-    while (!preproc_state_over(state)) {
-        preproc_state_read_line(state);
+    while (!PreprocState_over(state)) {
+        PreprocState_read_line(state);
         if (is_cond_directive(state->line_info.next)) {
             TokenArr arr = {
                 .len = 0,
@@ -113,12 +113,12 @@ static bool skip_until_next_cond(PreprocState* state) {
             }
 
             const bool stat_res = preproc_statement(state, &arr);
-            free_token_arr(&arr);
+            TokenArr_free(&arr);
             return stat_res;
         }
     }
 
-    set_preproc_err(state->err,
+    PreprocErr_set(state->err,
                     PREPROC_ERR_UNTERMINATED_COND,
                     state->line_info.curr_loc);
     state->err->unterminated_cond_loc = state->conds[state->conds_len - 1].loc;
@@ -146,20 +146,20 @@ static bool handle_ifdef_ifndef(PreprocState* state, TokenArr* arr, bool is_ifnd
     const SourceLoc loc = arr->tokens[0].loc;
 
     if (arr->len < 3) {
-        set_preproc_err(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[1].loc);
+        PreprocErr_set(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[1].loc);
         state->err->count_empty = true;
         state->err->count_dir_kind = is_ifndef ? SINGLE_MACRO_OP_IFNDEF
                                                : SINGLE_MACRO_OP_IFDEF;
         return false;
     } else if (arr->len > 3) {
-        set_preproc_err(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[3].loc);
+        PreprocErr_set(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[3].loc);
         state->err->count_empty = false;
         state->err->count_dir_kind = is_ifndef ? SINGLE_MACRO_OP_IFNDEF
                                                : SINGLE_MACRO_OP_IFDEF;
         return false;
     }
     if (arr->tokens[2].kind != TOKEN_IDENTIFIER) {
-        set_preproc_err(state->err,
+        PreprocErr_set(state->err,
                         PREPROC_ERR_IFDEF_NOT_ID,
                         arr->tokens[2].loc);
         state->err->not_identifier_got = arr->tokens[2].kind;
@@ -180,14 +180,14 @@ static bool handle_ifdef_ifndef(PreprocState* state, TokenArr* arr, bool is_ifnd
 static bool handle_else_elif(PreprocState* state, TokenArr* arr, bool is_else) {
     assert(arr->len > 1);
     if (state->conds_len == 0) {
-        set_preproc_err(state->err, PREPROC_ERR_MISSING_IF, arr->tokens[1].loc);
+        PreprocErr_set(state->err, PREPROC_ERR_MISSING_IF, arr->tokens[1].loc);
         state->err->missing_if_op = is_else ? ELSE_OP_ELSE : ELSE_OP_ELIF;
         return false;
     }
 
     PreprocCond* curr_if = peek_preproc_cond(state);
     if (curr_if->had_else) {
-        set_preproc_err(state->err,
+        PreprocErr_set(state->err,
                         PREPROC_ERR_ELIF_ELSE_AFTER_ELSE,
                         arr->tokens[1].loc);
         state->err->elif_after_else_op = is_else ? ELSE_OP_ELSE : ELSE_OP_ELIF;
@@ -209,7 +209,7 @@ static bool handle_else_elif(PreprocState* state, TokenArr* arr, bool is_else) {
 static bool handle_include(PreprocState* state, TokenArr* arr) {
     assert(arr->len >= 2);
     if (arr->len == 2 || arr->len > 3) {
-        set_preproc_err(state->err,
+        PreprocErr_set(state->err,
                         PREPROC_ERR_INCLUDE_NUM_ARGS,
                         arr->tokens[1].loc);
         return false;
@@ -225,19 +225,19 @@ static bool handle_include(PreprocState* state, TokenArr* arr) {
     if (arr->tokens[2].kind == TOKEN_STRING_LITERAL) {
         StrLit filename = convert_to_str_lit(&arr->tokens[2].spelling);
         if (filename.kind != STR_LIT_DEFAULT) {
-            set_preproc_err(state->err,
+            PreprocErr_set(state->err,
                             PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL,
                             arr->tokens[2].loc);
             return false;
         }
-        if (!preproc_state_open_file(state,
+        if (!PreprocState_open_file(state,
                                      &filename.contents,
                                      arr->tokens[2].loc)) {
             return false;
         }
         return true;
     } else {
-        set_preproc_err(state->err,
+        PreprocErr_set(state->err,
                         PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL,
                         arr->tokens[2].loc);
         return false;
@@ -251,7 +251,7 @@ static bool preproc_statement(PreprocState* state, TokenArr* arr) {
     if (arr->len == 1) {
         return true;
     } else if (arr->tokens[1].kind != TOKEN_IDENTIFIER) {
-        set_preproc_err(state->err,
+        PreprocErr_set(state->err,
                         PREPROC_ERR_INVALID_PREPROC_DIR,
                         arr->tokens[1].loc);
         return false;
@@ -267,7 +267,7 @@ static bool preproc_statement(PreprocState* state, TokenArr* arr) {
     } else if (strcmp(directive, "ifndef") == 0) {
         return handle_ifdef_ifndef(state, arr, true);
     } else if (strcmp(directive, "define") == 0) {
-        const Str spell = token_take_spelling(&arr->tokens[2]);
+        const Str spell = Token_take_spelling(&arr->tokens[2]);
         PreprocMacro macro = parse_preproc_macro(arr, state->err);
         if (state->err->kind != PREPROC_ERR_NONE) {
             return false;
@@ -275,21 +275,21 @@ static bool preproc_statement(PreprocState* state, TokenArr* arr) {
         register_preproc_macro(state, &spell, &macro);
     } else if (strcmp(directive, "undef") == 0) {
         if (arr->len < 3) {
-            set_preproc_err(state->err,
+            PreprocErr_set(state->err,
                             PREPROC_ERR_ARG_COUNT,
                             arr->tokens[1].loc);
             state->err->count_empty = true;
             state->err->count_dir_kind = SINGLE_MACRO_OP_UNDEF;
             return false;
         } else if (arr->len > 3) {
-            set_preproc_err(state->err,
+            PreprocErr_set(state->err,
                             PREPROC_ERR_ARG_COUNT,
                             arr->tokens[3].loc);
             state->err->count_empty = false;
             state->err->count_dir_kind = SINGLE_MACRO_OP_UNDEF;
             return false;
         } else if (arr->tokens[2].kind != TOKEN_IDENTIFIER) {
-            set_preproc_err(state->err,
+            PreprocErr_set(state->err,
                             PREPROC_ERR_IFDEF_NOT_ID,
                             arr->tokens[2].loc);
             state->err->not_identifier_got = arr->tokens[2].kind;
@@ -308,7 +308,7 @@ static bool preproc_statement(PreprocState* state, TokenArr* arr) {
         return handle_else_elif(state, arr, true);
     } else if (strcmp(directive, "endif") == 0) {
         if (state->conds_len == 0) {
-            set_preproc_err(state->err,
+            PreprocErr_set(state->err,
                             PREPROC_ERR_MISSING_IF,
                             arr->tokens[1].loc);
             state->err->missing_if_op = ELSE_OP_ENDIF;
@@ -317,7 +317,7 @@ static bool preproc_statement(PreprocState* state, TokenArr* arr) {
 
         pop_preproc_cond(state);
     } else {
-        set_preproc_err(state->err,
+        PreprocErr_set(state->err,
                         PREPROC_ERR_INVALID_PREPROC_DIR,
                         arr->tokens[1].loc);
         return false;

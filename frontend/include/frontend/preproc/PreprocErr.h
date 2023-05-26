@@ -94,15 +94,15 @@ typedef struct {
     };
 } PreprocErr;
 
-PreprocErr create_preproc_err(void);
+PreprocErr PreprocErr_create(void);
 
-void set_preproc_err(PreprocErr* err, PreprocErrKind kind, SourceLoc loc);
+void PreprocErr_set(PreprocErr* err, PreprocErrKind kind, SourceLoc loc);
 
-void print_preproc_err(FILE* out, const FileInfo* file_info, PreprocErr* err);
+void PreprocErr_print(FILE* out, const FileInfo* file_info, PreprocErr* err);
 
-void set_preproc_file_err(PreprocErr* err, const Str* fail_filename, SourceLoc include_loc);
+void PreprocErr_set_file_err(PreprocErr* err, const Str* fail_filename, SourceLoc include_loc);
 
-void free_preproc_err(PreprocErr* err);
+void PreprocErr_free(PreprocErr* err);
 
 #endif
 

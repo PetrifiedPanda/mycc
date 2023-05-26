@@ -55,18 +55,18 @@ typedef struct {
     FileInfo file_info;
 } PreprocState;
 
-PreprocState create_preproc_state(const char* start_file, PreprocErr* err);
+PreprocState PreprocState_create(const char* start_file, PreprocErr* err);
 
-PreprocState create_preproc_state_string(const char* code, const char* filename, PreprocErr* err);
+PreprocState PreprocState_create_string(const char* code, const char* filename, PreprocErr* err);
 
-void preproc_state_read_line(PreprocState* state);
-bool preproc_state_over(const PreprocState* state);
+void PreprocState_read_line(PreprocState* state);
+bool PreprocState_over(const PreprocState* state);
 
 typedef struct PreprocMacro PreprocMacro;
 
 const PreprocMacro* find_preproc_macro(const PreprocState* state, const Str* spelling);
 
-bool preproc_state_open_file(PreprocState* s, const Str* filename_str, SourceLoc include_loc);
+bool PreprocState_open_file(PreprocState* s, const Str* filename_str, SourceLoc include_loc);
 
 void register_preproc_macro(PreprocState* state, const Str* spelling, const PreprocMacro* macro);
 
@@ -78,9 +78,9 @@ void pop_preproc_cond(PreprocState* state);
 
 PreprocCond* peek_preproc_cond(PreprocState* state);
 
-void free_token_arr(TokenArr* arr);
+void TokenArr_free(TokenArr* arr);
 
-void free_preproc_state(PreprocState* state);
+void PreprocState_free(PreprocState* state);
 
 #include "PreprocMacro.h"
 

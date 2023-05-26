@@ -39,7 +39,7 @@ static PrimaryExpr* create_primary_expr_bracket(
     assert(bracket_expr);
     PrimaryExpr* res = mycc_alloc(sizeof *res);
     res->kind = PRIMARY_EXPR_BRACKET;
-    res->info = create_ast_node_info(loc);
+    res->info = AstNodeInfo_create(loc);
     res->bracket_expr = bracket_expr;
 
     return res;
@@ -57,40 +57,40 @@ static PrimaryExpr* create_primary_expr_generic(GenericSel* generic) {
 PrimaryExpr* parse_primary_expr(ParserState* s) {
     switch (s->it->kind) {
         case TOKEN_IDENTIFIER: {
-            const Str spelling = token_take_spelling(s->it);
+            const Str spelling = Token_take_spelling(s->it);
             SourceLoc loc = s->it->loc;
             parser_accept_it(s);
             if (parser_is_enum_constant(s, &spelling)) {
                 return create_primary_expr_constant(
-                    create_enum_constant(&spelling, loc));
+                    Constant_create_enum(&spelling, loc));
             }
             return create_primary_expr_identifier(
-                create_identifier(&spelling, loc));
+                Identifier_create(&spelling, loc));
         }
         case TOKEN_F_CONSTANT: {
             const SourceLoc loc = s->it->loc;
             const FloatValue val = s->it->float_val;
             parser_accept_it(s);
             return create_primary_expr_constant(
-                create_float_constant(val, loc));
+                Constant_create_float(val, loc));
         }
         case TOKEN_I_CONSTANT: {
             const SourceLoc loc = s->it->loc;
             IntValue val = s->it->int_val;
             parser_accept_it(s);
-            return create_primary_expr_constant(create_int_constant(val, loc));
+            return create_primary_expr_constant(Constant_create_int(val, loc));
         }
         case TOKEN_STRING_LITERAL: {
-            const StrLit lit = token_take_str_lit(s->it);
+            const StrLit lit = Token_take_str_lit(s->it);
             const SourceLoc loc = s->it->loc;
             parser_accept_it(s);
             return create_primary_expr_string(
-                create_string_constant(&lit, loc));
+                StringConstant_create(&lit, loc));
         }
         case TOKEN_FUNC_NAME: {
             const SourceLoc loc = s->it->loc;
             parser_accept_it(s);
-            return create_primary_expr_string(create_func_name(loc));
+            return create_primary_expr_string(StringConstant_create_func_name(loc));
         }
         case TOKEN_GENERIC: {
             GenericSel* generic = parse_generic_sel(s);
@@ -110,7 +110,7 @@ PrimaryExpr* parse_primary_expr(ParserState* s) {
                 if (parser_accept(s, TOKEN_RBRACKET)) {
                     return create_primary_expr_bracket(bracket_expr, loc);
                 } else {
-                    free_expr(bracket_expr);
+                    Expr_free(bracket_expr);
                     return NULL;
                 }
             }
@@ -123,28 +123,28 @@ PrimaryExpr* parse_primary_expr(ParserState* s) {
 static void free_primary_expr_children(PrimaryExpr* e) {
     switch (e->kind) {
         case PRIMARY_EXPR_IDENTIFIER:
-            free_identifier(e->identifier);
+            Identifier_free(e->identifier);
             break;
 
         case PRIMARY_EXPR_CONSTANT:
-            free_constant(&e->constant);
+            Constant_free(&e->constant);
             break;
 
         case PRIMARY_EXPR_STRING_LITERAL:
-            free_string_constant(&e->string);
+            StringConstant_free(&e->string);
             break;
 
         case PRIMARY_EXPR_BRACKET:
-            free_expr(e->bracket_expr);
+            Expr_free(e->bracket_expr);
             break;
 
         case PRIMARY_EXPR_GENERIC:
-            free_generic_sel(e->generic);
+            GenericSel_free(e->generic);
             break;
     }
 }
 
-void free_primary_expr(PrimaryExpr* e) {
+void PrimaryExpr_free(PrimaryExpr* e) {
     free_primary_expr_children(e);
     mycc_free(e);
 }

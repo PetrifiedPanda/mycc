@@ -13,8 +13,8 @@
 static JumpStatement* parse_jump_statement_helper(const char* code) {
     PreprocRes preproc_res = tokenize_string(code, "skfjlskf");
 
-    ParserErr err = create_parser_err();
-    ParserState s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = ParserErr_create();
+    ParserState s = ParserState_create(preproc_res.toks, &err);
     
     Statement stat;
     bool res = parse_statement_inplace(&s, &stat);
@@ -24,8 +24,8 @@ static JumpStatement* parse_jump_statement_helper(const char* code) {
 
     ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
 
-    free_parser_state(&s);
-    free_preproc_res(&preproc_res);
+    ParserState_free(&s);
+    PreprocRes_free(&preproc_res);
     
     return stat.jmp;
 }
@@ -35,14 +35,14 @@ static void check_jump_statement(const char* spell, JumpStatementKind t) {
 
     ASSERT(res->kind == t);
 
-    free_jump_statement(res);
+    JumpStatement_free(res);
 }
 
 static void check_expected_semicolon_jump_statement(const char* spell) {
     PreprocRes preproc_res = tokenize_string(spell, "file.c");
 
-    ParserErr err = create_parser_err();
-    ParserState s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = ParserErr_create();
+    ParserState s = ParserState_create(preproc_res.toks, &err);
 
     Statement* res = parse_statement(&s);
     ASSERT_NULL(res);
@@ -53,9 +53,9 @@ static void check_expected_semicolon_jump_statement(const char* spell) {
     ASSERT_TOKEN_KIND(ex_tokens_err->expected[0], TOKEN_SEMICOLON);
     ASSERT_TOKEN_KIND(ex_tokens_err->got, TOKEN_INVALID);
 
-    free_preproc_res(&preproc_res);
-    free_parser_err(&err);
-    free_parser_state(&s);
+    PreprocRes_free(&preproc_res);
+    ParserErr_free(&err);
+    ParserState_free(&s);
 }
 
 TEST(jump_statement) {
@@ -67,7 +67,7 @@ TEST(jump_statement) {
 
         check_identifier(res->goto_label, "my_cool_label");
 
-        free_jump_statement(res);
+        JumpStatement_free(res);
     }
 
     check_jump_statement("continue;", JUMP_STATEMENT_CONTINUE);
@@ -85,9 +85,9 @@ TEST(jump_statement) {
         ASSERT(res->kind == JUMP_STATEMENT_RETURN);
         ASSERT_NOT_NULL(res->ret_val);
 
-        check_expr_int(res->ret_val, create_int_value(INT_VALUE_I, 600));
+        check_expr_int(res->ret_val, IntValue_create_signed(INT_VALUE_I, 600));
 
-        free_jump_statement(res);
+        JumpStatement_free(res);
     }
 }
 
@@ -106,8 +106,8 @@ TEST(statement) {
                        "}";
     PreprocRes preproc_res = tokenize_string(code, "file.c");
 
-    ParserErr err = create_parser_err();
-    ParserState s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = ParserErr_create();
+    ParserState s = ParserState_create(preproc_res.toks, &err);
 
     Statement* res = parse_statement(&s);
     ASSERT(err.kind == PARSER_ERR_NONE);
@@ -131,7 +131,7 @@ TEST(statement) {
     check_shift_expr_id(rel->lhs, "i");
     ASSERT(rel->rel_chain[0].op == REL_EXPR_LT);
     check_shift_expr_int(rel->rel_chain[0].rhs,
-                         create_int_value(INT_VALUE_I, 100));
+                         IntValue_create_signed(INT_VALUE_I, 100));
 
     UnaryExpr* unary = iteration->for_loop.incr_expr->assign_exprs
                                    ->value->last_else->log_ands->or_exprs
@@ -159,14 +159,14 @@ TEST(statement) {
 
         ASSERT_NOT_NULL(labeled->case_expr);
         check_const_expr_int(labeled->case_expr,
-                             create_int_value(INT_VALUE_I, 2));
+                             IntValue_create_signed(INT_VALUE_I, 2));
 
         ASSERT(labeled->stat->kind == STATEMENT_EXPRESSION);
         Expr* case_expr = &labeled->stat->expr->expr;
         ASSERT_SIZE_T(case_expr->assign_exprs->len, (size_t)1);
 
         check_cond_expr_int(case_expr->assign_exprs->value,
-                            create_int_value(INT_VALUE_I, 5));
+                            IntValue_create_signed(INT_VALUE_I, 5));
         ASSERT(case_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_SUB);
         check_unary_expr_id(case_expr->assign_exprs->assign_chain[0].unary,
                             "d");
@@ -188,7 +188,7 @@ TEST(statement) {
 
         ASSERT_SIZE_T(default_expr->assign_exprs->len, (size_t)1);
         check_cond_expr_int(default_expr->assign_exprs->value,
-                            create_int_value(INT_VALUE_I, 5));
+                            IntValue_create_signed(INT_VALUE_I, 5));
         ASSERT(default_expr->assign_exprs->assign_chain[0].op
                == ASSIGN_EXPR_ADD);
         check_unary_expr_id(default_expr->assign_exprs->assign_chain[0].unary,
@@ -208,7 +208,7 @@ TEST(statement) {
     check_shift_expr_id(if_cond->lhs, "i");
     ASSERT(if_cond->rel_chain[0].op == REL_EXPR_GE);
     check_shift_expr_int(if_cond->rel_chain[0].rhs,
-                         create_int_value(INT_VALUE_I, 5));
+                         IntValue_create_signed(INT_VALUE_I, 5));
 
     ASSERT(if_stat->sel_stat->kind == STATEMENT_COMPOUND);
     ASSERT_SIZE_T(if_stat->sel_stat->comp->len, (size_t)1);
@@ -220,14 +220,14 @@ TEST(statement) {
     ASSERT(if_stat->else_stat->kind == STATEMENT_EXPRESSION);
     Expr* else_expr = &if_stat->else_stat->expr->expr;
     check_cond_expr_int(else_expr->assign_exprs->value,
-                        create_int_value(INT_VALUE_I, 0));
+                        IntValue_create_signed(INT_VALUE_I, 0));
     ASSERT_SIZE_T(else_expr->assign_exprs->len, (size_t)1);
     ASSERT(else_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_ASSIGN);
     check_unary_expr_id(else_expr->assign_exprs->assign_chain[0].unary, "b");
 
-    free_statement(res);
-    free_parser_state(&s);
-    free_preproc_res(&preproc_res);
+    Statement_free(res);
+    ParserState_free(&s);
+    PreprocRes_free(&preproc_res);
 
     // TODO: Add tests with declarations when implemented
 }

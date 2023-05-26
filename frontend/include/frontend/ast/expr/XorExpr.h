@@ -18,7 +18,7 @@ typedef struct CastExpr CastExpr;
 
 XorExpr* parse_xor_expr_cast(ParserState* s, CastExpr* start);
 
-void free_xor_expr_children(XorExpr* e);
+void XorExpr_free_children(XorExpr* e);
 
 #include "AndExpr.h"
 #include "CastExpr.h"

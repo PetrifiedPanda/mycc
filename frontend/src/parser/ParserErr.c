@@ -6,30 +6,30 @@
 #include "util/mem.h"
 #include "util/macro_util.h"
 
-ParserErr create_parser_err(void) {
+ParserErr ParserErr_create(void) {
     return (ParserErr){
         .kind = PARSER_ERR_NONE,
     };
 }
 
-void set_parser_err(ParserErr* err, ParserErrKind kind, SourceLoc loc) {
+void ParserErr_set(ParserErr* err, ParserErrKind kind, SourceLoc loc) {
     assert(err);
     assert(kind != PARSER_ERR_NONE);
     assert(err->kind == PARSER_ERR_NONE);
 
     err->kind = kind;
-    err->base = create_err_base(loc);
+    err->base = ErrBase_create(loc);
 }
 
-void print_parser_err(FILE* out, const FileInfo* file_info, const ParserErr* err) {
+void ParserErr_print(FILE* out, const FileInfo* file_info, const ParserErr* err) {
     assert(err->kind != PARSER_ERR_NONE);
 
-    print_err_base(out, file_info, &err->base);
+    ErrBase_print(out, file_info, &err->base);
     switch (err->kind) {
         case PARSER_ERR_NONE:
             UNREACHABLE();
         case PARSER_ERR_EXPECTED_TOKENS: {
-            print_expected_tokens_err(out, &err->expected_tokens_err);
+            ExpectedTokensErr_print(out, &err->expected_tokens_err);
             break;
         }
         case PARSER_ERR_REDEFINED_SYMBOL: {
@@ -74,8 +74,8 @@ void print_parser_err(FILE* out, const FileInfo* file_info, const ParserErr* err
         case PARSER_ERR_INCOMPATIBLE_TYPE_SPECS:
             fprintf(out,
                     "Cannot combine %s with previous %s type specifier",
-                    get_token_kind_str(err->type_spec),
-                    get_token_kind_str(err->prev_type_spec));
+                    TokenKind_str(err->type_spec),
+                    TokenKind_str(err->prev_type_spec));
             break;
         case PARSER_ERR_TOO_MUCH_LONG:
             fputs("More than 2 long specifiers are not allowed", out);
@@ -83,7 +83,7 @@ void print_parser_err(FILE* out, const FileInfo* file_info, const ParserErr* err
         case PARSER_ERR_DISALLOWED_TYPE_QUALS:
             fprintf(out,
                     "Cannot add qualifiers to type %s",
-                    get_token_kind_str(err->incompatible_type));
+                    TokenKind_str(err->incompatible_type));
             break;
         case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
             fprintf(
@@ -98,7 +98,7 @@ void print_parser_err(FILE* out, const FileInfo* file_info, const ParserErr* err
     fputc('\n', out);
 }
 
-void free_parser_err(ParserErr* err) {
+void ParserErr_free(ParserErr* err) {
     switch (err->kind) {
         case PARSER_ERR_REDEFINED_SYMBOL:
             Str_free(&err->redefined_symbol);

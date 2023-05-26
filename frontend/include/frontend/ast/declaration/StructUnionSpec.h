@@ -51,15 +51,15 @@ typedef struct StructUnionSpec {
 
 StructUnionSpec* parse_struct_union_spec(ParserState* s);
 
-void free_struct_union_spec(StructUnionSpec* s);
+void StructUnionSpec_free(StructUnionSpec* s);
 
-void free_struct_declaration_list(StructDeclarationList* l);
+void StructDeclarationList_free(StructDeclarationList* l);
 
-void free_struct_declaration_children(StructDeclaration* d);
+void StructDeclaration_free_children(StructDeclaration* d);
 
-void free_struct_declarator_list(StructDeclaratorList* l);
+void StructDeclaratorList_free(StructDeclaratorList* l);
 
-void free_struct_declarator_children(StructDeclarator* d);
+void StructDeclarator_free_children(StructDeclarator* d);
 
 #include "StaticAssertDeclaration.h"
 

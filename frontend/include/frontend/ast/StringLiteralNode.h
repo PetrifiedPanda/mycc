@@ -10,9 +10,9 @@ typedef struct {
     StrLit lit;
 } StringLiteralNode;
 
-StringLiteralNode create_string_literal_node(const StrLit* lit, SourceLoc loc);
+StringLiteralNode StringLiteralNode_create(const StrLit* lit, SourceLoc loc);
 
-void free_string_literal(StringLiteralNode* l);
+void StringLiteralNode_free(StringLiteralNode* l);
 
 #endif
 

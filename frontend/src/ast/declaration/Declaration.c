@@ -30,7 +30,7 @@ bool parse_declaration_inplace(ParserState* s, Declaration* res) {
                                          s,
                                          &res->init_decls);
             if (!success) {
-                free_declaration_specs(res->decl_specs);
+                DeclarationSpecs_free(res->decl_specs);
                 return false;
             }
         } else {
@@ -40,8 +40,8 @@ bool parse_declaration_inplace(ParserState* s, Declaration* res) {
             };
         }
         if (!parser_accept(s, TOKEN_SEMICOLON)) {
-            free_declaration_specs(res->decl_specs);
-            free_init_declarator_list(&res->init_decls);
+            DeclarationSpecs_free(res->decl_specs);
+            InitDeclaratorList_free(&res->init_decls);
             return false;
         }
     }
@@ -49,17 +49,17 @@ bool parse_declaration_inplace(ParserState* s, Declaration* res) {
     return true;
 }
 
-void free_declaration_children(Declaration* d) {
+void Declaration_free_children(Declaration* d) {
     if (d->is_normal_decl) {
-        free_declaration_specs(d->decl_specs);
-        free_init_declarator_list(&d->init_decls);
+        DeclarationSpecs_free(d->decl_specs);
+        InitDeclaratorList_free(&d->init_decls);
     } else {
-        free_static_assert_declaration(d->static_assert_decl);
+        StaticAssertDeclaration_free(d->static_assert_decl);
     }
 }
 
-void free_declaration(Declaration* d) {
-    free_declaration_children(d);
+void Declaration_free(Declaration* d) {
+    Declaration_free_children(d);
     mycc_free(d);
 }
 

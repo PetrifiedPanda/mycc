@@ -11,7 +11,7 @@ Pointer* parse_pointer(ParserState* s) {
     }
 
     Pointer* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(loc);
+    res->info = AstNodeInfo_create(loc);
     res->num_indirs = 1;
     res->quals_after_ptr = mycc_alloc(sizeof *res->quals_after_ptr);
 
@@ -22,7 +22,7 @@ Pointer* parse_pointer(ParserState* s) {
             return NULL;
         }
     } else {
-        res->quals_after_ptr[0] = create_type_quals();
+        res->quals_after_ptr[0] = TypeQuals_create();
     }
 
     size_t alloc_size = res->num_indirs;
@@ -38,11 +38,11 @@ Pointer* parse_pointer(ParserState* s) {
         if (is_type_qual(s->it->kind)) {
             if (!parse_type_qual_list(s,
                                       &res->quals_after_ptr[res->num_indirs])) {
-                free_pointer(res);
+                Pointer_free(res);
                 return NULL;
             }
         } else {
-            res->quals_after_ptr[res->num_indirs] = create_type_quals();
+            res->quals_after_ptr[res->num_indirs] = TypeQuals_create();
         }
 
         ++res->num_indirs;
@@ -59,7 +59,7 @@ static void free_pointer_children(Pointer* p) {
     mycc_free(p->quals_after_ptr);
 }
 
-void free_pointer(Pointer* p) {
+void Pointer_free(Pointer* p) {
     free_pointer_children(p);
     mycc_free(p);
 }

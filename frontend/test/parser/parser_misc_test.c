@@ -41,8 +41,8 @@ TEST(enum_list) {
             "baz, BAD}",
             "saffds");
 
-        ParserErr err = create_parser_err();
-        ParserState s = create_parser_state(preproc_res.toks, &err);
+        ParserErr err = ParserErr_create();
+        ParserState s = ParserState_create(preproc_res.toks, &err);
 
         EnumSpec* e_spec = parse_enum_spec(&s);
         ASSERT_NULL(e_spec->identifier);
@@ -63,9 +63,9 @@ TEST(enum_list) {
             ASSERT(parser_is_enum_constant(&s, &enum_constants[i]));
         }
 
-        free_enum_spec(e_spec);
-        free_parser_state(&s);
-        free_preproc_res(&preproc_res);
+        EnumSpec_free(e_spec);
+        ParserState_free(&s);
+        PreprocRes_free(&preproc_res);
     }
 
     {
@@ -75,8 +75,8 @@ TEST(enum_list) {
             "test, foo, bar, baz, BAD}",
             "saffds");
 
-        ParserErr err = create_parser_err();
-        ParserState s = create_parser_state(preproc_res.toks, &err);
+        ParserErr err = ParserErr_create();
+        ParserState s = ParserState_create(preproc_res.toks, &err);
 
         EnumSpec* e_spec = parse_enum_spec(&s);
         ASSERT_NOT_NULL(e_spec);
@@ -93,11 +93,11 @@ TEST(enum_list) {
 
         ASSERT_NOT_NULL(res->enums[0].enum_val);
         check_const_expr_int(res->enums[0].enum_val,
-                             create_int_value(INT_VALUE_I, 0));
+                             IntValue_create_signed(INT_VALUE_I, 0));
 
         ASSERT_NOT_NULL(res->enums[1].enum_val);
         check_const_expr_float(res->enums[1].enum_val,
-                               create_float_value(FLOAT_VALUE_D, 1000.0));
+                               FloatValue_create(FLOAT_VALUE_D, 1000.0));
 
         ASSERT_NOT_NULL(res->enums[2].enum_val);
         check_const_expr_id(res->enums[2].enum_val, "n");
@@ -113,9 +113,9 @@ TEST(enum_list) {
             ASSERT(parser_is_enum_constant(&s, &enum_constants[i]));
         }
 
-        free_enum_spec(e_spec);
-        free_parser_state(&s);
-        free_preproc_res(&preproc_res);
+        EnumSpec_free(e_spec);
+        ParserState_free(&s);
+        PreprocRes_free(&preproc_res);
     }
 }
 
@@ -131,8 +131,8 @@ TEST(enum_spec) {
             "enum my_enum { TEST1, TEST2, TEST3, TEST4 }",
             "sfjlfjk");
 
-        ParserErr err = create_parser_err();
-        ParserState s = create_parser_state(preproc_res.toks, &err);
+        ParserErr err = ParserErr_create();
+        ParserState s = ParserState_create(preproc_res.toks, &err);
 
         EnumSpec* res = parse_enum_spec(&s);
         ASSERT(err.kind == PARSER_ERR_NONE);
@@ -146,9 +146,9 @@ TEST(enum_spec) {
                             enum_constants,
                             ARR_LEN(enum_constants));
 
-        free_preproc_res(&preproc_res);
-        free_parser_state(&s);
-        free_enum_spec(res);
+        PreprocRes_free(&preproc_res);
+        ParserState_free(&s);
+        EnumSpec_free(res);
     }
 
     {
@@ -156,8 +156,8 @@ TEST(enum_spec) {
             "enum {TEST1, TEST2, TEST3, TEST4, }",
             "jsfjsf");
 
-        ParserErr err = create_parser_err();
-        ParserState s = create_parser_state(preproc_res.toks, &err);
+        ParserErr err = ParserErr_create();
+        ParserState s = ParserState_create(preproc_res.toks, &err);
 
         EnumSpec* res = parse_enum_spec(&s);
         ASSERT(err.kind == PARSER_ERR_NONE);
@@ -170,9 +170,9 @@ TEST(enum_spec) {
                             enum_constants,
                             ARR_LEN(enum_constants));
 
-        free_preproc_res(&preproc_res);
-        free_parser_state(&s);
-        free_enum_spec(res);
+        PreprocRes_free(&preproc_res);
+        ParserState_free(&s);
+        EnumSpec_free(res);
     }
 }
 
@@ -181,8 +181,8 @@ TEST(designation) {
         "{ .test[19].what_is_this.another_one = a, [0.5].blah[420].oof[2][10] "
         "= 2 }",
         "kdsjflkf");
-    ParserErr err = create_parser_err();
-    ParserState s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = ParserErr_create();
+    ParserState s = ParserState_create(preproc_res.toks, &err);
     Initializer* init = parse_initializer(&s);
     ASSERT_NOT_NULL(init);
     ASSERT(!init->is_assign);
@@ -202,7 +202,7 @@ TEST(designation) {
 
     ASSERT(designators[1].is_index == true);
     check_cond_expr_int(&designators[1].arr_index->expr,
-                        create_int_value(INT_VALUE_I, 19));
+                        IntValue_create_signed(INT_VALUE_I, 19));
 
     ASSERT(designators[2].is_index == false);
     check_identifier(designators[2].identifier, "what_is_this");
@@ -213,37 +213,37 @@ TEST(designation) {
     const Designation* des2 = &list->inits[1].designation;
     const Initializer* val2 = &list->inits[1].init;
     ASSERT(val2->is_assign);
-    check_assign_expr_int(val2->assign, create_int_value(INT_VALUE_I, 2));
+    check_assign_expr_int(val2->assign, IntValue_create_signed(INT_VALUE_I, 2));
 
     ASSERT_SIZE_T(des2->designators.len, (size_t)6);
 
     designators = des2->designators.designators;
     ASSERT(designators[0].is_index == true);
     check_cond_expr_float(&designators[0].arr_index->expr,
-                          create_float_value(FLOAT_VALUE_D, 0.5));
+                          FloatValue_create(FLOAT_VALUE_D, 0.5));
 
     ASSERT(designators[1].is_index == false);
     check_identifier(designators[1].identifier, "blah");
 
     ASSERT(designators[2].is_index == true);
     check_cond_expr_int(&designators[2].arr_index->expr,
-                        create_int_value(INT_VALUE_I, 420));
+                        IntValue_create_signed(INT_VALUE_I, 420));
 
     ASSERT(designators[3].is_index == false);
     check_identifier(designators[3].identifier, "oof");
 
     ASSERT(designators[4].is_index == true);
     check_cond_expr_int(&designators[4].arr_index->expr,
-                        create_int_value(INT_VALUE_I, 2));
+                        IntValue_create_signed(INT_VALUE_I, 2));
 
     ASSERT(designators[5].is_index == true);
     check_cond_expr_int(&designators[5].arr_index->expr,
-                        create_int_value(INT_VALUE_I, 10));
+                        IntValue_create_signed(INT_VALUE_I, 10));
 
-    free_initializer(init);
+    Initializer_free(init);
 
-    free_parser_state(&s);
-    free_preproc_res(&preproc_res);
+    ParserState_free(&s);
+    PreprocRes_free(&preproc_res);
 }
 
 TEST(static_assert_declaration) {
@@ -251,8 +251,8 @@ TEST(static_assert_declaration) {
         "_Static_assert(12345, \"This is a string literal\");",
         "slkfjsak");
 
-    ParserErr err = create_parser_err();
-    ParserState s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = ParserErr_create();
+    ParserState s = ParserState_create(preproc_res.toks, &err);
 
     StaticAssertDeclaration* res = parse_static_assert_declaration(&s);
     ASSERT_NOT_NULL(res);
@@ -261,11 +261,11 @@ TEST(static_assert_declaration) {
 
     ASSERT_STR(Str_get_data(&res->err_msg.lit.contents),
                "This is a string literal");
-    check_const_expr_int(res->const_expr, create_int_value(INT_VALUE_I, 12345));
+    check_const_expr_int(res->const_expr, IntValue_create_signed(INT_VALUE_I, 12345));
 
-    free_preproc_res(&preproc_res);
-    free_parser_state(&s);
-    free_static_assert_declaration(res);
+    PreprocRes_free(&preproc_res);
+    ParserState_free(&s);
+    StaticAssertDeclaration_free(res);
 }
 
 static void check_struct_declaration_non_static_assert(
@@ -283,7 +283,7 @@ static void check_struct_declaration_non_static_assert(
     const StructDeclarator* declarator = &decl->decls.decls[0];
     if (bit_field > 0) {
         check_const_expr_int(declarator->bit_field,
-                             create_int_value(INT_VALUE_I, bit_field));
+                             IntValue_create_signed(INT_VALUE_I, bit_field));
     }
     if (identifier) {
         const Declarator* inner_decl = declarator->decl;
@@ -305,8 +305,8 @@ TEST(struct_declaration_list) {
         "struct { int n: 20; int: 10; double a_double; int; }",
         "maybe_a_file.c");
 
-    ParserErr err = create_parser_err();
-    ParserState s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = ParserErr_create();
+    ParserState s = ParserState_create(preproc_res.toks, &err);
 
     StructUnionSpec* su_spec = parse_struct_union_spec(&s);
     ASSERT(su_spec->is_struct);
@@ -332,20 +332,20 @@ TEST(struct_declaration_list) {
                                                NULL,
                                                -1);
 
-    free_preproc_res(&preproc_res);
-    free_parser_state(&s);
-    free_struct_union_spec(su_spec);
+    PreprocRes_free(&preproc_res);
+    ParserState_free(&s);
+    StructUnionSpec_free(su_spec);
 }
 
 TEST(redefine_typedef) {
     PreprocRes preproc_res = tokenize_string("typedef int MyInt;",
                                                      "a file");
 
-    ParserErr err = create_parser_err();
-    ParserState s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = ParserErr_create();
+    ParserState s = ParserState_create(preproc_res.toks, &err);
 
     const Str spell = STR_NON_HEAP("MyInt");
-    const Token dummy_token = create_token(TOKEN_IDENTIFIER, &spell, (FileLoc){0, 0}, 0);
+    const Token dummy_token = Token_create(TOKEN_IDENTIFIER, &spell, (FileLoc){0, 0}, 0);
     parser_register_typedef_name(&s, &dummy_token);
 
     bool found_typedef = false;
@@ -355,24 +355,24 @@ TEST(redefine_typedef) {
     ASSERT(err.was_typedef_name);
     ASSERT_STR(Str_get_data(&err.redefined_symbol), "MyInt");
 
-    free_parser_state(&s);
-    free_preproc_res(&preproc_res);
+    ParserState_free(&s);
+    PreprocRes_free(&preproc_res);
 }
 
 static ParserErr parse_type_specs_until_fail(const char* code) {
     PreprocRes preproc_res = tokenize_string(code, "file.c");
 
-    ParserErr err = create_parser_err();
-    ParserState s = create_parser_state(preproc_res.toks, &err);
+    ParserErr err = ParserErr_create();
+    ParserState s = ParserState_create(preproc_res.toks, &err);
 
-    TypeSpecs specs = create_type_specs();
+    TypeSpecs specs = TypeSpecs_create();
 
     while (update_type_specs(&s, &specs))
         ;
 
-    free_parser_state(&s);
-    free_preproc_res(&preproc_res);
-    free_type_specs_children(&specs);
+    ParserState_free(&s);
+    PreprocRes_free(&preproc_res);
+    TypeSpecs_free_children(&specs);
     return err;
 }
 

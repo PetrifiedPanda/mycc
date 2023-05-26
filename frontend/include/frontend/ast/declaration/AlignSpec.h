@@ -21,7 +21,7 @@ typedef struct AlignSpec {
 
 bool parse_align_spec_inplace(ParserState* s, AlignSpec* res);
 
-void free_align_spec_children(AlignSpec* s);
+void AlignSpec_free_children(AlignSpec* s);
 
 #include "frontend/ast/TypeName.h"
 

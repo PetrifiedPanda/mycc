@@ -44,13 +44,13 @@ typedef struct {
     };
 } TypeSpecs;
 
-TypeSpecs create_type_specs(void);
+TypeSpecs TypeSpecs_create(void);
 
 bool update_type_specs(ParserState* s, TypeSpecs* q);
 
-void free_type_specs_children(TypeSpecs* s);
+void TypeSpecs_free_children(TypeSpecs* s);
 
-bool is_valid_type_specs(const TypeSpecs* s);
+bool TypeSpecs_valid(const TypeSpecs* s);
 
 #include "AtomicTypeSpec.h"
 #include "StructUnionSpec.h"

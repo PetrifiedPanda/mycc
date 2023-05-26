@@ -29,7 +29,7 @@ typedef struct CastExpr CastExpr;
 
 EqExpr* parse_eq_expr_cast(ParserState* s, CastExpr* start);
 
-void free_eq_expr_children(EqExpr* e);
+void EqExpr_free_children(EqExpr* e);
 
 #include "RelExpr.h"
 #include "CastExpr.h"

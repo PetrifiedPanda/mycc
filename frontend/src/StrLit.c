@@ -50,18 +50,18 @@ StrLit convert_to_str_lit(Str* spell) {
     };
 }
 
-StrLit create_str_lit(StrLitKind kind, const Str* contents) {
+StrLit StrLit_create(StrLitKind kind, const Str* contents) {
     return (StrLit){
         .kind = kind,
         .contents = *contents,
     };
 }
 
-void free_str_lit(const StrLit* lit) {
+void StrLit_free(const StrLit* lit) {
     Str_free(&lit->contents);
 }
 
-const char* get_str_lit_kind_str(StrLitKind k) {
+const char* StrLitKind_str(StrLitKind k) {
     switch (k) {
         case STR_LIT_DEFAULT:
             return "STR_LIT_DEFAULT";

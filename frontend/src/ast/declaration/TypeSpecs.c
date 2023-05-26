@@ -27,7 +27,7 @@ static inline bool is_standalone_type_spec(TokenKind t) {
     }
 }
 
-TypeSpecs create_type_specs(void) {
+TypeSpecs TypeSpecs_create(void) {
     return (TypeSpecs){
         .mods =
             {
@@ -44,7 +44,7 @@ TypeSpecs create_type_specs(void) {
 
 static void cannot_combine_with_spec_err(const ParserState* s,
                                          TokenKind prev_spec) {
-    set_parser_err(s->err, PARSER_ERR_INCOMPATIBLE_TYPE_SPECS, s->it->loc);
+    ParserErr_set(s->err, PARSER_ERR_INCOMPATIBLE_TYPE_SPECS, s->it->loc);
     s->err->type_spec = s->it->kind;
     s->err->prev_type_spec = prev_spec;
 }
@@ -78,11 +78,11 @@ static bool update_standalone_type_spec(ParserState* s, TypeSpecs* res) {
         case TOKEN_DOUBLE:
         case TOKEN_BOOL:
             if (res->kind != TYPE_SPEC_NONE) {
-                set_parser_err(s->err,
+                ParserErr_set(s->err,
                                PARSER_ERR_DISALLOWED_TYPE_QUALS,
                                s->it->loc);
                 s->err->incompatible_type = s->it->kind;
-                free_type_specs_children(res);
+                TypeSpecs_free_children(res);
                 return false;
             }
             res->kind = get_predef_type_spec(s->it->kind);
@@ -90,7 +90,7 @@ static bool update_standalone_type_spec(ParserState* s, TypeSpecs* res) {
         case TOKEN_SHORT:
             if (res->mods.num_long != 0) {
                 cannot_combine_with_spec_err(s, TOKEN_LONG);
-                free_type_specs_children(res);
+                TypeSpecs_free_children(res);
                 return false;
             }
 
@@ -99,10 +99,10 @@ static bool update_standalone_type_spec(ParserState* s, TypeSpecs* res) {
         case TOKEN_LONG:
             if (res->mods.is_short) {
                 cannot_combine_with_spec_err(s, TOKEN_SHORT);
-                free_type_specs_children(res);
+                TypeSpecs_free_children(res);
                 return false;
             } else if (res->mods.num_long == 2) {
-                set_parser_err(s->err, PARSER_ERR_TOO_MUCH_LONG, s->it->loc);
+                ParserErr_set(s->err, PARSER_ERR_TOO_MUCH_LONG, s->it->loc);
                 return false;
             }
             res->mods.num_long += 1;
@@ -110,7 +110,7 @@ static bool update_standalone_type_spec(ParserState* s, TypeSpecs* res) {
         case TOKEN_SIGNED:
             if (res->mods.is_unsigned) {
                 cannot_combine_with_spec_err(s, TOKEN_UNSIGNED);
-                free_type_specs_children(res);
+                TypeSpecs_free_children(res);
                 return false;
             }
             res->mods.is_signed = true;
@@ -118,7 +118,7 @@ static bool update_standalone_type_spec(ParserState* s, TypeSpecs* res) {
         case TOKEN_UNSIGNED:
             if (res->mods.is_signed) {
                 cannot_combine_with_spec_err(s, TOKEN_SIGNED);
-                free_type_specs_children(res);
+                TypeSpecs_free_children(res);
                 return false;
             }
             res->mods.is_unsigned = true;
@@ -170,15 +170,15 @@ static bool update_non_standalone_type_spec(ParserState* s, TypeSpecs* res) {
         case TOKEN_IDENTIFIER: {
             if (parser_is_typedef_name(s, &s->it->spelling)) {
                 res->kind = TYPE_SPEC_TYPENAME;
-                const Str spell = token_take_spelling(s->it);
-                res->typedef_name = create_identifier(&spell, s->it->loc);
+                const Str spell = Token_take_spelling(s->it);
+                res->typedef_name = Identifier_create(&spell, s->it->loc);
                 parser_accept_it(s);
                 break;
             } else {
-                set_parser_err(s->err,
+                ParserErr_set(s->err,
                                PARSER_ERR_EXPECTED_TYPEDEF_NAME,
                                s->it->loc);
-                s->err->non_typedef_spelling = token_take_spelling(s->it);
+                s->err->non_typedef_spelling = Token_take_spelling(s->it);
                 res->kind = TYPE_SPEC_NONE;
                 return false;
             }
@@ -222,7 +222,7 @@ bool update_type_specs(ParserState* s, TypeSpecs* res) {
     }
 }
 
-void free_type_specs_children(TypeSpecs* s) {
+void TypeSpecs_free_children(TypeSpecs* s) {
     switch (s->kind) {
         case TYPE_SPEC_NONE:
         case TYPE_SPEC_VOID:
@@ -233,21 +233,21 @@ void free_type_specs_children(TypeSpecs* s) {
         case TYPE_SPEC_BOOL:
             break;
         case TYPE_SPEC_ATOMIC:
-            free_atomic_type_spec(s->atomic_spec);
+            AtomicTypeSpec_free(s->atomic_spec);
             break;
         case TYPE_SPEC_STRUCT:
-            free_struct_union_spec(s->struct_union_spec);
+            StructUnionSpec_free(s->struct_union_spec);
             break;
         case TYPE_SPEC_ENUM:
-            free_enum_spec(s->enum_spec);
+            EnumSpec_free(s->enum_spec);
             break;
         case TYPE_SPEC_TYPENAME:
-            free_identifier(s->typedef_name);
+            Identifier_free(s->typedef_name);
             break;
     }
 }
 
-bool is_valid_type_specs(const TypeSpecs* s) {
+bool TypeSpecs_valid(const TypeSpecs* s) {
     assert(s);
 
     if (s->kind == TYPE_SPEC_NONE) {

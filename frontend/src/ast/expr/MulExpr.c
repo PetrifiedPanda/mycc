@@ -51,7 +51,7 @@ static bool parse_mul_expr_mul_chain(ParserState* s, MulExpr* res) {
         CastExprAndOp* curr = &res->mul_chain[res->len];
         curr->rhs = parse_cast_expr(s);
         if (!curr->rhs) {
-            free_mul_expr(res);
+            MulExpr_free(res);
             return false;
         }
         curr->op = token_type_to_mul_op(op);
@@ -96,14 +96,14 @@ MulExpr* parse_mul_expr_cast(ParserState* s, CastExpr* start) {
 }
 
 static void free_mul_expr_children(MulExpr* e) {
-    free_cast_expr(e->lhs);
+    CastExpr_free(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
-        free_cast_expr(e->mul_chain[i].rhs);
+        CastExpr_free(e->mul_chain[i].rhs);
     }
     mycc_free(e->mul_chain);
 }
 
-void free_mul_expr(MulExpr* e) {
+void MulExpr_free(MulExpr* e) {
     free_mul_expr_children(e);
     mycc_free(e);
 }

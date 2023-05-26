@@ -16,8 +16,8 @@ typedef struct {
     ParserErr* err;
 } ParserState;
 
-ParserState create_parser_state(Token* tokens, ParserErr* err);
-void free_parser_state(ParserState* s);
+ParserState ParserState_create(Token* tokens, ParserErr* err);
+void ParserState_free(ParserState* s);
 
 bool parser_accept(ParserState* s, TokenKind expected);
 void parser_accept_it(ParserState* s);

@@ -18,7 +18,7 @@ typedef struct {
 
 CmdArgs parse_cmd_args(int argc, char** argv);
 
-void free_cmd_args(const CmdArgs* args);
+void CmdArgs_free(const CmdArgs* args);
 
 #endif
 

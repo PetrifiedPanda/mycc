@@ -4,20 +4,20 @@
 
 #include "util/mem.h"
 
-void free_ir_global(IRGlobal* g) {
+void IRGlobal_free(IRGlobal* g) {
     Str_free(&g->name);
 }
 
-void free_ir_reg(IRReg* reg) {
+void IRReg_free(IRReg* reg) {
     Str_free(&reg->name);
 }
 
-void free_ir_literal(IRLiteral* lit) {
+void IRLiteral_free(IRLiteral* lit) {
     switch (lit->type) {
         case IR_LITERAL_STRUCT:
         case IR_LITERAL_ARR:
             for (size_t i = 0; i < lit->num_members; ++i) {
-                free_ir_literal(&lit->members[i]);
+                IRLiteral_free(&lit->members[i]);
             }
             mycc_free(lit->members);
             break;
@@ -26,7 +26,7 @@ void free_ir_literal(IRLiteral* lit) {
     }
 }
 
-IRInst create_call_inst(const IRTypeRef* type,
+IRInst IRInst_create_call(const IRTypeRef* type,
                              const IRRegRef* dest,
                              const IRInstArg* func,
                              size_t num_func_args,
@@ -41,7 +41,7 @@ IRInst create_call_inst(const IRTypeRef* type,
     };
 }
 
-IRInst create_assign_inst(const IRTypeRef* type,
+IRInst IRInst_create_assign(const IRTypeRef* type,
                                const IRRegRef* dest,
                                const IRInstArg* val) {
     return (IRInst){
@@ -53,7 +53,7 @@ IRInst create_assign_inst(const IRTypeRef* type,
     };
 }
 
-IRInst create_cast_inst(const IRTypeRef* type,
+IRInst IRInst_create_cast(const IRTypeRef* type,
                              const IRRegRef* dest,
                              const IRInstArg* val) {
     return (IRInst){
@@ -64,7 +64,7 @@ IRInst create_cast_inst(const IRTypeRef* type,
     };
 }
 
-IRInst create_alloca_inst(const IRRegRef* dest,
+IRInst IRInst_create_alloca(const IRRegRef* dest,
                                const IRTypeRef* type) {
     return (IRInst){
         .op = IR_INST_ALLOCA,
@@ -75,7 +75,7 @@ IRInst create_alloca_inst(const IRRegRef* dest,
     };
 }
 
-IRInst create_inst(IRInstOp op,
+IRInst IRInst_create(IRInstOp op,
                         const IRTypeRef* type,
                         const IRRegRef* dest,
                         const IRInstArg* arg1,
@@ -89,7 +89,7 @@ IRInst create_inst(IRInstOp op,
     };
 }
 
-IRInst create_store_inst(const IRInstArg* ptr,
+IRInst IRInst_create_store(const IRInstArg* ptr,
                               const IRInstArg* to_store) {
     return (IRInst){
         .op = IR_INST_STORE,
@@ -98,7 +98,7 @@ IRInst create_store_inst(const IRInstArg* ptr,
     };
 }
 
-IRInst create_load_inst(const IRRegRef* dest,
+IRInst IRInst_create_load(const IRRegRef* dest,
                              const IRInstArg* ptr) {
     return (IRInst){
         .op = IR_INST_LOAD,
@@ -108,7 +108,7 @@ IRInst create_load_inst(const IRRegRef* dest,
     };
 }
 
-IRInst create_getelem_inst(const IRRegRef* dest,
+IRInst IRInst_create_getelem(const IRRegRef* dest,
                                 const IRTypeRef* type,
                                 const IRInstArg* accessed,
                                 size_t num_accesses,
@@ -124,7 +124,7 @@ IRInst create_getelem_inst(const IRRegRef* dest,
     };
 }
 
-IRInst create_getelemptr_inst(const IRRegRef* dest,
+IRInst IRInst_create_getelemptr(const IRRegRef* dest,
                                    const IRTypeRef* type,
                                    const IRInstArg* accessed,
                                    size_t num_accesses,
@@ -140,7 +140,7 @@ IRInst create_getelemptr_inst(const IRRegRef* dest,
     };
 }
 
-IRInst create_replace_elem_inst(const IRRegRef* dest,
+IRInst IrInst_create_replace_elem(const IRRegRef* dest,
                                      const IRTypeRef* type,
                                      const IRInstArg* accessed,
                                      size_t num_accesses,
@@ -159,7 +159,7 @@ IRInst create_replace_elem_inst(const IRRegRef* dest,
 
 void free_inst_arg(IRInstArg* arg) {
     if (arg->type == IR_INST_ARG_LITERAL) {
-        free_ir_literal(&arg->lit);
+        IRLiteral_free(&arg->lit);
     }
 }
 
@@ -170,7 +170,7 @@ static void free_args(IRInstArg* args, size_t len) {
     mycc_free(args);
 }
 
-void free_ir_inst(IRInst* tac) {
+void IRInst_free(IRInst* tac) {
     switch (tac->op) {
         case IR_INST_ADD:
         case IR_INST_SUB:

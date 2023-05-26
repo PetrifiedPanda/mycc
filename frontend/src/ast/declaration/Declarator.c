@@ -17,7 +17,7 @@ static Declarator* parse_declarator_base(ParserState* s, DirectDeclarator* (*par
     res->direct_decl = parse_func(s);
     if (!res->direct_decl) {
         if (res->ptr) {
-            free_pointer(res->ptr);
+            Pointer_free(res->ptr);
         }
         mycc_free(res);
         return NULL;
@@ -36,12 +36,12 @@ Declarator* parse_declarator(ParserState* s) {
 
 static void free_declarator_children(Declarator* d) {
     if (d->ptr) {
-        free_pointer(d->ptr);
+        Pointer_free(d->ptr);
     }
-    free_direct_declarator(d->direct_decl);
+    DirectDeclarator_free(d->direct_decl);
 }
 
-void free_declarator(Declarator* d) {
+void Declarator_free(Declarator* d) {
     free_declarator_children(d);
     mycc_free(d);
 }

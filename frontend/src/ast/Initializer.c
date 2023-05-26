@@ -8,7 +8,7 @@
 #include "frontend/parser/parser_util.h"
 
 static bool parse_designator_inplace(ParserState* s, Designator* res) {
-    res->info = create_ast_node_info(s->it->loc);
+    res->info = AstNodeInfo_create(s->it->loc);
     switch (s->it->kind) {
         case TOKEN_LINDEX: {
             parser_accept_it(s);
@@ -17,7 +17,7 @@ static bool parse_designator_inplace(ParserState* s, Designator* res) {
                 return false;
             }
             if (!parser_accept(s, TOKEN_RINDEX)) {
-                free_const_expr(index);
+                ConstExpr_free(index);
                 return false;
             }
 
@@ -28,11 +28,11 @@ static bool parse_designator_inplace(ParserState* s, Designator* res) {
         case TOKEN_DOT: {
             parser_accept_it(s);
             if (s->it->kind == TOKEN_IDENTIFIER) {
-                const Str spell = token_take_spelling(s->it);
+                const Str spell = Token_take_spelling(s->it);
                 const SourceLoc loc = s->it->loc;
                 parser_accept_it(s);
                 res->is_index = false;
-                res->identifier = create_identifier(&spell, loc);
+                res->identifier = Identifier_create(&spell, loc);
                 return true;
             } else {
                 expected_token_error(s, TOKEN_IDENTIFIER);
@@ -47,15 +47,15 @@ static bool parse_designator_inplace(ParserState* s, Designator* res) {
     }
 }
 
-void free_designator_children(struct Designator* d) {
+void Designator_free_children(struct Designator* d) {
     if (d->is_index) {
-        free_const_expr(d->arr_index);
+        ConstExpr_free(d->arr_index);
     } else {
-        free_identifier(d->identifier);
+        Identifier_free(d->identifier);
     }
 }
 
-void free_designator_list(DesignatorList* l);
+void DesignatorList_free(DesignatorList* l);
 
 static bool parse_designator_list(ParserState* s, DesignatorList* res) {
     *res = (DesignatorList){
@@ -88,13 +88,13 @@ static bool parse_designator_list(ParserState* s, DesignatorList* res) {
     return res;
 
 fail:
-    free_designator_list(res);
+    DesignatorList_free(res);
     return false;
 }
 
-void free_designator_list(DesignatorList* l) {
+void DesignatorList_free(DesignatorList* l) {
     for (size_t i = 0; i < l->len; ++i) {
-        free_designator_children(&l->designators[i]);
+        Designator_free_children(&l->designators[i]);
     }
     mycc_free(l->designators);
 }
@@ -105,24 +105,24 @@ static bool parse_designation_inplace(ParserState* s, Designation* res) {
     }
 
     if (!parser_accept(s, TOKEN_ASSIGN)) {
-        free_designator_list(&res->designators);
+        DesignatorList_free(&res->designators);
         return false;
     }
 
     return true;
 }
 
-void free_designation_children(Designation* d) {
-    free_designator_list(&d->designators);
+void Designation_free_children(Designation* d) {
+    DesignatorList_free(&d->designators);
 }
 
-void free_designation(Designation* d) {
-    free_designation_children(d);
+void Designation_free(Designation* d) {
+    Designation_free_children(d);
     mycc_free(d);
 }
 
 static bool parse_initializer_inplace(ParserState* s, Initializer* res);
-bool is_valid_designation(const Designation* d);
+bool Designation_is_valid(const Designation* d);
 
 Designation create_invalid_designation(void) {
     return (Designation){
@@ -144,15 +144,15 @@ static bool parse_designation_init(ParserState* s, DesignationInit* res) {
     }
 
     if (!parse_initializer_inplace(s, &res->init)) {
-        if (is_valid_designation(&res->designation)) {
-            free_designation_children(&res->designation);
+        if (Designation_is_valid(&res->designation)) {
+            Designation_free_children(&res->designation);
         }
         return false;
     }
     return true;
 }
 
-void free_init_list_children(InitList* l);
+void InitList_free_children(InitList* l);
 
 bool parse_init_list(ParserState* s, InitList* res) {
     *res = (InitList){
@@ -185,27 +185,27 @@ bool parse_init_list(ParserState* s, InitList* res) {
 
     return res;
 fail:
-    free_init_list_children(res);
+    InitList_free_children(res);
     return false;
 }
 
-bool is_valid_designation(const Designation* d) {
+bool Designation_is_valid(const Designation* d) {
     return d->designators.len != 0;
 }
 
-void free_init_list_children(InitList* l) {
+void InitList_free_children(InitList* l) {
     for (size_t i = 0; i < l->len; ++i) {
         struct DesignationInit* item = &l->inits[i];
-        if (is_valid_designation(&item->designation)) {
-            free_designation_children(&item->designation);
+        if (Designation_is_valid(&item->designation)) {
+            Designation_free_children(&item->designation);
         }
-        free_initializer_children(&item->init);
+        Initializer_free_children(&item->init);
     }
     mycc_free(l->inits);
 }
 
 static bool parse_initializer_inplace(ParserState* s, Initializer* res) {
-    res->info = create_ast_node_info(s->it->loc);
+    res->info = AstNodeInfo_create(s->it->loc);
     if (s->it->kind == TOKEN_LBRACE) {
         res->is_assign = false;
         parser_accept_it(s);
@@ -218,7 +218,7 @@ static bool parse_initializer_inplace(ParserState* s, Initializer* res) {
         }
 
         if (!parser_accept(s, TOKEN_RBRACE)) {
-            free_init_list_children(&res->init_list);
+            InitList_free_children(&res->init_list);
             return false;
         }
     } else {
@@ -240,15 +240,15 @@ Initializer* parse_initializer(ParserState* s) {
     return res;
 }
 
-void free_initializer_children(Initializer* i) {
+void Initializer_free_children(Initializer* i) {
     if (i->is_assign) {
-        free_assign_expr(i->assign);
+        AssignExpr_free(i->assign);
     } else {
-        free_init_list_children(&i->init_list);
+        InitList_free_children(&i->init_list);
     }
 }
 
-void free_initializer(struct Initializer* i) {
-    free_initializer_children(i);
+void Initializer_free(struct Initializer* i) {
+    Initializer_free_children(i);
     mycc_free(i);
 }

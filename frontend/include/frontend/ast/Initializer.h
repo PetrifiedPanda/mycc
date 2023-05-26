@@ -58,19 +58,19 @@ bool parse_init_list(ParserState* s, InitList* res);
 
 Designation create_invalid_designation(void);
 
-void free_initializer_children(Initializer* i);
-void free_initializer(Initializer* i);
+void Initializer_free_children(Initializer* i);
+void Initializer_free(Initializer* i);
 
-void free_designator_children(Designator* d);
+void Designator_free_children(Designator* d);
 
-void free_designator_list(DesignatorList* l);
+void DesignatorList_free(DesignatorList* l);
 
-bool is_valid_designation(const Designation* d);
+bool Designation_is_valid(const Designation* d);
 
-void free_designation(Designation* d);
-void free_designation_children(Designation* d);
+void Designation_free(Designation* d);
+void Designation_free_children(Designation* d);
 
-void free_init_list_children(InitList* l);
+void InitList_free_children(InitList* l);
 
 #include "frontend/ast/expr/AssignExpr.h"
 #include "frontend/ast/expr/ConstExpr.h"

@@ -55,7 +55,7 @@ PostfixExpr* parse_postfix_expr_type_name(ParserState* s,
                                                   TypeName* type_name,
                                                   SourceLoc start_bracket_loc);
 
-void free_postfix_expr(PostfixExpr* p);
+void PostfixExpr_free(PostfixExpr* p);
 
 #include "PrimaryExpr.h"
 #include "Expr.h"

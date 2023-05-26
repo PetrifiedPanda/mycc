@@ -2,11 +2,11 @@
 
 #include "util/mem.h"
 
-void free_ssa_cfg(SSACFG* cfg) {
+void SSACFG_free(SSACFG* cfg) {
     Str_free(&cfg->name);
 
     for (size_t i = 0; i < cfg->len; ++i) {
-        free_ssa_basic_block(&cfg->blocks[i]);
+        SSABasicBlock_free(&cfg->blocks[i]);
     }
     mycc_free(cfg->blocks);
 

@@ -17,7 +17,7 @@ TranslationUnit parse_translation_unit(ParserState* s) {
 
         if (!parse_external_declaration_inplace(s,
                                                 &res.external_decls[res.len])) {
-            free_translation_unit(&res);
+            TranslationUnit_free(&res);
             return (TranslationUnit){.len = 0, .external_decls = NULL};
         }
 
@@ -32,12 +32,12 @@ TranslationUnit parse_translation_unit(ParserState* s) {
 
 static void free_translation_unit_children(TranslationUnit* u) {
     for (size_t i = 0; i < u->len; ++i) {
-        free_external_declaration_children(&u->external_decls[i]);
+        ExternalDeclaration_free_children(&u->external_decls[i]);
     }
     mycc_free(u->external_decls);
 }
 
-void free_translation_unit(TranslationUnit* u) {
+void TranslationUnit_free(TranslationUnit* u) {
     free_translation_unit_children(u);
 }
 

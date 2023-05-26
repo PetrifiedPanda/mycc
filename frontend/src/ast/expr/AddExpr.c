@@ -34,7 +34,7 @@ static bool parse_add_expr_add_chain(ParserState* s, AddExpr* res) {
         MulExprAndOp* curr = &res->add_chain[res->len];
         curr->rhs = parse_mul_expr(s);
         if (!curr->rhs) {
-            free_add_expr(res);
+            AddExpr_free(res);
             return false;
         }
 
@@ -84,14 +84,14 @@ AddExpr* parse_add_expr_cast(ParserState* s, CastExpr* start) {
 }
 
 static void free_add_expr_children(AddExpr* e) {
-    free_mul_expr(e->lhs);
+    MulExpr_free(e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
-        free_mul_expr(e->add_chain[i].rhs);
+        MulExpr_free(e->add_chain[i].rhs);
     }
     mycc_free(e->add_chain);
 }
 
-void free_add_expr(AddExpr* e) {
+void AddExpr_free(AddExpr* e) {
     free_add_expr_children(e);
     mycc_free(e);
 }

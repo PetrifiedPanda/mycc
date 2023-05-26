@@ -13,11 +13,11 @@ typedef struct {
     };
 } StringConstant;
 
-StringConstant create_string_constant(const StrLit* lit, SourceLoc loc);
+StringConstant StringConstant_create(const StrLit* lit, SourceLoc loc);
 
-StringConstant create_func_name(SourceLoc loc);
+StringConstant StringConstant_create_func_name(SourceLoc loc);
 
-void free_string_constant(StringConstant* c);
+void StringConstant_free(StringConstant* c);
 
 #endif
 

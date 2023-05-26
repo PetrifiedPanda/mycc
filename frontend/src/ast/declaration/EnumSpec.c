@@ -21,7 +21,7 @@ static bool parse_enumerator_inplace(ParserState* s, Enumerator* res) {
         return false;
     }
 
-    const Str spell = token_take_spelling(id_token);
+    const Str spell = Token_take_spelling(id_token);
     SourceLoc loc = id_token->loc;
 
     ConstExpr* enum_val = NULL;
@@ -34,16 +34,16 @@ static bool parse_enumerator_inplace(ParserState* s, Enumerator* res) {
         }
     }
 
-    res->identifier = create_identifier(&spell, loc);
+    res->identifier = Identifier_create(&spell, loc);
     res->enum_val = enum_val;
 
     return true;
 }
 
-void free_enumerator_children(Enumerator* e) {
-    free_identifier(e->identifier);
+void Enumerator_free(Enumerator* e) {
+    Identifier_free(e->identifier);
     if (e->enum_val) {
-        free_const_expr(e->enum_val);
+        ConstExpr_free(e->enum_val);
     }
 }
 
@@ -76,13 +76,13 @@ static bool parse_enum_list(ParserState* s, EnumList* res) {
 
     return res;
 fail:
-    free_enum_list(res);
+    EnumList_free(res);
     return false;
 }
 
-void free_enum_list(EnumList* l) {
+void EnumList_free(EnumList* l) {
     for (size_t i = 0; i < l->len; ++i) {
-        free_enumerator_children(&l->enums[i]);
+        Enumerator_free(&l->enums[i]);
     }
     mycc_free(l->enums);
 }
@@ -91,7 +91,7 @@ static EnumSpec* create_enum_spec(SourceLoc loc,
                                           EnumList enum_list) {
     assert(identifier || enum_list.len > 0);
     EnumSpec* res = mycc_alloc(sizeof *res);
-    res->info = create_ast_node_info(loc);
+    res->info = AstNodeInfo_create(loc);
     res->identifier = identifier;
     res->enum_list = enum_list;
 
@@ -106,10 +106,10 @@ EnumSpec* parse_enum_spec(ParserState* s) {
 
     Identifier* id = NULL;
     if (s->it->kind == TOKEN_IDENTIFIER) {
-        const Str spell = token_take_spelling(s->it);
+        const Str spell = Token_take_spelling(s->it);
         const SourceLoc id_loc = s->it->loc;
         parser_accept_it(s);
-        id = create_identifier(&spell, id_loc);
+        id = Identifier_create(&spell, id_loc);
     }
 
     EnumList enums = {.len = 0, .enums = NULL};
@@ -124,7 +124,7 @@ EnumSpec* parse_enum_spec(ParserState* s) {
             parser_accept_it(s);
         }
         if (!parser_accept(s, TOKEN_RBRACE)) {
-            free_enum_list(&enums);
+            EnumList_free(&enums);
             goto fail;
         }
     } else if (id == NULL) {
@@ -135,19 +135,19 @@ EnumSpec* parse_enum_spec(ParserState* s) {
     return create_enum_spec(loc, id, enums);
 fail:
     if (id) {
-        free_identifier(id);
+        Identifier_free(id);
     }
     return NULL;
 }
 
 static void free_enum_spec_children(EnumSpec* s) {
     if (s->identifier) {
-        free_identifier(s->identifier);
+        Identifier_free(s->identifier);
     }
-    free_enum_list(&s->enum_list);
+    EnumList_free(&s->enum_list);
 }
 
-void free_enum_spec(EnumSpec* s) {
+void EnumSpec_free(EnumSpec* s) {
     free_enum_spec_children(s);
     mycc_free(s);
 }

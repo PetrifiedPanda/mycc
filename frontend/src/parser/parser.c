@@ -7,8 +7,8 @@
 TranslationUnit parse_tokens(Token* tokens, ParserErr* err) {
     assert(tokens);
 
-    ParserState state = create_parser_state(tokens, err);
+    ParserState state = ParserState_create(tokens, err);
     TranslationUnit res = parse_translation_unit(&state);
-    free_parser_state(&state);
+    ParserState_free(&state);
     return res;
 }

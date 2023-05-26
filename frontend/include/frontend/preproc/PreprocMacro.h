@@ -29,7 +29,7 @@ bool expand_all_macros(PreprocState* state, TokenArr* res, size_t start);
 
 PreprocMacro parse_preproc_macro(TokenArr* arr, PreprocErr* err);
 
-void free_preproc_macro(PreprocMacro* m);
+void PreprocMacro_free(PreprocMacro* m);
 
 #endif
 

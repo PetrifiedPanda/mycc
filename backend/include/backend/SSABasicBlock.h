@@ -17,9 +17,9 @@ typedef struct {
     BasicBlock bb;
 } SSABasicBlock;
 
-void free_phi_inst(PhiInst* i);
+void PhiInst_free(PhiInst* i);
 
-void free_ssa_basic_block(SSABasicBlock* bb);
+void SSABasicBlock_free(SSABasicBlock* bb);
 
 #endif
 

@@ -14,7 +14,7 @@ typedef struct {
     IRReg* regs;
 } CFG;
 
-void free_cfg(CFG* cfg);
+void CFG_free(CFG* cfg);
 
 #endif
 

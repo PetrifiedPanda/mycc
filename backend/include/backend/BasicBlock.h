@@ -45,9 +45,9 @@ typedef struct {
     size_t* preds;
 } BasicBlock;
 
-void free_branch_inst(BranchInst* b);
+void BranchInst_free(BranchInst* b);
 
-void free_basic_block(BasicBlock* bb);
+void BasicBlock_free(BasicBlock* bb);
 
 #endif
 

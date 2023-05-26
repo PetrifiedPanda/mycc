@@ -55,7 +55,7 @@ TEST(parse_obj_like) {
             .tokens = tokens,
         };
 
-        PreprocErr err = create_preproc_err();
+        PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
@@ -111,7 +111,7 @@ TEST(parse_obj_like) {
             .tokens = tokens,
         };
 
-        PreprocErr err = create_preproc_err();
+        PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &err);
 
         PreprocMacro ex = {
@@ -193,7 +193,7 @@ TEST(parse_func_like) {
             .tokens = tokens,
         };
 
-        PreprocErr err = create_preproc_err();
+        PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
@@ -245,7 +245,7 @@ TEST(parse_func_like) {
             .tokens = tokens,
         };
 
-        PreprocErr err = create_preproc_err();
+        PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
@@ -283,7 +283,7 @@ TEST(parse_func_like) {
             .tokens = tokens,
         };
 
-        PreprocErr err = create_preproc_err();
+        PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
@@ -359,7 +359,7 @@ TEST(parse_variadic) {
             .tokens = tokens,
         };
 
-        PreprocErr err = create_preproc_err();
+        PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
@@ -441,7 +441,7 @@ TEST(parse_variadic) {
             .tokens = tokens,
         };
 
-        PreprocErr err = create_preproc_err();
+        PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
@@ -504,7 +504,7 @@ TEST(parse_duplicate_arg_name) {
     // change c to a
     tokens[8].spelling = STR_NON_HEAP("a");
     {
-        PreprocErr err = create_preproc_err();
+        PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
@@ -517,7 +517,7 @@ TEST(parse_duplicate_arg_name) {
     tokens[8].spelling = STR_NON_HEAP("c");
     tokens[6].spelling = STR_NON_HEAP("c");
     {
-        PreprocErr err = create_preproc_err();
+        PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
@@ -528,7 +528,7 @@ TEST(parse_duplicate_arg_name) {
     }
     tokens[6].spelling = STR_NON_HEAP("a");
     {
-        PreprocErr err = create_preproc_err();
+        PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);

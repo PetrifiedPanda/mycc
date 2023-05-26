@@ -8,8 +8,8 @@
 
 TEST(ParserState) {
     Token dummy = {.kind = TOKEN_INVALID};
-    ParserErr err = create_parser_err();
-    ParserState s = create_parser_state(&dummy, &err);
+    ParserErr err = ParserErr_create();
+    ParserState s = ParserState_create(&dummy, &err);
 
     enum {
         NUM_STRINGS = 100,
@@ -32,7 +32,7 @@ TEST(ParserState) {
         const Str to_insert = str_non_heap(i + 1, insert_string);
 
         Token* item = &dummy_string_tokens[i];
-        *item = create_token_copy(TOKEN_IDENTIFIER,
+        *item = Token_create_copy(TOKEN_IDENTIFIER,
                                   &to_insert,
                                   (FileLoc){0, 0},
                                   0);
@@ -116,8 +116,8 @@ TEST(ParserState) {
     ASSERT_SIZE_T(err.prev_def_loc.line, (size_t)0);
     ASSERT_SIZE_T(err.prev_def_loc.index, (size_t)0);
 
-    free_parser_err(&err);
-    err = create_parser_err();
+    ParserErr_free(&err);
+    err = ParserErr_create();
 
     ASSERT(!parser_register_enum_constant(&s, &insert_test_token));
 
@@ -129,10 +129,10 @@ TEST(ParserState) {
     ASSERT_SIZE_T(err.prev_def_loc.index, (size_t)0);
 
     for (size_t i = 0; i < NUM_STRINGS; ++i) {
-        free_token(&dummy_string_tokens[i]);
+        Token_free(&dummy_string_tokens[i]);
     }
-    free_parser_err(&err);
-    free_parser_state(&s);
+    ParserErr_free(&err);
+    ParserState_free(&s);
 }
 
 TEST_SUITE_BEGIN(ParserState) {

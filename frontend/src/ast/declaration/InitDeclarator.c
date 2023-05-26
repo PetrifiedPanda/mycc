@@ -9,7 +9,7 @@ bool parse_init_declarator_typedef_inplace(ParserState* s, InitDeclarator* res) 
     }
 
     if (s->it->kind == TOKEN_ASSIGN) {
-        set_parser_err(s->err, PARSER_ERR_TYPEDEF_INIT, s->it->loc);
+        ParserErr_set(s->err, PARSER_ERR_TYPEDEF_INIT, s->it->loc);
         return false;
     }
 
@@ -28,7 +28,7 @@ bool parse_init_declarator_inplace(ParserState* s, InitDeclarator* res) {
         parser_accept_it(s);
         res->init = parse_initializer(s);
         if (!res->init) {
-            free_declarator(res->decl);
+            Declarator_free(res->decl);
             return false;
         }
     } else {
@@ -37,10 +37,10 @@ bool parse_init_declarator_inplace(ParserState* s, InitDeclarator* res) {
     return true;
 }
 
-void free_init_declarator_children(InitDeclarator* d) {
-    free_declarator(d->decl);
+void InitDeclarator_free_children(InitDeclarator* d) {
+    Declarator_free(d->decl);
     if (d->init) {
-        free_initializer(d->init);
+        Initializer_free(d->init);
     }
 }
 

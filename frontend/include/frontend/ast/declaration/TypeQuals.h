@@ -12,7 +12,7 @@ typedef struct TypeQuals {
     bool is_atomic;
 } TypeQuals;
 
-TypeQuals create_type_quals(void);
+TypeQuals TypeQuals_create(void);
 
 /*
  * @brief update type quals with current token, which must already be a type

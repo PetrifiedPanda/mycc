@@ -20,16 +20,16 @@ static bool parse_external_decl_normal_decl(
     Initializer* init = NULL;
     if (s->it->kind == TOKEN_ASSIGN) {
         if (found_typedef) {
-            set_parser_err(s->err, PARSER_ERR_TYPEDEF_INIT, s->it->loc);
-            free_declaration_specs(decl_specs);
-            free_declarator(first_decl);
+            ParserErr_set(s->err, PARSER_ERR_TYPEDEF_INIT, s->it->loc);
+            DeclarationSpecs_free(decl_specs);
+            Declarator_free(first_decl);
             return false;
         }
         parser_accept_it(s);
         init = parse_initializer(s);
         if (!init) {
-            free_declaration_specs(decl_specs);
-            free_declarator(first_decl);
+            DeclarationSpecs_free(decl_specs);
+            Declarator_free(first_decl);
             return false;
         }
     }
@@ -48,14 +48,14 @@ static bool parse_external_decl_normal_decl(
                                  &decl->init_decls,
                                  init_decl);
     if (!success) {
-        free_init_declarator_children(init_decl);
+        InitDeclarator_free_children(init_decl);
         mycc_free(init_decl);
-        free_declaration_children(decl);
+        Declaration_free_children(decl);
         return false;
     }
 
     if (!parser_accept(s, TOKEN_SEMICOLON)) {
-        free_declaration_children(decl);
+        Declaration_free_children(decl);
         return false;
     }
     return true;
@@ -68,9 +68,9 @@ static bool parse_external_declaration_func_def(
     Declarator* first_decl,
     bool found_typedef) {
     if (found_typedef) {
-        set_parser_err(s->err, PARSER_ERR_TYPEDEF_FUNC_DEF, s->it->loc);
-        free_declaration_specs(decl_specs);
-        free_declarator(first_decl);
+        ParserErr_set(s->err, PARSER_ERR_TYPEDEF_FUNC_DEF, s->it->loc);
+        DeclarationSpecs_free(decl_specs);
+        Declarator_free(first_decl);
         return false;
     }
     res->is_func_def = true;
@@ -81,8 +81,8 @@ static bool parse_external_declaration_func_def(
     func_def->decl = first_decl;
     if (s->it->kind != TOKEN_LBRACE) {
         if (!parse_declaration_list(s, &func_def->decl_list)) {
-            free_declaration_specs(decl_specs);
-            free_declarator(first_decl);
+            DeclarationSpecs_free(decl_specs);
+            Declarator_free(first_decl);
             return false;
         }
     } else {
@@ -93,9 +93,9 @@ static bool parse_external_declaration_func_def(
     }
 
     if (!parse_compound_statement_inplace(s, &func_def->comp)) {
-        free_declaration_specs(decl_specs);
-        free_declarator(first_decl);
-        free_declaration_list(&func_def->decl_list);
+        DeclarationSpecs_free(decl_specs);
+        Declarator_free(first_decl);
+        DeclarationList_free(&func_def->decl_list);
         return false;
     }
     return true;
@@ -140,7 +140,7 @@ bool parse_external_declaration_inplace(ParserState* s, ExternalDeclaration* res
     }
 
     if (!first_decl) {
-        free_declaration_specs(decl_specs);
+        DeclarationSpecs_free(decl_specs);
         return false;
     }
 
@@ -160,11 +160,11 @@ bool parse_external_declaration_inplace(ParserState* s, ExternalDeclaration* res
     }
 }
 
-void free_external_declaration_children(ExternalDeclaration* d) {
+void ExternalDeclaration_free_children(ExternalDeclaration* d) {
     if (d->is_func_def) {
-        free_func_def_children(&d->func_def);
+        FuncDef_free_children(&d->func_def);
     } else {
-        free_declaration_children(&d->decl);
+        Declaration_free_children(&d->decl);
     }
 }
 

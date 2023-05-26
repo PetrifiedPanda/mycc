@@ -34,7 +34,7 @@ bool parse_type_name_inplace(ParserState* s, TypeName* res) {
         || s->it->kind == TOKEN_LINDEX) {
         res->abstract_decl = parse_abs_declarator(s);
         if (!res->abstract_decl) {
-            free_spec_qual_list(res->spec_qual_list);
+            SpecQualList_free(res->spec_qual_list);
             return false;
         }
     } else {
@@ -53,15 +53,15 @@ TypeName* parse_type_name(ParserState* s) {
     return res;
 }
 
-void free_type_name_children(TypeName* n) {
-    free_spec_qual_list(n->spec_qual_list);
+void TypeName_free_children(TypeName* n) {
+    SpecQualList_free(n->spec_qual_list);
     if (n->abstract_decl) {
-        free_abs_declarator(n->abstract_decl);
+        AbsDeclarator_free(n->abstract_decl);
     }
 }
 
-void free_type_name(TypeName* n) {
-    free_type_name_children(n);
+void TypeName_free(TypeName* n) {
+    TypeName_free_children(n);
     mycc_free(n);
 }
 

@@ -310,7 +310,7 @@ static CondExpr* deserialize_cond_expr(AstDeserializer* r);
 static void free_assign_chain(UnaryAndOp* assign_chain, size_t len) {
     for (size_t i = 0; i < len; ++i) {
         UnaryAndOp* item = &assign_chain[i];
-        free_unary_expr(item->unary);
+        UnaryExpr_free(item->unary);
     }
     mycc_free(assign_chain);
 }
@@ -332,7 +332,7 @@ static bool deserialize_assign_expr_inplace(AstDeserializer* r, AssignExpr* res)
         }
         uint64_t op;
         if (!deserialize_uint(r, &op)) {
-            free_unary_expr(item->unary);
+            UnaryExpr_free(item->unary);
             free_assign_chain(res->assign_chain, i);
             return false;
         }
@@ -366,7 +366,7 @@ static bool deserialize_expr_inplace(AstDeserializer* r, Expr* res) {
     res->assign_exprs = alloc_or_null(sizeof *res->assign_exprs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_assign_expr_inplace(r, &res->assign_exprs[res->len])) {
-            free_expr_children(res);
+            Expr_free_children(res);
             return false;
         }
     }
@@ -416,7 +416,7 @@ static bool deserialize_generic_assoc_list(AstDeserializer* r, GenericAssocList*
     res->assocs = mycc_alloc(sizeof *res->assocs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_generic_assoc(r, &res->assocs[res->len])) {
-            free_generic_assoc_list(res);
+            GenericAssocList_free(res);
             return false;
         }
     }
@@ -436,7 +436,7 @@ static struct GenericSel* deserialize_generic_sel(AstDeserializer* r) {
 
     GenericAssocList assocs;
     if (!deserialize_generic_assoc_list(r, &assocs)) {
-        free_assign_expr(assign);
+        AssignExpr_free(assign);
         return NULL;
     }
     struct GenericSel* res = mycc_alloc(sizeof *res);
@@ -524,7 +524,7 @@ static bool deserialize_designator_list(AstDeserializer* r, DesignatorList* res)
     res->designators = mycc_alloc(sizeof *res->designators * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_designator(r, &res->designators[res->len])) {
-            free_designator_list(res);
+            DesignatorList_free(res);
             return false;
         }
     }
@@ -586,7 +586,7 @@ static bool deserialize_designation_init(AstDeserializer* r, DesignationInit* re
 
     if (!deserialize_initializer_inplace(r, &res->init)) {
         if (has_designation) {
-            free_designation_children(&res->designation);
+            Designation_free_children(&res->designation);
         }
         return false;
     }
@@ -602,7 +602,7 @@ static bool deserialize_init_list(AstDeserializer* r, InitList* res) {
     res->inits = mycc_alloc(sizeof *res->inits * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_designation_init(r, &res->inits[res->len])) {
-            free_init_list_children(res);
+            InitList_free_children(res);
             return false;
         }
     }
@@ -618,7 +618,7 @@ static bool deserialize_arg_expr_list(AstDeserializer* r, ArgExprList* res) {
     res->assign_exprs = alloc_or_null(sizeof *res->assign_exprs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_assign_expr_inplace(r, &res->assign_exprs[res->len])) {
-            free_arg_expr_list(res);
+            ArgExprList_free(res);
             return false;
         }
     }
@@ -676,7 +676,7 @@ static PostfixExpr* deserialize_postfix_expr(
         }
 
         if (!deserialize_init_list(r, &res->init_list)) {
-            free_type_name(res->type_name);
+            TypeName_free(res->type_name);
             mycc_free(res);
             return NULL;
         }
@@ -698,7 +698,7 @@ static PostfixExpr* deserialize_postfix_expr(
     }
     return res;
 fail:
-    free_postfix_expr(res);
+    PostfixExpr_free(res);
     return NULL;
 }
 
@@ -776,7 +776,7 @@ static bool deserialize_type_name_inplace(AstDeserializer* r, TypeName* res);
 
 static void free_type_names_up_to(TypeName* type_names, size_t len) {
     for (size_t i = 0; i < len; ++i) {
-        free_type_name_children(&type_names[i]);
+        TypeName_free_children(&type_names[i]);
     }
     mycc_free(type_names);
 }
@@ -849,7 +849,7 @@ static MulExpr* deserialize_mul_expr(AstDeserializer* r) {
 
     return res;
 fail:
-    free_mul_expr(res);
+    MulExpr_free(res);
     return NULL;
 }
 
@@ -887,7 +887,7 @@ static AddExpr* deserialize_add_expr(AstDeserializer* r) {
 
     return res;
 fail:
-    free_add_expr(res);
+    AddExpr_free(res);
     return NULL;
 }
 
@@ -924,7 +924,7 @@ static ShiftExpr* deserialize_shift_expr(AstDeserializer* r) {
 
     return res;
 fail:
-    free_shift_expr(res);
+    ShiftExpr_free(res);
     return NULL;
 }
 
@@ -960,7 +960,7 @@ static RelExpr* deserialize_rel_expr(AstDeserializer* r) {
     }
     return res;
 fail:
-    free_rel_expr(res);
+    RelExpr_free(res);
     return NULL;
 }
 
@@ -995,7 +995,7 @@ static bool deserialize_eq_expr(AstDeserializer* r, EqExpr* res) {
 
     return true;
 fail:
-    free_eq_expr_children(res);
+    EqExpr_free_children(res);
     return false;
 }
 
@@ -1008,7 +1008,7 @@ static bool deserialize_and_expr(AstDeserializer* r, AndExpr* res) {
     res->eq_exprs = mycc_alloc(sizeof *res->eq_exprs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_eq_expr(r, &res->eq_exprs[res->len])) {
-            free_and_expr_children(res);
+            AndExpr_free_children(res);
             return false;
         }
     }
@@ -1024,7 +1024,7 @@ static bool deserialize_xor_expr(AstDeserializer* r, XorExpr* res) {
     res->and_exprs = mycc_alloc(sizeof *res->and_exprs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_and_expr(r, &res->and_exprs[res->len])) {
-            free_xor_expr_children(res);
+            XorExpr_free_children(res);
             return false;
         }
     }
@@ -1040,7 +1040,7 @@ static bool deserialize_or_expr(AstDeserializer* r, OrExpr* res) {
     res->xor_exprs = mycc_alloc(sizeof *res->xor_exprs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_xor_expr(r, &res->xor_exprs[res->len])) {
-            free_or_expr_children(res);
+            OrExpr_free_children(res);
             return false;
         }
     }
@@ -1056,7 +1056,7 @@ static bool deserialize_log_and_expr(AstDeserializer* r, LogAndExpr* res) {
     res->or_exprs = mycc_alloc(sizeof *res->or_exprs * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_or_expr(r, &res->or_exprs[res->len])) {
-            free_log_and_expr_children(res);
+            LogAndExpr_free_children(res);
             return false;
         }
     }
@@ -1073,7 +1073,7 @@ static LogOrExpr* deserialize_log_or_expr(AstDeserializer* r) {
     res->log_ands = mycc_alloc(sizeof *res->log_ands * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_log_and_expr(r, &res->log_ands[res->len])) {
-            free_log_or_expr(res);
+            LogOrExpr_free(res);
             return false;
         }
     }
@@ -1084,8 +1084,8 @@ static LogOrExpr* deserialize_log_or_expr(AstDeserializer* r) {
 static void free_cond_expr_conds(CondExpr* cond, size_t len) {
     for (size_t i = 0; i < len; ++i) {
         LogOrAndExpr* item = &cond->conditionals[i];
-        free_log_or_expr(item->log_or);
-        free_expr(item->expr);
+        LogOrExpr_free(item->log_or);
+        Expr_free(item->expr);
     }
     mycc_free(cond->conditionals);
 }
@@ -1108,7 +1108,7 @@ static bool deserialize_cond_expr_inplace(AstDeserializer* r, CondExpr* res) {
 
         item->expr = deserialize_expr(r);
         if (!item->expr) {
-            free_log_or_expr(item->log_or);
+            LogOrExpr_free(item->log_or);
             free_cond_expr_conds(res, i);
             return false;
         }
@@ -1152,7 +1152,7 @@ static StaticAssertDeclaration* deserialize_static_assert_declaration(
 
     StringLiteralNode lit;
     if (!deserialize_string_literal_node(r, &lit)) {
-        free_const_expr(expr);
+        ConstExpr_free(expr);
         return NULL;
     }
 
@@ -1183,7 +1183,7 @@ static Pointer* deserialize_pointer(AstDeserializer* r) {
          ++res->num_indirs) {
         if (!deserialize_type_quals(r,
                                     &res->quals_after_ptr[res->num_indirs])) {
-            free_pointer(res);
+            Pointer_free(res);
             return NULL;
         }
     }
@@ -1257,7 +1257,7 @@ static DirectAbsDeclarator* deserialize_direct_abs_declarator(
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         if (has_bracket_decl) {
-            free_abs_declarator(bracket_decl);
+            AbsDeclarator_free(bracket_decl);
         }
         return NULL;
     }
@@ -1270,7 +1270,7 @@ static DirectAbsDeclarator* deserialize_direct_abs_declarator(
         if (!deserialize_abs_arr_or_func_suffix(
                 r,
                 &res->following_suffixes[res->len])) {
-            free_direct_abs_declarator(res);
+            DirectAbsDeclarator_free(res);
             return NULL;
         }
     }
@@ -1292,7 +1292,7 @@ static AbsDeclarator* deserialize_abs_declarator(AstDeserializer* r) {
     bool has_direct_abs_decl;
     if (!deserialize_bool(r, &has_direct_abs_decl)) {
         if (has_ptr) {
-            free_pointer(ptr);
+            Pointer_free(ptr);
         }
         return false;
     }
@@ -1302,7 +1302,7 @@ static AbsDeclarator* deserialize_abs_declarator(AstDeserializer* r) {
         direct_abs_decl = deserialize_direct_abs_declarator(r);
         if (!direct_abs_decl) {
             if (has_ptr) {
-                free_pointer(ptr);
+                Pointer_free(ptr);
             }
             return false;
         }
@@ -1327,7 +1327,7 @@ static bool deserialize_param_declaration(AstDeserializer* r, ParamDeclaration* 
 
     uint64_t kind;
     if (!deserialize_uint(r, &kind)) {
-        free_declaration_specs(res->decl_specs);
+        DeclarationSpecs_free(res->decl_specs);
         return false;
     }
     res->kind = kind;
@@ -1354,7 +1354,7 @@ static bool deserialize_param_list(AstDeserializer* r, ParamList* res) {
     res->decls = alloc_or_null(sizeof *res->decls * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_param_declaration(r, &res->decls[res->len])) {
-            free_param_list(res);
+            ParamList_free(res);
             return false;
         }
     }
@@ -1376,7 +1376,7 @@ static bool deserialize_identifier_list(AstDeserializer* r, IdentifierList* res)
     res->identifiers = mycc_alloc(sizeof *res->identifiers * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_identifier_inplace(r, &res->identifiers[res->len])) {
-            free_identifier_list(res);
+            IdentifierList_free(res);
             return false;
         }
     }
@@ -1460,9 +1460,9 @@ static DirectDeclarator* deserialize_direct_declarator(
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         if (res->is_id) {
-            free_identifier(res->id);
+            Identifier_free(res->id);
         } else {
-            free_declarator(res->bracket_decl);
+            Declarator_free(res->bracket_decl);
         }
         mycc_free(res);
         return NULL;
@@ -1471,7 +1471,7 @@ static DirectDeclarator* deserialize_direct_declarator(
     res->suffixes = alloc_or_null(sizeof *res->suffixes * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_arr_or_func_suffix(r, &res->suffixes[res->len])) {
-            free_direct_declarator(res);
+            DirectDeclarator_free(res);
             return NULL;
         }
     }
@@ -1495,7 +1495,7 @@ static Declarator* deserialize_declarator(AstDeserializer* r) {
     DirectDeclarator* direct_decl = deserialize_direct_declarator(r);
     if (!direct_decl) {
         if (has_ptr) {
-            free_pointer(ptr);
+            Pointer_free(ptr);
         }
         return NULL;
     }
@@ -1529,7 +1529,7 @@ static bool deserialize_struct_declarator(AstDeserializer* r, StructDeclarator* 
         res->bit_field = deserialize_const_expr(r);
         if (!res->bit_field) {
             if (has_decl) {
-                free_declarator(res->decl);
+                Declarator_free(res->decl);
             }
             return false;
         }
@@ -1549,7 +1549,7 @@ static bool deserialize_struct_declarator_list(AstDeserializer* r, StructDeclara
     res->decls = alloc_or_null(sizeof *res->decls * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_struct_declarator(r, &res->decls[res->len])) {
-            free_struct_declarator_list(res);
+            StructDeclaratorList_free(res);
             return false;
         }
     }
@@ -1585,7 +1585,7 @@ static bool deserialize_struct_declaration_list(AstDeserializer* r, StructDeclar
     res->decls = alloc_or_null(sizeof *res->decls * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_struct_declaration(r, &res->decls[res->len])) {
-            free_struct_declaration_list(res);
+            StructDeclarationList_free(res);
             return false;
         }
     }
@@ -1621,7 +1621,7 @@ static StructUnionSpec* deserialize_struct_union_spec(AstDeserializer* r) {
     StructDeclarationList lst;
     if (!deserialize_struct_declaration_list(r, &lst)) {
         if (has_identifier) {
-            free_identifier(id);
+            Identifier_free(id);
         }
         return NULL;
     }
@@ -1643,14 +1643,14 @@ static bool deserialize_enumerator(AstDeserializer* r, Enumerator* res) {
     }
     bool has_enum_val;
     if (!deserialize_bool(r, &has_enum_val)) {
-        free_identifier(res->identifier);
+        Identifier_free(res->identifier);
         return false;
     }
 
     if (has_enum_val) {
         res->enum_val = deserialize_const_expr(r);
         if (!res->enum_val) {
-            free_identifier(res->identifier);
+            Identifier_free(res->identifier);
             return false;
         }
     } else {
@@ -1667,7 +1667,7 @@ static bool deserialize_enum_list(AstDeserializer* r, EnumList* res) {
     res->enums = alloc_or_null(sizeof *res->enums * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_enumerator(r, &res->enums[res->len])) {
-            free_enum_list(res);
+            EnumList_free(res);
             return false;
         }
     }
@@ -1697,7 +1697,7 @@ static EnumSpec* deserialize_enum_spec(AstDeserializer* r) {
     EnumList lst;
     if (!deserialize_enum_list(r, &lst)) {
         if (has_identifier) {
-            free_identifier(id);
+            Identifier_free(id);
         }
         return NULL;
     }
@@ -1810,7 +1810,7 @@ static bool deserialize_type_name_inplace(AstDeserializer* r, TypeName* res) {
 
     return true;
 fail:
-    free_spec_qual_list(res->spec_qual_list);
+    SpecQualList_free(res->spec_qual_list);
     return false;
 }
 
@@ -1883,7 +1883,7 @@ static DeclarationSpecs* deserialize_declaration_specs(AstDeserializer* r) {
     for (size_t i = 0; i < num_align_specs; ++i) {
         if (!deserialize_align_spec(r, &align_specs[i])) {
             for (size_t j = 0; j < i; ++j) {
-                free_align_spec_children(&align_specs[j]);
+                AlignSpec_free_children(&align_specs[j]);
             }
             mycc_free(align_specs);
             return NULL;
@@ -1893,7 +1893,7 @@ static DeclarationSpecs* deserialize_declaration_specs(AstDeserializer* r) {
     TypeSpecs type_specs;
     if (!deserialize_type_specs(r, &type_specs)) {
         for (size_t i = 0; i < num_align_specs; ++i) {
-            free_align_spec_children(&align_specs[i]);
+            AlignSpec_free_children(&align_specs[i]);
         }
         mycc_free(align_specs);
         return NULL;
@@ -1923,7 +1923,7 @@ static bool deserialize_declaration_list(AstDeserializer* r, DeclarationList* re
     res->decls = alloc_or_null(sizeof *res->decls * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_declaration_inplace(r, &res->decls[res->len])) {
-            free_declaration_list(res);
+            DeclarationList_free(res);
             return false;
         }
     }
@@ -1969,10 +1969,10 @@ static LabeledStatement* deserialize_labeled_statement(
     if (!res->stat) {
         switch (res->kind) {
             case LABELED_STATEMENT_CASE:
-                free_const_expr(res->case_expr);
+                ConstExpr_free(res->case_expr);
                 break;
             case LABELED_STATEMENT_LABEL:
-                free_identifier(res->label);
+                Identifier_free(res->label);
                 break;
             case LABELED_STATEMENT_DEFAULT:
                 break;
@@ -2052,9 +2052,9 @@ static SelectionStatement* deserialize_selection_statement(AstDeserializer* r) {
     };
     return res;
 fail_after_stat:
-    free_statement(sel_stat);
+    Statement_free(sel_stat);
 fail_after_expr:
-    free_expr(sel_expr);
+    Expr_free(sel_expr);
     return NULL;
 }
 
@@ -2085,12 +2085,12 @@ static bool deserialize_for_loop(AstDeserializer* r, ForLoop* res) {
 
     return res;
 fail_after_cond:
-    free_expr_statement(res->cond);
+    ExprStatement_free(res->cond);
 fail_before_cond:
     if (res->is_decl) {
-        free_declaration_children(&res->init_decl);
+        Declaration_free_children(&res->init_decl);
     } else {
-        free_expr_statement(res->init_expr);
+        ExprStatement_free(res->init_expr);
     }
     return false;
 }
@@ -2131,7 +2131,7 @@ static IterationStatement* deserialize_iteration_statement(AstDeserializer* r) {
     }
     return res;
 fail_after_loop_body:
-    free_statement(res->loop_body);
+    Statement_free(res->loop_body);
 fail_before_loop_body:
     mycc_free(res);
     return NULL;
@@ -2252,7 +2252,7 @@ static bool deserialize_compound_statement_inplace(AstDeserializer* r, CompoundS
     res->items = alloc_or_null(sizeof *res->items * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_block_item(r, &res->items[res->len])) {
-            free_compound_statement(res);
+            CompoundStatement_free(res);
             return false;
         }
     }
@@ -2275,18 +2275,18 @@ static bool deserialize_func_def(AstDeserializer* r, FuncDef* res) {
     }
     res->decl = deserialize_declarator(r);
     if (!res->decl) {
-        free_declaration_specs(res->specs);
+        DeclarationSpecs_free(res->specs);
         return false;
     }
     if (!deserialize_declaration_list(r, &res->decl_list)) {
-        free_declaration_specs(res->specs);
-        free_declarator(res->decl);
+        DeclarationSpecs_free(res->specs);
+        Declarator_free(res->decl);
         return false;
     }
     if (!deserialize_compound_statement_inplace(r, &res->comp)) {
-        free_declaration_specs(res->specs);
-        free_declarator(res->decl);
-        free_declaration_list(&res->decl_list);
+        DeclarationSpecs_free(res->specs);
+        Declarator_free(res->decl);
+        DeclarationList_free(&res->decl_list);
         return false;
     }
     return true;
@@ -2299,7 +2299,7 @@ static bool deserialize_init_declarator(AstDeserializer* r, InitDeclarator* res)
     }
     bool has_init;
     if (!deserialize_bool(r, &has_init)) {
-        free_declarator(res->decl);
+        Declarator_free(res->decl);
         return false;
     }
 
@@ -2323,7 +2323,7 @@ static bool deserialize_init_declarator_list(AstDeserializer* r, InitDeclaratorL
     res->decls = alloc_or_null(sizeof *res->decls * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_init_declarator(r, &res->decls[res->len])) {
-            free_init_declarator_list(res);
+            InitDeclaratorList_free(res);
             return false;
         }
     }
@@ -2340,7 +2340,7 @@ static bool deserialize_declaration_inplace(AstDeserializer* r, Declaration* res
             return false;
         }
         if (!deserialize_init_declarator_list(r, &res->init_decls)) {
-            free_declaration_specs(res->decl_specs);
+            DeclarationSpecs_free(res->decl_specs);
             return false;
         }
     } else {
@@ -2379,7 +2379,7 @@ static TranslationUnit deserialize_translation_unit(AstDeserializer* r) {
     for (size_t i = 0; i < res.len; ++i) {
         if (!deserialize_external_declaration(r, &res.external_decls[i])) {
             for (size_t j = 0; j < i; ++j) {
-                free_external_declaration_children(&res.external_decls[j]);
+                ExternalDeclaration_free_children(&res.external_decls[j]);
             }
             mycc_free(res.external_decls);
             return (TranslationUnit){

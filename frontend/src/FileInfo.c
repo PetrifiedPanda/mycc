@@ -5,7 +5,7 @@
 
 #include "util/mem.h"
 
-FileInfo create_file_info(const Str* start_file) {
+FileInfo FileInfo_create(const Str* start_file) {
     FileInfo res = {
         .len = 1,
         .paths = mycc_alloc(sizeof *res.paths),
@@ -14,7 +14,7 @@ FileInfo create_file_info(const Str* start_file) {
     return res;
 }
 
-void file_info_add(FileInfo* info, const Str* path) {
+void FileInfo_add(FileInfo* info, const Str* path) {
     assert(path);
 
     ++info->len;
@@ -22,7 +22,7 @@ void file_info_add(FileInfo* info, const Str* path) {
     info->paths[info->len - 1] = *path;
 }
 
-void free_file_info(FileInfo* info) {
+void FileInfo_free(FileInfo* info) {
     for (size_t i = 0;  i < info->len; ++i) {
         Str_free(&info->paths[i]); 
     }

@@ -10,15 +10,15 @@ typedef struct Identifier {
     Str spelling;
 } Identifier;
 
-void init_identifier(Identifier* res,
+void Identifier_init(Identifier* res,
                      const Str* spelling,
                      SourceLoc loc);
-Identifier* create_identifier(const Str* spelling,
+Identifier* Identifier_create(const Str* spelling,
                                      SourceLoc loc);
 
-void free_identifier_children(Identifier* i);
+void Identifier_free_children(Identifier* i);
 
-void free_identifier(Identifier* i);
+void Identifier_free(Identifier* i);
 
 #endif
 

@@ -60,8 +60,8 @@ UnaryExpr* parse_unary_expr_type_name(ParserState* s,
                                               TypeName* type_name,
                                               SourceLoc start_bracket_loc);
 
-void free_unary_expr_children(UnaryExpr* u);
-void free_unary_expr(UnaryExpr* u);
+void UnaryExpr_free_children(UnaryExpr* u);
+void UnaryExpr_free(UnaryExpr* u);
 
 #include "frontend/ast/TypeName.h"
 

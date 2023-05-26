@@ -18,7 +18,7 @@ typedef struct ExternalDeclaration {
 
 bool parse_external_declaration_inplace(ParserState* s, ExternalDeclaration* res);
 
-void free_external_declaration_children(ExternalDeclaration* d);
+void ExternalDeclaration_free_children(ExternalDeclaration* d);
 
 #endif
 

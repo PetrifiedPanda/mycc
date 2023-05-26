@@ -18,9 +18,9 @@ typedef struct CastExpr {
 CastExpr* parse_cast_expr(ParserState* s);
 CastExpr* parse_cast_expr_type_name(ParserState* s, TypeName* type_name, SourceLoc start_bracket_loc);
 
-CastExpr* create_cast_expr_unary(UnaryExpr* start);
+CastExpr* CastExpr_create_unary(UnaryExpr* start);
 
-void free_cast_expr(CastExpr* e);
+void CastExpr_free(CastExpr* e);
 
 #include "UnaryExpr.h"
 #include "frontend/ast/TypeName.h"

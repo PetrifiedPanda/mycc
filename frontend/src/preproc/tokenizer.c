@@ -83,7 +83,7 @@ bool next_preproc_token(Token* res, PreprocErr* err, LineInfo* info) {
             advance_one(&s);
         }
         if (*s.it != '\n') {
-            set_preproc_err(err, PREPROC_ERR_INVALID_BACKSLASH, loc);
+            PreprocErr_set(err, PREPROC_ERR_INVALID_BACKSLASH, loc);
             return false;
         }
         advance_newline(&s);
@@ -108,9 +108,9 @@ bool next_preproc_token(Token* res, PreprocErr* err, LineInfo* info) {
         }
 
         Str null_str = Str_create_null();
-        *res = create_token(kind, &null_str, s.file_loc, s.current_file_idx);
+        *res = Token_create(kind, &null_str, s.file_loc, s.current_file_idx);
 
-        size_t len = strlen(get_token_kind_spelling(kind));
+        size_t len = strlen(TokenKind_get_spelling(kind));
         advance(&s, len);
 
         write_line_info(&s, info);
@@ -207,7 +207,7 @@ static TokenKind singlec_token_kind(char c) {
 }
 
 static bool check_kind(TokenKind kind, const char* next_chars) {
-    const char* spelling = get_token_kind_spelling(kind);
+    const char* spelling = TokenKind_get_spelling(kind);
     size_t len = strlen(spelling);
     assert(len != 0);
     assert(len >= 2);
@@ -419,7 +419,7 @@ static void unterminated_literal_err(PreprocErr* err,
         .file_idx = file_idx,
         .file_loc = start_loc,
     };
-    set_preproc_err(err, PREPROC_ERR_UNTERMINATED_LIT, loc);
+    PreprocErr_set(err, PREPROC_ERR_UNTERMINATED_LIT, loc);
 
     err->is_char_lit = is_char_lit;
 }
@@ -490,7 +490,7 @@ static bool handle_character_literal(TokenizerState* s,
                                                  Str_len(&spell),
                                                  terminator);
         assert(kind != TOKEN_INVALID);
-        *res = create_token(kind, &spell, start_loc, s->current_file_idx);
+        *res = Token_create(kind, &spell, start_loc, s->current_file_idx);
 
         write_line_info(s, info);
         return true;
@@ -563,7 +563,7 @@ static bool handle_other(TokenizerState* s, Token* res, LineInfo* info, PreprocE
                 .file_idx = s->current_file_idx,
                 .file_loc = start_loc,
             };
-            set_preproc_err(err, PREPROC_ERR_INVALID_NUMBER, loc);
+            PreprocErr_set(err, PREPROC_ERR_INVALID_NUMBER, loc);
             err->invalid_num = spell;
             return false;
         }
@@ -574,13 +574,13 @@ static bool handle_other(TokenizerState* s, Token* res, LineInfo* info, PreprocE
             .file_idx = s->current_file_idx,
             .file_loc = start_loc,
         };
-        set_preproc_err(err, PREPROC_ERR_INVALID_ID, loc);
+        PreprocErr_set(err, PREPROC_ERR_INVALID_ID, loc);
 
         err->invalid_id = spell;
         return false;
     }
 
-    *res = create_token(kind, &spell, start_loc, s->current_file_idx);
+    *res = Token_create(kind, &spell, start_loc, s->current_file_idx);
     write_line_info(s, info);
     return true;
 }

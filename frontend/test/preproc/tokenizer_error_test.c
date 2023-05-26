@@ -5,7 +5,7 @@
 
 TEST(unterminated_literal) {
     {
-        PreprocErr err = create_preproc_err();
+        PreprocErr err = PreprocErr_create();
         PreprocRes res = preproc_string("\"this is a string literal",
                                               "file.c",
                                               &err);
@@ -19,10 +19,10 @@ TEST(unterminated_literal) {
         ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
         ASSERT(!err.is_char_lit);
         
-        free_preproc_err(&err);
+        PreprocErr_free(&err);
     }
     {
-        PreprocErr err = create_preproc_err();
+        PreprocErr err = PreprocErr_create();
         PreprocRes res = preproc_string(
             "int n = 10;\nchar c = \'char literal that cannot exist",
             "file.c",
@@ -37,13 +37,13 @@ TEST(unterminated_literal) {
         ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
         ASSERT(err.is_char_lit);
         
-        free_preproc_err(&err);
+        PreprocErr_free(&err);
     }
     // TODO: escaped newlines when implemented
 }
 
 TEST(invalid_identifier) {
-    PreprocErr err = create_preproc_err();
+    PreprocErr err = PreprocErr_create();
     PreprocRes res = preproc_string("int in$valid = 10;", "file.c", &err);
     ASSERT_NULL(res.toks);
     ASSERT_SIZE_T(res.file_info.len, (size_t)0);
@@ -56,11 +56,11 @@ TEST(invalid_identifier) {
     ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)5);
     ASSERT_STR(Str_get_data(&err.invalid_id), "in$valid");
 
-    free_preproc_err(&err);
+    PreprocErr_free(&err);
 }
 
 TEST(invalid_number) {
-    PreprocErr err = create_preproc_err();
+    PreprocErr err = PreprocErr_create();
     PreprocRes res = preproc_string("int 10in$valid = 10;", "file.c", &err);
     ASSERT_NULL(res.toks);
     ASSERT_SIZE_T(res.file_info.len, (size_t)0);
@@ -73,7 +73,7 @@ TEST(invalid_number) {
     ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)5);
     ASSERT_STR(Str_get_data(&err.invalid_num), "10in$valid");
 
-    free_preproc_err(&err);
+    PreprocErr_free(&err);
 
 }
 
