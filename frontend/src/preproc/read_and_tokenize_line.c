@@ -140,9 +140,9 @@ static bool handle_ifdef_ifndef(PreprocState* state, TokenArr* arr, bool is_ifnd
     assert(arr->tokens[0].kind == TOKEN_PP_STRINGIFY);
     assert(
         (!is_ifndef
-         && strcmp(str_get_data(&arr->tokens[1].spelling), "ifdef") == 0)
+         && strcmp(Str_get_data(&arr->tokens[1].spelling), "ifdef") == 0)
         || (is_ifndef
-            && strcmp(str_get_data(&arr->tokens[1].spelling), "ifndef") == 0));
+            && strcmp(Str_get_data(&arr->tokens[1].spelling), "ifndef") == 0));
     const SourceLoc loc = arr->tokens[0].loc;
 
     if (arr->len < 3) {
@@ -170,7 +170,7 @@ static bool handle_ifdef_ifndef(PreprocState* state, TokenArr* arr, bool is_ifnd
 
     const Str* macro_spell = &arr->tokens[2].spelling;
     assert(macro_spell);
-    assert(str_is_valid(macro_spell));
+    assert(Str_is_valid(macro_spell));
     const PreprocMacro* macro = find_preproc_macro(state, macro_spell);
 
     const bool cond = is_ifndef ? macro == NULL : macro != NULL;
@@ -257,7 +257,7 @@ static bool preproc_statement(PreprocState* state, TokenArr* arr) {
         return false;
     }
 
-    const char* directive = str_get_data(&arr->tokens[1].spelling);
+    const char* directive = Str_get_data(&arr->tokens[1].spelling);
     assert(directive);
 
     if (strcmp(directive, "if") == 0) {

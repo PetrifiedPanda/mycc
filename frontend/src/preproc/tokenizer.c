@@ -61,7 +61,7 @@ bool next_preproc_token(Token* res, PreprocErr* err, LineInfo* info) {
         advance_newline(&s);
     }
     if (*s.it == '\0') {
-        const Str null_str = create_null_str();
+        const Str null_str = Str_create_null();
         *res = (Token){
             .kind = TOKEN_INVALID,
             .spelling = null_str,
@@ -107,7 +107,7 @@ bool next_preproc_token(Token* res, PreprocErr* err, LineInfo* info) {
             kind = check_next(kind, s.it + 1);
         }
 
-        Str null_str = create_null_str();
+        Str null_str = Str_create_null();
         *res = create_token(kind, &null_str, s.file_loc, s.current_file_idx);
 
         size_t len = strlen(get_token_kind_spelling(kind));
@@ -460,34 +460,34 @@ static bool handle_character_literal(TokenizerState* s,
         advance_newline(s);
     }
 
-    Str spell = create_str(buf_idx, spell_buf);
+    Str spell = Str_create(buf_idx, spell_buf);
     if (buf_idx == BUF_STRLEN) {
         while (*s->it != '\0'
                && ((s->prev_prev != '\\' && s->prev == '\\')
                    || *s->it != terminator)) {
 
-            str_push_back(&spell, *s->it);
+            Str_push_back(&spell, *s->it);
 
             advance_newline(s);
         }
 
-        str_shrink_to_fit(&spell);
+        Str_shrink_to_fit(&spell);
     }
 
     if (*s->it == '\0') {
-        free_str(&spell);
+        Str_free(&spell);
         unterminated_literal_err(err,
                                  terminator,
                                  start_loc,
                                  s->current_file_idx);
         return false;
     } else {
-        str_push_back(&spell, *s->it);
+        Str_push_back(&spell, *s->it);
 
         advance_one(s);
 
-        const TokenKind kind = get_char_lit_kind(str_get_data(&spell),
-                                                 str_len(&spell),
+        const TokenKind kind = get_char_lit_kind(Str_get_data(&spell),
+                                                 Str_len(&spell),
                                                  terminator);
         assert(kind != TOKEN_INVALID);
         *res = create_token(kind, &spell, start_loc, s->current_file_idx);
@@ -537,22 +537,22 @@ static bool handle_other(TokenizerState* s, Token* res, LineInfo* info, PreprocE
         advance_one(s);
     }
 
-    Str spell = create_str(buf_idx, spell_buf);
+    Str spell = Str_create(buf_idx, spell_buf);
     if (!token_is_over(s, is_num)) {
 
         while (!token_is_over(s, is_num)) {
 
-            str_push_back(&spell, *s->it);
+            Str_push_back(&spell, *s->it);
 
             advance_one(s);
         }
 
-        str_shrink_to_fit(&spell);
+        Str_shrink_to_fit(&spell);
     }
 
     TokenKind kind;
-    const char* spell_data = str_get_data(&spell);
-    const size_t spell_len = str_len(&spell);
+    const char* spell_data = Str_get_data(&spell);
+    const size_t spell_len = Str_len(&spell);
     if (is_num) {
         if (is_int_const(spell_data, spell_len)) {
             kind = TOKEN_I_CONSTANT;

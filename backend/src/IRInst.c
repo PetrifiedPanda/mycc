@@ -5,11 +5,11 @@
 #include "util/mem.h"
 
 void free_ir_global(IRGlobal* g) {
-    free_str(&g->name);
+    Str_free(&g->name);
 }
 
 void free_ir_reg(IRReg* reg) {
-    free_str(&reg->name);
+    Str_free(&reg->name);
 }
 
 void free_ir_literal(IRLiteral* lit) {

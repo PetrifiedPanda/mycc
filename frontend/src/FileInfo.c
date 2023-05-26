@@ -24,7 +24,7 @@ void file_info_add(FileInfo* info, const Str* path) {
 
 void free_file_info(FileInfo* info) {
     for (size_t i = 0;  i < info->len; ++i) {
-        free_str(&info->paths[i]); 
+        Str_free(&info->paths[i]); 
     }
     mycc_free(info->paths);
 }

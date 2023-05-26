@@ -65,7 +65,7 @@ static void dumper_print_node_head(AstDumper* d,
                                    const AstNodeInfo* node) {
     const SourceLoc* loc = &node->loc;
     assert(loc->file_idx < d->file_info->len);
-    const char* file_path = str_get_data(&d->file_info->paths[loc->file_idx]);
+    const char* file_path = Str_get_data(&d->file_info->paths[loc->file_idx]);
     dumper_println(d,
                    "%s: %s:%zu,%zu",
                    name,
@@ -205,7 +205,7 @@ static void dump_identifier(AstDumper* d, Identifier* i) {
     dumper_print_node_head(d, "identifier", &i->info);
 
     add_indent(d);
-    dumper_println(d, "spelling: %s", str_get_data(&i->spelling));
+    dumper_println(d, "spelling: %s", Str_get_data(&i->spelling));
     remove_indent(d);
 }
 
@@ -244,7 +244,7 @@ static void dump_constant(AstDumper* d, const Constant* c) {
 
     switch (c->kind) {
         case CONSTANT_ENUM:
-            dumper_println(d, "enum: %s", str_get_data(&c->spelling));
+            dumper_println(d, "enum: %s", Str_get_data(&c->spelling));
             break;
         case CONSTANT_FLOAT:
             dump_float_value(d, c->float_val);
@@ -263,7 +263,7 @@ static void dump_str_lit(AstDumper* d, const StrLit* l) {
 
     add_indent(d);
     dumper_println(d, "kind: %s", get_str_lit_kind_str(l->kind));
-    dumper_println(d, "contents: %s", str_get_data(&l->contents));
+    dumper_println(d, "contents: %s", Str_get_data(&l->contents));
     remove_indent(d);
 }
 

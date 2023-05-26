@@ -110,7 +110,7 @@ TEST(ParserState) {
     ASSERT(!parser_register_typedef_name(&s, &insert_test_token));
 
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
-    ASSERT_STR(str_get_data(&err.redefined_symbol), "Test");
+    ASSERT_STR(Str_get_data(&err.redefined_symbol), "Test");
     ASSERT(!err.was_typedef_name);
     ASSERT_SIZE_T(err.prev_def_file, (size_t)0);
     ASSERT_SIZE_T(err.prev_def_loc.line, (size_t)0);
@@ -122,7 +122,7 @@ TEST(ParserState) {
     ASSERT(!parser_register_enum_constant(&s, &insert_test_token));
 
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
-    ASSERT_STR(str_get_data(&err.redefined_symbol), "Test");
+    ASSERT_STR(Str_get_data(&err.redefined_symbol), "Test");
     ASSERT(!err.was_typedef_name);
     ASSERT_SIZE_T(err.prev_def_file, (size_t)0);
     ASSERT_SIZE_T(err.prev_def_loc.line, (size_t)0);

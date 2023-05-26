@@ -64,7 +64,7 @@ static void check_primary_expr_string(const char* spell, const char* expected) {
 
     ASSERT(res->kind == PRIMARY_EXPR_STRING_LITERAL);
     ASSERT(res->string.is_func == false);
-    ASSERT_STR(str_get_data(&res->string.lit.lit.contents), expected);
+    ASSERT_STR(Str_get_data(&res->string.lit.lit.contents), expected);
 
     free_primary_expr(res);
 }
@@ -81,7 +81,7 @@ static void check_primary_expr_identifier(const char* spell) {
     PrimaryExpr* res = parse_primary_helper(spell);
 
     ASSERT(res->kind == PRIMARY_EXPR_IDENTIFIER);
-    ASSERT_STR(str_get_data(&res->identifier->spelling), spell);
+    ASSERT_STR(Str_get_data(&res->identifier->spelling), spell);
 
     free_primary_expr(res);
 }
@@ -317,11 +317,11 @@ TEST(postfix_expr) {
         check_primary_expr_id(res->primary, "test");
 
         ASSERT(res->suffixes[0].kind == POSTFIX_ACCESS);
-        ASSERT_STR(str_get_data(&res->suffixes[0].identifier->spelling),
+        ASSERT_STR(Str_get_data(&res->suffixes[0].identifier->spelling),
                    "ident");
 
         ASSERT(res->suffixes[1].kind == POSTFIX_PTR_ACCESS);
-        ASSERT_STR(str_get_data(&res->suffixes[1].identifier->spelling),
+        ASSERT_STR(Str_get_data(&res->suffixes[1].identifier->spelling),
                    "other");
 
         ASSERT(res->suffixes[2].kind == POSTFIX_INC);

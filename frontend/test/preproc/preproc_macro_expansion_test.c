@@ -38,7 +38,7 @@ static void test_preproc_macro(const PreprocMacro* macro,
     };
     // Do not free stack allocated macros
     state._macro_map._item_free = NULL;
-    Str macro_str = create_str(strlen(spell), spell);
+    Str macro_str = Str_create(strlen(spell), spell);
     register_preproc_macro(&state, &macro_str, macro);
 
     ASSERT(expand_all_macros(&state, &state.res, 0));
@@ -54,9 +54,9 @@ static void test_preproc_macro(const PreprocMacro* macro,
 
     for (size_t i = 0; i < state.res.len; ++i) {
         ASSERT_TOKEN_KIND(state.res.tokens[i].kind, expected.toks[i].kind);
-        ASSERT_STR(str_get_data(&state.res.tokens[i].spelling),
-                   str_get_data(&expected.toks[i].spelling));
-        free_str(&state.res.tokens[i].spelling);
+        ASSERT_STR(Str_get_data(&state.res.tokens[i].spelling),
+                   Str_get_data(&expected.toks[i].spelling));
+        Str_free(&state.res.tokens[i].spelling);
     }
     mycc_free(state.res.tokens);
     free_file_info(&res.file_info);
@@ -75,7 +75,7 @@ TEST(expand_obj_like) {
         {.is_arg = false,
          .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 15}}}},
         {.is_arg = false,
-         .token = {TOKEN_ADD, .spelling = create_null_str(), {0, {1, 17}}}},
+         .token = {TOKEN_ADD, .spelling = Str_create_null(), {0, {1, 17}}}},
         {.is_arg = false,
          .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("2"), {0, {1, 19}}}},
     };
@@ -164,9 +164,9 @@ TEST(expand_recursive) {
                    .spelling = STR_NON_HEAP("REC_FUNC_MACRO"),
                    {0, {1, 1}}}},
         {.is_arg = false,
-         .token = {TOKEN_LBRACKET, .spelling = create_null_str(), {0, {1, 1}}}},
+         .token = {TOKEN_LBRACKET, .spelling = Str_create_null(), {0, {1, 1}}}},
         {.is_arg = false,
-         .token = {TOKEN_RBRACKET, .spelling = create_null_str(), {0, {1, 1}}}},
+         .token = {TOKEN_RBRACKET, .spelling = Str_create_null(), {0, {1, 1}}}},
     };
 
     // #define REC_FUNC_MACRO() REC_FUNC_MACRO()
@@ -197,14 +197,14 @@ TEST(expand_func_like) {
     TokenOrArg ex1[] = {
         {.is_arg = true, .arg_num = 0},
         {.is_arg = false,
-         .token = {TOKEN_ADD, .spelling = create_null_str(), {0, {1, 33}}}},
+         .token = {TOKEN_ADD, .spelling = Str_create_null(), {0, {1, 33}}}},
         {.is_arg = true, .arg_num = 1},
         {.is_arg = false,
-         .token = {TOKEN_ASTERISK, .spelling = create_null_str(), {0, {1, 37}}}},
+         .token = {TOKEN_ASTERISK, .spelling = Str_create_null(), {0, {1, 37}}}},
         {.is_arg = false,
          .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("3"), {0, {1, 39}}}},
         {.is_arg = false,
-         .token = {TOKEN_SUB, .spelling = create_null_str(), {0, {1, 41}}}},
+         .token = {TOKEN_SUB, .spelling = Str_create_null(), {0, {1, 41}}}},
         {.is_arg = true, .arg_num = 1},
     };
 
@@ -271,7 +271,7 @@ TEST(expand_func_like) {
         {.is_arg = false,
          .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 33}}}},
         {.is_arg = false,
-         .token = {TOKEN_ADD, .spelling = create_null_str(), {0, {1, 35}}}},
+         .token = {TOKEN_ADD, .spelling = Str_create_null(), {0, {1, 35}}}},
         {.is_arg = false,
          .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 37}}}},
     };
@@ -316,10 +316,10 @@ TEST(expand_func_like_variadic) {
     TokenOrArg ex1[] = {
         {.is_arg = true, .arg_num = 0},
         {.is_arg = false,
-         .token = {TOKEN_LBRACKET, .spelling = create_null_str(), {0, {1, 33}}}},
+         .token = {TOKEN_LBRACKET, .spelling = Str_create_null(), {0, {1, 33}}}},
         {.is_arg = true, .arg_num = 1},
         {.is_arg = false,
-         .token = {TOKEN_RBRACKET, .spelling = create_null_str(), {0, {1, 45}}}},
+         .token = {TOKEN_RBRACKET, .spelling = Str_create_null(), {0, {1, 45}}}},
     };
 
     const PreprocMacro macro1 = {
@@ -345,11 +345,11 @@ TEST(expand_func_like_variadic) {
         {.is_arg = false,
          .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("1"), {0, {1, 27}}}},
         {.is_arg = false,
-         .token = {TOKEN_COMMA, .spelling = create_null_str(), {0, {1, 28}}}},
+         .token = {TOKEN_COMMA, .spelling = Str_create_null(), {0, {1, 28}}}},
         {.is_arg = false,
          .token = {TOKEN_I_CONSTANT, .spelling = STR_NON_HEAP("2"), {0, {1, 30}}}},
         {.is_arg = false,
-         .token = {TOKEN_COMMA, .spelling = create_null_str(), {0, {1, 31}}}},
+         .token = {TOKEN_COMMA, .spelling = Str_create_null(), {0, {1, 31}}}},
         {.is_arg = true, .arg_num = 0},
     };
 

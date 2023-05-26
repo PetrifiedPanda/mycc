@@ -15,8 +15,8 @@ static void check_enum_list_ids(const EnumList* l,
     for (size_t i = 0; i < len; ++i) {
         const Identifier* id = l->enums[i].identifier;
         ASSERT_NOT_NULL(id);
-        ASSERT_STR(str_get_data(&id->spelling),
-                   str_get_data(&enum_constants[i]));
+        ASSERT_STR(Str_get_data(&id->spelling),
+                   Str_get_data(&enum_constants[i]));
     }
 }
 
@@ -140,7 +140,7 @@ TEST(enum_spec) {
         ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
 
         ASSERT_NOT_NULL(res->identifier);
-        ASSERT_STR(str_get_data(&res->identifier->spelling), "my_enum");
+        ASSERT_STR(Str_get_data(&res->identifier->spelling), "my_enum");
 
         check_enum_list_ids(&res->enum_list,
                             enum_constants,
@@ -259,7 +259,7 @@ TEST(static_assert_declaration) {
     ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
     ASSERT(err.kind == PARSER_ERR_NONE);
 
-    ASSERT_STR(str_get_data(&res->err_msg.lit.contents),
+    ASSERT_STR(Str_get_data(&res->err_msg.lit.contents),
                "This is a string literal");
     check_const_expr_int(res->const_expr, create_int_value(INT_VALUE_I, 12345));
 
@@ -293,7 +293,7 @@ static void check_struct_declaration_non_static_assert(
         ASSERT_SIZE_T(inner_decl->direct_decl->len, (size_t)0);
         ASSERT(inner_decl->direct_decl->is_id);
         ASSERT_NOT_NULL(inner_decl->direct_decl->id);
-        ASSERT_STR(str_get_data(&inner_decl->direct_decl->id->spelling),
+        ASSERT_STR(Str_get_data(&inner_decl->direct_decl->id->spelling),
                    identifier);
     } else {
         ASSERT_NULL(declarator->decl);
@@ -353,7 +353,7 @@ TEST(redefine_typedef) {
     ASSERT_NULL(res);
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT(err.was_typedef_name);
-    ASSERT_STR(str_get_data(&err.redefined_symbol), "MyInt");
+    ASSERT_STR(Str_get_data(&err.redefined_symbol), "MyInt");
 
     free_parser_state(&s);
     free_preproc_res(&preproc_res);

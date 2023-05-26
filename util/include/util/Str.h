@@ -27,37 +27,37 @@ typedef struct {
 static_assert(sizeof(Str) == sizeof(size_t) * 2 + sizeof(char*),
               "Size of string does not match contents");
 
-Str create_null_str(void);
-Str create_empty_str(void);
-Str create_str(size_t len, const char* str);
-Str create_empty_str_with_cap(size_t cap);
+Str Str_create_null(void);
+Str Str_create_empty(void);
+Str Str_create(size_t len, const char* str);
+Str Str_create_empty_with_cap(size_t cap);
 
-bool str_is_valid(const Str* str);
-size_t str_len(const Str* str);
-size_t str_cap(const Str* str);
+bool Str_is_valid(const Str* str);
+size_t Str_len(const Str* str);
+size_t Str_cap(const Str* str);
 
-const char* str_get_data(const Str* str);
-char str_char_at(const Str* str, size_t i);
+const char* Str_get_data(const Str* str);
+char Str_char_at(const Str* str, size_t i);
 
-void str_push_back(Str* str, char c);
-void str_pop_back(Str* str);
-void str_shrink_to_fit(Str* str);
-void str_reserve(Str* str, size_t new_cap);
+void Str_push_back(Str* str, char c);
+void Str_pop_back(Str* str);
+void Str_shrink_to_fit(Str* str);
+void Str_reserve(Str* str, size_t new_cap);
 
-void str_remove_front(Str* str, size_t num_chars);
+void Str_remove_front(Str* str, size_t num_chars);
 
-void str_append_c_str(Str* str, size_t len, const char* c_str);
+void Str_append_c_str(Str* str, size_t len, const char* c_str);
 
-Str str_concat(size_t len1, const char* s1, size_t len2, const char* s2);
+Str Str_concat(size_t len1, const char* s1, size_t len2, const char* s2);
 
-Str str_take(Str* str);
-Str str_copy(const Str* str);
+Str Str_take(Str* str);
+Str Str_copy(const Str* str);
 
-void str_clear(Str* str);
+void Str_clear(Str* str);
 
-bool str_eq(const Str* s1, const Str* s2);
+bool Str_eq(const Str* s1, const Str* s2);
 
-void free_str(const Str* str);
+void Str_free(const Str* str);
 
 #endif
 

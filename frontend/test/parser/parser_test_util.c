@@ -22,7 +22,7 @@ void check_float_value(FloatValue got, FloatValue expected) {
 
 void check_identifier(Identifier* id, const char* spell) {
     if (spell != NULL) {
-        ASSERT_STR(str_get_data(&id->spelling), spell);
+        ASSERT_STR(Str_get_data(&id->spelling), spell);
     } else {
         ASSERT_NULL(id);
     }
@@ -31,7 +31,7 @@ void check_identifier(Identifier* id, const char* spell) {
 void check_primary_expr_id(const PrimaryExpr* e, const char* spell) {
     ASSERT(e->kind == PRIMARY_EXPR_IDENTIFIER);
     ASSERT_NOT_NULL(e->identifier);
-    ASSERT_STR(str_get_data(&e->identifier->spelling), spell);
+    ASSERT_STR(Str_get_data(&e->identifier->spelling), spell);
 }
 
 void check_primary_expr_int(const PrimaryExpr* e,

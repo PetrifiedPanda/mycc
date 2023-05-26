@@ -53,9 +53,9 @@ static void serialize_float(AstSerializer* d, double f) {
 }
 
 static void serialize_str(AstSerializer* d, const Str* str) {
-    const size_t len = str_len(str);
+    const size_t len = Str_len(str);
     serialize_uint(d, len);
-    const char* data = str_get_data(str);
+    const char* data = Str_get_data(str);
     serializer_write(d, data, sizeof *data, len);
 }
 

@@ -44,8 +44,8 @@ static bool compare_ast_node_infos(const AstNodeInfo* i1,
 }
 
 static bool compare_strs(const Str* s1, const Str* s2) {
-    ASSERT(str_len(s1) == str_len(s2));
-    return strcmp(str_get_data(s1), str_get_data(s2)) == 0;
+    ASSERT(Str_len(s1) == Str_len(s2));
+    return strcmp(Str_get_data(s1), Str_get_data(s2)) == 0;
 }
 
 static bool compare_file_infos(const FileInfo* i1, const FileInfo* i2) {

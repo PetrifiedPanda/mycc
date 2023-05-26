@@ -128,7 +128,7 @@ static void free_tokens(Token* tokens) {
 
 static void free_preproc_tokens(Token* tokens) {
     for (Token* it = tokens; it->kind != TOKEN_INVALID; ++it) {
-        free_str(&it->spelling);
+        Str_free(&it->spelling);
     }
     mycc_free(tokens);
 }
@@ -164,46 +164,46 @@ static bool convert_preproc_token(Token* t,
     assert(err);
     switch (t->kind) {
         case TOKEN_I_CONSTANT: {
-            if (str_char_at(&t->spelling, 0) == '\'') {
-                ParseCharConstRes res = parse_char_const(str_get_data(&t->spelling), info);
+            if (Str_char_at(&t->spelling, 0) == '\'') {
+                ParseCharConstRes res = parse_char_const(Str_get_data(&t->spelling), info);
                 if (res.err.kind != CHAR_CONST_ERR_NONE) {
                     set_preproc_err(err, PREPROC_ERR_CHAR_CONST, t->loc);
                     err->char_const_err = res.err;
                     err->constant_spell = t->spelling;
                     return false;
                 }
-                free_str(&t->spelling);
+                Str_free(&t->spelling);
                 t->int_val = res.res;
             } else {
-                ParseIntConstRes res = parse_int_const(str_get_data(&t->spelling), info);
+                ParseIntConstRes res = parse_int_const(Str_get_data(&t->spelling), info);
                 if (res.err.kind != INT_CONST_ERR_NONE) {
                     set_preproc_err(err, PREPROC_ERR_INT_CONST, t->loc);
                     err->int_const_err = res.err;
                     err->constant_spell = t->spelling;
                     return false;
                 }
-                free_str(&t->spelling);
+                Str_free(&t->spelling);
                 t->int_val = res.res;
             }
             break;
         }
         case TOKEN_F_CONSTANT: {
-            ParseFloatConstRes res = parse_float_const(str_get_data(&t->spelling));
+            ParseFloatConstRes res = parse_float_const(Str_get_data(&t->spelling));
             if (res.err.kind != FLOAT_CONST_ERR_NONE) {
                 set_preproc_err(err, PREPROC_ERR_FLOAT_CONST, t->loc);
                 err->float_const_err = res.err;
                 err->constant_spell = t->spelling;
                 return false;
             }
-            free_str(&t->spelling);
+            Str_free(&t->spelling);
             t->float_val = res.res;
             break;
         }
         case TOKEN_IDENTIFIER:
-            t->kind = keyword_kind(str_get_data(&t->spelling));
+            t->kind = keyword_kind(Str_get_data(&t->spelling));
             if (t->kind != TOKEN_IDENTIFIER) {
-                free_str(&t->spelling);
-                t->spelling = create_null_str();
+                Str_free(&t->spelling);
+                t->spelling = Str_create_null();
             }
             break;
         case TOKEN_STRING_LITERAL:
@@ -239,7 +239,7 @@ static void append_terminator_token(TokenArr* arr) {
     arr->tokens = mycc_realloc(arr->tokens, sizeof *arr->tokens * (arr->len + 1));
     arr->tokens[arr->len] = (Token){
         .kind = TOKEN_INVALID,
-        .spelling = create_null_str(),
+        .spelling = Str_create_null(),
         .loc =
             {
                 .file_idx = (size_t)-1,

@@ -75,7 +75,7 @@ static const char* strip_file_location(const char* filename) {
 
 static Str get_out_filename(const char* origin_file, const char* suffix) {
     const char* filename_only = strip_file_location(origin_file);
-    return str_concat(strlen(filename_only),
+    return Str_concat(strlen(filename_only),
                       filename_only,
                       strlen(suffix),
                       suffix);
@@ -97,9 +97,9 @@ static bool convert_bin_to_text(const CmdArgs* args, const char* filename) {
 
     Str out_filename_str = args->output_file == NULL
                                ? get_out_filename(filename, ".ast")
-                               : create_null_str();
-    const char* out_filename = str_is_valid(&out_filename_str)
-                                   ? str_get_data(&out_filename_str)
+                               : Str_create_null();
+    const char* out_filename = Str_is_valid(&out_filename_str)
+                                   ? Str_get_data(&out_filename_str)
                                    : args->output_file;
     FILE* out_file = fopen(out_filename, "w");
     if (!out_file) {
@@ -115,7 +115,7 @@ static bool convert_bin_to_text(const CmdArgs* args, const char* filename) {
         goto fail_with_out_file_open;
     }
     fclose(out_file);
-    free_str(&out_filename_str);
+    Str_free(&out_filename_str);
     free_translation_unit(&res.tl);
     free_file_info(&res.file_info);
     return true;
@@ -123,7 +123,7 @@ static bool convert_bin_to_text(const CmdArgs* args, const char* filename) {
 fail_with_out_file_open:
     fclose(out_file);
 fail_with_out_file_closed:
-    free_str(&out_filename_str);
+    Str_free(&out_filename_str);
     free_translation_unit(&res.tl);
     free_file_info(&res.file_info);
     return false;
@@ -157,9 +157,9 @@ static bool output_ast(const CmdArgs* args,
                                                                : ".ast";
     Str out_filename_str = args->output_file == NULL
                                ? get_out_filename(filename, suffix)
-                               : create_null_str();
-    const char* out_filename = str_is_valid(&out_filename_str)
-                                   ? str_get_data(&out_filename_str)
+                               : Str_create_null();
+    const char* out_filename = Str_is_valid(&out_filename_str)
+                                   ? Str_get_data(&out_filename_str)
                                    : args->output_file;
     FILE* out_file = fopen(out_filename, "wb");
     if (!out_file) {
@@ -185,14 +185,14 @@ static bool output_ast(const CmdArgs* args,
         goto fail_with_out_file_open;
     }
     fclose(out_file);
-    free_str(&out_filename_str);
+    Str_free(&out_filename_str);
     free_translation_unit(&tl);
     free_preproc_res(&preproc_res);
     return true;
 fail_with_out_file_open:
     fclose(out_file);
 fail_with_out_file_closed:
-    free_str(&out_filename_str);
+    Str_free(&out_filename_str);
     free_translation_unit(&tl);
 fail_before_ast_generated:
     free_preproc_res(&preproc_res);

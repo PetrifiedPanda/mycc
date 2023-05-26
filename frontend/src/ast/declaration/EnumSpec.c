@@ -29,7 +29,7 @@ static bool parse_enumerator_inplace(ParserState* s, Enumerator* res) {
         parser_accept_it(s);
         enum_val = parse_const_expr(s);
         if (!enum_val) {
-            free_str(&spell);
+            Str_free(&spell);
             return false;
         }
     }

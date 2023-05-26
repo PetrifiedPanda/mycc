@@ -49,14 +49,14 @@ static size_t get_last_file_sep(size_t len, const char* path) {
 static Str get_path_prefix(size_t len, const char* path) {
     size_t sep_idx = get_last_file_sep(len, path);
     if (sep_idx == (size_t)-1) {
-        return create_empty_str();
+        return Str_create_empty();
     } else {
-        return create_str(sep_idx + 1, path);
+        return Str_create(sep_idx + 1, path);
     }
 }
 
 static FileData create_file_data(const char* start_file, PreprocErr* err) {
-    Str file_name = create_str(strlen(start_file), start_file);
+    Str file_name = Str_create(strlen(start_file), start_file);
 
     FILE* file = fopen(start_file, "r");
     if (!file) {
@@ -105,7 +105,7 @@ PreprocState create_preproc_state(const char* start_file, PreprocErr* err) {
             },
         .line_info =
             {
-                .line = create_empty_str(),
+                .line = Str_create_empty(),
                 .next = NULL,
                 .curr_loc =
                     {
@@ -129,7 +129,7 @@ PreprocState create_preproc_state(const char* start_file, PreprocErr* err) {
 PreprocState create_preproc_state_string(const char* code,
                                          const char* filename,
                                          PreprocErr* err) {
-    Str filename_str = create_str(strlen(filename), filename);
+    Str filename_str = Str_create(strlen(filename), filename);
     return (PreprocState){
         .res =
             {
@@ -139,7 +139,7 @@ PreprocState create_preproc_state_string(const char* code,
             },
         .line_info =
             {
-                .line = create_empty_str(),
+                .line = Str_create_empty(),
                 .next = code,
                 .curr_loc =
                     {
@@ -210,7 +210,7 @@ static void preproc_state_close_file(PreprocState* s);
 
 void preproc_state_read_line(PreprocState* state) {
     assert(state);
-    str_clear(&state->line_info.line);
+    Str_clear(&state->line_info.line);
     size_t len = 0;
     enum {
         STATIC_BUF_LEN = ARR_LEN(state->line_info.static_buf),
@@ -227,16 +227,16 @@ void preproc_state_read_line(PreprocState* state) {
                                            static_buf,
                                            STATIC_BUF_LEN);
     while (is_escaped_newline(state->line_info.next, len)) {
-        if (state->line_info.next == str_get_data(line)) {
-            str_push_back(line, '\n');
+        if (state->line_info.next == Str_get_data(line)) {
+            Str_push_back(line, '\n');
         } else if (len < STATIC_BUF_LEN - 1) {
             static_buf[len] = '\n';
             static_buf[len + 1] = '\0';
         } else {
-            assert(str_len(line) == 0);
-            str_reserve(line, len + 1);
-            str_append_c_str(line, len, static_buf);
-            str_push_back(line, '\n');
+            assert(Str_len(line) == 0);
+            Str_reserve(line, len + 1);
+            Str_append_c_str(line, len, static_buf);
+            Str_push_back(line, '\n');
         }
         ++len;
         state->line_info.next = file_read_line(file,
@@ -278,20 +278,20 @@ static void add_prefix(FileManager* fm, const Str* prefix) {
 static FileOpenRes resolve_path_and_open(PreprocState* s,
                                          const Str* filename,
                                          SourceLoc include_loc) {
-    const size_t filename_len = str_len(filename);
-    const char* filename_data = str_get_data(filename);
+    const size_t filename_len = Str_len(filename);
+    const char* filename_data = Str_get_data(filename);
     const size_t sep_idx = get_last_file_sep(filename_len, filename_data);
 
     const size_t current_prefix_idx = get_current_prefix_idx(&s->file_manager);
     const Str* prefix = &s->file_manager.prefixes[current_prefix_idx];
 
-    const size_t prefix_len = str_len(prefix);
-    const char* prefix_data = str_get_data(prefix);
-    Str full_path = str_concat(prefix_len,
+    const size_t prefix_len = Str_len(prefix);
+    const char* prefix_data = Str_get_data(prefix);
+    Str full_path = Str_concat(prefix_len,
                                prefix_data,
                                filename_len,
                                filename_data);
-    FILE* file = fopen(str_get_data(&full_path), "r");
+    FILE* file = fopen(Str_get_data(&full_path), "r");
     if (!file) {
         // TODO: check include dirs (and system dirs)
         set_preproc_file_err(s->err, filename, include_loc);
@@ -300,7 +300,7 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
 
     size_t prefix_idx;
     if (sep_idx != (size_t)-1) {
-        Str new_prefix = str_concat(prefix_len,
+        Str new_prefix = Str_concat(prefix_len,
                                     prefix_data,
                                     sep_idx + 1,
                                     filename_data);
@@ -309,7 +309,7 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
     } else {
         prefix_idx = current_prefix_idx;
     }
-    free_str(filename);
+    Str_free(filename);
     return (FileOpenRes){
         file,
         full_path,
@@ -374,7 +374,7 @@ static void preproc_state_close_file(PreprocState* s) {
     --fm->opened_info_len;
     const OpenedFileInfo* info = &fm->opened_info[fm->opened_info_len - 1];
     if (fm->current_file_idx == 0) {
-        const char* filename = str_get_data(
+        const char* filename = Str_get_data(
             &s->file_info.paths[info->loc.file_idx]);
         FILE* file = fopen(filename, "r");
         int res = fseek(file, info->pos, SEEK_SET);
@@ -434,13 +434,13 @@ PreprocCond* peek_preproc_cond(PreprocState* state) {
 
 void free_token_arr(TokenArr* arr) {
     for (size_t i = 0; i < arr->len; ++i) {
-        free_str(&arr->tokens[i].spelling);
+        Str_free(&arr->tokens[i].spelling);
     }
     mycc_free(arr->tokens);
 }
 
 static void free_line_info(LineInfo* info) {
-    free_str(&info->line);
+    Str_free(&info->line);
 }
 
 static void free_file_manager(FileManager* fm) {
@@ -452,7 +452,7 @@ static void free_file_manager(FileManager* fm) {
         fclose(fm->files[i]);
     }
     for (size_t i = 0; i < fm->prefixes_len; ++i) {
-        free_str(&fm->prefixes[i]);
+        Str_free(&fm->prefixes[i]);
     }
     mycc_free(fm->prefixes);
 }

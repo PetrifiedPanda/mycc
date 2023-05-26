@@ -6,7 +6,7 @@
 
 #include "util/mem.h"
 
-Str create_null_str(void) {
+Str Str_create_null(void) {
     return (Str){
         ._is_static_buf = false,
         ._len = 0,
@@ -15,7 +15,7 @@ Str create_null_str(void) {
     };
 }
 
-Str create_empty_str(void) {
+Str Str_create_empty(void) {
     Str res = {
         ._is_static_buf_dup = true,
         ._small_len = 0,
@@ -49,12 +49,12 @@ static Str create_str_with_cap(size_t len, const char* str, size_t cap) {
     return res;
 }
 
-Str create_str(size_t len, const char* str) {
+Str Str_create(size_t len, const char* str) {
     assert(len == 0 || str);
     return create_str_with_cap(len, str, len);
 }
 
-Str create_empty_str_with_cap(size_t cap) {
+Str Str_create_empty_with_cap(size_t cap) {
     Str res;
     if (cap < STATIC_BUF_LEN) {
         res._is_static_buf = true;
@@ -70,13 +70,13 @@ Str create_empty_str_with_cap(size_t cap) {
     return res;
 }
 
-bool str_is_valid(const Str* str) {
+bool Str_is_valid(const Str* str) {
     assert(str);
     return str->_is_static_buf || str->_data != NULL;
 }
 
-size_t str_len(const Str* str) {
-    assert(str_is_valid(str));
+size_t Str_len(const Str* str) {
+    assert(Str_is_valid(str));
     if (str->_is_static_buf) {
         return str->_small_len;
     } else {
@@ -84,8 +84,8 @@ size_t str_len(const Str* str) {
     }
 }
 
-size_t str_cap(const Str* str) {
-    assert(str_is_valid(str));
+size_t Str_cap(const Str* str) {
+    assert(Str_is_valid(str));
     if (str->_is_static_buf) {
         return STATIC_BUF_LEN - 1;
     } else {
@@ -95,7 +95,7 @@ size_t str_cap(const Str* str) {
 
 static char* str_get_mut_data(Str* str) {
     assert(str);
-    assert(str_is_valid(str));
+    assert(Str_is_valid(str));
     if (str->_is_static_buf) {
         return str->_static_buf;
     } else {
@@ -103,7 +103,7 @@ static char* str_get_mut_data(Str* str) {
     }
 }
 
-const char* str_get_data(const Str* str) {
+const char* Str_get_data(const Str* str) {
     assert(str);
     if (str->_is_static_buf) {
         return str->_static_buf;
@@ -112,9 +112,9 @@ const char* str_get_data(const Str* str) {
     }
 }
 
-char str_char_at(const Str* str, size_t i) {
+char Str_char_at(const Str* str, size_t i) {
     assert(str);
-    assert(str_is_valid(str));
+    assert(Str_is_valid(str));
     if (str->_is_static_buf) {
         assert(i < str->_small_len);
         return str->_static_buf[i];
@@ -137,9 +137,9 @@ static void str_move_to_dyn_buf(Str* str, size_t dyn_buf_cap) {
     str->_is_static_buf = false;
 }
 
-void str_push_back(Str* str, char c) {
+void Str_push_back(Str* str, char c) {
     assert(str);
-    assert(str_is_valid(str));
+    assert(Str_is_valid(str));
     if (str->_is_static_buf) {
         if (str->_small_len == STATIC_BUF_LEN - 1) {
             str_move_to_dyn_buf(str, STATIC_BUF_LEN);
@@ -172,19 +172,19 @@ static void str_set_len(Str* str, size_t len) {
     }
 }
 
-void str_pop_back(Str* str) {
+void Str_pop_back(Str* str) {
     assert(str);
-    assert(str_is_valid(str));
-    const size_t len = str_len(str);
+    assert(Str_is_valid(str));
+    const size_t len = Str_len(str);
     assert(len >= 1);
     char* data = str_get_mut_data(str);
     data[len - 1] = '\0';
     str_set_len(str, len - 1);
 }
 
-void str_shrink_to_fit(Str* str) {
+void Str_shrink_to_fit(Str* str) {
     assert(str);
-    assert(str_is_valid(str));
+    assert(Str_is_valid(str));
     if (!str->_is_static_buf && str->_len + 1 != str->_cap) {
         if (str->_len < STATIC_BUF_LEN) {
             char* data = str->_data;
@@ -201,7 +201,7 @@ void str_shrink_to_fit(Str* str) {
     }
 }
 
-void str_reserve(Str* str, size_t new_cap) {
+void Str_reserve(Str* str, size_t new_cap) {
     if (str->_is_static_buf) {
         if (new_cap >= STATIC_BUF_LEN) {
             str_move_to_dyn_buf(str, new_cap);
@@ -212,19 +212,19 @@ void str_reserve(Str* str, size_t new_cap) {
     }
 }
 
-void str_remove_front(Str* str, size_t num_chars) {
+void Str_remove_front(Str* str, size_t num_chars) {
     char* data = str_get_mut_data(str);
-    const size_t new_len = str_len(str) - num_chars;
+    const size_t new_len = Str_len(str) - num_chars;
     memmove(data, data + num_chars, new_len);
     data[new_len] = '\0';
     str_set_len(str, new_len);
 }
 
-void str_append_c_str(Str* str, size_t len, const char* c_str) {
-    const size_t curr_len = str_len(str);
+void Str_append_c_str(Str* str, size_t len, const char* c_str) {
+    const size_t curr_len = Str_len(str);
     const size_t new_len = curr_len + len;
-    if (str_cap(str) < new_len) {
-        str_reserve(str, new_len);
+    if (Str_cap(str) < new_len) {
+        Str_reserve(str, new_len);
     }
 
     char* data = str_get_mut_data(str);
@@ -233,7 +233,7 @@ void str_append_c_str(Str* str, size_t len, const char* c_str) {
     str_set_len(str, new_len);
 }
 
-Str str_concat(size_t len1,
+Str Str_concat(size_t len1,
                       const char* s1,
                       size_t len2,
                       const char* s2) {
@@ -246,9 +246,9 @@ Str str_concat(size_t len1,
     return res;
 }
 
-Str str_take(Str* str) {
+Str Str_take(Str* str) {
     assert(str);
-    assert(str_is_valid(str));
+    assert(Str_is_valid(str));
     Str res = *str;
     str->_is_static_buf = false;
     str->_len = 0;
@@ -257,20 +257,20 @@ Str str_take(Str* str) {
     return res;
 }
 
-Str str_copy(const Str* str) {
+Str Str_copy(const Str* str) {
     assert(str);
     if (str->_is_static_buf) {
         return *str;
     } else {
-        if (str_is_valid(str)) {
+        if (Str_is_valid(str)) {
             return create_str_with_cap(str->_len, str->_data, str->_cap - 1);
         } else {
-            return create_null_str();
+            return Str_create_null();
         }
     }
 }
 
-void str_clear(Str* str) {
+void Str_clear(Str* str) {
     if (str->_is_static_buf) {
         str->_small_len = 0;
         str->_static_buf[0] = '\0';
@@ -280,21 +280,21 @@ void str_clear(Str* str) {
     }
 }
 
-bool str_eq(const Str* s1, const Str* s2) {
+bool Str_eq(const Str* s1, const Str* s2) {
     assert(s1);
     assert(s2);
-    assert(str_is_valid(s1));
-    assert(str_is_valid(s2));
+    assert(Str_is_valid(s1));
+    assert(Str_is_valid(s2));
 
-    const size_t l1 = str_len(s1);
-    if (l1 != str_len(s2)) {
+    const size_t l1 = Str_len(s1);
+    if (l1 != Str_len(s2)) {
         return false;
     }
-    const char* d1 = str_get_data(s1);
-    return memcmp(d1, str_get_data(s2), sizeof *d1 * l1) == 0;
+    const char* d1 = Str_get_data(s1);
+    return memcmp(d1, Str_get_data(s2), sizeof *d1 * l1) == 0;
 }
 
-void free_str(const Str* str) {
+void Str_free(const Str* str) {
     assert(str);
     if (!str->_is_static_buf) {
         mycc_free(str->_data);

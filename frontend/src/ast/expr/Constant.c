@@ -32,6 +32,6 @@ Constant create_enum_constant(const Str* spelling,
 
 void free_constant(Constant* c) {
     if (c->kind == CONSTANT_ENUM) {
-        free_str(&c->spelling);
+        Str_free(&c->spelling);
     }
 }

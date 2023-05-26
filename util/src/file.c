@@ -28,7 +28,7 @@ const char* file_read_line(FILE* file,
     assert(static_buf_len == 0 || static_buf != NULL);
 
     int c;
-    if (*res_len < static_buf_len && str_cap(str) < static_buf_len) {
+    if (*res_len < static_buf_len && Str_cap(str) < static_buf_len) {
         bool copy_to_str = false;
         while ((c = getc(file)) != '\n' && c != '\r' && c != EOF) {
             static_buf[*res_len] = (char)c;
@@ -43,8 +43,8 @@ const char* file_read_line(FILE* file,
 #endif
         if (copy_to_str) {
             size_t new_cap = static_buf_len * 2;
-            str_reserve(str, new_cap);
-            str_append_c_str(str, *res_len, static_buf);
+            Str_reserve(str, new_cap);
+            Str_append_c_str(str, *res_len, static_buf);
         } else if (*res_len == 0 && c == EOF) {
             return NULL;
         } else {
@@ -54,15 +54,15 @@ const char* file_read_line(FILE* file,
     }
 
     while ((c = getc(file)) != '\n' && c != '\r' && c != EOF) {
-        str_push_back(str, (char)c);
+        Str_push_back(str, (char)c);
     }
 #ifndef _WIN32
     handle_win_line_ending(c, file);
 #endif
-    *res_len = str_len(str);
+    *res_len = Str_len(str);
     if (*res_len == 0 && c == EOF) {
         return NULL;
     }
-    return str_get_data(str);
+    return Str_get_data(str);
 }
 

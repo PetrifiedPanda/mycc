@@ -12,9 +12,9 @@ Token create_token(TokenKind kind,
     assert(spelling);
     assert(file_idx != (size_t)-1);
     if (get_token_kind_spelling(kind) == NULL) {
-        assert(str_is_valid(spelling));
+        assert(Str_is_valid(spelling));
     } else {
-        assert(!str_is_valid(spelling));
+        assert(!Str_is_valid(spelling));
     }
 
     return (Token){
@@ -33,11 +33,11 @@ Token create_token_copy(TokenKind kind,
                         FileLoc file_loc,
                         size_t file_idx) {
     assert(spelling);
-    assert(str_is_valid(spelling));
+    assert(Str_is_valid(spelling));
 
     return (Token){
         .kind = kind,
-        .spelling = str_copy(spelling),
+        .spelling = Str_copy(spelling),
         .loc =
             {
                 .file_idx = file_idx,
@@ -47,15 +47,15 @@ Token create_token_copy(TokenKind kind,
 }
 
 Str token_take_spelling(Token* t) {
-    assert(str_is_valid(&t->spelling));
-    Str spelling = str_take(&t->spelling);
+    assert(Str_is_valid(&t->spelling));
+    Str spelling = Str_take(&t->spelling);
     return spelling;
 }
 
 StrLit token_take_str_lit(Token* t) {
     assert(t->kind == TOKEN_STRING_LITERAL);
     StrLit res = t->str_lit;
-    t->str_lit.contents = create_null_str();
+    t->str_lit.contents = Str_create_null();
     return res;
 }
 
@@ -64,7 +64,7 @@ void free_token(Token* t) {
     if (t->kind == TOKEN_STRING_LITERAL) {
         free_str_lit(&t->str_lit);
     } else if (t->kind != TOKEN_I_CONSTANT && t->kind != TOKEN_F_CONSTANT) {
-        free_str(&t->spelling);
+        Str_free(&t->spelling);
     }
 }
 

@@ -191,7 +191,7 @@ static bool is_duplicate_arg(Token* tok,
                              const char** arg_spells,
                              size_t num_args,
                              PreprocErr* err) {
-    const char* data = str_get_data(&tok->spelling);
+    const char* data = Str_get_data(&tok->spelling);
     for (size_t i = 0; i < num_args; ++i) {
         if (strcmp(arg_spells[i], data) == 0) {
             set_preproc_err(err, PREPROC_ERR_DUPLICATE_MACRO_PARAM, tok->loc);
@@ -234,7 +234,7 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
                             &arg_spells_cap,
                             sizeof *arg_spells);
         }
-        arg_spells[res.num_args] = str_get_data(&arr->tokens[it].spelling);
+        arg_spells[res.num_args] = Str_get_data(&arr->tokens[it].spelling);
         assert(arg_spells[res.num_args]);
         if (is_duplicate_arg(&arr->tokens[it], arg_spells, res.num_args, err)) {
             goto fail;
@@ -300,7 +300,7 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
         TokenOrArg* res_curr = &res.expansion[res_idx];
         if (curr_tok->kind == TOKEN_IDENTIFIER) {
             if (res.is_variadic
-                && strcmp(str_get_data(&curr_tok->spelling), "__VA_ARGS__")
+                && strcmp(Str_get_data(&curr_tok->spelling), "__VA_ARGS__")
                        == 0) {
                 res_curr->is_arg = true;
                 res_curr->arg_num = res.num_args;
@@ -309,7 +309,7 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
 
             const size_t idx = get_str_idx(arg_spells,
                                            res.num_args,
-                                           str_get_data(&curr_tok->spelling));
+                                           Str_get_data(&curr_tok->spelling));
 
             if (idx != (size_t)-1) {
                 res_curr->is_arg = true;
@@ -320,7 +320,7 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
 
         res_curr->is_arg = false;
         res_curr->token = *curr_tok;
-        curr_tok->spelling = create_null_str();
+        curr_tok->spelling = Str_create_null();
     }
 
     // cast to make msvc happy (though it shouldn't be like this)
@@ -358,7 +358,7 @@ PreprocMacro parse_preproc_macro(TokenArr* arr, PreprocErr* err) {
     assert(arr->len >= 2);
     assert(arr->tokens[0].kind == TOKEN_PP_STRINGIFY);
     assert(arr->tokens[1].kind == TOKEN_IDENTIFIER);
-    assert(strcmp(str_get_data(&arr->tokens[1].spelling), "define") == 0);
+    assert(strcmp(Str_get_data(&arr->tokens[1].spelling), "define") == 0);
 
     if (arr->len < 3) {
         assert(arr->len > 0);
@@ -378,7 +378,7 @@ PreprocMacro parse_preproc_macro(TokenArr* arr, PreprocErr* err) {
 }
 
 static void free_preproc_token(Token* tok) {
-    free_str(&tok->spelling);
+    Str_free(&tok->spelling);
 }
 
 void free_preproc_macro(PreprocMacro* m) {
@@ -394,7 +394,7 @@ static Token copy_token(const Token* t);
 
 static Token move_token(Token* t) {
     Token res = *t;
-    t->spelling = create_null_str();
+    t->spelling = Str_create_null();
     return res;
 }
 
@@ -710,7 +710,7 @@ static Token copy_token(const Token* t) {
     assert(t);
     return (Token){
         .kind = t->kind,
-        .spelling = str_copy(&t->spelling),
+        .spelling = Str_copy(&t->spelling),
         // TODO: identify as token from macro expansion
         .loc =
             {

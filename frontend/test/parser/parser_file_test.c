@@ -177,7 +177,7 @@ static void check_external_decl_func_def_typedef(
 
     ASSERT(d->func_def.specs->type_specs.kind == TYPE_SPEC_TYPENAME);
     ASSERT_STR(
-        str_get_data(&d->func_def.specs->type_specs.typedef_name->spelling),
+        Str_get_data(&d->func_def.specs->type_specs.typedef_name->spelling),
         ret_type);
 }
 

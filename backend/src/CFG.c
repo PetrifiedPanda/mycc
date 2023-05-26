@@ -3,7 +3,7 @@
 #include "util/mem.h"
 
 void free_cfg(CFG* cfg) {
-    free_str(&cfg->name);
+    Str_free(&cfg->name);
 
     for (size_t i = 0; i < cfg->len; ++i) {
         free_basic_block(&cfg->blocks[i]);

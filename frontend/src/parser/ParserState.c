@@ -118,7 +118,7 @@ void parser_set_redefinition_err(ParserState* s,
                                  const Token* redef_tok) {
     set_parser_err(s->err, PARSER_ERR_REDEFINED_SYMBOL, redef_tok->loc);
 
-    s->err->redefined_symbol = str_copy(&redef_tok->spelling);
+    s->err->redefined_symbol = Str_copy(&redef_tok->spelling);
     s->err->was_typedef_name = prev_def->kind == ID_KIND_TYPEDEF_NAME;
     s->err->prev_def_file = prev_def->loc.file_idx;
     s->err->prev_def_loc = prev_def->loc.file_loc;

@@ -3,11 +3,11 @@
 #include "util/macro_util.h"
 
 StrLit convert_to_str_lit(Str* spell) {
-    Str cont = str_take(spell);
-    assert(str_get_data(&cont)[str_len(&cont) - 1] == '"' || str_get_data(&cont)[str_len(&cont) - 1] == '>');
-    str_pop_back(&cont);
+    Str cont = Str_take(spell);
+    assert(Str_get_data(&cont)[Str_len(&cont) - 1] == '"' || Str_get_data(&cont)[Str_len(&cont) - 1] == '>');
+    Str_pop_back(&cont);
 
-    const char* data = str_get_data(&cont);
+    const char* data = Str_get_data(&cont);
     StrLitKind kind;
     size_t chars_to_remove;
     switch (data[0]) {
@@ -42,8 +42,8 @@ StrLit convert_to_str_lit(Str* spell) {
     }
 
     // TODO: still need to convert escape sequences
-    str_remove_front(&cont, chars_to_remove);
-    str_shrink_to_fit(&cont);
+    Str_remove_front(&cont, chars_to_remove);
+    Str_shrink_to_fit(&cont);
     return (StrLit){
         .kind = kind,
         .contents = cont,
@@ -58,7 +58,7 @@ StrLit create_str_lit(StrLitKind kind, const Str* contents) {
 }
 
 void free_str_lit(const StrLit* lit) {
-    free_str(&lit->contents);
+    Str_free(&lit->contents);
 }
 
 const char* get_str_lit_kind_str(StrLitKind k) {

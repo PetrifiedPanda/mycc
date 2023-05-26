@@ -39,8 +39,8 @@ void test_compare_files(const char* got_file, const char* ex_file) {
     enum {
         BUF_LEN = 500
     };
-    Str got_str = create_empty_str();
-    Str ex_str = create_empty_str();
+    Str got_str = Str_create_empty();
+    Str ex_str = Str_create_empty();
     char got_buf[BUF_LEN] = {0};
     char ex_buf[BUF_LEN] = {0};
 
@@ -69,8 +69,8 @@ void test_compare_files(const char* got_file, const char* ex_file) {
 
         ++line_counter;
 
-        str_clear(&got_str);
-        str_clear(&ex_str);
+        Str_clear(&got_str);
+        Str_clear(&ex_str);
         got_buf[0] = '\0';
         ex_buf[0] = '\0';
         got_len = ex_len = 0;
@@ -93,8 +93,8 @@ void test_compare_files(const char* got_file, const char* ex_file) {
                          got_line);
     }
 
-    free_str(&got_str);
-    free_str(&ex_str);
+    Str_free(&got_str);
+    Str_free(&ex_str);
 
     fclose(got);
     fclose(ex);

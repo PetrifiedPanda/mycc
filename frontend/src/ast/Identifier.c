@@ -17,7 +17,7 @@ Identifier* create_identifier(const Str* spelling, SourceLoc loc) {
 }
 
 void free_identifier_children(Identifier* i) {
-    free_str(&i->spelling);
+    Str_free(&i->spelling);
 }
 
 void free_identifier(Identifier* i) {

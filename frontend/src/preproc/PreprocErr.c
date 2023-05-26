@@ -40,7 +40,7 @@ void print_preproc_err(FILE* out, const FileInfo* file_info, PreprocErr* err) {
                 print_err_base(out, file_info, &err->base);
             }
 
-            const char* fail_path = str_get_data(&err->fail_filename);
+            const char* fail_path = Str_get_data(&err->fail_filename);
             const char* err_string = strerror(err->errno_state);
             fprintf(out, "Failed to open file %s: %s", fail_path, err_string);
             break;
@@ -54,11 +54,11 @@ void print_preproc_err(FILE* out, const FileInfo* file_info, PreprocErr* err) {
             print_err_base(out, file_info, &err->base);
             fprintf(out,
                     "Invalid identifier: %s",
-                    str_get_data(&err->invalid_id));
+                    Str_get_data(&err->invalid_id));
             break;
         case PREPROC_ERR_INVALID_NUMBER:
             print_err_base(out, file_info, &err->base);
-            fprintf(out, "Invalid number: %s", str_get_data(&err->invalid_num));
+            fprintf(out, "Invalid number: %s", Str_get_data(&err->invalid_num));
             break;
         case PREPROC_ERR_MACRO_ARG_COUNT:
             print_err_base(out, file_info, &err->base);
@@ -82,7 +82,7 @@ void print_preproc_err(FILE* out, const FileInfo* file_info, PreprocErr* err) {
         case PREPROC_ERR_UNTERMINATED_COND: {
             print_err_base(out, file_info, &err->base);
             const SourceLoc* loc = &err->unterminated_cond_loc;
-            const char* cond_file = str_get_data(
+            const char* cond_file = Str_get_data(
                 &file_info->paths[loc->file_idx]);
             fprintf(out,
                     "Conditional started at %s:%zu,%zu not terminated",
@@ -126,7 +126,7 @@ void print_preproc_err(FILE* out, const FileInfo* file_info, PreprocErr* err) {
         case PREPROC_ERR_ELIF_ELSE_AFTER_ELSE: {
             assert(err->elif_after_else_op != ELSE_OP_ENDIF);
             print_err_base(out, file_info, &err->base);
-            const char* prev_else_file = str_get_data(
+            const char* prev_else_file = Str_get_data(
                 &file_info->paths[err->prev_else_loc.file_idx]);
             const FileLoc loc = err->prev_else_loc.file_loc;
             switch (err->elif_after_else_op) {
@@ -159,27 +159,27 @@ void print_preproc_err(FILE* out, const FileInfo* file_info, PreprocErr* err) {
                 get_token_kind_spelling(err->misplaced_preproc_tok));
             break;
         case PREPROC_ERR_INT_CONST:
-            assert(str_is_valid(&err->constant_spell));
+            assert(Str_is_valid(&err->constant_spell));
             print_err_base(out, file_info, &err->base);
             fprintf(out,
                     "Integer constant %s is not a valid integer constant",
-                    str_get_data(&err->constant_spell));
+                    Str_get_data(&err->constant_spell));
             print_int_const_err(out, &err->int_const_err);
             break;
         case PREPROC_ERR_FLOAT_CONST:
-            assert(str_is_valid(&err->constant_spell));
+            assert(Str_is_valid(&err->constant_spell));
             print_err_base(out, file_info, &err->base);
             fprintf(out,
                     "Floating constant %s is not a valid integer constant",
-                    str_get_data(&err->constant_spell));
+                    Str_get_data(&err->constant_spell));
             print_float_const_err(out, &err->float_const_err);
             break;
         case PREPROC_ERR_CHAR_CONST:
-            assert(str_is_valid(&err->constant_spell));
+            assert(Str_is_valid(&err->constant_spell));
             print_err_base(out, file_info, &err->base);
             fprintf(out,
                     "Character constant %s is not a valid character constant",
-                    str_get_data(&err->constant_spell));
+                    Str_get_data(&err->constant_spell));
             print_char_const_err(out, &err->char_const_err);
             break;
         case PREPROC_ERR_EMPTY_DEFINE:
@@ -198,7 +198,7 @@ void print_preproc_err(FILE* out, const FileInfo* file_info, PreprocErr* err) {
             print_err_base(out, file_info, &err->base);
             fprintf(out,
                     "Duplicate macro argument name \"%s\"",
-                    str_get_data(&err->duplicate_arg_name));
+                    Str_get_data(&err->duplicate_arg_name));
             break;
         case PREPROC_ERR_INVALID_BACKSLASH:
             print_err_base(out, file_info, &err->base);
@@ -244,7 +244,7 @@ static const char* get_else_op_str(ElseOpKind type) {
 
 void set_preproc_file_err(PreprocErr* err, const Str* fail_filename, SourceLoc include_loc) {
     assert(fail_filename);
-    assert(str_is_valid(fail_filename));
+    assert(Str_is_valid(fail_filename));
 
     set_preproc_err(err, PREPROC_ERR_OPEN_FILE, include_loc);
     err->errno_state = errno;
@@ -257,21 +257,21 @@ void free_preproc_err(PreprocErr* err) {
 
     switch (err->kind) {
         case PREPROC_ERR_INVALID_ID:
-            free_str(&err->invalid_id);
+            Str_free(&err->invalid_id);
             break;
         case PREPROC_ERR_INVALID_NUMBER:
-            free_str(&err->invalid_num);
+            Str_free(&err->invalid_num);
             break;
         case PREPROC_ERR_INT_CONST:
         case PREPROC_ERR_FLOAT_CONST:
         case PREPROC_ERR_CHAR_CONST:
-            free_str(&err->constant_spell);
+            Str_free(&err->constant_spell);
             break;
         case PREPROC_ERR_DUPLICATE_MACRO_PARAM:
-            free_str(&err->duplicate_arg_name);
+            Str_free(&err->duplicate_arg_name);
             break;
         case PREPROC_ERR_OPEN_FILE:
-            free_str(&err->fail_filename);
+            Str_free(&err->fail_filename);
             break;
         case PREPROC_ERR_MACRO_ARG_COUNT:
         case PREPROC_ERR_NONE:

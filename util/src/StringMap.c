@@ -31,7 +31,7 @@ void free_string_map(StringMap* map) {
     if (map->_item_free) {
         char* items_char = map->_items;
         for (size_t i = 0; i < map->_cap; ++i) {
-            if (str_is_valid(&map->_keys[i].str)) {
+            if (Str_is_valid(&map->_keys[i].str)) {
                 void* item = items_char + i * map->_item_size;
                 map->_item_free(item);
             }
@@ -42,7 +42,7 @@ void free_string_map(StringMap* map) {
 
     if (map->_free_keys) {
         for (size_t i = 0; i < map->_cap; ++i) {
-            free_str(&map->_keys[i].str);
+            Str_free(&map->_keys[i].str);
         }
     }
     mycc_free(map->_keys);
@@ -59,8 +59,8 @@ static size_t find_item_index_insert(const StringMap* map, const Str* key) {
     size_t it_count = 0;
     while (it_count != map->_cap
            && (map->_keys[i].was_deleted
-               || (str_is_valid(&map->_keys[i].str)
-                   && !str_eq(&map->_keys[i].str, key)))) {
+               || (Str_is_valid(&map->_keys[i].str)
+                   && !Str_eq(&map->_keys[i].str, key)))) {
         if (map->_keys[i].was_deleted && !found_deleted) {
             deleted_idx = i;
             found_deleted = true;
@@ -69,7 +69,7 @@ static size_t find_item_index_insert(const StringMap* map, const Str* key) {
         ++it_count;
     }
 
-    if (!str_is_valid(&map->_keys[i].str) && found_deleted) {
+    if (!Str_is_valid(&map->_keys[i].str) && found_deleted) {
         return deleted_idx;
     } else {
         return i;
@@ -80,8 +80,8 @@ static size_t find_item_index(const StringMap* map, const Str* key) {
     const size_t hash = hash_string(key);
     size_t i = hash % map->_cap;
     while (map->_keys[i].was_deleted
-           || (str_is_valid(&map->_keys[i].str)
-               && !str_eq(&map->_keys[i].str, key))) {
+           || (Str_is_valid(&map->_keys[i].str)
+               && !Str_eq(&map->_keys[i].str, key))) {
         i = (i + 1) % map->_cap;
     }
 
@@ -104,7 +104,7 @@ const void* string_map_insert(StringMap* map,
     const size_t idx = find_item_index_insert(map, key);
 
     void* found = (char*)map->_items + idx * map->_item_size;
-    if (str_is_valid(&map->_keys[idx].str)) {
+    if (Str_is_valid(&map->_keys[idx].str)) {
         return found;
     }
 
@@ -128,9 +128,9 @@ bool string_map_insert_overwrite(StringMap* map, const Str* key, const void* ite
 
     bool overwritten;
     void* curr_item = (char*)map->_items + idx * map->_item_size;
-    if (str_is_valid(&map->_keys[idx].str)) {
+    if (Str_is_valid(&map->_keys[idx].str)) {
         if (map->_free_keys) {
-            free_str(key);
+            Str_free(key);
         }
 
         if (map->_item_free) {
@@ -154,7 +154,7 @@ const void* string_map_get(const StringMap* map, const Str* key) {
     assert(key);
     const size_t idx = find_item_index(map, key);
 
-    if (!str_is_valid(&map->_keys[idx].str)) {
+    if (!Str_is_valid(&map->_keys[idx].str)) {
         return NULL;
     }
 
@@ -169,11 +169,11 @@ void string_map_remove(StringMap* map, const Str* key) {
         return;
     }
     if (map->_free_keys) {
-        free_str(key_to_remove);
+        Str_free(key_to_remove);
     }
     map->_keys[idx] = (StringMapKey){
         .was_deleted = true,
-        .str = create_null_str(),
+        .str = Str_create_null(),
     };
 
     void* item_to_remove = (char*)map->_items + idx * map->_item_size;
@@ -195,7 +195,7 @@ static void resize_map(StringMap* map) {
     map->_items = mycc_alloc_zeroed(map->_cap, map->_item_size);
 
     for (size_t i = 0; i < prev_cap; ++i) {
-        if (str_is_valid(&old_keys[i].str)) {
+        if (Str_is_valid(&old_keys[i].str)) {
             const void* success = string_map_insert(map,
                                                     &old_keys[i].str,
                                                     (char*)old_items
@@ -215,8 +215,8 @@ static void resize_map(StringMap* map) {
 static size_t hash_string(const Str* str) {
     size_t hash = 0;
 
-    const char* it = str_get_data(str);
-    const char* limit = it + str_len(str);
+    const char* it = Str_get_data(str);
+    const char* limit = it + Str_len(str);
     while (it != limit) {
         hash = *it + 31 * hash;
         ++it;

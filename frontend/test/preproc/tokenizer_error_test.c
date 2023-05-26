@@ -54,7 +54,7 @@ TEST(invalid_identifier) {
     ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
     ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
     ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)5);
-    ASSERT_STR(str_get_data(&err.invalid_id), "in$valid");
+    ASSERT_STR(Str_get_data(&err.invalid_id), "in$valid");
 
     free_preproc_err(&err);
 }
@@ -71,7 +71,7 @@ TEST(invalid_number) {
     ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
     ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
     ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)5);
-    ASSERT_STR(str_get_data(&err.invalid_num), "10in$valid");
+    ASSERT_STR(Str_get_data(&err.invalid_num), "10in$valid");
 
     free_preproc_err(&err);
 

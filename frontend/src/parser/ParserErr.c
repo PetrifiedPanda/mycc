@@ -34,13 +34,13 @@ void print_parser_err(FILE* out, const FileInfo* file_info, const ParserErr* err
         }
         case PARSER_ERR_REDEFINED_SYMBOL: {
             assert(err->prev_def_file < file_info->len);
-            const char* path = str_get_data(&file_info->paths[err->prev_def_file]);
+            const char* path = Str_get_data(&file_info->paths[err->prev_def_file]);
             const char* type_str = err->was_typedef_name ? "typedef name"
                                                          : "enum constant";
             fprintf(out,
                     "Redefined symbol %s that was already defined as %s in "
                     "%s(%zu, %zu)",
-                    str_get_data(&err->redefined_symbol),
+                    Str_get_data(&err->redefined_symbol),
                     type_str,
                     path,
                     err->prev_def_loc.line,
@@ -89,7 +89,7 @@ void print_parser_err(FILE* out, const FileInfo* file_info, const ParserErr* err
             fprintf(
                 out,
                 "Expected a typedef name but got identifier with spelling %s",
-                str_get_data(&err->non_typedef_spelling));
+                Str_get_data(&err->non_typedef_spelling));
             break;
         case PARSER_ERR_EMPTY_DIRECT_ABS_DECL:
             fputs("Empty abstract declarator", out);
@@ -101,10 +101,10 @@ void print_parser_err(FILE* out, const FileInfo* file_info, const ParserErr* err
 void free_parser_err(ParserErr* err) {
     switch (err->kind) {
         case PARSER_ERR_REDEFINED_SYMBOL:
-            free_str(&err->redefined_symbol);
+            Str_free(&err->redefined_symbol);
             break;
         case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
-            free_str(&err->non_typedef_spelling);
+            Str_free(&err->non_typedef_spelling);
             break;
         default:
             break;
