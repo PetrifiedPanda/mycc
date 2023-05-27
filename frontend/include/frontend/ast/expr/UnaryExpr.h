@@ -151,9 +151,6 @@ bool parse_unary_expr_type_name(ParserState* s,
                                 TypeName* type_name,
                                 SourceLoc start_bracket_loc);
 
-
-bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res);
-
 void Constant_free(Constant* c);
 
 void StringConstant_free(StringConstant* c);

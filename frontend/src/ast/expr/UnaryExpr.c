@@ -37,13 +37,6 @@ static bool parse_arg_expr_list(ParserState* s, ArgExprList* res) {
     return res;
 }
 
-void ArgExprList_free(ArgExprList* l) {
-    for (size_t i = 0; i < l->len; ++i) {
-        AssignExpr_free_children(&l->assign_exprs[i]);
-    }
-    mycc_free(l->assign_exprs);
-}
-
 static Constant Constant_create(Value val, SourceLoc loc) {
     return (Constant){
         .info = AstNodeInfo_create(loc),
@@ -62,12 +55,6 @@ static Constant Constant_create_enum(const Str* spelling,
     };
 }
 
-void Constant_free(Constant* c) {
-    if (c->kind == CONSTANT_ENUM) {
-        Str_free(&c->spelling);
-    }
-}
-
 static StringConstant StringConstant_create(const StrLit* lit, SourceLoc loc) {
     assert(lit);
     return (StringConstant){
@@ -83,13 +70,7 @@ static StringConstant StringConstant_create_func_name(SourceLoc loc) {
     };
 }
 
-void StringConstant_free(StringConstant* c) {
-    if (!c->is_func) {
-        StringLiteralNode_free(&c->lit);
-    }
-}
-
-bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res) {
+static bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res) {
     switch (s->it->kind) {
         case TOKEN_IDENTIFIER: {
             const Str spelling = Token_take_spelling(s->it);
@@ -157,30 +138,6 @@ bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res) {
     }
 
     return false;
-}
-
-void PrimaryExpr_free_children(PrimaryExpr* e) {
-    switch (e->kind) {
-        case PRIMARY_EXPR_IDENTIFIER:
-            Identifier_free(e->identifier);
-            break;
-
-        case PRIMARY_EXPR_CONSTANT:
-            Constant_free(&e->constant);
-            break;
-
-        case PRIMARY_EXPR_STRING_LITERAL:
-            StringConstant_free(&e->string);
-            break;
-
-        case PRIMARY_EXPR_BRACKET:
-            Expr_free_children(&e->bracket_expr);
-            break;
-
-        case PRIMARY_EXPR_GENERIC:
-            GenericSel_free_children(&e->generic);
-            break;
-    }
 }
 
 static bool is_posfix_op(TokenKind t) {
@@ -406,34 +363,6 @@ static bool parse_postfix_expr_type_name(ParserState* s, PostfixExpr* res, TypeN
 fail:
     PostfixExpr_free_children(res);
     return NULL;
-}
-
-void PostfixExpr_free_children(PostfixExpr* p) {
-    if (p->is_primary) {
-        PrimaryExpr_free_children(&p->primary);
-    } else {
-        TypeName_free(p->type_name);
-        InitList_free_children(&p->init_list);
-    }
-    for (size_t i = 0; i < p->len; ++i) {
-        PostfixSuffix* s = &p->suffixes[i];
-        switch (s->kind) {
-            case POSTFIX_INDEX:
-                Expr_free_children(&s->index_expr);
-                break;
-            case POSTFIX_BRACKET:
-                ArgExprList_free(&s->bracket_list);
-                break;
-            case POSTFIX_ACCESS:
-            case POSTFIX_PTR_ACCESS:
-                Identifier_free(s->identifier);
-                break;
-            case POSTFIX_INC:
-            case POSTFIX_DEC:
-                break;
-        }
-    }
-    mycc_free(p->suffixes);
 }
 
 static inline void assign_operators_before(UnaryExpr* res,
@@ -683,6 +612,77 @@ bool parse_unary_expr_inplace(ParserState* s, UnaryExpr* res) {
 fail:
     mycc_free(ops_before);
     return NULL;
+}
+
+void Constant_free(Constant* c) {
+    if (c->kind == CONSTANT_ENUM) {
+        Str_free(&c->spelling);
+    }
+}
+
+void StringConstant_free(StringConstant* c) {
+    if (!c->is_func) {
+        StringLiteralNode_free(&c->lit);
+    }
+}
+
+void PrimaryExpr_free_children(PrimaryExpr* e) {
+    switch (e->kind) {
+        case PRIMARY_EXPR_IDENTIFIER:
+            Identifier_free(e->identifier);
+            break;
+
+        case PRIMARY_EXPR_CONSTANT:
+            Constant_free(&e->constant);
+            break;
+
+        case PRIMARY_EXPR_STRING_LITERAL:
+            StringConstant_free(&e->string);
+            break;
+
+        case PRIMARY_EXPR_BRACKET:
+            Expr_free_children(&e->bracket_expr);
+            break;
+
+        case PRIMARY_EXPR_GENERIC:
+            GenericSel_free_children(&e->generic);
+            break;
+    }
+}
+
+void ArgExprList_free(ArgExprList* l) {
+    for (size_t i = 0; i < l->len; ++i) {
+        AssignExpr_free_children(&l->assign_exprs[i]);
+    }
+    mycc_free(l->assign_exprs);
+}
+
+void PostfixExpr_free_children(PostfixExpr* p) {
+    if (p->is_primary) {
+        PrimaryExpr_free_children(&p->primary);
+    } else {
+        TypeName_free(p->type_name);
+        InitList_free_children(&p->init_list);
+    }
+    for (size_t i = 0; i < p->len; ++i) {
+        PostfixSuffix* s = &p->suffixes[i];
+        switch (s->kind) {
+            case POSTFIX_INDEX:
+                Expr_free_children(&s->index_expr);
+                break;
+            case POSTFIX_BRACKET:
+                ArgExprList_free(&s->bracket_list);
+                break;
+            case POSTFIX_ACCESS:
+            case POSTFIX_PTR_ACCESS:
+                Identifier_free(s->identifier);
+                break;
+            case POSTFIX_INC:
+            case POSTFIX_DEC:
+                break;
+        }
+    }
+    mycc_free(p->suffixes);
 }
 
 void UnaryExpr_free_children(UnaryExpr* u) {

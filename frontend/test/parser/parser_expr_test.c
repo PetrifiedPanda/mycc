@@ -20,15 +20,19 @@ static PrimaryExpr parse_primary_helper(const char* code) {
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
-    
-    PrimaryExpr res;
-    ASSERT(parse_primary_expr_inplace(&s, &res));
+    UnaryExpr unary;
+    ASSERT(parse_unary_expr_inplace(&s, &unary));
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
+    ASSERT(unary.kind == UNARY_POSTFIX);
+    ASSERT_SIZE_T(unary.len, 0);
+
+    ASSERT(unary.postfix.is_primary);
+    ASSERT_SIZE_T(unary.postfix.len, 0);
 
     ParserState_free(&s);
     PreprocRes_free(&preproc_res);
-    return res;
+    return unary.postfix.primary;
 }
 
 static void check_primary_expr_int_constant(ConstantKind type,
@@ -121,12 +125,19 @@ static void primary_expr_generic_sel_test(void) {
                 .file_loc = {0, 0},
             },
     };
-
+    
     parser_register_typedef_name(&s, &insert_token);
-    PrimaryExpr res;
-    ASSERT(parse_primary_expr_inplace(&s, &res));
+    UnaryExpr unary;
+    ASSERT(parse_unary_expr_inplace(&s, &unary));
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
+    ASSERT(unary.kind == UNARY_POSTFIX);
+    ASSERT_SIZE_T(unary.len, 0);
+
+    ASSERT(unary.postfix.is_primary);
+    ASSERT_SIZE_T(unary.postfix.len, 0);
+
+    PrimaryExpr res = unary.postfix.primary;
 
     ASSERT(res.kind == PRIMARY_EXPR_GENERIC);
     check_assign_expr_id(res.generic.assign, "var");
