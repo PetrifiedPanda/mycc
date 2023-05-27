@@ -120,18 +120,6 @@ static CastExpr CastExpr_create_unary(const UnaryExpr* start) {
     };
 }
 
-void CastExpr_free_children(CastExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
-        TypeName_free_children(&e->type_names[i]);
-    }
-    mycc_free(e->type_names);
-    UnaryExpr_free_children(&e->rhs);
-}
-
-void CastExpr_free(CastExpr* e) {
-    CastExpr_free_children(e);
-    mycc_free(e);
-}
 static bool is_mul_op(TokenKind k) {
     switch (k) {
         case TOKEN_ASTERISK:
@@ -213,13 +201,6 @@ static bool parse_mul_expr_cast(ParserState* s, MulExpr* res, const CastExpr* st
     return res;
 }
 
-void MulExpr_free_children(MulExpr* e) {
-    CastExpr_free_children(&e->lhs);
-    for (size_t i = 0; i < e->len; ++i) {
-        CastExpr_free_children(&e->mul_chain[i].rhs);
-    }
-    mycc_free(e->mul_chain);
-}
 static bool is_add_op(TokenKind k) {
     switch (k) {
         case TOKEN_ADD:
@@ -289,14 +270,6 @@ static bool parse_add_expr_cast(ParserState* s, AddExpr* res, const CastExpr* st
     }
 
     return true;
-}
-
-void AddExpr_free_children(AddExpr* e) {
-    MulExpr_free_children(&e->lhs);
-    for (size_t i = 0; i < e->len; ++i) {
-        MulExpr_free_children(&e->add_chain[i].rhs);
-    }
-    mycc_free(e->add_chain);
 }
 
 static bool is_shift_op(TokenKind t) {
@@ -464,14 +437,6 @@ static bool parse_rel_expr_cast(ParserState* s, RelExpr* res, const CastExpr* st
     return true;
 }
 
-void RelExpr_free_children(RelExpr* e) {
-    ShiftExpr_free_children(&e->lhs);
-    for (size_t i = 0; i < e->len; ++i) {
-        ShiftExpr_free_children(&e->rel_chain[i].rhs);
-    }
-    mycc_free(e->rel_chain);
-}
-
 static bool is_eq_op(TokenKind t) {
     switch (t) {
         case TOKEN_EQ:
@@ -545,13 +510,6 @@ static EqExpr* parse_eq_expr_cast(ParserState* s, const CastExpr* start) {
     return res;
 }
 
-void EqExpr_free_children(EqExpr* e) {
-    RelExpr_free_children(&e->lhs);
-    for (size_t i = 0; i < e->len; ++i) {
-        RelExpr_free_children(&e->eq_chain[i].rhs);
-    }
-    mycc_free(e->eq_chain);
-}
 static bool parse_and_expr_rest(ParserState* s, AndExpr* res) {
     assert(res->eq_exprs);
 
@@ -609,12 +567,6 @@ static AndExpr* parse_and_expr_cast(ParserState* s, const CastExpr* start) {
     return res;
 }
 
-void AndExpr_free_children(AndExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
-        EqExpr_free_children(&e->eq_exprs[i]);
-    }
-    mycc_free(e->eq_exprs);
-}
 static bool parse_xor_expr_rest(ParserState* s, XorExpr* res) {
     assert(res->and_exprs);
 
@@ -677,12 +629,6 @@ static XorExpr* parse_xor_expr_cast(ParserState* s, const CastExpr* start) {
     return res;
 }
 
-void XorExpr_free_children(XorExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
-        AndExpr_free_children(&e->and_exprs[i]);
-    }
-    mycc_free(e->and_exprs);
-}
 static bool parse_or_expr_rest(ParserState* s, OrExpr* res) {
     res->len = 1;
 
@@ -747,12 +693,6 @@ static OrExpr* parse_or_expr_cast(ParserState* s, const CastExpr* start) {
     return res;
 }
 
-void OrExpr_free_children(OrExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
-        XorExpr_free_children(&e->xor_exprs[i]);
-    }
-    mycc_free(e->xor_exprs);
-}
 static bool parse_log_and_expr_rest(ParserState* s, LogAndExpr* res) {
     assert(res);
     res->len = 1;
@@ -815,12 +755,6 @@ static LogAndExpr* parse_log_and_expr_cast(ParserState* s, const CastExpr* start
     return res;
 }
 
-void LogAndExpr_free_children(LogAndExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
-        OrExpr_free_children(&e->or_exprs[i]);
-    }
-    mycc_free(e->or_exprs);
-}
 static bool parse_log_or_expr_ops(ParserState* s, LogOrExpr* res) {
     assert(res);
     assert(res->len == 1);
@@ -881,13 +815,6 @@ static bool parse_log_or_expr_cast(ParserState* s, LogOrExpr* res, const CastExp
     }
 
     return true;
-}
-
-void LogOrExpr_free_children(LogOrExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
-        LogAndExpr_free_children(&e->log_ands[i]);
-    }
-    mycc_free(e->log_ands);
 }
 
 static bool parse_cond_expr_conditionals(ParserState* s,
@@ -965,17 +892,6 @@ static bool parse_cond_expr_cast(ParserState* s, CondExpr* res, const CastExpr* 
     return true;
 }
 
-void CondExpr_free_children(CondExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
-        LogOrAndExpr* item = &e->conditionals[i];
-        LogOrExpr_free_children(&item->log_or);
-        Expr_free_children(&item->expr);
-    }
-    mycc_free(e->conditionals);
-
-    LogOrExpr_free_children(&e->last_else);
-}
-
 ConstExpr* parse_const_expr(ParserState* s) {
     ConstExpr* res = mycc_alloc(sizeof *res);
     if (!parse_cond_expr_inplace(s, &res->expr)) {
@@ -983,15 +899,6 @@ ConstExpr* parse_const_expr(ParserState* s) {
         return NULL;
     }
     return res;
-}
-
-static void free_const_expr_children(ConstExpr* e) {
-    CondExpr_free_children(&e->expr);
-}
-
-void ConstExpr_free(ConstExpr* e) {
-    free_const_expr_children(e);
-    mycc_free(e);
 }
 
 typedef struct {
@@ -1174,6 +1081,106 @@ struct AssignExpr* parse_assign_expr(ParserState* s) {
         return NULL;
     }
     return res;
+}
+
+void CastExpr_free_children(CastExpr* e) {
+    for (size_t i = 0; i < e->len; ++i) {
+        TypeName_free_children(&e->type_names[i]);
+    }
+    mycc_free(e->type_names);
+    UnaryExpr_free_children(&e->rhs);
+}
+
+void CastExpr_free(CastExpr* e) {
+    CastExpr_free_children(e);
+    mycc_free(e);
+}
+
+void MulExpr_free_children(MulExpr* e) {
+    CastExpr_free_children(&e->lhs);
+    for (size_t i = 0; i < e->len; ++i) {
+        CastExpr_free_children(&e->mul_chain[i].rhs);
+    }
+    mycc_free(e->mul_chain);
+}
+
+void AddExpr_free_children(AddExpr* e) {
+    MulExpr_free_children(&e->lhs);
+    for (size_t i = 0; i < e->len; ++i) {
+        MulExpr_free_children(&e->add_chain[i].rhs);
+    }
+    mycc_free(e->add_chain);
+}
+
+void RelExpr_free_children(RelExpr* e) {
+    ShiftExpr_free_children(&e->lhs);
+    for (size_t i = 0; i < e->len; ++i) {
+        ShiftExpr_free_children(&e->rel_chain[i].rhs);
+    }
+    mycc_free(e->rel_chain);
+}
+
+void EqExpr_free_children(EqExpr* e) {
+    RelExpr_free_children(&e->lhs);
+    for (size_t i = 0; i < e->len; ++i) {
+        RelExpr_free_children(&e->eq_chain[i].rhs);
+    }
+    mycc_free(e->eq_chain);
+}
+
+void AndExpr_free_children(AndExpr* e) {
+    for (size_t i = 0; i < e->len; ++i) {
+        EqExpr_free_children(&e->eq_exprs[i]);
+    }
+    mycc_free(e->eq_exprs);
+}
+
+void XorExpr_free_children(XorExpr* e) {
+    for (size_t i = 0; i < e->len; ++i) {
+        AndExpr_free_children(&e->and_exprs[i]);
+    }
+    mycc_free(e->and_exprs);
+}
+
+void OrExpr_free_children(OrExpr* e) {
+    for (size_t i = 0; i < e->len; ++i) {
+        XorExpr_free_children(&e->xor_exprs[i]);
+    }
+    mycc_free(e->xor_exprs);
+}
+
+void LogAndExpr_free_children(LogAndExpr* e) {
+    for (size_t i = 0; i < e->len; ++i) {
+        OrExpr_free_children(&e->or_exprs[i]);
+    }
+    mycc_free(e->or_exprs);
+}
+
+void LogOrExpr_free_children(LogOrExpr* e) {
+    for (size_t i = 0; i < e->len; ++i) {
+        LogAndExpr_free_children(&e->log_ands[i]);
+    }
+    mycc_free(e->log_ands);
+}
+
+void CondExpr_free_children(CondExpr* e) {
+    for (size_t i = 0; i < e->len; ++i) {
+        LogOrAndExpr* item = &e->conditionals[i];
+        LogOrExpr_free_children(&item->log_or);
+        Expr_free_children(&item->expr);
+    }
+    mycc_free(e->conditionals);
+
+    LogOrExpr_free_children(&e->last_else);
+}
+
+static void ConstExpr_free_children(ConstExpr* e) {
+    CondExpr_free_children(&e->expr);
+}
+
+void ConstExpr_free(ConstExpr* e) {
+    ConstExpr_free_children(e);
+    mycc_free(e);
 }
 
 void AssignExpr_free_children(struct AssignExpr* e) {

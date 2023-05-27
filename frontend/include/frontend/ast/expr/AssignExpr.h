@@ -165,12 +165,12 @@ typedef struct AssignExpr {
     CondExpr value;
 } AssignExpr;
 
-bool parse_assign_expr_inplace(ParserState* s, AssignExpr* res);
-AssignExpr* parse_assign_expr(ParserState* s);
-
 CastExpr* parse_cast_expr(ParserState* s);
 
 ConstExpr* parse_const_expr(ParserState* s);
+
+bool parse_assign_expr_inplace(ParserState* s, AssignExpr* res);
+AssignExpr* parse_assign_expr(ParserState* s);
 
 void CastExpr_free_children(CastExpr* e);
 void CastExpr_free(CastExpr* e);
