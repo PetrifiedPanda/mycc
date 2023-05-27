@@ -65,5 +65,7 @@ void StructDeclarator_free_children(StructDeclarator* d);
 
 #include "frontend/ast/Identifier.h"
 
+#include "frontend/ast/expr/AssignExpr.h"
+
 #endif
 

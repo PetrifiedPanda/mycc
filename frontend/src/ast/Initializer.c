@@ -7,6 +7,8 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/expr/AssignExpr.h"
+
 static bool parse_designator_inplace(ParserState* s, Designator* res) {
     res->info = AstNodeInfo_create(s->it->loc);
     switch (s->it->kind) {

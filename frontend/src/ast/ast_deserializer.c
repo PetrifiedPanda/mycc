@@ -305,17 +305,17 @@ static bool deserialize_string_constant(AstDeserializer* r, StringConstant* cons
     }
 }
 
-static UnaryExpr* deserialize_unary_expr(AstDeserializer* r);
-
-static CondExpr* deserialize_cond_expr(AstDeserializer* r);
+static bool deserialize_unary_expr(AstDeserializer* r, UnaryExpr* res);
 
 static void free_assign_chain(UnaryAndOp* assign_chain, size_t len) {
     for (size_t i = 0; i < len; ++i) {
         UnaryAndOp* item = &assign_chain[i];
-        UnaryExpr_free(item->unary);
+        UnaryExpr_free_children(&item->unary);
     }
     mycc_free(assign_chain);
 }
+
+static bool deserialize_cond_expr_inplace(AstDeserializer* r, CondExpr* res);
 
 static bool deserialize_assign_expr_inplace(AstDeserializer* r, AssignExpr* res) {
     uint64_t len;
@@ -327,14 +327,13 @@ static bool deserialize_assign_expr_inplace(AstDeserializer* r, AssignExpr* res)
     res->assign_chain = alloc_or_null(sizeof *res->assign_chain * len);
     for (size_t i = 0; i < len; ++i) {
         UnaryAndOp* item = &res->assign_chain[i];
-        item->unary = deserialize_unary_expr(r);
-        if (!item->unary) {
+        if (!deserialize_unary_expr(r, &item->unary)) {
             free_assign_chain(res->assign_chain, i);
             return false;
         }
         uint64_t op;
         if (!deserialize_uint(r, &op)) {
-            UnaryExpr_free(item->unary);
+            UnaryExpr_free_children(&item->unary);
             free_assign_chain(res->assign_chain, i);
             return false;
         }
@@ -342,8 +341,7 @@ static bool deserialize_assign_expr_inplace(AstDeserializer* r, AssignExpr* res)
         assert((uint64_t)item->op == op);
     }
 
-    res->value = deserialize_cond_expr(r);
-    if (!res->value) {
+    if (!deserialize_cond_expr_inplace(r, &res->value)) {
         free_assign_chain(res->assign_chain, res->len);
         return false;
     }
@@ -373,15 +371,6 @@ static bool deserialize_expr_inplace(AstDeserializer* r, Expr* res) {
         }
     }
     return true;
-}
-
-static Expr* deserialize_expr(AstDeserializer* r) {
-    Expr* res = mycc_alloc(sizeof *res);
-    if (!deserialize_expr_inplace(r, res)) {
-        mycc_free(res);
-        return NULL;
-    }
-    return res;
 }
 
 static bool deserialize_generic_assoc(AstDeserializer* r, GenericAssoc* res) {
@@ -425,39 +414,29 @@ static bool deserialize_generic_assoc_list(AstDeserializer* r, GenericAssocList*
     return true;
 }
 
-static struct GenericSel* deserialize_generic_sel(AstDeserializer* r) {
-    AstNodeInfo info;
-    if (!deserialize_ast_node_info(r, &info)) {
-        return NULL;
+static bool deserialize_generic_sel(AstDeserializer* r, GenericSel* res) {
+    if (!deserialize_ast_node_info(r, &res->info)) {
+        return false;
     }
 
-    struct AssignExpr* assign = deserialize_assign_expr(r);
-    if (!assign) {
-        return NULL;
+    res->assign = deserialize_assign_expr(r);
+    if (!res->assign) {
+        return false;
     }
 
-    GenericAssocList assocs;
-    if (!deserialize_generic_assoc_list(r, &assocs)) {
-        AssignExpr_free(assign);
-        return NULL;
+    if (!deserialize_generic_assoc_list(r, &res->assocs)) {
+        AssignExpr_free(res->assign);
+        return false;
     }
-    struct GenericSel* res = mycc_alloc(sizeof *res);
-    *res = (struct GenericSel){
-        .info = info,
-        .assign = assign,
-        .assocs = assocs,
-    };
-    return res;
+    return true;
 }
 
-static PrimaryExpr* deserialize_primary_expr(
-    AstDeserializer* r) {
+static bool deserialize_primary_expr(AstDeserializer* r, PrimaryExpr* res) {
     uint64_t kind;
     if (!deserialize_uint(r, &kind)) {
         return NULL;
     }
 
-    PrimaryExpr* res = mycc_alloc(sizeof *res);
     res->kind = kind;
     assert((uint64_t)res->kind == kind);
     switch (res->kind) {
@@ -481,21 +460,18 @@ static PrimaryExpr* deserialize_primary_expr(
             if (!deserialize_ast_node_info(r, &res->info)) {
                 goto fail;
             }
-            res->bracket_expr = deserialize_expr(r);
-            if (!res->bracket_expr) {
+            if (!deserialize_expr_inplace(r, &res->bracket_expr)) {
                 goto fail;
             }
             break;
         case PRIMARY_EXPR_GENERIC:
-            res->generic = deserialize_generic_sel(r);
-            if (!res->generic) {
+            if (!deserialize_generic_sel(r, &res->generic)) {
                 goto fail;
             }
     }
-    return res;
+    return true;
 fail:
-    mycc_free(res);
-    return NULL;
+    return false;
 }
 
 static ConstExpr* deserialize_const_expr(AstDeserializer* r);
@@ -637,8 +613,7 @@ static bool deserialize_postfix_suffix(AstDeserializer* r, PostfixSuffix* res) {
 
     switch (res->kind) {
         case POSTFIX_INDEX:
-            res->index_expr = deserialize_expr(r);
-            return res->index_expr != NULL;
+            return deserialize_expr_inplace(r, &res->index_expr);
         case POSTFIX_BRACKET:
             return deserialize_arg_expr_list(r, &res->bracket_list);
         case POSTFIX_ACCESS:
@@ -652,35 +627,27 @@ static bool deserialize_postfix_suffix(AstDeserializer* r, PostfixSuffix* res) {
     UNREACHABLE();
 }
 
-static PostfixExpr* deserialize_postfix_expr(
-    AstDeserializer* r) {
-    PostfixExpr* res = mycc_alloc(sizeof *res);
+static bool deserialize_postfix_expr(AstDeserializer* r, PostfixExpr* res) {
     if (!deserialize_bool(r, &res->is_primary)) {
-        mycc_free(res);
-        return NULL;
+        return false;
     }
 
     if (res->is_primary) {
-        res->primary = deserialize_primary_expr(r);
-        if (!res->primary) {
-            mycc_free(res);
-            return NULL;
+        if (!deserialize_primary_expr(r, &res->primary)) {
+            return false;
         }
     } else {
         if (!deserialize_ast_node_info(r, &res->info)) {
-            mycc_free(res);
-            return NULL;
+            return false;
         }
         res->type_name = deserialize_type_name(r);
         if (!res->type_name) {
-            mycc_free(res);
-            return NULL;
+            return false;
         }
 
         if (!deserialize_init_list(r, &res->init_list)) {
             TypeName_free(res->type_name);
-            mycc_free(res);
-            return NULL;
+            return false;
         }
     }
 
@@ -698,23 +665,23 @@ static PostfixExpr* deserialize_postfix_expr(
             goto fail;
         }
     }
-    return res;
+    return true;
 fail:
-    PostfixExpr_free(res);
-    return NULL;
+    PostfixExpr_free_children(res);
+    return false;
 }
 
 static CastExpr* deserialize_cast_expr(AstDeserializer* r);
 
-static UnaryExpr* deserialize_unary_expr(AstDeserializer* r) {
+static bool deserialize_unary_expr(AstDeserializer* r, UnaryExpr* res) {
     AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
-        return NULL;
+        return false;
     }
 
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
-        return NULL;
+        return false;
     }
 
     UnaryExprOp* ops_before = alloc_or_null(sizeof *ops_before * len);
@@ -722,7 +689,7 @@ static UnaryExpr* deserialize_unary_expr(AstDeserializer* r) {
         uint64_t unary_op;
         if (!deserialize_uint(r, &unary_op)) {
             mycc_free(ops_before);
-            return NULL;
+            return false;
         }
         ops_before[i] = unary_op;
         assert((UnaryExprOp)unary_op == ops_before[i]);
@@ -735,15 +702,13 @@ static UnaryExpr* deserialize_unary_expr(AstDeserializer* r) {
     UnaryExprKind kind = expr_kind;
     assert((uint64_t)kind == expr_kind);
 
-    UnaryExpr* res = mycc_alloc(sizeof *res);
     res->info = info;
     res->len = len;
     res->ops_before = ops_before;
     res->kind = kind;
     switch (kind) {
         case UNARY_POSTFIX:
-            res->postfix = deserialize_postfix_expr(r);
-            if (!res->postfix) {
+            if (!deserialize_postfix_expr(r, &res->postfix)) {
                 goto fail;
             }
             break;
@@ -767,11 +732,10 @@ static UnaryExpr* deserialize_unary_expr(AstDeserializer* r) {
             break;
     }
 
-    return res;
+    return true;
 fail:
     mycc_free(ops_before);
-    mycc_free(res);
-    return NULL;
+    return false;
 }
 
 static bool deserialize_type_name_inplace(AstDeserializer* r, TypeName* res);
@@ -783,46 +747,44 @@ static void free_type_names_up_to(TypeName* type_names, size_t len) {
     mycc_free(type_names);
 }
 
-static CastExpr* deserialize_cast_expr(AstDeserializer* r) {
-    AstNodeInfo info;
-    if (!deserialize_ast_node_info(r, &info)) {
+static bool deserialize_cast_expr_inplace(AstDeserializer* r, CastExpr* res) { 
+    if (!deserialize_ast_node_info(r, &res->info)) {
         return NULL;
     }
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return NULL;
     }
+    res->len = len;
 
-    TypeName* type_names = alloc_or_null(sizeof *type_names * len);
-    for (size_t i = 0; i < len; ++i) {
-        if (!deserialize_type_name_inplace(r, &type_names[i])) {
-            free_type_names_up_to(type_names, i);
+    res->type_names = alloc_or_null(sizeof *res->type_names * len);
+    for (size_t i = 0; i < res->len; ++i) {
+        if (!deserialize_type_name_inplace(r, &res->type_names[i])) {
+            free_type_names_up_to(res->type_names, i);
             return NULL;
         }
     }
-    UnaryExpr* rhs = deserialize_unary_expr(r);
-    if (!rhs) {
-        free_type_names_up_to(type_names, len);
+    if (!deserialize_unary_expr(r, &res->rhs)) {
+        free_type_names_up_to(res->type_names, len);
         return NULL;
     }
 
+    return true;
+}
+
+static CastExpr* deserialize_cast_expr(AstDeserializer* r) {
     CastExpr* res = mycc_alloc(sizeof *res);
-    *res = (CastExpr){
-        .info = info,
-        .len = len,
-        .type_names = type_names,
-        .rhs = rhs,
-    };
+    if (!deserialize_cast_expr_inplace(r, res)) {
+        mycc_free(res);
+        return NULL;
+    }
 
     return res;
 }
 
-static MulExpr* deserialize_mul_expr(AstDeserializer* r) {
-    MulExpr* res = mycc_alloc(sizeof *res);
-    res->lhs = deserialize_cast_expr(r);
-    if (!res->lhs) {
-        mycc_free(res);
-        return NULL;
+static bool deserialize_mul_expr(AstDeserializer* r, MulExpr* res) {
+    if (!deserialize_cast_expr_inplace(r, &res->lhs)) {
+        return false;
     }
     res->len = 0;
     res->mul_chain = NULL;
@@ -831,7 +793,7 @@ static MulExpr* deserialize_mul_expr(AstDeserializer* r) {
     if (!deserialize_uint(r, &len)) {
         goto fail;
     }
-
+    
     res->mul_chain = alloc_or_null(sizeof *res->mul_chain * len);
     for (; res->len != len; ++res->len) {
         uint64_t mul_op;
@@ -843,24 +805,20 @@ static MulExpr* deserialize_mul_expr(AstDeserializer* r) {
         item->op = mul_op;
         assert((uint64_t)item->op == mul_op);
 
-        item->rhs = deserialize_cast_expr(r);
-        if (!item->rhs) {
+        if (!deserialize_cast_expr_inplace(r, &item->rhs)) {
             goto fail;
         }
     }
 
-    return res;
+    return true;
 fail:
-    MulExpr_free(res);
-    return NULL;
+    MulExpr_free_children(res);
+    return false;
 }
 
-static AddExpr* deserialize_add_expr(AstDeserializer* r) {
-    AddExpr* res = mycc_alloc(sizeof *res);
-    res->lhs = deserialize_mul_expr(r);
-    if (!res->lhs) {
-        mycc_free(res);
-        return NULL;
+static bool deserialize_add_expr(AstDeserializer* r, AddExpr* res) {
+    if (!deserialize_mul_expr(r, &res->lhs)) {
+        return false;
     }
     res->len = 0;
     res->add_chain = NULL;
@@ -881,24 +839,20 @@ static AddExpr* deserialize_add_expr(AstDeserializer* r) {
         item->op = add_op;
         assert((uint64_t)item->op == add_op);
 
-        item->rhs = deserialize_mul_expr(r);
-        if (!item->rhs) {
+        if (!deserialize_mul_expr(r, &item->rhs)) {
             goto fail;
         }
     }
 
-    return res;
+    return true;
 fail:
-    AddExpr_free(res);
-    return NULL;
+    AddExpr_free_children(res);
+    return false;
 }
 
-static ShiftExpr* deserialize_shift_expr(AstDeserializer* r) {
-    ShiftExpr* res = mycc_alloc(sizeof *res);
-    res->lhs = deserialize_add_expr(r);
-    if (!res->lhs) {
-        mycc_free(res);
-        return NULL;
+static bool deserialize_shift_expr(AstDeserializer* r, ShiftExpr* res) {
+    if (!deserialize_add_expr(r, &res->lhs)) {
+        return false;
     }
     res->len = 0;
     res->shift_chain = NULL;
@@ -918,24 +872,20 @@ static ShiftExpr* deserialize_shift_expr(AstDeserializer* r) {
         item->op = shift_op;
         assert((uint64_t)item->op == shift_op);
 
-        item->rhs = deserialize_add_expr(r);
-        if (!item->rhs) {
+        if (!deserialize_add_expr(r, &item->rhs)) {
             goto fail;
         }
     }
 
-    return res;
+    return true;
 fail:
-    ShiftExpr_free(res);
-    return NULL;
+    ShiftExpr_free_children(res);
+    return false;
 }
 
-static RelExpr* deserialize_rel_expr(AstDeserializer* r) {
-    RelExpr* res = mycc_alloc(sizeof *res);
-    res->lhs = deserialize_shift_expr(r);
-    if (!res->lhs) {
-        mycc_free(res);
-        return NULL;
+static bool deserialize_rel_expr(AstDeserializer* r, RelExpr* res) {
+    if (!deserialize_shift_expr(r, &res->lhs)) {
+        return false;
     }
     res->len = 0;
     res->rel_chain = NULL;
@@ -955,20 +905,18 @@ static RelExpr* deserialize_rel_expr(AstDeserializer* r) {
         item->op = rel_op;
         assert((uint64_t)item->op == rel_op);
 
-        item->rhs = deserialize_shift_expr(r);
-        if (!item->rhs) {
+        if (!deserialize_shift_expr(r, &item->rhs)) {
             goto fail;
         }
     }
-    return res;
+    return true;
 fail:
-    RelExpr_free(res);
-    return NULL;
+    RelExpr_free_children(res);
+    return false;
 }
 
 static bool deserialize_eq_expr(AstDeserializer* r, EqExpr* res) {
-    res->lhs = deserialize_rel_expr(r);
-    if (!res->lhs) {
+    if (!deserialize_rel_expr(r, &res->lhs)) {
         return false;
     }
 
@@ -989,8 +937,7 @@ static bool deserialize_eq_expr(AstDeserializer* r, EqExpr* res) {
         RelExprAndOp* item = &res->eq_chain[res->len];
         item->op = eq_op;
         assert((uint64_t)item->op == eq_op);
-        item->rhs = deserialize_rel_expr(r);
-        if (!item->rhs) {
+        if (!deserialize_rel_expr(r, &item->rhs)) {
             goto fail;
         }
     }
@@ -1065,17 +1012,16 @@ static bool deserialize_log_and_expr(AstDeserializer* r, LogAndExpr* res) {
     return true;
 }
 
-static LogOrExpr* deserialize_log_or_expr(AstDeserializer* r) {
+static bool deserialize_log_or_expr(AstDeserializer* r, LogOrExpr* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
         return NULL;
     }
 
-    LogOrExpr* res = mycc_alloc(sizeof *res);
     res->log_ands = mycc_alloc(sizeof *res->log_ands * len);
     for (res->len = 0; res->len != len; ++res->len) {
         if (!deserialize_log_and_expr(r, &res->log_ands[res->len])) {
-            LogOrExpr_free(res);
+            LogOrExpr_free_children(res);
             return false;
         }
     }
@@ -1086,8 +1032,8 @@ static LogOrExpr* deserialize_log_or_expr(AstDeserializer* r) {
 static void free_cond_expr_conds(CondExpr* cond, size_t len) {
     for (size_t i = 0; i < len; ++i) {
         LogOrAndExpr* item = &cond->conditionals[i];
-        LogOrExpr_free(item->log_or);
-        Expr_free(item->expr);
+        LogOrExpr_free_children(&item->log_or);
+        Expr_free_children(&item->expr);
     }
     mycc_free(cond->conditionals);
 }
@@ -1102,36 +1048,24 @@ static bool deserialize_cond_expr_inplace(AstDeserializer* r, CondExpr* res) {
     res->conditionals = alloc_or_null(sizeof *res->conditionals * res->len);
     for (size_t i = 0; i < res->len; ++i) {
         LogOrAndExpr* item = &res->conditionals[i];
-        item->log_or = deserialize_log_or_expr(r);
-        if (!item->log_or) {
+        if (!deserialize_log_or_expr(r, &item->log_or)) {
             free_cond_expr_conds(res, i);
             return false;
         }
 
-        item->expr = deserialize_expr(r);
-        if (!item->expr) {
-            LogOrExpr_free(item->log_or);
+        if (!deserialize_expr_inplace(r, &item->expr)) {
+            LogOrExpr_free_children(&item->log_or);
             free_cond_expr_conds(res, i);
             return false;
         }
     }
 
-    res->last_else = deserialize_log_or_expr(r);
-    if (!res->last_else) {
+    if (!deserialize_log_or_expr(r, &res->last_else)) {
         free_cond_expr_conds(res, res->len);
         return false;
     }
 
     return true;
-}
-
-static CondExpr* deserialize_cond_expr(AstDeserializer* r) {
-    CondExpr* res = mycc_alloc(sizeof *res);
-    if (!deserialize_cond_expr_inplace(r, res)) {
-        mycc_free(res);
-        return NULL;
-    }
-    return res;
 }
 
 static ConstExpr* deserialize_const_expr(AstDeserializer* r) {
@@ -2019,8 +1953,8 @@ static SelectionStatement* deserialize_selection_statement(AstDeserializer* r) {
         return NULL;
     }
 
-    Expr* sel_expr = deserialize_expr(r);
-    if (!sel_expr) {
+    Expr sel_expr; 
+    if (!deserialize_expr_inplace(r, &sel_expr)) {
         return NULL;
     }
 
@@ -2056,7 +1990,7 @@ static SelectionStatement* deserialize_selection_statement(AstDeserializer* r) {
 fail_after_stat:
     Statement_free(sel_stat);
 fail_after_expr:
-    Expr_free(sel_expr);
+    Expr_free_children(&sel_expr);
     return NULL;
 }
 
@@ -2080,8 +2014,8 @@ static bool deserialize_for_loop(AstDeserializer* r, ForLoop* res) {
     if (!res->cond) {
         goto fail_before_cond;
     }
-    res->incr_expr = deserialize_expr(r);
-    if (!res->incr_expr) {
+
+    if (!deserialize_expr_inplace(r, &res->incr_expr)) {
         goto fail_after_cond;
     }
 
@@ -2120,8 +2054,7 @@ static IterationStatement* deserialize_iteration_statement(AstDeserializer* r) {
     switch (res->kind) {
         case ITERATION_STATEMENT_WHILE:
         case ITERATION_STATEMENT_DO:
-            res->while_cond = deserialize_expr(r);
-            if (!res->while_cond) {
+            if (!deserialize_expr_inplace(r, &res->while_cond)) {
                 goto fail_after_loop_body;
             }
             break;
@@ -2167,19 +2100,9 @@ static JumpStatement* deserialize_jump_statement(
         case JUMP_STATEMENT_BREAK:
             break;
         case JUMP_STATEMENT_RETURN: {
-            bool has_ret_val;
-            if (!deserialize_bool(r, &has_ret_val)) {
+            if (!deserialize_expr_inplace(r, &res->ret_val)) {
                 mycc_free(res);
                 return NULL;
-            }
-            if (has_ret_val) {
-                res->ret_val = deserialize_expr(r);
-                if (!res->ret_val) {
-                    mycc_free(res);
-                    return NULL;
-                }
-            } else {
-                res->ret_val = NULL;
             }
             break;
         }

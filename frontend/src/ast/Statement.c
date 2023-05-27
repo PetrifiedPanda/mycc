@@ -214,21 +214,20 @@ static SelectionStatement* parse_selection_statement(ParserState* s) {
         return NULL;
     }
 
-    res->sel_expr = parse_expr(s);
-    if (!res->sel_expr) {
+    if (!parse_expr_inplace(s, &res->sel_expr)) {
         mycc_free(res);
         return NULL;
     }
 
     if (!parser_accept(s, TOKEN_RBRACKET)) {
-        Expr_free(res->sel_expr);
+        Expr_free_children(&res->sel_expr);
         mycc_free(res);
         return NULL;
     }
 
     res->sel_stat = parse_statement(s);
     if (!res->sel_stat) {
-        Expr_free(res->sel_expr);
+        Expr_free_children(&res->sel_expr);
         mycc_free(res);
         return NULL;
     }
@@ -238,7 +237,7 @@ static SelectionStatement* parse_selection_statement(ParserState* s) {
         res->else_stat = parse_statement(s);
         if (!res->else_stat) {
             Statement_free(res->sel_stat);
-            Expr_free(res->sel_expr);
+            Expr_free_children(&res->sel_expr);
             mycc_free(res);
             return NULL;
         }
@@ -250,7 +249,7 @@ static SelectionStatement* parse_selection_statement(ParserState* s) {
 }
 
 static void free_selection_statement_children(SelectionStatement* s) {
-    Expr_free(s->sel_expr);
+    Expr_free_children(&s->sel_expr);
     Statement_free(s->sel_stat);
     if (s->else_stat) {
         Statement_free(s->else_stat);
@@ -264,10 +263,9 @@ void SelectionStatement_free(SelectionStatement* s) {
 
 static void assign_do_or_while(SourceLoc loc,
                                IterationStatement* res,
-                               Expr* while_cond,
+                               Expr while_cond,
                                Statement* loop_body) {
     assert(res);
-    assert(while_cond);
     assert(loop_body);
     res->info = AstNodeInfo_create(loc);
     res->while_cond = while_cond;
@@ -275,7 +273,7 @@ static void assign_do_or_while(SourceLoc loc,
 }
 
 static IterationStatement* create_while_loop(SourceLoc loc,
-                                             Expr* while_cond,
+                                             Expr while_cond,
                                              Statement* loop_body) {
     IterationStatement* res = mycc_alloc(sizeof *res);
     res->kind = ITERATION_STATEMENT_WHILE;
@@ -285,7 +283,7 @@ static IterationStatement* create_while_loop(SourceLoc loc,
 }
 
 static IterationStatement* create_do_loop(SourceLoc loc,
-                                          Expr* while_cond,
+                                          Expr while_cond,
                                           Statement* loop_body) {
     IterationStatement* res = mycc_alloc(sizeof *res);
     res->kind = ITERATION_STATEMENT_DO;
@@ -318,19 +316,19 @@ static IterationStatement* parse_while_statement(ParserState* s,
         return NULL;
     }
 
-    Expr* while_cond = parse_expr(s);
-    if (!while_cond) {
+    Expr while_cond;
+    if (!parse_expr_inplace(s, &while_cond)) {
         return NULL;
     }
 
     if (!parser_accept(s, TOKEN_RBRACKET)) {
-        Expr_free(while_cond);
+        Expr_free_children(&while_cond);
         return NULL;
     }
 
     Statement* loop_body = parse_statement(s);
     if (!loop_body) {
-        Expr_free(while_cond);
+        Expr_free_children(&while_cond);
         return NULL;
     }
 
@@ -352,10 +350,14 @@ static IterationStatement* parse_do_loop(ParserState* s, SourceLoc loc) {
         return NULL;
     }
 
-    Expr* while_cond = parse_expr(s);
-    if (!(while_cond && parser_accept(s, TOKEN_RBRACKET)
-          && parser_accept(s, TOKEN_SEMICOLON))) {
+    Expr while_cond;
+    if (!parse_expr_inplace(s, &while_cond)) {
         Statement_free(loop_body);
+        return NULL;
+    }
+    if (!(parser_accept(s, TOKEN_RBRACKET) && parser_accept(s, TOKEN_SEMICOLON))) {
+        Statement_free(loop_body);
+        Expr_free_children(&while_cond);
         return NULL;
     }
 
@@ -396,12 +398,14 @@ static IterationStatement* parse_for_loop(ParserState* s, SourceLoc loc) {
     }
 
     if (s->it->kind != TOKEN_RBRACKET) {
-        loop.incr_expr = parse_expr(s);
-        if (!loop.incr_expr) {
+        if (!parse_expr_inplace(s, &loop.incr_expr)) {
             goto fail;
         }
     } else {
-        loop.incr_expr = NULL;
+        loop.incr_expr = (Expr){
+            .len = 0,
+            .assign_exprs = NULL,
+        };
     }
 
     if (!parser_accept(s, TOKEN_RBRACKET)) {
@@ -445,7 +449,7 @@ static void free_iteration_statement_children(IterationStatement* s) {
     switch (s->kind) {
         case ITERATION_STATEMENT_WHILE:
         case ITERATION_STATEMENT_DO:
-            Expr_free(s->while_cond);
+            Expr_free_children(&s->while_cond);
             break;
         case ITERATION_STATEMENT_FOR: {
             if (s->for_loop.is_decl) {
@@ -454,9 +458,7 @@ static void free_iteration_statement_children(IterationStatement* s) {
                 ExprStatement_free(s->for_loop.init_expr);
             }
             ExprStatement_free(s->for_loop.cond);
-            if (s->for_loop.incr_expr) {
-                Expr_free(s->for_loop.incr_expr);
-            }
+            Expr_free_children(&s->for_loop.incr_expr);
             break;
         }
         default:
@@ -488,7 +490,7 @@ static JumpStatement* create_goto_statement(SourceLoc loc,
     return res;
 }
 
-static JumpStatement* create_return_statement(SourceLoc loc, Expr* ret_val) {
+static JumpStatement* create_return_statement(SourceLoc loc, Expr ret_val) {
     JumpStatement* res = create_jump_statement(loc, JUMP_STATEMENT_RETURN);
     res->ret_val = ret_val;
     return res;
@@ -524,17 +526,22 @@ static JumpStatement* parse_jump_statement(ParserState* s) {
                                         t == TOKEN_CONTINUE
                                             ? JUMP_STATEMENT_CONTINUE
                                             : JUMP_STATEMENT_BREAK);
-            res->ret_val = NULL;
+            res->ret_val = (Expr){
+                .len = 0,
+                .assign_exprs = NULL,
+            };
             break;
         }
         case TOKEN_RETURN: {
             parser_accept_it(s);
-            Expr* ret_val;
+            Expr ret_val;
             if (s->it->kind == TOKEN_SEMICOLON) {
-                ret_val = NULL;
+                ret_val = (Expr){
+                    .len = 0,
+                    .assign_exprs = NULL,
+                };
             } else {
-                ret_val = parse_expr(s);
-                if (!ret_val) {
+                if (!parse_expr_inplace(s, &ret_val)) {
                     return NULL;
                 }
             }
@@ -564,9 +571,7 @@ static void free_jump_statement_children(JumpStatement* s) {
         case JUMP_STATEMENT_BREAK:
             break;
         case JUMP_STATEMENT_RETURN:
-            if (s->ret_val) {
-                Expr_free(s->ret_val);
-            }
+            Expr_free_children(&s->ret_val);
             break;
     }
 }

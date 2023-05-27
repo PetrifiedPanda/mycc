@@ -78,7 +78,7 @@ typedef struct ExprStatement {
 typedef struct SelectionStatement {
     AstNodeInfo info;
     bool is_if;
-    Expr* sel_expr;
+    Expr sel_expr;
     Statement* sel_stat;
     Statement* else_stat;
 } SelectionStatement;
@@ -90,7 +90,7 @@ typedef struct {
         ExprStatement* init_expr;
     };
     ExprStatement* cond;
-    Expr* incr_expr;
+    Expr incr_expr; // when empty len == 0
 } ForLoop;
 
 typedef enum {
@@ -104,7 +104,7 @@ typedef struct IterationStatement {
     IterationStatementKind kind;
     Statement* loop_body;
     union {
-        Expr* while_cond;
+        Expr while_cond;
         ForLoop for_loop;
     };
 } IterationStatement;
@@ -121,7 +121,7 @@ typedef struct JumpStatement {
     JumpStatementKind kind;
     union {
         Identifier* goto_label;
-        Expr* ret_val;
+        Expr ret_val;
     };
 } JumpStatement;
 
@@ -146,7 +146,6 @@ void IterationStatement_free(IterationStatement* s);
 
 void JumpStatement_free(JumpStatement* s);
 
-#include "frontend/ast/expr/ConstExpr.h"
 #include "frontend/ast/Identifier.h"
 
 #endif

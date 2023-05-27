@@ -6,6 +6,8 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/expr/AssignExpr.h"
+
 bool parse_expr_inplace(ParserState* s, Expr* res) {
     assert(res);
 
@@ -41,15 +43,6 @@ bool parse_expr_inplace(ParserState* s, Expr* res) {
     return true;
 }
 
-Expr* parse_expr(ParserState* s) {
-    Expr* res = mycc_alloc(sizeof *res);
-    if (!parse_expr_inplace(s, res)) {
-        mycc_free(res);
-        return NULL;
-    }
-    return res;
-}
-
 void Expr_free_children(Expr* e) {
     for (size_t i = 0; i < e->len; ++i) {
         AssignExpr_free_children(&e->assign_exprs[i]);
@@ -57,7 +50,3 @@ void Expr_free_children(Expr* e) {
     mycc_free(e->assign_exprs);
 }
 
-void Expr_free(Expr* e) {
-    Expr_free_children(e);
-    mycc_free(e);
-}

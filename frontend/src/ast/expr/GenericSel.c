@@ -6,6 +6,8 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/TypeName.h"
+
 static bool parse_generic_assoc_inplace(ParserState* s, GenericAssoc* res) {
     assert(res);
 
@@ -87,30 +89,17 @@ void GenericAssocList_free(GenericAssocList* l) {
     mycc_free(l->assocs);
 }
 
-static GenericSel* create_generic_sel(AssignExpr* assign,
-                                      GenericAssocList assocs,
-                                      SourceLoc loc) {
-    assert(assign);
-    assert(assocs.len != 0);
-    GenericSel* res = mycc_alloc(sizeof *res);
-
-    res->info = AstNodeInfo_create(loc);
-    res->assign = assign;
-    res->assocs = assocs;
-    return res;
-}
-
-GenericSel* parse_generic_sel(ParserState* s) {
+bool parse_generic_sel_inplace(ParserState* s, GenericSel* res) {
     assert(s->it->kind == TOKEN_GENERIC);
-    const SourceLoc loc = s->it->loc;
+    res->info = AstNodeInfo_create(s->it->loc);
     parser_accept_it(s);
 
     if (!parser_accept(s, TOKEN_LBRACKET)) {
         return NULL;
     }
 
-    struct AssignExpr* assign = parse_assign_expr(s);
-    if (!assign) {
+    res->assign = parse_assign_expr(s);
+    if (!res->assign) {
         return NULL;
     }
 
@@ -118,29 +107,22 @@ GenericSel* parse_generic_sel(ParserState* s) {
         goto fail;
     }
 
-    GenericAssocList assocs;
-    if (!parse_generic_assoc_list(s, &assocs)) {
+    if (!parse_generic_assoc_list(s, &res->assocs)) {
         goto fail;
     }
 
     if (!parser_accept(s, TOKEN_RBRACKET)) {
-        GenericAssocList_free(&assocs);
+        GenericAssocList_free(&res->assocs);
         goto fail;
     }
 
-    return create_generic_sel(assign, assocs, loc);
-
+    return true;
 fail:
-    AssignExpr_free(assign);
-    return NULL;
+    AssignExpr_free(res->assign);
+    return false;
 }
 
-static void free_generic_sel_children(GenericSel* s) {
+void GenericSel_free_children(GenericSel* s) {
     AssignExpr_free(s->assign);
     GenericAssocList_free(&s->assocs);
-}
-
-void GenericSel_free(GenericSel* s) {
-    free_generic_sel_children(s);
-    mycc_free(s);
 }

@@ -151,12 +151,12 @@ static void serialize_assign_expr(AstSerializer* d, const AssignExpr* expr) {
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
         const UnaryAndOp* item = &expr->assign_chain[i];
-        serialize_unary_expr(d, item->unary);
+        serialize_unary_expr(d, &item->unary);
         const uint64_t op = item->op;
         assert((AssignExprOp)op == item->op);
         serialize_uint(d, op);
     }
-    serialize_cond_expr(d, expr->value);
+    serialize_cond_expr(d, &expr->value);
 }
 
 static void serialize_expr(AstSerializer* d, const Expr* expr) {
@@ -206,10 +206,10 @@ static void serialize_primary_expr(AstSerializer* d, const PrimaryExpr* expr) {
             break;
         case PRIMARY_EXPR_BRACKET:
             serialize_ast_node_info(d, &expr->info);
-            serialize_expr(d, expr->bracket_expr);
+            serialize_expr(d, &expr->bracket_expr);
             break;
         case PRIMARY_EXPR_GENERIC:
-            serialize_generic_sel(d, expr->generic);
+            serialize_generic_sel(d, &expr->generic);
             break;
     }
 }
@@ -286,7 +286,7 @@ static void serialize_postfix_suffix(AstSerializer* d, const PostfixSuffix* suff
 
     switch (suffix->kind) {
         case POSTFIX_INDEX:
-            serialize_expr(d, suffix->index_expr);
+            serialize_expr(d, &suffix->index_expr);
             break;
         case POSTFIX_BRACKET:
             serialize_arg_expr_list(d, &suffix->bracket_list);
@@ -304,7 +304,7 @@ static void serialize_postfix_suffix(AstSerializer* d, const PostfixSuffix* suff
 static void serialize_postfix_expr(AstSerializer* d, const PostfixExpr* expr) {
     serialize_bool(d, expr->is_primary);
     if (expr->is_primary) {
-        serialize_primary_expr(d, expr->primary);
+        serialize_primary_expr(d, &expr->primary);
     } else {
         serialize_ast_node_info(d, &expr->info);
         serialize_type_name(d, expr->type_name);
@@ -331,7 +331,7 @@ static void serialize_unary_expr(AstSerializer* d, const UnaryExpr* expr) {
     assert((UnaryExprKind)kind == expr->kind);
     switch (expr->kind) {
         case UNARY_POSTFIX:
-            serialize_postfix_expr(d, expr->postfix);
+            serialize_postfix_expr(d, &expr->postfix);
             break;
         case UNARY_ADDRESSOF:
         case UNARY_DEREF:
@@ -354,66 +354,66 @@ static void serialize_cast_expr(AstSerializer* d, const CastExpr* expr) {
     for (size_t i = 0; i < expr->len; ++i) {
         serialize_type_name(d, &expr->type_names[i]);
     }
-    serialize_unary_expr(d, expr->rhs);
+    serialize_unary_expr(d, &expr->rhs);
 }
 
 static void serialize_mul_expr(AstSerializer* d, const MulExpr* expr) {
-    serialize_cast_expr(d, expr->lhs);
+    serialize_cast_expr(d, &expr->lhs);
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
         const CastExprAndOp* item = &expr->mul_chain[i];
         const uint64_t mul_op = item->op;
         assert((MulExprOp)mul_op == item->op);
         serialize_uint(d, mul_op);
-        serialize_cast_expr(d, item->rhs);
+        serialize_cast_expr(d, &item->rhs);
     }
 }
 
 static void serialize_add_expr(AstSerializer* d, const AddExpr* expr) {
-    serialize_mul_expr(d, expr->lhs);
+    serialize_mul_expr(d, &expr->lhs);
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
         const MulExprAndOp* item = &expr->add_chain[i];
         const uint64_t add_op = item->op;
         assert((AddExprOp)add_op == item->op);
         serialize_uint(d, add_op);
-        serialize_mul_expr(d, item->rhs);
+        serialize_mul_expr(d, &item->rhs);
     }
 }
 
 static void serialize_shift_expr(AstSerializer* d, const ShiftExpr* expr) {
-    serialize_add_expr(d, expr->lhs);
+    serialize_add_expr(d, &expr->lhs);
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
         const AddExprAndOp* item = &expr->shift_chain[i];
         const uint64_t shift_op = item->op;
         assert((ShiftExprOp)shift_op == item->op);
         serialize_uint(d, shift_op);
-        serialize_add_expr(d, item->rhs);
+        serialize_add_expr(d, &item->rhs);
     }
 }
 
 static void serialize_rel_expr(AstSerializer* d, const RelExpr* expr) {
-    serialize_shift_expr(d, expr->lhs);
+    serialize_shift_expr(d, &expr->lhs);
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
         const ShiftExprAndOp* item = &expr->rel_chain[i];
         const uint64_t rel_op = item->op;
         assert((RelExprOp)rel_op == item->op);
         serialize_uint(d, rel_op);
-        serialize_shift_expr(d, item->rhs);
+        serialize_shift_expr(d, &item->rhs);
     }
 }
 
 static void serialize_eq_expr(AstSerializer* d, const EqExpr* expr) {
-    serialize_rel_expr(d, expr->lhs);
+    serialize_rel_expr(d, &expr->lhs);
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
         const RelExprAndOp* item = &expr->eq_chain[i];
         const uint64_t eq_op = item->op;
         assert((EqExprOp)eq_op == item->op);
         serialize_uint(d, eq_op);
-        serialize_rel_expr(d, item->rhs);
+        serialize_rel_expr(d, &item->rhs);
     }
 }
 
@@ -457,10 +457,10 @@ static void serialize_cond_expr(AstSerializer* d,
     serialize_uint(d, expr->len);
     for (size_t i = 0; i < expr->len; ++i) {
         const LogOrAndExpr* item = &expr->conditionals[i];
-        serialize_log_or_expr(d, item->log_or);
-        serialize_expr(d, item->expr);
+        serialize_log_or_expr(d, &item->log_or);
+        serialize_expr(d, &item->expr);
     }
-    serialize_log_or_expr(d, expr->last_else);
+    serialize_log_or_expr(d, &expr->last_else);
 }
 
 static void serialize_const_expr(AstSerializer* d, const ConstExpr* expr) {
@@ -831,7 +831,7 @@ static void serialize_expr_statement(AstSerializer* d, const ExprStatement* stat
 static void serialize_selection_statement(AstSerializer* d, const SelectionStatement* stat) {
     serialize_ast_node_info(d, &stat->info);
     serialize_bool(d, stat->is_if);
-    serialize_expr(d, stat->sel_expr);
+    serialize_expr(d, &stat->sel_expr);
     serialize_statement(d, stat->sel_stat);
     const bool has_else = stat->else_stat != NULL;
     serialize_bool(d, has_else);
@@ -848,7 +848,7 @@ static void serialize_for_loop(AstSerializer* d, const ForLoop* loop) {
         serialize_expr_statement(d, loop->init_expr);
     }
     serialize_expr_statement(d, loop->cond);
-    serialize_expr(d, loop->incr_expr);
+    serialize_expr(d, &loop->incr_expr);
 }
 
 static void serialize_iteration_statement(
@@ -862,7 +862,7 @@ static void serialize_iteration_statement(
     switch (stat->kind) {
         case ITERATION_STATEMENT_WHILE:
         case ITERATION_STATEMENT_DO:
-            serialize_expr(d, stat->while_cond);
+            serialize_expr(d, &stat->while_cond);
             break;
         case ITERATION_STATEMENT_FOR:
             serialize_for_loop(d, &stat->for_loop);
@@ -883,11 +883,7 @@ static void serialize_jump_statement(AstSerializer* d, const JumpStatement* stat
         case JUMP_STATEMENT_BREAK:
             break;
         case JUMP_STATEMENT_RETURN: {
-            const bool has_ret_val = stat->ret_val != NULL;
-            serialize_bool(d, has_ret_val);
-            if (has_ret_val) {
-                serialize_expr(d, stat->ret_val);
-            }
+            serialize_expr(d, &stat->ret_val);
             break;
         }
     }

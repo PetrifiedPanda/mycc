@@ -5145,6 +5145,8 @@ translation_unit:
           statement:
             jump_statement: ../frontend/test/files/no_preproc.c:117,5
               type: return
+              expr:
+                len: 0
         block_item:
           declaration:
             declaration_specs: ../frontend/test/files/no_preproc.c:118,5

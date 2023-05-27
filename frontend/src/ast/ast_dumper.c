@@ -365,7 +365,7 @@ static void dump_primary_expr(AstDumper* d, const PrimaryExpr* e) {
 
             add_indent(d);
 
-            dump_expr(d, e->bracket_expr);
+            dump_expr(d, &e->bracket_expr);
 
             remove_indent(d);
             break;
@@ -373,7 +373,7 @@ static void dump_primary_expr(AstDumper* d, const PrimaryExpr* e) {
             dumper_println(d, "primary_expr:");
             add_indent(d);
 
-            dump_generic_sel(d, e->generic);
+            dump_generic_sel(d, &e->generic);
 
             remove_indent(d);
             break;
@@ -661,7 +661,7 @@ static void dump_postfix_suffix(AstDumper* d, const PostfixSuffix* s) {
 
     switch (s->kind) {
         case POSTFIX_INDEX:
-            dump_expr(d, s->index_expr);
+            dump_expr(d, &s->index_expr);
             break;
         case POSTFIX_BRACKET:
             dump_arg_expr_list(d, &s->bracket_list);
@@ -685,7 +685,7 @@ static void dump_postfix_suffix(AstDumper* d, const PostfixSuffix* s) {
 
 static void dump_init_list(AstDumper* d, const InitList* l);
 
-static void dump_postfix_expr(AstDumper* d, PostfixExpr* e) {
+static void dump_postfix_expr(AstDumper* d, const PostfixExpr* e) {
     assert(e);
 
     if (e->is_primary) {
@@ -697,7 +697,7 @@ static void dump_postfix_expr(AstDumper* d, PostfixExpr* e) {
     add_indent(d);
 
     if (e->is_primary) {
-        dump_primary_expr(d, e->primary);
+        dump_primary_expr(d, &e->primary);
     } else {
         dump_type_name(d, e->type_name);
         dump_init_list(d, &e->init_list);
@@ -725,7 +725,7 @@ static void dump_cast_expr(AstDumper* d, const CastExpr* e) {
         dump_type_name(d, &e->type_names[i]);
     }
 
-    dump_unary_expr(d, e->rhs);
+    dump_unary_expr(d, &e->rhs);
 
     remove_indent(d);
 }
@@ -777,7 +777,7 @@ static void dump_unary_expr(AstDumper* d, const UnaryExpr* e) {
 
     switch (e->kind) {
         case UNARY_POSTFIX:
-            dump_postfix_expr(d, e->postfix);
+            dump_postfix_expr(d, &e->postfix);
             break;
         case UNARY_ADDRESSOF:
         case UNARY_DEREF:
@@ -846,13 +846,13 @@ static void dump_assign_expr(AstDumper* d, const AssignExpr* e) {
 
         UnaryAndOp* item = &e->assign_chain[i];
 
-        dump_unary_expr(d, item->unary);
+        dump_unary_expr(d, &item->unary);
 
         dumper_puts(d, assign_expr_op_str(item->op));
 
         remove_indent(d);
     }
-    dump_cond_expr(d, e->value);
+    dump_cond_expr(d, &e->value);
 
     remove_indent(d);
 }
@@ -1169,13 +1169,13 @@ static void dump_iteration_statement(AstDumper* d,
     switch (s->kind) {
         case ITERATION_STATEMENT_WHILE:
             dumper_println(d, "type: while");
-            dump_expr(d, s->while_cond);
+            dump_expr(d, &s->while_cond);
             dump_statement(d, s->loop_body);
             break;
         case ITERATION_STATEMENT_DO:
             dumper_println(d, "type: do");
             dump_statement(d, s->loop_body);
-            dump_expr(d, s->while_cond);
+            dump_expr(d, &s->while_cond);
             break;
         case ITERATION_STATEMENT_FOR:
             dumper_println(d, "type: for");
@@ -1185,7 +1185,7 @@ static void dump_iteration_statement(AstDumper* d,
                 dump_expr_statement(d, s->for_loop.init_expr);
             }
             dump_expr_statement(d, s->for_loop.cond);
-            dump_expr(d, s->for_loop.incr_expr);
+            dump_expr(d, &s->for_loop.incr_expr);
             dump_statement(d, s->loop_body);
             break;
         default:
@@ -1214,9 +1214,7 @@ static void dump_jump_statement(AstDumper* d, const JumpStatement* s) {
             break;
         case JUMP_STATEMENT_RETURN:
             dumper_println(d, "type: return");
-            if (s->ret_val) {
-                dump_expr(d, s->ret_val);
-            }
+            dump_expr(d, &s->ret_val);
             break;
         default:
             UNREACHABLE();
@@ -1446,11 +1444,11 @@ static void dump_mul_expr(AstDumper* d, const MulExpr* e) {
     add_indent(d);
 
     dumper_println(d, "len: %zu", e->len);
-    dump_cast_expr(d, e->lhs);
+    dump_cast_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         CastExprAndOp* item = &e->mul_chain[i];
         dumper_println(d, "mul_op: %s", mul_expr_op_str(item->op));
-        dump_cast_expr(d, item->rhs);
+        dump_cast_expr(d, &item->rhs);
     }
 
     remove_indent(d);
@@ -1474,11 +1472,11 @@ static void dump_add_expr(AstDumper* d, const AddExpr* e) {
     add_indent(d);
 
     dumper_println(d, "len: %zu", e->len);
-    dump_mul_expr(d, e->lhs);
+    dump_mul_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         MulExprAndOp* item = &e->add_chain[i];
         dumper_println(d, "add_op: %s", add_expr_op_str(item->op));
-        dump_mul_expr(d, item->rhs);
+        dump_mul_expr(d, &item->rhs);
     }
 
     remove_indent(d);
@@ -1502,11 +1500,11 @@ static void dump_shift_expr(AstDumper* d, const ShiftExpr* e) {
     add_indent(d);
 
     dumper_println(d, "len: %zu", e->len);
-    dump_add_expr(d, e->lhs);
+    dump_add_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         AddExprAndOp* item = &e->shift_chain[i];
         dumper_println(d, "shift_op: %s", shift_expr_op_str(item->op));
-        dump_add_expr(d, item->rhs);
+        dump_add_expr(d, &item->rhs);
     }
 
     remove_indent(d);
@@ -1534,11 +1532,11 @@ static void dump_rel_expr(AstDumper* d, const RelExpr* e) {
     add_indent(d);
 
     dumper_println(d, "len: %zu", e->len);
-    dump_shift_expr(d, e->lhs);
+    dump_shift_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         ShiftExprAndOp* item = &e->rel_chain[i];
         dumper_println(d, "rel_op: %s", rel_expr_op_str(item->op));
-        dump_shift_expr(d, item->rhs);
+        dump_shift_expr(d, &item->rhs);
     }
 
     remove_indent(d);
@@ -1562,11 +1560,11 @@ static void dump_eq_expr(AstDumper* d, const EqExpr* e) {
     add_indent(d);
 
     dumper_println(d, "len: %zu", e->len);
-    dump_rel_expr(d, e->lhs);
+    dump_rel_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         RelExprAndOp* item = &e->eq_chain[i];
         dumper_println(d, "eq_op: %s", eq_expr_op_str(item->op));
-        dump_rel_expr(d, item->rhs);
+        dump_rel_expr(d, &item->rhs);
     }
 
     remove_indent(d);
@@ -1657,10 +1655,10 @@ static void dump_cond_expr(AstDumper* d, const CondExpr* e) {
     dumper_println(d, "len: %zu", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         LogOrAndExpr* item = &e->conditionals[i];
-        dump_log_or_expr(d, item->log_or);
-        dump_expr(d, item->expr);
+        dump_log_or_expr(d, &item->log_or);
+        dump_expr(d, &item->expr);
     }
-    dump_log_or_expr(d, e->last_else);
+    dump_log_or_expr(d, &e->last_else);
 
     remove_indent(d);
 }

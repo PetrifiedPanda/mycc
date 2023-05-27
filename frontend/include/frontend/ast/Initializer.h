@@ -72,9 +72,4 @@ void Designation_free_children(Designation* d);
 
 void InitList_free_children(InitList* l);
 
-#include "frontend/ast/expr/AssignExpr.h"
-#include "frontend/ast/expr/ConstExpr.h"
-
-#include "frontend/ast/Identifier.h"
-
 #endif

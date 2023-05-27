@@ -36,7 +36,7 @@ void Enumerator_free(Enumerator* e);
 
 #include "frontend/ast/Identifier.h"
 
-#include "frontend/ast/expr/ConstExpr.h"
+#include "frontend/ast/expr/AssignExpr.h"
 
 #endif
 

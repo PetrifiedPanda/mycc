@@ -5,6 +5,9 @@
 
 #include "frontend/parser/ParserState.h"
 
+#include "frontend/ast/AstNodeInfo.h"
+#include "frontend/ast/StringLiteralNode.h"
+
 typedef struct AssignExpr AssignExpr;
 
 typedef struct Expr {
@@ -14,13 +17,7 @@ typedef struct Expr {
 
 bool parse_expr_inplace(ParserState* s, Expr* res);
 
-Expr* parse_expr(ParserState* s);
-
 void Expr_free_children(Expr* expr);
-
-void Expr_free(Expr* expr);
-
-#include "AssignExpr.h"
 
 #endif
 

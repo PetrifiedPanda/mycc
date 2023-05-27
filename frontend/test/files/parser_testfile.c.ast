@@ -7190,6 +7190,8 @@ translation_unit:
           statement:
             jump_statement: ../frontend/test/files/parser_testfile.c:143,5
               type: return
+              expr:
+                len: 0
   external_declaration:
     func_def:
       declaration_specs: ../frontend/test/files/parser_testfile.c:146,1

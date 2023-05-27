@@ -128,10 +128,10 @@ static bool compare_assign_exprs(const AssignExpr* e1, const AssignExpr* e2) {
     for (size_t i = 0; i < e1->len; ++i) {
         UnaryAndOp* item1 = &e1->assign_chain[i];
         UnaryAndOp* item2 = &e2->assign_chain[i];
-        ASSERT(compare_unary_exprs(item1->unary, item2->unary));
+        ASSERT(compare_unary_exprs(&item1->unary, &item2->unary));
         ASSERT(item1->op == item2->op);
     }
-    return compare_cond_exprs(e1->value, e2->value);
+    return compare_cond_exprs(&e1->value, &e2->value);
 }
 
 static bool compare_generic_assocs(const GenericAssoc* a1,
@@ -170,9 +170,9 @@ static bool compare_primary_exprs(const PrimaryExpr* e1,
         case PRIMARY_EXPR_STRING_LITERAL:
             return compare_string_constants(&e1->string, &e2->string);
         case PRIMARY_EXPR_BRACKET:
-            return compare_exprs(e1->bracket_expr, e2->bracket_expr);
+            return compare_exprs(&e1->bracket_expr, &e2->bracket_expr);
         case PRIMARY_EXPR_GENERIC:
-            return compare_generic_sel(e1->generic, e2->generic);
+            return compare_generic_sel(&e1->generic, &e2->generic);
     }
     UNREACHABLE();
 }
@@ -244,7 +244,7 @@ static bool compare_postfix_suffixes(const PostfixSuffix* s1,
     ASSERT(s1->kind == s2->kind);
     switch (s1->kind) {
         case POSTFIX_INDEX:
-            return compare_exprs(s1->index_expr, s2->index_expr);
+            return compare_exprs(&s1->index_expr, &s2->index_expr);
         case POSTFIX_BRACKET:
             return compare_arg_expr_lists(&s1->bracket_list, &s2->bracket_list);
         case POSTFIX_ACCESS:
@@ -261,7 +261,7 @@ static bool compare_postfix_exprs(const PostfixExpr* e1,
                                   const PostfixExpr* e2) {
     ASSERT(e1->is_primary == e2->is_primary);
     if (e1->is_primary) {
-        ASSERT(compare_primary_exprs(e1->primary, e2->primary));
+        ASSERT(compare_primary_exprs(&e1->primary, &e2->primary));
     } else {
         ASSERT(compare_ast_node_infos(&e1->info, &e2->info));
         ASSERT(compare_type_names(e1->type_name, e2->type_name));
@@ -285,7 +285,7 @@ static bool compare_unary_exprs(const UnaryExpr* e1, const UnaryExpr* e2) {
     ASSERT(e1->kind == e2->kind);
     switch (e1->kind) {
         case UNARY_POSTFIX:
-            return compare_postfix_exprs(e1->postfix, e2->postfix);
+            return compare_postfix_exprs(&e1->postfix, &e2->postfix);
         case UNARY_ADDRESSOF:
         case UNARY_DEREF:
         case UNARY_PLUS:
@@ -306,65 +306,65 @@ static bool compare_cast_exprs(const CastExpr* e1, const CastExpr* e2) {
     for (size_t i = 0; i < e1->len; ++i) {
         ASSERT(compare_type_names(&e1->type_names[i], &e2->type_names[i]));
     }
-    return compare_unary_exprs(e1->rhs, e2->rhs);
+    return compare_unary_exprs(&e1->rhs, &e2->rhs);
 }
 
 static bool compare_mul_exprs(const MulExpr* e1, const MulExpr* e2) {
-    ASSERT(compare_cast_exprs(e1->lhs, e2->lhs));
+    ASSERT(compare_cast_exprs(&e1->lhs, &e2->lhs));
     ASSERT(e1->len == e2->len);
     for (size_t i = 0; i < e1->len; ++i) {
         const CastExprAndOp* item1 = &e1->mul_chain[i];
         const CastExprAndOp* item2 = &e2->mul_chain[i];
         ASSERT(item1->op == item2->op);
-        ASSERT(compare_cast_exprs(item1->rhs, item2->rhs));
+        ASSERT(compare_cast_exprs(&item1->rhs, &item2->rhs));
     }
     return true;
 }
 
 static bool compare_add_exprs(const AddExpr* e1, const AddExpr* e2) {
-    ASSERT(compare_mul_exprs(e1->lhs, e2->lhs));
+    ASSERT(compare_mul_exprs(&e1->lhs, &e2->lhs));
     ASSERT(e1->len == e2->len);
     for (size_t i = 0; i < e1->len; ++i) {
         const MulExprAndOp* item1 = &e1->add_chain[i];
         const MulExprAndOp* item2 = &e2->add_chain[i];
         ASSERT(item1->op == item2->op);
-        ASSERT(compare_mul_exprs(item1->rhs, item2->rhs));
+        ASSERT(compare_mul_exprs(&item1->rhs, &item2->rhs));
     }
     return true;
 }
 
 static bool compare_shift_exprs(const ShiftExpr* e1, const ShiftExpr* e2) {
-    ASSERT(compare_add_exprs(e1->lhs, e2->lhs));
+    ASSERT(compare_add_exprs(&e1->lhs, &e2->lhs));
     ASSERT(e1->len == e2->len);
     for (size_t i = 0; i < e1->len; ++i) {
         const AddExprAndOp* item1 = &e1->shift_chain[i];
         const AddExprAndOp* item2 = &e2->shift_chain[i];
         ASSERT(item1->op == item2->op);
-        ASSERT(compare_add_exprs(item1->rhs, item2->rhs));
+        ASSERT(compare_add_exprs(&item1->rhs, &item2->rhs));
     }
     return true;
 }
 
 static bool compare_rel_exprs(const RelExpr* e1, const RelExpr* e2) {
-    ASSERT(compare_shift_exprs(e1->lhs, e2->lhs));
+    ASSERT(compare_shift_exprs(&e1->lhs, &e2->lhs));
     ASSERT(e1->len == e2->len);
     for (size_t i = 0; i < e1->len; ++i) {
         const ShiftExprAndOp* item1 = &e1->rel_chain[i];
         const ShiftExprAndOp* item2 = &e2->rel_chain[i];
         ASSERT(item1->op == item2->op);
-        ASSERT(compare_shift_exprs(item1->rhs, item2->rhs));
+        ASSERT(compare_shift_exprs(&item1->rhs, &item2->rhs));
     }
     return true;
 }
 
 static bool compare_eq_exprs(const EqExpr* e1, const EqExpr* e2) {
-    ASSERT(compare_rel_exprs(e1->lhs, e2->lhs));
+    ASSERT(compare_rel_exprs(&e1->lhs, &e2->lhs));
     ASSERT(e1->len == e2->len);
     for (size_t i = 0; i < e1->len; ++i) {
         const RelExprAndOp* item1 = &e1->eq_chain[i];
         const RelExprAndOp* item2 = &e2->eq_chain[i];
         ASSERT(item1->op == item2->op);
-        ASSERT(compare_rel_exprs(item1->rhs, item2->rhs));
+        ASSERT(compare_rel_exprs(&item1->rhs, &item2->rhs));
     }
     return true;
 }
@@ -424,10 +424,10 @@ static bool compare_cond_exprs(const struct CondExpr* e1,
     for (size_t i = 0; i < e1->len; ++i) {
         const LogOrAndExpr* item1 = &e1->conditionals[i];
         const LogOrAndExpr* item2 = &e2->conditionals[i];
-        ASSERT(compare_log_or_exprs(item1->log_or, item2->log_or));
-        ASSERT(compare_exprs(item1->expr, item2->expr));
+        ASSERT(compare_log_or_exprs(&item1->log_or, &item2->log_or));
+        ASSERT(compare_exprs(&item1->expr, &item2->expr));
     }
-    return compare_log_or_exprs(e1->last_else, e2->last_else);
+    return compare_log_or_exprs(&e1->last_else, &e2->last_else);
 }
 
 static bool compare_const_exprs(const ConstExpr* e1, const ConstExpr* e2) {
@@ -827,7 +827,7 @@ static bool compare_selection_statements(const SelectionStatement* s1,
                                          const SelectionStatement* s2) {
     ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
     ASSERT(s1->is_if == s2->is_if);
-    ASSERT(compare_exprs(s1->sel_expr, s2->sel_expr));
+    ASSERT(compare_exprs(&s1->sel_expr, &s2->sel_expr));
     ASSERT(compare_statements(s1->sel_stat, s2->sel_stat));
     COMPARE_NULLABLE(s1->else_stat, s2->else_stat, compare_statements);
     return true;
@@ -841,7 +841,7 @@ static bool compare_for_loops(const ForLoop* l1, const ForLoop* l2) {
         ASSERT(compare_expr_statements(l1->init_expr, l2->init_expr));
     }
     ASSERT(compare_expr_statements(l1->cond, l2->cond));
-    return compare_exprs(l1->incr_expr, l2->incr_expr);
+    return compare_exprs(&l1->incr_expr, &l2->incr_expr);
 }
 
 static bool compare_iteration_statements(const struct IterationStatement* s1,
@@ -852,7 +852,7 @@ static bool compare_iteration_statements(const struct IterationStatement* s1,
     switch (s1->kind) {
         case ITERATION_STATEMENT_WHILE:
         case ITERATION_STATEMENT_DO:
-            return compare_exprs(s1->while_cond, s2->while_cond);
+            return compare_exprs(&s1->while_cond, &s2->while_cond);
         case ITERATION_STATEMENT_FOR:
             return compare_for_loops(&s1->for_loop, &s2->for_loop);
     }
@@ -870,8 +870,7 @@ static bool compare_jump_statements(const struct JumpStatement* s1,
         case JUMP_STATEMENT_BREAK:
             return true;
         case JUMP_STATEMENT_RETURN:
-            COMPARE_NULLABLE(s1->ret_val, s2->ret_val, compare_exprs);
-            return true;
+            return compare_exprs(&s1->ret_val, &s2->ret_val);
     }
     UNREACHABLE();
 }

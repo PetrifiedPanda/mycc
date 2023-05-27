@@ -15,7 +15,7 @@ static JumpStatement* parse_jump_statement_helper(const char* code) {
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
-    
+
     Statement stat;
     bool res = parse_statement_inplace(&s, &stat);
     ASSERT(res);
@@ -26,7 +26,7 @@ static JumpStatement* parse_jump_statement_helper(const char* code) {
 
     ParserState_free(&s);
     PreprocRes_free(&preproc_res);
-    
+
     return stat.jmp;
 }
 
@@ -60,8 +60,7 @@ static void check_expected_semicolon_jump_statement(const char* spell) {
 
 TEST(jump_statement) {
     {
-        JumpStatement* res = parse_jump_statement_helper(
-            "goto my_cool_label;");
+        JumpStatement* res = parse_jump_statement_helper("goto my_cool_label;");
 
         ASSERT(res->kind == JUMP_STATEMENT_GOTO);
 
@@ -83,9 +82,9 @@ TEST(jump_statement) {
         JumpStatement* res = parse_jump_statement_helper("return 600;");
 
         ASSERT(res->kind == JUMP_STATEMENT_RETURN);
-        ASSERT_NOT_NULL(res->ret_val);
+        ASSERT_SIZE_T(res->ret_val.len, 1);
 
-        check_expr_val(res->ret_val, Value_create_sint(VALUE_I, 600));
+        check_expr_val(&res->ret_val, Value_create_sint(VALUE_I, 600));
 
         JumpStatement_free(res);
     }
@@ -124,23 +123,22 @@ TEST(statement) {
     ASSERT_SIZE_T(iteration->for_loop.cond->expr.assign_exprs[0].len,
                   (size_t)0);
 
-    RelExpr* rel = iteration->for_loop.cond->expr.assign_exprs[0]
-                               .value->last_else->log_ands->or_exprs->xor_exprs
-                               ->and_exprs->eq_exprs->lhs;
+    RelExpr* rel = &iteration->for_loop.cond->expr.assign_exprs[0]
+                        .value.last_else.log_ands->or_exprs->xor_exprs
+                        ->and_exprs->eq_exprs->lhs;
     ASSERT_SIZE_T(rel->len, (size_t)1);
-    check_shift_expr_id(rel->lhs, "i");
+    check_shift_expr_id(&rel->lhs, "i");
     ASSERT(rel->rel_chain[0].op == REL_EXPR_LT);
-    check_shift_expr_val(rel->rel_chain[0].rhs,
+    check_shift_expr_val(&rel->rel_chain[0].rhs,
                          Value_create_sint(VALUE_I, 100));
 
-    UnaryExpr* unary = iteration->for_loop.incr_expr->assign_exprs
-                                   ->value->last_else->log_ands->or_exprs
-                                   ->xor_exprs->and_exprs->eq_exprs->lhs->lhs
-                                   ->lhs->lhs->lhs->rhs;
+    UnaryExpr* unary = &iteration->for_loop.incr_expr.assign_exprs->value
+                           .last_else.log_ands->or_exprs->xor_exprs->and_exprs
+                           ->eq_exprs->lhs.lhs.lhs.lhs.lhs.rhs;
     ASSERT_SIZE_T(unary->len, (size_t)1);
     ASSERT(unary->ops_before[0] == UNARY_OP_INC);
     ASSERT(unary->kind == UNARY_POSTFIX);
-    check_postfix_expr_id(unary->postfix, "i");
+    check_postfix_expr_id(&unary->postfix, "i");
 
     ASSERT(iteration->loop_body->kind == STATEMENT_COMPOUND);
     CompoundStatement* compound = iteration->loop_body->comp;
@@ -148,7 +146,7 @@ TEST(statement) {
 
     SelectionStatement* switch_stat = compound->items[0].stat.sel;
     ASSERT(switch_stat->is_if == false);
-    check_expr_id(switch_stat->sel_expr, "c");
+    check_expr_id(&switch_stat->sel_expr, "c");
     ASSERT(switch_stat->sel_stat->kind == STATEMENT_COMPOUND);
     {
         CompoundStatement* switch_compound = switch_stat->sel_stat->comp;
@@ -158,27 +156,25 @@ TEST(statement) {
         ASSERT(labeled->kind == LABELED_STATEMENT_CASE);
 
         ASSERT_NOT_NULL(labeled->case_expr);
-        check_const_expr_val(labeled->case_expr,
-                             Value_create_sint(VALUE_I, 2));
+        check_const_expr_val(labeled->case_expr, Value_create_sint(VALUE_I, 2));
 
         ASSERT(labeled->stat->kind == STATEMENT_EXPRESSION);
         Expr* case_expr = &labeled->stat->expr->expr;
         ASSERT_SIZE_T(case_expr->assign_exprs->len, (size_t)1);
 
-        check_cond_expr_val(case_expr->assign_exprs->value,
+        check_cond_expr_val(&case_expr->assign_exprs->value,
                             Value_create_sint(VALUE_I, 5));
         ASSERT(case_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_SUB);
-        check_unary_expr_id(case_expr->assign_exprs->assign_chain[0].unary,
+        check_unary_expr_id(&case_expr->assign_exprs->assign_chain[0].unary,
                             "d");
 
         ASSERT(switch_compound->items[1].stat.kind == STATEMENT_JUMP);
         JumpStatement* break_stat = switch_compound->items[1].stat.jmp;
         ASSERT(break_stat->kind == JUMP_STATEMENT_BREAK);
-        ASSERT_NULL(break_stat->ret_val);
+        ASSERT_SIZE_T(break_stat->ret_val.len, 0);
 
         ASSERT(switch_compound->items[2].stat.kind == STATEMENT_LABELED);
-        LabeledStatement* default_stat = switch_compound->items[2]
-                                                     .stat.labeled;
+        LabeledStatement* default_stat = switch_compound->items[2].stat.labeled;
 
         ASSERT(default_stat->kind == LABELED_STATEMENT_DEFAULT);
         ASSERT_NULL(default_stat->case_expr);
@@ -187,11 +183,11 @@ TEST(statement) {
         Expr* default_expr = &default_stat->stat->expr->expr;
 
         ASSERT_SIZE_T(default_expr->assign_exprs->len, (size_t)1);
-        check_cond_expr_val(default_expr->assign_exprs->value,
+        check_cond_expr_val(&default_expr->assign_exprs->value,
                             Value_create_sint(VALUE_I, 5));
         ASSERT(default_expr->assign_exprs->assign_chain[0].op
                == ASSIGN_EXPR_ADD);
-        check_unary_expr_id(default_expr->assign_exprs->assign_chain[0].unary,
+        check_unary_expr_id(&default_expr->assign_exprs->assign_chain[0].unary,
                             "d");
     }
 
@@ -200,14 +196,14 @@ TEST(statement) {
 
     ASSERT(if_stat->is_if);
 
-    RelExpr* if_cond = if_stat->sel_expr->assign_exprs->value->last_else
-                                   ->log_ands->or_exprs->xor_exprs->and_exprs
-                                   ->eq_exprs->lhs;
+    RelExpr* if_cond = &if_stat->sel_expr.assign_exprs->value.last_else
+                            .log_ands->or_exprs->xor_exprs->and_exprs->eq_exprs
+                            ->lhs;
 
     ASSERT_SIZE_T(if_cond->len, (size_t)1);
-    check_shift_expr_id(if_cond->lhs, "i");
+    check_shift_expr_id(&if_cond->lhs, "i");
     ASSERT(if_cond->rel_chain[0].op == REL_EXPR_GE);
-    check_shift_expr_val(if_cond->rel_chain[0].rhs,
+    check_shift_expr_val(&if_cond->rel_chain[0].rhs,
                          Value_create_sint(VALUE_I, 5));
 
     ASSERT(if_stat->sel_stat->kind == STATEMENT_COMPOUND);
@@ -219,11 +215,11 @@ TEST(statement) {
     ASSERT_NOT_NULL(if_stat->else_stat);
     ASSERT(if_stat->else_stat->kind == STATEMENT_EXPRESSION);
     Expr* else_expr = &if_stat->else_stat->expr->expr;
-    check_cond_expr_val(else_expr->assign_exprs->value,
+    check_cond_expr_val(&else_expr->assign_exprs->value,
                         Value_create_sint(VALUE_I, 0));
     ASSERT_SIZE_T(else_expr->assign_exprs->len, (size_t)1);
     ASSERT(else_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_ASSIGN);
-    check_unary_expr_id(else_expr->assign_exprs->assign_chain[0].unary, "b");
+    check_unary_expr_id(&else_expr->assign_exprs->assign_chain[0].unary, "b");
 
     Statement_free(res);
     ParserState_free(&s);
@@ -232,8 +228,7 @@ TEST(statement) {
     // TODO: Add tests with declarations when implemented
 }
 
-TEST_SUITE_BEGIN(parser_statement) {
+TEST_SUITE_BEGIN(parser_statement){
     REGISTER_TEST(jump_statement),
     REGISTER_TEST(statement),
-}
-TEST_SUITE_END()
+} TEST_SUITE_END()

@@ -65,8 +65,7 @@ void DirectDeclarator_free(DirectDeclarator* d);
 
 #include "frontend/ast/Identifier.h"
 
-#include "frontend/ast/expr/AssignExpr.h"
-#include "frontend/ast/expr/ConstExpr.h"
+#include "frontend/ast/expr/Expr.h"
 
 #endif
 
