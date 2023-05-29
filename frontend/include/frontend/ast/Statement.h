@@ -6,6 +6,7 @@
 #include "frontend/ast/declaration/Declaration.h"
 
 #include "frontend/ast/expr/Expr.h"
+#include "frontend/ast/expr/AssignExpr.h"
 
 #include "AstNodeInfo.h"
 
@@ -37,7 +38,6 @@ typedef struct Statement {
     };
 } Statement;
 
-typedef struct ConstExpr ConstExpr;
 typedef struct Identifier Identifier;
 
 typedef enum {
@@ -51,7 +51,7 @@ typedef struct LabeledStatement {
     LabeledStatementKind kind;
     union {
         Identifier* label;
-        ConstExpr* case_expr;
+        ConstExpr case_expr;
     };
     Statement* stat;
 } LabeledStatement;

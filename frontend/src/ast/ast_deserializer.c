@@ -1068,14 +1068,15 @@ static bool deserialize_cond_expr_inplace(AstDeserializer* r, CondExpr* res) {
     return true;
 }
 
+static bool deserialize_const_expr_inplace(AstDeserializer* r, ConstExpr* res) {
+    return deserialize_cond_expr_inplace(r, &res->expr);
+}
+
 static ConstExpr* deserialize_const_expr(AstDeserializer* r) {
-    CondExpr cond;
-    if (!deserialize_cond_expr_inplace(r, &cond)) {
+    ConstExpr* res = mycc_alloc(sizeof *res);
+    if (!deserialize_const_expr_inplace(r, res)) {
         return NULL;
     }
-
-    ConstExpr* res = mycc_alloc(sizeof *res);
-    res->expr = cond;
     return res;
 }
 
@@ -1886,8 +1887,7 @@ static LabeledStatement* deserialize_labeled_statement(
     assert((uint64_t)res->kind == kind);
     switch (res->kind) {
         case LABELED_STATEMENT_CASE:
-            res->case_expr = deserialize_const_expr(r);
-            if (!res->case_expr) {
+            if (!deserialize_const_expr_inplace(r, &res->case_expr)) {
                 goto fail;
             }
             break;
@@ -1905,7 +1905,7 @@ static LabeledStatement* deserialize_labeled_statement(
     if (!res->stat) {
         switch (res->kind) {
             case LABELED_STATEMENT_CASE:
-                ConstExpr_free(res->case_expr);
+                ConstExpr_free_children(&res->case_expr);
                 break;
             case LABELED_STATEMENT_LABEL:
                 Identifier_free(res->label);

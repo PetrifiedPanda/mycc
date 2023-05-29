@@ -16,8 +16,8 @@ static LabeledStatement* parse_labeled_statement(ParserState* s) {
         case TOKEN_CASE: {
             res->kind = LABELED_STATEMENT_CASE;
             parser_accept_it(s);
-            ConstExpr* case_expr = parse_const_expr(s);
-            if (!case_expr) {
+            ConstExpr case_expr;
+            if (!parse_const_expr_inplace(s, &case_expr)) {
                 mycc_free(res);
                 return NULL;
             }
@@ -37,7 +37,6 @@ static LabeledStatement* parse_labeled_statement(ParserState* s) {
         case TOKEN_DEFAULT: {
             res->kind = LABELED_STATEMENT_DEFAULT;
             parser_accept_it(s);
-            res->case_expr = NULL;
             break;
         }
         default:
@@ -56,19 +55,19 @@ static LabeledStatement* parse_labeled_statement(ParserState* s) {
     return res;
 fail:
     if (res->kind == LABELED_STATEMENT_CASE) {
-        ConstExpr_free(res->case_expr);
+        ConstExpr_free_children(&res->case_expr);
     }
     mycc_free(res);
     return NULL;
 }
 
-static void free_labeled_statement_children(LabeledStatement* s) {
+static void LabeledStatement_free_children(LabeledStatement* s) {
     switch (s->kind) {
         case LABELED_STATEMENT_LABEL:
             Identifier_free(s->label);
             break;
         case LABELED_STATEMENT_CASE:
-            ConstExpr_free(s->case_expr);
+            ConstExpr_free_children(&s->case_expr);
             break;
         case LABELED_STATEMENT_DEFAULT:
             break;
@@ -79,7 +78,7 @@ static void free_labeled_statement_children(LabeledStatement* s) {
 }
 
 void LabeledStatement_free(LabeledStatement* s) {
-    free_labeled_statement_children(s);
+    LabeledStatement_free_children(s);
     mycc_free(s);
 }
 

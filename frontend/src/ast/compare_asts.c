@@ -786,7 +786,7 @@ static bool compare_labeled_statements(const LabeledStatement* s1,
     ASSERT(s1->kind == s2->kind);
     switch (s1->kind) {
         case LABELED_STATEMENT_CASE:
-            ASSERT(compare_const_exprs(s1->case_expr, s2->case_expr));
+            ASSERT(compare_const_exprs(&s1->case_expr, &s2->case_expr));
             break;
         case LABELED_STATEMENT_LABEL:
             ASSERT(compare_identifiers(s1->label, s2->label));

@@ -892,9 +892,13 @@ static bool parse_cond_expr_cast(ParserState* s, CondExpr* res, const CastExpr* 
     return true;
 }
 
+bool parse_const_expr_inplace(ParserState* s, ConstExpr* res) {
+    return parse_cond_expr_inplace(s, &res->expr);
+}
+
 ConstExpr* parse_const_expr(ParserState* s) {
     ConstExpr* res = mycc_alloc(sizeof *res);
-    if (!parse_cond_expr_inplace(s, &res->expr)) {
+    if (!parse_const_expr_inplace(s, res)) {
         mycc_free(res);
         return NULL;
     }
@@ -1174,7 +1178,7 @@ void CondExpr_free_children(CondExpr* e) {
     LogOrExpr_free_children(&e->last_else);
 }
 
-static void ConstExpr_free_children(ConstExpr* e) {
+void ConstExpr_free_children(ConstExpr* e) {
     CondExpr_free_children(&e->expr);
 }
 

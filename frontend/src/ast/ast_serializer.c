@@ -812,7 +812,7 @@ static void serialize_labeled_statement(AstSerializer* d, const LabeledStatement
     serialize_uint(d, kind);
     switch (stat->kind) {
         case LABELED_STATEMENT_CASE:
-            serialize_const_expr(d, stat->case_expr);
+            serialize_const_expr(d, &stat->case_expr);
             break;
         case LABELED_STATEMENT_LABEL:
             serialize_identifier(d, stat->label);

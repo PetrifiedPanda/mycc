@@ -155,8 +155,7 @@ TEST(statement) {
         LabeledStatement* labeled = switch_compound->items[0].stat.labeled;
         ASSERT(labeled->kind == LABELED_STATEMENT_CASE);
 
-        ASSERT_NOT_NULL(labeled->case_expr);
-        check_const_expr_val(labeled->case_expr, Value_create_sint(VALUE_I, 2));
+        check_const_expr_val(&labeled->case_expr, Value_create_sint(VALUE_I, 2));
 
         ASSERT(labeled->stat->kind == STATEMENT_EXPRESSION);
         Expr* case_expr = &labeled->stat->expr->expr;
@@ -177,7 +176,6 @@ TEST(statement) {
         LabeledStatement* default_stat = switch_compound->items[2].stat.labeled;
 
         ASSERT(default_stat->kind == LABELED_STATEMENT_DEFAULT);
-        ASSERT_NULL(default_stat->case_expr);
 
         ASSERT(default_stat->stat->kind == STATEMENT_EXPRESSION);
         Expr* default_expr = &default_stat->stat->expr->expr;

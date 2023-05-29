@@ -1091,7 +1091,7 @@ static void dump_labeled_statement(AstDumper* d,
 
     switch (s->kind) {
         case LABELED_STATEMENT_CASE:
-            dump_const_expr(d, s->case_expr);
+            dump_const_expr(d, &s->case_expr);
             break;
         case LABELED_STATEMENT_LABEL:
             dump_identifier(d, s->label);
