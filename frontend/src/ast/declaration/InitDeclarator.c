@@ -2,6 +2,10 @@
 
 #include "util/mem.h"
 
+#include "frontend/ast/Initializer.h"
+
+#include "frontend/ast/declaration/Declarator.h"
+
 bool parse_init_declarator_typedef_inplace(ParserState* s, InitDeclarator* res) {
     res->decl = parse_declarator_typedef(s);
     if (!res->decl) {

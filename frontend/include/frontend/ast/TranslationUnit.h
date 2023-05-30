@@ -16,7 +16,5 @@ TranslationUnit parse_translation_unit(ParserState* s);
 
 void TranslationUnit_free(TranslationUnit* u);
 
-#include "frontend/ast/declaration/ExternalDeclaration.h"
-
 #endif
 

@@ -7,6 +7,12 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/Identifier.h"
+
+#include "frontend/ast/expr/AssignExpr.h"
+
+#include "frontend/ast/declaration/Declarator.h"
+
 static void free_arr_suffix(ArrSuffix* s) {
     if (s->arr_len) {
         AssignExpr_free(s->arr_len);

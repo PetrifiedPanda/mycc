@@ -4,8 +4,11 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "frontend/ast/AstNodeInfo.h"
+
 #include "ParamTypeList.h"
 #include "IdentifierList.h"
+#include "TypeQuals.h"
 
 #include "frontend/parser/ParserState.h"
 
@@ -60,12 +63,6 @@ DirectDeclarator* parse_direct_declarator(ParserState* s);
 DirectDeclarator* parse_direct_declarator_typedef(ParserState* s);
 
 void DirectDeclarator_free(DirectDeclarator* d);
-
-#include "Declarator.h"
-
-#include "frontend/ast/Identifier.h"
-
-#include "frontend/ast/expr/Expr.h"
 
 #endif
 

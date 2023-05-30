@@ -7,6 +7,8 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/Identifier.h"
+
 static LabeledStatement* parse_labeled_statement(ParserState* s) {
     assert(s->it->kind == TOKEN_CASE || s->it->kind == TOKEN_IDENTIFIER
            || s->it->kind == TOKEN_DEFAULT);

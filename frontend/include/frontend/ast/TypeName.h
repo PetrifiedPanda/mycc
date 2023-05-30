@@ -1,12 +1,11 @@
 #ifndef TYPE_NAME_H
 #define TYPE_NAME_H
 
-typedef struct SpecQualList SpecQualList;
-
 #include "frontend/parser/ParserState.h"
 
 #include "AstNodeInfo.h"
 
+typedef struct SpecQualList SpecQualList;
 typedef struct AbsDeclarator AbsDeclarator;
 
 typedef struct TypeName {
@@ -19,9 +18,6 @@ TypeName* parse_type_name(ParserState* s);
 
 void TypeName_free_children(TypeName* n);
 void TypeName_free(TypeName* n);
-
-#include "SpecQualList.h"
-#include "frontend/ast/declaration/AbsDeclarator.h"
 
 #endif
 

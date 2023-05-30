@@ -4,6 +4,11 @@
 
 #include "util/mem.h"
 
+#include "frontend/ast/declaration/DeclarationSpecs.h"
+#include "frontend/ast/declaration/Declarator.h"
+#include "frontend/ast/declaration/InitDeclarator.h"
+#include "frontend/ast/declaration/StaticAssertDeclaration.h"
+
 static bool parse_external_decl_normal_decl(
     ParserState* s,
     ExternalDeclaration* res,

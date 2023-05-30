@@ -24,8 +24,5 @@ bool parse_declaration_inplace(ParserState* s, Declaration* res);
 void Declaration_free_children(Declaration* d);
 void Declaration_free(Declaration* d);
 
-#include "DeclarationSpecs.h"
-#include "StaticAssertDeclaration.h"
-
 #endif
 

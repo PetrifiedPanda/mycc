@@ -16,9 +16,5 @@ bool parse_init_declarator_inplace(ParserState* s, InitDeclarator* res);
 
 void InitDeclarator_free_children(InitDeclarator* d);
 
-#include "frontend/ast/declaration/Declarator.h"
-
-#include "frontend/ast/Initializer.h"
-
 #endif
 

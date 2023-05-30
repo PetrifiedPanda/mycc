@@ -3,6 +3,8 @@
 #include "util/mem.h"
 #include "util/macro_util.h"
 
+#include "frontend/ast/ast.h"
+
 typedef struct {
     FILE* file;
 } AstDeserializer;

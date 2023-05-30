@@ -146,7 +146,5 @@ void IterationStatement_free(IterationStatement* s);
 
 void JumpStatement_free(JumpStatement* s);
 
-#include "frontend/ast/Identifier.h"
-
 #endif
 

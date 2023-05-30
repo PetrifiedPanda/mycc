@@ -7,6 +7,8 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/declaration/AlignSpec.h"
+
 static bool current_is_type_qual(const ParserState* s) {
     if (is_type_qual(s->it->kind)) {
         if (s->it->kind == TOKEN_ATOMIC) {

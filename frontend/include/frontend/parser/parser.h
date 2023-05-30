@@ -3,7 +3,7 @@
 
 #include "frontend/Token.h"
 
-#include "frontend/ast/TranslationUnit.h"
+#include "frontend/ast/ast.h"
 
 TranslationUnit parse_tokens(Token* tokens, ParserErr* err);
 

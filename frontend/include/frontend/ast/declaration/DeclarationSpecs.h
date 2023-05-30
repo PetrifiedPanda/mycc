@@ -5,6 +5,8 @@
 
 #include "frontend/Token.h"
 
+#include "frontend/ast/AstNodeInfo.h"
+
 #include "TypeQuals.h"
 #include "TypeSpecs.h"
 
@@ -41,8 +43,6 @@ typedef struct DeclarationSpecs {
 DeclarationSpecs* parse_declaration_specs(ParserState* s, bool* found_typedef);
 
 void DeclarationSpecs_free(DeclarationSpecs* s);
-
-#include "AlignSpec.h"
 
 #endif
 

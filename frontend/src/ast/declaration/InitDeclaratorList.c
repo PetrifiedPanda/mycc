@@ -4,6 +4,8 @@
 
 #include "util/mem.h"
 
+#include "frontend/ast/declaration/InitDeclarator.h"
+
 static bool parse_init_declarator_list_first_base(
     ParserState* s,
     InitDeclaratorList* res,

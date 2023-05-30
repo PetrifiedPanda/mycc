@@ -2,6 +2,9 @@
 
 #include "util/mem.h"
 
+#include "frontend/ast/declaration/Pointer.h"
+#include "frontend/ast/declaration/DirectAbsDeclarator.h"
+
 AbsDeclarator* parse_abs_declarator(ParserState* s) {
     AbsDeclarator* res = mycc_alloc(sizeof *res);
     if (s->it->kind == TOKEN_ASTERISK) {

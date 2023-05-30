@@ -4,6 +4,9 @@
 
 #include "util/mem.h"
 
+#include "frontend/ast/declaration/StaticAssertDeclaration.h"
+#include "frontend/ast/declaration/DeclarationSpecs.h"
+
 bool parse_declaration_inplace(ParserState* s, Declaration* res) {
     assert(res);
     if (s->it->kind == TOKEN_STATIC_ASSERT) {

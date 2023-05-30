@@ -34,7 +34,5 @@ bool parse_init_declarator_list_typedef(ParserState* s,
 
 void InitDeclaratorList_free(InitDeclaratorList* l);
 
-#include "frontend/ast/declaration/InitDeclarator.h"
-
 #endif
 

@@ -4,6 +4,8 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/TypeName.h"
+
 AtomicTypeSpec* parse_atomic_type_spec(ParserState* s) {
     const SourceLoc loc = s->it->loc;
     if (!parser_accept(s, TOKEN_ATOMIC)) {

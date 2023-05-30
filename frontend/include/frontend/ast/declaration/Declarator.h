@@ -16,8 +16,5 @@ Declarator* parse_declarator_typedef(ParserState* s);
 
 void Declarator_free(Declarator* d);
 
-#include "Pointer.h"
-#include "DirectDeclarator.h"
-
 #endif
 

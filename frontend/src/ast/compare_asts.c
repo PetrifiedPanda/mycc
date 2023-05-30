@@ -4,6 +4,8 @@
 
 #include "util/macro_util.h"
 
+#include "frontend/ast/ast.h"
+
 // TODO: maybe assert is not the best name (especially because there already is
 // an assert in testing)
 #define ASSERT(cond)                                                           \

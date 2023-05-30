@@ -5,6 +5,13 @@
 
 #include "util/mem.h"
 
+#include "frontend/ast/declaration/Pointer.h"
+#include "frontend/ast/declaration/DirectDeclarator.h"
+#include "frontend/ast/declaration/DirectAbsDeclarator.h"
+#include "frontend/ast/declaration/Declarator.h"
+#include "frontend/ast/declaration/AbsDeclarator.h"
+#include "frontend/ast/declaration/DeclarationSpecs.h"
+
 typedef struct {
     bool is_abs;
     union {

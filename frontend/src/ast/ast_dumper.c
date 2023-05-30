@@ -6,6 +6,8 @@
 
 #include "util/macro_util.h"
 
+#include "frontend/ast/ast.h"
+
 typedef struct {
     jmp_buf err_buf;
     FILE* file;

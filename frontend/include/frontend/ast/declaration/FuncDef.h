@@ -17,8 +17,5 @@ typedef struct {
 
 void FuncDef_free_children(FuncDef* d);
 
-#include "DeclarationSpecs.h"
-#include "Declarator.h"
-
 #endif
 

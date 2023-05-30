@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "frontend/ast/AstNodeInfo.h"
+
 #include "frontend/ast/declaration/TypeQuals.h"
 #include "frontend/ast/declaration/TypeSpecs.h"
 

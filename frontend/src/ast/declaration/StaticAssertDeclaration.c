@@ -4,6 +4,8 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/expr/AssignExpr.h"
+
 StaticAssertDeclaration* parse_static_assert_declaration(ParserState* s) {
     if (!(parser_accept(s, TOKEN_STATIC_ASSERT)
           && parser_accept(s, TOKEN_LBRACKET))) {

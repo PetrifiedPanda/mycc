@@ -2,6 +2,8 @@
 
 #include "util/mem.h"
 
+#include "frontend/ast/declaration/ExternalDeclaration.h"
+
 TranslationUnit parse_translation_unit(ParserState* s) {
     TranslationUnit res;
     size_t alloc_num = 1;

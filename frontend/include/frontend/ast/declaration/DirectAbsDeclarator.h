@@ -8,6 +8,10 @@
 
 #include "frontend/parser/ParserState.h"
 
+#include "frontend/ast/AstNodeInfo.h"
+
+#include "frontend/ast/declaration/TypeQuals.h"
+
 typedef struct AbsDeclarator AbsDeclarator;
 typedef struct AssignExpr AssignExpr;
 
@@ -49,9 +53,5 @@ bool parse_abs_arr_or_func_suffixes(ParserState* s, DirectAbsDeclarator* res);
 DirectAbsDeclarator* parse_direct_abs_declarator(ParserState* s);
 
 void DirectAbsDeclarator_free(DirectAbsDeclarator* d);
-
-#include "AbsDeclarator.h"
-
-#include "frontend/ast/expr/AssignExpr.h"
 
 #endif

@@ -7,6 +7,10 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/Identifier.h"
+
+#include "frontend/ast/expr/AssignExpr.h"
+
 static bool parse_arg_expr_list(ParserState* s, ArgExprList* res) {
     res->len = 1;
     res->assign_exprs = mycc_alloc(sizeof *res->assign_exprs);

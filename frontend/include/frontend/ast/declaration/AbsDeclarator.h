@@ -15,8 +15,5 @@ AbsDeclarator* parse_abs_declarator(ParserState* s);
 
 void AbsDeclarator_free(AbsDeclarator* d);
 
-#include "Pointer.h"
-#include "DirectAbsDeclarator.h"
-
 #endif
 

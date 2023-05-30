@@ -5,6 +5,14 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/Identifier.h"
+
+#include "frontend/ast/expr/AssignExpr.h"
+
+#include "frontend/ast/declaration/Declarator.h"
+#include "frontend/ast/declaration/DeclarationSpecs.h"
+#include "frontend/ast/declaration/StaticAssertDeclaration.h"
+
 static bool parse_struct_declarator_inplace(ParserState* s, StructDeclarator* res) {
     assert(res);
 

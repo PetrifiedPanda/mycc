@@ -34,9 +34,5 @@ void EnumList_free(EnumList* l);
 
 void Enumerator_free(Enumerator* e);
 
-#include "frontend/ast/Identifier.h"
-
-#include "frontend/ast/expr/AssignExpr.h"
-
 #endif
 

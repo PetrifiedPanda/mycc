@@ -4,6 +4,8 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/declaration/Declaration.h"
+
 bool parse_declaration_list(ParserState* s, DeclarationList* res) {
     res->len = 1;
     res->decls = mycc_alloc(sizeof *res->decls);

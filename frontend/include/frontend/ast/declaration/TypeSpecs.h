@@ -52,11 +52,5 @@ void TypeSpecs_free_children(TypeSpecs* s);
 
 bool TypeSpecs_valid(const TypeSpecs* s);
 
-#include "AtomicTypeSpec.h"
-#include "StructUnionSpec.h"
-#include "EnumSpec.h"
-
-#include "frontend/ast/Identifier.h"
-
 #endif
 

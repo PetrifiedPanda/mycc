@@ -42,9 +42,5 @@ void ParamList_free(ParamList* l);
 
 void ParamDeclaration_free_children(ParamDeclaration* d);
 
-#include "DeclarationSpecs.h"
-#include "Declarator.h"
-#include "AbsDeclarator.h"
-
 #endif
 

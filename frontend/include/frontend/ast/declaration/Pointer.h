@@ -19,7 +19,5 @@ Pointer* parse_pointer(ParserState* s);
 
 void Pointer_free(Pointer* p);
 
-#include "TypeQuals.h"
-
 #endif
 

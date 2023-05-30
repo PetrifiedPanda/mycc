@@ -7,6 +7,10 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/expr/AssignExpr.h"
+
+#include "frontend/ast/declaration/AbsDeclarator.h"
+
 static void free_abs_arr_or_func_suffix(AbsArrOrFuncSuffix* s);
 
 static bool parse_abs_func_suffix(ParserState* s, AbsArrOrFuncSuffix* res) {

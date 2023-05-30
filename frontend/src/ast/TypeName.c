@@ -7,6 +7,10 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/declaration/AbsDeclarator.h"
+
+#include "frontend/ast/SpecQualList.h"
+
 bool parse_type_name_inplace(ParserState* s, TypeName* res) {
     assert(res);
 

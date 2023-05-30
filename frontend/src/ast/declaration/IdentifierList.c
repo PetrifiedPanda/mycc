@@ -4,6 +4,8 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/Identifier.h"
+
 bool parse_identifier_list(ParserState* s, IdentifierList* res) {
     if (s->it->kind != TOKEN_IDENTIFIER) {
         return false;

@@ -23,9 +23,5 @@ bool parse_align_spec_inplace(ParserState* s, AlignSpec* res);
 
 void AlignSpec_free_children(AlignSpec* s);
 
-#include "frontend/ast/TypeName.h"
-
-#include "frontend/ast/expr/AssignExpr.h"
-
 #endif
 

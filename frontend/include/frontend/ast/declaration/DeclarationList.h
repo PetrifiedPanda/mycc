@@ -16,7 +16,5 @@ bool parse_declaration_list(ParserState* s, DeclarationList* res);
 
 void DeclarationList_free(DeclarationList* l);
 
-#include "Declaration.h"
-
 #endif
 

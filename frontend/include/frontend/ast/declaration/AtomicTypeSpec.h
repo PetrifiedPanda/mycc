@@ -16,7 +16,5 @@ AtomicTypeSpec* parse_atomic_type_spec(ParserState* s);
 
 void AtomicTypeSpec_free(AtomicTypeSpec* s);
 
-#include "frontend/ast/TypeName.h"
-
 #endif
 

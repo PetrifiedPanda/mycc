@@ -16,6 +16,4 @@ bool parse_identifier_list(ParserState* s, IdentifierList* res);
 
 void IdentifierList_free(IdentifierList* l);
 
-#include "frontend/ast/Identifier.h"
-
 #endif

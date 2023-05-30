@@ -7,6 +7,12 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/Identifier.h"
+
+#include "frontend/ast/declaration/AtomicTypeSpec.h"
+#include "frontend/ast/declaration/StructUnionSpec.h"
+#include "frontend/ast/declaration/EnumSpec.h"
+
 static inline bool is_standalone_type_spec(TokenKind t) {
     switch (t) {
         case TOKEN_VOID:

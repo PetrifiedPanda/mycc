@@ -16,7 +16,5 @@ StaticAssertDeclaration* parse_static_assert_declaration(ParserState* s);
 
 void StaticAssertDeclaration_free(StaticAssertDeclaration* d);
 
-#include "frontend/ast/expr/AssignExpr.h"
-
 #endif
 

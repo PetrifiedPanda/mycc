@@ -8,6 +8,8 @@
 
 #include "frontend/ast/TypeName.h"
 
+#include "frontend/ast/expr/AssignExpr.h"
+
 static bool parse_generic_assoc_inplace(ParserState* s, GenericAssoc* res) {
     assert(res);
 

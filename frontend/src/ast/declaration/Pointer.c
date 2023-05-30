@@ -4,6 +4,8 @@
 
 #include "frontend/parser/parser_util.h"
 
+#include "frontend/ast/declaration/TypeQuals.h"
+
 Pointer* parse_pointer(ParserState* s) {
     const SourceLoc loc = s->it->loc;
     if (!parser_accept(s, TOKEN_ASTERISK)) {

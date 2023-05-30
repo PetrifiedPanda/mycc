@@ -2,6 +2,9 @@
 
 #include "util/mem.h"
 
+#include "frontend/ast/declaration/Pointer.h"
+#include "frontend/ast/declaration/DirectDeclarator.h"
+
 static Declarator* parse_declarator_base(ParserState* s, DirectDeclarator* (*parse_func)(ParserState* s)) {
     Declarator* res = mycc_alloc(sizeof *res);
     if (s->it->kind == TOKEN_ASTERISK) {
