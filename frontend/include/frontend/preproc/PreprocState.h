@@ -82,7 +82,5 @@ void TokenArr_free(TokenArr* arr);
 
 void PreprocState_free(PreprocState* state);
 
-#include "PreprocMacro.h"
-
 #endif
 

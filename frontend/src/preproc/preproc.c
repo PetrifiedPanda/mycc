@@ -12,9 +12,10 @@
 
 #include "frontend/preproc/PreprocMacro.h"
 #include "frontend/preproc/PreprocState.h"
-#include "frontend/preproc/tokenizer.h"
 #include "frontend/preproc/num_parse.h"
 #include "frontend/preproc/read_and_tokenize_line.h"
+
+#include "tokenizer.h"
 
 static TokenKind keyword_kind(const char* spelling);
 

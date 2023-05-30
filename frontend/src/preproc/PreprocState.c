@@ -7,7 +7,7 @@
 #include "util/file.h"
 #include "util/macro_util.h"
 
-#include "frontend/preproc/PreprocState.h"
+#include "frontend/preproc/PreprocMacro.h"
 
 typedef struct OpenedFileInfo {
     long pos;

@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "PreprocState.h"
+#include "frontend/preproc/PreprocState.h"
 
 /**
  * Tokenizes a line of source code for the preprocessor, meaning that

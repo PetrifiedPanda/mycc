@@ -6,7 +6,9 @@
 #include "util/macro_util.h"
 #include "util/mem.h"
 
-#include "frontend/preproc/tokenizer.h"
+#include "frontend/preproc/PreprocMacro.h"
+
+#include "tokenizer.h"
 
 enum {
     PREPROC_LINE_BUF_LEN = 200
