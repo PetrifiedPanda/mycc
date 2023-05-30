@@ -195,7 +195,7 @@ static bool parse_mul_expr_cast(ParserState* s, MulExpr* res, const CastExpr* st
     res->lhs = *start;
 
     if (!parse_mul_expr_mul_chain(s, res)) {
-        return NULL;
+        return false;
     }
 
     return res;

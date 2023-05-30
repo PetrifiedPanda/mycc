@@ -126,7 +126,7 @@ static bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res) {
             if (parser_accept(s, TOKEN_LBRACKET)) {
                 Expr bracket_expr;
                 if (!parse_expr_inplace(s, &bracket_expr)) {
-                    return NULL;
+                    return false;
                 }
                 if (parser_accept(s, TOKEN_RBRACKET)) {
                     res->kind = PRIMARY_EXPR_BRACKET;
@@ -357,16 +357,16 @@ static bool parse_postfix_expr_type_name(ParserState* s, PostfixExpr* res, TypeN
     }
 
     if (!parser_accept(s, TOKEN_RBRACE)) {
-        return NULL;
+        return false;
     }
 
     if (!parse_postfix_suffixes(s, res)) {
         goto fail;
     }
-    return res;
+    return true;
 fail:
     PostfixExpr_free_children(res);
-    return NULL;
+    return false;
 }
 
 static inline void assign_operators_before(UnaryExpr* res,
@@ -615,7 +615,7 @@ bool parse_unary_expr_inplace(ParserState* s, UnaryExpr* res) {
     }
 fail:
     mycc_free(ops_before);
-    return NULL;
+    return false;
 }
 
 void Constant_free(Constant* c) {

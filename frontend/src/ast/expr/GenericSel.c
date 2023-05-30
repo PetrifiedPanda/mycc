@@ -97,12 +97,12 @@ bool parse_generic_sel_inplace(ParserState* s, GenericSel* res) {
     parser_accept_it(s);
 
     if (!parser_accept(s, TOKEN_LBRACKET)) {
-        return NULL;
+        return false;
     }
 
     res->assign = parse_assign_expr(s);
     if (!res->assign) {
-        return NULL;
+        return false;
     }
 
     if (!parser_accept(s, TOKEN_COMMA)) {

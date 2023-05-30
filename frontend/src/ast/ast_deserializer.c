@@ -436,7 +436,7 @@ static bool deserialize_generic_sel(AstDeserializer* r, GenericSel* res) {
 static bool deserialize_primary_expr(AstDeserializer* r, PrimaryExpr* res) {
     uint64_t kind;
     if (!deserialize_uint(r, &kind)) {
-        return NULL;
+        return false;
     }
 
     res->kind = kind;
@@ -699,7 +699,7 @@ static bool deserialize_unary_expr(AstDeserializer* r, UnaryExpr* res) {
     uint64_t expr_kind;
     if (!deserialize_uint(r, &expr_kind)) {
         mycc_free(ops_before);
-        return NULL;
+        return false;
     }
     UnaryExprKind kind = expr_kind;
     assert((uint64_t)kind == expr_kind);
@@ -751,11 +751,11 @@ static void free_type_names_up_to(TypeName* type_names, size_t len) {
 
 static bool deserialize_cast_expr_inplace(AstDeserializer* r, CastExpr* res) { 
     if (!deserialize_ast_node_info(r, &res->info)) {
-        return NULL;
+        return false;
     }
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
-        return NULL;
+        return false;
     }
     res->len = len;
 
@@ -763,12 +763,12 @@ static bool deserialize_cast_expr_inplace(AstDeserializer* r, CastExpr* res) {
     for (size_t i = 0; i < res->len; ++i) {
         if (!deserialize_type_name_inplace(r, &res->type_names[i])) {
             free_type_names_up_to(res->type_names, i);
-            return NULL;
+            return false;
         }
     }
     if (!deserialize_unary_expr(r, &res->rhs)) {
         free_type_names_up_to(res->type_names, len);
-        return NULL;
+        return false;
     }
 
     return true;
@@ -1017,7 +1017,7 @@ static bool deserialize_log_and_expr(AstDeserializer* r, LogAndExpr* res) {
 static bool deserialize_log_or_expr(AstDeserializer* r, LogOrExpr* res) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
-        return NULL;
+        return false;
     }
 
     res->log_ands = mycc_alloc(sizeof *res->log_ands * len);
