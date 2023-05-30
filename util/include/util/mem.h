@@ -16,7 +16,7 @@ void* mycc_alloc(size_t bytes);
  *
  * @param len Number of elements to allocate
  * @param elem_size Size of one element in bytes
- * @return void* Pointer to allocated storage, or NULL if len is zero
+ * @return void* Pointer to allocated storage
  */
 void* mycc_alloc_zeroed(size_t len, size_t elem_size);
 
