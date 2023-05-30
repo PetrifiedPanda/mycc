@@ -440,7 +440,7 @@ typedef struct {
     TokenArr* arrs;
 } MacroArgs;
 
-static void free_macro_args(MacroArgs* args) {
+static void MacroArgs_free(MacroArgs* args) {
     for (size_t i = 0; i < args->len; ++i) {
         TokenArr_free(&args->arrs[i]);
     }
@@ -522,7 +522,7 @@ MacroArgs collect_macro_args(Token* args_start,
 
     return res;
 fail:
-    free_macro_args(&res);
+    MacroArgs_free(&res);
     return (MacroArgs){
         .len = 0,
         .arrs = NULL,
@@ -591,7 +591,7 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
             args.arrs[i].len,
             expanded);
         if (success.next == (size_t)-1) {
-            free_macro_args(&args);
+            MacroArgs_free(&args);
             return success;
         }
     }
@@ -655,7 +655,7 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
                                                        expanded);
     expanded_macro_stack_pop(expanded);
 
-    free_macro_args(&args);
+    MacroArgs_free(&args);
     ex_info.alloc_change += alloc_change;
     return ex_info;
 }
