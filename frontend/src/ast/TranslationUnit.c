@@ -32,7 +32,7 @@ TranslationUnit parse_translation_unit(ParserState* s) {
     return res;
 }
 
-static void free_translation_unit_children(TranslationUnit* u) {
+static void TranslationUnit_free_children(TranslationUnit* u) {
     for (size_t i = 0; i < u->len; ++i) {
         ExternalDeclaration_free_children(&u->external_decls[i]);
     }
@@ -40,6 +40,6 @@ static void free_translation_unit_children(TranslationUnit* u) {
 }
 
 void TranslationUnit_free(TranslationUnit* u) {
-    free_translation_unit_children(u);
+    TranslationUnit_free_children(u);
 }
 

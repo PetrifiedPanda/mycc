@@ -60,7 +60,9 @@ static FileData create_file_data(const char* start_file, PreprocErr* err) {
 
     FILE* file = fopen(start_file, "r");
     if (!file) {
-        PreprocErr_set_file_err(err, &file_name, (SourceLoc){(size_t)-1, {0, 0}});
+        PreprocErr_set_file_err(err,
+                                &file_name,
+                                (SourceLoc){(size_t)-1, {0, 0}});
         return (FileData){0};
     }
     FileManager fm = {
@@ -119,16 +121,16 @@ PreprocState PreprocState_create(const char* start_file, PreprocErr* err) {
         .conds = NULL,
         .err = err,
         ._macro_map = StringMap_create(sizeof(struct PreprocMacro),
-                                        100,
-                                        true,
-                                        (void (*)(void*))PreprocMacro_free),
+                                       100,
+                                       true,
+                                       (void (*)(void*))PreprocMacro_free),
         .file_info = fd.fi,
     };
 }
 
 PreprocState PreprocState_create_string(const char* code,
-                                         const char* filename,
-                                         PreprocErr* err) {
+                                        const char* filename,
+                                        PreprocErr* err) {
     Str filename_str = Str_create(strlen(filename), filename);
     return (PreprocState){
         .res =
@@ -160,9 +162,9 @@ PreprocState PreprocState_create_string(const char* code,
         .conds = NULL,
         .err = err,
         ._macro_map = StringMap_create(sizeof(struct PreprocMacro),
-                                        100,
-                                        true,
-                                        (void (*)(void*))PreprocMacro_free),
+                                       100,
+                                       true,
+                                       (void (*)(void*))PreprocMacro_free),
         .file_info = FileInfo_create(&filename_str),
     };
 }
@@ -318,8 +320,8 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
 }
 
 bool PreprocState_open_file(PreprocState* s,
-                             const Str* filename,
-                             SourceLoc include_loc) {
+                            const Str* filename,
+                            SourceLoc include_loc) {
     FileManager* fm = &s->file_manager;
     if (fm->current_file_idx == FOPEN_MAX - 1) {
         long pos = ftell(fm->files[0]);
@@ -389,7 +391,8 @@ static void preproc_state_close_file(PreprocState* s) {
     s->line_info.curr_loc = info->loc;
 }
 
-const PreprocMacro* find_preproc_macro(const PreprocState* state, const Str* spelling) {
+const PreprocMacro* find_preproc_macro(const PreprocState* state,
+                                       const Str* spelling) {
     return StringMap_get(&state->_macro_map, spelling);
 }
 
@@ -397,8 +400,8 @@ void register_preproc_macro(PreprocState* state,
                             const Str* spelling,
                             const PreprocMacro* macro) {
     bool overwritten = StringMap_insert_overwrite(&state->_macro_map,
-                                                   spelling,
-                                                   macro);
+                                                  spelling,
+                                                  macro);
     (void)overwritten; // TODO: warning if redefined
 }
 
@@ -406,9 +409,7 @@ void remove_preproc_macro(PreprocState* state, const Str* spelling) {
     StringMap_remove(&state->_macro_map, spelling);
 }
 
-void push_preproc_cond(PreprocState* state,
-                       SourceLoc loc,
-                       bool was_true) {
+void push_preproc_cond(PreprocState* state, SourceLoc loc, bool was_true) {
     if (state->conds_len == state->conds_cap) {
         mycc_grow_alloc((void**)&state->conds,
                         &state->conds_cap,
@@ -439,11 +440,11 @@ void TokenArr_free(TokenArr* arr) {
     mycc_free(arr->tokens);
 }
 
-static void free_line_info(LineInfo* info) {
+static void LineInfo_free(LineInfo* info) {
     Str_free(&info->line);
 }
 
-static void free_file_manager(FileManager* fm) {
+static void FileManager_free(FileManager* fm) {
     if (fm->opened_info == NULL) {
         return;
     }
@@ -459,8 +460,8 @@ static void free_file_manager(FileManager* fm) {
 
 void PreprocState_free(PreprocState* state) {
     TokenArr_free(&state->res);
-    free_line_info(&state->line_info);
-    free_file_manager(&state->file_manager);
+    LineInfo_free(&state->line_info);
+    FileManager_free(&state->file_manager);
     mycc_free(state->conds);
     StringMap_free(&state->_macro_map);
     FileInfo_free(&state->file_info);

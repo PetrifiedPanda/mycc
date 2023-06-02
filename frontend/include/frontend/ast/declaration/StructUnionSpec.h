@@ -51,15 +51,11 @@ typedef struct StructUnionSpec {
 
 StructUnionSpec* parse_struct_union_spec(ParserState* s);
 
-void StructUnionSpec_free(StructUnionSpec* s);
-
-void StructDeclarationList_free(StructDeclarationList* l);
-
-void StructDeclaration_free_children(StructDeclaration* d);
-
-void StructDeclaratorList_free(StructDeclaratorList* l);
-
 void StructDeclarator_free_children(StructDeclarator* d);
+void StructDeclaratorList_free(StructDeclaratorList* l);
+void StructDeclaration_free_children(StructDeclaration* d);
+void StructDeclarationList_free(StructDeclarationList* l);
+void StructUnionSpec_free(StructUnionSpec* s);
 
 #endif
 

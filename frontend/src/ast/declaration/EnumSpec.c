@@ -44,13 +44,6 @@ static bool parse_enumerator_inplace(ParserState* s, Enumerator* res) {
     return true;
 }
 
-void Enumerator_free(Enumerator* e) {
-    Identifier_free(e->identifier);
-    if (e->enum_val) {
-        ConstExpr_free(e->enum_val);
-    }
-}
-
 static bool parse_enum_list(ParserState* s, EnumList* res) {
     res->len = 1;
     res->enums = mycc_alloc(sizeof *res->enums);
@@ -84,15 +77,9 @@ fail:
     return false;
 }
 
-void EnumList_free(EnumList* l) {
-    for (size_t i = 0; i < l->len; ++i) {
-        Enumerator_free(&l->enums[i]);
-    }
-    mycc_free(l->enums);
-}
-static EnumSpec* create_enum_spec(SourceLoc loc,
-                                          Identifier* identifier,
-                                          EnumList enum_list) {
+static EnumSpec* EnumSpec_create(SourceLoc loc,
+                                 Identifier* identifier,
+                                 EnumList enum_list) {
     assert(identifier || enum_list.len > 0);
     EnumSpec* res = mycc_alloc(sizeof *res);
     res->info = AstNodeInfo_create(loc);
@@ -136,7 +123,7 @@ EnumSpec* parse_enum_spec(ParserState* s) {
         goto fail;
     }
 
-    return create_enum_spec(loc, id, enums);
+    return EnumSpec_create(loc, id, enums);
 fail:
     if (id) {
         Identifier_free(id);
@@ -144,7 +131,21 @@ fail:
     return NULL;
 }
 
-static void free_enum_spec_children(EnumSpec* s) {
+void Enumerator_free(Enumerator* e) {
+    Identifier_free(e->identifier);
+    if (e->enum_val) {
+        ConstExpr_free(e->enum_val);
+    }
+}
+
+void EnumList_free(EnumList* l) {
+    for (size_t i = 0; i < l->len; ++i) {
+        Enumerator_free(&l->enums[i]);
+    }
+    mycc_free(l->enums);
+}
+
+static void EnumSpec_free_children(EnumSpec* s) {
     if (s->identifier) {
         Identifier_free(s->identifier);
     }
@@ -152,7 +153,7 @@ static void free_enum_spec_children(EnumSpec* s) {
 }
 
 void EnumSpec_free(EnumSpec* s) {
-    free_enum_spec_children(s);
+    EnumSpec_free_children(s);
     mycc_free(s);
 }
 

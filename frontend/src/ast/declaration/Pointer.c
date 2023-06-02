@@ -57,12 +57,12 @@ Pointer* parse_pointer(ParserState* s) {
     return res;
 }
 
-static void free_pointer_children(Pointer* p) {
+static void Pointer_free_children(Pointer* p) {
     mycc_free(p->quals_after_ptr);
 }
 
 void Pointer_free(Pointer* p) {
-    free_pointer_children(p);
+    Pointer_free_children(p);
     mycc_free(p);
 }
 

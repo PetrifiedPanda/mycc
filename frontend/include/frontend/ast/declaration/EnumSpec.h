@@ -28,11 +28,10 @@ typedef struct EnumSpec {
 
 EnumSpec* parse_enum_spec(ParserState* s);
 
+void Enumerator_free(Enumerator* e);
+void EnumList_free(EnumList* l);
 void EnumSpec_free(EnumSpec* s);
 
-void EnumList_free(EnumList* l);
-
-void Enumerator_free(Enumerator* e);
 
 #endif
 

@@ -39,7 +39,10 @@ typedef enum {
  * @return 0 for an error, 1 for success and 2 if the next token is not a
  * declaration_spec
  */
-static ParseDeclarationSpecRes parse_declaration_spec(ParserState* s, DeclarationSpecs* res, size_t* alloc_len_align_specs) {
+static ParseDeclarationSpecRes parse_declaration_spec(
+    ParserState* s,
+    DeclarationSpecs* res,
+    size_t* alloc_len_align_specs) {
     assert(res);
     assert(alloc_len_align_specs);
 
@@ -72,8 +75,9 @@ static ParseDeclarationSpecRes parse_declaration_spec(ParserState* s, Declaratio
         update_type_quals(s, &res->type_quals);
     } else if (is_type_spec(s)) {
         if (res->storage_class.is_typedef && s->it->kind == TOKEN_IDENTIFIER) {
-            const ParserIdentifierData*
-                prev_def = parser_get_prev_definition(s, &s->it->spelling);
+            const ParserIdentifierData* prev_def = parser_get_prev_definition(
+                s,
+                &s->it->spelling);
             const Token* next = s->it + 1;
             if (prev_def != NULL && !is_storage_class_spec(next->kind)
                 && !is_type_qual(next->kind) && !is_type_spec_token(s, next)
@@ -170,7 +174,7 @@ DeclarationSpecs* parse_declaration_specs(ParserState* s, bool* found_typedef) {
     return res;
 }
 
-static void free_declaration_specs_children(DeclarationSpecs* s) {
+static void DeclarationSpecs_free_children(DeclarationSpecs* s) {
     for (size_t i = 0; i < s->num_align_specs; ++i) {
         AlignSpec_free_children(&s->align_specs[i]);
     }
@@ -179,7 +183,7 @@ static void free_declaration_specs_children(DeclarationSpecs* s) {
 }
 
 void DeclarationSpecs_free(DeclarationSpecs* s) {
-    free_declaration_specs_children(s);
+    DeclarationSpecs_free_children(s);
 
     mycc_free(s);
 }

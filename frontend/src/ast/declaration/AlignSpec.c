@@ -10,8 +10,6 @@
 
 #include "frontend/ast/TypeName.h"
 
-static void free_align_spec(AlignSpec* s);
-
 bool parse_align_spec_inplace(ParserState* s, AlignSpec* res) {
     assert(res);
     res->info = AstNodeInfo_create(s->it->loc);
@@ -36,7 +34,7 @@ bool parse_align_spec_inplace(ParserState* s, AlignSpec* res) {
     }
 
     if (!parser_accept(s, TOKEN_RBRACKET)) {
-        free_align_spec(res);
+        AlignSpec_free_children(res);
         return false;
     }
 
@@ -49,10 +47,5 @@ void AlignSpec_free_children(AlignSpec* s) {
     } else {
         ConstExpr_free(s->const_expr);
     }
-}
-
-static void free_align_spec(AlignSpec* s) {
-    AlignSpec_free_children(s);
-    mycc_free(s);
 }
 

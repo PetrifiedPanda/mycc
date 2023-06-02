@@ -13,7 +13,8 @@
 #include "frontend/ast/declaration/DeclarationSpecs.h"
 #include "frontend/ast/declaration/StaticAssertDeclaration.h"
 
-static bool parse_struct_declarator_inplace(ParserState* s, StructDeclarator* res) {
+static bool parse_struct_declarator_inplace(ParserState* s,
+                                            StructDeclarator* res) {
     assert(res);
 
     if (s->it->kind != TOKEN_COLON) {
@@ -36,8 +37,8 @@ static bool parse_struct_declarator_inplace(ParserState* s, StructDeclarator* re
         res->bit_field = NULL;
         if (!res->decl) {
             ParserErr_set(s->err,
-                           PARSER_ERR_EMPTY_STRUCT_DECLARATOR,
-                           s->it->loc);
+                          PARSER_ERR_EMPTY_STRUCT_DECLARATOR,
+                          s->it->loc);
             return false;
         }
     }
@@ -45,16 +46,8 @@ static bool parse_struct_declarator_inplace(ParserState* s, StructDeclarator* re
     return true;
 }
 
-void StructDeclarator_free_children(StructDeclarator* d) {
-    if (d->decl) {
-        Declarator_free(d->decl);
-    }
-    if (d->bit_field) {
-        ConstExpr_free(d->bit_field);
-    }
-}
-
-static bool parse_struct_declarator_list(ParserState* s, StructDeclaratorList* res) {
+static bool parse_struct_declarator_list(ParserState* s,
+                                         StructDeclaratorList* res) {
     *res = (StructDeclaratorList){
         .len = 1,
         .decls = mycc_alloc(sizeof *res->decls),
@@ -69,7 +62,9 @@ static bool parse_struct_declarator_list(ParserState* s, StructDeclaratorList* r
     while (s->it->kind == TOKEN_COMMA) {
         parser_accept_it(s);
         if (res->len == alloc_len) {
-            mycc_grow_alloc((void**)&res->decls, &alloc_len, sizeof *res->decls);
+            mycc_grow_alloc((void**)&res->decls,
+                            &alloc_len,
+                            sizeof *res->decls);
         }
 
         if (!parse_struct_declarator_inplace(s, &res->decls[res->len])) {
@@ -85,14 +80,8 @@ static bool parse_struct_declarator_list(ParserState* s, StructDeclaratorList* r
     return res;
 }
 
-void StructDeclaratorList_free(StructDeclaratorList* l) {
-    for (size_t i = 0; i < l->len; ++i) {
-        StructDeclarator_free_children(&l->decls[i]);
-    }
-    mycc_free(l->decls);
-}
-
-static bool parse_struct_declaration_inplace(ParserState* s, StructDeclaration* res) {
+static bool parse_struct_declaration_inplace(ParserState* s,
+                                             StructDeclaration* res) {
     if (s->it->kind == TOKEN_STATIC_ASSERT) {
         res->is_static_assert = true;
         res->assert = parse_static_assert_declaration(s);
@@ -132,16 +121,7 @@ static bool parse_struct_declaration_inplace(ParserState* s, StructDeclaration* 
     return true;
 }
 
-void StructDeclaration_free_children(StructDeclaration* d) {
-    if (d->is_static_assert) {
-        StaticAssertDeclaration_free(d->assert);
-    } else {
-        DeclarationSpecs_free(d->decl_specs);
-        StructDeclaratorList_free(&d->decls);
-    }
-}
-
-static StructUnionSpec* create_struct_union(
+static StructUnionSpec* StructUnionSpec_create(
     SourceLoc loc,
     bool is_struct,
     Identifier* identifier,
@@ -155,7 +135,8 @@ static StructUnionSpec* create_struct_union(
     return res;
 }
 
-static bool parse_struct_declaration_list(ParserState* s, StructDeclarationList* res) {
+static bool parse_struct_declaration_list(ParserState* s,
+                                          StructDeclarationList* res) {
     *res = (StructDeclarationList){
         .len = 1,
         .decls = mycc_alloc(sizeof *res->decls),
@@ -169,7 +150,9 @@ static bool parse_struct_declaration_list(ParserState* s, StructDeclarationList*
     size_t alloc_len = res->len;
     while (is_declaration(s) || s->it->kind == TOKEN_STATIC_ASSERT) {
         if (res->len == alloc_len) {
-            mycc_grow_alloc((void**)&res->decls, &alloc_len, sizeof *res->decls);
+            mycc_grow_alloc((void**)&res->decls,
+                            &alloc_len,
+                            sizeof *res->decls);
         }
 
         if (!parse_struct_declaration_inplace(s, &res->decls[res->len])) {
@@ -184,14 +167,6 @@ static bool parse_struct_declaration_list(ParserState* s, StructDeclarationList*
 
     return res;
 }
-
-void StructDeclarationList_free(StructDeclarationList* l) {
-    for (size_t i = 0; i < l->len; ++i) {
-        StructDeclaration_free_children(&l->decls[i]);
-    }
-    mycc_free(l->decls);
-}
-
 
 StructUnionSpec* parse_struct_union_spec(ParserState* s) {
     assert(s->it->kind == TOKEN_STRUCT || s->it->kind == TOKEN_UNION);
@@ -224,7 +199,7 @@ StructUnionSpec* parse_struct_union_spec(ParserState* s) {
             goto fail;
         }
     }
-    return create_struct_union(loc, is_struct, id, list);
+    return StructUnionSpec_create(loc, is_struct, id, list);
 
 fail:
     if (id) {
@@ -233,7 +208,39 @@ fail:
     return NULL;
 }
 
-static void free_struct_union_spec_children(StructUnionSpec* s) {
+void StructDeclarator_free_children(StructDeclarator* d) {
+    if (d->decl) {
+        Declarator_free(d->decl);
+    }
+    if (d->bit_field) {
+        ConstExpr_free(d->bit_field);
+    }
+}
+
+void StructDeclaratorList_free(StructDeclaratorList* l) {
+    for (size_t i = 0; i < l->len; ++i) {
+        StructDeclarator_free_children(&l->decls[i]);
+    }
+    mycc_free(l->decls);
+}
+
+void StructDeclaration_free_children(StructDeclaration* d) {
+    if (d->is_static_assert) {
+        StaticAssertDeclaration_free(d->assert);
+    } else {
+        DeclarationSpecs_free(d->decl_specs);
+        StructDeclaratorList_free(&d->decls);
+    }
+}
+
+void StructDeclarationList_free(StructDeclarationList* l) {
+    for (size_t i = 0; i < l->len; ++i) {
+        StructDeclaration_free_children(&l->decls[i]);
+    }
+    mycc_free(l->decls);
+}
+
+static void StructUnionSpec_free_children(StructUnionSpec* s) {
     if (s->identifier) {
         Identifier_free(s->identifier);
     }
@@ -241,7 +248,7 @@ static void free_struct_union_spec_children(StructUnionSpec* s) {
 }
 
 void StructUnionSpec_free(StructUnionSpec* s) {
-    free_struct_union_spec_children(s);
+    StructUnionSpec_free_children(s);
     mycc_free(s);
 }
 

@@ -331,7 +331,7 @@ fail:
     return (PreprocMacro){0};
 }
 
-static Token move_token(Token* t);
+static Token Token_move(Token* t);
 
 static PreprocMacro parse_object_like_macro(TokenArr* arr) {
     const size_t ex_len = arr->len - 3;
@@ -348,7 +348,7 @@ static PreprocMacro parse_object_like_macro(TokenArr* arr) {
         const size_t res_idx = i - 3;
         TokenOrArg* res_curr = &res.expansion[res_idx];
         res_curr->is_arg = false;
-        res_curr->token = move_token(&arr->tokens[i]);
+        res_curr->token = Token_move(&arr->tokens[i]);
     }
     return res;
 }
@@ -377,22 +377,22 @@ PreprocMacro parse_preproc_macro(TokenArr* arr, PreprocErr* err) {
     }
 }
 
-static void free_preproc_token(Token* tok) {
+static void Token_free_preproc(Token* tok) {
     Str_free(&tok->spelling);
 }
 
 void PreprocMacro_free(PreprocMacro* m) {
     for (size_t i = 0; i < m->expansion_len; ++i) {
         if (!m->expansion[i].is_arg) {
-            free_preproc_token(&m->expansion[i].token);
+            Token_free_preproc(&m->expansion[i].token);
         }
     }
     mycc_free(m->expansion);
 }
 
-static Token copy_token(const Token* t);
+static Token Token_copy(const Token* t);
 
-static Token move_token(Token* t) {
+static Token Token_move(Token* t) {
     Token res = *t;
     t->spelling = Str_create_null();
     return res;
@@ -406,7 +406,7 @@ static TokenArr collect_until(Token* start, const Token* end) {
     };
 
     for (size_t i = 0; i < len; ++i) {
-        res.tokens[i] = move_token(&start[i]);
+        res.tokens[i] = Token_move(&start[i]);
     }
     return res;
 }
@@ -558,7 +558,7 @@ static void shift_forward(Token* tokens, size_t num, size_t from, size_t to) {
 static void copy_into_tokens(Token* tokens, size_t* token_idx, const TokenArr* arr) {
     assert(arr);
     for (size_t i = 0; i < arr->len; ++i) {
-        tokens[*token_idx] = copy_token(&arr->tokens[i]);
+        tokens[*token_idx] = Token_copy(&arr->tokens[i]);
         ++*token_idx;
     }
 }
@@ -641,7 +641,7 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
                              &token_idx,
                              &args.arrs[curr->arg_num]);
         } else {
-            res->tokens[token_idx] = copy_token(&curr->token);
+            res->tokens[token_idx] = Token_copy(&curr->token);
             ++token_idx;
         }
     }
@@ -692,7 +692,7 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
         const TokenOrArg* curr = &macro->expansion[i];
         assert(!curr->is_arg);
 
-        res->tokens[macro_idx + i] = copy_token(&curr->token);
+        res->tokens[macro_idx + i] = Token_copy(&curr->token);
     }
 
     expanded_macro_stack_push(expanded, macro);
@@ -706,7 +706,7 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
     return ex_info;
 }
 
-static Token copy_token(const Token* t) {
+static Token Token_copy(const Token* t) {
     assert(t);
     return (Token){
         .kind = t->kind,

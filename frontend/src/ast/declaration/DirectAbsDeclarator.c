@@ -11,7 +11,7 @@
 
 #include "frontend/ast/declaration/AbsDeclarator.h"
 
-static void free_abs_arr_or_func_suffix(AbsArrOrFuncSuffix* s);
+static void AbsArrOrFuncSuffix_free(AbsArrOrFuncSuffix* s);
 
 static bool parse_abs_func_suffix(ParserState* s, AbsArrOrFuncSuffix* res) {
     assert(s->it->kind == TOKEN_LBRACKET);
@@ -76,7 +76,7 @@ static bool parse_abs_arr_suffix(ParserState* s, AbsArrOrFuncSuffix* res) {
                 ParserErr_set(s->err,
                                PARSER_ERR_ARR_DOUBLE_STATIC,
                                s->it->loc);
-                free_abs_arr_or_func_suffix(res);
+                AbsArrOrFuncSuffix_free(res);
                 return false;
             } else {
                 parser_accept_it(s);
@@ -88,7 +88,7 @@ static bool parse_abs_arr_suffix(ParserState* s, AbsArrOrFuncSuffix* res) {
     if (s->it->kind == TOKEN_RINDEX) {
         if (res->is_static) {
             ParserErr_set(s->err, PARSER_ERR_ARR_STATIC_NO_LEN, s->it->loc);
-            free_abs_arr_or_func_suffix(res);
+            AbsArrOrFuncSuffix_free(res);
             return false;
         }
         res->assign = NULL;
@@ -96,7 +96,7 @@ static bool parse_abs_arr_suffix(ParserState* s, AbsArrOrFuncSuffix* res) {
     } else {
         res->assign = parse_assign_expr(s);
         if (!(res->assign && parser_accept(s, TOKEN_RINDEX))) {
-            free_abs_arr_or_func_suffix(res);
+            AbsArrOrFuncSuffix_free(res);
             return false;
         }
     }
@@ -172,7 +172,7 @@ struct DirectAbsDeclarator* parse_direct_abs_declarator(ParserState* s) {
     return res;
 }
 
-static void free_abs_arr_or_func_suffix(AbsArrOrFuncSuffix* s) {
+static void AbsArrOrFuncSuffix_free(AbsArrOrFuncSuffix* s) {
     switch (s->kind) {
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
             break;
@@ -187,20 +187,20 @@ static void free_abs_arr_or_func_suffix(AbsArrOrFuncSuffix* s) {
     }
 }
 
-static void free_direct_abs_declarator_children(
+static void DirectAbsDeclarator_free_children(
     struct DirectAbsDeclarator* d) {
     if (d->bracket_decl) {
         AbsDeclarator_free(d->bracket_decl);
     }
 
     for (size_t i = 0; i < d->len; ++i) {
-        free_abs_arr_or_func_suffix(&d->following_suffixes[i]);
+        AbsArrOrFuncSuffix_free(&d->following_suffixes[i]);
     }
     mycc_free(d->following_suffixes);
 }
 
 void DirectAbsDeclarator_free(struct DirectAbsDeclarator* d) {
-    free_direct_abs_declarator_children(d);
+    DirectAbsDeclarator_free_children(d);
     mycc_free(d);
 }
 

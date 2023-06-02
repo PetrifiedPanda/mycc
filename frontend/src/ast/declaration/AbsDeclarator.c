@@ -39,7 +39,7 @@ AbsDeclarator* parse_abs_declarator(ParserState* s) {
     return res;
 }
 
-static void free_abs_declarator_children(AbsDeclarator* d) {
+static void AbsDeclarator_free_children(AbsDeclarator* d) {
     if (d->ptr) {
         Pointer_free(d->ptr);
     }
@@ -49,6 +49,6 @@ static void free_abs_declarator_children(AbsDeclarator* d) {
 }
 
 void AbsDeclarator_free(AbsDeclarator* d) {
-    free_abs_declarator_children(d);
+    AbsDeclarator_free_children(d);
     mycc_free(d);
 }

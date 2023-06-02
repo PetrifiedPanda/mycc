@@ -46,13 +46,13 @@ StaticAssertDeclaration* parse_static_assert_declaration(ParserState* s) {
     return res;
 }
 
-static void free_static_assert_declaration_children(StaticAssertDeclaration* d) {
+static void StaticAssertDeclaration_free_children(StaticAssertDeclaration* d) {
     ConstExpr_free(d->const_expr);
     StringLiteralNode_free(&d->err_msg);
 }
 
 void StaticAssertDeclaration_free(StaticAssertDeclaration* d) {
-    free_static_assert_declaration_children(d);
+    StaticAssertDeclaration_free_children(d);
 
     mycc_free(d);
 }

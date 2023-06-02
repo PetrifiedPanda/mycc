@@ -5,7 +5,9 @@
 #include "frontend/ast/declaration/Pointer.h"
 #include "frontend/ast/declaration/DirectDeclarator.h"
 
-static Declarator* parse_declarator_base(ParserState* s, DirectDeclarator* (*parse_func)(ParserState* s)) {
+static Declarator* parse_declarator_base(
+    ParserState* s,
+    DirectDeclarator* (*parse_func)(ParserState* s)) {
     Declarator* res = mycc_alloc(sizeof *res);
     if (s->it->kind == TOKEN_ASTERISK) {
         res->ptr = parse_pointer(s);
@@ -37,7 +39,7 @@ Declarator* parse_declarator(ParserState* s) {
     return parse_declarator_base(s, parse_direct_declarator);
 }
 
-static void free_declarator_children(Declarator* d) {
+static void Declarator_free_children(Declarator* d) {
     if (d->ptr) {
         Pointer_free(d->ptr);
     }
@@ -45,6 +47,6 @@ static void free_declarator_children(Declarator* d) {
 }
 
 void Declarator_free(Declarator* d) {
-    free_declarator_children(d);
+    Declarator_free_children(d);
     mycc_free(d);
 }

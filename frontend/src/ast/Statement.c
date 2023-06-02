@@ -63,27 +63,6 @@ fail:
     return NULL;
 }
 
-static void LabeledStatement_free_children(LabeledStatement* s) {
-    switch (s->kind) {
-        case LABELED_STATEMENT_LABEL:
-            Identifier_free(s->label);
-            break;
-        case LABELED_STATEMENT_CASE:
-            ConstExpr_free_children(&s->case_expr);
-            break;
-        case LABELED_STATEMENT_DEFAULT:
-            break;
-        default:
-            UNREACHABLE();
-    }
-    Statement_free(s->stat);
-}
-
-void LabeledStatement_free(LabeledStatement* s) {
-    LabeledStatement_free_children(s);
-    mycc_free(s);
-}
-
 static bool parse_block_item_inplace(ParserState* s, BlockItem* res) {
     if (is_declaration(s)) {
         res->is_decl = true;
@@ -98,26 +77,6 @@ static bool parse_block_item_inplace(ParserState* s, BlockItem* res) {
     }
 
     return true;
-}
-
-static void free_block_item_children(BlockItem* i) {
-    if (i->is_decl) {
-        Declaration_free_children(&i->decl);
-    } else {
-        Statement_free_children(&i->stat);
-    }
-}
-
-void CompoundStatement_free_children(CompoundStatement* s) {
-    for (size_t i = 0; i < s->len; ++i) {
-        free_block_item_children(&s->items[i]);
-    }
-    mycc_free(s->items);
-}
-
-void CompoundStatement_free(CompoundStatement* s) {
-    CompoundStatement_free_children(s);
-    mycc_free(s);
 }
 
 bool parse_compound_statement_inplace(ParserState* s, CompoundStatement* res) {
@@ -165,8 +124,6 @@ static struct CompoundStatement* parse_compound_statement(ParserState* s) {
     return res;
 }
 
-void ExprStatement_free(ExprStatement* s);
-
 static ExprStatement* parse_expr_statement(ParserState* s) {
     ExprStatement* res = mycc_alloc(sizeof *res);
     res->info = AstNodeInfo_create(s->it->loc);
@@ -188,15 +145,6 @@ static ExprStatement* parse_expr_statement(ParserState* s) {
 
         return res;
     }
-}
-
-static void free_expr_statement_children(ExprStatement* s) {
-    Expr_free_children(&s->expr);
-}
-
-void ExprStatement_free(ExprStatement* s) {
-    free_expr_statement_children(s);
-    mycc_free(s);
 }
 
 static SelectionStatement* parse_selection_statement(ParserState* s) {
@@ -247,19 +195,6 @@ static SelectionStatement* parse_selection_statement(ParserState* s) {
     }
 
     return res;
-}
-
-static void free_selection_statement_children(SelectionStatement* s) {
-    Expr_free_children(&s->sel_expr);
-    Statement_free(s->sel_stat);
-    if (s->else_stat) {
-        Statement_free(s->else_stat);
-    }
-}
-
-void SelectionStatement_free(SelectionStatement* s) {
-    free_selection_statement_children(s);
-    mycc_free(s);
 }
 
 static void assign_do_or_while(SourceLoc loc,
@@ -356,7 +291,8 @@ static IterationStatement* parse_do_loop(ParserState* s, SourceLoc loc) {
         Statement_free(loop_body);
         return NULL;
     }
-    if (!(parser_accept(s, TOKEN_RBRACKET) && parser_accept(s, TOKEN_SEMICOLON))) {
+    if (!(parser_accept(s, TOKEN_RBRACKET)
+          && parser_accept(s, TOKEN_SEMICOLON))) {
         Statement_free(loop_body);
         Expr_free_children(&while_cond);
         return NULL;
@@ -444,33 +380,6 @@ static IterationStatement* parse_iteration_statement(ParserState* s) {
         default:
             UNREACHABLE();
     }
-}
-
-static void free_iteration_statement_children(IterationStatement* s) {
-    switch (s->kind) {
-        case ITERATION_STATEMENT_WHILE:
-        case ITERATION_STATEMENT_DO:
-            Expr_free_children(&s->while_cond);
-            break;
-        case ITERATION_STATEMENT_FOR: {
-            if (s->for_loop.is_decl) {
-                Declaration_free_children(&s->for_loop.init_decl);
-            } else {
-                ExprStatement_free(s->for_loop.init_expr);
-            }
-            ExprStatement_free(s->for_loop.cond);
-            Expr_free_children(&s->for_loop.incr_expr);
-            break;
-        }
-        default:
-            UNREACHABLE();
-    }
-    Statement_free(s->loop_body);
-}
-
-void IterationStatement_free(IterationStatement* s) {
-    free_iteration_statement_children(s);
-    mycc_free(s);
 }
 
 static JumpStatement* create_jump_statement(SourceLoc loc,
@@ -563,7 +472,7 @@ static JumpStatement* parse_jump_statement(ParserState* s) {
     return res;
 }
 
-static void free_jump_statement_children(JumpStatement* s) {
+static void JumpStatement_free_children(JumpStatement* s) {
     switch (s->kind) {
         case JUMP_STATEMENT_GOTO:
             Identifier_free(s->goto_label);
@@ -578,7 +487,7 @@ static void free_jump_statement_children(JumpStatement* s) {
 }
 
 void JumpStatement_free(JumpStatement* s) {
-    free_jump_statement_children(s);
+    JumpStatement_free_children(s);
     mycc_free(s);
 }
 
@@ -670,6 +579,96 @@ Statement* parse_statement(ParserState* s) {
         return NULL;
     }
     return res;
+}
+
+static void LabeledStatement_free_children(LabeledStatement* s) {
+    switch (s->kind) {
+        case LABELED_STATEMENT_LABEL:
+            Identifier_free(s->label);
+            break;
+        case LABELED_STATEMENT_CASE:
+            ConstExpr_free_children(&s->case_expr);
+            break;
+        case LABELED_STATEMENT_DEFAULT:
+            break;
+        default:
+            UNREACHABLE();
+    }
+    Statement_free(s->stat);
+}
+
+void LabeledStatement_free(LabeledStatement* s) {
+    LabeledStatement_free_children(s);
+    mycc_free(s);
+}
+
+static void BlockItem_free_children(BlockItem* i) {
+    if (i->is_decl) {
+        Declaration_free_children(&i->decl);
+    } else {
+        Statement_free_children(&i->stat);
+    }
+}
+
+void CompoundStatement_free_children(CompoundStatement* s) {
+    for (size_t i = 0; i < s->len; ++i) {
+        BlockItem_free_children(&s->items[i]);
+    }
+    mycc_free(s->items);
+}
+
+void CompoundStatement_free(CompoundStatement* s) {
+    CompoundStatement_free_children(s);
+    mycc_free(s);
+}
+
+static void ExprStatement_free_children(ExprStatement* s) {
+    Expr_free_children(&s->expr);
+}
+
+void ExprStatement_free(ExprStatement* s) {
+    ExprStatement_free_children(s);
+    mycc_free(s);
+}
+
+static void SelectionStatement_free_children(SelectionStatement* s) {
+    Expr_free_children(&s->sel_expr);
+    Statement_free(s->sel_stat);
+    if (s->else_stat) {
+        Statement_free(s->else_stat);
+    }
+}
+
+void SelectionStatement_free(SelectionStatement* s) {
+    SelectionStatement_free_children(s);
+    mycc_free(s);
+}
+
+static void IterationStatement_free_children(IterationStatement* s) {
+    switch (s->kind) {
+        case ITERATION_STATEMENT_WHILE:
+        case ITERATION_STATEMENT_DO:
+            Expr_free_children(&s->while_cond);
+            break;
+        case ITERATION_STATEMENT_FOR: {
+            if (s->for_loop.is_decl) {
+                Declaration_free_children(&s->for_loop.init_decl);
+            } else {
+                ExprStatement_free(s->for_loop.init_expr);
+            }
+            ExprStatement_free(s->for_loop.cond);
+            Expr_free_children(&s->for_loop.incr_expr);
+            break;
+        }
+        default:
+            UNREACHABLE();
+    }
+    Statement_free(s->loop_body);
+}
+
+void IterationStatement_free(IterationStatement* s) {
+    IterationStatement_free_children(s);
+    mycc_free(s);
 }
 
 void Statement_free_children(Statement* s) {

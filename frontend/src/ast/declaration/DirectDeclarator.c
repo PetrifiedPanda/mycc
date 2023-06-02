@@ -13,7 +13,7 @@
 
 #include "frontend/ast/declaration/Declarator.h"
 
-static void free_arr_suffix(ArrSuffix* s) {
+static void ArrSuffix_free(ArrSuffix* s) {
     if (s->arr_len) {
         AssignExpr_free(s->arr_len);
     }
@@ -58,13 +58,13 @@ static bool parse_arr_suffix(ParserState* s, ArrOrFuncSuffix* res) {
                 ParserErr_set(s->err,
                                PARSER_ERR_ARR_STATIC_ASTERISK,
                                s->it->loc);
-                free_arr_suffix(suffix);
+                ArrSuffix_free(suffix);
                 return false;
             }
             parser_accept_it(s);
             suffix->is_asterisk = true;
             if (!parser_accept(s, TOKEN_RINDEX)) {
-                free_arr_suffix(suffix);
+                ArrSuffix_free(suffix);
                 return false;
             }
             return true;
@@ -74,7 +74,7 @@ static bool parse_arr_suffix(ParserState* s, ArrOrFuncSuffix* res) {
     if (s->it->kind == TOKEN_STATIC) {
         if (suffix->is_static) {
             ParserErr_set(s->err, PARSER_ERR_ARR_DOUBLE_STATIC, s->it->loc);
-            free_arr_suffix(suffix);
+            ArrSuffix_free(suffix);
             return false;
         }
         suffix->is_static = true;
@@ -84,14 +84,14 @@ static bool parse_arr_suffix(ParserState* s, ArrOrFuncSuffix* res) {
     if (s->it->kind == TOKEN_RINDEX) {
         if (suffix->is_static) {
             ParserErr_set(s->err, PARSER_ERR_ARR_STATIC_NO_LEN, s->it->loc);
-            free_arr_suffix(suffix);
+            ArrSuffix_free(suffix);
             return false;
         }
         parser_accept_it(s);
     } else {
         suffix->arr_len = parse_assign_expr(s);
         if (!(suffix->arr_len && parser_accept(s, TOKEN_RINDEX))) {
-            free_arr_suffix(suffix);
+            ArrSuffix_free(suffix);
             return false;
         }
     }
@@ -236,7 +236,7 @@ DirectDeclarator* parse_direct_declarator_typedef(
                                         parser_register_typedef_name);
 }
 
-static void free_direct_declarator_children(DirectDeclarator* d) {
+static void DirectDeclarator_free_children(DirectDeclarator* d) {
     if (d->is_id) {
         Identifier_free(d->id);
     } else {
@@ -247,7 +247,7 @@ static void free_direct_declarator_children(DirectDeclarator* d) {
         ArrOrFuncSuffix* item = &d->suffixes[i];
         switch (item->kind) {
             case ARR_OR_FUNC_ARRAY:
-                free_arr_suffix(&item->arr_suffix);
+                ArrSuffix_free(&item->arr_suffix);
                 break;
             case ARR_OR_FUNC_FUN_PARAMS:
                 ParamTypeList_free(&item->fun_types);
@@ -265,7 +265,7 @@ static void free_direct_declarator_children(DirectDeclarator* d) {
 }
 
 void DirectDeclarator_free(DirectDeclarator* d) {
-    free_direct_declarator_children(d);
+    DirectDeclarator_free_children(d);
     mycc_free(d);
 }
 
