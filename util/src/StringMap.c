@@ -1,6 +1,5 @@
 #include "util/StringMap.h"
 
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 

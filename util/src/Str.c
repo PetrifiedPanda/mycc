@@ -29,7 +29,7 @@ enum {
                      / sizeof *(Str){{{0}}}._static_buf
 };
 
-static Str create_str_with_cap(size_t len, const char* str, size_t cap) {
+static Str Str_create_with_cap(size_t len, const char* str, size_t cap) {
     assert(cap >= len);
     assert(len == 0 || str);
     Str res;
@@ -51,7 +51,7 @@ static Str create_str_with_cap(size_t len, const char* str, size_t cap) {
 
 Str Str_create(size_t len, const char* str) {
     assert(len == 0 || str);
-    return create_str_with_cap(len, str, len);
+    return Str_create_with_cap(len, str, len);
 }
 
 Str Str_create_empty_with_cap(size_t cap) {
@@ -93,7 +93,7 @@ size_t Str_cap(const Str* str) {
     }
 }
 
-static char* str_get_mut_data(Str* str) {
+static char* Str_get_mut_data(Str* str) {
     assert(str);
     assert(Str_is_valid(str));
     if (str->_is_static_buf) {
@@ -124,7 +124,7 @@ char Str_char_at(const Str* str, size_t i) {
     }
 }
 
-static void str_move_to_dyn_buf(Str* str, size_t dyn_buf_cap) {
+static void Str_move_to_dyn_buf(Str* str, size_t dyn_buf_cap) {
     assert(str->_is_static_buf);
 
     const size_t len = str->_small_len;
@@ -142,7 +142,7 @@ void Str_push_back(Str* str, char c) {
     assert(Str_is_valid(str));
     if (str->_is_static_buf) {
         if (str->_small_len == STATIC_BUF_LEN - 1) {
-            str_move_to_dyn_buf(str, STATIC_BUF_LEN);
+            Str_move_to_dyn_buf(str, STATIC_BUF_LEN);
             str->_data[str->_len] = c;
             ++str->_len;
             str->_data[str->_len] = '\0';
@@ -163,7 +163,7 @@ void Str_push_back(Str* str, char c) {
     }
 }
 
-static void str_set_len(Str* str, size_t len) {
+static void Str_set_len(Str* str, size_t len) {
     if (str->_is_static_buf) {
         assert(len < STATIC_BUF_LEN);
         str->_small_len = (uint8_t)len;
@@ -177,9 +177,9 @@ void Str_pop_back(Str* str) {
     assert(Str_is_valid(str));
     const size_t len = Str_len(str);
     assert(len >= 1);
-    char* data = str_get_mut_data(str);
+    char* data = Str_get_mut_data(str);
     data[len - 1] = '\0';
-    str_set_len(str, len - 1);
+    Str_set_len(str, len - 1);
 }
 
 void Str_shrink_to_fit(Str* str) {
@@ -204,7 +204,7 @@ void Str_shrink_to_fit(Str* str) {
 void Str_reserve(Str* str, size_t new_cap) {
     if (str->_is_static_buf) {
         if (new_cap >= STATIC_BUF_LEN) {
-            str_move_to_dyn_buf(str, new_cap);
+            Str_move_to_dyn_buf(str, new_cap);
         }
     } else if (str->_cap < new_cap) {
         str->_cap = new_cap + 1;
@@ -213,11 +213,11 @@ void Str_reserve(Str* str, size_t new_cap) {
 }
 
 void Str_remove_front(Str* str, size_t num_chars) {
-    char* data = str_get_mut_data(str);
+    char* data = Str_get_mut_data(str);
     const size_t new_len = Str_len(str) - num_chars;
     memmove(data, data + num_chars, new_len);
     data[new_len] = '\0';
-    str_set_len(str, new_len);
+    Str_set_len(str, new_len);
 }
 
 void Str_append_c_str(Str* str, size_t len, const char* c_str) {
@@ -227,10 +227,10 @@ void Str_append_c_str(Str* str, size_t len, const char* c_str) {
         Str_reserve(str, new_len);
     }
 
-    char* data = str_get_mut_data(str);
+    char* data = Str_get_mut_data(str);
     memcpy(data + curr_len, c_str, sizeof *c_str * len);
     data[new_len] = '\0';
-    str_set_len(str, new_len);
+    Str_set_len(str, new_len);
 }
 
 Str Str_concat(size_t len1,
@@ -238,11 +238,11 @@ Str Str_concat(size_t len1,
                       size_t len2,
                       const char* s2) {
     const size_t len = len1 + len2;
-    Str res = create_str_with_cap(len1, s1, len);
-    char* res_data = str_get_mut_data(&res);
+    Str res = Str_create_with_cap(len1, s1, len);
+    char* res_data = Str_get_mut_data(&res);
     memcpy(res_data + len1, s2, len2 * sizeof *res_data);
     res_data[len] = '\0';
-    str_set_len(&res, len);
+    Str_set_len(&res, len);
     return res;
 }
 
@@ -263,7 +263,7 @@ Str Str_copy(const Str* str) {
         return *str;
     } else {
         if (Str_is_valid(str)) {
-            return create_str_with_cap(str->_len, str->_data, str->_cap - 1);
+            return Str_create_with_cap(str->_len, str->_data, str->_cap - 1);
         } else {
             return Str_create_null();
         }
