@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "util/Str.h"
+
 #include "frontend/Value.h"
 #include "frontend/ArchTypeInfo.h"
 
@@ -24,7 +26,7 @@ typedef struct {
     Value res;
 } ParseFloatConstRes;
 
-ParseFloatConstRes parse_float_const(const char* spell);
+ParseFloatConstRes parse_float_const(Str spell);
 
 void FloatConstErr_print(FILE* out, const FloatConstErr* err);
 
@@ -49,7 +51,7 @@ typedef struct {
     Value res;
 } ParseIntConstRes;
 
-ParseIntConstRes parse_int_const(const char* spell, const ArchTypeInfo* type_info);
+ParseIntConstRes parse_int_const(Str spell, const ArchTypeInfo* type_info);
 
 void IntConstErr_print(FILE* out, const IntConstErr* err);
 
@@ -76,7 +78,7 @@ typedef struct {
     Value res;
 } ParseCharConstRes;
 
-ParseCharConstRes parse_char_const(const char* spell, const ArchTypeInfo* type_info);
+ParseCharConstRes parse_char_const(Str spell, const ArchTypeInfo* type_info);
 
 void CharConstErr_print(FILE* out, const CharConstErr* err);
 

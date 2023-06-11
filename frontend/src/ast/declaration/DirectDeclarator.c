@@ -198,7 +198,7 @@ static DirectDeclarator* parse_direct_declarator_base(
             mycc_free(res);
             return NULL;
         }
-        const Str spelling = Token_take_spelling(s->it);
+        const StrBuf spelling = Token_take_spelling(s->it);
         const SourceLoc loc = s->it->loc;
         parser_accept_it(s);
         res->id = Identifier_create(&spelling, loc);

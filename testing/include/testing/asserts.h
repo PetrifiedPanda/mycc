@@ -6,7 +6,9 @@
 #include <string.h>
 #include <math.h>
 
-#include "testing/testing.h"
+#include "testing.h"
+
+#include "util/Str.h"
 
 #ifdef WIN32
 // warning for comparing string literal addresses
@@ -106,18 +108,12 @@
 
 #define ASSERT_STR(got, expected)                                              \
     do {                                                                       \
-        const char* const assert_str_got = (got);                              \
-        const char* const assert_str_expected = (expected);                    \
-        if (assert_str_expected == NULL && assert_str_got != NULL) {           \
-            PRINT_ASSERT_ERR("Expected NULL but got %s", assert_str_got);      \
-        } else if (assert_str_expected != NULL && assert_str_got == NULL) {    \
-            PRINT_ASSERT_ERR("Expected %s but got NULL", assert_str_expected); \
-        } else if (assert_str_got != NULL && assert_str_expected != NULL) {    \
-            if (strcmp(assert_str_got, assert_str_expected) != 0) {            \
-                PRINT_ASSERT_ERR("Expected %s but got %s",                     \
-                                 assert_str_expected,                          \
-                                 assert_str_got);                              \
-            }                                                                  \
+        const Str assert_str_got = (got);                                      \
+        const Str assert_str_expected = (expected);                            \
+        if (!Str_eq(assert_str_got, assert_str_expected)) {                    \
+            PRINT_ASSERT_ERR("Expected \"%s\" but got \"%s\"",                 \
+                             assert_str_expected.data,                         \
+                             assert_str_got.data);                             \
         }                                                                      \
     } while (0)
 

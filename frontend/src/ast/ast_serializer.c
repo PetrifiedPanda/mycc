@@ -54,18 +54,17 @@ static void serialize_float(AstSerializer* d, double f) {
     serializer_write(d, &f, sizeof f, 1);
 }
 
-static void serialize_str(AstSerializer* d, const Str* str) {
-    const size_t len = Str_len(str);
-    serialize_uint(d, len);
-    const char* data = Str_get_data(str);
-    serializer_write(d, data, sizeof *data, len);
+static void serialize_str_buf(AstSerializer* d, const StrBuf* str) {
+    const Str data = StrBuf_as_str(str);
+    serialize_uint(d, data.len);
+    serializer_write(d, data.data, sizeof *data.data, data.len);
 }
 
 static void serialize_file_info(AstSerializer* d,
                                 const FileInfo* info) {
     serialize_uint(d, info->len);
     for (size_t i = 0; i < info->len; ++i) {
-        serialize_str(d, &info->paths[i]);
+        serialize_str_buf(d, &info->paths[i]);
     }
 }
 
@@ -91,7 +90,7 @@ static void serialize_atomic_type_spec(AstSerializer* d, const AtomicTypeSpec* s
 
 static void serialize_identifier(AstSerializer* d, const Identifier* id) {
     serialize_ast_node_info(d, &id->info);
-    serialize_str(d, &id->spelling);
+    serialize_str_buf(d, &id->spelling);
 }
 
 static void serialize_value(AstSerializer* d, const Value* val) {
@@ -112,7 +111,7 @@ static void serialize_constant(AstSerializer* d, const Constant* constant) {
     serialize_uint(d, kind);
     switch (constant->kind) {
         case CONSTANT_ENUM:
-            serialize_str(d, &constant->spelling);
+            serialize_str_buf(d, &constant->spelling);
             break;
         case CONSTANT_VAL:
             serialize_value(d, &constant->val);
@@ -125,7 +124,7 @@ static void serialize_str_lit(AstSerializer* d,
     const uint64_t kind = lit->kind;
     assert((StrLitKind)kind == lit->kind);
     serialize_uint(d, kind);
-    serialize_str(d, &lit->contents);
+    serialize_str_buf(d, &lit->contents);
 }
 
 static void serialize_string_literal_node(

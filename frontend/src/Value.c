@@ -94,34 +94,34 @@ bool ValueKind_is_float(ValueKind k) {
     UNREACHABLE();
 }
 
-const char* ValueKind_str(ValueKind k) {
+Str ValueKind_str(ValueKind k) {
     switch (k) {
         case VALUE_C:
-            return "VALUE_C";
+            return STR_LIT("VALUE_C");
         case VALUE_S:
-            return "VALUE_S";
+            return STR_LIT("VALUE_S");
         case VALUE_I:
-            return "VALUE_I";
+            return STR_LIT("VALUE_I");
         case VALUE_L:
-            return "VALUE_L";
+            return STR_LIT("VALUE_L");
         case VALUE_LL:
-            return "VALUE_LL";
+            return STR_LIT("VALUE_LL");
         case VALUE_UC:
-            return "VALUE_UC";
+            return STR_LIT("VALUE_UC");
         case VALUE_US:
-            return "VALUE_US";
+            return STR_LIT("VALUE_US");
         case VALUE_UI:
-            return "VALUE_UI";
+            return STR_LIT("VALUE_UI");
         case VALUE_UL:
-            return "VALUE_UL";
+            return STR_LIT("VALUE_UL");
         case VALUE_ULL:
-            return "VALUE_ULL";
+            return STR_LIT("VALUE_ULL");
         case VALUE_F:
-            return "VALUE_F";
+            return STR_LIT("VALUE_F");
         case VALUE_D:
-            return "VALUE_D";
+            return STR_LIT("VALUE_D");
         case VALUE_LD:
-            return "VALUE_LD";
+            return STR_LIT("VALUE_LD");
     }
     UNREACHABLE();
 }

@@ -6,15 +6,15 @@
 #include "util/macro_util.h"
 
 Token Token_create(TokenKind kind,
-                   const Str* spelling,
+                   const StrBuf* spelling,
                    FileLoc file_loc,
                    size_t file_idx) {
     assert(spelling);
     assert(file_idx != (size_t)-1);
-    if (TokenKind_get_spelling(kind) == NULL) {
-        assert(Str_is_valid(spelling));
+    if (TokenKind_get_spelling(kind).data == NULL) {
+        assert(StrBuf_valid(spelling));
     } else {
-        assert(!Str_is_valid(spelling));
+        assert(!StrBuf_valid(spelling));
     }
 
     return (Token){
@@ -29,15 +29,15 @@ Token Token_create(TokenKind kind,
 }
 
 Token Token_create_copy(TokenKind kind,
-                        const Str* spelling,
+                        const StrBuf* spelling,
                         FileLoc file_loc,
                         size_t file_idx) {
     assert(spelling);
-    assert(Str_is_valid(spelling));
+    assert(StrBuf_valid(spelling));
 
     return (Token){
         .kind = kind,
-        .spelling = Str_copy(spelling),
+        .spelling = StrBuf_copy(spelling),
         .loc =
             {
                 .file_idx = file_idx,
@@ -46,16 +46,16 @@ Token Token_create_copy(TokenKind kind,
     };
 }
 
-Str Token_take_spelling(Token* t) {
-    assert(Str_is_valid(&t->spelling));
-    Str spelling = Str_take(&t->spelling);
+StrBuf Token_take_spelling(Token* t) {
+    assert(StrBuf_valid(&t->spelling));
+    StrBuf spelling = StrBuf_take(&t->spelling);
     return spelling;
 }
 
 StrLit Token_take_str_lit(Token* t) {
     assert(t->kind == TOKEN_STRING_LITERAL);
     StrLit res = t->str_lit;
-    t->str_lit.contents = Str_create_null();
+    t->str_lit.contents = StrBuf_null();
     return res;
 }
 
@@ -64,26 +64,26 @@ void Token_free(Token* t) {
     if (t->kind == TOKEN_STRING_LITERAL) {
         StrLit_free(&t->str_lit);
     } else if (t->kind != TOKEN_I_CONSTANT && t->kind != TOKEN_F_CONSTANT) {
-        Str_free(&t->spelling);
+        StrBuf_free(&t->spelling);
     }
 }
 
-const char* TokenKind_get_spelling(TokenKind kind) {
+Str TokenKind_get_spelling(TokenKind kind) {
     switch (kind) {
 #define TOKEN_MACRO(kind, str)                                                 \
     case kind:                                                                 \
-        return str;
+        return str == NULL ? Str_null() : STR_LIT(str);
 #include "frontend/TokenKind.inc"
 #undef TOKEN_MACRO
     }
     UNREACHABLE();
 }
 
-const char* TokenKind_str(TokenKind kind) {
+Str TokenKind_str(TokenKind kind) {
     switch (kind) {
 #define TOKEN_MACRO(kind, str)                                                 \
     case kind:                                                                 \
-        return #kind;
+        return STR_LIT(#kind);
 #include "frontend/TokenKind.inc"
 #undef TOKEN_MACRO
     }

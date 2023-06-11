@@ -3,12 +3,12 @@
 
 #include <stdio.h>
 
-#include "Str.h"
+#include "StrBuf.h"
 
-const char* file_read_line(FILE* file,
-                           Str* str,
-                           size_t* res_len,
-                           char* static_buf,
-                           size_t static_buf_len);
+Str file_read_line(FILE* file,
+                   StrBuf* str,
+                   size_t* res_len,
+                   char* static_buf,
+                   size_t static_buf_len);
 
 #endif

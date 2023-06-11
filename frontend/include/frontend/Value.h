@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <limits.h>
 
+#include "util/Str.h"
+
 typedef enum {
     VALUE_C,
     VALUE_S,
@@ -41,7 +43,7 @@ bool ValueKind_is_sint(ValueKind k);
 bool ValueKind_is_uint(ValueKind k);
 bool ValueKind_is_float(ValueKind k);
 
-const char* ValueKind_str(ValueKind k);
+Str ValueKind_str(ValueKind k);
 
 #endif
 

@@ -50,10 +50,10 @@ static PRINTF_FORMAT(2, 3) void dumper_println(AstDumper* d,
     }
 }
 
-static void dumper_puts(AstDumper* d, const char* str) {
+static void dumper_print_str(AstDumper* d, Str str) {
     print_indents(d);
 
-    if (fputs(str, d->file) < 0) {
+    if (fwrite(str.data, sizeof *str.data, str.len, d->file) < str.len) {
         longjmp(d->err_buf, 0);
     }
 
@@ -67,7 +67,7 @@ static void dumper_print_node_head(AstDumper* d,
                                    const AstNodeInfo* node) {
     const SourceLoc* loc = &node->loc;
     assert(loc->file_idx < d->file_info->len);
-    const char* file_path = Str_get_data(&d->file_info->paths[loc->file_idx]);
+    const char* file_path = StrBuf_data(&d->file_info->paths[loc->file_idx]);
     dumper_println(d,
                    "%s: %s:%zu,%zu",
                    name,
@@ -207,7 +207,7 @@ static void dump_identifier(AstDumper* d, Identifier* i) {
     dumper_print_node_head(d, "identifier", &i->info);
 
     add_indent(d);
-    dumper_println(d, "spelling: %s", Str_get_data(&i->spelling));
+    dumper_println(d, "spelling: %s", StrBuf_data(&i->spelling));
     remove_indent(d);
 }
 
@@ -216,7 +216,7 @@ static void dump_value(AstDumper* d, const Value* val) {
 
     add_indent(d);
 
-    dumper_println(d, "type: %s", ValueKind_str(val->kind));
+    dumper_println(d, "type: %s", ValueKind_str(val->kind).data);
     if (ValueKind_is_sint(val->kind)) {
         dumper_println(d, "sint_val: %jd", val->sint_val);
     } else if (ValueKind_is_uint(val->kind)) {
@@ -237,7 +237,7 @@ static void dump_constant(AstDumper* d, const Constant* c) {
 
     switch (c->kind) {
         case CONSTANT_ENUM:
-            dumper_println(d, "enum: %s", Str_get_data(&c->spelling));
+            dumper_println(d, "enum: %s", StrBuf_data(&c->spelling));
             break;
         case CONSTANT_VAL:
             dump_value(d, &c->val);
@@ -249,11 +249,11 @@ static void dump_constant(AstDumper* d, const Constant* c) {
 
 static void dump_str_lit(AstDumper* d, const StrLit* l) {
     assert(l);
-    dumper_puts(d, "str_lit:");
+    dumper_print_str(d, STR_LIT("str_lit:"));
 
     add_indent(d);
-    dumper_println(d, "kind: %s", StrLitKind_str(l->kind));
-    dumper_println(d, "contents: %s", Str_get_data(&l->contents));
+    dumper_println(d, "kind: %s", StrLitKind_str(l->kind).data);
+    dumper_println(d, "contents: %s", StrBuf_data(&l->contents));
     remove_indent(d);
 }
 
@@ -273,7 +273,7 @@ static void dump_string_constant(AstDumper* d, const StringConstant* c) {
 
     if (c->is_func) {
         dumper_print_node_head(d, "string_constant", &c->info);
-        dumper_puts(d, TokenKind_get_spelling(TOKEN_FUNC_NAME));
+        dumper_print_str(d, TokenKind_get_spelling(TOKEN_FUNC_NAME));
     } else {
         dumper_println(d, "string_constant:");
         dump_string_literal(d, &c->lit);
@@ -552,10 +552,10 @@ static void dump_enum_spec(AstDumper* d, const EnumSpec* s) {
     remove_indent(d);
 }
 
-static const char* type_spec_kind_str(TypeSpecKind k) {
+static Str type_spec_kind_str(TypeSpecKind k) {
     switch (k) {
         case TYPE_SPEC_NONE:
-            return "NO_TYPE_SPEC";
+            return STR_LIT("NO_TYPE_SPEC");
         case TYPE_SPEC_VOID:
             return TokenKind_get_spelling(TOKEN_VOID);
         case TYPE_SPEC_CHAR:
@@ -590,7 +590,7 @@ static void dump_type_specs(AstDumper* d, const TypeSpecs* s) {
         case TYPE_SPEC_FLOAT:
         case TYPE_SPEC_DOUBLE:
         case TYPE_SPEC_BOOL:
-            dumper_puts(d, type_spec_kind_str(s->kind));
+            dumper_print_str(d, type_spec_kind_str(s->kind));
             break;
         case TYPE_SPEC_ATOMIC:
             dump_atomic_type_spec(d, s->atomic_spec);
@@ -678,7 +678,7 @@ static void dump_postfix_suffix(AstDumper* d, const PostfixSuffix* s) {
             break;
         case POSTFIX_INC:
         case POSTFIX_DEC:
-            dumper_puts(d, s->kind == POSTFIX_INC ? "++" : "--");
+            dumper_print_str(d, s->kind == POSTFIX_INC ? STR_LIT("++") : STR_LIT("--"));
             break;
     }
 
@@ -732,7 +732,7 @@ static void dump_cast_expr(AstDumper* d, const CastExpr* e) {
     remove_indent(d);
 }
 
-static const char* unary_expr_kind_str(UnaryExprKind k) {
+static Str unary_expr_kind_str(UnaryExprKind k) {
     assert(k != UNARY_POSTFIX && k != UNARY_SIZEOF_TYPE && k != UNARY_ALIGNOF);
     switch (k) {
         case UNARY_ADDRESSOF:
@@ -753,7 +753,7 @@ static const char* unary_expr_kind_str(UnaryExprKind k) {
     }
 }
 
-static const char* unary_expr_op_str(UnaryExprOp o) {
+static Str unary_expr_op_str(UnaryExprOp o) {
     switch (o) {
         case UNARY_OP_INC:
             return TokenKind_get_spelling(TOKEN_INC);
@@ -774,7 +774,7 @@ static void dump_unary_expr(AstDumper* d, const UnaryExpr* e) {
 
     dumper_println(d, "len: %zu", e->len);
     for (size_t i = 0; i < e->len; ++i) {
-        dumper_puts(d, unary_expr_op_str(e->ops_before[i]));
+        dumper_print_str(d, unary_expr_op_str(e->ops_before[i]));
     }
 
     switch (e->kind) {
@@ -787,7 +787,7 @@ static void dump_unary_expr(AstDumper* d, const UnaryExpr* e) {
         case UNARY_MINUS:
         case UNARY_BNOT:
         case UNARY_NOT:
-            dumper_puts(d, unary_expr_kind_str(e->kind));
+            dumper_print_str(d, unary_expr_kind_str(e->kind));
             dump_cast_expr(d, e->cast_expr);
             break;
         case UNARY_SIZEOF_TYPE:
@@ -803,7 +803,7 @@ static void dump_unary_expr(AstDumper* d, const UnaryExpr* e) {
     remove_indent(d);
 }
 
-static const char* assign_expr_op_str(AssignExprOp o) {
+static Str assign_expr_op_str(AssignExprOp o) {
     switch (o) {
         case ASSIGN_EXPR_ASSIGN:
             return TokenKind_get_spelling(TOKEN_ASSIGN);
@@ -850,7 +850,7 @@ static void dump_assign_expr(AstDumper* d, const AssignExpr* e) {
 
         dump_unary_expr(d, &item->unary);
 
-        dumper_puts(d, assign_expr_op_str(item->op));
+        dumper_print_str(d, assign_expr_op_str(item->op));
 
         remove_indent(d);
     }
@@ -1426,7 +1426,7 @@ static void dump_init_declarator_list(AstDumper* d,
     remove_indent(d);
 }
 
-static const char* mul_expr_op_str(MulExprOp o) {
+static Str mul_expr_op_str(MulExprOp o) {
     switch (o) {
         case MUL_EXPR_MUL:
             return TokenKind_get_spelling(TOKEN_ASTERISK);
@@ -1449,14 +1449,14 @@ static void dump_mul_expr(AstDumper* d, const MulExpr* e) {
     dump_cast_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         CastExprAndOp* item = &e->mul_chain[i];
-        dumper_println(d, "mul_op: %s", mul_expr_op_str(item->op));
+        dumper_println(d, "mul_op: %s", mul_expr_op_str(item->op).data);
         dump_cast_expr(d, &item->rhs);
     }
 
     remove_indent(d);
 }
 
-static const char* add_expr_op_str(AddExprOp op) {
+static Str add_expr_op_str(AddExprOp op) {
     switch (op) {
         case ADD_EXPR_ADD:
             return TokenKind_get_spelling(TOKEN_ADD);
@@ -1477,14 +1477,14 @@ static void dump_add_expr(AstDumper* d, const AddExpr* e) {
     dump_mul_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         MulExprAndOp* item = &e->add_chain[i];
-        dumper_println(d, "add_op: %s", add_expr_op_str(item->op));
+        dumper_println(d, "add_op: %s", add_expr_op_str(item->op).data);
         dump_mul_expr(d, &item->rhs);
     }
 
     remove_indent(d);
 }
 
-static const char* shift_expr_op_str(ShiftExprOp o) {
+static Str shift_expr_op_str(ShiftExprOp o) {
     switch (o) {
         case SHIFT_EXPR_LEFT:
             return TokenKind_get_spelling(TOKEN_LSHIFT);
@@ -1505,14 +1505,14 @@ static void dump_shift_expr(AstDumper* d, const ShiftExpr* e) {
     dump_add_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         AddExprAndOp* item = &e->shift_chain[i];
-        dumper_println(d, "shift_op: %s", shift_expr_op_str(item->op));
+        dumper_println(d, "shift_op: %s", shift_expr_op_str(item->op).data);
         dump_add_expr(d, &item->rhs);
     }
 
     remove_indent(d);
 }
 
-static const char* rel_expr_op_str(RelExprOp o) {
+static Str rel_expr_op_str(RelExprOp o) {
     switch (o) {
         case REL_EXPR_LT:
             return TokenKind_get_spelling(TOKEN_LT);
@@ -1537,14 +1537,14 @@ static void dump_rel_expr(AstDumper* d, const RelExpr* e) {
     dump_shift_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         ShiftExprAndOp* item = &e->rel_chain[i];
-        dumper_println(d, "rel_op: %s", rel_expr_op_str(item->op));
+        dumper_println(d, "rel_op: %s", rel_expr_op_str(item->op).data);
         dump_shift_expr(d, &item->rhs);
     }
 
     remove_indent(d);
 }
 
-static const char* eq_expr_op_str(EqExprOp o) {
+static Str eq_expr_op_str(EqExprOp o) {
     switch (o) {
         case EQ_EXPR_EQ:
             return TokenKind_get_spelling(TOKEN_EQ);
@@ -1565,7 +1565,7 @@ static void dump_eq_expr(AstDumper* d, const EqExpr* e) {
     dump_rel_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         RelExprAndOp* item = &e->eq_chain[i];
-        dumper_println(d, "eq_op: %s", eq_expr_op_str(item->op));
+        dumper_println(d, "eq_op: %s", eq_expr_op_str(item->op).data);
         dump_rel_expr(d, &item->rhs);
     }
 

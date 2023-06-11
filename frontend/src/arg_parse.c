@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdarg.h>
 #include <assert.h>
 
@@ -50,7 +51,7 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
         } else {
             ++res.num_files;
             res.files = mycc_realloc(res.files, res.num_files * sizeof *res.files);
-            res.files[res.num_files - 1] = item;
+            res.files[res.num_files - 1] = (Str){strlen(item), item};
         }
     }
 

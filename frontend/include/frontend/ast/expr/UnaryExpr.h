@@ -21,7 +21,7 @@ typedef struct {
     AstNodeInfo info;
     ConstantKind kind;
     union {
-        Str spelling;
+        StrBuf spelling;
         Value val;
     };
 } Constant;

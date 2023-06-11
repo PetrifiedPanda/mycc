@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#include "util/Str.h"
+
 typedef enum {
     ARG_ACTION_OUTPUT_TEXT,
     ARG_ACTION_OUTPUT_BIN,
@@ -11,7 +13,7 @@ typedef enum {
 
 typedef struct {
     int num_files;
-    const char** files;
+    Str* files;
     const char* output_file;
     ArgAction action;
 } CmdArgs;

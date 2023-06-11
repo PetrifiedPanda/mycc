@@ -7,40 +7,38 @@
 
 #include "frontend/preproc/preproc.h"
 
-PreprocRes tokenize(const char* file) {
+PreprocRes tokenize(Str file) {
     PreprocErr err = PreprocErr_create();
     PreprocRes res = preproc(file, &err);
     ASSERT_NOT_NULL(res.toks);
     ASSERT_NOT_NULL(res.file_info.paths);
     ASSERT(err.kind == PREPROC_ERR_NONE);
-    const ArchTypeInfo type_info = get_arch_type_info(ARCH_X86_64,
-                                                               false);
+    const ArchTypeInfo type_info = get_arch_type_info(ARCH_X86_64, false);
     ASSERT(convert_preproc_tokens(res.toks, &type_info, &err));
     ASSERT(err.kind == PREPROC_ERR_NONE);
     return res;
 }
 
-PreprocRes tokenize_string(const char* str, const char* file) {
+PreprocRes tokenize_string(Str str, Str file) {
     PreprocErr err = PreprocErr_create();
     PreprocRes res = preproc_string(str, file, &err);
     ASSERT_NOT_NULL(res.toks);
     ASSERT(err.kind == PREPROC_ERR_NONE);
-    const ArchTypeInfo type_info = get_arch_type_info(ARCH_X86_64,
-                                                               false);
+    const ArchTypeInfo type_info = get_arch_type_info(ARCH_X86_64, false);
     ASSERT(convert_preproc_tokens(res.toks, &type_info, &err));
     ASSERT(err.kind == PREPROC_ERR_NONE);
     return res;
 }
 
-void test_compare_files(const char* got_file, const char* ex_file) {
-    FILE* got = fopen(got_file, "r");
-    FILE* ex = fopen(ex_file, "r");
+void test_compare_files(Str got_file, Str ex_file) {
+    FILE* got = fopen(got_file.data, "r");
+    FILE* ex = fopen(ex_file.data, "r");
 
     enum {
         BUF_LEN = 500
     };
-    Str got_str = Str_create_empty();
-    Str ex_str = Str_create_empty();
+    StrBuf got_str = StrBuf_create_empty();
+    StrBuf ex_str = StrBuf_create_empty();
     char got_buf[BUF_LEN] = {0};
     char ex_buf[BUF_LEN] = {0};
 
@@ -48,29 +46,25 @@ void test_compare_files(const char* got_file, const char* ex_file) {
 
     size_t line_counter = 1;
 
-    const char* got_line = file_read_line(got,
-                                          &got_str,
-                                          &got_len,
-                                          got_buf,
-                                          BUF_LEN);
-    const char* ex_line = file_read_line(ex, &ex_str, &ex_len, ex_buf, BUF_LEN);
-    while (got_line != NULL && ex_line != NULL) {
-        if (strcmp(got_line, ex_line) != 0) {
+    Str got_line = file_read_line(got, &got_str, &got_len, got_buf, BUF_LEN);
+    Str ex_line = file_read_line(ex, &ex_str, &ex_len, ex_buf, BUF_LEN);
+    while (Str_valid(got_line) && Str_valid(ex_line)) {
+        if (!Str_eq(got_line, ex_line)) {
             fclose(got);
             fclose(ex);
             PRINT_ASSERT_ERR("Line %zu of file %s differs from expected file "
                              "%s: Expected %s but got %s",
                              line_counter,
-                             got_file,
-                             ex_file,
-                             ex_line,
-                             got_line);
+                             got_file.data,
+                             ex_file.data,
+                             ex_line.data,
+                             got_line.data);
         }
 
         ++line_counter;
 
-        Str_clear(&got_str);
-        Str_clear(&ex_str);
+        StrBuf_clear(&got_str);
+        StrBuf_clear(&ex_str);
         got_buf[0] = '\0';
         ex_buf[0] = '\0';
         got_len = ex_len = 0;
@@ -79,30 +73,30 @@ void test_compare_files(const char* got_file, const char* ex_file) {
         ex_line = file_read_line(ex, &ex_str, &ex_len, ex_buf, BUF_LEN);
     }
 
-    if (got_line == NULL && ex_line != NULL) {
+    if (!Str_valid(got_line) && Str_valid(ex_line)) {
         fclose(got);
         fclose(ex);
         PRINT_ASSERT_ERR("Expected %s at line %zu but got to end of file",
-                         ex_line,
+                         ex_line.data,
                          line_counter);
-    } else if (got_line != NULL && ex_line == NULL) {
+    } else if (Str_valid(got_line) && !Str_valid(ex_line)) {
         fclose(got);
         fclose(ex);
         PRINT_ASSERT_ERR("Expected end of file at line %zu but got %s",
                          line_counter,
-                         got_line);
+                         got_line.data);
     }
 
-    Str_free(&got_str);
-    Str_free(&ex_str);
+    StrBuf_free(&got_str);
+    StrBuf_free(&ex_str);
 
     fclose(got);
     fclose(ex);
-    remove(got_file);
+    remove(got_file.data);
 }
 
-Str str_non_heap(size_t len, const char* str) {
-    return (Str){
+StrBuf StrBuf_non_heap(size_t len, const char* str) {
+    return (StrBuf){
         ._is_static_buf = false,
         ._cap = len + 1,
         ._len = len,

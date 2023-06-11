@@ -34,13 +34,13 @@ void ParserErr_print(FILE* out, const FileInfo* file_info, const ParserErr* err)
         }
         case PARSER_ERR_REDEFINED_SYMBOL: {
             assert(err->prev_def_file < file_info->len);
-            const char* path = Str_get_data(&file_info->paths[err->prev_def_file]);
+            const char* path = StrBuf_data(&file_info->paths[err->prev_def_file]);
             const char* type_str = err->was_typedef_name ? "typedef name"
                                                          : "enum constant";
             fprintf(out,
                     "Redefined symbol %s that was already defined as %s in "
                     "%s(%zu, %zu)",
-                    Str_get_data(&err->redefined_symbol),
+                    StrBuf_data(&err->redefined_symbol),
                     type_str,
                     path,
                     err->prev_def_loc.line,
@@ -74,8 +74,8 @@ void ParserErr_print(FILE* out, const FileInfo* file_info, const ParserErr* err)
         case PARSER_ERR_INCOMPATIBLE_TYPE_SPECS:
             fprintf(out,
                     "Cannot combine %s with previous %s type specifier",
-                    TokenKind_str(err->type_spec),
-                    TokenKind_str(err->prev_type_spec));
+                    TokenKind_str(err->type_spec).data,
+                    TokenKind_str(err->prev_type_spec).data);
             break;
         case PARSER_ERR_TOO_MUCH_LONG:
             fputs("More than 2 long specifiers are not allowed", out);
@@ -83,13 +83,13 @@ void ParserErr_print(FILE* out, const FileInfo* file_info, const ParserErr* err)
         case PARSER_ERR_DISALLOWED_TYPE_QUALS:
             fprintf(out,
                     "Cannot add qualifiers to type %s",
-                    TokenKind_str(err->incompatible_type));
+                    TokenKind_str(err->incompatible_type).data);
             break;
         case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
             fprintf(
                 out,
                 "Expected a typedef name but got identifier with spelling %s",
-                Str_get_data(&err->non_typedef_spelling));
+                StrBuf_data(&err->non_typedef_spelling));
             break;
         case PARSER_ERR_EMPTY_DIRECT_ABS_DECL:
             fputs("Empty abstract declarator", out);
@@ -101,10 +101,10 @@ void ParserErr_print(FILE* out, const FileInfo* file_info, const ParserErr* err)
 void ParserErr_free(ParserErr* err) {
     switch (err->kind) {
         case PARSER_ERR_REDEFINED_SYMBOL:
-            Str_free(&err->redefined_symbol);
+            StrBuf_free(&err->redefined_symbol);
             break;
         case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
-            Str_free(&err->non_typedef_spelling);
+            StrBuf_free(&err->non_typedef_spelling);
             break;
         default:
             break;

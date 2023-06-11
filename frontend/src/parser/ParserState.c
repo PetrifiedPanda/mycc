@@ -24,7 +24,7 @@ enum {
 
 static bool register_identifier(ParserState* s, const Token* token, IdentifierKind kind);
 
-static IdentifierKind get_item(const ParserState* s, const Str* spell);
+static IdentifierKind get_item(const ParserState* s, const StrBuf* spell);
 
 ParserState ParserState_create(Token* tokens, ParserErr* err) {
     assert(tokens);
@@ -97,18 +97,18 @@ bool parser_register_typedef_name(ParserState* s,
 }
 
 bool parser_is_enum_constant(const ParserState* s,
-                             const Str* spell) {
+                             const StrBuf* spell) {
     return get_item(s, spell) == ID_KIND_ENUM_CONSTANT;
 }
 
 bool parser_is_typedef_name(const ParserState* s,
-                            const Str* spell) {
+                            const StrBuf* spell) {
     return get_item(s, spell) == ID_KIND_TYPEDEF_NAME;
 }
 
 const ParserIdentifierData* parser_get_prev_definition(
     const ParserState* s,
-    const Str* spell) {
+    const StrBuf* spell) {
     const StringMap* current_map = &s->_scope_maps[s->_len - 1];
     return StringMap_get(current_map, spell);
 }
@@ -118,7 +118,7 @@ void parser_set_redefinition_err(ParserState* s,
                                  const Token* redef_tok) {
     ParserErr_set(s->err, PARSER_ERR_REDEFINED_SYMBOL, redef_tok->loc);
 
-    s->err->redefined_symbol = Str_copy(&redef_tok->spelling);
+    s->err->redefined_symbol = StrBuf_copy(&redef_tok->spelling);
     s->err->was_typedef_name = prev_def->kind == ID_KIND_TYPEDEF_NAME;
     s->err->prev_def_file = prev_def->loc.file_idx;
     s->err->prev_def_loc = prev_def->loc.file_loc;
@@ -149,7 +149,7 @@ static bool register_identifier(ParserState* s,
 }
 
 static IdentifierKind get_item(const ParserState* s,
-                                     const Str* spell) {
+                                     const StrBuf* spell) {
     for (size_t i = 0; i < s->_len; ++i) {
         const ParserIdentifierData* data = StringMap_get(
             &s->_scope_maps[i],

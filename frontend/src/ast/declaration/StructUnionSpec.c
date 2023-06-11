@@ -181,7 +181,7 @@ StructUnionSpec* parse_struct_union_spec(ParserState* s) {
     }
     Identifier* id = NULL;
     if (s->it->kind == TOKEN_IDENTIFIER) {
-        const Str spell = Token_take_spelling(s->it);
+        const StrBuf spell = Token_take_spelling(s->it);
         const SourceLoc id_loc = s->it->loc;
         parser_accept_it(s);
         id = Identifier_create(&spell, id_loc);

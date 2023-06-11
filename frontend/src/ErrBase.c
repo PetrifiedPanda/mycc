@@ -13,7 +13,7 @@ ErrBase ErrBase_create(SourceLoc loc) {
 
 void ErrBase_print(FILE* out, const FileInfo* file_info, const ErrBase* err) {
     assert(err->loc.file_idx < file_info->len);
-    const char* path = Str_get_data(&file_info->paths[err->loc.file_idx]);
+    const char* path = StrBuf_data(&file_info->paths[err->loc.file_idx]);
     fprintf(out,
             "%s(%zu, %zu):\n",
             path,

@@ -1,6 +1,5 @@
 #include "frontend/preproc/read_and_tokenize_line.h"
 
-#include <string.h>
 #include <ctype.h>
 
 #include "util/macro_util.h"
@@ -14,13 +13,16 @@ enum {
     PREPROC_LINE_BUF_LEN = 200
 };
 
-static bool is_preproc_directive(const char* line) {
-    const char* it = line;
-    while (isspace(*it)) {
-        ++it;
+static bool is_preproc_directive(Str line) {
+    size_t i = 0;
+    while (i != line.len && isspace(Str_at(line, i))) {
+        ++i;
     }
-
-    return *it == '#';
+    
+    if (i == line.len) {
+        return false;
+    }
+    return Str_at(line, i) == '#';
 }
 
 static bool preproc_statement(PreprocState* state, TokenArr* arr);
@@ -29,7 +31,7 @@ bool read_and_tokenize_line(PreprocState* state) {
     assert(state);
 
     while (true) {
-        if (state->line_info.next == NULL || *state->line_info.next == '\0') {
+        if (state->line_info.next.data == NULL || *state->line_info.next.data == '\0') {
             PreprocState_read_line(state);
         }
         if (PreprocState_over(state)) {
@@ -69,30 +71,31 @@ bool read_and_tokenize_line(PreprocState* state) {
     return true;
 }
 
-static bool is_cond_directive(const char* line) {
-    const char* it = line;
-    while (*it != '\0' && isspace(*it)) {
-        ++it;
+static bool is_cond_directive(Str line) {
+    size_t i = 0;
+    while (i != line.len && isspace(Str_at(line, i))) {
+        ++i;
     }
 
-    if (*it != '#') {
+    if (i == line.len || Str_at(line, i) != '#') {
         return false;
     }
 
-    ++it;
-    while (*it != '\0' && isspace(*it)) {
-        ++it;
+    ++i;
+    while (i != line.len && isspace(Str_at(line, i))) {
+        ++i;
     }
+    
+    static const Str else_dir = STR_LIT("else");
+    static const Str elif_dir = STR_LIT("elif");
+    static const Str endif_dir = STR_LIT("endif");
 
-    static const char else_dir[] = "else";
-    static const char elif_dir[] = "elif";
-    static const char endif_dir[] = "endif";
-
-    if (*it == '\0') {
+    Str rest = Str_advance(line, i);
+    if (rest.len < else_dir.len) {
         return false;
-    } else if (strncmp(it, else_dir, sizeof else_dir) == 0
-               || strncmp(it, elif_dir, sizeof elif_dir) == 0
-               || strncmp(it, endif_dir, sizeof endif_dir) == 0) {
+    } else if (Str_eq(Str_substr(rest, 0, else_dir.len), else_dir) ||
+               Str_eq(Str_substr(rest, 0, elif_dir.len), elif_dir) ||
+               Str_eq(Str_substr(rest, 0, endif_dir.len), endif_dir)) {
         return true;
     } else {
         return false;
@@ -142,9 +145,9 @@ static bool handle_ifdef_ifndef(PreprocState* state, TokenArr* arr, bool is_ifnd
     assert(arr->tokens[0].kind == TOKEN_PP_STRINGIFY);
     assert(
         (!is_ifndef
-         && strcmp(Str_get_data(&arr->tokens[1].spelling), "ifdef") == 0)
+         && Str_eq(StrBuf_as_str(&arr->tokens[1].spelling), STR_LIT("ifdef")))
         || (is_ifndef
-            && strcmp(Str_get_data(&arr->tokens[1].spelling), "ifndef") == 0));
+            && Str_eq(StrBuf_as_str(&arr->tokens[1].spelling), STR_LIT("ifndef"))));
     const SourceLoc loc = arr->tokens[0].loc;
 
     if (arr->len < 3) {
@@ -170,9 +173,9 @@ static bool handle_ifdef_ifndef(PreprocState* state, TokenArr* arr, bool is_ifnd
         return false;
     }
 
-    const Str* macro_spell = &arr->tokens[2].spelling;
+    const StrBuf* macro_spell = &arr->tokens[2].spelling;
     assert(macro_spell);
-    assert(Str_is_valid(macro_spell));
+    assert(StrBuf_valid(macro_spell));
     const PreprocMacro* macro = find_preproc_macro(state, macro_spell);
 
     const bool cond = is_ifndef ? macro == NULL : macro != NULL;
@@ -259,23 +262,23 @@ static bool preproc_statement(PreprocState* state, TokenArr* arr) {
         return false;
     }
 
-    const char* directive = Str_get_data(&arr->tokens[1].spelling);
-    assert(directive);
+    const Str directive = StrBuf_as_str(&arr->tokens[1].spelling);
+    assert(Str_valid(directive));
 
-    if (strcmp(directive, "if") == 0) {
+    if (Str_eq(directive, STR_LIT("if"))) {
         // TODO:
-    } else if (strcmp(directive, "ifdef") == 0) {
+    } else if (Str_eq(directive, STR_LIT("ifdef"))) {
         return handle_ifdef_ifndef(state, arr, false);
-    } else if (strcmp(directive, "ifndef") == 0) {
+    } else if (Str_eq(directive, STR_LIT("ifndef"))) {
         return handle_ifdef_ifndef(state, arr, true);
-    } else if (strcmp(directive, "define") == 0) {
-        const Str spell = Token_take_spelling(&arr->tokens[2]);
+    } else if (Str_eq(directive, STR_LIT("define"))) {
+        const StrBuf spell = Token_take_spelling(&arr->tokens[2]);
         PreprocMacro macro = parse_preproc_macro(arr, state->err);
         if (state->err->kind != PREPROC_ERR_NONE) {
             return false;
         }
         register_preproc_macro(state, &spell, &macro);
-    } else if (strcmp(directive, "undef") == 0) {
+    } else if (Str_eq(directive, STR_LIT("undef"))) {
         if (arr->len < 3) {
             PreprocErr_set(state->err,
                             PREPROC_ERR_ARG_COUNT,
@@ -300,15 +303,15 @@ static bool preproc_statement(PreprocState* state, TokenArr* arr) {
         }
 
         remove_preproc_macro(state, &arr->tokens[2].spelling);
-    } else if (strcmp(directive, "include") == 0) {
+    } else if (Str_eq(directive, STR_LIT("include"))) {
         return handle_include(state, arr);
-    } else if (strcmp(directive, "pragma") == 0) {
+    } else if (Str_eq(directive, STR_LIT("pragma"))) {
         // TODO:
-    } else if (strcmp(directive, "elif") == 0) {
+    } else if (Str_eq(directive, STR_LIT("elif"))) {
         return handle_else_elif(state, arr, false);
-    } else if (strcmp(directive, "else") == 0) {
+    } else if (Str_eq(directive, STR_LIT("else"))) {
         return handle_else_elif(state, arr, true);
-    } else if (strcmp(directive, "endif") == 0) {
+    } else if (Str_eq(directive, STR_LIT("endif"))) {
         if (state->conds_len == 0) {
             PreprocErr_set(state->err,
                             PREPROC_ERR_MISSING_IF,

@@ -1,12 +1,12 @@
 #ifndef CFG_H
 #define CFG_H
 
-#include "util/Str.h"
+#include "util/StrBuf.h"
 
 #include "BasicBlock.h"
 
 typedef struct {
-    Str name;
+    StrBuf name;
     size_t len;
     BasicBlock* blocks;
     size_t num_func_args; // first n regs are args

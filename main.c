@@ -12,13 +12,13 @@
 
 #include "frontend/arg_parse.h"
 
-#include "util/Str.h"
+#include "util/StrBuf.h"
 
-static bool convert_bin_to_text(const CmdArgs* args, const char* filename);
+static bool convert_bin_to_text(const CmdArgs* args, Str filename);
 
 static bool output_ast(const CmdArgs* args,
                        const ArchTypeInfo* type_info,
-                       const char* filename);
+                       Str filename);
 
 int main(int argc, char** argv) {
     const CmdArgs args = parse_cmd_args(argc, argv);
@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     const ArchTypeInfo type_info = get_arch_type_info(ARCH_X86_64, is_windows);
 
     for (int i = 0; i < args.num_files; ++i) {
-        const char* filename = args.files[i];
+        Str filename = args.files[i];
         if (args.action == ARG_ACTION_CONVERT_BIN_TO_TEXT) {
             if (!convert_bin_to_text(&args, filename)) {
                 CmdArgs_free(&args);
@@ -60,46 +60,42 @@ static bool is_file_sep(char c) {
     }
 }
 
-static const char* strip_file_location(const char* filename) {
-    const char* res = filename;
-
-    const char* it = filename;
-    while (*it != '\0') {
-        if (is_file_sep(*it)) {
-            res = it + 1;
+static Str strip_file_location(Str filename) {
+    Str res = filename;
+    size_t i = 0;
+    while (i != filename.len) {
+        if (is_file_sep(Str_at(filename, i))) {
+            res = Str_advance(filename, i + 1);
         }
-        ++it;
+        ++i;
     }
     return res;
 }
 
-static Str get_out_filename(const char* origin_file, const char* suffix) {
-    const char* filename_only = strip_file_location(origin_file);
-    return Str_concat(strlen(filename_only),
-                      filename_only,
-                      strlen(suffix),
-                      suffix);
+static StrBuf get_out_filename(Str origin_file, Str suffix) {
+    Str filename_only = strip_file_location(origin_file);
+    return StrBuf_concat(filename_only, suffix);
 }
 
-static bool convert_bin_to_text(const CmdArgs* args, const char* filename) {
-    FILE* in_file = fopen(filename, "rb");
+static bool convert_bin_to_text(const CmdArgs* args, Str filename) {
+    FILE* in_file = fopen(filename.data, "rb");
     if (!in_file) {
-        fprintf(stderr, "Failed to open file %s\n", filename);
+        fprintf(stderr, "Failed to open file %s\n", filename.data);
         return false;
     }
     DeserializeAstRes res = deserialize_ast(in_file);
     if (!res.is_valid) {
-        fprintf(stderr, "Failed to read ast from file %s\n", filename);
+        fprintf(stderr, "Failed to read ast from file %s\n", filename.data);
         fclose(in_file);
         return false;
     }
     fclose(in_file);
 
-    Str out_filename_str = args->output_file == NULL
-                               ? get_out_filename(filename, ".ast")
-                               : Str_create_null();
-    const char* out_filename = Str_is_valid(&out_filename_str)
-                                   ? Str_get_data(&out_filename_str)
+    StrBuf out_filename_str = args->output_file == NULL
+                                  ? get_out_filename(filename, STR_LIT(".ast"))
+                                  : StrBuf_null();
+    const char* out_filename = StrBuf_valid(&out_filename_str)
+                                   ? StrBuf_data(&out_filename_str)
                                    : args->output_file;
     FILE* out_file = fopen(out_filename, "w");
     if (!out_file) {
@@ -115,7 +111,7 @@ static bool convert_bin_to_text(const CmdArgs* args, const char* filename) {
         goto fail_with_out_file_open;
     }
     fclose(out_file);
-    Str_free(&out_filename_str);
+    StrBuf_free(&out_filename_str);
     TranslationUnit_free(&res.tl);
     FileInfo_free(&res.file_info);
     return true;
@@ -123,7 +119,7 @@ static bool convert_bin_to_text(const CmdArgs* args, const char* filename) {
 fail_with_out_file_open:
     fclose(out_file);
 fail_with_out_file_closed:
-    Str_free(&out_filename_str);
+    StrBuf_free(&out_filename_str);
     TranslationUnit_free(&res.tl);
     FileInfo_free(&res.file_info);
     return false;
@@ -131,7 +127,7 @@ fail_with_out_file_closed:
 
 static bool output_ast(const CmdArgs* args,
                        const ArchTypeInfo* type_info,
-                       const char* filename) {
+                       Str filename) {
     PreprocErr preproc_err = PreprocErr_create();
     PreprocRes preproc_res = preproc(filename, &preproc_err);
     if (preproc_err.kind != PREPROC_ERR_NONE) {
@@ -153,13 +149,13 @@ static bool output_ast(const CmdArgs* args,
         goto fail_before_ast_generated;
     }
 
-    const char* suffix = args->action == ARG_ACTION_OUTPUT_BIN ? ".binast"
-                                                               : ".ast";
-    Str out_filename_str = args->output_file == NULL
-                               ? get_out_filename(filename, suffix)
-                               : Str_create_null();
-    const char* out_filename = Str_is_valid(&out_filename_str)
-                                   ? Str_get_data(&out_filename_str)
+    Str suffix = args->action == ARG_ACTION_OUTPUT_BIN ? STR_LIT(".binast")
+                                                       : STR_LIT(".ast");
+    StrBuf out_filename_str = args->output_file == NULL
+                                  ? get_out_filename(filename, suffix)
+                                  : StrBuf_null();
+    const char* out_filename = StrBuf_valid(&out_filename_str)
+                                   ? StrBuf_data(&out_filename_str)
                                    : args->output_file;
     FILE* out_file = fopen(out_filename, "wb");
     if (!out_file) {
@@ -185,14 +181,14 @@ static bool output_ast(const CmdArgs* args,
         goto fail_with_out_file_open;
     }
     fclose(out_file);
-    Str_free(&out_filename_str);
+    StrBuf_free(&out_filename_str);
     TranslationUnit_free(&tl);
     PreprocRes_free(&preproc_res);
     return true;
 fail_with_out_file_open:
     fclose(out_file);
 fail_with_out_file_closed:
-    Str_free(&out_filename_str);
+    StrBuf_free(&out_filename_str);
     TranslationUnit_free(&tl);
 fail_before_ast_generated:
     PreprocRes_free(&preproc_res);

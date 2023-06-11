@@ -1,7 +1,7 @@
 #ifndef STR_LIT_H
 #define STR_LIT_H
 
-#include "util/Str.h"
+#include "util/StrBuf.h"
 
 typedef enum {
     STR_LIT_DEFAULT,
@@ -15,15 +15,14 @@ typedef enum {
 // TODO: handling of non-default string literals
 typedef struct {
     StrLitKind kind;
-    Str contents;
+    StrBuf contents;
 } StrLit;
 
-StrLit convert_to_str_lit(Str* spell);
-StrLit StrLit_create(StrLitKind kind, const Str* contents);
+StrLit convert_to_str_lit(StrBuf* spell);
 
 void StrLit_free(const StrLit* lit);
 
-const char* StrLitKind_str(StrLitKind kind);
+Str StrLitKind_str(StrLitKind kind);
 
 #endif
 

@@ -45,15 +45,10 @@ static bool compare_ast_node_infos(const AstNodeInfo* i1,
     return i1->loc.file_loc.index == i2->loc.file_loc.index;
 }
 
-static bool compare_strs(const Str* s1, const Str* s2) {
-    ASSERT(Str_len(s1) == Str_len(s2));
-    return strcmp(Str_get_data(s1), Str_get_data(s2)) == 0;
-}
-
 static bool compare_file_infos(const FileInfo* i1, const FileInfo* i2) {
     ASSERT(i1->len == i2->len);
     for (size_t i = 0; i < i1->len; ++i) {
-        ASSERT(compare_strs(&i1->paths[i], &i2->paths[i]));
+        ASSERT(StrBuf_eq(&i1->paths[i], &i2->paths[i]));
     }
     return true;
 }
@@ -75,7 +70,7 @@ static bool compare_atomic_type_specs(const AtomicTypeSpec* s1,
 
 static bool compare_identifiers(const Identifier* i1, const Identifier* i2) {
     ASSERT(compare_ast_node_infos(&i1->info, &i2->info));
-    return compare_strs(&i1->spelling, &i2->spelling);
+    return StrBuf_eq(&i1->spelling, &i2->spelling);
 }
 
 static bool compare_values(const Value* v1, const Value* v2) {
@@ -94,7 +89,7 @@ static bool compare_constants(const Constant* c1, const Constant* c2) {
     ASSERT(c1->kind == c2->kind);
     switch (c1->kind) {
         case CONSTANT_ENUM:
-            return compare_strs(&c1->spelling, &c2->spelling);
+            return StrBuf_eq(&c1->spelling, &c2->spelling);
         case CONSTANT_VAL:
             return compare_values(&c1->val, &c2->val);
     }
@@ -103,7 +98,7 @@ static bool compare_constants(const Constant* c1, const Constant* c2) {
 
 static bool compare_str_lits(const StrLit* l1, const StrLit* l2) {
     ASSERT(l1->kind == l2->kind);
-    return compare_strs(&l1->contents, &l2->contents);
+    return StrBuf_eq(&l1->contents, &l2->contents);
 }
 
 static bool compare_string_literal_nodes(const StringLiteralNode* l1,

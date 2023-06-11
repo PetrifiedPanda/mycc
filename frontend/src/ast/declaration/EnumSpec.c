@@ -25,7 +25,7 @@ static bool parse_enumerator_inplace(ParserState* s, Enumerator* res) {
         return false;
     }
 
-    const Str spell = Token_take_spelling(id_token);
+    const StrBuf spell = Token_take_spelling(id_token);
     SourceLoc loc = id_token->loc;
 
     ConstExpr* enum_val = NULL;
@@ -33,7 +33,7 @@ static bool parse_enumerator_inplace(ParserState* s, Enumerator* res) {
         parser_accept_it(s);
         enum_val = parse_const_expr(s);
         if (!enum_val) {
-            Str_free(&spell);
+            StrBuf_free(&spell);
             return false;
         }
     }
@@ -97,7 +97,7 @@ EnumSpec* parse_enum_spec(ParserState* s) {
 
     Identifier* id = NULL;
     if (s->it->kind == TOKEN_IDENTIFIER) {
-        const Str spell = Token_take_spelling(s->it);
+        const StrBuf spell = Token_take_spelling(s->it);
         const SourceLoc id_loc = s->it->loc;
         parser_accept_it(s);
         id = Identifier_create(&spell, id_loc);

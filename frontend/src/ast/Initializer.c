@@ -32,7 +32,7 @@ static bool parse_designator_inplace(ParserState* s, Designator* res) {
         case TOKEN_DOT: {
             parser_accept_it(s);
             if (s->it->kind == TOKEN_IDENTIFIER) {
-                const Str spell = Token_take_spelling(s->it);
+                const StrBuf spell = Token_take_spelling(s->it);
                 const SourceLoc loc = s->it->loc;
                 parser_accept_it(s);
                 res->is_index = false;

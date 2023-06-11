@@ -14,7 +14,7 @@ bool parse_identifier_list(ParserState* s, IdentifierList* res) {
         .len = 1,
         .identifiers = mycc_alloc(sizeof *res->identifiers),
     };
-    Str spell = Token_take_spelling(s->it);
+    StrBuf spell = Token_take_spelling(s->it);
     SourceLoc loc = s->it->loc;
     parser_accept_it(s);
     Identifier_init(res->identifiers, &spell, loc);

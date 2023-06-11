@@ -10,8 +10,8 @@
 
 #include "parser_test_util.h"
 
-static JumpStatement* parse_jump_statement_helper(const char* code) {
-    PreprocRes preproc_res = tokenize_string(code, "skfjlskf");
+static JumpStatement* parse_jump_statement_helper(Str code) {
+    PreprocRes preproc_res = tokenize_string(code, STR_LIT("skfjlskf"));
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
@@ -30,7 +30,7 @@ static JumpStatement* parse_jump_statement_helper(const char* code) {
     return stat.jmp;
 }
 
-static void check_jump_statement(const char* spell, JumpStatementKind t) {
+static void check_jump_statement(Str spell, JumpStatementKind t) {
     JumpStatement* res = parse_jump_statement_helper(spell);
 
     ASSERT(res->kind == t);
@@ -38,8 +38,8 @@ static void check_jump_statement(const char* spell, JumpStatementKind t) {
     JumpStatement_free(res);
 }
 
-static void check_expected_semicolon_jump_statement(const char* spell) {
-    PreprocRes preproc_res = tokenize_string(spell, "file.c");
+static void check_expected_semicolon_jump_statement(Str spell) {
+    PreprocRes preproc_res = tokenize_string(spell, STR_LIT("file.c"));
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
@@ -60,26 +60,28 @@ static void check_expected_semicolon_jump_statement(const char* spell) {
 
 TEST(jump_statement) {
     {
-        JumpStatement* res = parse_jump_statement_helper("goto my_cool_label;");
+        JumpStatement* res = parse_jump_statement_helper(
+            STR_LIT("goto my_cool_label;"));
 
         ASSERT(res->kind == JUMP_STATEMENT_GOTO);
 
-        check_identifier(res->goto_label, "my_cool_label");
+        check_identifier(res->goto_label, STR_LIT("my_cool_label"));
 
         JumpStatement_free(res);
     }
 
-    check_jump_statement("continue;", JUMP_STATEMENT_CONTINUE);
-    check_jump_statement("break;", JUMP_STATEMENT_BREAK);
-    check_jump_statement("return;", JUMP_STATEMENT_RETURN);
+    check_jump_statement(STR_LIT("continue;"), JUMP_STATEMENT_CONTINUE);
+    check_jump_statement(STR_LIT("break;"), JUMP_STATEMENT_BREAK);
+    check_jump_statement(STR_LIT("return;"), JUMP_STATEMENT_RETURN);
 
-    check_expected_semicolon_jump_statement("continue");
-    check_expected_semicolon_jump_statement("break");
-    check_expected_semicolon_jump_statement("return an_identifier");
-    check_expected_semicolon_jump_statement("return *id += (int)100");
+    check_expected_semicolon_jump_statement(STR_LIT("continue"));
+    check_expected_semicolon_jump_statement(STR_LIT("break"));
+    check_expected_semicolon_jump_statement(STR_LIT("return an_identifier"));
+    check_expected_semicolon_jump_statement(STR_LIT("return *id += (int)100"));
 
     {
-        JumpStatement* res = parse_jump_statement_helper("return 600;");
+        JumpStatement* res = parse_jump_statement_helper(
+            STR_LIT("return 600;"));
 
         ASSERT(res->kind == JUMP_STATEMENT_RETURN);
         ASSERT_SIZE_T(res->ret_val.len, 1);
@@ -91,7 +93,7 @@ TEST(jump_statement) {
 }
 
 TEST(statement) {
-    const char* code = "for (i = 0; i < 100; ++i) {"
+    Str code = STR_LIT("for (i = 0; i < 100; ++i) {"
                        "    switch (c) {"
                        "        case 2:"
                        "            d -= 5;"
@@ -102,8 +104,8 @@ TEST(statement) {
                        "    if (i >= 5) {"
                        "        ; "
                        "    } else b = 0;"
-                       "}";
-    PreprocRes preproc_res = tokenize_string(code, "file.c");
+                       "}");
+    PreprocRes preproc_res = tokenize_string(code, STR_LIT("file.c"));
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
@@ -127,18 +129,18 @@ TEST(statement) {
                         .value.last_else.log_ands->or_exprs->xor_exprs
                         ->and_exprs->eq_exprs->lhs;
     ASSERT_SIZE_T(rel->len, (size_t)1);
-    check_shift_expr_id(&rel->lhs, "i");
+    check_shift_expr_id(&rel->lhs, STR_LIT("i"));
     ASSERT(rel->rel_chain[0].op == REL_EXPR_LT);
     check_shift_expr_val(&rel->rel_chain[0].rhs,
                          Value_create_sint(VALUE_I, 100));
 
     UnaryExpr* unary = &iteration->for_loop.incr_expr.assign_exprs->value
-                           .last_else.log_ands->or_exprs->xor_exprs->and_exprs
-                           ->eq_exprs->lhs.lhs.lhs.lhs.lhs.rhs;
+                            .last_else.log_ands->or_exprs->xor_exprs->and_exprs
+                            ->eq_exprs->lhs.lhs.lhs.lhs.lhs.rhs;
     ASSERT_SIZE_T(unary->len, (size_t)1);
     ASSERT(unary->ops_before[0] == UNARY_OP_INC);
     ASSERT(unary->kind == UNARY_POSTFIX);
-    check_postfix_expr_id(&unary->postfix, "i");
+    check_postfix_expr_id(&unary->postfix, STR_LIT("i"));
 
     ASSERT(iteration->loop_body->kind == STATEMENT_COMPOUND);
     CompoundStatement* compound = iteration->loop_body->comp;
@@ -146,7 +148,7 @@ TEST(statement) {
 
     SelectionStatement* switch_stat = compound->items[0].stat.sel;
     ASSERT(switch_stat->is_if == false);
-    check_expr_id(&switch_stat->sel_expr, "c");
+    check_expr_id(&switch_stat->sel_expr, STR_LIT("c"));
     ASSERT(switch_stat->sel_stat->kind == STATEMENT_COMPOUND);
     {
         CompoundStatement* switch_compound = switch_stat->sel_stat->comp;
@@ -155,7 +157,8 @@ TEST(statement) {
         LabeledStatement* labeled = switch_compound->items[0].stat.labeled;
         ASSERT(labeled->kind == LABELED_STATEMENT_CASE);
 
-        check_const_expr_val(&labeled->case_expr, Value_create_sint(VALUE_I, 2));
+        check_const_expr_val(&labeled->case_expr,
+                             Value_create_sint(VALUE_I, 2));
 
         ASSERT(labeled->stat->kind == STATEMENT_EXPRESSION);
         Expr* case_expr = &labeled->stat->expr->expr;
@@ -165,7 +168,7 @@ TEST(statement) {
                             Value_create_sint(VALUE_I, 5));
         ASSERT(case_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_SUB);
         check_unary_expr_id(&case_expr->assign_exprs->assign_chain[0].unary,
-                            "d");
+                            STR_LIT("d"));
 
         ASSERT(switch_compound->items[1].stat.kind == STATEMENT_JUMP);
         JumpStatement* break_stat = switch_compound->items[1].stat.jmp;
@@ -186,7 +189,7 @@ TEST(statement) {
         ASSERT(default_expr->assign_exprs->assign_chain[0].op
                == ASSIGN_EXPR_ADD);
         check_unary_expr_id(&default_expr->assign_exprs->assign_chain[0].unary,
-                            "d");
+                            STR_LIT("d"));
     }
 
     ASSERT(compound->items[1].stat.kind == STATEMENT_SELECTION);
@@ -199,7 +202,7 @@ TEST(statement) {
                             ->lhs;
 
     ASSERT_SIZE_T(if_cond->len, (size_t)1);
-    check_shift_expr_id(&if_cond->lhs, "i");
+    check_shift_expr_id(&if_cond->lhs, STR_LIT("i"));
     ASSERT(if_cond->rel_chain[0].op == REL_EXPR_GE);
     check_shift_expr_val(&if_cond->rel_chain[0].rhs,
                          Value_create_sint(VALUE_I, 5));
@@ -217,7 +220,7 @@ TEST(statement) {
                         Value_create_sint(VALUE_I, 0));
     ASSERT_SIZE_T(else_expr->assign_exprs->len, (size_t)1);
     ASSERT(else_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_ASSIGN);
-    check_unary_expr_id(&else_expr->assign_exprs->assign_chain[0].unary, "b");
+    check_unary_expr_id(&else_expr->assign_exprs->assign_chain[0].unary, STR_LIT("b"));
 
     Statement_free(res);
     ParserState_free(&s);

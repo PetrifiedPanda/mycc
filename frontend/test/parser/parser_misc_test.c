@@ -9,14 +9,14 @@
 #include "parser_test_util.h"
 
 static void check_enum_list_ids(const EnumList* l,
-                                const Str* enum_constants,
+                                const StrBuf* enum_constants,
                                 size_t len) {
     ASSERT_SIZE_T(l->len, len);
     for (size_t i = 0; i < len; ++i) {
         const Identifier* id = l->enums[i].identifier;
         ASSERT_NOT_NULL(id);
-        ASSERT_STR(Str_get_data(&id->spelling),
-                   Str_get_data(&enum_constants[i]));
+        ASSERT_STR(StrBuf_as_str(&id->spelling),
+                   StrBuf_as_str(&enum_constants[i]));
     }
 }
 
@@ -24,22 +24,23 @@ TEST(enum_list) {
     enum {
         EXPECTED_LEN = 8
     };
-    const Str enum_constants[EXPECTED_LEN] = {
-        STR_NON_HEAP("ENUM_VAL1"),
-        STR_NON_HEAP("enum_VAl2"),
-        STR_NON_HEAP("enum_val_3"),
-        STR_NON_HEAP("enum_val_4"),
-        STR_NON_HEAP("foo"),
-        STR_NON_HEAP("bar"),
-        STR_NON_HEAP("baz"),
-        STR_NON_HEAP("BAD"),
+    const StrBuf enum_constants[EXPECTED_LEN] = {
+        STR_BUF_NON_HEAP("ENUM_VAL1"),
+        STR_BUF_NON_HEAP("enum_VAl2"),
+        STR_BUF_NON_HEAP("enum_val_3"),
+        STR_BUF_NON_HEAP("enum_val_4"),
+        STR_BUF_NON_HEAP("foo"),
+        STR_BUF_NON_HEAP("bar"),
+        STR_BUF_NON_HEAP("baz"),
+        STR_BUF_NON_HEAP("BAD"),
     };
 
     {
         PreprocRes preproc_res = tokenize_string(
-            "enum {ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, "
-            "baz, BAD}",
-            "saffds");
+            STR_LIT(
+                "enum {ENUM_VAL1, enum_VAl2, enum_val_3, enum_val_4, foo, bar, "
+                "baz, BAD}"),
+            STR_LIT("saffds"));
 
         ParserErr err = ParserErr_create();
         ParserState s = ParserState_create(preproc_res.toks, &err);
@@ -70,10 +71,10 @@ TEST(enum_list) {
 
     {
         PreprocRes preproc_res = tokenize_string(
-            "enum {ENUM_VAL1 = 0, enum_VAl2 = 1000.0, enum_val_3 = n, "
-            "enum_val_4 = "
-            "test, foo, bar, baz, BAD}",
-            "saffds");
+            STR_LIT("enum {ENUM_VAL1 = 0, enum_VAl2 = 1000.0, enum_val_3 = n, "
+                    "enum_val_4 = "
+                    "test, foo, bar, baz, BAD}"),
+            STR_LIT("saffds"));
 
         ParserErr err = ParserErr_create();
         ParserState s = ParserState_create(preproc_res.toks, &err);
@@ -97,13 +98,13 @@ TEST(enum_list) {
 
         ASSERT_NOT_NULL(res->enums[1].enum_val);
         check_const_expr_val(res->enums[1].enum_val,
-                               Value_create_float(VALUE_D, 1000.0));
+                             Value_create_float(VALUE_D, 1000.0));
 
         ASSERT_NOT_NULL(res->enums[2].enum_val);
-        check_const_expr_id(res->enums[2].enum_val, "n");
+        check_const_expr_id(res->enums[2].enum_val, STR_LIT("n"));
 
         ASSERT_NOT_NULL(res->enums[3].enum_val);
-        check_const_expr_id(res->enums[3].enum_val, "test");
+        check_const_expr_id(res->enums[3].enum_val, STR_LIT("test"));
 
         for (size_t i = 4; i < EXPECTED_LEN; ++i) {
             ASSERT_NULL(res->enums[i].enum_val);
@@ -120,16 +121,16 @@ TEST(enum_list) {
 }
 
 TEST(enum_spec) {
-    const Str enum_constants[] = {
-        STR_NON_HEAP("TEST1"),
-        STR_NON_HEAP("TEST2"),
-        STR_NON_HEAP("TEST3"),
-        STR_NON_HEAP("TEST4"),
+    const StrBuf enum_constants[] = {
+        STR_BUF_NON_HEAP("TEST1"),
+        STR_BUF_NON_HEAP("TEST2"),
+        STR_BUF_NON_HEAP("TEST3"),
+        STR_BUF_NON_HEAP("TEST4"),
     };
     {
         PreprocRes preproc_res = tokenize_string(
-            "enum my_enum { TEST1, TEST2, TEST3, TEST4 }",
-            "sfjlfjk");
+            STR_LIT("enum my_enum { TEST1, TEST2, TEST3, TEST4 }"),
+            STR_LIT("sfjlfjk"));
 
         ParserErr err = ParserErr_create();
         ParserState s = ParserState_create(preproc_res.toks, &err);
@@ -140,7 +141,8 @@ TEST(enum_spec) {
         ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
 
         ASSERT_NOT_NULL(res->identifier);
-        ASSERT_STR(Str_get_data(&res->identifier->spelling), "my_enum");
+        ASSERT_STR(StrBuf_as_str(&res->identifier->spelling),
+                   STR_LIT("my_enum"));
 
         check_enum_list_ids(&res->enum_list,
                             enum_constants,
@@ -153,8 +155,8 @@ TEST(enum_spec) {
 
     {
         PreprocRes preproc_res = tokenize_string(
-            "enum {TEST1, TEST2, TEST3, TEST4, }",
-            "jsfjsf");
+            STR_LIT("enum {TEST1, TEST2, TEST3, TEST4, }"),
+            STR_LIT("jsfjsf"));
 
         ParserErr err = ParserErr_create();
         ParserState s = ParserState_create(preproc_res.toks, &err);
@@ -178,9 +180,10 @@ TEST(enum_spec) {
 
 TEST(designation) {
     PreprocRes preproc_res = tokenize_string(
-        "{ .test[19].what_is_this.another_one = a, [0.5].blah[420].oof[2][10] "
-        "= 2 }",
-        "kdsjflkf");
+        STR_LIT("{ .test[19].what_is_this.another_one = a, "
+                "[0.5].blah[420].oof[2][10] "
+                "= 2 }"),
+        STR_LIT("kdsjflkf"));
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
     Initializer* init = parse_initializer(&s);
@@ -192,23 +195,23 @@ TEST(designation) {
     const Designation* des1 = &list->inits[0].designation;
     const Initializer* val1 = &list->inits[0].init;
     ASSERT(val1->is_assign);
-    check_assign_expr_id(val1->assign, "a");
+    check_assign_expr_id(val1->assign, STR_LIT("a"));
 
     ASSERT_SIZE_T(des1->designators.len, (size_t)4);
 
     struct Designator* designators = des1->designators.designators;
     ASSERT(designators[0].is_index == false);
-    check_identifier(designators[0].identifier, "test");
+    check_identifier(designators[0].identifier, STR_LIT("test"));
 
     ASSERT(designators[1].is_index == true);
     check_cond_expr_val(&designators[1].arr_index->expr,
                         Value_create_sint(VALUE_I, 19));
 
     ASSERT(designators[2].is_index == false);
-    check_identifier(designators[2].identifier, "what_is_this");
+    check_identifier(designators[2].identifier, STR_LIT("what_is_this"));
 
     ASSERT(designators[3].is_index == false);
-    check_identifier(designators[3].identifier, "another_one");
+    check_identifier(designators[3].identifier, STR_LIT("another_one"));
 
     const Designation* des2 = &list->inits[1].designation;
     const Initializer* val2 = &list->inits[1].init;
@@ -220,17 +223,17 @@ TEST(designation) {
     designators = des2->designators.designators;
     ASSERT(designators[0].is_index == true);
     check_cond_expr_val(&designators[0].arr_index->expr,
-                          Value_create_float(VALUE_D, 0.5));
+                        Value_create_float(VALUE_D, 0.5));
 
     ASSERT(designators[1].is_index == false);
-    check_identifier(designators[1].identifier, "blah");
+    check_identifier(designators[1].identifier, STR_LIT("blah"));
 
     ASSERT(designators[2].is_index == true);
     check_cond_expr_val(&designators[2].arr_index->expr,
                         Value_create_sint(VALUE_I, 420));
 
     ASSERT(designators[3].is_index == false);
-    check_identifier(designators[3].identifier, "oof");
+    check_identifier(designators[3].identifier, STR_LIT("oof"));
 
     ASSERT(designators[4].is_index == true);
     check_cond_expr_val(&designators[4].arr_index->expr,
@@ -248,8 +251,8 @@ TEST(designation) {
 
 TEST(static_assert_declaration) {
     PreprocRes preproc_res = tokenize_string(
-        "_Static_assert(12345, \"This is a string literal\");",
-        "slkfjsak");
+        STR_LIT("_Static_assert(12345, \"This is a string literal\");"),
+        STR_LIT("slkfjsak"));
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
@@ -259,8 +262,8 @@ TEST(static_assert_declaration) {
     ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
     ASSERT(err.kind == PARSER_ERR_NONE);
 
-    ASSERT_STR(Str_get_data(&res->err_msg.lit.contents),
-               "This is a string literal");
+    ASSERT_STR(StrBuf_as_str(&res->err_msg.lit.contents),
+               STR_LIT("This is a string literal"));
     check_const_expr_val(res->const_expr, Value_create_sint(VALUE_I, 12345));
 
     PreprocRes_free(&preproc_res);
@@ -271,10 +274,10 @@ TEST(static_assert_declaration) {
 static void check_struct_declaration_non_static_assert(
     const StructDeclaration* decl,
     TypeSpecKind type,
-    const char* identifier,
+    Str identifier,
     int bit_field) {
     ASSERT(decl->decl_specs->type_specs.kind == type);
-    if (identifier == NULL && bit_field < 0) {
+    if (!Str_valid(identifier) && bit_field < 0) {
         ASSERT_SIZE_T(decl->decls.len, (size_t)0);
         return;
     } else {
@@ -285,7 +288,7 @@ static void check_struct_declaration_non_static_assert(
         check_const_expr_val(declarator->bit_field,
                              Value_create_sint(VALUE_I, bit_field));
     }
-    if (identifier) {
+    if (Str_valid(identifier)) {
         const Declarator* inner_decl = declarator->decl;
         ASSERT_NOT_NULL(inner_decl);
         ASSERT_NOT_NULL(inner_decl->direct_decl);
@@ -293,7 +296,7 @@ static void check_struct_declaration_non_static_assert(
         ASSERT_SIZE_T(inner_decl->direct_decl->len, (size_t)0);
         ASSERT(inner_decl->direct_decl->is_id);
         ASSERT_NOT_NULL(inner_decl->direct_decl->id);
-        ASSERT_STR(Str_get_data(&inner_decl->direct_decl->id->spelling),
+        ASSERT_STR(StrBuf_as_str(&inner_decl->direct_decl->id->spelling),
                    identifier);
     } else {
         ASSERT_NULL(declarator->decl);
@@ -302,8 +305,8 @@ static void check_struct_declaration_non_static_assert(
 
 TEST(struct_declaration_list) {
     PreprocRes preproc_res = tokenize_string(
-        "struct { int n: 20; int: 10; double a_double; int; }",
-        "maybe_a_file.c");
+        STR_LIT("struct { int n: 20; int: 10; double a_double; int; }"),
+        STR_LIT("maybe_a_file.c"));
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
@@ -317,19 +320,19 @@ TEST(struct_declaration_list) {
 
     check_struct_declaration_non_static_assert(&res->decls[0],
                                                TYPE_SPEC_INT,
-                                               "n",
+                                               STR_LIT("n"),
                                                20);
     check_struct_declaration_non_static_assert(&res->decls[1],
                                                TYPE_SPEC_INT,
-                                               NULL,
+                                               Str_null(),
                                                10);
     check_struct_declaration_non_static_assert(&res->decls[2],
                                                TYPE_SPEC_DOUBLE,
-                                               "a_double",
+                                               STR_LIT("a_double"),
                                                -1);
     check_struct_declaration_non_static_assert(&res->decls[3],
                                                TYPE_SPEC_INT,
-                                               NULL,
+                                               Str_null(),
                                                -1);
 
     PreprocRes_free(&preproc_res);
@@ -338,14 +341,17 @@ TEST(struct_declaration_list) {
 }
 
 TEST(redefine_typedef) {
-    PreprocRes preproc_res = tokenize_string("typedef int MyInt;",
-                                                     "a file");
+    PreprocRes preproc_res = tokenize_string(STR_LIT("typedef int MyInt;"),
+                                             STR_LIT("a file"));
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
 
-    const Str spell = STR_NON_HEAP("MyInt");
-    const Token dummy_token = Token_create(TOKEN_IDENTIFIER, &spell, (FileLoc){0, 0}, 0);
+    const StrBuf spell = STR_BUF_NON_HEAP("MyInt");
+    const Token dummy_token = Token_create(TOKEN_IDENTIFIER,
+                                           &spell,
+                                           (FileLoc){0, 0},
+                                           0);
     parser_register_typedef_name(&s, &dummy_token);
 
     bool found_typedef = false;
@@ -353,14 +359,14 @@ TEST(redefine_typedef) {
     ASSERT_NULL(res);
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT(err.was_typedef_name);
-    ASSERT_STR(Str_get_data(&err.redefined_symbol), "MyInt");
+    ASSERT_STR(StrBuf_as_str(&err.redefined_symbol), STR_LIT("MyInt"));
 
     ParserState_free(&s);
     PreprocRes_free(&preproc_res);
 }
 
-static ParserErr parse_type_specs_until_fail(const char* code) {
-    PreprocRes preproc_res = tokenize_string(code, "file.c");
+static ParserErr parse_type_specs_until_fail(Str code) {
+    PreprocRes preproc_res = tokenize_string(code, STR_LIT("file.c"));
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
@@ -376,13 +382,13 @@ static ParserErr parse_type_specs_until_fail(const char* code) {
     return err;
 }
 
-static void check_too_many_long(const char* code) {
+static void check_too_many_long(Str code) {
     ParserErr err = parse_type_specs_until_fail(code);
 
     ASSERT(err.kind == PARSER_ERR_TOO_MUCH_LONG);
 }
 
-static void check_cannot_combine_type_specs(const char* code,
+static void check_cannot_combine_type_specs(Str code,
                                             TokenKind prev_spec,
                                             TokenKind type_spec,
                                             SourceLoc loc) {
@@ -398,33 +404,33 @@ static void check_cannot_combine_type_specs(const char* code,
 }
 
 TEST(type_spec_error) {
-    check_too_many_long("long long long");
-    check_too_many_long("int long long long");
-    check_too_many_long("long long int long");
-    check_cannot_combine_type_specs("long short",
+    check_too_many_long(STR_LIT("long long long"));
+    check_too_many_long(STR_LIT("int long long long"));
+    check_too_many_long(STR_LIT("long long int long"));
+    check_cannot_combine_type_specs(STR_LIT("long short"),
                                     TOKEN_LONG,
                                     TOKEN_SHORT,
                                     (SourceLoc){0, {1, 6}});
-    check_cannot_combine_type_specs("long short long",
+    check_cannot_combine_type_specs(STR_LIT("long short long"),
                                     TOKEN_LONG,
                                     TOKEN_SHORT,
                                     (SourceLoc){0, {1, 6}});
-    check_cannot_combine_type_specs("short long",
+    check_cannot_combine_type_specs(STR_LIT("short long"),
                                     TOKEN_SHORT,
                                     TOKEN_LONG,
                                     (SourceLoc){0, {1, 7}});
-    check_cannot_combine_type_specs("unsigned signed",
+    check_cannot_combine_type_specs(STR_LIT("unsigned signed"),
                                     TOKEN_UNSIGNED,
                                     TOKEN_SIGNED,
                                     (SourceLoc){0, {1, 10}});
-    check_cannot_combine_type_specs("signed unsigned",
+    check_cannot_combine_type_specs(STR_LIT("signed unsigned"),
                                     TOKEN_SIGNED,
                                     TOKEN_UNSIGNED,
                                     (SourceLoc){0, {1, 8}});
     // TODO: DISALLOWED_TYPE_QUALS
 }
 
-TEST_SUITE_BEGIN(parser_misc) {
+TEST_SUITE_BEGIN(parser_misc){
     REGISTER_TEST(enum_list),
     REGISTER_TEST(enum_spec),
     REGISTER_TEST(designation),
@@ -432,5 +438,4 @@ TEST_SUITE_BEGIN(parser_misc) {
     REGISTER_TEST(struct_declaration_list),
     REGISTER_TEST(redefine_typedef),
     REGISTER_TEST(type_spec_error),
-}
-TEST_SUITE_END()
+} TEST_SUITE_END()

@@ -176,7 +176,7 @@ static bool update_non_standalone_type_spec(ParserState* s, TypeSpecs* res) {
         case TOKEN_IDENTIFIER: {
             if (parser_is_typedef_name(s, &s->it->spelling)) {
                 res->kind = TYPE_SPEC_TYPENAME;
-                const Str spell = Token_take_spelling(s->it);
+                const StrBuf spell = Token_take_spelling(s->it);
                 res->typedef_name = Identifier_create(&spell, s->it->loc);
                 parser_accept_it(s);
                 break;

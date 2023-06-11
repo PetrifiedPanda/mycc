@@ -8,7 +8,7 @@
 
 typedef struct StringMapKey {
     bool was_deleted;
-    Str str;
+    StrBuf str;
 } StringMapKey;
 
 StringMap StringMap_create(size_t elem_size,
@@ -30,7 +30,7 @@ void StringMap_free(StringMap* map) {
     if (map->_item_free) {
         char* items_char = map->_items;
         for (size_t i = 0; i < map->_cap; ++i) {
-            if (Str_is_valid(&map->_keys[i].str)) {
+            if (StrBuf_valid(&map->_keys[i].str)) {
                 void* item = items_char + i * map->_item_size;
                 map->_item_free(item);
             }
@@ -41,16 +41,16 @@ void StringMap_free(StringMap* map) {
 
     if (map->_free_keys) {
         for (size_t i = 0; i < map->_cap; ++i) {
-            Str_free(&map->_keys[i].str);
+            StrBuf_free(&map->_keys[i].str);
         }
     }
     mycc_free(map->_keys);
 }
 
-static size_t hash_string(const Str* str);
+static size_t hash_string(const StrBuf* str);
 static void resize_map(StringMap* map);
 
-static size_t find_item_index_insert(const StringMap* map, const Str* key) {
+static size_t find_item_index_insert(const StringMap* map, const StrBuf* key) {
     const size_t hash = hash_string(key);
     size_t i = hash % map->_cap;
     bool found_deleted = false;
@@ -58,8 +58,8 @@ static size_t find_item_index_insert(const StringMap* map, const Str* key) {
     size_t it_count = 0;
     while (it_count != map->_cap
            && (map->_keys[i].was_deleted
-               || (Str_is_valid(&map->_keys[i].str)
-                   && !Str_eq(&map->_keys[i].str, key)))) {
+               || (StrBuf_valid(&map->_keys[i].str)
+                   && !StrBuf_eq(&map->_keys[i].str, key)))) {
         if (map->_keys[i].was_deleted && !found_deleted) {
             deleted_idx = i;
             found_deleted = true;
@@ -68,19 +68,19 @@ static size_t find_item_index_insert(const StringMap* map, const Str* key) {
         ++it_count;
     }
 
-    if (!Str_is_valid(&map->_keys[i].str) && found_deleted) {
+    if (!StrBuf_valid(&map->_keys[i].str) && found_deleted) {
         return deleted_idx;
     } else {
         return i;
     }
 }
 
-static size_t find_item_index(const StringMap* map, const Str* key) {
+static size_t find_item_index(const StringMap* map, const StrBuf* key) {
     const size_t hash = hash_string(key);
     size_t i = hash % map->_cap;
     while (map->_keys[i].was_deleted
-           || (Str_is_valid(&map->_keys[i].str)
-               && !Str_eq(&map->_keys[i].str, key))) {
+           || (StrBuf_valid(&map->_keys[i].str)
+               && !StrBuf_eq(&map->_keys[i].str, key))) {
         i = (i + 1) % map->_cap;
     }
 
@@ -94,7 +94,7 @@ static void rehash_if_necessary(StringMap* map) {
 }
 
 const void* StringMap_insert(StringMap* map,
-                              const Str* key,
+                              const StrBuf* key,
                               const void* item) {
     assert(key);
     assert(item);
@@ -103,7 +103,7 @@ const void* StringMap_insert(StringMap* map,
     const size_t idx = find_item_index_insert(map, key);
 
     void* found = (char*)map->_items + idx * map->_item_size;
-    if (Str_is_valid(&map->_keys[idx].str)) {
+    if (StrBuf_valid(&map->_keys[idx].str)) {
         return found;
     }
 
@@ -117,7 +117,7 @@ const void* StringMap_insert(StringMap* map,
     return item;
 }
 
-bool StringMap_insert_overwrite(StringMap* map, const Str* key, const void* item) {
+bool StringMap_insert_overwrite(StringMap* map, const StrBuf* key, const void* item) {
     assert(key);
     assert(item);
 
@@ -127,9 +127,9 @@ bool StringMap_insert_overwrite(StringMap* map, const Str* key, const void* item
 
     bool overwritten;
     void* curr_item = (char*)map->_items + idx * map->_item_size;
-    if (Str_is_valid(&map->_keys[idx].str)) {
+    if (StrBuf_valid(&map->_keys[idx].str)) {
         if (map->_free_keys) {
-            Str_free(key);
+            StrBuf_free(key);
         }
 
         if (map->_item_free) {
@@ -149,30 +149,30 @@ bool StringMap_insert_overwrite(StringMap* map, const Str* key, const void* item
     return overwritten;
 }
 
-const void* StringMap_get(const StringMap* map, const Str* key) {
+const void* StringMap_get(const StringMap* map, const StrBuf* key) {
     assert(key);
     const size_t idx = find_item_index(map, key);
 
-    if (!Str_is_valid(&map->_keys[idx].str)) {
+    if (!StrBuf_valid(&map->_keys[idx].str)) {
         return NULL;
     }
 
     return (char*)map->_items + idx * map->_item_size;
 }
 
-void StringMap_remove(StringMap* map, const Str* key) {
+void StringMap_remove(StringMap* map, const StrBuf* key) {
     const size_t idx = find_item_index(map, key);
 
-    Str* key_to_remove = &map->_keys[idx].str;
+    StrBuf* key_to_remove = &map->_keys[idx].str;
     if (key_to_remove == NULL) {
         return;
     }
     if (map->_free_keys) {
-        Str_free(key_to_remove);
+        StrBuf_free(key_to_remove);
     }
     map->_keys[idx] = (StringMapKey){
         .was_deleted = true,
-        .str = Str_create_null(),
+        .str = StrBuf_null(),
     };
 
     void* item_to_remove = (char*)map->_items + idx * map->_item_size;
@@ -194,7 +194,7 @@ static void resize_map(StringMap* map) {
     map->_items = mycc_alloc_zeroed(map->_cap, map->_item_size);
 
     for (size_t i = 0; i < prev_cap; ++i) {
-        if (Str_is_valid(&old_keys[i].str)) {
+        if (StrBuf_valid(&old_keys[i].str)) {
             const void* success = StringMap_insert(map,
                                                     &old_keys[i].str,
                                                     (char*)old_items
@@ -211,11 +211,11 @@ static void resize_map(StringMap* map) {
 }
 
 // Hash function taken from K&R version 2 (page 144)
-static size_t hash_string(const Str* str) {
+static size_t hash_string(const StrBuf* str) {
     size_t hash = 0;
 
-    const char* it = Str_get_data(str);
-    const char* limit = it + Str_len(str);
+    const char* it = StrBuf_data(str);
+    const char* limit = it + StrBuf_len(str);
     while (it != limit) {
         hash = *it + 31 * hash;
         ++it;

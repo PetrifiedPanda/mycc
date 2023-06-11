@@ -28,12 +28,12 @@ void parser_pop_scope(ParserState* s);
 bool parser_register_enum_constant(ParserState* s, const Token* token);
 bool parser_register_typedef_name(ParserState* s, const Token* token);
 
-bool parser_is_enum_constant(const ParserState* s, const Str* spell);
-bool parser_is_typedef_name(const ParserState* s, const Str* spell);
+bool parser_is_enum_constant(const ParserState* s, const StrBuf* spell);
+bool parser_is_typedef_name(const ParserState* s, const StrBuf* spell);
 
 typedef struct ParserIdentifierData ParserIdentifierData;
 
-const ParserIdentifierData* parser_get_prev_definition(const ParserState* s, const Str* spell);
+const ParserIdentifierData* parser_get_prev_definition(const ParserState* s, const StrBuf* spell);
 
 void parser_set_redefinition_err(ParserState* s,
                                  const ParserIdentifierData* prev_def,

@@ -17,13 +17,13 @@
 
 #include "tokenizer.h"
 
-static TokenKind keyword_kind(const char* spelling);
+static TokenKind keyword_kind(Str spelling);
 
 static void append_terminator_token(TokenArr* arr);
 
 static bool preproc_impl(PreprocState* state);
 
-PreprocRes preproc(const char* path, PreprocErr* err) {
+PreprocRes preproc(Str path, PreprocErr* err) {
     assert(err);
 
     PreprocState state = PreprocState_create(path, err);
@@ -84,7 +84,7 @@ static bool preproc_impl(PreprocState* state) {
 }
 
 #ifdef MYCC_TEST_FUNCTIONALITY
-PreprocRes preproc_string(const char* str, const char* path, PreprocErr* err) {
+PreprocRes preproc_string(Str str, Str path, PreprocErr* err) {
     assert(err);
 
     PreprocState state = PreprocState_create_string(str, path, err);
@@ -129,7 +129,7 @@ static void free_tokens(Token* tokens) {
 
 static void free_preproc_tokens(Token* tokens) {
     for (Token* it = tokens; it->kind != TOKEN_INVALID; ++it) {
-        Str_free(&it->spelling);
+        StrBuf_free(&it->spelling);
     }
     mycc_free(tokens);
 }
@@ -147,7 +147,7 @@ void PreprocRes_free(PreprocRes* res) {
 }
 
 static bool convert_string_literal(Token* t) {
-    Str spelling = t->spelling;
+    StrBuf spelling = t->spelling;
     t->str_lit = convert_to_str_lit(&spelling);
     if (t->str_lit.kind == STR_LIT_INCLUDE) {
         StrLit_free(&t->str_lit);
@@ -165,46 +165,46 @@ static bool convert_preproc_token(Token* t,
     assert(err);
     switch (t->kind) {
         case TOKEN_I_CONSTANT: {
-            if (Str_char_at(&t->spelling, 0) == '\'') {
-                ParseCharConstRes res = parse_char_const(Str_get_data(&t->spelling), info);
+            if (StrBuf_at(&t->spelling, 0) == '\'') {
+                ParseCharConstRes res = parse_char_const(StrBuf_as_str(&t->spelling), info);
                 if (res.err.kind != CHAR_CONST_ERR_NONE) {
                     PreprocErr_set(err, PREPROC_ERR_CHAR_CONST, t->loc);
                     err->char_const_err = res.err;
                     err->constant_spell = t->spelling;
                     return false;
                 }
-                Str_free(&t->spelling);
+                StrBuf_free(&t->spelling);
                 t->val = res.res;
             } else {
-                ParseIntConstRes res = parse_int_const(Str_get_data(&t->spelling), info);
+                ParseIntConstRes res = parse_int_const(StrBuf_as_str(&t->spelling), info);
                 if (res.err.kind != INT_CONST_ERR_NONE) {
                     PreprocErr_set(err, PREPROC_ERR_INT_CONST, t->loc);
                     err->int_const_err = res.err;
                     err->constant_spell = t->spelling;
                     return false;
                 }
-                Str_free(&t->spelling);
+                StrBuf_free(&t->spelling);
                 t->val = res.res;
             }
             break;
         }
         case TOKEN_F_CONSTANT: {
-            ParseFloatConstRes res = parse_float_const(Str_get_data(&t->spelling));
+            ParseFloatConstRes res = parse_float_const(StrBuf_as_str(&t->spelling));
             if (res.err.kind != FLOAT_CONST_ERR_NONE) {
                 PreprocErr_set(err, PREPROC_ERR_FLOAT_CONST, t->loc);
                 err->float_const_err = res.err;
                 err->constant_spell = t->spelling;
                 return false;
             }
-            Str_free(&t->spelling);
+            StrBuf_free(&t->spelling);
             t->val = res.res;
             break;
         }
         case TOKEN_IDENTIFIER:
-            t->kind = keyword_kind(Str_get_data(&t->spelling));
+            t->kind = keyword_kind(StrBuf_as_str(&t->spelling));
             if (t->kind != TOKEN_IDENTIFIER) {
-                Str_free(&t->spelling);
-                t->spelling = Str_create_null();
+                StrBuf_free(&t->spelling);
+                t->spelling = StrBuf_null();
             }
             break;
         case TOKEN_STRING_LITERAL:
@@ -240,7 +240,7 @@ static void append_terminator_token(TokenArr* arr) {
     arr->tokens = mycc_realloc(arr->tokens, sizeof *arr->tokens * (arr->len + 1));
     arr->tokens[arr->len] = (Token){
         .kind = TOKEN_INVALID,
-        .spelling = Str_create_null(),
+        .spelling = StrBuf_null(),
         .loc =
             {
                 .file_idx = (size_t)-1,
@@ -249,13 +249,13 @@ static void append_terminator_token(TokenArr* arr) {
     };
 }
 
-static inline bool is_spelling(const char* spelling, TokenKind type) {
-    const char* expected_spell = TokenKind_get_spelling(type);
-    assert(expected_spell != NULL);
-    return strcmp(spelling, expected_spell) == 0;
+static inline bool is_spelling(Str spelling, TokenKind type) {
+    Str expected_spell = TokenKind_get_spelling(type);
+    assert(expected_spell.data != NULL);
+    return Str_eq(spelling, expected_spell);
 }
 
-static TokenKind keyword_kind(const char* spell) {
+static TokenKind keyword_kind(Str spell) {
     for (TokenKind e = TOKEN_KEYWORDS_START; e < TOKEN_KEYWORDS_END; ++e) {
         if (is_spelling(spell, e)) {
             return e;

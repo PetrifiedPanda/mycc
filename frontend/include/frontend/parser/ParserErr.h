@@ -32,7 +32,7 @@ typedef struct {
     union {
         ExpectedTokensErr expected_tokens_err; 
         struct { // redefined symbol
-            Str redefined_symbol;
+            StrBuf redefined_symbol;
             bool was_typedef_name;
             size_t prev_def_file;
             FileLoc prev_def_loc;
@@ -42,7 +42,7 @@ typedef struct {
         };
         // disallowed type specs
         TokenKind incompatible_type;
-        Str non_typedef_spelling;
+        StrBuf non_typedef_spelling;
     };
 } ParserErr;
 

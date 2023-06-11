@@ -49,7 +49,7 @@ static Constant Constant_create(Value val, SourceLoc loc) {
     };
 }
 
-static Constant Constant_create_enum(const Str* spelling,
+static Constant Constant_create_enum(const StrBuf* spelling,
                                      SourceLoc loc) {
     assert(spelling);
     return (Constant){
@@ -77,7 +77,7 @@ static StringConstant StringConstant_create_func_name(SourceLoc loc) {
 static bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res) {
     switch (s->it->kind) {
         case TOKEN_IDENTIFIER: {
-            const Str spelling = Token_take_spelling(s->it);
+            const StrBuf spelling = Token_take_spelling(s->it);
             SourceLoc loc = s->it->loc;
             parser_accept_it(s);
             if (parser_is_enum_constant(s, &spelling)) {
@@ -211,7 +211,7 @@ static bool parse_postfix_access_suffix(ParserState* s, PostfixSuffix* res) {
     if (s->it->kind != TOKEN_IDENTIFIER) {
         return false;
     }
-    const Str spelling = Token_take_spelling(s->it);
+    const StrBuf spelling = Token_take_spelling(s->it);
     const SourceLoc loc = s->it->loc;
     parser_accept_it(s);
     Identifier* identifier = Identifier_create(&spelling, loc);
@@ -620,7 +620,7 @@ fail:
 
 void Constant_free(Constant* c) {
     if (c->kind == CONSTANT_ENUM) {
-        Str_free(&c->spelling);
+        StrBuf_free(&c->spelling);
     }
 }
 

@@ -29,7 +29,7 @@ TEST(ParserState) {
         }
 
         insert_string[i] = 'a';
-        const Str to_insert = str_non_heap(i + 1, insert_string);
+        const StrBuf to_insert = StrBuf_non_heap(i + 1, insert_string);
 
         Token* item = &dummy_string_tokens[i];
         *item = Token_create_copy(TOKEN_IDENTIFIER,
@@ -48,7 +48,7 @@ TEST(ParserState) {
     for (size_t i = 0; i < NUM_STRINGS; ++i) {
         test_string[i] = 'a';
 
-        const Str test_string_str = str_non_heap(i + 1, test_string);
+        const StrBuf test_string_str = StrBuf_non_heap(i + 1, test_string);
         if (i % 2 == 0) {
             ASSERT(parser_is_enum_constant(&s, &test_string_str));
             ASSERT(!parser_is_typedef_name(&s, &test_string_str));
@@ -65,7 +65,7 @@ TEST(ParserState) {
         size_t j;
         for (j = 0; j < NUM_STRINGS - i * SCOPE_INTERVAL; ++j) {
             pop_test_string[j] = 'a';
-            const Str pop_test_str = str_non_heap(j + 1, pop_test_string);
+            const StrBuf pop_test_str = StrBuf_non_heap(j + 1, pop_test_string);
 
             if (j % 2 == 0) {
                 ASSERT(parser_is_enum_constant(&s, &pop_test_str));
@@ -80,7 +80,7 @@ TEST(ParserState) {
         // test if values from popped scopes are not present anymore
         for (; j < NUM_STRINGS; ++j) {
             pop_test_string[j] = 'a';
-            const Str pop_test_str = str_non_heap(j + 1, pop_test_string);
+            const StrBuf pop_test_str = StrBuf_non_heap(j + 1, pop_test_string);
 
             ASSERT(!parser_is_enum_constant(&s, &pop_test_str));
             ASSERT(!parser_is_typedef_name(&s, &pop_test_str));
@@ -99,7 +99,7 @@ TEST(ParserState) {
 
     const Token insert_test_token = {
         .kind = TOKEN_IDENTIFIER,
-        .spelling = STR_NON_HEAP("Test"),
+        .spelling = STR_BUF_NON_HEAP("Test"),
         .loc =
             {
                 .file_idx = 0,
@@ -110,7 +110,7 @@ TEST(ParserState) {
     ASSERT(!parser_register_typedef_name(&s, &insert_test_token));
 
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
-    ASSERT_STR(Str_get_data(&err.redefined_symbol), "Test");
+    ASSERT_STR(StrBuf_as_str(&err.redefined_symbol), STR_LIT("Test"));
     ASSERT(!err.was_typedef_name);
     ASSERT_SIZE_T(err.prev_def_file, (size_t)0);
     ASSERT_SIZE_T(err.prev_def_loc.line, (size_t)0);
@@ -122,7 +122,7 @@ TEST(ParserState) {
     ASSERT(!parser_register_enum_constant(&s, &insert_test_token));
 
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
-    ASSERT_STR(Str_get_data(&err.redefined_symbol), "Test");
+    ASSERT_STR(StrBuf_as_str(&err.redefined_symbol), STR_LIT("Test"));
     ASSERT(!err.was_typedef_name);
     ASSERT_SIZE_T(err.prev_def_file, (size_t)0);
     ASSERT_SIZE_T(err.prev_def_loc.line, (size_t)0);
@@ -135,7 +135,6 @@ TEST(ParserState) {
     ParserState_free(&s);
 }
 
-TEST_SUITE_BEGIN(ParserState) {
+TEST_SUITE_BEGIN(ParserState){
     REGISTER_TEST(ParserState),
-}
-TEST_SUITE_END()
+} TEST_SUITE_END()

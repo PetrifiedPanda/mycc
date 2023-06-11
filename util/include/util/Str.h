@@ -3,61 +3,26 @@
 
 #include <stddef.h>
 #include <stdbool.h>
-#include <stdint.h>
-#include <limits.h>
-#include <assert.h>
 
 typedef struct {
-    union {
-        struct {
-            size_t _is_static_buf : 1;
-            size_t _len : sizeof(size_t) * CHAR_BIT - 1;
-            size_t _cap;
-            char* _data;
-        };
-        struct {
-            bool _is_static_buf_dup : 1;
-            uint8_t _small_len : sizeof(uint8_t) * CHAR_BIT - 1;
-            char _static_buf[sizeof(size_t) * 2 - sizeof(uint8_t)
-                             + sizeof(char*)];
-        };
-    };
+    size_t len;
+    const char* data;
 } Str;
 
-static_assert(sizeof(Str) == sizeof(size_t) * 2 + sizeof(char*),
-              "Size of string does not match contents");
+#define STR_LIT(lit) (Str){.len = (sizeof lit) - 1, .data = (lit)}
 
-Str Str_create_null(void);
-Str Str_create_empty(void);
-Str Str_create(size_t len, const char* str);
-Str Str_create_empty_with_cap(size_t cap);
+Str Str_null(void);
 
-bool Str_is_valid(const Str* str);
-size_t Str_len(const Str* str);
-size_t Str_cap(const Str* str);
+bool Str_valid(Str);
 
-const char* Str_get_data(const Str* str);
-char Str_char_at(const Str* str, size_t i);
+Str Str_advance(Str s, size_t offset);
+Str Str_incr(Str s);
 
-void Str_push_back(Str* str, char c);
-void Str_pop_back(Str* str);
-void Str_shrink_to_fit(Str* str);
-void Str_reserve(Str* str, size_t new_cap);
+Str Str_substr(Str s, size_t begin, size_t end);
 
-void Str_remove_front(Str* str, size_t num_chars);
+char Str_at(Str s, size_t i);
 
-void Str_append_c_str(Str* str, size_t len, const char* c_str);
-
-Str Str_concat(size_t len1, const char* s1, size_t len2, const char* s2);
-
-Str Str_take(Str* str);
-Str Str_copy(const Str* str);
-
-void Str_clear(Str* str);
-
-bool Str_eq(const Str* s1, const Str* s2);
-
-void Str_free(const Str* str);
+bool Str_eq(Str s1, Str s2);
 
 #endif
 

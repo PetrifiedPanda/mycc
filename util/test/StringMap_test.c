@@ -55,8 +55,8 @@ static size_t write_str_combos(char strs[][KEY_CHAR_ARR_LEN],
     return write_str_combos_rec(strs, num, str_len, 0, 0);
 }
 
-static Str str_from_generated(char* str) {
-    return (Str){
+static StrBuf str_from_generated(char* str) {
+    return (StrBuf){
         ._is_static_buf = false,
         ._len = KEY_STR_LEN,
         ._cap = KEY_STR_LEN + 1,
@@ -69,7 +69,7 @@ static void insert_items(StringMap* map,
                          size_t num_inserts) {
     assert(map->_item_size == sizeof(size_t));
     for (size_t i = 0; i < num_inserts; ++i) {
-        const Str to_insert = str_from_generated(keys[i]);
+        const StrBuf to_insert = str_from_generated(keys[i]);
         const size_t* ret = StringMap_insert(map, &to_insert, &i);
         ASSERT(ret == &i);
 
@@ -99,7 +99,7 @@ TEST(insert) {
     const size_t to_insert = (size_t)-1;
     for (size_t i = 0; i < NUM_INSERTS; ++i) {
         // try to insert already existing item
-        const Str insert_key = str_from_generated(keys[i]);
+        const StrBuf insert_key = str_from_generated(keys[i]);
         const size_t* ret = StringMap_insert(&map, &insert_key, &to_insert);
         ASSERT_SIZE_T(*ret, i);
 
@@ -130,7 +130,7 @@ TEST(remove) {
     insert_items(&map, keys, NUM_INSERTS);
 
     for (size_t i = 0; i < NUM_INSERTS; ++i) {
-        const Str key = str_from_generated(keys[i]);
+        const StrBuf key = str_from_generated(keys[i]);
         StringMap_remove(&map, &key);
         ASSERT_SIZE_T(map._len, (size_t)NUM_INSERTS - 1);
 
@@ -140,7 +140,7 @@ TEST(remove) {
             if (j == i) {
                 continue;
             }
-            const Str other_key = str_from_generated(keys[j]);
+            const StrBuf other_key = str_from_generated(keys[j]);
             const size_t* ret = StringMap_get(&map, &other_key);
             ASSERT_NOT_NULL(ret);
             ASSERT_SIZE_T(*ret, j);
@@ -150,7 +150,7 @@ TEST(remove) {
         ASSERT_SIZE_T(*insert_ret, i);
         ASSERT_SIZE_T(map._len, (size_t)NUM_INSERTS);
         for (size_t j = 0; j < NUM_INSERTS; ++j) {
-            const Str other_key = str_from_generated(keys[j]);
+            const StrBuf other_key = str_from_generated(keys[j]);
             const size_t* ret = StringMap_get(&map, &other_key);
             ASSERT_NOT_NULL(ret);
             ASSERT_SIZE_T(*ret, j);
@@ -159,13 +159,13 @@ TEST(remove) {
 
     for (size_t i = 0; i < NUM_INSERTS; ++i) {
         ASSERT_SIZE_T(map._len, (size_t)NUM_INSERTS - i);
-        const Str to_remove = str_from_generated(keys[i]);
+        const StrBuf to_remove = str_from_generated(keys[i]);
         StringMap_remove(&map, &to_remove);
 
         const void* item = StringMap_get(&map, &to_remove);
         ASSERT_NULL(item);
         for (size_t j = i + 1; j < NUM_INSERTS; ++j) {
-            const Str other_key = str_from_generated(keys[j]);
+            const StrBuf other_key = str_from_generated(keys[j]);
             const size_t* ret = StringMap_get(&map, &other_key);
             ASSERT_NOT_NULL(ret);
             ASSERT_SIZE_T(*ret, j);

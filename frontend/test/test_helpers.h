@@ -14,8 +14,8 @@
     do {                                                                       \
         if ((got) != (expected)) {                                             \
             PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             TokenKind_str(expected),                          \
-                             TokenKind_str(got));                              \
+                             TokenKind_str(expected).data,                     \
+                             TokenKind_str(got).data);                         \
         }                                                                      \
     } while (0)
 
@@ -24,8 +24,8 @@
         ValueKind got_kind = got, expected_kind = expected;                    \
         if (got_kind != expected_kind) {                                       \
             PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             ValueKind_str(expected_kind),                     \
-                             ValueKind_str(got_kind));                         \
+                             ValueKind_str(expected_kind).data,                \
+                             ValueKind_str(got_kind).data);                    \
         }                                                                      \
     } while (0)
 
@@ -33,19 +33,19 @@
     do {                                                                       \
         if ((got) != (expected)) {                                             \
             PRINT_ASSERT_ERR("Expected %s but got %s",                         \
-                             StrLitKind_str(expected),                         \
-                             StrLitKind_str(got));                             \
+                             StrLitKind_str(expected).data,                    \
+                             StrLitKind_str(got).data);                        \
         }                                                                      \
     } while (0)
 
-PreprocRes tokenize(const char* file);
-PreprocRes tokenize_string(const char* str, const char* file);
+PreprocRes tokenize(Str file);
+PreprocRes tokenize_string(Str str, Str file);
 
-void test_compare_files(const char* got_file, const char* ex_file);
+void test_compare_files(Str got_file, Str ex_file);
 
-#define STR_NON_HEAP(lit) str_non_heap(ARR_LEN(lit) - 1, lit)
+#define STR_BUF_NON_HEAP(lit) StrBuf_non_heap(ARR_LEN(lit) - 1, lit)
 
-Str str_non_heap(size_t len, const char* str);
+StrBuf StrBuf_non_heap(size_t len, const char* str);
 
 #endif
 

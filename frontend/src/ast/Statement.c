@@ -29,7 +29,7 @@ static LabeledStatement* parse_labeled_statement(ParserState* s) {
 
         case TOKEN_IDENTIFIER: {
             res->kind = LABELED_STATEMENT_LABEL;
-            const Str spelling = Token_take_spelling(s->it);
+            const StrBuf spelling = Token_take_spelling(s->it);
             const SourceLoc loc = s->it->loc;
             parser_accept_it(s);
             res->label = Identifier_create(&spelling, loc);
@@ -417,7 +417,7 @@ static JumpStatement* parse_jump_statement(ParserState* s) {
         case TOKEN_GOTO: {
             parser_accept_it(s);
             if (s->it->kind == TOKEN_IDENTIFIER) {
-                const Str spell = Token_take_spelling(s->it);
+                const StrBuf spell = Token_take_spelling(s->it);
                 const SourceLoc id_loc = s->it->loc;
                 parser_accept_it(s);
                 res = create_goto_statement(loc,

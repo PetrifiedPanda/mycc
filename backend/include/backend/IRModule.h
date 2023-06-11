@@ -1,14 +1,14 @@
 #ifndef IR_MODULE
 #define IR_MODULE
 
-#include "util/Str.h"
+#include "util/StrBuf.h"
 
 #include "CFG.h"
 
 // TODO: how to incorporate ssa_cfgs?
 
 typedef struct {
-    Str name;
+    StrBuf name;
     size_t num_funcs;
     CFG* funcs;
     size_t num_globals;

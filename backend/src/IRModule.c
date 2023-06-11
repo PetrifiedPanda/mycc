@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 void IRModule_free(IRModule* mod) {
-    Str_free(&mod->name);
+    StrBuf_free(&mod->name);
     for (size_t i = 0; i < mod->num_funcs; ++i) {
         CFG_free(&mod->funcs[i]);
     }

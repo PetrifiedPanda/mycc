@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#include "util/Str.h"
+#include "util/StrBuf.h"
 
 #include "frontend/ErrBase.h"
 #include "frontend/ExpectedTokensErr.h"
@@ -55,11 +55,11 @@ typedef struct {
     union {
         struct {
             int errno_state;
-            Str fail_filename;
+            StrBuf fail_filename;
         };
         bool is_char_lit;
-        Str invalid_id;
-        Str invalid_num;
+        StrBuf invalid_id;
+        StrBuf invalid_num;
         struct {
             size_t expected_arg_count;
             bool too_few_args;
@@ -81,7 +81,7 @@ typedef struct {
         };
         TokenKind misplaced_preproc_tok;
         struct {
-            Str constant_spell;
+            StrBuf constant_spell;
             union {
                 IntConstErr int_const_err;
                 FloatConstErr float_const_err;
@@ -90,7 +90,7 @@ typedef struct {
         };
         TokenKind type_instead_of_identifier;
         ExpectedTokensErr expected_tokens_err;
-        Str duplicate_arg_name;
+        StrBuf duplicate_arg_name;
     };
 } PreprocErr;
 
@@ -100,7 +100,7 @@ void PreprocErr_set(PreprocErr* err, PreprocErrKind kind, SourceLoc loc);
 
 void PreprocErr_print(FILE* out, const FileInfo* file_info, PreprocErr* err);
 
-void PreprocErr_set_file_err(PreprocErr* err, const Str* fail_filename, SourceLoc include_loc);
+void PreprocErr_set_file_err(PreprocErr* err, const StrBuf* fail_filename, SourceLoc include_loc);
 
 void PreprocErr_free(PreprocErr* err);
 

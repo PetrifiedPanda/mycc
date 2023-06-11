@@ -15,8 +15,8 @@
 
 #include "parser_test_util.h"
 
-static PrimaryExpr parse_primary_helper(const char* code) {
-    PreprocRes preproc_res = tokenize_string(code, "not_file.c");
+static PrimaryExpr parse_primary_helper(Str code) {
+    PreprocRes preproc_res = tokenize_string(code, STR_LIT("not_file.c"));
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
@@ -36,7 +36,7 @@ static PrimaryExpr parse_primary_helper(const char* code) {
 }
 
 static void check_primary_expr_int_constant(ConstantKind type,
-                                            const char* spell,
+                                            Str spell,
                                             Value expected) {
     PrimaryExpr res = parse_primary_helper(spell);
 
@@ -50,7 +50,7 @@ static void check_primary_expr_int_constant(ConstantKind type,
 }
 
 static void check_primary_expr_float_constant(ConstantKind type,
-                                              const char* spell,
+                                              Str spell,
                                               Value expected) {
     PrimaryExpr res = parse_primary_helper(spell);
 
@@ -63,35 +63,34 @@ static void check_primary_expr_float_constant(ConstantKind type,
     PrimaryExpr_free_children(&res);
 }
 
-static void check_primary_expr_string(const char* spell, const char* expected) {
+static void check_primary_expr_string(Str spell, Str expected) {
     PrimaryExpr res = parse_primary_helper(spell);
 
     ASSERT(res.kind == PRIMARY_EXPR_STRING_LITERAL);
     ASSERT(res.string.is_func == false);
-    ASSERT_STR(Str_get_data(&res.string.lit.lit.contents), expected);
+    ASSERT_STR(StrBuf_as_str(&res.string.lit.lit.contents), expected);
 
     PrimaryExpr_free_children(&res);
 }
 
 static void check_primary_expr_func_name(void) {
-    PrimaryExpr res = parse_primary_helper("__func__");
+    PrimaryExpr res = parse_primary_helper(STR_LIT("__func__"));
 
     ASSERT(res.string.is_func == true);
 
     PrimaryExpr_free_children(&res);
 }
 
-static void check_primary_expr_identifier(const char* spell) {
+static void check_primary_expr_identifier(Str spell) {
     PrimaryExpr res = parse_primary_helper(spell);
 
     ASSERT(res.kind == PRIMARY_EXPR_IDENTIFIER);
-    ASSERT_STR(Str_get_data(&res.identifier->spelling), spell);
+    ASSERT_STR(StrBuf_as_str(&res.identifier->spelling), spell);
 
     PrimaryExpr_free_children(&res);
 }
 
-static void check_primary_expr_bracket_id(const char* code,
-                                          const char* bracket_spell) {
+static void check_primary_expr_bracket_id(Str code, Str bracket_spell) {
     PrimaryExpr res = parse_primary_helper(code);
     ASSERT(res.kind == PRIMARY_EXPR_BRACKET);
     check_expr_id(&res.bracket_expr, bracket_spell);
@@ -99,8 +98,7 @@ static void check_primary_expr_bracket_id(const char* code,
     PrimaryExpr_free_children(&res);
 }
 
-static void check_primary_expr_bracket_float(const char* code,
-                                             Value val) {
+static void check_primary_expr_bracket_float(Str code, Value val) {
     PrimaryExpr res = parse_primary_helper(code);
     ASSERT(res.kind == PRIMARY_EXPR_BRACKET);
     check_expr_val(&res.bracket_expr, val);
@@ -110,22 +108,23 @@ static void check_primary_expr_bracket_float(const char* code,
 
 static void primary_expr_generic_sel_test(void) {
     PreprocRes preproc_res = tokenize_string(
-        "_Generic(var, int: 0, TypedefName: oops, struct a_struct: 5.0, "
-        "default: default_value )",
-        "not_file.c");
+        STR_LIT(
+            "_Generic(var, int: 0, TypedefName: oops, struct a_struct: 5.0, "
+            "default: default_value )"),
+        STR_LIT("not_file.c"));
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
     const Token insert_token = {
         .kind = TOKEN_IDENTIFIER,
-        .spelling = STR_NON_HEAP("TypedefName"),
+        .spelling = STR_BUF_NON_HEAP("TypedefName"),
         .loc =
             {
                 .file_idx = 0,
                 .file_loc = {0, 0},
             },
     };
-    
+
     parser_register_typedef_name(&s, &insert_token);
     UnaryExpr unary;
     ASSERT(parse_unary_expr_inplace(&s, &unary));
@@ -140,7 +139,7 @@ static void primary_expr_generic_sel_test(void) {
     PrimaryExpr res = unary.postfix.primary;
 
     ASSERT(res.kind == PRIMARY_EXPR_GENERIC);
-    check_assign_expr_id(res.generic.assign, "var");
+    check_assign_expr_id(res.generic.assign, STR_LIT("var"));
 
     ASSERT_SIZE_T(res.generic.assocs.len, (size_t)4);
     GenericAssoc* assoc = res.generic.assocs.assocs;
@@ -154,8 +153,8 @@ static void primary_expr_generic_sel_test(void) {
     ASSERT_NULL(assoc->type_name->abstract_decl);
     ASSERT(assoc->type_name->spec_qual_list->specs.kind == TYPE_SPEC_TYPENAME);
     check_identifier(assoc->type_name->spec_qual_list->specs.typedef_name,
-                     "TypedefName");
-    check_assign_expr_id(assoc->assign, "oops");
+                     STR_LIT("TypedefName"));
+    check_assign_expr_id(assoc->assign, STR_LIT("oops"));
 
     ++assoc;
 
@@ -168,14 +167,13 @@ static void primary_expr_generic_sel_test(void) {
                   (size_t)0);
     check_identifier(
         assoc->type_name->spec_qual_list->specs.struct_union_spec->identifier,
-        "a_struct");
-    check_assign_expr_val(assoc->assign,
-                            Value_create_float(VALUE_D, 5.0));
+        STR_LIT("a_struct"));
+    check_assign_expr_val(assoc->assign, Value_create_float(VALUE_D, 5.0));
 
     ++assoc;
 
     ASSERT_NULL(assoc->type_name);
-    check_assign_expr_id(assoc->assign, "default_value");
+    check_assign_expr_id(assoc->assign, STR_LIT("default_value"));
 
     PrimaryExpr_free_children(&res);
     ParserState_free(&s);
@@ -183,28 +181,28 @@ static void primary_expr_generic_sel_test(void) {
 }
 
 TEST(primary_expr) {
-    check_primary_expr_float_constant(
-        CONSTANT_VAL,
-        "3.1e-5f",
-        Value_create_float(VALUE_F, 3.1e-5f));
+    check_primary_expr_float_constant(CONSTANT_VAL,
+                                      STR_LIT("3.1e-5f"),
+                                      Value_create_float(VALUE_F, 3.1e-5f));
     check_primary_expr_int_constant(CONSTANT_VAL,
-                                    "0xdeadbeefl",
+                                    STR_LIT("0xdeadbeefl"),
                                     Value_create_sint(VALUE_L, 0xdeadbeefl));
-    check_primary_expr_identifier("super_cool_identifier");
-    check_primary_expr_identifier("another_cool_identifier");
-    check_primary_expr_string("\"Test string it does not matter whether this "
-                              "is an actual string literal but hey\"",
-                              "Test string it does not matter whether this "
-                              "is an actual string literal but hey");
+    check_primary_expr_identifier(STR_LIT("super_cool_identifier"));
+    check_primary_expr_identifier(STR_LIT("another_cool_identifier"));
+    check_primary_expr_string(
+        STR_LIT("\"Test string it does not matter whether this "
+                "is an actual string literal but hey\""),
+        STR_LIT("Test string it does not matter whether this "
+                "is an actual string literal but hey"));
     check_primary_expr_func_name();
-    check_primary_expr_bracket_float("(23.3)",
+    check_primary_expr_bracket_float(STR_LIT("(23.3)"),
                                      Value_create_float(VALUE_D, 23.3));
-    check_primary_expr_bracket_id("(var)", "var");
+    check_primary_expr_bracket_id(STR_LIT("(var)"), STR_LIT("var"));
     primary_expr_generic_sel_test();
 }
 
-static UnaryExpr parse_unary_helper(const char* code) {
-    PreprocRes preproc_res = tokenize_string(code, "skfjdlfs");
+static UnaryExpr parse_unary_helper(Str code) {
+    PreprocRes preproc_res = tokenize_string(code, STR_LIT("skfjdlfs"));
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
@@ -220,7 +218,7 @@ static UnaryExpr parse_unary_helper(const char* code) {
 
 TEST(unary_expr) {
     {
-        UnaryExpr res = parse_unary_helper("++-- sizeof *name");
+        UnaryExpr res = parse_unary_helper(STR_LIT("++-- sizeof *name"));
 
         ASSERT(res.kind == UNARY_DEREF);
 
@@ -230,12 +228,12 @@ TEST(unary_expr) {
         ASSERT(res.ops_before[1] == UNARY_OP_DEC);
         ASSERT(res.ops_before[2] == UNARY_OP_SIZEOF);
 
-        check_cast_expr_id(res.cast_expr, "name");
+        check_cast_expr_id(res.cast_expr, STR_LIT("name"));
 
         UnaryExpr_free_children(&res);
     }
     {
-        UnaryExpr res = parse_unary_helper("++++--++--100");
+        UnaryExpr res = parse_unary_helper(STR_LIT("++++--++--100"));
 
         ASSERT_SIZE_T(res.len, (size_t)5);
         ASSERT(res.kind == UNARY_POSTFIX);
@@ -254,7 +252,7 @@ TEST(unary_expr) {
     }
 
     {
-        UnaryExpr res = parse_unary_helper("sizeof(int)");
+        UnaryExpr res = parse_unary_helper(STR_LIT("sizeof(int)"));
 
         ASSERT(res.kind == UNARY_SIZEOF_TYPE);
         ASSERT(res.type_name->spec_qual_list->specs.kind == TYPE_SPEC_INT);
@@ -263,7 +261,7 @@ TEST(unary_expr) {
     }
 
     {
-        UnaryExpr res = parse_unary_helper("~*var");
+        UnaryExpr res = parse_unary_helper(STR_LIT("~*var"));
 
         ASSERT(res.kind == UNARY_BNOT);
 
@@ -272,18 +270,18 @@ TEST(unary_expr) {
         UnaryExpr* child_unary = &cast->rhs;
 
         ASSERT(child_unary->kind == UNARY_DEREF);
-        check_cast_expr_id(child_unary->cast_expr, "var");
+        check_cast_expr_id(child_unary->cast_expr, STR_LIT("var"));
 
         UnaryExpr_free_children(&res);
     }
 }
 
-static PostfixExpr parse_postfix_helper(const char* code) {
-    PreprocRes preproc_res = tokenize_string(code, "sjfkds");
+static PostfixExpr parse_postfix_helper(Str code) {
+    PreprocRes preproc_res = tokenize_string(code, STR_LIT("sjfkds"));
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
-    
+
     UnaryExpr unary;
     ASSERT(parse_unary_expr_inplace(&s, &unary));
     ASSERT(err.kind == PARSER_ERR_NONE);
@@ -301,7 +299,7 @@ static void test_postfix_expr_intializer(bool tailing_comma) {
     if (tailing_comma) {
         code[30] = ',';
     }
-    PostfixExpr res = parse_postfix_helper(code);
+    PostfixExpr res = parse_postfix_helper(STR_LIT(code));
 
     ASSERT(res.is_primary == false);
     ASSERT_SIZE_T(res.init_list.len, (size_t)2);
@@ -313,28 +311,29 @@ static void test_postfix_expr_intializer(bool tailing_comma) {
 
     ASSERT(!Designation_is_valid(&res.init_list.inits[1].designation));
     ASSERT(res.init_list.inits[1].init.is_assign);
-    check_assign_expr_id(res.init_list.inits[1].init.assign, "test");
+    check_assign_expr_id(res.init_list.inits[1].init.assign, STR_LIT("test"));
 
     PostfixExpr_free_children(&res);
 }
 
 TEST(postfix_expr) {
     {
-        PostfixExpr res = parse_postfix_helper("test.ident->other++--++");
+        PostfixExpr res = parse_postfix_helper(
+            STR_LIT("test.ident->other++--++"));
 
         ASSERT(res.is_primary);
 
         ASSERT_SIZE_T(res.len, (size_t)5);
 
-        check_primary_expr_id(&res.primary, "test");
+        check_primary_expr_id(&res.primary, STR_LIT("test"));
 
         ASSERT(res.suffixes[0].kind == POSTFIX_ACCESS);
-        ASSERT_STR(Str_get_data(&res.suffixes[0].identifier->spelling),
-                   "ident");
+        ASSERT_STR(StrBuf_as_str(&res.suffixes[0].identifier->spelling),
+                   STR_LIT("ident"));
 
         ASSERT(res.suffixes[1].kind == POSTFIX_PTR_ACCESS);
-        ASSERT_STR(Str_get_data(&res.suffixes[1].identifier->spelling),
-                   "other");
+        ASSERT_STR(StrBuf_as_str(&res.suffixes[1].identifier->spelling),
+                   STR_LIT("other"));
 
         ASSERT(res.suffixes[2].kind == POSTFIX_INC);
 
@@ -346,13 +345,14 @@ TEST(postfix_expr) {
     }
 
     {
-        PostfixExpr res = parse_postfix_helper("test[i_am_id]()[23](another_id, 34, id)");
+        PostfixExpr res = parse_postfix_helper(
+            STR_LIT("test[i_am_id]()[23](another_id, 34, id)"));
 
         ASSERT_SIZE_T(res.len, (size_t)4);
         PostfixSuffix* suffix = res.suffixes;
 
         ASSERT(suffix->kind == POSTFIX_INDEX);
-        check_expr_id(&suffix->index_expr, "i_am_id");
+        check_expr_id(&suffix->index_expr, STR_LIT("i_am_id"));
 
         ++suffix;
 
@@ -369,10 +369,11 @@ TEST(postfix_expr) {
         ASSERT(suffix->kind == POSTFIX_BRACKET);
         ASSERT_SIZE_T(suffix->bracket_list.len, (size_t)3);
         check_assign_expr_id(&suffix->bracket_list.assign_exprs[0],
-                             "another_id");
+                             STR_LIT("another_id"));
         check_assign_expr_val(&suffix->bracket_list.assign_exprs[1],
                               Value_create_sint(VALUE_I, 34));
-        check_assign_expr_id(&suffix->bracket_list.assign_exprs[2], "id");
+        check_assign_expr_id(&suffix->bracket_list.assign_exprs[2],
+                             STR_LIT("id"));
 
         PostfixExpr_free_children(&res);
     }
@@ -384,15 +385,15 @@ TEST(postfix_expr) {
 static void check_assign_expr_cast_int(CondExpr* expr,
                                        TypeSpecKind cast_type,
                                        Value val) {
-    CastExpr* cast = &expr->last_else.log_ands->or_exprs->xor_exprs
-                                 ->and_exprs->eq_exprs->lhs.lhs.lhs.lhs.lhs;
+    CastExpr* cast = &expr->last_else.log_ands->or_exprs->xor_exprs->and_exprs
+                          ->eq_exprs->lhs.lhs.lhs.lhs.lhs;
     ASSERT_SIZE_T(cast->len, (size_t)1);
     ASSERT(cast->type_names[0].spec_qual_list->specs.kind == cast_type);
     check_unary_expr_val(&cast->rhs, val);
 }
 
-static AssignExpr* parse_assign_helper(const char* code) {
-    PreprocRes preproc_res = tokenize_string(code, "blah");
+static AssignExpr* parse_assign_helper(Str code) {
+    PreprocRes preproc_res = tokenize_string(code, STR_LIT("blah"));
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
@@ -410,7 +411,7 @@ static AssignExpr* parse_assign_helper(const char* code) {
 
 TEST(assign_expr) {
     {
-        AssignExpr* res = parse_assign_helper("10");
+        AssignExpr* res = parse_assign_helper(STR_LIT("10"));
 
         check_assign_expr_val(res, Value_create_sint(VALUE_I, 10));
 
@@ -419,7 +420,7 @@ TEST(assign_expr) {
 
     {
         AssignExpr* res = parse_assign_helper(
-            "x = 100 += y *= 100.0 /= 2");
+            STR_LIT("x = 100 += y *= 100.0 /= 2"));
         ASSERT_NOT_NULL(res);
         ASSERT_SIZE_T(res->len, (size_t)4);
 
@@ -437,13 +438,13 @@ TEST(assign_expr) {
             } type;
             union {
                 Value val;
-                const char* str;
+                Str str;
             };
         } ValOrStr;
         ValOrStr expected_spellings[] = {
-            {STR, .str = "x"},
+            {STR, .str = STR_LIT("x")},
             {VAL, .val = Value_create_sint(VALUE_I, 100)},
-            {STR, .str = "y"},
+            {STR, .str = STR_LIT("y")},
             {VAL, .val = Value_create_float(VALUE_D, 100.0)},
         };
 
@@ -457,8 +458,7 @@ TEST(assign_expr) {
             ValOrStr curr = expected_spellings[i];
             switch (curr.type) {
                 case VAL:
-                    check_unary_expr_val(&res->assign_chain[i].unary,
-                                         curr.val);
+                    check_unary_expr_val(&res->assign_chain[i].unary, curr.val);
                     break;
                 case STR:
                     check_unary_expr_id(&res->assign_chain[i].unary, curr.str);
@@ -468,7 +468,7 @@ TEST(assign_expr) {
 
         ASSERT(res->assign_chain[0].op == ASSIGN_EXPR_ASSIGN);
 
-        check_unary_expr_id(&res->assign_chain[0].unary, "x");
+        check_unary_expr_id(&res->assign_chain[0].unary, STR_LIT("x"));
 
         check_cond_expr_val(&res->value, Value_create_sint(VALUE_I, 2));
 
@@ -476,7 +476,7 @@ TEST(assign_expr) {
     }
 
     {
-        AssignExpr* res = parse_assign_helper("(char)100");
+        AssignExpr* res = parse_assign_helper(STR_LIT("(char)100"));
 
         ASSERT_SIZE_T(res->len, (size_t)0);
         check_assign_expr_cast_int(&res->value,
@@ -488,7 +488,7 @@ TEST(assign_expr) {
 
     {
         AssignExpr* res = parse_assign_helper(
-            "(struct a_struct){1, var} = 0.0");
+            STR_LIT("(struct a_struct){1, var} = 0.0"));
 
         ASSERT_SIZE_T(res->len, (size_t)1);
 
@@ -505,21 +505,20 @@ TEST(assign_expr) {
         check_assign_expr_val(unary->postfix.init_list.inits[0].init.assign,
                               Value_create_sint(VALUE_I, 1));
         check_assign_expr_id(unary->postfix.init_list.inits[1].init.assign,
-                             "var");
+                             STR_LIT("var"));
 
-        check_cond_expr_val(&res->value,
-                              Value_create_float(VALUE_D, 0.0));
+        check_cond_expr_val(&res->value, Value_create_float(VALUE_D, 0.0));
 
         AssignExpr_free(res);
     }
 
     {
-        AssignExpr* res = parse_assign_helper("var *= (double)12");
+        AssignExpr* res = parse_assign_helper(STR_LIT("var *= (double)12"));
 
         ASSERT_SIZE_T(res->len, (size_t)1);
 
         ASSERT(res->assign_chain[0].op == ASSIGN_EXPR_MUL);
-        check_unary_expr_id(&res->assign_chain[0].unary, "var");
+        check_unary_expr_id(&res->assign_chain[0].unary, STR_LIT("var"));
 
         check_assign_expr_cast_int(&res->value,
                                    TYPE_SPEC_DOUBLE,
@@ -530,16 +529,15 @@ TEST(assign_expr) {
 
     {
         AssignExpr* res = parse_assign_helper(
-            "var ^= (struct a_struct){1, var}");
+            STR_LIT("var ^= (struct a_struct){1, var}"));
 
         ASSERT_SIZE_T(res->len, (size_t)1);
 
         ASSERT(res->assign_chain[0].op == ASSIGN_EXPR_XOR);
-        check_unary_expr_id(&res->assign_chain[0].unary, "var");
+        check_unary_expr_id(&res->assign_chain[0].unary, STR_LIT("var"));
 
-        UnaryExpr* unary = &res->value.last_else.log_ands->or_exprs
-                                       ->xor_exprs->and_exprs->eq_exprs->lhs
-                                       .lhs.lhs.lhs.lhs.rhs;
+        UnaryExpr* unary = &res->value.last_else.log_ands->or_exprs->xor_exprs
+                                ->and_exprs->eq_exprs->lhs.lhs.lhs.lhs.lhs.rhs;
 
         ASSERT(unary->kind == UNARY_POSTFIX);
         ASSERT_SIZE_T(unary->len, (size_t)0);
@@ -555,16 +553,16 @@ TEST(assign_expr) {
             &unary->postfix.init_list.inits[1].designation));
         ASSERT(unary->postfix.init_list.inits[1].init.is_assign);
         check_assign_expr_id(unary->postfix.init_list.inits[1].init.assign,
-                             "var");
+                             STR_LIT("var"));
 
         AssignExpr_free(res);
     }
 }
 
 void check_assign_expr_single_assign_id(AssignExpr* expr,
-                                        const char* lhs,
+                                        Str lhs,
                                         AssignExprOp op,
-                                        const char* rhs) {
+                                        Str rhs) {
     ASSERT_SIZE_T(expr->len, (size_t)1);
     ASSERT(expr->assign_chain[0].op == op);
     check_unary_expr_id(&expr->assign_chain[0].unary, lhs);
@@ -572,7 +570,7 @@ void check_assign_expr_single_assign_id(AssignExpr* expr,
 }
 
 void check_assign_expr_single_assign_int(AssignExpr* expr,
-                                         const char* lhs,
+                                         Str lhs,
                                          AssignExprOp op,
                                          Value rhs) {
     ASSERT_SIZE_T(expr->len, (size_t)1);
@@ -582,7 +580,7 @@ void check_assign_expr_single_assign_int(AssignExpr* expr,
 }
 
 void check_assign_expr_single_assign_float(AssignExpr* expr,
-                                           const char* lhs,
+                                           Str lhs,
                                            AssignExprOp op,
                                            Value rhs) {
     ASSERT_SIZE_T(expr->len, (size_t)1);
@@ -592,42 +590,41 @@ void check_assign_expr_single_assign_float(AssignExpr* expr,
 }
 
 TEST(expr) {
-    PreprocRes preproc_res = tokenize_string("a = 10, b *= x, c += 3.1",
-                                                     "file.c");
+    PreprocRes preproc_res = tokenize_string(
+        STR_LIT("a = 10, b *= x, c += 3.1"),
+        STR_LIT("file.c"));
     ASSERT_NOT_NULL(preproc_res.toks);
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(preproc_res.toks, &err);
 
-    Expr expr; 
+    Expr expr;
     ASSERT(parse_expr_inplace(&s, &expr));
     ASSERT(err.kind == PARSER_ERR_NONE);
 
     ASSERT_SIZE_T(expr.len, (size_t)3);
     check_assign_expr_single_assign_int(&expr.assign_exprs[0],
-                                        "a",
+                                        STR_LIT("a"),
                                         ASSIGN_EXPR_ASSIGN,
                                         Value_create_sint(VALUE_I, 10));
     check_assign_expr_single_assign_id(&expr.assign_exprs[1],
-                                       "b",
+                                       STR_LIT("b"),
                                        ASSIGN_EXPR_MUL,
-                                       "x");
-    check_assign_expr_single_assign_float(
-        &expr.assign_exprs[2],
-        "c",
-        ASSIGN_EXPR_ADD,
-        Value_create_float(VALUE_D, 3.1));
+                                       STR_LIT("x"));
+    check_assign_expr_single_assign_float(&expr.assign_exprs[2],
+                                          STR_LIT("c"),
+                                          ASSIGN_EXPR_ADD,
+                                          Value_create_float(VALUE_D, 3.1));
 
     Expr_free_children(&expr);
     ParserState_free(&s);
     PreprocRes_free(&preproc_res);
 }
 
-TEST_SUITE_BEGIN(parser_expr) {
+TEST_SUITE_BEGIN(parser_expr){
     REGISTER_TEST(primary_expr),
     REGISTER_TEST(unary_expr),
     REGISTER_TEST(postfix_expr),
     REGISTER_TEST(assign_expr),
     REGISTER_TEST(expr),
-}
-TEST_SUITE_END()
+} TEST_SUITE_END()

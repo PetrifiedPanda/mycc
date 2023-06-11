@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "util/Str.h"
+#include "util/StrBuf.h"
 
 #include "IRType.h"
 
@@ -41,12 +41,12 @@ typedef struct {
 } IRGlobalRef;
 
 typedef struct {
-    Str name;
+    StrBuf name;
     IRTypeRef type;
 } IRReg;
 
 typedef struct {
-    Str name;
+    StrBuf name;
     IRTypeRef type;
     // TODO: value (if known at compile time)
 } IRGlobal;

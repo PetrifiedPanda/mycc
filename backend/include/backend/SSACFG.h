@@ -10,7 +10,7 @@ typedef struct {
 } SSARegInfo;
 
 typedef struct {
-    Str name;
+    StrBuf name;
     size_t len;
     SSABasicBlock* blocks;
 
@@ -19,7 +19,7 @@ typedef struct {
     SSARegInfo* regs;
     
     size_t num_val_names;
-    Str* val_names;
+    StrBuf* val_names;
 } SSACFG;
 
 void SSACFG_free(SSACFG* cfg);

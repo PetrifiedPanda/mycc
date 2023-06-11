@@ -8,10 +8,11 @@
 
 #include "util/macro_util.h"
 
-ParseFloatConstRes parse_float_const(const char* spell) {
-    const char* end = spell; // so end is set
+ParseFloatConstRes parse_float_const(Str spell) {
+    const char* suffix = spell.data; // so end is set
+    const char* end = spell.data + spell.len;
     assert(errno == 0);
-    double val = strtod(spell, (char**)&end);
+    double val = strtod(spell.data, (char**)&suffix);
     if (errno != 0) {
         assert(errno == ERANGE);
         errno = 0;
@@ -20,23 +21,23 @@ ParseFloatConstRes parse_float_const(const char* spell) {
         };
     }
     ValueKind t = VALUE_D;
-    assert(spell <= end);
-    if (*end != '\0') {
-        if (*end == 'f' || *end == 'F') {
+    assert(spell.data <= suffix);
+    if (suffix != end) {
+        if (*suffix == 'f' || *suffix == 'F') {
             t = VALUE_F;
-        } else if (*end == 'l' || *end == 'L') {
+        } else if (*suffix == 'l' || *suffix == 'L') {
             t = VALUE_LD;
         } else {
             return (ParseFloatConstRes){
                 .err =
                     {
                         .kind = FLOAT_CONST_ERR_INVALID_CHAR,
-                        .invalid_char = *end,
+                        .invalid_char = *suffix,
                     },
             };
         }
-        ++end;
-        if (*end != '\0') {
+        ++suffix;
+        if (suffix != end) {
             return (ParseFloatConstRes){
                 .err.kind = FLOAT_CONST_ERR_SUFFIX_TOO_LONG,
             };
@@ -75,7 +76,7 @@ typedef struct {
     bool is_unsigned;
 } IntTypeAttrs;
 
-static IntTypeAttrs get_int_attrs(const char* suffix, IntConstErr* err);
+static IntTypeAttrs get_int_attrs(Str suffix, IntConstErr* err);
 
 static ValueKind get_value_type_dec(IntTypeAttrs attrs,
                                     uintmax_t val,
@@ -87,16 +88,15 @@ static ValueKind get_value_type_other(IntTypeAttrs attrs,
                                       const ArchTypeInfo* type_info,
                                       IntConstErr* err);
 
-ParseIntConstRes parse_int_const(const char* spell,
-                                 const ArchTypeInfo* type_info) {
+ParseIntConstRes parse_int_const(Str spell, const ArchTypeInfo* type_info) {
     const enum {
         DEC = 10,
         HEX = 16,
         OCT = 8
-    } base = spell[0] == '0' ? ((tolower(spell[1]) == 'x') ? HEX : OCT) : DEC;
-    const char* suffix = spell;
+    } base = Str_at(spell, 0) == '0' ? ((spell.len > 1 && tolower(Str_at(spell, 1)) == 'x') ? HEX : OCT) : DEC;
+    const char* suffix = spell.data;
     assert(errno == 0);
-    uintmax_t val = strtoull(spell, (char**)&suffix, base);
+    uintmax_t val = strtoull(spell.data, (char**)&suffix, base);
     if (errno != 0) {
         assert(errno == ERANGE);
         errno = 0;
@@ -105,12 +105,12 @@ ParseIntConstRes parse_int_const(const char* spell,
         };
     }
 
-    assert(spell <= suffix);
+    assert(spell.data <= suffix);
 
     IntConstErr err = {
         .kind = INT_CONST_ERR_NONE,
     };
-    IntTypeAttrs attrs = get_int_attrs(suffix, &err);
+    IntTypeAttrs attrs = get_int_attrs(Str_advance(spell, suffix - spell.data), &err);
     if (err.kind != INT_CONST_ERR_NONE) {
         return (ParseIntConstRes){
             .err = err,
@@ -171,19 +171,19 @@ void IntConstErr_print(FILE* out, const IntConstErr* err) {
     fprintf(out, "\n");
 }
 
-static IntTypeAttrs get_int_attrs(const char* suffix, IntConstErr* err) {
+static IntTypeAttrs get_int_attrs(Str suffix, IntConstErr* err) {
     IntTypeAttrs res = {
         .num_long = 0,
         .is_unsigned = false,
     };
     bool l_is_upper = false;
     bool last_was_u = false;
-    for (size_t i = 0; suffix[i] != '\0'; ++i) {
+    for (size_t i = 0; i < suffix.len; ++i) {
         if (i == 3) {
             err->kind = INT_CONST_ERR_SUFFIX_TOO_LONG;
             return (IntTypeAttrs){0};
         }
-        switch (suffix[i]) {
+        switch (Str_at(suffix, i)) {
             case 'l':
                 if (res.num_long > 0 && l_is_upper) {
                     err->kind = INT_CONST_ERR_CASE_MIXING;
@@ -227,7 +227,7 @@ static IntTypeAttrs get_int_attrs(const char* suffix, IntConstErr* err) {
                 break;
             default:
                 err->kind = INT_CONST_ERR_INVALID_CHAR;
-                err->invalid_char = suffix[i];
+                err->invalid_char = Str_at(suffix, i);
                 return (IntTypeAttrs){0};
         }
     }
@@ -389,21 +389,22 @@ static ValueKind get_value_type_other(IntTypeAttrs attrs,
 static ValueKind get_uint_leastn_t_type(size_t n,
                                         const ArchTypeInfo* type_info);
 
-ParseCharConstRes parse_char_const(const char* spell,
-                                   const ArchTypeInfo* type_info) {
-    assert(spell);
+ParseCharConstRes parse_char_const(Str spell, const ArchTypeInfo* type_info) {
+    assert(spell.data);
     assert(type_info);
+    
+    Str spell_it = spell;
 
     ValueKind kind;
-    switch (*spell) {
+    switch (Str_at(spell_it, 0)) {
         case '\'':
             kind = VALUE_I;
-            ++spell;
+            spell_it = Str_incr(spell_it);
             break;
         case 'u':
-            if (spell[1] == '8') {
+            if (Str_at(spell_it, 1) == '8') {
                 kind = VALUE_UC;
-            } else if (spell[1] == '\'') {
+            } else if (Str_at(spell_it, 1) == '\'') {
                 kind = get_uint_leastn_t_type(16, type_info);
             } else {
                 return (ParseCharConstRes){
@@ -412,43 +413,43 @@ ParseCharConstRes parse_char_const(const char* spell,
                             .kind = CHAR_CONST_ERR_EXPECTED_CHAR,
                             .num_expected = 2,
                             .expected_chars = {'8', '\''},
-                            .got_char = spell[1],
+                            .got_char = Str_at(spell_it, 1),
                         },
                 };
             }
-            spell += 2;
+            spell_it = Str_advance(spell_it, 2);
             break;
         case 'U':
             kind = get_uint_leastn_t_type(32, type_info);
-            if (spell[1] != '\'') {
+            if (Str_at(spell_it, 1) != '\'') {
                 return (ParseCharConstRes){
                     .err =
                         {
                             .kind = CHAR_CONST_ERR_EXPECTED_CHAR,
                             .num_expected = 1,
                             .expected_chars[0] = '\'',
-                            .got_char = spell[1],
+                            .got_char = Str_at(spell_it, 1),
                         },
                 };
             }
-            spell += 2;
+            spell_it = Str_advance(spell_it, 2);
             break;
         case 'L':
             kind = get_uint_leastn_t_type(type_info->int_info.wchar_t_size
                                               * type_info->bits_in_char,
                                           type_info);
-            if (spell[1] != '\'') {
+            if (Str_at(spell_it, 1) != '\'') {
                 return (ParseCharConstRes){
                     .err =
                         {
                             .kind = CHAR_CONST_ERR_EXPECTED_CHAR,
                             .num_expected = 1,
                             .expected_chars[0] = '\'',
-                            .got_char = spell[1],
+                            .got_char = Str_at(spell_it, 1),
                         },
                 };
             }
-            spell += 2;
+            spell_it = Str_advance(spell_it, 2);
             break;
         default:
             return (ParseCharConstRes){
@@ -457,17 +458,17 @@ ParseCharConstRes parse_char_const(const char* spell,
                         .kind = CHAR_CONST_ERR_EXPECTED_CHAR,
                         .num_expected = 4,
                         .expected_chars = {'\'', 'u', 'U', 'L'},
-                        .got_char = *spell,
+                        .got_char = Str_at(spell_it, 0),
                     },
             };
     }
 
     if (ValueKind_is_uint(kind)) {
         uintmax_t val;
-        switch (*spell) {
+        switch (Str_at(spell_it, 0)) {
             case '\\':
-                ++spell;
-                switch (*spell) {
+                spell_it = Str_incr(spell_it);
+                switch (Str_at(spell_it, 0)) {
                     case 'a':
                         val = '\a';
                         break;
@@ -493,7 +494,7 @@ ParseCharConstRes parse_char_const(const char* spell,
                     case '\'':
                     case '\"':
                     case '\?':
-                        val = *spell;
+                        val = Str_at(spell_it, 0);
                         break;
                     case '0': // TODO: remove hardcoded
                         val = '\0';
@@ -504,29 +505,29 @@ ParseCharConstRes parse_char_const(const char* spell,
                             .err =
                                 {
                                     .kind = CHAR_CONST_ERR_INVALID_ESCAPE,
-                                    .invalid_escape = *spell,
+                                    .invalid_escape = Str_at(spell_it, 0),
                                 },
                         };
                 }
                 break;
             default:
-                val = *spell;
+                val = Str_at(spell_it, 0);
                 break;
         }
-
-        ++spell;
-        if (*spell != '\'') {
+        
+        spell_it = Str_incr(spell_it);
+        if (Str_at(spell_it, 0) != '\'') {
             return (ParseCharConstRes){
                 .err =
                     {
                         .kind = CHAR_CONST_ERR_EXPECTED_CHAR,
                         .num_expected = 1,
                         .expected_chars[0] = '\'',
-                        .got_char = *spell,
+                        .got_char = Str_at(spell_it, 0),
                     },
             };
         }
-        assert(spell[1] == '\0');
+        assert(spell_it.len == 1);
 
         return (ParseCharConstRes){
             .err.kind = CHAR_CONST_ERR_NONE,
@@ -535,10 +536,10 @@ ParseCharConstRes parse_char_const(const char* spell,
     } else {
         assert(ValueKind_is_sint(kind));
         intmax_t val;
-        switch (*spell) {
+        switch (Str_at(spell_it, 0)) {
             case '\\':
-                ++spell;
-                switch (*spell) {
+                spell_it = Str_incr(spell_it);
+                switch (Str_at(spell_it, 0)) {
                     case 'a':
                         val = '\a';
                         break;
@@ -564,7 +565,7 @@ ParseCharConstRes parse_char_const(const char* spell,
                     case '\'':
                     case '\"':
                     case '\?':
-                        val = *spell;
+                        val = Str_at(spell_it, 0);
                         break;
                     case '0': // TODO: remove hardcoded
                         val = '\0';
@@ -575,29 +576,29 @@ ParseCharConstRes parse_char_const(const char* spell,
                             .err =
                                 {
                                     .kind = CHAR_CONST_ERR_INVALID_ESCAPE,
-                                    .invalid_escape = *spell,
+                                    .invalid_escape = Str_at(spell_it, 0),
                                 },
                         };
                 }
                 break;
             default:
-                val = *spell;
+                val = Str_at(spell_it, 0);
                 break;
         }
-
-        ++spell;
-        if (*spell != '\'') {
+        
+        spell_it = Str_incr(spell_it);
+        if (Str_at(spell_it, 0) != '\'') {
             return (ParseCharConstRes){
                 .err =
                     {
                         .kind = CHAR_CONST_ERR_EXPECTED_CHAR,
                         .num_expected = 1,
                         .expected_chars[0] = '\'',
-                        .got_char = *spell,
+                        .got_char = Str_at(spell_it, 0),
                     },
             };
         }
-        assert(spell[1] == '\0');
+        assert(spell_it.len == 1);
 
         return (ParseCharConstRes){
             .err.kind = CHAR_CONST_ERR_NONE,

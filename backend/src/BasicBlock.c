@@ -15,7 +15,7 @@ void BranchInst_free(BranchInst* b) {
 }
 
 void BasicBlock_free(BasicBlock* bb) {
-    Str_free(&bb->name);
+    StrBuf_free(&bb->name);
     for (size_t i = 0; i < bb->len; ++i) {
         IRInst_free(&bb->ops[i]);
     }

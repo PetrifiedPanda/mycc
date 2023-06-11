@@ -3,7 +3,7 @@
 #include "util/mem.h"
 
 void SSACFG_free(SSACFG* cfg) {
-    Str_free(&cfg->name);
+    StrBuf_free(&cfg->name);
 
     for (size_t i = 0; i < cfg->len; ++i) {
         SSABasicBlock_free(&cfg->blocks[i]);
@@ -13,7 +13,7 @@ void SSACFG_free(SSACFG* cfg) {
     mycc_free(cfg->regs);
 
     for (size_t i = 0; i < cfg->num_val_names; ++i) {
-        Str_free(&cfg->val_names[i]);
+        StrBuf_free(&cfg->val_names[i]);
     }
     mycc_free(cfg->val_names);
 }

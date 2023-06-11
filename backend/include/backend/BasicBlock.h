@@ -1,7 +1,7 @@
 #ifndef BASIC_BLOCK_H
 #define BASIC_BLOCK_H
 
-#include "util/Str.h"
+#include "util/StrBuf.h"
 
 #include "IRInst.h"
 
@@ -37,7 +37,7 @@ typedef struct {
 } BranchInst;
 
 typedef struct {
-    Str name;
+    StrBuf name;
     size_t len;
     IRInst* ops;
     BranchInst branch;

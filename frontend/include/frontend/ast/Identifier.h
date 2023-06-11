@@ -7,13 +7,13 @@
 
 typedef struct Identifier {
     AstNodeInfo info;
-    Str spelling;
+    StrBuf spelling;
 } Identifier;
 
 void Identifier_init(Identifier* res,
-                     const Str* spelling,
+                     const StrBuf* spelling,
                      SourceLoc loc);
-Identifier* Identifier_create(const Str* spelling,
+Identifier* Identifier_create(const StrBuf* spelling,
                                      SourceLoc loc);
 
 void Identifier_free_children(Identifier* i);

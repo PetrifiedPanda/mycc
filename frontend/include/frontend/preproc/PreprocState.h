@@ -15,8 +15,8 @@ typedef struct {
 } TokenArr;
 
 typedef struct {
-    Str line;
-    const char* next;
+    StrBuf line;
+    Str next;
     SourceLoc curr_loc;
     bool is_in_comment;
     char static_buf[200];
@@ -37,7 +37,7 @@ typedef struct {
     size_t opened_info_len, opened_info_cap;
     OpenedFileInfo* opened_info;
     size_t prefixes_len, prefixes_cap;
-    Str* prefixes;
+    StrBuf* prefixes;
 } FileManager;
 
 typedef struct {
@@ -55,22 +55,22 @@ typedef struct {
     FileInfo file_info;
 } PreprocState;
 
-PreprocState PreprocState_create(const char* start_file, PreprocErr* err);
+PreprocState PreprocState_create(Str start_file, PreprocErr* err);
 
-PreprocState PreprocState_create_string(const char* code, const char* filename, PreprocErr* err);
+PreprocState PreprocState_create_string(Str code, Str filename, PreprocErr* err);
 
 void PreprocState_read_line(PreprocState* state);
 bool PreprocState_over(const PreprocState* state);
 
 typedef struct PreprocMacro PreprocMacro;
 
-const PreprocMacro* find_preproc_macro(const PreprocState* state, const Str* spelling);
+const PreprocMacro* find_preproc_macro(const PreprocState* state, const StrBuf* spelling);
 
-bool PreprocState_open_file(PreprocState* s, const Str* filename_str, SourceLoc include_loc);
+bool PreprocState_open_file(PreprocState* s, const StrBuf* filename_str, SourceLoc include_loc);
 
-void register_preproc_macro(PreprocState* state, const Str* spelling, const PreprocMacro* macro);
+void register_preproc_macro(PreprocState* state, const StrBuf* spelling, const PreprocMacro* macro);
 
-void remove_preproc_macro(PreprocState* state, const Str* spelling);
+void remove_preproc_macro(PreprocState* state, const StrBuf* spelling);
 
 void push_preproc_cond(PreprocState* state, SourceLoc loc, bool was_true);
 

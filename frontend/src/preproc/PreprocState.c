@@ -33,32 +33,28 @@ static bool is_file_sep(char c) {
     }
 }
 
-static size_t get_last_file_sep(size_t len, const char* path) {
-    const char* it = path + len - 1;
-    const char* limit = path - 1;
-    while (it != limit && !is_file_sep(*it)) {
-        --it;
+static size_t get_last_file_sep(Str path) {
+    size_t i = path.len - 1;
+    while (i != (size_t)-1 && !is_file_sep(Str_at(path, i))) {
+        --i;
     }
-    if (it == limit) {
-        return (size_t)-1;
-    } else {
-        return it - path;
-    }
+
+    return i;
 }
 
-static Str get_path_prefix(size_t len, const char* path) {
-    size_t sep_idx = get_last_file_sep(len, path);
+static StrBuf get_path_prefix(Str path) {
+    size_t sep_idx = get_last_file_sep(path);
     if (sep_idx == (size_t)-1) {
-        return Str_create_empty();
+        return StrBuf_create_empty();
     } else {
-        return Str_create(sep_idx + 1, path);
+        return StrBuf_create(Str_substr(path, 0, sep_idx + 1));
     }
 }
 
-static FileData create_file_data(const char* start_file, PreprocErr* err) {
-    Str file_name = Str_create(strlen(start_file), start_file);
+static FileData create_file_data(Str start_file, PreprocErr* err) {
+    StrBuf file_name = StrBuf_create(start_file);
 
-    FILE* file = fopen(start_file, "r");
+    FILE* file = fopen(start_file.data, "r");
     if (!file) {
         PreprocErr_set_file_err(err,
                                 &file_name,
@@ -81,7 +77,7 @@ static FileData create_file_data(const char* start_file, PreprocErr* err) {
         .prefix_idx = 0,
         .loc = {0, {0, 0}},
     };
-    fm.prefixes[0] = get_path_prefix(strlen(start_file), start_file);
+    fm.prefixes[0] = get_path_prefix(start_file);
     FileInfo fi = FileInfo_create(&file_name);
 
     return (FileData){
@@ -91,7 +87,7 @@ static FileData create_file_data(const char* start_file, PreprocErr* err) {
     };
 }
 
-PreprocState PreprocState_create(const char* start_file, PreprocErr* err) {
+PreprocState PreprocState_create(Str start_file, PreprocErr* err) {
     FileData fd = create_file_data(start_file, err);
     if (!fd.is_valid) {
         PreprocState res = {0};
@@ -107,8 +103,8 @@ PreprocState PreprocState_create(const char* start_file, PreprocErr* err) {
             },
         .line_info =
             {
-                .line = Str_create_empty(),
-                .next = NULL,
+                .line = StrBuf_create_empty(),
+                .next = Str_null(),
                 .curr_loc =
                     {
                         .file_idx = 0,
@@ -128,10 +124,8 @@ PreprocState PreprocState_create(const char* start_file, PreprocErr* err) {
     };
 }
 
-PreprocState PreprocState_create_string(const char* code,
-                                        const char* filename,
-                                        PreprocErr* err) {
-    Str filename_str = Str_create(strlen(filename), filename);
+PreprocState PreprocState_create_string(Str code, Str filename, PreprocErr* err) {
+    StrBuf filename_str = StrBuf_create(filename);
     return (PreprocState){
         .res =
             {
@@ -141,7 +135,7 @@ PreprocState PreprocState_create_string(const char* code,
             },
         .line_info =
             {
-                .line = Str_create_empty(),
+                .line = StrBuf_create_empty(),
                 .next = code,
                 .curr_loc =
                     {
@@ -169,15 +163,16 @@ PreprocState PreprocState_create_string(const char* code,
     };
 }
 
-static bool is_escaped_newline(const char* line, size_t len) {
-    if (len == 0) {
+static bool is_escaped_newline(Str line) {
+    if (line.len == 0) {
         return false;
     }
-    const char* it = line + len - 1;
-    while (isspace(*it) && it != line) {
-        --it;
+
+    size_t i = line.len - 1;
+    while (i != 0 && isspace(Str_at(line, i))) {
+        --i;
     }
-    return *it == '\\';
+    return Str_at(line, i) == '\\';
 }
 
 static FILE* get_current_file(const PreprocState* state) {
@@ -200,7 +195,7 @@ static bool current_file_over(const PreprocState* state) {
     } else {
         file_is_over = true;
     }
-    return (state->line_info.next == NULL || *state->line_info.next == '\0')
+    return (state->line_info.next.data == NULL || *state->line_info.next.data == '\0')
            && file_is_over;
 }
 
@@ -212,7 +207,7 @@ static void preproc_state_close_file(PreprocState* s);
 
 void PreprocState_read_line(PreprocState* state) {
     assert(state);
-    Str_clear(&state->line_info.line);
+    StrBuf_clear(&state->line_info.line);
     size_t len = 0;
     enum {
         STATIC_BUF_LEN = ARR_LEN(state->line_info.static_buf),
@@ -221,24 +216,24 @@ void PreprocState_read_line(PreprocState* state) {
         preproc_state_close_file(state);
     }
     char* static_buf = state->line_info.static_buf;
-    Str* line = &state->line_info.line;
+    StrBuf* line = &state->line_info.line;
     FILE* file = get_current_file(state);
     state->line_info.next = file_read_line(file,
                                            line,
                                            &len,
                                            static_buf,
                                            STATIC_BUF_LEN);
-    while (is_escaped_newline(state->line_info.next, len)) {
-        if (state->line_info.next == Str_get_data(line)) {
-            Str_push_back(line, '\n');
+    while (is_escaped_newline(state->line_info.next)) {
+        if (state->line_info.next.data == StrBuf_data(line)) {
+            StrBuf_push_back(line, '\n');
         } else if (len < STATIC_BUF_LEN - 1) {
             static_buf[len] = '\n';
             static_buf[len + 1] = '\0';
         } else {
-            assert(Str_len(line) == 0);
-            Str_reserve(line, len + 1);
-            Str_append_c_str(line, len, static_buf);
-            Str_push_back(line, '\n');
+            assert(StrBuf_len(line) == 0);
+            StrBuf_reserve(line, len + 1);
+            StrBuf_append(line, (Str){len, static_buf});
+            StrBuf_push_back(line, '\n');
         }
         ++len;
         state->line_info.next = file_read_line(file,
@@ -257,7 +252,7 @@ bool PreprocState_over(const PreprocState* state) {
 
 typedef struct {
     FILE* file;
-    Str path;
+    StrBuf path;
     size_t prefix_idx;
 } FileOpenRes;
 
@@ -265,7 +260,7 @@ static size_t get_current_prefix_idx(const FileManager* fm) {
     return fm->opened_info[fm->opened_info_len - 1].prefix_idx;
 }
 
-static void add_prefix(FileManager* fm, const Str* prefix) {
+static void add_prefix(FileManager* fm, const StrBuf* prefix) {
     if (fm->prefixes_len == fm->prefixes_cap) {
         mycc_grow_alloc((void**)&fm->prefixes,
                         &fm->prefixes_cap,
@@ -278,22 +273,17 @@ static void add_prefix(FileManager* fm, const Str* prefix) {
 
 // TODO: maybe use filename instead of creating a new string
 static FileOpenRes resolve_path_and_open(PreprocState* s,
-                                         const Str* filename,
+                                         const StrBuf* filename,
                                          SourceLoc include_loc) {
-    const size_t filename_len = Str_len(filename);
-    const char* filename_data = Str_get_data(filename);
-    const size_t sep_idx = get_last_file_sep(filename_len, filename_data);
+    const Str filename_str = StrBuf_as_str(filename);
+    const size_t sep_idx = get_last_file_sep(filename_str);
 
     const size_t current_prefix_idx = get_current_prefix_idx(&s->file_manager);
-    const Str* prefix = &s->file_manager.prefixes[current_prefix_idx];
-
-    const size_t prefix_len = Str_len(prefix);
-    const char* prefix_data = Str_get_data(prefix);
-    Str full_path = Str_concat(prefix_len,
-                               prefix_data,
-                               filename_len,
-                               filename_data);
-    FILE* file = fopen(Str_get_data(&full_path), "r");
+    const StrBuf* prefix = &s->file_manager.prefixes[current_prefix_idx];
+    
+    const Str prefix_str = StrBuf_as_str(prefix);
+    StrBuf full_path = StrBuf_concat(prefix_str, filename_str);
+    FILE* file = fopen(StrBuf_data(&full_path), "r");
     if (!file) {
         // TODO: check include dirs (and system dirs)
         PreprocErr_set_file_err(s->err, filename, include_loc);
@@ -302,16 +292,13 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
 
     size_t prefix_idx;
     if (sep_idx != (size_t)-1) {
-        Str new_prefix = Str_concat(prefix_len,
-                                    prefix_data,
-                                    sep_idx + 1,
-                                    filename_data);
+        StrBuf new_prefix = StrBuf_concat(prefix_str, Str_substr(filename_str, 0, sep_idx + 1));
         add_prefix(&s->file_manager, &new_prefix);
         prefix_idx = s->file_manager.prefixes_len - 1;
     } else {
         prefix_idx = current_prefix_idx;
     }
-    Str_free(filename);
+    StrBuf_free(filename);
     return (FileOpenRes){
         file,
         full_path,
@@ -320,7 +307,7 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
 }
 
 bool PreprocState_open_file(PreprocState* s,
-                            const Str* filename,
+                            const StrBuf* filename,
                             SourceLoc include_loc) {
     FileManager* fm = &s->file_manager;
     if (fm->current_file_idx == FOPEN_MAX - 1) {
@@ -376,7 +363,7 @@ static void preproc_state_close_file(PreprocState* s) {
     --fm->opened_info_len;
     const OpenedFileInfo* info = &fm->opened_info[fm->opened_info_len - 1];
     if (fm->current_file_idx == 0) {
-        const char* filename = Str_get_data(
+        const char* filename = StrBuf_data(
             &s->file_info.paths[info->loc.file_idx]);
         FILE* file = fopen(filename, "r");
         int res = fseek(file, info->pos, SEEK_SET);
@@ -387,17 +374,17 @@ static void preproc_state_close_file(PreprocState* s) {
     } else {
         --fm->current_file_idx;
     }
-    s->line_info.next = NULL;
+    s->line_info.next = Str_null();
     s->line_info.curr_loc = info->loc;
 }
 
 const PreprocMacro* find_preproc_macro(const PreprocState* state,
-                                       const Str* spelling) {
+                                       const StrBuf* spelling) {
     return StringMap_get(&state->_macro_map, spelling);
 }
 
 void register_preproc_macro(PreprocState* state,
-                            const Str* spelling,
+                            const StrBuf* spelling,
                             const PreprocMacro* macro) {
     bool overwritten = StringMap_insert_overwrite(&state->_macro_map,
                                                   spelling,
@@ -405,7 +392,7 @@ void register_preproc_macro(PreprocState* state,
     (void)overwritten; // TODO: warning if redefined
 }
 
-void remove_preproc_macro(PreprocState* state, const Str* spelling) {
+void remove_preproc_macro(PreprocState* state, const StrBuf* spelling) {
     StringMap_remove(&state->_macro_map, spelling);
 }
 
@@ -435,13 +422,13 @@ PreprocCond* peek_preproc_cond(PreprocState* state) {
 
 void TokenArr_free(TokenArr* arr) {
     for (size_t i = 0; i < arr->len; ++i) {
-        Str_free(&arr->tokens[i].spelling);
+        StrBuf_free(&arr->tokens[i].spelling);
     }
     mycc_free(arr->tokens);
 }
 
 static void LineInfo_free(LineInfo* info) {
-    Str_free(&info->line);
+    StrBuf_free(&info->line);
 }
 
 static void FileManager_free(FileManager* fm) {
@@ -453,7 +440,7 @@ static void FileManager_free(FileManager* fm) {
         fclose(fm->files[i]);
     }
     for (size_t i = 0; i < fm->prefixes_len; ++i) {
-        Str_free(&fm->prefixes[i]);
+        StrBuf_free(&fm->prefixes[i]);
     }
     mycc_free(fm->prefixes);
 }

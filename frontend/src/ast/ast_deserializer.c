@@ -90,20 +90,20 @@ static void* alloc_or_null(size_t num_bytes) {
     }
 }
 
-static Str deserialize_str(AstDeserializer* r) {
+static StrBuf deserialize_str(AstDeserializer* r) {
     uint64_t len;
     if (!deserialize_uint(r, &len)) {
-        return Str_create_null();
+        return StrBuf_null();
     }
 
-    Str res = Str_create_empty_with_cap(len);
+    StrBuf res = StrBuf_create_empty_with_cap(len);
     for (size_t i = 0; i < len; ++i) {
         int c = fgetc(r->file);
         if (c == EOF) {
-            Str_free(&res);
-            return Str_create_null();
+            StrBuf_free(&res);
+            return StrBuf_null();
         }
-        Str_push_back(&res, (char)c);
+        StrBuf_push_back(&res, (char)c);
     }
 
     return res;
@@ -124,9 +124,9 @@ static FileInfo deserialize_file_info(AstDeserializer* r) {
     };
     for (size_t i = 0; i < len; ++i) {
         res.paths[i] = deserialize_str(r);
-        if (!Str_is_valid(&res.paths[i])) {
+        if (!StrBuf_valid(&res.paths[i])) {
             for (size_t j = 0; j < i; ++j) {
-                Str_free(&res.paths[j]);
+                StrBuf_free(&res.paths[j]);
             }
             mycc_free(res.paths);
             return (FileInfo){
@@ -193,7 +193,7 @@ static bool deserialize_identifier_inplace(AstDeserializer* r, Identifier* res) 
     }
 
     res->spelling = deserialize_str(r);
-    if (!Str_is_valid(&res->spelling)) {
+    if (!StrBuf_valid(&res->spelling)) {
         return false;
     }
     return true;
@@ -269,7 +269,7 @@ static bool deserialize_constant(AstDeserializer* r, Constant* res) {
     switch (res->kind) {
         case CONSTANT_ENUM:
             res->spelling = deserialize_str(r);
-            return Str_is_valid(&res->spelling);
+            return StrBuf_valid(&res->spelling);
         case CONSTANT_VAL:
             return deserialize_value(r, &res->val);
     }
@@ -285,7 +285,7 @@ static bool deserialize_str_lit(AstDeserializer* r, StrLit* res) {
     res->kind = kind;
     assert((uint64_t)res->kind == kind);
     res->contents = deserialize_str(r);
-    return Str_is_valid(&res->contents);
+    return StrBuf_valid(&res->contents);
 }
 
 static bool deserialize_string_literal_node(AstDeserializer* r, StringLiteralNode* res) {
