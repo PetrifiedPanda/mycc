@@ -86,9 +86,9 @@ static bool is_cond_directive(Str line) {
         ++i;
     }
     
-    static const Str else_dir = STR_LIT("else");
-    static const Str elif_dir = STR_LIT("elif");
-    static const Str endif_dir = STR_LIT("endif");
+    const Str else_dir = STR_LIT("else");
+    const Str elif_dir = STR_LIT("elif");
+    const Str endif_dir = STR_LIT("endif");
 
     Str rest = Str_advance(line, i);
     if (rest.len < else_dir.len) {
