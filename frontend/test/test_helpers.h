@@ -10,6 +10,8 @@
 
 #include "util/macro_util.h"
 
+#include "testing/testing.h"
+
 #define ASSERT_TOKEN_KIND(got, expected)                                       \
     do {                                                                       \
         if ((got) != (expected)) {                                             \
