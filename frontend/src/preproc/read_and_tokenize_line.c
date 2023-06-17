@@ -93,9 +93,9 @@ static bool is_cond_directive(Str line) {
     Str rest = Str_advance(line, i);
     if (rest.len < else_dir.len) {
         return false;
-    } else if (Str_eq(Str_substr(rest, 0, else_dir.len), else_dir) ||
-               Str_eq(Str_substr(rest, 0, elif_dir.len), elif_dir) ||
-               Str_eq(Str_substr(rest, 0, endif_dir.len), endif_dir)) {
+    } else if (Str_starts_with(rest, else_dir) ||
+               Str_starts_with(rest, elif_dir) ||
+               Str_starts_with(rest, endif_dir)) {
         return true;
     } else {
         return false;
