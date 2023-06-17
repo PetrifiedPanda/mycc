@@ -1,6 +1,7 @@
 #include "frontend/ast/ast_dumper.h"
 
 #include <stdarg.h>
+#include <inttypes.h>
 #include <setjmp.h>
 #include <assert.h>
 
@@ -218,9 +219,9 @@ static void dump_value(AstDumper* d, const Value* val) {
 
     dumper_println(d, "type: %s", ValueKind_str(val->kind).data);
     if (ValueKind_is_sint(val->kind)) {
-        dumper_println(d, "sint_val: %jd", val->sint_val);
+        dumper_println(d, "sint_val: %" PRId64, val->sint_val);
     } else if (ValueKind_is_uint(val->kind)) {
-        dumper_println(d, "uint_val: %ju", val->uint_val);
+        dumper_println(d, "uint_val: %" PRIu64, val->uint_val);
     } else {
         dumper_println(d, "float_val: %g", val->float_val);
     }
