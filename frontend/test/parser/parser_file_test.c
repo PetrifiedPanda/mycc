@@ -182,7 +182,7 @@ static void compare_with_ex_file(const TranslationUnit* got,
                                  Str ex_filename) {
     FILE* ex_file = fopen(ex_filename.data, "rb");
     ASSERT(ex_file);
-    DeserializeAstRes expected = deserialize_ast(ex_file);
+    DeserializeAstRes expected = deserialize_ast((File){ex_file});
     ASSERT(expected.is_valid);
     ASSERT(fclose(ex_file) == 0);
 
@@ -267,13 +267,14 @@ TEST(parser_testfile) {
 
     Str tmp_filename = STR_LIT("tmp.ast");
     FILE* tmp_file = fopen(tmp_filename.data, "w");
-
-    dump_ast(&tl, &res.file_info, tmp_file);
+    ASSERT_NOT_NULL(tmp_file);
+    dump_ast(&tl, &res.file_info, (File){tmp_file});
 
     ASSERT_INT(fclose(tmp_file), 0);
 
-    test_compare_files(tmp_filename,
-                       STR_LIT("../frontend/test/files/parser_testfile.c.ast"));
+    test_compare_files(
+        Str_c_str(tmp_filename),
+        Str_c_str(STR_LIT("../frontend/test/files/parser_testfile.c.ast")));
 
     const StorageClass sc = {false, false, false, false, false, false};
     const StorageClass sc_static = {.is_static = true};

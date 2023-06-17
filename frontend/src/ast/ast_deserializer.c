@@ -6,14 +6,14 @@
 #include "frontend/ast/ast.h"
 
 typedef struct {
-    FILE* file;
+    File file;
 } AstDeserializer;
 
 static FileInfo deserialize_file_info(AstDeserializer* r);
 
 static TranslationUnit deserialize_translation_unit(AstDeserializer* r);
 
-DeserializeAstRes deserialize_ast(FILE* f) {
+DeserializeAstRes deserialize_ast(File f) {
     AstDeserializer r = {
         .file = f,
     };
@@ -63,7 +63,7 @@ static bool deserializer_read(AstDeserializer* r,
                               void* res,
                               size_t size,
                               size_t count) {
-    return fread(res, size, count, r->file) == count;
+    return File_read(res, size, count, r->file) == count;
 }
 
 static bool deserialize_bool(AstDeserializer* r, bool* res) {
@@ -98,12 +98,12 @@ static StrBuf deserialize_str(AstDeserializer* r) {
 
     StrBuf res = StrBuf_create_empty_with_cap(len);
     for (size_t i = 0; i < len; ++i) {
-        int c = fgetc(r->file);
-        if (c == EOF) {
+        FileGetcRes getc_res = File_getc(r->file);
+        if (!getc_res.valid) {
             StrBuf_free(&res);
             return StrBuf_null();
         }
-        StrBuf_push_back(&res, (char)c);
+        StrBuf_push_back(&res, getc_res.res);
     }
 
     return res;

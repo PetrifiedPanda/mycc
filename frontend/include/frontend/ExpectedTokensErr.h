@@ -2,7 +2,8 @@
 #define EXPECTED_TOKENS_ERR
 
 #include <stddef.h>
-#include <stdio.h>
+
+#include "util/File.h"
 
 #include "Token.h"
 #include "FileInfo.h"
@@ -18,7 +19,7 @@ ExpectedTokensErr ExpectedTokensErr_create_single_token(TokenKind got, TokenKind
 
 ExpectedTokensErr ExpectedTokensErr_create(TokenKind got, const TokenKind* expected, size_t num_expected);
 
-void ExpectedTokensErr_print(FILE* f, const ExpectedTokensErr* err);
+void ExpectedTokensErr_print(File f, const ExpectedTokensErr* err);
 
 #endif
 

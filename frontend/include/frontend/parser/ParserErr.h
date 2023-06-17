@@ -1,7 +1,7 @@
 #ifndef PARSER_ERR_H
 #define PARSER_ERR_H
 
-#include <stdio.h>
+#include "util/File.h"
 
 #include "frontend/ErrBase.h"
 #include "frontend/ExpectedTokensErr.h"
@@ -50,7 +50,7 @@ ParserErr ParserErr_create(void);
 
 void ParserErr_set(ParserErr* err, ParserErrKind kind, SourceLoc loc);
 
-void ParserErr_print(FILE* out, const FileInfo* file_info, const ParserErr* err);
+void ParserErr_print(File out, const FileInfo* file_info, const ParserErr* err);
 
 void ParserErr_free(ParserErr* err);
 

@@ -8,7 +8,6 @@
 
 #include "util/macro_util.h"
 #include "util/mem.h"
-#include "util/file.h"
 
 #include "frontend/preproc/PreprocMacro.h"
 #include "frontend/preproc/PreprocState.h"

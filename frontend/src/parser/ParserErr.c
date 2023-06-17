@@ -1,6 +1,5 @@
 #include "frontend/parser/ParserErr.h"
 
-#include <stdio.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -21,7 +20,9 @@ void ParserErr_set(ParserErr* err, ParserErrKind kind, SourceLoc loc) {
     err->base = ErrBase_create(loc);
 }
 
-void ParserErr_print(FILE* out, const FileInfo* file_info, const ParserErr* err) {
+void ParserErr_print(File out,
+                     const FileInfo* file_info,
+                     const ParserErr* err) {
     assert(err->kind != PARSER_ERR_NONE);
 
     ErrBase_print(out, file_info, &err->base);
@@ -34,68 +35,70 @@ void ParserErr_print(FILE* out, const FileInfo* file_info, const ParserErr* err)
         }
         case PARSER_ERR_REDEFINED_SYMBOL: {
             assert(err->prev_def_file < file_info->len);
-            const char* path = StrBuf_data(&file_info->paths[err->prev_def_file]);
-            const char* type_str = err->was_typedef_name ? "typedef name"
-                                                         : "enum constant";
-            fprintf(out,
-                    "Redefined symbol %s that was already defined as %s in "
-                    "%s(%zu, %zu)",
-                    StrBuf_data(&err->redefined_symbol),
-                    type_str,
-                    path,
-                    err->prev_def_loc.line,
-                    err->prev_def_loc.index);
+            Str path = StrBuf_as_str(&file_info->paths[err->prev_def_file]);
+            Str type_str = err->was_typedef_name ? STR_LIT("typedef name")
+                                                 : STR_LIT("enum constant");
+            File_printf(
+                out,
+                "Redefined symbol {Str} that was already defined as {Str} in "
+                "{Str}({size_t}, {size_t})",
+                StrBuf_as_str(&err->redefined_symbol),
+                type_str,
+                path,
+                err->prev_def_loc.line,
+                err->prev_def_loc.index);
             break;
         }
         case PARSER_ERR_ARR_DOUBLE_STATIC:
-            fputs("Expected only one use of static", out);
+            File_put_str("Expected only one use of static", out);
             break;
         case PARSER_ERR_ARR_STATIC_NO_LEN:
-            fputs("Expected array length after use of static", out);
+            File_put_str("Expected array length after use of static", out);
             break;
         case PARSER_ERR_ARR_STATIC_ASTERISK:
-            fputs("Asterisk cannot be used with static", out);
+            File_put_str("Asterisk cannot be used with static", out);
             break;
         case PARSER_ERR_TYPEDEF_INIT:
-            fputs("Initializer not allowed in typedef", out);
+            File_put_str("Initializer not allowed in typedef", out);
             break;
         case PARSER_ERR_TYPEDEF_FUNC_DEF:
-            fputs("Function definition declared typedef", out);
+            File_put_str("Function definition declared typedef", out);
             break;
         case PARSER_ERR_TYPEDEF_PARAM_DECL:
-            fputs("typedef is not allowed in function declarator", out);
+            File_put_str("typedef is not allowed in function declarator", out);
             break;
         case PARSER_ERR_TYPEDEF_STRUCT:
-            fputs("typedef is not allowed in struct declaration", out);
+            File_put_str("typedef is not allowed in struct declaration", out);
             break;
         case PARSER_ERR_EMPTY_STRUCT_DECLARATOR:
-            fputs("Expected a declarator or a bit field specifier", out);
+            File_put_str("Expected a declarator or a bit field specifier", out);
             break;
         case PARSER_ERR_INCOMPATIBLE_TYPE_SPECS:
-            fprintf(out,
-                    "Cannot combine %s with previous %s type specifier",
-                    TokenKind_str(err->type_spec).data,
-                    TokenKind_str(err->prev_type_spec).data);
+            File_printf(
+                out,
+                "Cannot combine {Str} with previous {Str} type specifier",
+                TokenKind_str(err->type_spec),
+                TokenKind_str(err->prev_type_spec));
             break;
         case PARSER_ERR_TOO_MUCH_LONG:
-            fputs("More than 2 long specifiers are not allowed", out);
+            File_put_str("More than 2 long specifiers are not allowed", out);
             break;
         case PARSER_ERR_DISALLOWED_TYPE_QUALS:
-            fprintf(out,
-                    "Cannot add qualifiers to type %s",
-                    TokenKind_str(err->incompatible_type).data);
+            File_printf(out,
+                        "Cannot add qualifiers to type {Str}",
+                        TokenKind_str(err->incompatible_type));
             break;
         case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
-            fprintf(
-                out,
-                "Expected a typedef name but got identifier with spelling %s",
-                StrBuf_data(&err->non_typedef_spelling));
+            File_printf(out,
+                        "Expected a typedef name but got identifier with "
+                        "spelling {Str}",
+                        StrBuf_as_str(&err->non_typedef_spelling));
             break;
         case PARSER_ERR_EMPTY_DIRECT_ABS_DECL:
-            fputs("Empty abstract declarator", out);
+            File_put_str("Empty abstract declarator", out);
             break;
     }
-    fputc('\n', out);
+    File_putc('\n', out);
 }
 
 void ParserErr_free(ParserErr* err) {

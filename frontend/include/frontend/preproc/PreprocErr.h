@@ -1,8 +1,7 @@
 #ifndef PREPROC_ERR_H
 #define PREPROC_ERR_H
 
-#include <stdio.h>
-
+#include "util/File.h"
 #include "util/StrBuf.h"
 
 #include "frontend/ErrBase.h"
@@ -98,7 +97,7 @@ PreprocErr PreprocErr_create(void);
 
 void PreprocErr_set(PreprocErr* err, PreprocErrKind kind, SourceLoc loc);
 
-void PreprocErr_print(FILE* out, const FileInfo* file_info, PreprocErr* err);
+void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err);
 
 void PreprocErr_set_file_err(PreprocErr* err, const StrBuf* fail_filename, SourceLoc include_loc);
 

@@ -21,16 +21,16 @@ ExpectedTokensErr ExpectedTokensErr_create(TokenKind got, const TokenKind* expec
     return res;
 }
 
-void ExpectedTokensErr_print(FILE* out, const ExpectedTokensErr* err) {
-    fprintf(out, "Expected token of kind %s", TokenKind_str(err->expected[0]).data);
+void ExpectedTokensErr_print(File out, const ExpectedTokensErr* err) {
+    File_printf(out, "Expected token of kind {Str}", TokenKind_str(err->expected[0]));
     for (size_t i = 1; i < err->num_expected; ++i) {
-        printf(", %s", TokenKind_str(err->expected[i]).data);
+        File_printf(out, ", {Str}", TokenKind_str(err->expected[i]));
     }
 
     if (err->got == TOKEN_INVALID) {
-        fprintf(out, " but got to end of file");
+        File_put_str_val(STR_LIT(" but got to end of file"), out);
     } else {
-        fprintf(out, " but got token of kind %s", TokenKind_str(err->got).data);
+        File_printf(out, " but got token of kind {Str}", TokenKind_str(err->got));
     }
 }
 

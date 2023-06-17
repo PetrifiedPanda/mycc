@@ -1,6 +1,8 @@
 #ifndef AST_DESERIALIZER_H
 #define AST_DESERIALIZER_H
 
+#include "util/File.h"
+
 #include "frontend/FileInfo.h"
 
 #include "TranslationUnit.h"
@@ -11,7 +13,7 @@ typedef struct {
     TranslationUnit tl;
 } DeserializeAstRes;
 
-DeserializeAstRes deserialize_ast(FILE* f);
+DeserializeAstRes deserialize_ast(File f);
 
 #endif
 

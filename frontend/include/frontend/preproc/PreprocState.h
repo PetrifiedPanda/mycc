@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 #include "util/StringMap.h"
+#include "util/File.h"
 
 #include "frontend/FileInfo.h"
 
@@ -31,7 +32,7 @@ typedef struct {
 typedef struct OpenedFileInfo OpenedFileInfo;
 
 typedef struct {
-    FILE* files[FOPEN_MAX];
+    File files[FOPEN_MAX];
     size_t opened_info_indices[FOPEN_MAX];
     size_t current_file_idx;
     size_t opened_info_len, opened_info_cap;

@@ -52,7 +52,9 @@ char Str_at(Str s, size_t i) {
 }
 
 bool Str_starts_with(Str s1, Str s2) {
-    assert(s1.len >= s2.len);
+    if (s1.len < s2.len) {
+        return false;
+    }
     return Str_eq(Str_substr(s1, 0, s2.len), s2);
 }
 

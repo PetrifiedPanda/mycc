@@ -7,14 +7,14 @@
 
 typedef struct {
     jmp_buf err_buf;
-    FILE* file;
+    File file;
 } AstSerializer;
 
 static void serializer_write(AstSerializer* d,
                              const void* buffer,
                              size_t size,
                              size_t count) {
-    if (fwrite(buffer, size, count, d->file) < count) {
+    if (File_write(buffer, size, count, d->file) < count) {
         longjmp(d->err_buf, 0);
     }
 }
@@ -24,7 +24,7 @@ static void serialize_file_info(AstSerializer* d,
 
 static void serialize_translation_unit(AstSerializer* d, const TranslationUnit* tl);
 
-bool serialize_ast(const TranslationUnit* tl, const FileInfo* file_info, FILE* f) {
+bool serialize_ast(const TranslationUnit* tl, const FileInfo* file_info, File f) {
     AstSerializer d = {
         .file = f,
     };

@@ -11,7 +11,7 @@
 
 typedef struct {
     jmp_buf err_buf;
-    FILE* file;
+    File file;
     size_t num_indents;
     const FileInfo* file_info;
 } AstDumper;
@@ -26,60 +26,62 @@ static void remove_indent(AstDumper* d) {
 
 static void print_indents(AstDumper* d) {
     for (size_t i = 0; i < d->num_indents; ++i) {
-        if (fputs("  ", d->file) < 0) {
+        if (!File_put_str_val(STR_LIT("  "), d->file)) {
             longjmp(d->err_buf, 0);
         }
     }
 }
 
-static PRINTF_FORMAT(2, 3) void dumper_println(AstDumper* d,
-                                               const char* format,
-                                               ...) {
+static void dumper_println_impl(AstDumper* d, Str format, ...) {
     print_indents(d);
 
     va_list args;
     va_start(args, format);
-    int res = vfprintf(d->file, format, args);
+    File_printf_varargs_impl(d->file, format, args);
     va_end(args);
 
-    if (res < 0) {
-        longjmp(d->err_buf, 0);
-    }
-
-    if (fputc('\n', d->file) == EOF) {
+    if (!File_putc('\n', d->file)) {
         longjmp(d->err_buf, 0);
     }
 }
 
-static void dumper_print_str(AstDumper* d, Str str) {
+#define dumper_println(d, format, ...)                                         \
+    dumper_println_impl(d, STR_LIT(format), __VA_ARGS__)
+
+static void dumper_print_str_val(AstDumper* d, Str str) {
     print_indents(d);
 
-    if (fwrite(str.data, sizeof *str.data, str.len, d->file) < str.len) {
+    if (!File_put_str_val(str, d->file)) {
         longjmp(d->err_buf, 0);
     }
 
-    if (fputc('\n', d->file) == EOF) {
+    if (!File_putc('\n', d->file)) {
         longjmp(d->err_buf, 0);
     }
 }
 
-static void dumper_print_node_head(AstDumper* d,
-                                   const char* name,
-                                   const AstNodeInfo* node) {
+#define dumper_print_str(d, str) dumper_print_str_val(d, STR_LIT(str))
+
+static void dumper_print_node_head_impl(AstDumper* d,
+                                        Str name,
+                                        const AstNodeInfo* node) {
     const SourceLoc* loc = &node->loc;
     assert(loc->file_idx < d->file_info->len);
-    const char* file_path = StrBuf_data(&d->file_info->paths[loc->file_idx]);
+    Str file_path = StrBuf_as_str(&d->file_info->paths[loc->file_idx]);
     dumper_println(d,
-                   "%s: %s:%zu,%zu",
+                   "{Str}: {Str}:{size_t},{size_t}",
                    name,
                    file_path,
                    loc->file_loc.line,
                    loc->file_loc.index);
 }
 
+#define dumper_print_node_head(d, name, node)                                  \
+    dumper_print_node_head_impl(d, STR_LIT(name), node)
+
 static void dump_translation_unit(AstDumper* d, const TranslationUnit* tl);
 
-bool dump_ast(const TranslationUnit* tl, const FileInfo* file_info, FILE* f) {
+bool dump_ast(const TranslationUnit* tl, const FileInfo* file_info, File f) {
     AstDumper d = {
         .file = f,
         .file_info = file_info,
@@ -95,19 +97,15 @@ bool dump_ast(const TranslationUnit* tl, const FileInfo* file_info, FILE* f) {
     return true;
 }
 
-static const char* bool_to_str(bool b) {
-    return b ? "true" : "false";
-}
-
 static void dump_func_specs(AstDumper* d, const FuncSpecs* s) {
     assert(s);
 
-    dumper_println(d, "func_specs:");
+    dumper_print_str(d, "func_specs:");
 
     add_indent(d);
 
-    dumper_println(d, "is_inline: %s", bool_to_str(s->is_inline));
-    dumper_println(d, "is_noreturn: %s", bool_to_str(s->is_noreturn));
+    dumper_println(d, "is_inline: {bool}", s->is_inline);
+    dumper_println(d, "is_noreturn: {bool}", s->is_noreturn);
 
     remove_indent(d);
 }
@@ -115,16 +113,16 @@ static void dump_func_specs(AstDumper* d, const FuncSpecs* s) {
 static void dump_storage_class(AstDumper* d, const StorageClass* c) {
     assert(c);
 
-    dumper_println(d, "storage_class:");
+    dumper_print_str(d, "storage_class:");
 
     add_indent(d);
 
-    dumper_println(d, "is_typedef: %s", bool_to_str(c->is_typedef));
-    dumper_println(d, "is_extern: %s", bool_to_str(c->is_extern));
-    dumper_println(d, "is_static: %s", bool_to_str(c->is_static));
-    dumper_println(d, "is_thread_local: %s", bool_to_str(c->is_thread_local));
-    dumper_println(d, "is_auto: %s", bool_to_str(c->is_auto));
-    dumper_println(d, "is_register: %s", bool_to_str(c->is_register));
+    dumper_println(d, "is_typedef: {bool}", c->is_typedef);
+    dumper_println(d, "is_extern: {bool}", c->is_extern);
+    dumper_println(d, "is_static: {bool}", c->is_static);
+    dumper_println(d, "is_thread_local: {bool}", c->is_thread_local);
+    dumper_println(d, "is_auto: {bool}", c->is_auto);
+    dumper_println(d, "is_register: {bool}", c->is_register);
 
     remove_indent(d);
 }
@@ -132,14 +130,14 @@ static void dump_storage_class(AstDumper* d, const StorageClass* c) {
 static void dump_type_quals(AstDumper* d, const TypeQuals* q) {
     assert(q);
 
-    dumper_println(d, "type_quals:");
+    dumper_print_str(d, "type_quals:");
 
     add_indent(d);
 
-    dumper_println(d, "is_const: %s", bool_to_str(q->is_const));
-    dumper_println(d, "is_restrict: %s", bool_to_str(q->is_restrict));
-    dumper_println(d, "is_volatile: %s", bool_to_str(q->is_volatile));
-    dumper_println(d, "is_atomic: %s", bool_to_str(q->is_atomic));
+    dumper_println(d, "is_const: {bool}", q->is_const);
+    dumper_println(d, "is_restrict: {bool}", q->is_restrict);
+    dumper_println(d, "is_volatile: {bool}", q->is_volatile);
+    dumper_println(d, "is_atomic: {bool}", q->is_atomic);
 
     remove_indent(d);
 }
@@ -177,7 +175,7 @@ static void dump_declaration_specs(AstDumper* d, const DeclarationSpecs* s) {
 
     dump_type_quals(d, &s->type_quals);
 
-    dumper_println(d, "num_align_specs: %zu", s->num_align_specs);
+    dumper_println(d, "num_align_specs: {size_t}", s->num_align_specs);
     for (size_t i = 0; i < s->num_align_specs; ++i) {
         dump_align_spec(d, &s->align_specs[i]);
     }
@@ -194,7 +192,7 @@ static void dump_pointer(AstDumper* d, const Pointer* p) {
 
     add_indent(d);
 
-    dumper_println(d, "num_indirs: %zu", p->num_indirs);
+    dumper_println(d, "num_indirs: {size_t}", p->num_indirs);
     for (size_t i = 0; i < p->num_indirs; ++i) {
         dump_type_quals(d, &p->quals_after_ptr[i]);
     }
@@ -208,22 +206,22 @@ static void dump_identifier(AstDumper* d, Identifier* i) {
     dumper_print_node_head(d, "identifier", &i->info);
 
     add_indent(d);
-    dumper_println(d, "spelling: %s", StrBuf_data(&i->spelling));
+    dumper_println(d, "spelling: {Str}", StrBuf_as_str(&i->spelling));
     remove_indent(d);
 }
 
 static void dump_value(AstDumper* d, const Value* val) {
-    dumper_println(d, "value:");
+    dumper_print_str(d, "value:");
 
     add_indent(d);
 
-    dumper_println(d, "type: %s", ValueKind_str(val->kind).data);
+    dumper_println(d, "type: {Str}", ValueKind_str(val->kind));
     if (ValueKind_is_sint(val->kind)) {
-        dumper_println(d, "sint_val: %" PRId64, val->sint_val);
+        dumper_println(d, "sint_val: {i64}", val->sint_val);
     } else if (ValueKind_is_uint(val->kind)) {
-        dumper_println(d, "uint_val: %" PRIu64, val->uint_val);
+        dumper_println(d, "uint_val: {u64}", val->uint_val);
     } else {
-        dumper_println(d, "float_val: %g", val->float_val);
+        dumper_println(d, "float_val: {floatg}", val->float_val);
     }
 
     remove_indent(d);
@@ -238,7 +236,7 @@ static void dump_constant(AstDumper* d, const Constant* c) {
 
     switch (c->kind) {
         case CONSTANT_ENUM:
-            dumper_println(d, "enum: %s", StrBuf_data(&c->spelling));
+            dumper_println(d, "enum: {Str}", StrBuf_as_str(&c->spelling));
             break;
         case CONSTANT_VAL:
             dump_value(d, &c->val);
@@ -250,11 +248,11 @@ static void dump_constant(AstDumper* d, const Constant* c) {
 
 static void dump_str_lit(AstDumper* d, const StrLit* l) {
     assert(l);
-    dumper_print_str(d, STR_LIT("str_lit:"));
+    dumper_print_str(d, "str_lit:");
 
     add_indent(d);
-    dumper_println(d, "kind: %s", StrLitKind_str(l->kind).data);
-    dumper_println(d, "contents: %s", StrBuf_data(&l->contents));
+    dumper_println(d, "kind: {Str}", StrLitKind_str(l->kind));
+    dumper_println(d, "contents: {Str}", StrBuf_as_str(&l->contents));
     remove_indent(d);
 }
 
@@ -274,9 +272,9 @@ static void dump_string_constant(AstDumper* d, const StringConstant* c) {
 
     if (c->is_func) {
         dumper_print_node_head(d, "string_constant", &c->info);
-        dumper_print_str(d, TokenKind_get_spelling(TOKEN_FUNC_NAME));
+        dumper_print_str_val(d, TokenKind_get_spelling(TOKEN_FUNC_NAME));
     } else {
-        dumper_println(d, "string_constant:");
+        dumper_print_str(d, "string_constant:");
         dump_string_literal(d, &c->lit);
     }
 
@@ -295,7 +293,7 @@ static void dump_generic_assoc(AstDumper* d, const GenericAssoc* a) {
     if (a->type_name) {
         dump_type_name(d, a->type_name);
     } else {
-        dumper_println(d, "default");
+        dumper_print_str(d, "default");
     }
 
     dump_assign_expr(d, a->assign);
@@ -310,7 +308,7 @@ static void dump_generic_assoc_list(AstDumper* d, const GenericAssocList* l) {
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", l->len);
+    dumper_println(d, "len: {size_t}", l->len);
 
     for (size_t i = 0; i < l->len; ++i) {
         dump_generic_assoc(d, &l->assocs[i]);
@@ -340,7 +338,7 @@ static void dump_primary_expr(AstDumper* d, const PrimaryExpr* e) {
 
     switch (e->kind) {
         case PRIMARY_EXPR_IDENTIFIER:
-            dumper_println(d, "primary_expr:");
+            dumper_print_str(d, "primary_expr:");
             add_indent(d);
 
             dump_identifier(d, e->identifier);
@@ -348,7 +346,7 @@ static void dump_primary_expr(AstDumper* d, const PrimaryExpr* e) {
             remove_indent(d);
             break;
         case PRIMARY_EXPR_CONSTANT:
-            dumper_println(d, "primary_expr:");
+            dumper_print_str(d, "primary_expr:");
             add_indent(d);
 
             dump_constant(d, &e->constant);
@@ -356,7 +354,7 @@ static void dump_primary_expr(AstDumper* d, const PrimaryExpr* e) {
             remove_indent(d);
             break;
         case PRIMARY_EXPR_STRING_LITERAL:
-            dumper_println(d, "primary_expr:");
+            dumper_print_str(d, "primary_expr:");
             add_indent(d);
 
             dump_string_constant(d, &e->string);
@@ -373,7 +371,7 @@ static void dump_primary_expr(AstDumper* d, const PrimaryExpr* e) {
             remove_indent(d);
             break;
         case PRIMARY_EXPR_GENERIC:
-            dumper_println(d, "primary_expr:");
+            dumper_print_str(d, "primary_expr:");
             add_indent(d);
 
             dump_generic_sel(d, &e->generic);
@@ -386,16 +384,16 @@ static void dump_primary_expr(AstDumper* d, const PrimaryExpr* e) {
 static void dump_type_modifiers(AstDumper* d, const TypeModifiers* m) {
     assert(m);
 
-    dumper_println(d, "type_modifiers:");
+    dumper_print_str(d, "type_modifiers:");
 
     add_indent(d);
 
-    dumper_println(d, "is_unsigned: %s", bool_to_str(m->is_unsigned));
-    dumper_println(d, "is_signed: %s", bool_to_str(m->is_signed));
-    dumper_println(d, "is_short: %s", bool_to_str(m->is_short));
-    dumper_println(d, "num_long: %d", m->num_long);
-    dumper_println(d, "is_complex: %s", bool_to_str(m->is_complex));
-    dumper_println(d, "is_imaginary: %s", bool_to_str(m->is_imaginary));
+    dumper_println(d, "is_unsigned: {bool}", m->is_unsigned);
+    dumper_println(d, "is_signed: {bool}", m->is_signed);
+    dumper_println(d, "is_short: {bool}", m->is_short);
+    dumper_println(d, "num_long: {uint}", m->num_long);
+    dumper_println(d, "is_complex: {bool}", m->is_complex);
+    dumper_println(d, "is_imaginary: {bool}", m->is_imaginary);
 
     remove_indent(d);
 }
@@ -417,7 +415,7 @@ static void dump_declarator(AstDumper* d, const Declarator* decl);
 static void dump_struct_declarator(AstDumper* d, StructDeclarator* decl) {
     assert(decl);
 
-    dumper_println(d, "struct_declarator:");
+    dumper_print_str(d, "struct_declarator:");
 
     add_indent(d);
 
@@ -435,11 +433,11 @@ static void dump_struct_declarator_list(AstDumper* d,
                                         const StructDeclaratorList* l) {
     assert(l);
 
-    dumper_println(d, "struct_declarator_list:");
+    dumper_print_str(d, "struct_declarator_list:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", l->len);
+    dumper_println(d, "len: {size_t}", l->len);
 
     for (size_t i = 0; i < l->len; ++i) {
         dump_struct_declarator(d, &l->decls[i]);
@@ -455,7 +453,7 @@ static void dump_struct_declaration(AstDumper* d,
                                     const StructDeclaration* decl) {
     assert(decl);
 
-    dumper_println(d, "struct_declaration");
+    dumper_print_str(d, "struct_declaration");
 
     add_indent(d);
 
@@ -473,11 +471,11 @@ static void dump_struct_declaration_list(AstDumper* d,
                                          const StructDeclarationList* l) {
     assert(l);
 
-    dumper_println(d, "struct_declaration_list:");
+    dumper_print_str(d, "struct_declaration_list:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", l->len);
+    dumper_println(d, "len: {size_t}", l->len);
     for (size_t i = 0; i < l->len; ++i) {
         dump_struct_declaration(d, &l->decls[i]);
     }
@@ -493,9 +491,9 @@ static void dump_struct_union_spec(AstDumper* d, const StructUnionSpec* s) {
     add_indent(d);
 
     if (s->is_struct) {
-        dumper_println(d, "struct");
+        dumper_print_str(d, "struct");
     } else {
-        dumper_println(d, "union");
+        dumper_print_str(d, "union");
     }
 
     if (s->identifier) {
@@ -510,7 +508,7 @@ static void dump_struct_union_spec(AstDumper* d, const StructUnionSpec* s) {
 static void dump_enumerator(AstDumper* d, const Enumerator* e) {
     assert(e);
 
-    dumper_println(d, "enumerator:");
+    dumper_print_str(d, "enumerator:");
 
     add_indent(d);
 
@@ -525,11 +523,11 @@ static void dump_enumerator(AstDumper* d, const Enumerator* e) {
 static void dump_enum_list(AstDumper* d, const EnumList* l) {
     assert(l);
 
-    dumper_println(d, "enum_list:");
+    dumper_print_str(d, "enum_list:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", l->len);
+    dumper_println(d, "len: {size_t}", l->len);
     for (size_t i = 0; i < l->len; ++i) {
         dump_enumerator(d, &l->enums[i]);
     }
@@ -577,7 +575,7 @@ static Str type_spec_kind_str(TypeSpecKind k) {
 static void dump_type_specs(AstDumper* d, const TypeSpecs* s) {
     assert(s);
 
-    dumper_println(d, "type_specs:");
+    dumper_print_str(d, "type_specs:");
 
     add_indent(d);
 
@@ -591,7 +589,7 @@ static void dump_type_specs(AstDumper* d, const TypeSpecs* s) {
         case TYPE_SPEC_FLOAT:
         case TYPE_SPEC_DOUBLE:
         case TYPE_SPEC_BOOL:
-            dumper_print_str(d, type_spec_kind_str(s->kind));
+            dumper_print_str_val(d, type_spec_kind_str(s->kind));
             break;
         case TYPE_SPEC_ATOMIC:
             dump_atomic_type_spec(d, s->atomic_spec);
@@ -628,7 +626,7 @@ static void dump_abs_declarator(AstDumper* d, const AbsDeclarator* decl);
 static void dump_type_name(AstDumper* d, const TypeName* n) {
     assert(n);
 
-    dumper_println(d, "type_name:");
+    dumper_print_str(d, "type_name:");
 
     add_indent(d);
 
@@ -643,11 +641,11 @@ static void dump_type_name(AstDumper* d, const TypeName* n) {
 static void dump_arg_expr_list(AstDumper* d, const ArgExprList* l) {
     assert(l);
 
-    dumper_println(d, "arg_expr_list:");
+    dumper_print_str(d, "arg_expr_list:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", l->len);
+    dumper_println(d, "len: {size_t}", l->len);
     for (size_t i = 0; i < l->len; ++i) {
         dump_assign_expr(d, &l->assign_exprs[i]);
     }
@@ -658,7 +656,7 @@ static void dump_arg_expr_list(AstDumper* d, const ArgExprList* l) {
 static void dump_postfix_suffix(AstDumper* d, const PostfixSuffix* s) {
     assert(s);
 
-    dumper_println(d, "postfix_suffix:");
+    dumper_print_str(d, "postfix_suffix:");
 
     add_indent(d);
 
@@ -670,16 +668,18 @@ static void dump_postfix_suffix(AstDumper* d, const PostfixSuffix* s) {
             dump_arg_expr_list(d, &s->bracket_list);
             break;
         case POSTFIX_ACCESS:
-            dumper_println(d, "access");
+            dumper_print_str(d, "access");
             dump_identifier(d, s->identifier);
             break;
         case POSTFIX_PTR_ACCESS:
-            dumper_println(d, "pointer_access");
+            dumper_print_str(d, "pointer_access");
             dump_identifier(d, s->identifier);
             break;
         case POSTFIX_INC:
         case POSTFIX_DEC:
-            dumper_print_str(d, s->kind == POSTFIX_INC ? STR_LIT("++") : STR_LIT("--"));
+            dumper_print_str_val(d,
+                                 s->kind == POSTFIX_INC ? STR_LIT("++")
+                                                        : STR_LIT("--"));
             break;
     }
 
@@ -692,7 +692,7 @@ static void dump_postfix_expr(AstDumper* d, const PostfixExpr* e) {
     assert(e);
 
     if (e->is_primary) {
-        dumper_println(d, "postfix_expr:");
+        dumper_print_str(d, "postfix_expr:");
     } else {
         dumper_print_node_head(d, "postfix_expr", &e->info);
     }
@@ -706,7 +706,7 @@ static void dump_postfix_expr(AstDumper* d, const PostfixExpr* e) {
         dump_init_list(d, &e->init_list);
     }
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_postfix_suffix(d, &e->suffixes[i]);
     }
@@ -723,7 +723,7 @@ static void dump_cast_expr(AstDumper* d, const CastExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_type_name(d, &e->type_names[i]);
     }
@@ -773,9 +773,9 @@ static void dump_unary_expr(AstDumper* d, const UnaryExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     for (size_t i = 0; i < e->len; ++i) {
-        dumper_print_str(d, unary_expr_op_str(e->ops_before[i]));
+        dumper_print_str_val(d, unary_expr_op_str(e->ops_before[i]));
     }
 
     switch (e->kind) {
@@ -788,15 +788,15 @@ static void dump_unary_expr(AstDumper* d, const UnaryExpr* e) {
         case UNARY_MINUS:
         case UNARY_BNOT:
         case UNARY_NOT:
-            dumper_print_str(d, unary_expr_kind_str(e->kind));
+            dumper_print_str_val(d, unary_expr_kind_str(e->kind));
             dump_cast_expr(d, e->cast_expr);
             break;
         case UNARY_SIZEOF_TYPE:
-            dumper_println(d, "sizeof");
+            dumper_print_str(d, "sizeof");
             dump_type_name(d, e->type_name);
             break;
         case UNARY_ALIGNOF:
-            dumper_println(d, "_Alignof");
+            dumper_print_str(d, "_Alignof");
             dump_type_name(d, e->type_name);
             break;
     }
@@ -838,20 +838,20 @@ static void dump_cond_expr(AstDumper* d, const CondExpr* e);
 static void dump_assign_expr(AstDumper* d, const AssignExpr* e) {
     assert(e);
 
-    dumper_println(d, "assign_expr:");
+    dumper_print_str(d, "assign_expr:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     for (size_t i = 0; i < e->len; ++i) {
-        dumper_println(d, "unary_and_op:");
+        dumper_print_str(d, "unary_and_op:");
         add_indent(d);
 
         UnaryAndOp* item = &e->assign_chain[i];
 
         dump_unary_expr(d, &item->unary);
 
-        dumper_print_str(d, assign_expr_op_str(item->op));
+        dumper_print_str_val(d, assign_expr_op_str(item->op));
 
         remove_indent(d);
     }
@@ -871,10 +871,10 @@ static void dump_abs_arr_or_func_suffix(AstDumper* d,
 
     switch (s->kind) {
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
-            dumper_println(d, "has_asterisk: %s", bool_to_str(s->has_asterisk));
+            dumper_println(d, "has_asterisk: {bool}", s->has_asterisk);
             break;
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN:
-            dumper_println(d, "is_static: %s", bool_to_str(s->is_static));
+            dumper_println(d, "is_static: {bool}", s->is_static);
             dump_type_quals(d, &s->type_quals);
             if (s->assign) {
                 dump_assign_expr(d, s->assign);
@@ -909,7 +909,7 @@ static void dump_direct_abs_declarator(AstDumper* d,
 static void dump_abs_declarator(AstDumper* d, const AbsDeclarator* decl) {
     assert(decl);
 
-    dumper_println(d, "abs_declarator:");
+    dumper_print_str(d, "abs_declarator:");
 
     add_indent(d);
     if (decl->ptr) {
@@ -927,7 +927,7 @@ static void dump_declarator(AstDumper* d, const Declarator* decl);
 static void dump_param_declaration(AstDumper* d, const ParamDeclaration* decl) {
     assert(decl);
 
-    dumper_println(d, "param_declaration:");
+    dumper_print_str(d, "param_declaration:");
 
     add_indent(d);
 
@@ -940,7 +940,7 @@ static void dump_param_declaration(AstDumper* d, const ParamDeclaration* decl) {
             dump_abs_declarator(d, decl->abstract_decl);
             break;
         case PARAM_DECL_NONE:
-            dumper_println(d, "no_decl");
+            dumper_print_str(d, "no_decl");
             break;
     }
 
@@ -950,11 +950,11 @@ static void dump_param_declaration(AstDumper* d, const ParamDeclaration* decl) {
 static void dump_param_list(AstDumper* d, const ParamList* l) {
     assert(l);
 
-    dumper_println(d, "param_type_list:");
+    dumper_print_str(d, "param_type_list:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", l->len);
+    dumper_println(d, "len: {size_t}", l->len);
     for (size_t i = 0; i < l->len; ++i) {
         dump_param_declaration(d, &l->decls[i]);
     }
@@ -965,11 +965,11 @@ static void dump_param_list(AstDumper* d, const ParamList* l) {
 static void dump_param_type_list(AstDumper* d, const ParamTypeList* l) {
     assert(l);
 
-    dumper_println(d, "param_type_list:");
+    dumper_print_str(d, "param_type_list:");
 
     add_indent(d);
 
-    dumper_println(d, "is_variadic: %s", bool_to_str(l->is_variadic));
+    dumper_println(d, "is_variadic: {bool}", l->is_variadic);
     dump_param_list(d, &l->param_list);
 
     remove_indent(d);
@@ -977,11 +977,11 @@ static void dump_param_type_list(AstDumper* d, const ParamTypeList* l) {
 
 static void dump_identifier_list(AstDumper* d, const IdentifierList* l) {
     assert(l);
-    dumper_println(d, "identifier_list:");
+    dumper_print_str(d, "identifier_list:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", l->len);
+    dumper_println(d, "len: {size_t}", l->len);
     for (size_t i = 0; i < l->len; ++i) {
         dump_identifier(d, &l->identifiers[i]);
     }
@@ -992,13 +992,13 @@ static void dump_identifier_list(AstDumper* d, const IdentifierList* l) {
 static void dump_arr_suffix(AstDumper* d, const ArrSuffix* s) {
     assert(s);
 
-    dumper_println(d, "arr_suffix:");
+    dumper_print_str(d, "arr_suffix:");
 
     add_indent(d);
 
-    dumper_println(d, "is_static: %s", bool_to_str(s->is_static));
+    dumper_println(d, "is_static: {bool}", s->is_static);
     dump_type_quals(d, &s->type_quals);
-    dumper_println(d, "is_asterisk: %s", bool_to_str(s->is_asterisk));
+    dumper_println(d, "is_asterisk: {bool}", s->is_asterisk);
     if (s->arr_len) {
         dump_assign_expr(d, s->arr_len);
     }
@@ -1022,7 +1022,7 @@ static void dump_arr_or_func_suffix(AstDumper* d, const ArrOrFuncSuffix* s) {
             dump_identifier_list(d, &s->fun_params);
             break;
         case ARR_OR_FUNC_FUN_EMPTY:
-            dumper_println(d, "empty_func_suffix");
+            dumper_print_str(d, "empty_func_suffix");
             break;
     }
 
@@ -1053,7 +1053,7 @@ static void dump_direct_declarator(AstDumper* d, DirectDeclarator* decl) {
 static void dump_declarator(AstDumper* d, const Declarator* decl) {
     assert(decl);
 
-    dumper_println(d, "declarator:");
+    dumper_print_str(d, "declarator:");
 
     add_indent(d);
 
@@ -1070,11 +1070,11 @@ static void dump_declaration(AstDumper* d, const Declaration* decl);
 static void dump_declaration_list(AstDumper* d, const DeclarationList* l) {
     assert(l);
 
-    dumper_println(d, "declaration_list:");
+    dumper_print_str(d, "declaration_list:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", l->len);
+    dumper_println(d, "len: {size_t}", l->len);
     for (size_t i = 0; i < l->len; ++i) {
         dump_declaration(d, &l->decls[i]);
     }
@@ -1100,7 +1100,7 @@ static void dump_labeled_statement(AstDumper* d,
             dump_identifier(d, s->label);
             break;
         case LABELED_STATEMENT_DEFAULT:
-            dumper_println(d, "default");
+            dumper_print_str(d, "default");
             break;
         default:
             UNREACHABLE();
@@ -1114,11 +1114,11 @@ static void dump_labeled_statement(AstDumper* d,
 static void dump_expr(AstDumper* d, const Expr* e) {
     assert(e);
 
-    dumper_println(d, "expr:");
+    dumper_print_str(d, "expr:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_assign_expr(d, &e->assign_exprs[i]);
     }
@@ -1149,7 +1149,7 @@ static void dump_selection_statement(AstDumper* d,
 
     add_indent(d);
 
-    dumper_println(d, "is_if: %s", bool_to_str(s->is_if));
+    dumper_println(d, "is_if: {bool}", s->is_if);
 
     dump_statement(d, s->sel_stat);
 
@@ -1171,17 +1171,17 @@ static void dump_iteration_statement(AstDumper* d,
 
     switch (s->kind) {
         case ITERATION_STATEMENT_WHILE:
-            dumper_println(d, "type: while");
+            dumper_print_str(d, "type: while");
             dump_expr(d, &s->while_cond);
             dump_statement(d, s->loop_body);
             break;
         case ITERATION_STATEMENT_DO:
-            dumper_println(d, "type: do");
+            dumper_print_str(d, "type: do");
             dump_statement(d, s->loop_body);
             dump_expr(d, &s->while_cond);
             break;
         case ITERATION_STATEMENT_FOR:
-            dumper_println(d, "type: for");
+            dumper_print_str(d, "type: for");
             if (s->for_loop.is_decl) {
                 dump_declaration(d, &s->for_loop.init_decl);
             } else {
@@ -1206,17 +1206,17 @@ static void dump_jump_statement(AstDumper* d, const JumpStatement* s) {
 
     switch (s->kind) {
         case JUMP_STATEMENT_GOTO:
-            dumper_println(d, "type: goto");
+            dumper_print_str(d, "type: goto");
             dump_identifier(d, s->goto_label);
             break;
         case JUMP_STATEMENT_CONTINUE:
-            dumper_println(d, "type: continue");
+            dumper_print_str(d, "type: continue");
             break;
         case JUMP_STATEMENT_BREAK:
-            dumper_println(d, "type: break");
+            dumper_print_str(d, "type: break");
             break;
         case JUMP_STATEMENT_RETURN:
-            dumper_println(d, "type: return");
+            dumper_print_str(d, "type: return");
             dump_expr(d, &s->ret_val);
             break;
         default:
@@ -1229,7 +1229,7 @@ static void dump_jump_statement(AstDumper* d, const JumpStatement* s) {
 static void dump_statement(AstDumper* d, const Statement* s) {
     assert(s);
 
-    dumper_println(d, "statement:");
+    dumper_print_str(d, "statement:");
 
     add_indent(d);
 
@@ -1262,7 +1262,7 @@ static void dump_declaration(AstDumper* s, const Declaration* decl);
 static void dump_block_item(AstDumper* d, const BlockItem* i) {
     assert(i);
 
-    dumper_println(d, "block_item:");
+    dumper_print_str(d, "block_item:");
 
     add_indent(d);
 
@@ -1283,7 +1283,7 @@ static void dump_compound_statement(AstDumper* d,
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", s->len);
+    dumper_println(d, "len: {size_t}", s->len);
     for (size_t i = 0; i < s->len; ++i) {
         dump_block_item(d, &s->items[i]);
     }
@@ -1294,7 +1294,7 @@ static void dump_compound_statement(AstDumper* d,
 static void dump_func_def(AstDumper* d, const FuncDef* f) {
     assert(f);
 
-    dumper_println(d, "func_def:");
+    dumper_print_str(d, "func_def:");
 
     add_indent(d);
 
@@ -1324,11 +1324,11 @@ static void dump_designator(AstDumper* d, const struct Designator* des) {
 static void dump_designator_list(AstDumper* d, const DesignatorList* l) {
     assert(l);
 
-    dumper_println(d, "designator_list:");
+    dumper_print_str(d, "designator_list:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", l->len);
+    dumper_println(d, "len: {size_t}", l->len);
     for (size_t i = 0; i < l->len; ++i) {
         dump_designator(d, &l->designators[i]);
     }
@@ -1339,7 +1339,7 @@ static void dump_designator_list(AstDumper* d, const DesignatorList* l) {
 static void dump_designation(AstDumper* d, const Designation* des) {
     assert(des);
 
-    dumper_println(d, "designation:");
+    dumper_print_str(d, "designation:");
 
     add_indent(d);
 
@@ -1353,7 +1353,7 @@ static void dump_initializer(AstDumper* d, const Initializer* i);
 static void dump_designation_init(AstDumper* d, const DesignationInit* i) {
     assert(i);
 
-    dumper_println(d, "designation_init:");
+    dumper_print_str(d, "designation_init:");
 
     add_indent(d);
 
@@ -1368,11 +1368,11 @@ static void dump_designation_init(AstDumper* d, const DesignationInit* i) {
 static void dump_init_list(AstDumper* d, const InitList* l) {
     assert(l);
 
-    dumper_println(d, "init_list:");
+    dumper_print_str(d, "init_list:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", l->len);
+    dumper_println(d, "len: {size_t}", l->len);
     for (size_t i = 0; i < l->len; ++i) {
         dump_designation_init(d, &l->inits[i]);
     }
@@ -1399,7 +1399,7 @@ static void dump_initializer(AstDumper* d, const struct Initializer* i) {
 static void dump_init_declarator(AstDumper* d, const InitDeclarator* decl) {
     assert(decl);
 
-    dumper_println(d, "init_declarator:");
+    dumper_print_str(d, "init_declarator:");
 
     add_indent(d);
 
@@ -1415,11 +1415,11 @@ static void dump_init_declarator_list(AstDumper* d,
                                       const InitDeclaratorList* l) {
     assert(l);
 
-    dumper_println(d, "init_declarator_list:");
+    dumper_print_str(d, "init_declarator_list:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", l->len);
+    dumper_println(d, "len: {size_t}", l->len);
     for (size_t i = 0; i < l->len; ++i) {
         dump_init_declarator(d, &l->decls[i]);
     }
@@ -1442,15 +1442,15 @@ static Str mul_expr_op_str(MulExprOp o) {
 static void dump_mul_expr(AstDumper* d, const MulExpr* e) {
     assert(e);
 
-    dumper_println(d, "mul_expr:");
+    dumper_print_str(d, "mul_expr:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     dump_cast_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         CastExprAndOp* item = &e->mul_chain[i];
-        dumper_println(d, "mul_op: %s", mul_expr_op_str(item->op).data);
+        dumper_println(d, "mul_op: {Str}", mul_expr_op_str(item->op));
         dump_cast_expr(d, &item->rhs);
     }
 
@@ -1470,15 +1470,15 @@ static Str add_expr_op_str(AddExprOp op) {
 static void dump_add_expr(AstDumper* d, const AddExpr* e) {
     assert(e);
 
-    dumper_println(d, "add_expr:");
+    dumper_print_str(d, "add_expr:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     dump_mul_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         MulExprAndOp* item = &e->add_chain[i];
-        dumper_println(d, "add_op: %s", add_expr_op_str(item->op).data);
+        dumper_println(d, "add_op: {Str}", add_expr_op_str(item->op));
         dump_mul_expr(d, &item->rhs);
     }
 
@@ -1498,15 +1498,15 @@ static Str shift_expr_op_str(ShiftExprOp o) {
 static void dump_shift_expr(AstDumper* d, const ShiftExpr* e) {
     assert(e);
 
-    dumper_println(d, "shift_expr:");
+    dumper_print_str(d, "shift_expr:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     dump_add_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         AddExprAndOp* item = &e->shift_chain[i];
-        dumper_println(d, "shift_op: %s", shift_expr_op_str(item->op).data);
+        dumper_println(d, "shift_op: {Str}", shift_expr_op_str(item->op));
         dump_add_expr(d, &item->rhs);
     }
 
@@ -1530,15 +1530,15 @@ static Str rel_expr_op_str(RelExprOp o) {
 static void dump_rel_expr(AstDumper* d, const RelExpr* e) {
     assert(e);
 
-    dumper_println(d, "rel_expr:");
+    dumper_print_str(d, "rel_expr:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     dump_shift_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         ShiftExprAndOp* item = &e->rel_chain[i];
-        dumper_println(d, "rel_op: %s", rel_expr_op_str(item->op).data);
+        dumper_println(d, "rel_op: {Str}", rel_expr_op_str(item->op));
         dump_shift_expr(d, &item->rhs);
     }
 
@@ -1558,15 +1558,15 @@ static Str eq_expr_op_str(EqExprOp o) {
 static void dump_eq_expr(AstDumper* d, const EqExpr* e) {
     assert(e);
 
-    dumper_println(d, "eq_expr:");
+    dumper_print_str(d, "eq_expr:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     dump_rel_expr(d, &e->lhs);
     for (size_t i = 0; i < e->len; ++i) {
         RelExprAndOp* item = &e->eq_chain[i];
-        dumper_println(d, "eq_op: %s", eq_expr_op_str(item->op).data);
+        dumper_println(d, "eq_op: {Str}", eq_expr_op_str(item->op));
         dump_rel_expr(d, &item->rhs);
     }
 
@@ -1576,11 +1576,11 @@ static void dump_eq_expr(AstDumper* d, const EqExpr* e) {
 static void dump_and_expr(AstDumper* d, const AndExpr* e) {
     assert(e);
 
-    dumper_println(d, "and_expr:");
+    dumper_print_str(d, "and_expr:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_eq_expr(d, &e->eq_exprs[i]);
     }
@@ -1591,11 +1591,11 @@ static void dump_and_expr(AstDumper* d, const AndExpr* e) {
 static void dump_xor_expr(AstDumper* d, const XorExpr* e) {
     assert(e);
 
-    dumper_println(d, "xor_expr:");
+    dumper_print_str(d, "xor_expr:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_and_expr(d, &e->and_exprs[i]);
     }
@@ -1606,11 +1606,11 @@ static void dump_xor_expr(AstDumper* d, const XorExpr* e) {
 static void dump_or_expr(AstDumper* d, const OrExpr* e) {
     assert(e);
 
-    dumper_println(d, "or_expr:");
+    dumper_print_str(d, "or_expr:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_xor_expr(d, &e->xor_exprs[i]);
     }
@@ -1621,11 +1621,11 @@ static void dump_or_expr(AstDumper* d, const OrExpr* e) {
 static void dump_log_and_expr(AstDumper* d, const LogAndExpr* e) {
     assert(e);
 
-    dumper_println(d, "log_and_expr:");
+    dumper_print_str(d, "log_and_expr:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_or_expr(d, &e->or_exprs[i]);
     }
@@ -1636,11 +1636,11 @@ static void dump_log_and_expr(AstDumper* d, const LogAndExpr* e) {
 static void dump_log_or_expr(AstDumper* d, const LogOrExpr* e) {
     assert(e);
 
-    dumper_println(d, "log_or_expr:");
+    dumper_print_str(d, "log_or_expr:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         dump_log_and_expr(d, &e->log_ands[i]);
     }
@@ -1651,11 +1651,11 @@ static void dump_log_or_expr(AstDumper* d, const LogOrExpr* e) {
 static void dump_cond_expr(AstDumper* d, const CondExpr* e) {
     assert(e);
 
-    dumper_println(d, "cond_expr:");
+    dumper_print_str(d, "cond_expr:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", e->len);
+    dumper_println(d, "len: {size_t}", e->len);
     for (size_t i = 0; i < e->len; ++i) {
         LogOrAndExpr* item = &e->conditionals[i];
         dump_log_or_expr(d, &item->log_or);
@@ -1669,7 +1669,7 @@ static void dump_cond_expr(AstDumper* d, const CondExpr* e) {
 static void dump_const_expr(AstDumper* d, const ConstExpr* e) {
     assert(e);
 
-    dumper_println(d, "const_expr:");
+    dumper_print_str(d, "const_expr:");
 
     add_indent(d);
 
@@ -1683,7 +1683,7 @@ static void dump_static_assert_declaration(
     const StaticAssertDeclaration* decl) {
     assert(decl);
 
-    dumper_println(d, "static_assert_declaration:");
+    dumper_print_str(d, "static_assert_declaration:");
 
     add_indent(d);
 
@@ -1696,7 +1696,7 @@ static void dump_static_assert_declaration(
 static void dump_declaration(AstDumper* d, const Declaration* decl) {
     assert(decl);
 
-    dumper_println(d, "declaration:");
+    dumper_print_str(d, "declaration:");
 
     add_indent(d);
 
@@ -1714,7 +1714,7 @@ static void dump_external_declaration(AstDumper* d,
                                       const ExternalDeclaration* decl) {
     assert(decl);
 
-    dumper_println(d, "external_declaration:");
+    dumper_print_str(d, "external_declaration:");
 
     add_indent(d);
 
@@ -1729,12 +1729,11 @@ static void dump_external_declaration(AstDumper* d,
 
 static void dump_translation_unit(AstDumper* d, const TranslationUnit* tl) {
     assert(tl);
-
-    dumper_println(d, "translation_unit:");
+    dumper_print_str(d, "translation_unit:");
 
     add_indent(d);
 
-    dumper_println(d, "len: %zu", tl->len);
+    dumper_println(d, "len: {size_t}", tl->len);
 
     for (size_t i = 0; i < tl->len; ++i) {
         dump_external_declaration(d, &tl->external_decls[i]);

@@ -2,9 +2,9 @@
 #define NUM_PARSE_H
 
 #include <stdbool.h>
-#include <stdio.h>
 
 #include "util/Str.h"
+#include "util/File.h"
 
 #include "frontend/Value.h"
 #include "frontend/ArchTypeInfo.h"
@@ -28,7 +28,7 @@ typedef struct {
 
 ParseFloatConstRes parse_float_const(Str spell);
 
-void FloatConstErr_print(FILE* out, const FloatConstErr* err);
+void FloatConstErr_print(File out, const FloatConstErr* err);
 
 typedef enum {
     INT_CONST_ERR_NONE,
@@ -53,7 +53,7 @@ typedef struct {
 
 ParseIntConstRes parse_int_const(Str spell, const ArchTypeInfo* type_info);
 
-void IntConstErr_print(FILE* out, const IntConstErr* err);
+void IntConstErr_print(File out, const IntConstErr* err);
 
 typedef enum {
     CHAR_CONST_ERR_NONE,
@@ -80,7 +80,7 @@ typedef struct {
 
 ParseCharConstRes parse_char_const(Str spell, const ArchTypeInfo* type_info);
 
-void CharConstErr_print(FILE* out, const CharConstErr* err);
+void CharConstErr_print(File out, const CharConstErr* err);
 
 #endif
 

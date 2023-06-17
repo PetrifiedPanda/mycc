@@ -50,25 +50,28 @@ ParseFloatConstRes parse_float_const(Str spell) {
     };
 }
 
-void FloatConstErr_print(FILE* out, const FloatConstErr* err) {
+void FloatConstErr_print(File out, const FloatConstErr* err) {
     assert(err != FLOAT_CONST_ERR_NONE);
 
     switch (err->kind) {
         case FLOAT_CONST_ERR_NONE:
             UNREACHABLE();
         case FLOAT_CONST_ERR_TOO_LARGE:
-            fprintf(out, "floating constant too large to be represented");
+            File_put_str("floating constant too large to be represented", out);
             break;
         case FLOAT_CONST_ERR_SUFFIX_TOO_LONG:
-            fprintf(out,
-                    "floating constant suffix too long. Only one character is "
-                    "allowed in the suffix");
+            File_put_str(
+                "floating constant suffix too long. Only one character is "
+                "allowed in the suffix",
+                out);
             break;
         case FLOAT_CONST_ERR_INVALID_CHAR:
-            fprintf(out, "invalid character %c in suffix", err->invalid_char);
+            File_printf(out,
+                        "invalid character {char} in suffix",
+                        err->invalid_char);
             break;
     }
-    fprintf(out, "\n");
+    File_putc('\n', out);
 }
 
 typedef struct {
@@ -93,7 +96,10 @@ ParseIntConstRes parse_int_const(Str spell, const ArchTypeInfo* type_info) {
         DEC = 10,
         HEX = 16,
         OCT = 8
-    } base = Str_at(spell, 0) == '0' ? ((spell.len > 1 && tolower(Str_at(spell, 1)) == 'x') ? HEX : OCT) : DEC;
+    } base = Str_at(spell, 0) == '0'
+                 ? ((spell.len > 1 && tolower(Str_at(spell, 1)) == 'x') ? HEX
+                                                                        : OCT)
+                 : DEC;
     const char* suffix = spell.data;
     assert(errno == 0);
     uintmax_t val = strtoull(spell.data, (char**)&suffix, base);
@@ -110,7 +116,8 @@ ParseIntConstRes parse_int_const(Str spell, const ArchTypeInfo* type_info) {
     IntConstErr err = {
         .kind = INT_CONST_ERR_NONE,
     };
-    IntTypeAttrs attrs = get_int_attrs(Str_advance(spell, suffix - spell.data), &err);
+    IntTypeAttrs attrs = get_int_attrs(Str_advance(spell, suffix - spell.data),
+                                       &err);
     if (err.kind != INT_CONST_ERR_NONE) {
         return (ParseIntConstRes){
             .err = err,
@@ -134,8 +141,7 @@ ParseIntConstRes parse_int_const(Str spell, const ArchTypeInfo* type_info) {
     };
 }
 
-void IntConstErr_print(FILE* out, const IntConstErr* err) {
-    assert(out);
+void IntConstErr_print(File out, const IntConstErr* err) {
     assert(err);
     assert(err->kind != INT_CONST_ERR_NONE);
 
@@ -143,32 +149,32 @@ void IntConstErr_print(FILE* out, const IntConstErr* err) {
         case INT_CONST_ERR_NONE:
             UNREACHABLE();
         case INT_CONST_ERR_TOO_LARGE:
-            fprintf(out, "integer literal too large to be represented");
+            File_put_str("integer literal too large to be represented", out);
             break;
         case INT_CONST_ERR_SUFFIX_TOO_LONG:
-            fprintf(out,
-                    "integer literal suffix too long. The suffix may be a "
-                    "maximum of 3 characters");
+            File_put_str("integer literal suffix too long. The suffix may be a "
+                         "maximum of 3 characters",
+                         out);
             break;
         case INT_CONST_ERR_CASE_MIXING:
-            fprintf(out, "ls in suffix must be the same case");
+            File_put_str("ls in suffix must be the same case", out);
             break;
         case INT_CONST_ERR_U_BETWEEN_LS:
-            fprintf(out, "u must not be between two ls in suffix");
+            File_put_str("u must not be between two ls in suffix", out);
             break;
         case INT_CONST_ERR_TRIPLE_LONG:
-            fprintf(out, "l may only appear twice in suffix");
+            File_put_str("l may only appear twice in suffix", out);
             break;
         case INT_CONST_ERR_DOUBLE_U:
-            fprintf(out, "u may only appear once in suffix");
+            File_put_str("u may only appear once in suffix", out);
             break;
         case INT_CONST_ERR_INVALID_CHAR:
-            fprintf(out,
-                    "invalid character %c in integer literal",
-                    err->invalid_char);
+            File_printf(out,
+                        "invalid character {char} in integer literal",
+                        err->invalid_char);
             break;
     }
-    fprintf(out, "\n");
+    File_putc('\n', out);
 }
 
 static IntTypeAttrs get_int_attrs(Str suffix, IntConstErr* err) {
@@ -392,7 +398,7 @@ static ValueKind get_uint_leastn_t_type(size_t n,
 ParseCharConstRes parse_char_const(Str spell, const ArchTypeInfo* type_info) {
     assert(spell.data);
     assert(type_info);
-    
+
     Str spell_it = spell;
 
     ValueKind kind;
@@ -514,7 +520,7 @@ ParseCharConstRes parse_char_const(Str spell, const ArchTypeInfo* type_info) {
                 val = Str_at(spell_it, 0);
                 break;
         }
-        
+
         spell_it = Str_incr(spell_it);
         if (Str_at(spell_it, 0) != '\'') {
             return (ParseCharConstRes){
@@ -585,7 +591,7 @@ ParseCharConstRes parse_char_const(Str spell, const ArchTypeInfo* type_info) {
                 val = Str_at(spell_it, 0);
                 break;
         }
-        
+
         spell_it = Str_incr(spell_it);
         if (Str_at(spell_it, 0) != '\'') {
             return (ParseCharConstRes){
@@ -607,27 +613,27 @@ ParseCharConstRes parse_char_const(Str spell, const ArchTypeInfo* type_info) {
     }
 }
 
-void CharConstErr_print(FILE* out, const CharConstErr* err) {
+void CharConstErr_print(File out, const CharConstErr* err) {
     assert(err->kind != CHAR_CONST_ERR_NONE);
     switch (err->kind) {
         case CHAR_CONST_ERR_NONE:
             UNREACHABLE();
         case CHAR_CONST_ERR_EXPECTED_CHAR:
-            fputs("Expected ", out);
+            File_put_str("Expected ", out);
             const uint8_t limit = err->num_expected - 1;
             for (uint8_t i = 0; i < limit; ++i) {
-                fprintf(out, "%c, ", err->expected_chars[i]);
+                File_printf(out, "{char}, ", err->expected_chars[i]);
             }
-            fprintf(out,
-                    " or %c but got %c",
+            File_printf(out,
+                    " or {char} but got {char}",
                     err->expected_chars[limit],
                     err->got_char);
             break;
         case CHAR_CONST_ERR_INVALID_ESCAPE:
-            fprintf(out, "Invalid escape character %c", err->invalid_escape);
+            File_printf(out, "Invalid escape character {char}", err->invalid_escape);
             break;
     }
-    fputc('\n', out);
+    File_putc('\n', out);
 }
 
 static ValueKind get_uint_leastn_t_type(size_t n,

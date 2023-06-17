@@ -1,6 +1,5 @@
 #include "frontend/preproc/PreprocErr.h"
 
-#include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
@@ -25,10 +24,10 @@ void PreprocErr_set(PreprocErr* err, PreprocErrKind kind, SourceLoc loc) {
     err->base = ErrBase_create(loc);
 }
 
-static const char* get_single_macro_op_str(SingleMacroOpKind type);
-static const char* get_else_op_str(ElseOpKind type);
+static Str get_single_macro_op_str(SingleMacroOpKind type);
+static Str get_else_op_str(ElseOpKind type);
 
-void PreprocErr_print(FILE* out, const FileInfo* file_info, PreprocErr* err) {
+void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
     assert(err->kind != PREPROC_ERR_NONE);
 
     switch (err->kind) {
@@ -40,107 +39,117 @@ void PreprocErr_print(FILE* out, const FileInfo* file_info, PreprocErr* err) {
                 ErrBase_print(out, file_info, &err->base);
             }
 
-            const char* fail_path = StrBuf_data(&err->fail_filename);
+            const Str fail_path = StrBuf_as_str(&err->fail_filename);
             const char* err_string = strerror(err->errno_state);
-            fprintf(out, "Failed to open file %s: %s", fail_path, err_string);
+            File_printf(out,
+                        "Failed to open file {Str}: {c_str}",
+                        fail_path,
+                        err_string);
             break;
         case PREPROC_ERR_UNTERMINATED_LIT:
             ErrBase_print(out, file_info, &err->base);
-            fprintf(out,
-                    "%s literal not properly terminated",
-                    err->is_char_lit ? "Char" : "String");
+            File_printf(out,
+                        "{Str} literal not properly terminated",
+                        err->is_char_lit ? STR_LIT("Char") : STR_LIT("String"));
             break;
         case PREPROC_ERR_INVALID_ID:
             ErrBase_print(out, file_info, &err->base);
-            fprintf(out,
-                    "Invalid identifier: %s",
-                    StrBuf_data(&err->invalid_id));
+            File_printf(out,
+                        "Invalid identifier: {Str}",
+                        StrBuf_as_str(&err->invalid_id));
             break;
         case PREPROC_ERR_INVALID_NUMBER:
             ErrBase_print(out, file_info, &err->base);
-            fprintf(out, "Invalid number: %s", StrBuf_data(&err->invalid_num));
+            File_printf(out,
+                        "Invalid number: {Str}",
+                        StrBuf_as_str(&err->invalid_num));
             break;
         case PREPROC_ERR_MACRO_ARG_COUNT:
             ErrBase_print(out, file_info, &err->base);
             if (err->too_few_args) {
-                fprintf(out,
-                        "Too few arguments in function-like macro invocation: "
-                        "Expected%s %zu arguments",
-                        err->is_variadic ? " at least" : "",
-                        err->expected_arg_count);
+                File_printf(
+                    out,
+                    "Too few arguments in function-like macro invocation: "
+                    "Expected{Str} {size_t} arguments",
+                    err->is_variadic ? STR_LIT(" at least") : STR_LIT(""),
+                    err->expected_arg_count);
             } else {
-                fprintf(out,
-                        "Too many arguments in function like macro invocation: "
-                        "Expected only %zu arguments",
-                        err->expected_arg_count);
+                File_printf(
+                    out,
+                    "Too many arguments in function like macro invocation: "
+                    "Expected only {size_t} arguments",
+                    err->expected_arg_count);
             }
             break;
         case PREPROC_ERR_UNTERMINATED_MACRO:
             ErrBase_print(out, file_info, &err->base);
-            fputs("Unterminated macro", out);
+            File_put_str("Unterminated macro", out);
             break;
         case PREPROC_ERR_UNTERMINATED_COND: {
             ErrBase_print(out, file_info, &err->base);
             const SourceLoc* loc = &err->unterminated_cond_loc;
-            const char* cond_file = StrBuf_data(
+            const Str cond_file = StrBuf_as_str(
                 &file_info->paths[loc->file_idx]);
-            fprintf(out,
-                    "Conditional started at %s:%zu,%zu not terminated",
-                    cond_file,
-                    loc->file_loc.line,
-                    loc->file_loc.index);
+            File_printf(
+                out,
+                "Conditional started at {Str}:{size_t},{size_t} not terminated",
+                cond_file,
+                loc->file_loc.line,
+                loc->file_loc.index);
             break;
         }
         case PREPROC_ERR_ARG_COUNT: {
             ErrBase_print(out, file_info, &err->base);
-            const char* dir_str = get_single_macro_op_str(err->count_dir_kind);
+            Str dir_str = get_single_macro_op_str(err->count_dir_kind);
             if (err->count_empty) {
-                fprintf(out,
-                        "Expected an identifier after %s directive",
-                        dir_str);
+                File_printf(out,
+                            "Expected an identifier after {Str} directive",
+                            dir_str);
             } else {
-                fprintf(out, "Excess tokens after %s directive", dir_str);
+                File_printf(out,
+                            "Excess tokens after {Str} directive",
+                            dir_str);
             }
             break;
         }
         case PREPROC_ERR_IFDEF_NOT_ID: {
             ErrBase_print(out, file_info, &err->base);
-            const char* dir_str = get_single_macro_op_str(
-                err->not_identifier_op);
-            fprintf(out,
-                    "Expected an identifier after %s directive, but got %s",
-                    dir_str,
-                    TokenKind_str(err->not_identifier_got).data);
+            Str dir_str = get_single_macro_op_str(err->not_identifier_op);
+            File_printf(
+                out,
+                "Expected an identifier after {Str} directive, but got {Str}",
+                dir_str,
+                TokenKind_str(err->not_identifier_got));
             break;
         }
         case PREPROC_ERR_MISSING_IF: {
             ErrBase_print(out, file_info, &err->base);
-            const char* dir_str = get_else_op_str(err->missing_if_op);
-            fprintf(out, "%s directive without if", dir_str);
+            Str dir_str = get_else_op_str(err->missing_if_op);
+            File_printf(out, "{Str} directive without if", dir_str);
             break;
         }
         case PREPROC_ERR_INVALID_PREPROC_DIR:
             ErrBase_print(out, file_info, &err->base);
-            fputs("Invalid preprocessor directive", out);
+            File_put_str("Invalid preprocessor directive", out);
             break;
         case PREPROC_ERR_ELIF_ELSE_AFTER_ELSE: {
             assert(err->elif_after_else_op != ELSE_OP_ENDIF);
             ErrBase_print(out, file_info, &err->base);
-            const char* prev_else_file = StrBuf_data(
+            Str prev_else_file = StrBuf_as_str(
                 &file_info->paths[err->prev_else_loc.file_idx]);
             const FileLoc loc = err->prev_else_loc.file_loc;
             switch (err->elif_after_else_op) {
                 case ELSE_OP_ELIF:
-                    fprintf(
-                        out,
-                        "elif directive after else directive in %s:(%zu,%zu)",
-                        prev_else_file,
-                        loc.line,
-                        loc.index);
+                    File_printf(out,
+                                "elif directive after else directive in "
+                                "{Str}:({size_t},{size_t})",
+                                prev_else_file,
+                                loc.line,
+                                loc.index);
                     break;
                 case ELSE_OP_ELSE:
-                    fprintf(out,
-                            "Second else directive after else in %s:(%zu,%zu)",
+                    File_printf(out,
+                            "Second else directive after else in {Str}:({size_t},{size_t})",
                             prev_else_file,
                             loc.line,
                             loc.index);
@@ -153,42 +162,42 @@ void PreprocErr_print(FILE* out, const FileInfo* file_info, PreprocErr* err) {
         case PREPROC_ERR_MISPLACED_PREPROC_TOKEN:
             assert(err->misplaced_preproc_tok == TOKEN_PP_STRINGIFY
                    || err->misplaced_preproc_tok == TOKEN_PP_CONCAT);
-            fprintf(
+            File_printf(
                 out,
-                "preprocessor token \"%s\" outside of preprocessor directive",
-                TokenKind_get_spelling(err->misplaced_preproc_tok).data);
+                "preprocessor token \"{Str}\" outside of preprocessor directive",
+                TokenKind_get_spelling(err->misplaced_preproc_tok));
             break;
         case PREPROC_ERR_INT_CONST:
             assert(StrBuf_valid(&err->constant_spell));
             ErrBase_print(out, file_info, &err->base);
-            fprintf(out,
-                    "Integer constant %s is not a valid integer constant",
-                    StrBuf_data(&err->constant_spell));
+            File_printf(out,
+                    "Integer constant {Str} is not a valid integer constant",
+                    StrBuf_as_str(&err->constant_spell));
             IntConstErr_print(out, &err->int_const_err);
             break;
         case PREPROC_ERR_FLOAT_CONST:
             assert(StrBuf_valid(&err->constant_spell));
             ErrBase_print(out, file_info, &err->base);
-            fprintf(out,
-                    "Floating constant %s is not a valid integer constant",
-                    StrBuf_data(&err->constant_spell));
+            File_printf(out,
+                    "Floating constant {Str} is not a valid integer constant",
+                    StrBuf_as_str(&err->constant_spell));
             FloatConstErr_print(out, &err->float_const_err);
             break;
         case PREPROC_ERR_CHAR_CONST:
             assert(StrBuf_valid(&err->constant_spell));
             ErrBase_print(out, file_info, &err->base);
-            fprintf(out,
-                    "Character constant %s is not a valid character constant",
-                    StrBuf_data(&err->constant_spell));
+            File_printf(out,
+                    "Character constant {Str} is not a valid character constant",
+                    StrBuf_as_str(&err->constant_spell));
             CharConstErr_print(out, &err->char_const_err);
             break;
         case PREPROC_ERR_EMPTY_DEFINE:
             ErrBase_print(out, file_info, &err->base);
-            fputs("Empty define directive", out);
+            File_put_str("Empty define directive", out);
             break;
         case PREPROC_ERR_DEFINE_NOT_ID:
             ErrBase_print(out, file_info, &err->base);
-            fputs("define not followed by id", out);
+            File_put_str("define not followed by id", out);
             break;
         case PREPROC_ERR_EXPECTED_TOKENS:
             ErrBase_print(out, file_info, &err->base);
@@ -196,53 +205,55 @@ void PreprocErr_print(FILE* out, const FileInfo* file_info, PreprocErr* err) {
             break;
         case PREPROC_ERR_DUPLICATE_MACRO_PARAM:
             ErrBase_print(out, file_info, &err->base);
-            fprintf(out,
-                    "Duplicate macro argument name \"%s\"",
-                    StrBuf_data(&err->duplicate_arg_name));
+            File_printf(out,
+                    "Duplicate macro argument name \"{Str}\"",
+                    StrBuf_as_str(&err->duplicate_arg_name));
             break;
         case PREPROC_ERR_INVALID_BACKSLASH:
             ErrBase_print(out, file_info, &err->base);
-            fputs("Backslash \'\\\' only allowed at the end of a line", out);
+            File_put_str("Backslash \'\\\' only allowed at the end of a line", out);
             break;
         case PREPROC_ERR_INCLUDE_NUM_ARGS:
             ErrBase_print(out, file_info, &err->base);
-            fputs("Include directive must have exactly one argument", out);
+            File_put_str("Include directive must have exactly one argument", out);
             break;
         case PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL:
             ErrBase_print(out, file_info, &err->base);
-            fputs("Include directive only takes '\"' or '<' '>' literals", out);
+            File_put_str("Include directive only takes '\"' or '<' '>' literals", out);
             break;
     }
-    fputc('\n', out);
+    File_putc('\n', out);
 }
 
-static const char* get_single_macro_op_str(SingleMacroOpKind type) {
+static Str get_single_macro_op_str(SingleMacroOpKind type) {
     switch (type) {
         case SINGLE_MACRO_OP_IFDEF:
-            return "ifdef";
+            return STR_LIT("ifdef");
         case SINGLE_MACRO_OP_IFNDEF:
-            return "ifndef";
+            return STR_LIT("ifndef");
         case SINGLE_MACRO_OP_UNDEF:
-            return "undef";
+            return STR_LIT("undef");
     }
 
     UNREACHABLE();
 }
 
-static const char* get_else_op_str(ElseOpKind type) {
+static Str get_else_op_str(ElseOpKind type) {
     switch (type) {
         case ELSE_OP_ELIF:
-            return "elif";
+            return STR_LIT("elif");
         case ELSE_OP_ELSE:
-            return "else";
+            return STR_LIT("else");
         case ELSE_OP_ENDIF:
-            return "endif";
+            return STR_LIT("endif");
     }
 
     UNREACHABLE();
 }
 
-void PreprocErr_set_file_err(PreprocErr* err, const StrBuf* fail_filename, SourceLoc include_loc) {
+void PreprocErr_set_file_err(PreprocErr* err,
+                             const StrBuf* fail_filename,
+                             SourceLoc include_loc) {
     assert(fail_filename);
     assert(StrBuf_valid(fail_filename));
 

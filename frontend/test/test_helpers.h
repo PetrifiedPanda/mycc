@@ -43,7 +43,7 @@
 PreprocRes tokenize(Str file);
 PreprocRes tokenize_string(Str str, Str file);
 
-void test_compare_files(Str got_file, Str ex_file);
+void test_compare_files(CStr got_file, CStr ex_file);
 
 #define STR_BUF_NON_HEAP(lit) StrBuf_non_heap(ARR_LEN(lit) - 1, lit)
 
