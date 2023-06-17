@@ -39,6 +39,7 @@ size_t StrBuf_len(const StrBuf* str);
 size_t StrBuf_cap(const StrBuf* str);
 
 Str StrBuf_as_str(const StrBuf* str);
+CStr StrBuf_c_str(StrBuf* str);
 const char* StrBuf_data(const StrBuf* str);
 char StrBuf_at(const StrBuf* str, size_t i);
 

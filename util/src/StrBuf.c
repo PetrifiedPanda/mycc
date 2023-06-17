@@ -118,6 +118,11 @@ Str StrBuf_as_str(const StrBuf* str) {
     }
 }
 
+CStr StrBuf_c_str(StrBuf* str) {
+    assert(str);
+    return Str_c_str(StrBuf_as_str(str));
+}
+
 const char* StrBuf_data(const StrBuf* str) {
     assert(str);
     if (str->_is_static_buf) {

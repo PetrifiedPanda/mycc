@@ -10,6 +10,14 @@ Str Str_null(void) {
     };
 }
 
+CStr Str_c_str(Str s) {
+    assert(s.data[s.len] == '\0');
+    return (CStr){
+        .len = s.len,
+        .data = s.data,
+    };
+}
+
 bool Str_valid(Str s) {
     if (s.data == NULL) {
         assert(s.len == 0);
@@ -41,6 +49,11 @@ Str Str_substr(Str s, size_t begin, size_t end) {
 char Str_at(Str s, size_t i) {
     assert(i < s.len);
     return s.data[i];
+}
+
+bool Str_starts_with(Str s1, Str s2) {
+    assert(s1.len >= s2.len);
+    return Str_eq(Str_substr(s1, 0, s2.len), s2);
 }
 
 bool Str_eq(Str s1, Str s2) {
