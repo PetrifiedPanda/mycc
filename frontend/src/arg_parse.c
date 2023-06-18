@@ -51,7 +51,7 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
             ++res.num_files;
             res.files = mycc_realloc(res.files,
                                      res.num_files * sizeof *res.files);
-            res.files[res.num_files - 1] = (Str){strlen(item), item};
+            res.files[res.num_files - 1] = (CStr){strlen(item), item};
         }
     }
 

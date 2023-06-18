@@ -15,9 +15,12 @@ typedef struct {
 } CStr;
 
 #define STR_LIT(lit) (Str){.len = (sizeof lit) - 1, .data = (lit)}
+#define CSTR_LIT(lit) (CStr){.len = (sizeof lit) - 1, .data = (lit)}
 
 Str Str_null(void);
 CStr Str_c_str(Str s);
+
+Str CStr_as_str(CStr);
 
 bool Str_valid(Str);
 

@@ -41,7 +41,7 @@
         }                                                                      \
     } while (0)
 
-PreprocRes tokenize(Str file);
+PreprocRes tokenize(CStr file);
 PreprocRes tokenize_string(Str str, Str file);
 
 void test_compare_files(CStr got_file, CStr ex_file);

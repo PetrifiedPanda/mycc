@@ -18,6 +18,13 @@ CStr Str_c_str(Str s) {
     };
 }
 
+Str CStr_as_str(CStr s) {
+    return (Str){
+        .len = s.len,
+        .data = s.data,
+    };
+}
+
 bool Str_valid(Str s) {
     if (s.data == NULL) {
         assert(s.len == 0);

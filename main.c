@@ -13,11 +13,11 @@
 
 #include "util/StrBuf.h"
 
-static bool convert_bin_to_text(const CmdArgs* args, Str filename);
+static bool convert_bin_to_text(const CmdArgs* args, CStr filename);
 
 static bool output_ast(const CmdArgs* args,
                        const ArchTypeInfo* type_info,
-                       Str filename);
+                       CStr filename);
 
 int main(int argc, char** argv) {
     const CmdArgs args = parse_cmd_args(argc, argv);
@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
     const ArchTypeInfo type_info = get_arch_type_info(ARCH_X86_64, is_windows);
 
     for (int i = 0; i < args.num_files; ++i) {
-        Str filename = args.files[i];
+        const CStr filename = args.files[i];
         if (args.action == ARG_ACTION_CONVERT_BIN_TO_TEXT) {
             if (!convert_bin_to_text(&args, filename)) {
                 CmdArgs_free(&args);
@@ -76,8 +76,8 @@ static StrBuf get_out_filename(Str origin_file, Str suffix) {
     return StrBuf_concat(filename_only, suffix);
 }
 
-static bool convert_bin_to_text(const CmdArgs* args, Str filename) {
-    File in_file = File_open(Str_c_str(filename), FILE_READ | FILE_BINARY);
+static bool convert_bin_to_text(const CmdArgs* args, CStr filename) {
+    File in_file = File_open(filename, FILE_READ | FILE_BINARY);
     if (!File_valid(in_file)) {
         File_printf(mycc_stderr(), "Failed to open file {Str}\n", filename);
         return false;
@@ -93,7 +93,7 @@ static bool convert_bin_to_text(const CmdArgs* args, Str filename) {
     File_close(in_file);
 
     StrBuf out_filename_str = args->output_file.data == NULL
-                                  ? get_out_filename(filename, STR_LIT(".ast"))
+                                  ? get_out_filename(CStr_as_str(filename), STR_LIT(".ast"))
                                   : StrBuf_null();
     CStr out_filename = StrBuf_valid(&out_filename_str)
                             ? StrBuf_c_str(&out_filename_str)
@@ -132,7 +132,7 @@ fail_with_out_file_closed:
 
 static bool output_ast(const CmdArgs* args,
                        const ArchTypeInfo* type_info,
-                       Str filename) {
+                       CStr filename) {
     PreprocErr preproc_err = PreprocErr_create();
     PreprocRes preproc_res = preproc(filename, &preproc_err);
     if (preproc_err.kind != PREPROC_ERR_NONE) {
@@ -157,7 +157,7 @@ static bool output_ast(const CmdArgs* args,
     Str suffix = args->action == ARG_ACTION_OUTPUT_BIN ? STR_LIT(".binast")
                                                        : STR_LIT(".ast");
     StrBuf out_filename_str = args->output_file.data == NULL
-                                  ? get_out_filename(filename, suffix)
+                                  ? get_out_filename(CStr_as_str(filename), suffix)
                                   : StrBuf_null();
     CStr out_filename = StrBuf_valid(&out_filename_str)
                             ? StrBuf_c_str(&out_filename_str)

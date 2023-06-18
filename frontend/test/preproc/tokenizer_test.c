@@ -20,15 +20,15 @@ static Token create_tok_str_lit(StrLitKind kind,
                                 size_t line,
                                 size_t index);
 
-static void check_token_arr_file(Str filename,
+static void check_token_arr_file(CStr filename,
                                  const Token* expected,
                                  size_t expected_len);
-static void check_token_arr_str(Str code,
+static void check_token_arr_str(CStr code,
                                 const Token* expected,
                                 size_t expected_len);
 
 TEST(simple) {
-    Str code = STR_LIT(
+    CStr code = CSTR_LIT(
         "typedef struct typedeftest /* This is a comment \n"
         "that goes over\n"
         "multiple lines\n"
@@ -114,7 +114,7 @@ TEST(simple) {
 }
 
 TEST(file) {
-    Str filename = STR_LIT("../frontend/test/files/no_preproc.c");
+    CStr filename = CSTR_LIT("../frontend/test/files/no_preproc.c");
 
     const Token expected[] = {
         create(TOKEN_TYPEDEF, StrBuf_null(), 3, 1),
@@ -825,7 +825,7 @@ TEST(file) {
 }
 
 TEST(include) {
-    Str filename = STR_LIT("../frontend/test/files/include_test/start.c");
+    CStr filename = CSTR_LIT("../frontend/test/files/include_test/start.c");
     const Token expected[] = {
         create_file(TOKEN_EXTERN, StrBuf_null(), 2, 1, 0),
         create_file(TOKEN_INT, StrBuf_null(), 2, 8, 0),
@@ -1126,7 +1126,7 @@ TEST(include) {
 
 TEST(hex_literal_or_var) {
     {
-        Str code = STR_LIT("vare-10");
+        CStr code = CSTR_LIT("vare-10");
 
         const Token expected[] = {
             create(TOKEN_IDENTIFIER, STR_BUF_NON_HEAP("vare"), 1, 1),
@@ -1136,7 +1136,7 @@ TEST(hex_literal_or_var) {
         check_token_arr_str(code, expected, ARR_LEN(expected));
     }
     {
-        Str code = STR_LIT("var2e-10");
+        CStr code = CSTR_LIT("var2e-10");
 
         const Token expected[] = {
             create(TOKEN_IDENTIFIER, STR_BUF_NON_HEAP("var2e"), 1, 1),
@@ -1146,7 +1146,7 @@ TEST(hex_literal_or_var) {
         check_token_arr_str(code, expected, ARR_LEN(expected));
     }
     {
-        Str code = STR_LIT("var2p-10");
+        CStr code = CSTR_LIT("var2p-10");
 
         const Token expected[] = {
             create(TOKEN_IDENTIFIER, STR_BUF_NON_HEAP("var2p"), 1, 1),
@@ -1159,7 +1159,7 @@ TEST(hex_literal_or_var) {
 
 TEST(dot_float_literal_or_op) {
     {
-        Str code = STR_LIT("int n = .001");
+        CStr code = CSTR_LIT("int n = .001");
 
         const Token expected[] = {
             create(TOKEN_INT, StrBuf_null(), 1, 1),
@@ -1276,10 +1276,10 @@ static void compare_tokens(const Token* got,
     }
 }
 
-static void check_token_arr_helper(Str file_or_code,
+static void check_token_arr_helper(CStr file_or_code,
                                    const Token* expected,
                                    size_t expected_len,
-                                   PreprocRes (*func)(Str)) {
+                                   PreprocRes (*func)(CStr)) {
     PreprocRes preproc_res = func(file_or_code);
     ASSERT_NOT_NULL(preproc_res.toks);
     check_size(preproc_res.toks, expected_len);
@@ -1289,17 +1289,17 @@ static void check_token_arr_helper(Str file_or_code,
     PreprocRes_free(&preproc_res);
 }
 
-static void check_token_arr_file(Str filename,
+static void check_token_arr_file(CStr filename,
                                  const Token* expected,
                                  size_t expected_len) {
     check_token_arr_helper(filename, expected, expected_len, tokenize);
 }
 
-static PreprocRes tokenize_string_wrapper(Str code) {
-    return tokenize_string(code, STR_LIT("code.c"));
+static PreprocRes tokenize_string_wrapper(CStr code) {
+    return tokenize_string(CStr_as_str(code), STR_LIT("code.c"));
 }
 
-static void check_token_arr_str(Str code,
+static void check_token_arr_str(CStr code,
                                 const Token* expected,
                                 size_t expected_len) {
     check_token_arr_helper(code,

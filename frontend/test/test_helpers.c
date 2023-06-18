@@ -6,7 +6,7 @@
 
 #include "frontend/preproc/preproc.h"
 
-PreprocRes tokenize(Str file) {
+PreprocRes tokenize(CStr file) {
     PreprocErr err = PreprocErr_create();
     PreprocRes res = preproc(file, &err);
     ASSERT_NOT_NULL(res.toks);

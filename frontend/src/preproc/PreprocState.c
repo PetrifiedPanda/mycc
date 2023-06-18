@@ -50,10 +50,10 @@ static StrBuf get_path_prefix(Str path) {
     }
 }
 
-static FileData create_file_data(Str start_file, PreprocErr* err) {
-    StrBuf file_name = StrBuf_create(start_file);
+static FileData create_file_data(CStr start_file, PreprocErr* err) {
+    StrBuf file_name = StrBuf_create(CStr_as_str(start_file));
 
-    File file = File_open(Str_c_str(start_file), FILE_READ);
+    File file = File_open(start_file, FILE_READ);
     if (!File_valid(file)) {
         PreprocErr_set_file_err(err,
                                 &file_name,
@@ -76,7 +76,7 @@ static FileData create_file_data(Str start_file, PreprocErr* err) {
         .prefix_idx = 0,
         .loc = {0, {0, 0}},
     };
-    fm.prefixes[0] = get_path_prefix(start_file);
+    fm.prefixes[0] = get_path_prefix(CStr_as_str(start_file));
     FileInfo fi = FileInfo_create(&file_name);
 
     return (FileData){
@@ -86,7 +86,7 @@ static FileData create_file_data(Str start_file, PreprocErr* err) {
     };
 }
 
-PreprocState PreprocState_create(Str start_file, PreprocErr* err) {
+PreprocState PreprocState_create(CStr start_file, PreprocErr* err) {
     FileData fd = create_file_data(start_file, err);
     if (!fd.is_valid) {
         PreprocState res = {0};

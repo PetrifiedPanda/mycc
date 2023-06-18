@@ -21,7 +21,7 @@ static void append_terminator_token(TokenArr* arr);
 
 static bool preproc_impl(PreprocState* state);
 
-PreprocRes preproc(Str path, PreprocErr* err) {
+PreprocRes preproc(CStr path, PreprocErr* err) {
     assert(err);
 
     PreprocState state = PreprocState_create(path, err);

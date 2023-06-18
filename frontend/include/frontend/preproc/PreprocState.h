@@ -56,7 +56,7 @@ typedef struct {
     FileInfo file_info;
 } PreprocState;
 
-PreprocState PreprocState_create(Str start_file, PreprocErr* err);
+PreprocState PreprocState_create(CStr start_file, PreprocErr* err);
 
 PreprocState PreprocState_create_string(Str code, Str filename, PreprocErr* err);
 

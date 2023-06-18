@@ -13,7 +13,7 @@ typedef enum {
 
 typedef struct {
     int num_files;
-    Str* files;
+    CStr* files;
     CStr output_file;
     ArgAction action;
 } CmdArgs;

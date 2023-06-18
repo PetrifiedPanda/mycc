@@ -191,7 +191,7 @@ static void compare_with_ex_file(const TranslationUnit* got,
 }
 
 TEST(no_preproc) {
-    Str file = STR_LIT("../frontend/test/files/no_preproc.c");
+    CStr file = CSTR_LIT("../frontend/test/files/no_preproc.c");
     PreprocRes res = tokenize(file);
 
     ParserErr err = ParserErr_create();
@@ -249,7 +249,7 @@ TEST(no_preproc) {
 }
 
 TEST(parser_testfile) {
-    Str file = STR_LIT("../frontend/test/files/parser_testfile.c");
+    CStr file = CSTR_LIT("../frontend/test/files/parser_testfile.c");
     PreprocRes res = tokenize(file);
 
     ParserErr err = ParserErr_create();
@@ -333,7 +333,7 @@ TEST(parser_testfile) {
 }
 
 TEST(large_testfile) {
-    Str file = STR_LIT("../frontend/test/files/large_testfile.c");
+    CStr file = CSTR_LIT("../frontend/test/files/large_testfile.c");
     PreprocRes res = tokenize(file);
 
     ParserErr err = ParserErr_create();
