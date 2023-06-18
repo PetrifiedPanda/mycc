@@ -36,7 +36,7 @@ static void get_mode_str(OpenMode mode, char buf[OPENMODE_MAX_LEN]) {
 }
 
 File File_open(CStr filename, OpenMode mode) {
-    char mode_str[OPENMODE_MAX_LEN];
+    char mode_str[OPENMODE_MAX_LEN] = {0};
     get_mode_str(mode, mode_str);
 
     return (File){
