@@ -123,7 +123,7 @@ CStr StrBuf_c_str(StrBuf* str) {
     return Str_c_str(StrBuf_as_str(str));
 }
 
-const char* StrBuf_data(const StrBuf* str) {
+static const char* StrBuf_data(const StrBuf* str) {
     assert(str);
     if (str->_is_static_buf) {
         return str->_static_buf;

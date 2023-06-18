@@ -226,7 +226,7 @@ void PreprocState_read_line(PreprocState* state) {
                                            static_buf,
                                            STATIC_BUF_LEN);
     while (is_escaped_newline(state->line_info.next)) {
-        if (state->line_info.next.data == StrBuf_data(line)) {
+        if (state->line_info.next.data == StrBuf_as_str(line).data) {
             StrBuf_push_back(line, '\n');
         } else if (len < STATIC_BUF_LEN - 1) {
             static_buf[len] = '\n';

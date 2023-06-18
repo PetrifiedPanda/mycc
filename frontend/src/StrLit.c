@@ -4,10 +4,10 @@
 
 StrLit convert_to_str_lit(StrBuf* spell) {
     StrBuf cont = StrBuf_take(spell);
-    assert(StrBuf_data(&cont)[StrBuf_len(&cont) - 1] == '"' || StrBuf_data(&cont)[StrBuf_len(&cont) - 1] == '>');
+    assert(StrBuf_at(&cont, StrBuf_len(&cont) - 1) == '"' || StrBuf_at(&cont, StrBuf_len(&cont) - 1) == '>');
     StrBuf_pop_back(&cont);
 
-    Str str = StrBuf_as_str(&cont);
+    const Str str = StrBuf_as_str(&cont);
     StrLitKind kind;
     size_t chars_to_remove;
     switch (Str_at(str, 0)) {

@@ -213,14 +213,13 @@ static void resize_map(StringMap* map) {
 // Hash function taken from K&R version 2 (page 144)
 static size_t hash_string(const StrBuf* str) {
     size_t hash = 0;
-
-    const char* it = StrBuf_data(str);
-    const char* limit = it + StrBuf_len(str);
-    while (it != limit) {
-        hash = *it + 31 * hash;
-        ++it;
+    
+    const Str str_data = StrBuf_as_str(str);
+    size_t i = 0;
+    while (i != str_data.len) {
+        hash = Str_at(str_data, i) + 32 * hash;
+        ++i;
     }
-
     return hash;
 }
 
