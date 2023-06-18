@@ -1,7 +1,6 @@
 #ifndef TESTING_H
 #define TESTING_H
 
-#include <stdio.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -9,6 +8,8 @@
 #include <setjmp.h>
 #include <errno.h>
 
+#include "util/File.h"
+#include "util/Str.h"
 #include "util/timing.h"
 #include "util/macro_util.h"
 
@@ -40,7 +41,9 @@ extern jmp_buf test_jump_buf;
  * TEST_SUITE_END
  */
 #define REGISTER_TEST(test_name)                                               \
-    (struct test_and_name) { test_name##_test, #test_name }
+    (struct test_and_name) {                                                   \
+        test_name##_test, #test_name                                           \
+    }
 
 /**
  * Terminate a test suite
@@ -157,9 +160,11 @@ extern jmp_buf test_jump_buf;
  * Prints an assert error, failing the test. Must not be called outside of tests
  */
 #define PRINT_ASSERT_ERR(format, ...)                                          \
-    printf("\tAssertion failure in %s, %d\n\t\t", __FILE__, __LINE__);         \
-    printf(format, __VA_ARGS__);                                               \
-    printf("\n");                                                              \
+    mycc_printf("\tAssertion failure in {Str}, {size_t}\n\t\t",                \
+                STR_LIT(__FILE__),                                             \
+                __LINE__);                                                     \
+    mycc_printf(format, __VA_ARGS__);                                          \
+    File_putc('\n', mycc_stdout());                                            \
     MYCC_DEBUG_BREAK();                                                        \
     longjmp(test_jump_buf, 0)
 

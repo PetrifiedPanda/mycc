@@ -10,7 +10,7 @@
                                                      &info);                   \
         ASSERT(res.err.kind == INT_CONST_ERR_NONE);                            \
         ASSERT(res.res.kind == expected_val_type);                             \
-        ASSERT_UINTMAX_T(num, res.res.uint_val);                               \
+        ASSERT_UINT64_T(num, res.res.uint_val);                                \
     } while (0)
 
 #define TEST_INT_LITERAL(constant, expected_val_type)                          \
@@ -21,7 +21,7 @@
                                                      &info);                   \
         ASSERT(res.err.kind == INT_CONST_ERR_NONE);                            \
         ASSERT(res.res.kind == expected_val_type);                             \
-        ASSERT_UINTMAX_T(num, res.res.sint_val);                               \
+        ASSERT_UINT64_T(num, res.res.sint_val);                                \
     } while (0)
 
 TEST(integer) {
@@ -126,14 +126,18 @@ static void test_parse_float_invalid_char(Str spell, char invalid_char) {
 }
 
 TEST(int_too_large) {
-    test_parse_int_err(STR_LIT("18446744073709551616u"), INT_CONST_ERR_TOO_LARGE);
+    test_parse_int_err(STR_LIT("18446744073709551616u"),
+                       INT_CONST_ERR_TOO_LARGE);
     test_parse_int_err(STR_LIT("9223372036854775808"), INT_CONST_ERR_TOO_LARGE);
 
     test_parse_int_err(STR_LIT("0xffffffffffffffff0"), INT_CONST_ERR_TOO_LARGE);
-    test_parse_int_err(STR_LIT("0xffffffffffffffff0U"), INT_CONST_ERR_TOO_LARGE);
+    test_parse_int_err(STR_LIT("0xffffffffffffffff0U"),
+                       INT_CONST_ERR_TOO_LARGE);
 
-    test_parse_int_err(STR_LIT("017777777777777777777770"), INT_CONST_ERR_TOO_LARGE);
-    test_parse_int_err(STR_LIT("017777777777777777777770u"), INT_CONST_ERR_TOO_LARGE);
+    test_parse_int_err(STR_LIT("017777777777777777777770"),
+                       INT_CONST_ERR_TOO_LARGE);
+    test_parse_int_err(STR_LIT("017777777777777777777770u"),
+                       INT_CONST_ERR_TOO_LARGE);
 }
 
 TEST(int_suffix_error) {
@@ -150,8 +154,10 @@ TEST(int_suffix_error) {
     test_parse_int_err(STR_LIT("69lll"), INT_CONST_ERR_TRIPLE_LONG);
     test_parse_int_err(STR_LIT("69LLL"), INT_CONST_ERR_TRIPLE_LONG);
 
-    test_parse_int_err(STR_LIT("69LLUsaflajsdflk"), INT_CONST_ERR_SUFFIX_TOO_LONG);
-    test_parse_int_err(STR_LIT("69ullabcdefghi"), INT_CONST_ERR_SUFFIX_TOO_LONG);
+    test_parse_int_err(STR_LIT("69LLUsaflajsdflk"),
+                       INT_CONST_ERR_SUFFIX_TOO_LONG);
+    test_parse_int_err(STR_LIT("69ullabcdefghi"),
+                       INT_CONST_ERR_SUFFIX_TOO_LONG);
 
     test_parse_int_invalid_char(STR_LIT("420ub"), 'b');
     test_parse_int_invalid_char(STR_LIT("420ld"), 'd');
