@@ -9,9 +9,9 @@
 void check_value(Value got, Value expected) {
     ASSERT_VALUE_KIND(got.kind, expected.kind);
     if (ValueKind_is_sint(got.kind)) {
-        ASSERT_INT64_T(got.sint_val, expected.sint_val);
+        ASSERT_I64(got.sint_val, expected.sint_val);
     } else if (ValueKind_is_uint(got.kind)) {
-        ASSERT_UINT64_T(got.uint_val, expected.uint_val);
+        ASSERT_U64(got.uint_val, expected.uint_val);
     } else {
         ASSERT_DOUBLE(got.float_val, expected.float_val, 0.0001);
     }

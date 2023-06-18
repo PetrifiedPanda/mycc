@@ -1248,9 +1248,9 @@ static void check_token(const Token* t, const Token* expected) {
     if (t->kind == TOKEN_I_CONSTANT) {
         ASSERT_VALUE_KIND(t->val.kind, expected->val.kind);
         if (ValueKind_is_sint(t->val.kind)) {
-            ASSERT_INT64_T(t->val.sint_val, expected->val.sint_val);
+            ASSERT_I64(t->val.sint_val, expected->val.sint_val);
         } else {
-            ASSERT_UINT64_T(t->val.uint_val, expected->val.uint_val);
+            ASSERT_U64(t->val.uint_val, expected->val.uint_val);
         }
     } else if (t->kind == TOKEN_F_CONSTANT) {
         ASSERT_VALUE_KIND(t->val.kind, expected->val.kind);

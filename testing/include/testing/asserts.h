@@ -55,7 +55,7 @@
         }                                                                      \
     } while (0)
 
-#define ASSERT_INT64_T(got, expected)                                          \
+#define ASSERT_I64(got, expected)                                              \
     do {                                                                       \
         const int64_t assert_intmax_t_got = (got);                             \
         const int64_t assert_intmax_t_expected = (expected);                   \
@@ -66,7 +66,7 @@
         }                                                                      \
     } while (0)
 
-#define ASSERT_UINT64_T(got, expected)                                         \
+#define ASSERT_U64(got, expected)                                              \
     do {                                                                       \
         const uint64_t assert_uintmax_t_got = (got);                           \
         const uint64_t assert_uintmax_t_expected = (expected);                 \
