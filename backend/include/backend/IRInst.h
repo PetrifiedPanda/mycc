@@ -2,7 +2,6 @@
 #define IR_INST_H
 
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdint.h>
 
 #include "util/StrBuf.h"

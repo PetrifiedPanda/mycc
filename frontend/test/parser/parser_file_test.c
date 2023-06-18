@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "testing/asserts.h"
 
 #include "frontend/preproc/preproc.h"

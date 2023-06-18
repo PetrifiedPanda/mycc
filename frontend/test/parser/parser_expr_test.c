@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "util/mem.h"
 
 #include "testing/asserts.h"

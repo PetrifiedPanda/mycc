@@ -1,6 +1,5 @@
 #include "frontend/preproc/preproc.h"
 
-#include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
