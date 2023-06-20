@@ -1,4 +1,4 @@
-#include "frontend/preproc/read_and_tokenize_line.h"
+#include "read_and_tokenize_line.h"
 
 #include <ctype.h>
 

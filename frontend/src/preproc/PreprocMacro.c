@@ -6,7 +6,7 @@
 #include "util/mem.h"
 #include "util/macro_util.h"
 
-#include "frontend/preproc/read_and_tokenize_line.h"
+#include "read_and_tokenize_line.h"
 
 // TODO: make this also collect macro args?
 static size_t find_macro_end(PreprocState* state,

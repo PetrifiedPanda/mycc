@@ -11,9 +11,9 @@
 #include "frontend/preproc/PreprocMacro.h"
 #include "frontend/preproc/PreprocState.h"
 #include "frontend/preproc/num_parse.h"
-#include "frontend/preproc/read_and_tokenize_line.h"
 
 #include "tokenizer.h"
+#include "read_and_tokenize_line.h"
 
 static TokenKind keyword_kind(Str spelling);
 

@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include "PreprocState.h"
+#include "frontend/preproc/PreprocState.h"
 
 bool read_and_tokenize_line(PreprocState* state);
 
