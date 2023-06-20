@@ -2,6 +2,7 @@
 
 #include "frontend/preproc/PreprocMacro.h"
 
+// TODO: Target (u)intmax_t semantics
 typedef struct {
     bool valid;
     bool is_signed;
@@ -11,21 +12,87 @@ typedef struct {
     };
 } PreprocConstExprVal;
 
+#define CHECKED_OP(res, v2, OP)                                                \
+    do {                                                                       \
+        if (res.is_signed) {                                                   \
+            int64_t val;                                                       \
+            if (v2.is_signed) {                                                \
+                val = v2.sint_val;                                             \
+            } else {                                                           \
+                val = v2.uint_val;                                             \
+                if ((uint64_t)val != v2.uint_val) {                            \
+                    /* TODO: err */                                            \
+                    return (PreprocConstExprVal){0};                           \
+                }                                                              \
+            }                                                                  \
+            res.sint_val = res.sint_val OP val;                                \
+        } else if (v2.is_signed) {                                             \
+            const int64_t new_val = (int64_t)res.uint_val;                     \
+            if ((uint64_t)new_val != res.uint_val) {                           \
+                /*TODO: err*/                                                  \
+                return (PreprocConstExprVal){0};                               \
+            }                                                                  \
+            res.is_signed = true;                                              \
+            res.sint_val = new_val OP v2.sint_val;                             \
+        } else {                                                               \
+            res.uint_val = res.uint_val OP v2.uint_val;                        \
+        }                                                                      \
+    } while (0)
+
 static bool PreprocConstExprVal_is_nonzero(const PreprocConstExprVal* val) {
     assert(val->valid);
     return val->is_signed ? val->sint_val != 0 : val->uint_val != 0;
 }
 
-static PreprocConstExprVal evaluate_preproc_log_or_expr(size_t* it,
-                                                        TokenArr* arr) {
+static PreprocConstExprVal evaluate_preproc_or_expr(size_t* it, const TokenArr* arr) {
     (void)it;
     (void)arr;
     // TODO:
     return (PreprocConstExprVal){0};
 }
 
+static PreprocConstExprVal evaluate_preproc_log_and_expr(size_t* it,
+                                                         const TokenArr* arr) {
+    PreprocConstExprVal res = evaluate_preproc_or_expr(it, arr);
+    if (!res.valid) {
+        return res;
+    }
+
+    while (arr->tokens[*it].kind == TOKEN_LAND) {
+        ++*it;
+        PreprocConstExprVal rhs = evaluate_preproc_or_expr(it, arr);
+        if (!rhs.valid) {
+            return rhs;
+        }
+
+        CHECKED_OP(res, rhs, &);
+    }
+
+    return res;
+}
+
+static PreprocConstExprVal evaluate_preproc_log_or_expr(size_t* it,
+                                                        const TokenArr* arr) {
+    PreprocConstExprVal res = evaluate_preproc_log_and_expr(it, arr);
+    if (!res.valid) {
+        return res;
+    }
+
+    while (arr->tokens[*it].kind == TOKEN_LOR) {
+        ++*it;
+        PreprocConstExprVal rhs = evaluate_preproc_log_and_expr(it, arr);
+        if (!rhs.valid) {
+            return rhs;
+        }
+
+        CHECKED_OP(res, rhs, |);
+    }
+
+    return res;
+}
+
 static PreprocConstExprVal evaluate_preproc_cond_expr(size_t* it,
-                                                      TokenArr* arr) {
+                                                      const TokenArr* arr) {
     PreprocConstExprVal curr_res = evaluate_preproc_log_or_expr(it, arr);
     if (!curr_res.valid) {
         return curr_res;
@@ -45,7 +112,8 @@ static PreprocConstExprVal evaluate_preproc_cond_expr(size_t* it,
         if (!false_val.valid) {
             return false_val;
         }
-        curr_res = PreprocConstExprVal_is_nonzero(&curr_res) ? true_val : false_val;
+        curr_res = PreprocConstExprVal_is_nonzero(&curr_res) ? true_val
+                                                             : false_val;
     }
 
     // TODO: if not over, error
@@ -54,7 +122,7 @@ static PreprocConstExprVal evaluate_preproc_cond_expr(size_t* it,
 }
 
 PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
-                                                       TokenArr* arr) {
+                                                TokenArr* arr) {
     for (size_t i = 2; i < arr->len; ++i) {
         if (Str_eq(StrBuf_as_str(&arr->tokens[i].spelling),
                    STR_LIT("defined"))) {
