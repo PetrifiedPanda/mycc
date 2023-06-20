@@ -9179,13 +9179,18 @@ translation_unit:
                                             len: 0
                                             unary_expr: ../frontend/test/files/parser_testfile.c:180,15
                                               len: 0
-                                              postfix_expr:
-                                                primary_expr:
-                                                  constant: ../frontend/test/files/parser_testfile.c:180,15
-                                                    value:
-                                                      type: VALUE_I
-                                                      sint_val: 0
+                                              +
+                                              cast_expr: ../frontend/test/files/parser_testfile.c:180,16
                                                 len: 0
+                                                unary_expr: ../frontend/test/files/parser_testfile.c:180,16
+                                                  len: 0
+                                                  postfix_expr:
+                                                    primary_expr:
+                                                      constant: ../frontend/test/files/parser_testfile.c:180,16
+                                                        value:
+                                                          type: VALUE_I
+                                                          sint_val: 0
+                                                    len: 0
         block_item:
           statement:
             iteration_statement: ../frontend/test/files/parser_testfile.c:181,5
