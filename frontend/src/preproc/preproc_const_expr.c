@@ -44,11 +44,65 @@ static bool PreprocConstExprVal_is_nonzero(const PreprocConstExprVal* val) {
     return val->is_signed ? val->sint_val != 0 : val->uint_val != 0;
 }
 
-static PreprocConstExprVal evaluate_preproc_or_expr(size_t* it, const TokenArr* arr) {
+static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it, const TokenArr* arr) {
     (void)it;
     (void)arr;
     // TODO:
     return (PreprocConstExprVal){0};
+}
+
+static PreprocConstExprVal evaluate_preproc_and_expr(size_t* it, const TokenArr* arr) {
+    PreprocConstExprVal res = evaluate_preproc_eq_expr(it, arr);
+    if (!res.valid) {
+        return res;
+    }
+
+    while (arr->tokens[*it].kind == TOKEN_AND) {
+        ++*it;
+        PreprocConstExprVal rhs = evaluate_preproc_eq_expr(it, arr);
+        if (!rhs.valid) {
+            return rhs;
+        }
+
+        CHECKED_OP(res, rhs, &);
+    }
+    return res;
+}
+
+static PreprocConstExprVal evaluate_preproc_xor_expr(size_t* it, const TokenArr* arr) {
+    PreprocConstExprVal res = evaluate_preproc_and_expr(it, arr);
+    if (!res.valid) {
+        return res;
+    }
+
+    while (arr->tokens[*it].kind == TOKEN_XOR) {
+        ++*it;
+        PreprocConstExprVal rhs = evaluate_preproc_and_expr(it, arr);
+        if (!rhs.valid) {
+            return rhs;
+        }
+
+        CHECKED_OP(res, rhs, ^);
+    }
+    return res;
+}
+
+static PreprocConstExprVal evaluate_preproc_or_expr(size_t* it, const TokenArr* arr) {
+    PreprocConstExprVal res = evaluate_preproc_xor_expr(it, arr);
+    if (!res.valid) {
+        return res;
+    }
+
+    while (arr->tokens[*it].kind == TOKEN_OR) {
+        ++*it;
+        PreprocConstExprVal rhs = evaluate_preproc_xor_expr(it, arr);
+        if (!rhs.valid) {
+            return rhs;
+        }
+
+        CHECKED_OP(res, rhs, |);
+    }
+    return res;
 }
 
 static PreprocConstExprVal evaluate_preproc_log_and_expr(size_t* it,
@@ -65,7 +119,7 @@ static PreprocConstExprVal evaluate_preproc_log_and_expr(size_t* it,
             return rhs;
         }
 
-        CHECKED_OP(res, rhs, &);
+        CHECKED_OP(res, rhs, &&);
     }
 
     return res;
@@ -85,7 +139,7 @@ static PreprocConstExprVal evaluate_preproc_log_or_expr(size_t* it,
             return rhs;
         }
 
-        CHECKED_OP(res, rhs, |);
+        CHECKED_OP(res, rhs, ||);
     }
 
     return res;
