@@ -92,12 +92,15 @@ static bool convert_bin_to_text(const CmdArgs* args, CStr filename) {
     }
     File_close(in_file);
 
-    StrBuf out_filename_str = args->output_file.data == NULL
-                                  ? get_out_filename(CStr_as_str(filename), STR_LIT(".ast"))
-                                  : StrBuf_null();
-    CStr out_filename = StrBuf_valid(&out_filename_str)
-                            ? StrBuf_c_str(&out_filename_str)
-                            : args->output_file;
+    StrBuf out_filename_str;
+    CStr out_filename;
+    if (args->output_file.data == NULL) {
+        out_filename_str = get_out_filename(CStr_as_str(filename), STR_LIT(".ast"));
+        out_filename = StrBuf_c_str(&out_filename_str);
+    } else {
+        out_filename_str = StrBuf_null();
+        out_filename = args->output_file;
+    }
     File out_file = File_open(out_filename, FILE_WRITE);
     if (!File_valid(out_file)) {
         File_printf(mycc_stderr(), "Failed to open file {Str}\n", out_filename);
@@ -156,12 +159,15 @@ static bool output_ast(const CmdArgs* args,
 
     Str suffix = args->action == ARG_ACTION_OUTPUT_BIN ? STR_LIT(".binast")
                                                        : STR_LIT(".ast");
-    StrBuf out_filename_str = args->output_file.data == NULL
-                                  ? get_out_filename(CStr_as_str(filename), suffix)
-                                  : StrBuf_null();
-    CStr out_filename = StrBuf_valid(&out_filename_str)
-                            ? StrBuf_c_str(&out_filename_str)
-                            : args->output_file;
+    StrBuf out_filename_str;
+    CStr out_filename;
+    if (args->output_file.data == NULL) {
+        out_filename_str = get_out_filename(CStr_as_str(filename), suffix);
+        out_filename = StrBuf_c_str(&out_filename_str);
+    } else {
+        out_filename_str = StrBuf_null();
+        out_filename = args->output_file;
+    }
     File out_file = File_open(out_filename, FILE_WRITE | FILE_BINARY);
     if (!File_valid(out_file)) {
         File_printf(mycc_stderr(),
