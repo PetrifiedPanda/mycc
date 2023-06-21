@@ -44,11 +44,35 @@ static bool PreprocConstExprVal_is_nonzero(const PreprocConstExprVal* val) {
     return val->is_signed ? val->sint_val != 0 : val->uint_val != 0;
 }
 
-static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it, const TokenArr* arr) {
+static PreprocConstExprVal evaluate_preproc_rel_expr(size_t* it, const TokenArr* arr) {
     (void)it;
     (void)arr;
     // TODO:
     return (PreprocConstExprVal){0};
+}
+
+static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it, const TokenArr* arr) {
+    PreprocConstExprVal res = evaluate_preproc_rel_expr(it, arr);
+    if (!res.valid) {
+        return res;
+    }
+
+    while (arr->tokens[*it].kind == TOKEN_EQ || arr->tokens[*it].kind == TOKEN_NE) {
+        const bool is_eq = arr->tokens[*it].kind == TOKEN_EQ;
+        ++*it;
+
+        PreprocConstExprVal rhs = evaluate_preproc_rel_expr(it, arr);
+        if (!rhs.valid) {
+            return rhs;
+        }
+
+        if (is_eq) {
+            CHECKED_OP(res, rhs, ==);
+        } else {
+            CHECKED_OP(res, rhs, !=);
+        }
+    }
+    return res;
 }
 
 static PreprocConstExprVal evaluate_preproc_and_expr(size_t* it, const TokenArr* arr) {
