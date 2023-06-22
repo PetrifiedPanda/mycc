@@ -50,6 +50,7 @@ static PreprocConstExprVal evaluate_preproc_primary_expr(size_t* it,
                                                          const TokenArr* arr) {
     if (*it >= arr->len) {
         // TODO: err
+        return (PreprocConstExprVal){0};
     }
     if (arr->tokens[*it].kind == TOKEN_I_CONSTANT) {
         PreprocConstExprVal res;
@@ -89,7 +90,7 @@ static PreprocConstExprVal evaluate_preproc_unary_expr(size_t* it,
         if (!rhs.valid) {
             return rhs;
         }
-        // TODO: do op
+
         switch (op) {
             case TOKEN_ADD:
                 return rhs;

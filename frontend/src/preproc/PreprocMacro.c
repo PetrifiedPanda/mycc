@@ -59,8 +59,8 @@ typedef struct {
     const PreprocMacro** data;
 } ExpandedMacroStack;
 
-static void expanded_macro_stack_push(ExpandedMacroStack* stack,
-                                      const PreprocMacro* m) {
+static void ExpandedMacroStack_push(ExpandedMacroStack* stack,
+                                    const PreprocMacro* m) {
     if (stack->len == stack->cap) {
         mycc_grow_alloc((void**)&stack->data, &stack->cap, sizeof(void*));
     }
@@ -68,12 +68,12 @@ static void expanded_macro_stack_push(ExpandedMacroStack* stack,
     ++stack->len;
 }
 
-static void expanded_macro_stack_pop(ExpandedMacroStack* stack) {
+static void ExpandedMacroStack_pop(ExpandedMacroStack* stack) {
     --stack->len;
 }
 
-static bool expanded_macro_stack_contains(const ExpandedMacroStack* stack,
-                                          const PreprocMacro* to_check) {
+static bool ExpandedMacroStack_contains(const ExpandedMacroStack* stack,
+                                        const PreprocMacro* to_check) {
     for (size_t i = 0; i < stack->len; ++i) {
         if (stack->data[i] == to_check) {
             return true;
@@ -82,7 +82,7 @@ static bool expanded_macro_stack_contains(const ExpandedMacroStack* stack,
     return false;
 }
 
-static ExpandedMacroStack expanded_macro_stack_create(void) {
+static ExpandedMacroStack ExpandedMacroStack_create(void) {
     return (ExpandedMacroStack){
         .len = 0,
         .cap = 0,
@@ -90,7 +90,7 @@ static ExpandedMacroStack expanded_macro_stack_create(void) {
     };
 }
 
-static void expanded_macro_stack_free(ExpandedMacroStack* stack) {
+static void ExpandedMacroStack_free(ExpandedMacroStack* stack) {
     mycc_free(stack->data);
 }
 
@@ -121,7 +121,7 @@ static ExpansionInfo find_and_expand_macro(PreprocState* state,
         return (ExpansionInfo){0, i + 1};
     }
     const PreprocMacro* macro = find_preproc_macro(state, &curr->spelling);
-    if (macro == NULL || expanded_macro_stack_contains(expanded, macro)) {
+    if (macro == NULL || ExpandedMacroStack_contains(expanded, macro)) {
         return (ExpansionInfo){0, i + 1};
     }
     size_t macro_end;
@@ -170,13 +170,13 @@ static ExpansionInfo expand_all_macros_in_range(PreprocState* state,
 }
 
 bool expand_all_macros(PreprocState* state, TokenArr* res, size_t start) {
-    ExpandedMacroStack expanded = expanded_macro_stack_create();
+    ExpandedMacroStack expanded = ExpandedMacroStack_create();
     const ExpansionInfo success = expand_all_macros_in_range(state,
                                                              res,
                                                              start,
                                                              res->len,
                                                              &expanded);
-    expanded_macro_stack_free(&expanded);
+    ExpandedMacroStack_free(&expanded);
     return success.next != (size_t)-1;
 }
 
@@ -649,13 +649,13 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
     }
 
     const size_t last_after_macro = token_idx == 0 ? 0 : token_idx - 1;
-    expanded_macro_stack_push(expanded, macro);
+    ExpandedMacroStack_push(expanded, macro);
     ExpansionInfo ex_info = expand_all_macros_in_range(state,
                                                        res,
                                                        macro_idx,
                                                        last_after_macro,
                                                        expanded);
-    expanded_macro_stack_pop(expanded);
+    ExpandedMacroStack_pop(expanded);
 
     MacroArgs_free(&args);
     ex_info.alloc_change += alloc_change;
@@ -697,13 +697,13 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
         res->tokens[macro_idx + i] = Token_copy(&curr->token);
     }
 
-    expanded_macro_stack_push(expanded, macro);
+    ExpandedMacroStack_push(expanded, macro);
     ExpansionInfo ex_info = expand_all_macros_in_range(state,
                                                        res,
                                                        macro_idx,
                                                        macro_idx + exp_len,
                                                        expanded);
-    expanded_macro_stack_pop(expanded);
+    ExpandedMacroStack_pop(expanded);
     ex_info.alloc_change += alloc_change;
     return ex_info;
 }
