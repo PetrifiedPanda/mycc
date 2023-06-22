@@ -120,19 +120,8 @@ static CastExpr CastExpr_create_unary(const UnaryExpr* start) {
     };
 }
 
-static bool is_mul_op(TokenKind k) {
-    switch (k) {
-        case TOKEN_ASTERISK:
-        case TOKEN_DIV:
-        case TOKEN_MOD:
-            return true;
-        default:
-            return false;
-    }
-}
-
-static MulExprOp token_type_to_mul_op(TokenKind t) {
-    assert(is_mul_op(t));
+static MulExprOp TokenKind_to_mul_op(TokenKind t) {
+    assert(TokenKind_is_mul_op(t));
     switch (t) {
         case TOKEN_ASTERISK:
             return MUL_EXPR_MUL;
@@ -151,7 +140,7 @@ static bool parse_mul_expr_mul_chain(ParserState* s, MulExpr* res) {
     res->mul_chain = NULL;
 
     size_t alloc_len = res->len;
-    while (is_mul_op(s->it->kind)) {
+    while (TokenKind_is_mul_op(s->it->kind)) {
         const TokenKind op = s->it->kind;
         parser_accept_it(s);
 
@@ -166,7 +155,7 @@ static bool parse_mul_expr_mul_chain(ParserState* s, MulExpr* res) {
             MulExpr_free_children(res);
             return false;
         }
-        curr->op = token_type_to_mul_op(op);
+        curr->op = TokenKind_to_mul_op(op);
 
         ++res->len;
     }
@@ -201,16 +190,6 @@ static bool parse_mul_expr_cast(ParserState* s, MulExpr* res, const CastExpr* st
     return res;
 }
 
-static bool is_add_op(TokenKind k) {
-    switch (k) {
-        case TOKEN_ADD:
-        case TOKEN_SUB:
-            return true;
-        default:
-            return false;
-    }
-}
-
 void AddExpr_free_children(AddExpr* e);
 
 static bool parse_add_expr_add_chain(ParserState* s, AddExpr* res) {
@@ -218,7 +197,7 @@ static bool parse_add_expr_add_chain(ParserState* s, AddExpr* res) {
     res->add_chain = NULL;
 
     size_t alloc_len = res->len;
-    while (is_add_op(s->it->kind)) {
+    while (TokenKind_is_add_op(s->it->kind)) {
         const TokenKind op = s->it->kind;
         parser_accept_it(s);
 
@@ -272,22 +251,12 @@ static bool parse_add_expr_cast(ParserState* s, AddExpr* res, const CastExpr* st
     return true;
 }
 
-static bool is_shift_op(TokenKind t) {
-    switch (t) {
-        case TOKEN_LSHIFT:
-        case TOKEN_RSHIFT:
-            return true;
-        default:
-            return false;
-    }
-}
-
 static bool parse_shift_expr_shift_chain(ParserState* s, ShiftExpr* res) {
     res->len = 0;
     res->shift_chain = NULL;
 
     size_t alloc_len = res->len;
-    while (is_shift_op(s->it->kind)) {
+    while (TokenKind_is_shift_op(s->it->kind)) {
         const TokenKind op = s->it->kind;
         parser_accept_it(s);
 
@@ -349,20 +318,8 @@ void ShiftExpr_free_children(ShiftExpr* e) {
     mycc_free(e->shift_chain);
 }
 
-static bool is_rel_op(TokenKind k) {
-    switch (k) {
-        case TOKEN_LE:
-        case TOKEN_GE:
-        case TOKEN_LT:
-        case TOKEN_GT:
-            return true;
-        default:
-            return false;
-    }
-}
-
-static RelExprOp token_type_to_rel_op(TokenKind t) {
-    assert(is_rel_op(t));
+static RelExprOp TokenKind_to_rel_op(TokenKind t) {
+    assert(TokenKind_is_rel_op(t));
     switch (t) {
         case TOKEN_LT:
             return REL_EXPR_LT;
@@ -383,7 +340,7 @@ static bool parse_rel_expr_rel_chain(ParserState* s, RelExpr* res) {
     res->rel_chain = NULL;
 
     size_t alloc_len = res->len;
-    while (is_rel_op(s->it->kind)) {
+    while (TokenKind_is_rel_op(s->it->kind)) {
         const TokenKind op = s->it->kind;
         parser_accept_it(s);
 
@@ -397,7 +354,7 @@ static bool parse_rel_expr_rel_chain(ParserState* s, RelExpr* res) {
         if (!parse_shift_expr_inplace(s, &curr->rhs)) {
             goto fail;
         }
-        curr->op = token_type_to_rel_op(op);
+        curr->op = TokenKind_to_rel_op(op);
 
         ++res->len;
     }
@@ -437,22 +394,12 @@ static bool parse_rel_expr_cast(ParserState* s, RelExpr* res, const CastExpr* st
     return true;
 }
 
-static bool is_eq_op(TokenKind t) {
-    switch (t) {
-        case TOKEN_EQ:
-        case TOKEN_NE:
-            return true;
-        default:
-            return false;
-    }
-}
-
 static bool parse_eq_expr_eq_chain(ParserState* s, EqExpr* res) {
     res->len = 0;
     res->eq_chain = NULL;
 
     size_t alloc_len = res->len;
-    while (is_eq_op(s->it->kind)) {
+    while (TokenKind_is_eq_op(s->it->kind)) {
         const TokenKind op = s->it->kind;
         parser_accept_it(s);
 
@@ -979,7 +926,7 @@ static bool is_assign_op(TokenKind k) {
     }
 }
 
-static AssignExprOp token_type_to_assign_op(TokenKind t) {
+static AssignExprOp TokenKind_to_assign_op(TokenKind t) {
     assert(is_assign_op(t));
     switch (t) {
         case TOKEN_ASSIGN:
@@ -1040,7 +987,7 @@ bool parse_assign_expr_inplace(ParserState* s, AssignExpr* res) {
             ++res->len;
             res->assign_chain = mycc_realloc(res->assign_chain, sizeof *res->assign_chain * res->len);
             res->assign_chain[res->len - 1] = (UnaryAndOp){
-                .op = token_type_to_assign_op(op),
+                .op = TokenKind_to_assign_op(op),
                 .unary = last_unary,
             };
             return true;
@@ -1053,7 +1000,7 @@ bool parse_assign_expr_inplace(ParserState* s, AssignExpr* res) {
         }
 
         res->assign_chain[res->len] = (UnaryAndOp){
-            .op = token_type_to_assign_op(op),
+            .op = TokenKind_to_assign_op(op),
             .unary = last_unary,
         };
         last_unary = new_last;

@@ -90,3 +90,57 @@ Str TokenKind_str(TokenKind kind) {
     UNREACHABLE();
 }
 
+bool TokenKind_is_rel_op(TokenKind k) {
+    switch (k) {
+        case TOKEN_LE:
+        case TOKEN_GE:
+        case TOKEN_LT:
+        case TOKEN_GT:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool TokenKind_is_eq_op(TokenKind k) {
+     switch (k) {
+        case TOKEN_EQ:
+        case TOKEN_NE:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool TokenKind_is_shift_op(TokenKind k) {
+    switch (k) {
+        case TOKEN_LSHIFT:
+        case TOKEN_RSHIFT:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool TokenKind_is_add_op(TokenKind k) {
+    switch (k) {
+        case TOKEN_ADD:
+        case TOKEN_SUB:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool TokenKind_is_mul_op(TokenKind k) {
+    switch (k) {
+        case TOKEN_ASTERISK:
+        case TOKEN_DIV:
+        case TOKEN_MOD:
+            return true;
+        default:
+            return false;
+    }
+
+}
+

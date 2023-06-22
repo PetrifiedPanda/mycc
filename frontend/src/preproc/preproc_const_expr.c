@@ -1,5 +1,7 @@
 #include "frontend/preproc/preproc_const_expr.h"
 
+#include "util/macro_util.h"
+
 #include "frontend/preproc/PreprocMacro.h"
 
 // TODO: Target (u)intmax_t semantics
@@ -44,11 +46,124 @@ static bool PreprocConstExprVal_is_nonzero(const PreprocConstExprVal* val) {
     return val->is_signed ? val->sint_val != 0 : val->uint_val != 0;
 }
 
-static PreprocConstExprVal evaluate_preproc_rel_expr(size_t* it, const TokenArr* arr) {
+static PreprocConstExprVal evaluate_preproc_unary_expr(size_t* it, const TokenArr* arr) {
     (void)it;
     (void)arr;
     // TODO:
     return (PreprocConstExprVal){0};
+}
+
+static PreprocConstExprVal evaluate_preproc_mul_expr(size_t* it, const TokenArr* arr) {
+    PreprocConstExprVal res = evaluate_preproc_unary_expr(it, arr);
+    if (!res.valid) {
+        return res;
+    }
+
+    while (TokenKind_is_mul_op(arr->tokens[*it].kind)) {
+        const TokenKind op = arr->tokens[*it].kind;
+        ++*it;
+        PreprocConstExprVal rhs = evaluate_preproc_unary_expr(it, arr);
+        if (!rhs.valid) {
+            return rhs;
+        }
+
+        switch (op) {
+            case TOKEN_ASTERISK:
+                CHECKED_OP(res, rhs, *);
+                break;
+            case TOKEN_DIV:
+                CHECKED_OP(res, rhs, /);
+                break;
+            case TOKEN_MOD:
+                CHECKED_OP(res, rhs, %);
+                break;
+            default:
+                UNREACHABLE();
+        }
+    }
+
+    return res;
+}
+
+static PreprocConstExprVal evaluate_preproc_add_expr(size_t* it, const TokenArr* arr) {
+    PreprocConstExprVal res = evaluate_preproc_mul_expr(it, arr);
+    if (!res.valid) {
+        return res;
+    }
+
+    while (TokenKind_is_add_op(arr->tokens[*it].kind)) {
+        const TokenKind op = arr->tokens[*it].kind;
+        ++*it;
+        PreprocConstExprVal rhs = evaluate_preproc_mul_expr(it, arr);
+        if (!rhs.valid) {
+            return rhs;
+        }
+
+        if (op == TOKEN_ADD) {
+            CHECKED_OP(res, rhs, +);
+        } else {
+            CHECKED_OP(res, rhs, -);
+        }
+    }
+    return res;
+}
+
+static PreprocConstExprVal evaluate_preproc_shift_expr(size_t* it, const TokenArr* arr) {
+    PreprocConstExprVal res = evaluate_preproc_add_expr(it, arr);
+    if (!res.valid) {
+        return res;
+    }
+
+    while (TokenKind_is_shift_op(arr->tokens[*it].kind)) {
+        const TokenKind op = arr->tokens[*it].kind;
+        ++*it;
+        PreprocConstExprVal rhs = evaluate_preproc_add_expr(it, arr);
+        if (!rhs.valid) {
+            return rhs;
+        }
+
+        if (op == TOKEN_LSHIFT) {
+            CHECKED_OP(res, rhs, <<);
+        } else {
+            CHECKED_OP(res, rhs, >>);
+        }
+    }
+    return res;
+}
+
+static PreprocConstExprVal evaluate_preproc_rel_expr(size_t* it, const TokenArr* arr) {
+    PreprocConstExprVal res = evaluate_preproc_shift_expr(it, arr);
+    if (!res.valid) {
+        return res;
+    }
+
+    while (TokenKind_is_rel_op(arr->tokens[*it].kind)) {
+        const TokenKind op = arr->tokens[*it].kind;
+        ++*it;
+        PreprocConstExprVal rhs = evaluate_preproc_shift_expr(it, arr);
+        if (!rhs.valid) {
+            return rhs;
+        }
+       
+        // TODO: is CHECKED_OP necessary here?
+        switch (op) {
+            case TOKEN_LE:
+                CHECKED_OP(res, rhs, <=);
+                break;
+            case TOKEN_GE:
+                CHECKED_OP(res, rhs, >=);
+                break;
+            case TOKEN_LT:
+                CHECKED_OP(res, rhs, <);
+                break;
+            case TOKEN_GT:
+                CHECKED_OP(res, rhs, >);
+                break;
+            default:
+                UNREACHABLE();
+        }
+    }
+    return res;
 }
 
 static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it, const TokenArr* arr) {
@@ -57,7 +172,7 @@ static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it, const TokenArr* 
         return res;
     }
 
-    while (arr->tokens[*it].kind == TOKEN_EQ || arr->tokens[*it].kind == TOKEN_NE) {
+    while (TokenKind_is_eq_op(arr->tokens[*it].kind)) {
         const bool is_eq = arr->tokens[*it].kind == TOKEN_EQ;
         ++*it;
 
@@ -65,7 +180,8 @@ static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it, const TokenArr* 
         if (!rhs.valid) {
             return rhs;
         }
-
+        
+        // TODO: is CHECKED_OP necessary here?
         if (is_eq) {
             CHECKED_OP(res, rhs, ==);
         } else {

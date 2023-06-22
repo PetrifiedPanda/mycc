@@ -85,5 +85,11 @@ Str TokenKind_get_spelling(TokenKind kind);
  */
 Str TokenKind_str(TokenKind kind);
 
+bool TokenKind_is_rel_op(TokenKind k);
+bool TokenKind_is_eq_op(TokenKind k);
+bool TokenKind_is_shift_op(TokenKind k);
+bool TokenKind_is_add_op(TokenKind k);
+bool TokenKind_is_mul_op(TokenKind k);
+
 #endif
 
