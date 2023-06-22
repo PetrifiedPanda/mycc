@@ -141,6 +141,5 @@ bool TokenKind_is_mul_op(TokenKind k) {
         default:
             return false;
     }
-
 }
 

@@ -31,7 +31,7 @@ typedef struct {
         } else if (v2.is_signed) {                                             \
             const int64_t new_val = (int64_t)res.uint_val;                     \
             if ((uint64_t)new_val != res.uint_val) {                           \
-                /*TODO: err*/                                                  \
+                /* TODO: err*/                                                 \
                 return (PreprocConstExprVal){0};                               \
             }                                                                  \
             res.is_signed = true;                                              \
@@ -46,14 +46,78 @@ static bool PreprocConstExprVal_is_nonzero(const PreprocConstExprVal* val) {
     return val->is_signed ? val->sint_val != 0 : val->uint_val != 0;
 }
 
-static PreprocConstExprVal evaluate_preproc_unary_expr(size_t* it, const TokenArr* arr) {
+static PreprocConstExprVal evaluate_preproc_primary_expr(size_t* it, const TokenArr* arr) {
     (void)it;
     (void)arr;
     // TODO:
     return (PreprocConstExprVal){0};
 }
 
-static PreprocConstExprVal evaluate_preproc_mul_expr(size_t* it, const TokenArr* arr) {
+static bool is_preproc_unary_op(TokenKind k) {
+    switch (k) {
+        case TOKEN_ADD:
+        case TOKEN_SUB:
+        case TOKEN_BNOT:
+        case TOKEN_NOT:
+            return true;
+        default:
+            return false;
+    }
+}
+
+static PreprocConstExprVal evaluate_preproc_unary_expr(size_t* it,
+                                                       const TokenArr* arr) {
+    if (is_preproc_unary_op(arr->tokens[*it].kind)) {
+        const TokenKind op = arr->tokens[*it].kind;
+        ++*it;
+        PreprocConstExprVal rhs = evaluate_preproc_unary_expr(it, arr);
+        if (!rhs.valid) {
+            return rhs;
+        }
+        // TODO: do op
+        switch (op) {
+            case TOKEN_ADD:
+                return rhs;
+                break;
+            case TOKEN_SUB:
+                if (rhs.is_signed) {
+                    rhs.sint_val = -rhs.sint_val;
+                } else {
+                    const int64_t uval = rhs.uint_val;
+                    if ((uint64_t)uval != rhs.uint_val) {
+                        // TODO: err
+                        return (PreprocConstExprVal){0};
+                    }
+                    rhs.is_signed = true;
+                    rhs.sint_val = -uval;
+                }
+                break;
+            case TOKEN_BNOT:
+                if (rhs.is_signed) {
+                    rhs.sint_val = ~rhs.sint_val;
+                } else {
+                    rhs.uint_val = ~rhs.uint_val;
+                }
+                break;
+            case TOKEN_NOT:
+                if (rhs.is_signed) {
+                    rhs.sint_val = !rhs.sint_val;
+                } else {
+                    rhs.uint_val = !rhs.uint_val;
+                }
+                break;
+            default:
+                UNREACHABLE();
+        }
+
+        return rhs;
+    } else {
+        return evaluate_preproc_primary_expr(it, arr);
+    }
+}
+
+static PreprocConstExprVal evaluate_preproc_mul_expr(size_t* it,
+                                                     const TokenArr* arr) {
     PreprocConstExprVal res = evaluate_preproc_unary_expr(it, arr);
     if (!res.valid) {
         return res;
@@ -85,7 +149,8 @@ static PreprocConstExprVal evaluate_preproc_mul_expr(size_t* it, const TokenArr*
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_add_expr(size_t* it, const TokenArr* arr) {
+static PreprocConstExprVal evaluate_preproc_add_expr(size_t* it,
+                                                     const TokenArr* arr) {
     PreprocConstExprVal res = evaluate_preproc_mul_expr(it, arr);
     if (!res.valid) {
         return res;
@@ -108,7 +173,8 @@ static PreprocConstExprVal evaluate_preproc_add_expr(size_t* it, const TokenArr*
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_shift_expr(size_t* it, const TokenArr* arr) {
+static PreprocConstExprVal evaluate_preproc_shift_expr(size_t* it,
+                                                       const TokenArr* arr) {
     PreprocConstExprVal res = evaluate_preproc_add_expr(it, arr);
     if (!res.valid) {
         return res;
@@ -131,7 +197,8 @@ static PreprocConstExprVal evaluate_preproc_shift_expr(size_t* it, const TokenAr
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_rel_expr(size_t* it, const TokenArr* arr) {
+static PreprocConstExprVal evaluate_preproc_rel_expr(size_t* it,
+                                                     const TokenArr* arr) {
     PreprocConstExprVal res = evaluate_preproc_shift_expr(it, arr);
     if (!res.valid) {
         return res;
@@ -144,7 +211,7 @@ static PreprocConstExprVal evaluate_preproc_rel_expr(size_t* it, const TokenArr*
         if (!rhs.valid) {
             return rhs;
         }
-       
+
         // TODO: is CHECKED_OP necessary here?
         switch (op) {
             case TOKEN_LE:
@@ -166,7 +233,8 @@ static PreprocConstExprVal evaluate_preproc_rel_expr(size_t* it, const TokenArr*
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it, const TokenArr* arr) {
+static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it,
+                                                    const TokenArr* arr) {
     PreprocConstExprVal res = evaluate_preproc_rel_expr(it, arr);
     if (!res.valid) {
         return res;
@@ -180,7 +248,7 @@ static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it, const TokenArr* 
         if (!rhs.valid) {
             return rhs;
         }
-        
+
         // TODO: is CHECKED_OP necessary here?
         if (is_eq) {
             CHECKED_OP(res, rhs, ==);
@@ -191,7 +259,8 @@ static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it, const TokenArr* 
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_and_expr(size_t* it, const TokenArr* arr) {
+static PreprocConstExprVal evaluate_preproc_and_expr(size_t* it,
+                                                     const TokenArr* arr) {
     PreprocConstExprVal res = evaluate_preproc_eq_expr(it, arr);
     if (!res.valid) {
         return res;
@@ -209,7 +278,8 @@ static PreprocConstExprVal evaluate_preproc_and_expr(size_t* it, const TokenArr*
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_xor_expr(size_t* it, const TokenArr* arr) {
+static PreprocConstExprVal evaluate_preproc_xor_expr(size_t* it,
+                                                     const TokenArr* arr) {
     PreprocConstExprVal res = evaluate_preproc_and_expr(it, arr);
     if (!res.valid) {
         return res;
@@ -227,7 +297,8 @@ static PreprocConstExprVal evaluate_preproc_xor_expr(size_t* it, const TokenArr*
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_or_expr(size_t* it, const TokenArr* arr) {
+static PreprocConstExprVal evaluate_preproc_or_expr(size_t* it,
+                                                    const TokenArr* arr) {
     PreprocConstExprVal res = evaluate_preproc_xor_expr(it, arr);
     if (!res.valid) {
         return res;

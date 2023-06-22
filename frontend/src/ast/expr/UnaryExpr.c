@@ -393,7 +393,7 @@ static void UnaryExpr_init_postfix(UnaryExpr* res,
     res->postfix = postfix;
 }
 
-static bool is_unary_op(TokenKind k) {
+static bool TokenKind_is_unary_op(TokenKind k) {
     switch (k) {
         case TOKEN_AND:
         case TOKEN_ASTERISK:
@@ -407,8 +407,8 @@ static bool is_unary_op(TokenKind k) {
     }
 }
 
-static UnaryExprKind token_type_to_unary_expr_type(TokenKind t) {
-    assert(is_unary_op(t));
+static UnaryExprKind TokenKind_to_unary_expr_type(TokenKind t) {
+    assert(TokenKind_is_unary_op(t));
     switch (t) {
         case TOKEN_AND:
             return UNARY_ADDRESSOF;
@@ -433,11 +433,11 @@ static void UnaryExpr_init_unary_op(UnaryExpr* res,
                                     TokenKind unary_op,
                                     CastExpr* cast_expr,
                                     SourceLoc loc) {
-    assert(is_unary_op(unary_op));
+    assert(TokenKind_is_unary_op(unary_op));
     assert(cast_expr);
     res->info = AstNodeInfo_create(loc);
     assign_operators_before(res, ops_before, len);
-    res->kind = token_type_to_unary_expr_type(unary_op);
+    res->kind = TokenKind_to_unary_expr_type(unary_op);
     res->cast_expr = cast_expr;
 }
 
@@ -482,7 +482,7 @@ bool parse_unary_expr_type_name(ParserState* s,
     return true;
 }
 
-UnaryExprOp token_type_to_unary_expr_op(TokenKind t) {
+UnaryExprOp TokenKind_to_unary_expr_op(TokenKind t) {
     assert(t == TOKEN_INC || t == TOKEN_DEC || t == TOKEN_SIZEOF);
     switch (t) {
         case TOKEN_INC:
@@ -512,7 +512,7 @@ bool parse_unary_expr_inplace(ParserState* s, UnaryExpr* res) {
                             sizeof *ops_before);
         }
 
-        ops_before[len] = token_type_to_unary_expr_op(s->it->kind);
+        ops_before[len] = TokenKind_to_unary_expr_op(s->it->kind);
 
         ++len;
         parser_accept_it(s);
@@ -522,7 +522,7 @@ bool parse_unary_expr_inplace(ParserState* s, UnaryExpr* res) {
         ops_before = mycc_realloc(ops_before, len * sizeof *ops_before);
     }
 
-    if (is_unary_op(s->it->kind)) {
+    if (TokenKind_is_unary_op(s->it->kind)) {
         const TokenKind unary_op = s->it->kind;
         parser_accept_it(s);
         CastExpr* cast = parse_cast_expr(s);
