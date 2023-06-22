@@ -46,11 +46,26 @@ static bool PreprocConstExprVal_is_nonzero(const PreprocConstExprVal* val) {
     return val->is_signed ? val->sint_val != 0 : val->uint_val != 0;
 }
 
-static PreprocConstExprVal evaluate_preproc_primary_expr(size_t* it, const TokenArr* arr) {
-    (void)it;
-    (void)arr;
-    // TODO:
-    return (PreprocConstExprVal){0};
+static PreprocConstExprVal evaluate_preproc_primary_expr(size_t* it,
+                                                         const TokenArr* arr) {
+    if (*it >= arr->len) {
+        // TODO: err
+    }
+    if (arr->tokens[*it].kind == TOKEN_I_CONSTANT) {
+        PreprocConstExprVal res;
+        res.valid = true;
+        if (ValueKind_is_sint(arr->tokens[*it].val.kind)) {
+            res.is_signed = true;
+            res.sint_val = arr->tokens[*it].val.sint_val;
+        } else {
+            res.is_signed = false;
+            res.uint_val = arr->tokens[*it].val.uint_val;
+        }
+        ++*it;
+        return res;
+    } else {
+        return (PreprocConstExprVal){0};
+    }
 }
 
 static bool is_preproc_unary_op(TokenKind k) {
@@ -388,12 +403,7 @@ static PreprocConstExprVal evaluate_preproc_cond_expr(size_t* it,
 
 PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
                                                 TokenArr* arr) {
-    for (size_t i = 2; i < arr->len; ++i) {
-        if (Str_eq(StrBuf_as_str(&arr->tokens[i].spelling),
-                   STR_LIT("defined"))) {
-            // TODO: handle defined
-        }
-    }
+    // TODO: don't expand macros in defined (and handle defined)
     if (!expand_all_macros(state, arr, 2)) {
         return (PreprocConstExprRes){
             .valid = false,
