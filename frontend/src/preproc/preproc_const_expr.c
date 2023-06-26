@@ -47,9 +47,12 @@ static bool PreprocConstExprVal_is_nonzero(const PreprocConstExprVal* val) {
 }
 
 static PreprocConstExprVal evaluate_preproc_primary_expr(size_t* it,
-                                                         const TokenArr* arr) {
+                                                         const TokenArr* arr,
+                                                         PreprocErr* err) {
     if (*it >= arr->len) {
-        // TODO: err
+        PreprocErr_set(err,
+                       PREPROC_ERR_INCOMPLETE_EXPR,
+                       arr->tokens[*it - 1].loc);
         return (PreprocConstExprVal){0};
     }
     if (arr->tokens[*it].kind == TOKEN_I_CONSTANT) {
@@ -82,11 +85,12 @@ static bool is_preproc_unary_op(TokenKind k) {
 }
 
 static PreprocConstExprVal evaluate_preproc_unary_expr(size_t* it,
-                                                       const TokenArr* arr) {
+                                                       const TokenArr* arr,
+                                                       PreprocErr* err) {
     if (is_preproc_unary_op(arr->tokens[*it].kind)) {
         const TokenKind op = arr->tokens[*it].kind;
         ++*it;
-        PreprocConstExprVal rhs = evaluate_preproc_unary_expr(it, arr);
+        PreprocConstExprVal rhs = evaluate_preproc_unary_expr(it, arr, err);
         if (!rhs.valid) {
             return rhs;
         }
@@ -128,13 +132,14 @@ static PreprocConstExprVal evaluate_preproc_unary_expr(size_t* it,
 
         return rhs;
     } else {
-        return evaluate_preproc_primary_expr(it, arr);
+        return evaluate_preproc_primary_expr(it, arr, err);
     }
 }
 
 static PreprocConstExprVal evaluate_preproc_mul_expr(size_t* it,
-                                                     const TokenArr* arr) {
-    PreprocConstExprVal res = evaluate_preproc_unary_expr(it, arr);
+                                                     const TokenArr* arr,
+                                                     PreprocErr* err) {
+    PreprocConstExprVal res = evaluate_preproc_unary_expr(it, arr, err);
     if (!res.valid) {
         return res;
     }
@@ -142,7 +147,7 @@ static PreprocConstExprVal evaluate_preproc_mul_expr(size_t* it,
     while (TokenKind_is_mul_op(arr->tokens[*it].kind)) {
         const TokenKind op = arr->tokens[*it].kind;
         ++*it;
-        PreprocConstExprVal rhs = evaluate_preproc_unary_expr(it, arr);
+        PreprocConstExprVal rhs = evaluate_preproc_unary_expr(it, arr, err);
         if (!rhs.valid) {
             return rhs;
         }
@@ -166,8 +171,9 @@ static PreprocConstExprVal evaluate_preproc_mul_expr(size_t* it,
 }
 
 static PreprocConstExprVal evaluate_preproc_add_expr(size_t* it,
-                                                     const TokenArr* arr) {
-    PreprocConstExprVal res = evaluate_preproc_mul_expr(it, arr);
+                                                     const TokenArr* arr,
+                                                     PreprocErr* err) {
+    PreprocConstExprVal res = evaluate_preproc_mul_expr(it, arr, err);
     if (!res.valid) {
         return res;
     }
@@ -175,7 +181,7 @@ static PreprocConstExprVal evaluate_preproc_add_expr(size_t* it,
     while (TokenKind_is_add_op(arr->tokens[*it].kind)) {
         const TokenKind op = arr->tokens[*it].kind;
         ++*it;
-        PreprocConstExprVal rhs = evaluate_preproc_mul_expr(it, arr);
+        PreprocConstExprVal rhs = evaluate_preproc_mul_expr(it, arr, err);
         if (!rhs.valid) {
             return rhs;
         }
@@ -190,8 +196,9 @@ static PreprocConstExprVal evaluate_preproc_add_expr(size_t* it,
 }
 
 static PreprocConstExprVal evaluate_preproc_shift_expr(size_t* it,
-                                                       const TokenArr* arr) {
-    PreprocConstExprVal res = evaluate_preproc_add_expr(it, arr);
+                                                       const TokenArr* arr,
+                                                       PreprocErr* err) {
+    PreprocConstExprVal res = evaluate_preproc_add_expr(it, arr, err);
     if (!res.valid) {
         return res;
     }
@@ -199,7 +206,7 @@ static PreprocConstExprVal evaluate_preproc_shift_expr(size_t* it,
     while (TokenKind_is_shift_op(arr->tokens[*it].kind)) {
         const TokenKind op = arr->tokens[*it].kind;
         ++*it;
-        PreprocConstExprVal rhs = evaluate_preproc_add_expr(it, arr);
+        PreprocConstExprVal rhs = evaluate_preproc_add_expr(it, arr, err);
         if (!rhs.valid) {
             return rhs;
         }
@@ -214,8 +221,9 @@ static PreprocConstExprVal evaluate_preproc_shift_expr(size_t* it,
 }
 
 static PreprocConstExprVal evaluate_preproc_rel_expr(size_t* it,
-                                                     const TokenArr* arr) {
-    PreprocConstExprVal res = evaluate_preproc_shift_expr(it, arr);
+                                                     const TokenArr* arr,
+                                                     PreprocErr* err) {
+    PreprocConstExprVal res = evaluate_preproc_shift_expr(it, arr, err);
     if (!res.valid) {
         return res;
     }
@@ -223,7 +231,7 @@ static PreprocConstExprVal evaluate_preproc_rel_expr(size_t* it,
     while (TokenKind_is_rel_op(arr->tokens[*it].kind)) {
         const TokenKind op = arr->tokens[*it].kind;
         ++*it;
-        PreprocConstExprVal rhs = evaluate_preproc_shift_expr(it, arr);
+        PreprocConstExprVal rhs = evaluate_preproc_shift_expr(it, arr, err);
         if (!rhs.valid) {
             return rhs;
         }
@@ -250,8 +258,9 @@ static PreprocConstExprVal evaluate_preproc_rel_expr(size_t* it,
 }
 
 static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it,
-                                                    const TokenArr* arr) {
-    PreprocConstExprVal res = evaluate_preproc_rel_expr(it, arr);
+                                                    const TokenArr* arr,
+                                                    PreprocErr* err) {
+    PreprocConstExprVal res = evaluate_preproc_rel_expr(it, arr, err);
     if (!res.valid) {
         return res;
     }
@@ -260,7 +269,7 @@ static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it,
         const bool is_eq = arr->tokens[*it].kind == TOKEN_EQ;
         ++*it;
 
-        PreprocConstExprVal rhs = evaluate_preproc_rel_expr(it, arr);
+        PreprocConstExprVal rhs = evaluate_preproc_rel_expr(it, arr, err);
         if (!rhs.valid) {
             return rhs;
         }
@@ -276,15 +285,16 @@ static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it,
 }
 
 static PreprocConstExprVal evaluate_preproc_and_expr(size_t* it,
-                                                     const TokenArr* arr) {
-    PreprocConstExprVal res = evaluate_preproc_eq_expr(it, arr);
+                                                     const TokenArr* arr,
+                                                     PreprocErr* err) {
+    PreprocConstExprVal res = evaluate_preproc_eq_expr(it, arr, err);
     if (!res.valid) {
         return res;
     }
 
     while (arr->tokens[*it].kind == TOKEN_AND) {
         ++*it;
-        PreprocConstExprVal rhs = evaluate_preproc_eq_expr(it, arr);
+        PreprocConstExprVal rhs = evaluate_preproc_eq_expr(it, arr, err);
         if (!rhs.valid) {
             return rhs;
         }
@@ -295,15 +305,16 @@ static PreprocConstExprVal evaluate_preproc_and_expr(size_t* it,
 }
 
 static PreprocConstExprVal evaluate_preproc_xor_expr(size_t* it,
-                                                     const TokenArr* arr) {
-    PreprocConstExprVal res = evaluate_preproc_and_expr(it, arr);
+                                                     const TokenArr* arr,
+                                                     PreprocErr* err) {
+    PreprocConstExprVal res = evaluate_preproc_and_expr(it, arr, err);
     if (!res.valid) {
         return res;
     }
 
     while (arr->tokens[*it].kind == TOKEN_XOR) {
         ++*it;
-        PreprocConstExprVal rhs = evaluate_preproc_and_expr(it, arr);
+        PreprocConstExprVal rhs = evaluate_preproc_and_expr(it, arr, err);
         if (!rhs.valid) {
             return rhs;
         }
@@ -314,15 +325,16 @@ static PreprocConstExprVal evaluate_preproc_xor_expr(size_t* it,
 }
 
 static PreprocConstExprVal evaluate_preproc_or_expr(size_t* it,
-                                                    const TokenArr* arr) {
-    PreprocConstExprVal res = evaluate_preproc_xor_expr(it, arr);
+                                                    const TokenArr* arr,
+                                                    PreprocErr* err) {
+    PreprocConstExprVal res = evaluate_preproc_xor_expr(it, arr, err);
     if (!res.valid) {
         return res;
     }
 
     while (arr->tokens[*it].kind == TOKEN_OR) {
         ++*it;
-        PreprocConstExprVal rhs = evaluate_preproc_xor_expr(it, arr);
+        PreprocConstExprVal rhs = evaluate_preproc_xor_expr(it, arr, err);
         if (!rhs.valid) {
             return rhs;
         }
@@ -333,15 +345,16 @@ static PreprocConstExprVal evaluate_preproc_or_expr(size_t* it,
 }
 
 static PreprocConstExprVal evaluate_preproc_log_and_expr(size_t* it,
-                                                         const TokenArr* arr) {
-    PreprocConstExprVal res = evaluate_preproc_or_expr(it, arr);
+                                                         const TokenArr* arr,
+                                                         PreprocErr* err) {
+    PreprocConstExprVal res = evaluate_preproc_or_expr(it, arr, err);
     if (!res.valid) {
         return res;
     }
 
     while (arr->tokens[*it].kind == TOKEN_LAND) {
         ++*it;
-        PreprocConstExprVal rhs = evaluate_preproc_or_expr(it, arr);
+        PreprocConstExprVal rhs = evaluate_preproc_or_expr(it, arr, err);
         if (!rhs.valid) {
             return rhs;
         }
@@ -353,15 +366,16 @@ static PreprocConstExprVal evaluate_preproc_log_and_expr(size_t* it,
 }
 
 static PreprocConstExprVal evaluate_preproc_log_or_expr(size_t* it,
-                                                        const TokenArr* arr) {
-    PreprocConstExprVal res = evaluate_preproc_log_and_expr(it, arr);
+                                                        const TokenArr* arr,
+                                                        PreprocErr* err) {
+    PreprocConstExprVal res = evaluate_preproc_log_and_expr(it, arr, err);
     if (!res.valid) {
         return res;
     }
 
     while (arr->tokens[*it].kind == TOKEN_LOR) {
         ++*it;
-        PreprocConstExprVal rhs = evaluate_preproc_log_and_expr(it, arr);
+        PreprocConstExprVal rhs = evaluate_preproc_log_and_expr(it, arr, err);
         if (!rhs.valid) {
             return rhs;
         }
@@ -373,15 +387,18 @@ static PreprocConstExprVal evaluate_preproc_log_or_expr(size_t* it,
 }
 
 static PreprocConstExprVal evaluate_preproc_cond_expr(size_t* it,
-                                                      const TokenArr* arr) {
-    PreprocConstExprVal curr_res = evaluate_preproc_log_or_expr(it, arr);
+                                                      const TokenArr* arr,
+                                                      PreprocErr* err) {
+    PreprocConstExprVal curr_res = evaluate_preproc_log_or_expr(it, arr, err);
     if (!curr_res.valid) {
         return curr_res;
     }
 
     while (arr->tokens[*it].kind == TOKEN_QMARK) {
         ++*it;
-        PreprocConstExprVal true_val = evaluate_preproc_log_or_expr(it, arr);
+        PreprocConstExprVal true_val = evaluate_preproc_log_or_expr(it,
+                                                                    arr,
+                                                                    err);
         if (!true_val.valid) {
             return true_val;
         }
@@ -389,7 +406,9 @@ static PreprocConstExprVal evaluate_preproc_cond_expr(size_t* it,
             // TODO: error
             return (PreprocConstExprVal){0};
         }
-        PreprocConstExprVal false_val = evaluate_preproc_log_or_expr(it, arr);
+        PreprocConstExprVal false_val = evaluate_preproc_log_or_expr(it,
+                                                                     arr,
+                                                                     err);
         if (!false_val.valid) {
             return false_val;
         }
@@ -403,7 +422,8 @@ static PreprocConstExprVal evaluate_preproc_cond_expr(size_t* it,
 }
 
 PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
-                                                TokenArr* arr) {
+                                                TokenArr* arr,
+                                                PreprocErr* err) {
     // TODO: don't expand macros in defined (and handle defined)
     if (!expand_all_macros(state, arr, 2)) {
         return (PreprocConstExprRes){
@@ -413,7 +433,7 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
 
     // TODO: convert all numeric literals
     size_t i = 2;
-    PreprocConstExprVal val = evaluate_preproc_cond_expr(&i, arr);
+    PreprocConstExprVal val = evaluate_preproc_cond_expr(&i, arr, err);
     if (!val.valid) {
         return (PreprocConstExprRes){
             .valid = false,

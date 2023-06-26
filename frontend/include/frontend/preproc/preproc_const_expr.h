@@ -10,7 +10,9 @@ typedef struct {
     bool res;
 } PreprocConstExprRes;
 
-PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state, TokenArr* arr);
+PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
+                                                TokenArr* arr,
+                                                PreprocErr* err);
 
 #endif
 

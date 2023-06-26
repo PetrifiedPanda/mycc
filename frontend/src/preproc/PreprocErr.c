@@ -221,6 +221,10 @@ void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
             ErrBase_print(out, file_info, &err->base);
             File_put_str("Include directive only takes '\"' or '<' '>' literals", out);
             break;
+        case PREPROC_ERR_INCOMPLETE_EXPR:
+            ErrBase_print(out, file_info, &err->base);
+            File_put_str("Incomplete preprocessor constant expression", out);
+            break;
     }
     File_putc('\n', out);
 }
@@ -301,6 +305,7 @@ void PreprocErr_free(PreprocErr* err) {
         case PREPROC_ERR_INVALID_BACKSLASH:
         case PREPROC_ERR_INCLUDE_NUM_ARGS:
         case PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL:
+        case PREPROC_ERR_INCOMPLETE_EXPR:
             break;
     }
 }
