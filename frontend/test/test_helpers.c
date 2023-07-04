@@ -8,7 +8,8 @@
 
 PreprocRes tokenize(CStr file) {
     PreprocErr err = PreprocErr_create();
-    PreprocRes res = preproc(file, &err);
+    const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
+    PreprocRes res = preproc(file, &info, &err);
     ASSERT_NOT_NULL(res.toks);
     ASSERT_NOT_NULL(res.file_info.paths);
     ASSERT(err.kind == PREPROC_ERR_NONE);
@@ -20,7 +21,8 @@ PreprocRes tokenize(CStr file) {
 
 PreprocRes tokenize_string(Str str, Str file) {
     PreprocErr err = PreprocErr_create();
-    PreprocRes res = preproc_string(str, file, &err);
+    const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
+    PreprocRes res = preproc_string(str, file, &info, &err);
     ASSERT_NOT_NULL(res.toks);
     ASSERT(err.kind == PREPROC_ERR_NONE);
     const ArchTypeInfo type_info = get_arch_type_info(ARCH_X86_64, false);

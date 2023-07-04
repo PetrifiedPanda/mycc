@@ -19,9 +19,10 @@ static TokenKind keyword_kind(Str spelling);
 
 static void append_terminator_token(TokenArr* arr);
 
-static bool preproc_impl(PreprocState* state);
+static bool preproc_impl(PreprocState* state, const ArchTypeInfo* info);
 
-PreprocRes preproc(CStr path, PreprocErr* err) {
+PreprocRes preproc(CStr path, const ArchTypeInfo* info, PreprocErr* err) {
+    assert(info);
     assert(err);
 
     PreprocState state = PreprocState_create(path, err);
@@ -31,7 +32,7 @@ PreprocRes preproc(CStr path, PreprocErr* err) {
             .file_info = state.file_info,
         };
     }
-    if (!preproc_impl(&state)) {
+    if (!preproc_impl(&state, info)) {
         FileInfo info = state.file_info;
         state.file_info = (FileInfo){
             .len = 0,
@@ -61,14 +62,14 @@ PreprocRes preproc(CStr path, PreprocErr* err) {
     return res;
 }
 
-static bool preproc_impl(PreprocState* state) {
+static bool preproc_impl(PreprocState* state, const ArchTypeInfo* info) {
     while (!PreprocState_over(state)) {
         const size_t prev_len = state->res.len;
-        if (!read_and_tokenize_line(state)) {
+        if (!read_and_tokenize_line(state, info)) {
             return false;
         }
 
-        if (!expand_all_macros(state, &state->res, prev_len)) {
+        if (!expand_all_macros(state, &state->res, prev_len, info)) {
             return false;
         }
     }
@@ -82,12 +83,12 @@ static bool preproc_impl(PreprocState* state) {
 }
 
 #ifdef MYCC_TEST_FUNCTIONALITY
-PreprocRes preproc_string(Str str, Str path, PreprocErr* err) {
+PreprocRes preproc_string(Str str, Str path, const ArchTypeInfo* info, PreprocErr* err) {
     assert(err);
 
     PreprocState state = PreprocState_create_string(str, path, err);
 
-    if (!preproc_impl(&state)) {
+    if (!preproc_impl(&state, info)) {
         PreprocState_free(&state);
         return (PreprocRes){
             .toks = NULL,

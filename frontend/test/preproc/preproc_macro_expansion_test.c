@@ -23,9 +23,11 @@ static void test_preproc_macro(const PreprocMacro* macro,
                                Str spell,
                                Str input,
                                Str output) {
+    const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
     PreprocErr input_err = PreprocErr_create();
     PreprocRes res = preproc_string(input,
                                     STR_LIT("source_file.c"),
+                                    &info,
                                     &input_err);
     ASSERT(input_err.kind == PREPROC_ERR_NONE);
 
@@ -45,12 +47,13 @@ static void test_preproc_macro(const PreprocMacro* macro,
     StrBuf macro_str = StrBuf_create(spell);
     register_preproc_macro(&state, &macro_str, macro);
 
-    ASSERT(expand_all_macros(&state, &state.res, 0));
+    ASSERT(expand_all_macros(&state, &state.res, 0, &info));
     ASSERT(err.kind == PREPROC_ERR_NONE);
 
     PreprocErr output_err = PreprocErr_create();
     PreprocRes expected = preproc_string(output,
                                          STR_LIT("source_file.c"),
+                                         &info,
                                          &output_err);
     ASSERT(output_err.kind == PREPROC_ERR_NONE);
 

@@ -11,7 +11,8 @@
 // TODO: make this also collect macro args?
 static size_t find_macro_end(PreprocState* state,
                              const TokenArr* res,
-                             size_t macro_start) {
+                             size_t macro_start,
+                             const ArchTypeInfo* info) {
     size_t i = macro_start;
     assert(res->tokens[i].kind == TOKEN_IDENTIFIER);
     ++i;
@@ -23,7 +24,7 @@ static size_t find_macro_end(PreprocState* state,
     while (i != res->len || (can_read_new_toks && !PreprocState_over(state))) {
         if (can_read_new_toks) {
             while (i == res->len && !PreprocState_over(state)) {
-                if (!read_and_tokenize_line(state)) {
+                if (!read_and_tokenize_line(state, info)) {
                     return (size_t)-1;
                 }
             }
@@ -104,18 +105,21 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
                                        const PreprocMacro* macro,
                                        size_t macro_idx,
                                        size_t macro_end,
-                                       ExpandedMacroStack* expanded);
+                                       ExpandedMacroStack* expanded,
+                                       const ArchTypeInfo* info);
 
 static ExpansionInfo expand_obj_macro(PreprocState* state,
                                       TokenArr* res,
                                       const PreprocMacro* macro,
                                       size_t macro_idx,
-                                      ExpandedMacroStack* expanded);
+                                      ExpandedMacroStack* expanded,
+                                      const ArchTypeInfo* info);
 
 static ExpansionInfo find_and_expand_macro(PreprocState* state,
                                            TokenArr* res,
                                            size_t i,
-                                           ExpandedMacroStack* expanded) {
+                                           ExpandedMacroStack* expanded,
+                                           const ArchTypeInfo* info) {
     const Token* curr = &res->tokens[i];
     if (curr->kind != TOKEN_IDENTIFIER) {
         return (ExpansionInfo){0, i + 1};
@@ -129,18 +133,18 @@ static ExpansionInfo find_and_expand_macro(PreprocState* state,
         const size_t next_idx = i + 1;
         if (next_idx < res->len
             && res->tokens[next_idx].kind == TOKEN_LBRACKET) {
-            macro_end = find_macro_end(state, res, i);
+            macro_end = find_macro_end(state, res, i, info);
             if (state->err->kind != PREPROC_ERR_NONE) {
                 return (ExpansionInfo){0, (size_t)-1};
             }
             assert(macro_end != (size_t)-1);
-            return expand_func_macro(state, res, macro, i, macro_end, expanded);
+            return expand_func_macro(state, res, macro, i, macro_end, expanded, info);
         } else {
             // not considered func_macro without brackets
             return (ExpansionInfo){0, i + 1};
         }
     } else {
-        return expand_obj_macro(state, res, macro, i, expanded);
+        return expand_obj_macro(state, res, macro, i, expanded, info);
     }
 }
 
@@ -148,7 +152,8 @@ static ExpansionInfo expand_all_macros_in_range(PreprocState* state,
                                                 TokenArr* res,
                                                 size_t start,
                                                 size_t end,
-                                                ExpandedMacroStack* expanded) {
+                                                ExpandedMacroStack* expanded,
+                                                const ArchTypeInfo* info) {
     assert(end <= res->len);
     ptrdiff_t alloc_change = 0;
     size_t i = start;
@@ -156,7 +161,8 @@ static ExpansionInfo expand_all_macros_in_range(PreprocState* state,
         const ExpansionInfo ex_info = find_and_expand_macro(state,
                                                             res,
                                                             i,
-                                                            expanded);
+                                                            expanded,
+                                                            info);
         if (ex_info.next == (size_t)-1) {
             return (ExpansionInfo){0, (size_t)-1};
         }
@@ -169,13 +175,14 @@ static ExpansionInfo expand_all_macros_in_range(PreprocState* state,
     return (ExpansionInfo){alloc_change, end};
 }
 
-bool expand_all_macros(PreprocState* state, TokenArr* res, size_t start) {
+bool expand_all_macros(PreprocState* state, TokenArr* res, size_t start, const ArchTypeInfo* info) {
     ExpandedMacroStack expanded = ExpandedMacroStack_create();
     const ExpansionInfo success = expand_all_macros_in_range(state,
                                                              res,
                                                              start,
                                                              res->len,
-                                                             &expanded);
+                                                             &expanded,
+                                                             info);
     ExpandedMacroStack_free(&expanded);
     return success.next != (size_t)-1;
 }
@@ -571,7 +578,8 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
                                        const PreprocMacro* macro,
                                        size_t macro_idx,
                                        size_t macro_end,
-                                       ExpandedMacroStack* expanded) {
+                                       ExpandedMacroStack* expanded,
+                                       const ArchTypeInfo* info) {
     assert(macro->is_func_macro);
     assert(macro_end < res->len);
     assert(res->tokens[macro_idx + 1].kind == TOKEN_LBRACKET);
@@ -591,7 +599,8 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
             &args.arrs[i],
             0,
             args.arrs[i].len,
-            expanded);
+            expanded,
+            info);
         if (success.next == (size_t)-1) {
             MacroArgs_free(&args);
             return success;
@@ -654,7 +663,8 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
                                                        res,
                                                        macro_idx,
                                                        last_after_macro,
-                                                       expanded);
+                                                       expanded,
+                                                       info);
     ExpandedMacroStack_pop(expanded);
 
     MacroArgs_free(&args);
@@ -666,7 +676,8 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
                                       TokenArr* res,
                                       const PreprocMacro* macro,
                                       size_t macro_idx,
-                                      ExpandedMacroStack* expanded) {
+                                      ExpandedMacroStack* expanded,
+                                      const ArchTypeInfo* info) {
     assert(macro->is_func_macro == false);
     assert(macro->num_args == 0);
 
@@ -702,7 +713,8 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
                                                        res,
                                                        macro_idx,
                                                        macro_idx + exp_len,
-                                                       expanded);
+                                                       expanded,
+                                                       info);
     ExpandedMacroStack_pop(expanded);
     ex_info.alloc_change += alloc_change;
     return ex_info;

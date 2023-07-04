@@ -5,7 +5,7 @@
 
 #include "frontend/preproc/PreprocState.h"
 
-bool read_and_tokenize_line(PreprocState* state);
+bool read_and_tokenize_line(PreprocState* state, const ArchTypeInfo* info);
 
 #endif
 

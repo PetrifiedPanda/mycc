@@ -1124,6 +1124,35 @@ TEST(include) {
     check_token_arr_file(filename, expected, ARR_LEN(expected));
 }
 
+TEST(preproc_if) {
+    CStr filename = CSTR_LIT("../frontend/test/files/preproc_if.c");
+    const Token expected[] = {
+        create(TOKEN_CHAR, StrBuf_null(), 9, 1),
+        create(TOKEN_IDENTIFIER, STR_BUF_NON_HEAP("b"), 9, 6),
+        create(TOKEN_ASSIGN, StrBuf_null(), 9, 8),
+        create_tok_val(Value_create_sint(VALUE_I, 100), 9, 10),
+        create(TOKEN_SEMICOLON, StrBuf_null(), 9, 13),
+        create(TOKEN_CONST, StrBuf_null(), 19, 1),
+        create(TOKEN_CHAR, StrBuf_null(), 19, 7),
+        create(TOKEN_ASTERISK, StrBuf_null(), 19, 11),
+        create(TOKEN_IDENTIFIER, STR_BUF_NON_HEAP("not_d_var"), 19, 13),
+        create(TOKEN_ASSIGN, StrBuf_null(), 19, 23),
+        create_tok_str_lit(STR_LIT_DEFAULT, STR_BUF_NON_HEAP("not d"), 19, 25),
+        create(TOKEN_SEMICOLON, StrBuf_null(), 19, 32),
+        create(TOKEN_INT, StrBuf_null(), 29, 1),
+        create(TOKEN_IDENTIFIER, STR_BUF_NON_HEAP("the_world_is_in_order"), 29, 5),
+        create(TOKEN_ASSIGN, StrBuf_null(), 29, 27),
+        create_tok_val(Value_create_sint(VALUE_I, 60), 29, 29),
+        create(TOKEN_SEMICOLON, StrBuf_null(), 29, 31),
+        create(TOKEN_INT, StrBuf_null(), 49, 1),
+        create(TOKEN_IDENTIFIER, STR_BUF_NON_HEAP("inner_elif"), 49, 5),
+        create(TOKEN_ASSIGN, StrBuf_null(), 49, 16),
+        create_tok_val(Value_create_sint(VALUE_I, 23), 49, 18),
+        create(TOKEN_SEMICOLON, StrBuf_null(), 49, 20),
+    };
+    check_token_arr_file(filename, expected, ARR_LEN(expected));
+}
+
 TEST(hex_literal_or_var) {
     {
         CStr code = CSTR_LIT("vare-10");
@@ -1175,6 +1204,7 @@ TEST_SUITE_BEGIN(tokenizer){
     REGISTER_TEST(simple),
     REGISTER_TEST(file),
     REGISTER_TEST(include),
+    REGISTER_TEST(preproc_if),
     REGISTER_TEST(hex_literal_or_var),
     REGISTER_TEST(dot_float_literal_or_op),
 } TEST_SUITE_END()

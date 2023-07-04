@@ -4,10 +4,12 @@
 #include "testing/asserts.h"
 
 TEST(unterminated_literal) {
+    const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
     {
         PreprocErr err = PreprocErr_create();
         PreprocRes res = preproc_string(STR_LIT("\"this is a string literal"),
                                               STR_LIT("file.c"),
+                                              &info,
                                               &err);
         ASSERT_NULL(res.toks);
         ASSERT_SIZE_T(res.file_info.len, (size_t)0);
@@ -26,6 +28,7 @@ TEST(unterminated_literal) {
         PreprocRes res = preproc_string(
             STR_LIT("int n = 10;\nchar c = \'char literal that cannot exist"),
             STR_LIT("file.c"),
+            &info,
             &err);
         ASSERT_NULL(res.toks);
         ASSERT_SIZE_T(res.file_info.len, (size_t)0);
@@ -44,7 +47,8 @@ TEST(unterminated_literal) {
 
 TEST(invalid_identifier) {
     PreprocErr err = PreprocErr_create();
-    PreprocRes res = preproc_string(STR_LIT("int in$valid = 10;"), STR_LIT("file.c"), &err);
+    const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
+    PreprocRes res = preproc_string(STR_LIT("int in$valid = 10;"), STR_LIT("file.c"), &info, &err);
     ASSERT_NULL(res.toks);
     ASSERT_SIZE_T(res.file_info.len, (size_t)0);
     ASSERT_NULL(res.file_info.paths);
@@ -61,7 +65,8 @@ TEST(invalid_identifier) {
 
 TEST(invalid_number) {
     PreprocErr err = PreprocErr_create();
-    PreprocRes res = preproc_string(STR_LIT("int 10in$valid = 10;"), STR_LIT("file.c"), &err);
+    const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
+    PreprocRes res = preproc_string(STR_LIT("int 10in$valid = 10;"), STR_LIT("file.c"), &info, &err);
     ASSERT_NULL(res.toks);
     ASSERT_SIZE_T(res.file_info.len, (size_t)0);
     ASSERT_NULL(res.file_info.paths);

@@ -17,7 +17,7 @@ typedef struct {
  * @return preprocessed tokens from this file, or NULL if an error occurred
  *         note that these tokens still need to be converted
  */
-PreprocRes preproc(CStr path, PreprocErr* err);
+PreprocRes preproc(CStr path, const ArchTypeInfo* info, PreprocErr* err);
 
 #ifdef MYCC_TEST_FUNCTIONALITY
 /**
@@ -27,7 +27,7 @@ PreprocRes preproc(CStr path, PreprocErr* err);
  * @return preprocessed tokens from this string, or NULL if an error occurred
  *         note that these tokens still need to be converted
  */
-PreprocRes preproc_string(Str str, Str path, PreprocErr* err);
+PreprocRes preproc_string(Str str, Str path, const ArchTypeInfo* info, PreprocErr* err);
 
 #endif
 

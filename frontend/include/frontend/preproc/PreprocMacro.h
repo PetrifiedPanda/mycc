@@ -25,7 +25,7 @@ typedef struct PreprocMacro {
     TokenOrArg* expansion;
 } PreprocMacro;
 
-bool expand_all_macros(PreprocState* state, TokenArr* res, size_t start);
+bool expand_all_macros(PreprocState* state, TokenArr* res, size_t start, const ArchTypeInfo* info);
 
 PreprocMacro parse_preproc_macro(TokenArr* arr, PreprocErr* err);
 

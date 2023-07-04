@@ -6,12 +6,9 @@
 #include "util/mem.h"
 
 #include "frontend/preproc/PreprocMacro.h"
+#include "frontend/preproc/preproc_const_expr.h"
 
 #include "tokenizer.h"
-
-enum {
-    PREPROC_LINE_BUF_LEN = 200
-};
 
 static bool is_preproc_directive(Str line) {
     size_t i = 0;
@@ -25,9 +22,11 @@ static bool is_preproc_directive(Str line) {
     return Str_at(line, i) == '#';
 }
 
-static bool preproc_statement(PreprocState* state, TokenArr* arr);
+static bool preproc_statement(PreprocState* state,
+                              TokenArr* arr,
+                              const ArchTypeInfo* info);
 
-bool read_and_tokenize_line(PreprocState* state) {
+bool read_and_tokenize_line(PreprocState* state, const ArchTypeInfo* info) {
     assert(state);
 
     while (true) {
@@ -52,7 +51,7 @@ bool read_and_tokenize_line(PreprocState* state) {
                 return false;
             }
 
-            const bool stat_res = preproc_statement(state, &arr);
+            const bool stat_res = preproc_statement(state, &arr, info);
             TokenArr_free(&arr);
             if (!stat_res) {
                 return false;
@@ -72,11 +71,17 @@ bool read_and_tokenize_line(PreprocState* state) {
     return true;
 }
 
-static bool is_cond_directive(Str line) {
+static size_t skip_whitespaces(Str line) {
     size_t i = 0;
     while (i != line.len && isspace(Str_at(line, i))) {
         ++i;
     }
+
+    return i;
+}
+
+static bool is_cond_directive(Str line) {
+    size_t i = skip_whitespaces(line);
 
     if (i == line.len || Str_at(line, i) != '#') {
         return false;
@@ -103,8 +108,54 @@ static bool is_cond_directive(Str line) {
     }
 }
 
-// TODO: could probably be optimized
-static bool skip_until_next_cond(PreprocState* state) {
+static bool is_if_dir(Str line) {
+    size_t i = skip_whitespaces(line);
+
+    if (i == line.len || Str_at(line, i) != '#') {
+        return false;
+    }
+
+    ++i;
+    while (i != line.len && isspace(Str_at(line, i))) {
+        ++i;
+    }
+
+    const Str if_dir = STR_LIT("if");
+    const Str ifdef_dir = STR_LIT("ifdef");
+    const Str ifndef_dir = STR_LIT("ifndef");
+
+    Str rest = Str_advance(line, i);
+    return Str_starts_with(rest, if_dir) || Str_starts_with(rest, ifdef_dir)
+           || Str_starts_with(rest, ifndef_dir);
+}
+
+// TODO: fix nested preproc ifs
+static bool skip_until_next_cond(PreprocState* state,
+                                 const ArchTypeInfo* info) {
+    while (!PreprocState_over(state)) {
+        PreprocState_read_line(state);
+        if (is_if_dir(state->line_info.next)) {
+            push_preproc_cond(state, state->line_info.curr_loc, false);
+            if (!skip_until_next_cond(state, info)) {
+                return false;
+            }
+        } else if (is_cond_directive(state->line_info.next)) {
+            TokenArr arr = {
+                .len = 0,
+                .cap = 0,
+                .tokens = NULL,
+            };
+            const bool tokenize_res = tokenize_line(&arr, state->err, &state->line_info);
+            if (!tokenize_res) {
+                return false;
+            }
+
+            const bool stat_res = preproc_statement(state, &arr, info);
+            TokenArr_free(&arr);
+            return stat_res;
+        }
+    }
+    /*
     while (!PreprocState_over(state)) {
         PreprocState_read_line(state);
         if (is_cond_directive(state->line_info.next)) {
@@ -118,11 +169,12 @@ static bool skip_until_next_cond(PreprocState* state) {
                 return false;
             }
 
-            const bool stat_res = preproc_statement(state, &arr);
+            const bool stat_res = preproc_statement(state, &arr, info);
             TokenArr_free(&arr);
             return stat_res;
         }
     }
+    */
 
     PreprocErr_set(state->err,
                    PREPROC_ERR_UNTERMINATED_COND,
@@ -131,19 +183,25 @@ static bool skip_until_next_cond(PreprocState* state) {
     return false;
 }
 
-static bool handle_preproc_if(PreprocState* state, bool cond, SourceLoc loc) {
+static bool handle_preproc_if(PreprocState* state,
+                              bool cond,
+                              SourceLoc loc,
+                              const ArchTypeInfo* info) {
     push_preproc_cond(state, loc, cond);
 
     if (!cond) {
-        return skip_until_next_cond(state);
+        return skip_until_next_cond(state, info);
+    } else {
+        PreprocCond* curr = peek_preproc_cond(state);
+        curr->had_true_branch = true;
+        return true;
     }
-
-    return true;
 }
 
 static bool handle_ifdef_ifndef(PreprocState* state,
                                 TokenArr* arr,
-                                bool is_ifndef) {
+                                bool is_ifndef,
+                                const ArchTypeInfo* info) {
     assert(arr);
     assert(arr->tokens[0].kind == TOKEN_PP_STRINGIFY);
     assert(
@@ -152,7 +210,7 @@ static bool handle_ifdef_ifndef(PreprocState* state,
         || (is_ifndef
             && Str_eq(StrBuf_as_str(&arr->tokens[1].spelling),
                       STR_LIT("ifndef"))));
-    const SourceLoc loc = arr->tokens[0].loc;
+    const SourceLoc loc = arr->tokens[1].loc;
 
     if (arr->len < 3) {
         PreprocErr_set(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[1].loc);
@@ -183,10 +241,13 @@ static bool handle_ifdef_ifndef(PreprocState* state,
     const PreprocMacro* macro = find_preproc_macro(state, macro_spell);
 
     const bool cond = is_ifndef ? macro == NULL : macro != NULL;
-    return handle_preproc_if(state, cond, loc);
+    return handle_preproc_if(state, cond, loc, info);
 }
 
-static bool handle_else_elif(PreprocState* state, TokenArr* arr, bool is_else) {
+static bool handle_else_elif(PreprocState* state,
+                             TokenArr* arr,
+                             bool is_else,
+                             const ArchTypeInfo* info) {
     assert(arr->len > 1);
     if (state->conds_len == 0) {
         PreprocErr_set(state->err, PREPROC_ERR_MISSING_IF, arr->tokens[1].loc);
@@ -203,19 +264,32 @@ static bool handle_else_elif(PreprocState* state, TokenArr* arr, bool is_else) {
         state->err->prev_else_loc = curr_if->loc;
         return false;
     } else if (curr_if->had_true_branch) {
-        return skip_until_next_cond(state);
+        return skip_until_next_cond(state, info);
     } else if (is_else) {
         curr_if->had_else = true;
         // TODO: just continue
+        return true;
     } else {
-        // TODO: evaluate condition
-        (void)arr;
+        PreprocConstExprRes res = evaluate_preproc_const_expr(state,
+                                                              arr,
+                                                              info,
+                                                              state->err);
+        if (!res.valid) {
+            return false;
+        }
+        if (!res.res) {
+            return skip_until_next_cond(state, info);
+        }
+        curr_if->had_true_branch = true;
+        return true;
     }
 
     return false;
 }
 
-static bool handle_include(PreprocState* state, TokenArr* arr) {
+static bool handle_include(PreprocState* state,
+                           TokenArr* arr,
+                           const ArchTypeInfo* info) {
     assert(arr->len >= 2);
     if (arr->len == 2 || arr->len > 3) {
         PreprocErr_set(state->err,
@@ -225,7 +299,7 @@ static bool handle_include(PreprocState* state, TokenArr* arr) {
     }
 
     if (arr->tokens[2].kind != TOKEN_STRING_LITERAL) {
-        if (!expand_all_macros(state, arr, 2)) {
+        if (!expand_all_macros(state, arr, 2, info)) {
             return false;
         }
     }
@@ -253,7 +327,9 @@ static bool handle_include(PreprocState* state, TokenArr* arr) {
     }
 }
 
-static bool preproc_statement(PreprocState* state, TokenArr* arr) {
+static bool preproc_statement(PreprocState* state,
+                              TokenArr* arr,
+                              const ArchTypeInfo* info) {
     assert(arr);
     assert(arr->tokens);
     assert(arr->tokens[0].kind == TOKEN_PP_STRINGIFY);
@@ -270,11 +346,18 @@ static bool preproc_statement(PreprocState* state, TokenArr* arr) {
     assert(Str_valid(directive));
 
     if (Str_eq(directive, STR_LIT("if"))) {
-        // TODO:
+        PreprocConstExprRes res = evaluate_preproc_const_expr(state,
+                                                              arr,
+                                                              info,
+                                                              state->err);
+        if (!res.valid) {
+            return false;
+        }
+        return handle_preproc_if(state, res.res, arr->tokens[1].loc, info);
     } else if (Str_eq(directive, STR_LIT("ifdef"))) {
-        return handle_ifdef_ifndef(state, arr, false);
+        return handle_ifdef_ifndef(state, arr, false, info);
     } else if (Str_eq(directive, STR_LIT("ifndef"))) {
-        return handle_ifdef_ifndef(state, arr, true);
+        return handle_ifdef_ifndef(state, arr, true, info);
     } else if (Str_eq(directive, STR_LIT("define"))) {
         const StrBuf spell = Token_take_spelling(&arr->tokens[2]);
         PreprocMacro macro = parse_preproc_macro(arr, state->err);
@@ -308,13 +391,13 @@ static bool preproc_statement(PreprocState* state, TokenArr* arr) {
 
         remove_preproc_macro(state, &arr->tokens[2].spelling);
     } else if (Str_eq(directive, STR_LIT("include"))) {
-        return handle_include(state, arr);
+        return handle_include(state, arr, info);
     } else if (Str_eq(directive, STR_LIT("pragma"))) {
         // TODO:
     } else if (Str_eq(directive, STR_LIT("elif"))) {
-        return handle_else_elif(state, arr, false);
+        return handle_else_elif(state, arr, false, info);
     } else if (Str_eq(directive, STR_LIT("else"))) {
-        return handle_else_elif(state, arr, true);
+        return handle_else_elif(state, arr, true, info);
     } else if (Str_eq(directive, STR_LIT("endif"))) {
         if (state->conds_len == 0) {
             PreprocErr_set(state->err,

@@ -420,13 +420,18 @@ void pop_preproc_cond(PreprocState* state) {
 }
 
 PreprocCond* peek_preproc_cond(PreprocState* state) {
+    assert(state->conds_len != 0);
     return &state->conds[state->conds_len - 1];
 }
 
-void TokenArr_free(TokenArr* arr) {
+static void TokenArr_free_elems(TokenArr* arr) {
     for (size_t i = 0; i < arr->len; ++i) {
         StrBuf_free(&arr->tokens[i].spelling);
     }
+}
+
+void TokenArr_free(TokenArr* arr) {
+    TokenArr_free_elems(arr); 
     mycc_free(arr->tokens);
 }
 
