@@ -372,7 +372,8 @@ void* mycc_memdebug_realloc_wrapper(void* alloc,
 void mycc_memdebug_free_wrapper(void* alloc, Str func, Str file, size_t line) {
     if (alloc != NULL) {
         const size_t alloc_idx = find_alloc_idx(&g_alloc_stats, alloc);
-        assert(g_alloc_stats.data[alloc_idx].alloc == alloc);
+        assert(g_alloc_stats.data[alloc_idx].alloc == alloc
+               && "Tried to free untracked allocation");
         check_if_freed(&g_alloc_stats, alloc_idx);
         mycc_free(alloc);
         set_freed(&g_alloc_stats, alloc_idx, false, func, file, line);
