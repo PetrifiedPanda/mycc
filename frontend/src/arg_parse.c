@@ -56,7 +56,7 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
     }
 
     if (res.num_files == 0) {
-        exit_with_err(STR_LIT("{Str}: no input files\n"), argv[0]);
+        exit_with_err(STR_LIT("{Str}: no input files\n"), (Str){strlen(argv[0]), argv[0]});
     } else if (res.output_file.data != NULL && res.num_files > 1) {
         exit_with_err(STR_LIT("Cannot write output of multiple sources in one file\n"));
     }
