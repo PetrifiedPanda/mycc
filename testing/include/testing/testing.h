@@ -30,18 +30,18 @@ extern jmp_buf test_jump_buf;
     size_t this_suite_name##_test_suite(void) {                                \
         const char* suite_name = #this_suite_name;                             \
         printf("Starting %s tests\n", suite_name);                             \
-        struct test_and_name {                                                 \
+        typedef struct {                                                       \
             void (*test)(void);                                                \
             const char* name;                                                  \
-        };                                                                     \
-        const struct test_and_name tests[] =
+        } TestAndName;                                                         \
+        const TestAndName tests[] =
 
 /**
  * Register a test inside this test suite, must be between TEST_SUITE_BEGIN and
  * TEST_SUITE_END
  */
 #define REGISTER_TEST(test_name)                                               \
-    (struct test_and_name) {                                                   \
+    (TestAndName) {                                                            \
         test_name##_test, #test_name                                           \
     }
 
