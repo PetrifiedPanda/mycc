@@ -129,7 +129,6 @@ static bool is_if_dir(Str line) {
            || Str_starts_with(rest, ifndef_dir);
 }
 
-// TODO: fix nested preproc ifs
 static bool skip_until_next_cond(PreprocState* state,
                                  const ArchTypeInfo* info) {
     while (!PreprocState_over(state)) {
@@ -155,27 +154,6 @@ static bool skip_until_next_cond(PreprocState* state,
             return stat_res;
         }
     }
-    /*
-    while (!PreprocState_over(state)) {
-        PreprocState_read_line(state);
-        if (is_cond_directive(state->line_info.next)) {
-            TokenArr arr = {
-                .len = 0,
-                .cap = 0,
-                .tokens = NULL,
-            };
-            const bool res = tokenize_line(&arr, state->err, &state->line_info);
-            if (!res) {
-                return false;
-            }
-
-            const bool stat_res = preproc_statement(state, &arr, info);
-            TokenArr_free(&arr);
-            return stat_res;
-        }
-    }
-    */
-
     PreprocErr_set(state->err,
                    PREPROC_ERR_UNTERMINATED_COND,
                    state->line_info.curr_loc);
