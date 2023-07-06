@@ -85,13 +85,28 @@ static PreprocConstExprVal evaluate_preproc_primary_expr(size_t* it,
                 return res;
             }
             if (arr->tokens[*it].kind != TOKEN_RBRACKET) {
-                // TODO: err
+                PreprocErr_set(err,
+                               PREPROC_ERR_EXPECTED_TOKENS,
+                               arr->tokens[*it].loc);
+                err->expected_tokens_err =
+                    ExpectedTokensErr_create_single_token(arr->tokens[*it].kind,
+                                                          TOKEN_RBRACKET);
                 return (PreprocConstExprVal){0};
             }
             ++*it;
             return res;
         default:
-            // TODO: err
+            PreprocErr_set(err,
+                           PREPROC_ERR_EXPECTED_TOKENS,
+                           arr->tokens[*it].loc);
+            static const TokenKind ex[] = {
+                TOKEN_I_CONSTANT,
+                TOKEN_LBRACKET,
+            };
+            err->expected_tokens_err = ExpectedTokensErr_create(
+                arr->tokens[*it].kind,
+                ex,
+                ARR_LEN(ex));
             return (PreprocConstExprVal){0};
     }
 }
@@ -432,7 +447,12 @@ static PreprocConstExprVal evaluate_preproc_cond_expr(size_t* it,
             return true_val;
         }
         if (arr->tokens[*it].kind != TOKEN_COLON) {
-            // TODO: error
+            PreprocErr_set(err,
+                           PREPROC_ERR_EXPECTED_TOKENS,
+                           arr->tokens[*it].loc);
+            err->expected_tokens_err = ExpectedTokensErr_create_single_token(
+                arr->tokens[*it].kind,
+                TOKEN_COLON);
             return (PreprocConstExprVal){0};
         }
         ++*it;
@@ -445,8 +465,6 @@ static PreprocConstExprVal evaluate_preproc_cond_expr(size_t* it,
         curr_res = PreprocConstExprVal_is_nonzero(&curr_res) ? true_val
                                                              : false_val;
     }
-
-    // TODO: if not over, error
 
     return curr_res;
 }
@@ -481,7 +499,12 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
             }
 
             if (arr->tokens[it].kind != TOKEN_IDENTIFIER) {
-                // TODO: err
+                PreprocErr_set(err,
+                               PREPROC_ERR_EXPECTED_TOKENS,
+                               arr->tokens[it].loc);
+                err->expected_tokens_err =
+                    ExpectedTokensErr_create_single_token(arr->tokens[it].kind,
+                                                          TOKEN_IDENTIFIER);
                 return (PreprocConstExprRes){
                     .valid = false,
                 };
@@ -493,7 +516,12 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
             ++it;
 
             if (has_bracket && arr->tokens[it].kind != TOKEN_RBRACKET) {
-                // TODO: err
+                PreprocErr_set(err,
+                               PREPROC_ERR_EXPECTED_TOKENS,
+                               arr->tokens[it].loc);
+                err->expected_tokens_err =
+                    ExpectedTokensErr_create_single_token(arr->tokens[it].kind,
+                                                          TOKEN_RBRACKET);
                 return (PreprocConstExprRes){
                     .valid = false,
                 };
@@ -516,7 +544,7 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
             arr->len -= it - i - 1;
         }
     }
-    // TODO: don't expand macros in defined (and handle defined)
+
     if (!expand_all_macros(state, arr, 2, info)) {
         return (PreprocConstExprRes){
             .valid = false,
