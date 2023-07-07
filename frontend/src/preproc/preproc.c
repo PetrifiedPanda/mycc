@@ -126,11 +126,15 @@ static void free_tokens(Token* tokens) {
     mycc_free(tokens);
 }
 
-static void free_preproc_tokens(Token* tokens) {
-    for (Token* it = tokens; it->kind != TOKEN_INVALID; ++it) {
+static void free_preproc_tokens_only(Token* toks) {
+    for (Token* it = toks; it->kind != TOKEN_INVALID; ++it) {
         StrBuf_free(&it->spelling);
     }
-    mycc_free(tokens);
+}
+
+static void free_preproc_tokens(Token* toks) {
+    free_preproc_tokens_only(toks);
+    mycc_free(toks);
 }
 
 void PreprocRes_free_preproc_tokens(PreprocRes* res) {
@@ -229,6 +233,8 @@ bool convert_preproc_tokens(Token* tokens,
     assert(info);
     for (Token* t = tokens; t->kind != TOKEN_INVALID; ++t) {
         if (!convert_preproc_token(t, info, err)) {
+            free_preproc_tokens_only(t);
+            t->kind = TOKEN_INVALID;
             return false;
         }
     }
