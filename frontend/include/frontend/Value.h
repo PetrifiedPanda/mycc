@@ -9,19 +9,19 @@
 #include "util/Str.h"
 
 typedef enum {
-    VALUE_C,
-    VALUE_S,
-    VALUE_I,
-    VALUE_L,
-    VALUE_LL,
-    VALUE_UC,
-    VALUE_US,
-    VALUE_UI,
-    VALUE_UL,
-    VALUE_ULL,
-    VALUE_F,
-    VALUE_D,
-    VALUE_LD,
+    VALUE_CHAR,
+    VALUE_SHORT,
+    VALUE_INT,
+    VALUE_LINT,
+    VALUE_LLINT,
+    VALUE_UCHAR,
+    VALUE_USHORT,
+    VALUE_UINT,
+    VALUE_ULINT,
+    VALUE_ULLINT,
+    VALUE_FLOAT,
+    VALUE_DOUBLE,
+    VALUE_LDOUBLE,
 } ValueKind;
 
 typedef struct {

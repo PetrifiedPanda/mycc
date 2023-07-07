@@ -31,21 +31,21 @@ Value Value_create_float(ValueKind k, double val) {
 
 bool ValueKind_is_sint(ValueKind k) {
     switch (k) {
-        case VALUE_C:
+        case VALUE_CHAR:
             // TODO:
-        case VALUE_S:
-        case VALUE_I:
-        case VALUE_L:
-        case VALUE_LL:
+        case VALUE_SHORT:
+        case VALUE_INT:
+        case VALUE_LINT:
+        case VALUE_LLINT:
             return true;
-        case VALUE_UC:
-        case VALUE_US:
-        case VALUE_UI:
-        case VALUE_UL:
-        case VALUE_ULL:
-        case VALUE_F:
-        case VALUE_D:
-        case VALUE_LD:
+        case VALUE_UCHAR:
+        case VALUE_USHORT:
+        case VALUE_UINT:
+        case VALUE_ULINT:
+        case VALUE_ULLINT:
+        case VALUE_FLOAT:
+        case VALUE_DOUBLE:
+        case VALUE_LDOUBLE:
             return false;
     }
     UNREACHABLE();
@@ -53,21 +53,21 @@ bool ValueKind_is_sint(ValueKind k) {
 
 bool ValueKind_is_uint(ValueKind k) {
     switch (k) {
-        case VALUE_C:
-        case VALUE_S:
-        case VALUE_I:
-        case VALUE_L:
-        case VALUE_LL:
+        case VALUE_CHAR:
+        case VALUE_SHORT:
+        case VALUE_INT:
+        case VALUE_LINT:
+        case VALUE_LLINT:
             return false;
-        case VALUE_UC:
-        case VALUE_US:
-        case VALUE_UI:
-        case VALUE_UL:
-        case VALUE_ULL:
+        case VALUE_UCHAR:
+        case VALUE_USHORT:
+        case VALUE_UINT:
+        case VALUE_ULINT:
+        case VALUE_ULLINT:
             return true;
-        case VALUE_F:
-        case VALUE_D:
-        case VALUE_LD:
+        case VALUE_FLOAT:
+        case VALUE_DOUBLE:
+        case VALUE_LDOUBLE:
             return false;
     }
     UNREACHABLE();
@@ -75,20 +75,20 @@ bool ValueKind_is_uint(ValueKind k) {
 
 bool ValueKind_is_float(ValueKind k) {
     switch (k) {
-        case VALUE_C:
-        case VALUE_S:
-        case VALUE_I:
-        case VALUE_L:
-        case VALUE_LL:
-        case VALUE_UC:
-        case VALUE_US:
-        case VALUE_UI:
-        case VALUE_UL:
-        case VALUE_ULL:
+        case VALUE_CHAR:
+        case VALUE_SHORT:
+        case VALUE_INT:
+        case VALUE_LINT:
+        case VALUE_LLINT:
+        case VALUE_UCHAR:
+        case VALUE_USHORT:
+        case VALUE_UINT:
+        case VALUE_ULINT:
+        case VALUE_ULLINT:
             return false;
-        case VALUE_F:
-        case VALUE_D:
-        case VALUE_LD:
+        case VALUE_FLOAT:
+        case VALUE_DOUBLE:
+        case VALUE_LDOUBLE:
             return true;
     }
     UNREACHABLE();
@@ -96,32 +96,32 @@ bool ValueKind_is_float(ValueKind k) {
 
 Str ValueKind_str(ValueKind k) {
     switch (k) {
-        case VALUE_C:
-            return STR_LIT("VALUE_C");
-        case VALUE_S:
-            return STR_LIT("VALUE_S");
-        case VALUE_I:
-            return STR_LIT("VALUE_I");
-        case VALUE_L:
-            return STR_LIT("VALUE_L");
-        case VALUE_LL:
-            return STR_LIT("VALUE_LL");
-        case VALUE_UC:
-            return STR_LIT("VALUE_UC");
-        case VALUE_US:
-            return STR_LIT("VALUE_US");
-        case VALUE_UI:
-            return STR_LIT("VALUE_UI");
-        case VALUE_UL:
-            return STR_LIT("VALUE_UL");
-        case VALUE_ULL:
-            return STR_LIT("VALUE_ULL");
-        case VALUE_F:
-            return STR_LIT("VALUE_F");
-        case VALUE_D:
-            return STR_LIT("VALUE_D");
-        case VALUE_LD:
-            return STR_LIT("VALUE_LD");
+        case VALUE_CHAR:
+            return STR_LIT("VALUE_CHAR");
+        case VALUE_SHORT:
+            return STR_LIT("VALUE_SHORT");
+        case VALUE_INT:
+            return STR_LIT("VALUE_INT");
+        case VALUE_LINT:
+            return STR_LIT("VALUE_LINT");
+        case VALUE_LLINT:
+            return STR_LIT("VALUE_LLINT");
+        case VALUE_UCHAR:
+            return STR_LIT("VALUE_UCHAR");
+        case VALUE_USHORT:
+            return STR_LIT("VALUE_USHORT");
+        case VALUE_UINT:
+            return STR_LIT("VALUE_UINT");
+        case VALUE_ULINT:
+            return STR_LIT("VALUE_ULINT");
+        case VALUE_ULLINT:
+            return STR_LIT("VALUE_ULLINT");
+        case VALUE_FLOAT:
+            return STR_LIT("VALUE_FLOAT");
+        case VALUE_DOUBLE:
+            return STR_LIT("VALUE_DOUBLE");
+        case VALUE_LDOUBLE:
+            return STR_LIT("VALUE_LDOUBLE");
     }
     UNREACHABLE();
 }

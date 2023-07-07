@@ -86,7 +86,7 @@ TEST(jump_statement) {
         ASSERT(res->kind == JUMP_STATEMENT_RETURN);
         ASSERT_SIZE_T(res->ret_val.len, 1);
 
-        check_expr_val(&res->ret_val, Value_create_sint(VALUE_I, 600));
+        check_expr_val(&res->ret_val, Value_create_sint(VALUE_INT, 600));
 
         JumpStatement_free(res);
     }
@@ -132,7 +132,7 @@ TEST(statement) {
     check_shift_expr_id(&rel->lhs, STR_LIT("i"));
     ASSERT(rel->rel_chain[0].op == REL_EXPR_LT);
     check_shift_expr_val(&rel->rel_chain[0].rhs,
-                         Value_create_sint(VALUE_I, 100));
+                         Value_create_sint(VALUE_INT, 100));
 
     UnaryExpr* unary = &iteration->for_loop.incr_expr.assign_exprs->value
                             .last_else.log_ands->or_exprs->xor_exprs->and_exprs
@@ -158,14 +158,14 @@ TEST(statement) {
         ASSERT(labeled->kind == LABELED_STATEMENT_CASE);
 
         check_const_expr_val(&labeled->case_expr,
-                             Value_create_sint(VALUE_I, 2));
+                             Value_create_sint(VALUE_INT, 2));
 
         ASSERT(labeled->stat->kind == STATEMENT_EXPRESSION);
         Expr* case_expr = &labeled->stat->expr->expr;
         ASSERT_SIZE_T(case_expr->assign_exprs->len, (size_t)1);
 
         check_cond_expr_val(&case_expr->assign_exprs->value,
-                            Value_create_sint(VALUE_I, 5));
+                            Value_create_sint(VALUE_INT, 5));
         ASSERT(case_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_SUB);
         check_unary_expr_id(&case_expr->assign_exprs->assign_chain[0].unary,
                             STR_LIT("d"));
@@ -185,7 +185,7 @@ TEST(statement) {
 
         ASSERT_SIZE_T(default_expr->assign_exprs->len, (size_t)1);
         check_cond_expr_val(&default_expr->assign_exprs->value,
-                            Value_create_sint(VALUE_I, 5));
+                            Value_create_sint(VALUE_INT, 5));
         ASSERT(default_expr->assign_exprs->assign_chain[0].op
                == ASSIGN_EXPR_ADD);
         check_unary_expr_id(&default_expr->assign_exprs->assign_chain[0].unary,
@@ -205,7 +205,7 @@ TEST(statement) {
     check_shift_expr_id(&if_cond->lhs, STR_LIT("i"));
     ASSERT(if_cond->rel_chain[0].op == REL_EXPR_GE);
     check_shift_expr_val(&if_cond->rel_chain[0].rhs,
-                         Value_create_sint(VALUE_I, 5));
+                         Value_create_sint(VALUE_INT, 5));
 
     ASSERT(if_stat->sel_stat->kind == STATEMENT_COMPOUND);
     ASSERT_SIZE_T(if_stat->sel_stat->comp->len, (size_t)1);
@@ -217,7 +217,7 @@ TEST(statement) {
     ASSERT(if_stat->else_stat->kind == STATEMENT_EXPRESSION);
     Expr* else_expr = &if_stat->else_stat->expr->expr;
     check_cond_expr_val(&else_expr->assign_exprs->value,
-                        Value_create_sint(VALUE_I, 0));
+                        Value_create_sint(VALUE_INT, 0));
     ASSERT_SIZE_T(else_expr->assign_exprs->len, (size_t)1);
     ASSERT(else_expr->assign_exprs->assign_chain[0].op == ASSIGN_EXPR_ASSIGN);
     check_unary_expr_id(&else_expr->assign_exprs->assign_chain[0].unary, STR_LIT("b"));

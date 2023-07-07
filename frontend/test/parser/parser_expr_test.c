@@ -144,7 +144,7 @@ static void primary_expr_generic_sel_test(void) {
 
     ASSERT_NULL(assoc->type_name->abstract_decl);
     ASSERT(assoc->type_name->spec_qual_list->specs.kind == TYPE_SPEC_INT);
-    check_assign_expr_val(assoc->assign, Value_create_sint(VALUE_I, 0));
+    check_assign_expr_val(assoc->assign, Value_create_sint(VALUE_INT, 0));
 
     ++assoc;
 
@@ -166,7 +166,7 @@ static void primary_expr_generic_sel_test(void) {
     check_identifier(
         assoc->type_name->spec_qual_list->specs.struct_union_spec->identifier,
         STR_LIT("a_struct"));
-    check_assign_expr_val(assoc->assign, Value_create_float(VALUE_D, 5.0));
+    check_assign_expr_val(assoc->assign, Value_create_float(VALUE_DOUBLE, 5.0));
 
     ++assoc;
 
@@ -181,10 +181,10 @@ static void primary_expr_generic_sel_test(void) {
 TEST(primary_expr) {
     check_primary_expr_float_constant(CONSTANT_VAL,
                                       STR_LIT("3.1e-5f"),
-                                      Value_create_float(VALUE_F, 3.1e-5f));
+                                      Value_create_float(VALUE_FLOAT, 3.1e-5f));
     check_primary_expr_int_constant(CONSTANT_VAL,
                                     STR_LIT("0xdeadbeefl"),
-                                    Value_create_sint(VALUE_L, 0xdeadbeefl));
+                                    Value_create_sint(VALUE_LINT, 0xdeadbeefl));
     check_primary_expr_identifier(STR_LIT("super_cool_identifier"));
     check_primary_expr_identifier(STR_LIT("another_cool_identifier"));
     check_primary_expr_string(
@@ -194,7 +194,7 @@ TEST(primary_expr) {
                 "is an actual string literal but hey"));
     check_primary_expr_func_name();
     check_primary_expr_bracket_float(STR_LIT("(23.3)"),
-                                     Value_create_float(VALUE_D, 23.3));
+                                     Value_create_float(VALUE_DOUBLE, 23.3));
     check_primary_expr_bracket_id(STR_LIT("(var)"), STR_LIT("var"));
     primary_expr_generic_sel_test();
 }
@@ -244,7 +244,7 @@ TEST(unary_expr) {
 
         ASSERT(res.postfix.is_primary);
         check_primary_expr_val(&res.postfix.primary,
-                               Value_create_sint(VALUE_I, 100));
+                               Value_create_sint(VALUE_INT, 100));
 
         UnaryExpr_free_children(&res);
     }
@@ -305,7 +305,7 @@ static void test_postfix_expr_intializer(bool tailing_comma) {
     ASSERT(!Designation_is_valid(&res.init_list.inits[0].designation));
     ASSERT(res.init_list.inits[0].init.is_assign);
     check_assign_expr_val(res.init_list.inits[0].init.assign,
-                          Value_create_sint(VALUE_I, 1));
+                          Value_create_sint(VALUE_INT, 1));
 
     ASSERT(!Designation_is_valid(&res.init_list.inits[1].designation));
     ASSERT(res.init_list.inits[1].init.is_assign);
@@ -360,7 +360,7 @@ TEST(postfix_expr) {
         ++suffix;
 
         ASSERT(suffix->kind == POSTFIX_INDEX);
-        check_expr_val(&suffix->index_expr, Value_create_sint(VALUE_I, 23));
+        check_expr_val(&suffix->index_expr, Value_create_sint(VALUE_INT, 23));
 
         ++suffix;
 
@@ -369,7 +369,7 @@ TEST(postfix_expr) {
         check_assign_expr_id(&suffix->bracket_list.assign_exprs[0],
                              STR_LIT("another_id"));
         check_assign_expr_val(&suffix->bracket_list.assign_exprs[1],
-                              Value_create_sint(VALUE_I, 34));
+                              Value_create_sint(VALUE_INT, 34));
         check_assign_expr_id(&suffix->bracket_list.assign_exprs[2],
                              STR_LIT("id"));
 
@@ -411,7 +411,7 @@ TEST(assign_expr) {
     {
         AssignExpr* res = parse_assign_helper(STR_LIT("10"));
 
-        check_assign_expr_val(res, Value_create_sint(VALUE_I, 10));
+        check_assign_expr_val(res, Value_create_sint(VALUE_INT, 10));
 
         AssignExpr_free(res);
     }
@@ -441,9 +441,9 @@ TEST(assign_expr) {
         } ValOrStr;
         ValOrStr expected_spellings[] = {
             {STR, .str = STR_LIT("x")},
-            {VAL, .val = Value_create_sint(VALUE_I, 100)},
+            {VAL, .val = Value_create_sint(VALUE_INT, 100)},
             {STR, .str = STR_LIT("y")},
-            {VAL, .val = Value_create_float(VALUE_D, 100.0)},
+            {VAL, .val = Value_create_float(VALUE_DOUBLE, 100.0)},
         };
 
         enum {
@@ -468,7 +468,7 @@ TEST(assign_expr) {
 
         check_unary_expr_id(&res->assign_chain[0].unary, STR_LIT("x"));
 
-        check_cond_expr_val(&res->value, Value_create_sint(VALUE_I, 2));
+        check_cond_expr_val(&res->value, Value_create_sint(VALUE_INT, 2));
 
         AssignExpr_free(res);
     }
@@ -479,7 +479,7 @@ TEST(assign_expr) {
         ASSERT_SIZE_T(res->len, (size_t)0);
         check_assign_expr_cast_int(&res->value,
                                    TYPE_SPEC_CHAR,
-                                   Value_create_sint(VALUE_I, 100));
+                                   Value_create_sint(VALUE_INT, 100));
 
         AssignExpr_free(res);
     }
@@ -501,11 +501,11 @@ TEST(assign_expr) {
 
         ASSERT_SIZE_T(unary->postfix.init_list.len, (size_t)2);
         check_assign_expr_val(unary->postfix.init_list.inits[0].init.assign,
-                              Value_create_sint(VALUE_I, 1));
+                              Value_create_sint(VALUE_INT, 1));
         check_assign_expr_id(unary->postfix.init_list.inits[1].init.assign,
                              STR_LIT("var"));
 
-        check_cond_expr_val(&res->value, Value_create_float(VALUE_D, 0.0));
+        check_cond_expr_val(&res->value, Value_create_float(VALUE_DOUBLE, 0.0));
 
         AssignExpr_free(res);
     }
@@ -520,7 +520,7 @@ TEST(assign_expr) {
 
         check_assign_expr_cast_int(&res->value,
                                    TYPE_SPEC_DOUBLE,
-                                   Value_create_sint(VALUE_I, 12));
+                                   Value_create_sint(VALUE_INT, 12));
 
         AssignExpr_free(res);
     }
@@ -546,7 +546,7 @@ TEST(assign_expr) {
             &unary->postfix.init_list.inits[0].designation));
         ASSERT(unary->postfix.init_list.inits[0].init.is_assign);
         check_assign_expr_val(unary->postfix.init_list.inits[0].init.assign,
-                              Value_create_sint(VALUE_I, 1));
+                              Value_create_sint(VALUE_INT, 1));
         ASSERT(!Designation_is_valid(
             &unary->postfix.init_list.inits[1].designation));
         ASSERT(unary->postfix.init_list.inits[1].init.is_assign);
@@ -604,7 +604,7 @@ TEST(expr) {
     check_assign_expr_single_assign_int(&expr.assign_exprs[0],
                                         STR_LIT("a"),
                                         ASSIGN_EXPR_ASSIGN,
-                                        Value_create_sint(VALUE_I, 10));
+                                        Value_create_sint(VALUE_INT, 10));
     check_assign_expr_single_assign_id(&expr.assign_exprs[1],
                                        STR_LIT("b"),
                                        ASSIGN_EXPR_MUL,
@@ -612,7 +612,7 @@ TEST(expr) {
     check_assign_expr_single_assign_float(&expr.assign_exprs[2],
                                           STR_LIT("c"),
                                           ASSIGN_EXPR_ADD,
-                                          Value_create_float(VALUE_D, 3.1));
+                                          Value_create_float(VALUE_DOUBLE, 3.1));
 
     Expr_free_children(&expr);
     ParserState_free(&s);

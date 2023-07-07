@@ -217,11 +217,11 @@ static bool deserialize_value(AstDeserializer* r, Value* res) {
     res->kind = kind;
     assert((uint64_t)res->kind == kind);
     switch (res->kind) {
-        case VALUE_C:
-        case VALUE_S:
-        case VALUE_I:
-        case VALUE_L:
-        case VALUE_LL: {
+        case VALUE_CHAR:
+        case VALUE_SHORT:
+        case VALUE_INT:
+        case VALUE_LINT:
+        case VALUE_LLINT: {
             int64_t val;
             if (!deserialize_int(r, &val)) {
                 return false;
@@ -229,11 +229,11 @@ static bool deserialize_value(AstDeserializer* r, Value* res) {
             res->sint_val = val;
             break;
         }
-        case VALUE_UC:
-        case VALUE_US:
-        case VALUE_UI:
-        case VALUE_UL:
-        case VALUE_ULL: {
+        case VALUE_UCHAR:
+        case VALUE_USHORT:
+        case VALUE_UINT:
+        case VALUE_ULINT:
+        case VALUE_ULLINT: {
             uint64_t val;
             if (!deserialize_uint(r, &val)) {
                 return false;
@@ -241,9 +241,9 @@ static bool deserialize_value(AstDeserializer* r, Value* res) {
             res->uint_val = val;
             break;
         }
-        case VALUE_F:
-        case VALUE_D:
-        case VALUE_LD: {
+        case VALUE_FLOAT:
+        case VALUE_DOUBLE:
+        case VALUE_LDOUBLE: {
             double val;
             if (!deserialize_float(r, &val)) {
                 return false;
