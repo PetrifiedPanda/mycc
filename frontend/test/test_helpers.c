@@ -53,13 +53,14 @@ void test_compare_files(CStr got_file, CStr ex_file) {
         if (!Str_eq(got_line, ex_line)) {
             File_close(got);
             File_close(ex);
-            PRINT_ASSERT_ERR("Line %zu of file %s differs from expected file "
-                             "%s: Expected %s but got %s",
-                             line_counter,
-                             got_file.data,
-                             ex_file.data,
-                             ex_line.data,
-                             got_line.data);
+            PRINT_ASSERT_ERR(
+                "Line {size_t} of file {size_t} differs from expected file "
+                "{Str}: Expected {Str} but got {Str}",
+                line_counter,
+                got_file,
+                ex_file,
+                ex_line,
+                got_line);
         }
 
         ++line_counter;
@@ -77,15 +78,15 @@ void test_compare_files(CStr got_file, CStr ex_file) {
     if (!Str_valid(got_line) && Str_valid(ex_line)) {
         File_close(got);
         File_close(ex);
-        PRINT_ASSERT_ERR("Expected %s at line %zu but got to end of file",
-                         ex_line.data,
+        PRINT_ASSERT_ERR("Expected {Str} at line %zu but got to end of file",
+                         ex_line,
                          line_counter);
     } else if (Str_valid(got_line) && !Str_valid(ex_line)) {
         File_close(got);
         File_close(ex);
-        PRINT_ASSERT_ERR("Expected end of file at line %zu but got %s",
+        PRINT_ASSERT_ERR("Expected end of file at line %zu but got {Str}",
                          line_counter,
-                         got_line.data);
+                         got_line);
     }
 
     StrBuf_free(&got_str);
