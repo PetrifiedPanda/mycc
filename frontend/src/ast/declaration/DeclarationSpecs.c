@@ -10,9 +10,9 @@
 #include "frontend/ast/declaration/AlignSpec.h"
 
 static bool current_is_type_qual(const ParserState* s) {
-    if (is_type_qual(s->it->kind)) {
-        if (s->it->kind == TOKEN_ATOMIC) {
-            return s->it[1].kind != TOKEN_LBRACKET;
+    if (is_type_qual(ParserState_curr_kind(s))) {
+        if (ParserState_curr_kind(s) == TOKEN_ATOMIC) {
+            return ParserState_next_token_kind(s) != TOKEN_LBRACKET;
         } else {
             return true;
         }
@@ -46,9 +46,9 @@ static ParseDeclarationSpecRes parse_declaration_spec(
     assert(res);
     assert(alloc_len_align_specs);
 
-    if (is_storage_class_spec(s->it->kind)) {
+    if (is_storage_class_spec(ParserState_curr_kind(s))) {
         StorageClass* sc = &res->storage_class;
-        switch (s->it->kind) {
+        switch (ParserState_curr_kind(s)) {
             case TOKEN_TYPEDEF:
                 sc->is_typedef = true;
                 break;
@@ -74,24 +74,29 @@ static ParseDeclarationSpecRes parse_declaration_spec(
     } else if (current_is_type_qual(s)) {
         update_type_quals(s, &res->type_quals);
     } else if (is_type_spec(s)) {
-        if (res->storage_class.is_typedef && s->it->kind == TOKEN_IDENTIFIER) {
+        if (res->storage_class.is_typedef
+            && ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
             const ParserIdentifierData* prev_def = parser_get_prev_definition(
                 s,
-                &s->it->spelling);
-            const Token* next = s->it + 1;
+                ParserState_curr_spell(s));
+            const Token* next = ParserState_next_token(s);
             if (prev_def != NULL && !is_storage_class_spec(next->kind)
                 && !is_type_qual(next->kind) && !is_type_spec_token(s, next)
                 && !is_func_spec(next->kind) && next->kind != TOKEN_ALIGNAS) {
-                parser_set_redefinition_err(s, prev_def, s->it);
+                const StrBuf spell = ParserState_take_curr_spell(s);
+                parser_set_redefinition_err(s,
+                                            prev_def,
+                                            &spell,
+                                            ParserState_curr_loc(s));
                 return DECL_SPEC_ERROR;
             }
         }
         if (!update_type_specs(s, &res->type_specs)) {
             return DECL_SPEC_ERROR;
         }
-    } else if (is_func_spec(s->it->kind)) {
+    } else if (is_func_spec(ParserState_curr_kind(s))) {
         FuncSpecs* fs = &res->func_specs;
-        switch (s->it->kind) {
+        switch (ParserState_curr_kind(s)) {
             case TOKEN_INLINE:
                 fs->is_inline = true;
                 break;
@@ -102,7 +107,7 @@ static ParseDeclarationSpecRes parse_declaration_spec(
                 UNREACHABLE();
         }
         parser_accept_it(s);
-    } else if (s->it->kind == TOKEN_ALIGNAS) {
+    } else if (ParserState_curr_kind(s) == TOKEN_ALIGNAS) {
         if (res->num_align_specs == *alloc_len_align_specs) {
             mycc_grow_alloc((void**)&res->align_specs,
                             alloc_len_align_specs,
@@ -128,7 +133,7 @@ DeclarationSpecs* parse_declaration_specs(ParserState* s, bool* found_typedef) {
     assert(*found_typedef == false);
 
     DeclarationSpecs* res = mycc_alloc(sizeof *res);
-    res->info = AstNodeInfo_create(s->it->loc);
+    res->info = AstNodeInfo_create(ParserState_curr_loc(s));
     res->func_specs = (FuncSpecs){
         .is_inline = false,
         .is_noreturn = false,

@@ -13,23 +13,22 @@
 static bool parse_enumerator_inplace(ParserState* s, Enumerator* res) {
     assert(res);
 
-    if (s->it->kind != TOKEN_IDENTIFIER) {
+    if (ParserState_curr_kind(s) != TOKEN_IDENTIFIER) {
         expected_token_error(s, TOKEN_IDENTIFIER);
         return false;
     }
 
-    Token* id_token = s->it;
+    const StrBuf spell = ParserState_take_curr_spell(s);
+    const SourceLoc loc = ParserState_curr_loc(s);
     parser_accept_it(s);
 
-    if (!parser_register_enum_constant(s, id_token)) {
+    if (!parser_register_enum_constant(s, &spell, loc)) {
+        StrBuf_free(&spell);
         return false;
     }
 
-    const StrBuf spell = Token_take_spelling(id_token);
-    SourceLoc loc = id_token->loc;
-
     ConstExpr* enum_val = NULL;
-    if (s->it->kind == TOKEN_ASSIGN) {
+    if (ParserState_curr_kind(s) == TOKEN_ASSIGN) {
         parser_accept_it(s);
         enum_val = parse_const_expr(s);
         if (!enum_val) {
@@ -53,7 +52,8 @@ static bool parse_enum_list(ParserState* s, EnumList* res) {
     }
 
     size_t alloc_len = 1;
-    while (s->it->kind == TOKEN_COMMA && s->it[1].kind == TOKEN_IDENTIFIER) {
+    while (ParserState_curr_kind(s) == TOKEN_COMMA
+           && ParserState_next_token_kind(s) == TOKEN_IDENTIFIER) {
         parser_accept_it(s);
 
         if (res->len == alloc_len) {
@@ -90,28 +90,28 @@ static EnumSpec* EnumSpec_create(SourceLoc loc,
 }
 
 EnumSpec* parse_enum_spec(ParserState* s) {
-    const SourceLoc loc = s->it->loc;
+    const SourceLoc loc = ParserState_curr_loc(s);
     if (!parser_accept(s, TOKEN_ENUM)) {
         return NULL;
     }
 
     Identifier* id = NULL;
-    if (s->it->kind == TOKEN_IDENTIFIER) {
-        const StrBuf spell = Token_take_spelling(s->it);
-        const SourceLoc id_loc = s->it->loc;
+    if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
+        const StrBuf spell = ParserState_take_curr_spell(s);
+        const SourceLoc id_loc = ParserState_curr_loc(s);
         parser_accept_it(s);
         id = Identifier_create(&spell, id_loc);
     }
 
     EnumList enums = {.len = 0, .enums = NULL};
-    if (s->it->kind == TOKEN_LBRACE) {
+    if (ParserState_curr_kind(s) == TOKEN_LBRACE) {
         parser_accept_it(s);
         if (!parse_enum_list(s, &enums)) {
             goto fail;
         }
         assert(enums.len > 0);
 
-        if (s->it->kind == TOKEN_COMMA) {
+        if (ParserState_curr_kind(s) == TOKEN_COMMA) {
             parser_accept_it(s);
         }
         if (!parser_accept(s, TOKEN_RBRACE)) {

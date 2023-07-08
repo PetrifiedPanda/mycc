@@ -10,7 +10,9 @@
 
 void expected_token_error(ParserState* s, TokenKind expected) {
     ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it->loc);
-    s->err->expected_tokens_err = ExpectedTokensErr_create_single_token(s->it->kind, expected);
+    s->err->expected_tokens_err = ExpectedTokensErr_create_single_token(
+        ParserState_curr_kind(s),
+        expected);
 }
 
 void expected_tokens_error(ParserState* s,
@@ -18,9 +20,10 @@ void expected_tokens_error(ParserState* s,
                            size_t num_expected) {
     assert(expected);
     ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it->loc);
-    s->err->expected_tokens_err = ExpectedTokensErr_create(s->it->kind,
-                                                             expected,
-                                                             num_expected);
+    s->err->expected_tokens_err = ExpectedTokensErr_create(
+        ParserState_curr_kind(s),
+        expected,
+        num_expected);
 }
 
 bool is_storage_class_spec(TokenKind k) {
@@ -54,8 +57,7 @@ bool is_func_spec(TokenKind k) {
     return k == TOKEN_INLINE || k == TOKEN_NORETURN;
 }
 
-bool is_type_spec_token(const ParserState* s,
-                        const Token* token) {
+bool is_type_spec_token(const ParserState* s, const Token* token) {
     switch (token->kind) {
         case TOKEN_VOID:
         case TOKEN_CHAR:
@@ -75,17 +77,18 @@ bool is_type_spec_token(const ParserState* s,
         case TOKEN_ENUM:
             return true;
         case TOKEN_IDENTIFIER:
-            return parser_is_typedef_name(s, &token->spelling);
+            return parser_is_typedef_name(s, StrBuf_as_str(&token->spelling));
         default:
             return false;
     }
 }
 
 bool next_is_type_name(const ParserState* s) {
-    assert(s->it->kind != TOKEN_INVALID);
+    assert(ParserState_curr_kind(s) != TOKEN_INVALID);
     const Token* next = s->it + 1;
     return is_type_spec_token(s, next) || is_type_qual(next->kind)
-           || (next->kind == TOKEN_IDENTIFIER && parser_is_typedef_name(s, &next->spelling));
+           || (next->kind == TOKEN_IDENTIFIER
+               && parser_is_typedef_name(s, StrBuf_as_str(&next->spelling)));
 }
 
 bool is_type_spec(const ParserState* s) {
@@ -93,12 +96,13 @@ bool is_type_spec(const ParserState* s) {
 }
 
 static bool is_declaration_spec(const ParserState* s) {
-    return is_storage_class_spec(s->it->kind) || is_type_spec(s)
-           || is_type_qual(s->it->kind) || is_func_spec(s->it->kind)
-           || s->it->kind == TOKEN_ALIGNAS;
+    const TokenKind kind = ParserState_curr_kind(s);
+    return is_storage_class_spec(kind) || is_type_spec(s) || is_type_qual(kind)
+           || is_func_spec(kind) || kind == TOKEN_ALIGNAS;
 }
 
 bool is_declaration(const ParserState* s) {
-    return is_declaration_spec(s) || s->it->kind == TOKEN_STATIC_ASSERT;
+    return is_declaration_spec(s)
+           || ParserState_curr_kind(s) == TOKEN_STATIC_ASSERT;
 }
 

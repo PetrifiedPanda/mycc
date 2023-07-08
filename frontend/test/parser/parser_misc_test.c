@@ -61,7 +61,7 @@ TEST(enum_list) {
         check_enum_list_ids(res, enum_constants, ARR_LEN(enum_constants));
 
         for (size_t i = 0; i < EXPECTED_LEN; ++i) {
-            ASSERT(parser_is_enum_constant(&s, &enum_constants[i]));
+            ASSERT(parser_is_enum_constant(&s, StrBuf_as_str(&enum_constants[i])));
         }
 
         EnumSpec_free(e_spec);
@@ -111,7 +111,7 @@ TEST(enum_list) {
         }
 
         for (size_t i = 0; i < EXPECTED_LEN; ++i) {
-            ASSERT(parser_is_enum_constant(&s, &enum_constants[i]));
+            ASSERT(parser_is_enum_constant(&s, StrBuf_as_str(&enum_constants[i])));
         }
 
         EnumSpec_free(e_spec);
@@ -348,11 +348,7 @@ TEST(redefine_typedef) {
     ParserState s = ParserState_create(preproc_res.toks, &err);
 
     const StrBuf spell = STR_BUF_NON_HEAP("MyInt");
-    const Token dummy_token = Token_create(TOKEN_IDENTIFIER,
-                                           &spell,
-                                           (FileLoc){0, 0},
-                                           0);
-    parser_register_typedef_name(&s, &dummy_token);
+    parser_register_typedef_name(&s, &spell, (SourceLoc){0, {0, 0}});
 
     bool found_typedef = false;
     DeclarationSpecs* res = parse_declaration_specs(&s, &found_typedef);

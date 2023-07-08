@@ -74,7 +74,7 @@ static void insert_items(StringMap* map,
         ASSERT(ret == &i);
 
         // check if the item is present directly after insertions
-        const size_t* item = StringMap_get(map, &to_insert);
+        const size_t* item = StringMap_get(map, StrBuf_as_str(&to_insert));
         ASSERT_SIZE_T(*item, i);
     }
 }
@@ -104,7 +104,7 @@ TEST(insert) {
         ASSERT_SIZE_T(*ret, i);
 
         // check if item was overwritten
-        const size_t* item = StringMap_get(&map, &insert_key);
+        const size_t* item = StringMap_get(&map, StrBuf_as_str(&insert_key));
         ASSERT_SIZE_T(*item, i);
     }
 
@@ -134,14 +134,14 @@ TEST(remove) {
         StringMap_remove(&map, &key);
         ASSERT_SIZE_T(map._len, (size_t)NUM_INSERTS - 1);
 
-        const void* item = StringMap_get(&map, &key);
+        const void* item = StringMap_get(&map, StrBuf_as_str(&key));
         ASSERT_NULL(item);
         for (size_t j = 0; j < NUM_INSERTS; ++j) {
             if (j == i) {
                 continue;
             }
             const StrBuf other_key = str_from_generated(keys[j]);
-            const size_t* ret = StringMap_get(&map, &other_key);
+            const size_t* ret = StringMap_get(&map, StrBuf_as_str(&other_key));
             ASSERT_NOT_NULL(ret);
             ASSERT_SIZE_T(*ret, j);
         }
@@ -151,7 +151,7 @@ TEST(remove) {
         ASSERT_SIZE_T(map._len, (size_t)NUM_INSERTS);
         for (size_t j = 0; j < NUM_INSERTS; ++j) {
             const StrBuf other_key = str_from_generated(keys[j]);
-            const size_t* ret = StringMap_get(&map, &other_key);
+            const size_t* ret = StringMap_get(&map, StrBuf_as_str(&other_key));
             ASSERT_NOT_NULL(ret);
             ASSERT_SIZE_T(*ret, j);
         }
@@ -162,11 +162,11 @@ TEST(remove) {
         const StrBuf to_remove = str_from_generated(keys[i]);
         StringMap_remove(&map, &to_remove);
 
-        const void* item = StringMap_get(&map, &to_remove);
+        const void* item = StringMap_get(&map, StrBuf_as_str(&to_remove));
         ASSERT_NULL(item);
         for (size_t j = i + 1; j < NUM_INSERTS; ++j) {
             const StrBuf other_key = str_from_generated(keys[j]);
-            const size_t* ret = StringMap_get(&map, &other_key);
+            const size_t* ret = StringMap_get(&map, StrBuf_as_str(&other_key));
             ASSERT_NOT_NULL(ret);
             ASSERT_SIZE_T(*ret, j);
         }

@@ -12,8 +12,8 @@
 #include "frontend/ast/Identifier.h"
 
 static bool parse_designator_inplace(ParserState* s, Designator* res) {
-    res->info = AstNodeInfo_create(s->it->loc);
-    switch (s->it->kind) {
+    res->info = AstNodeInfo_create(ParserState_curr_loc(s));
+    switch (ParserState_curr_kind(s)) {
         case TOKEN_LINDEX: {
             parser_accept_it(s);
             ConstExpr* index = parse_const_expr(s);
@@ -31,9 +31,9 @@ static bool parse_designator_inplace(ParserState* s, Designator* res) {
         }
         case TOKEN_DOT: {
             parser_accept_it(s);
-            if (s->it->kind == TOKEN_IDENTIFIER) {
-                const StrBuf spell = Token_take_spelling(s->it);
-                const SourceLoc loc = s->it->loc;
+            if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
+                const StrBuf spell = ParserState_take_curr_spell(s);
+                const SourceLoc loc = ParserState_curr_loc(s);
                 parser_accept_it(s);
                 res->is_index = false;
                 res->identifier = Identifier_create(&spell, loc);
@@ -73,7 +73,8 @@ static bool parse_designator_list(ParserState* s, DesignatorList* res) {
     }
 
     size_t alloc_len = res->len;
-    while (s->it->kind == TOKEN_LINDEX || s->it->kind == TOKEN_DOT) {
+    while (ParserState_curr_kind(s) == TOKEN_LINDEX
+           || ParserState_curr_kind(s) == TOKEN_DOT) {
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->designators,
                             &alloc_len,
@@ -139,7 +140,8 @@ Designation create_invalid_designation(void) {
 }
 
 static bool parse_designation_init(ParserState* s, DesignationInit* res) {
-    if (s->it->kind == TOKEN_LINDEX || s->it->kind == TOKEN_DOT) {
+    if (ParserState_curr_kind(s) == TOKEN_LINDEX
+        || ParserState_curr_kind(s) == TOKEN_DOT) {
         if (!parse_designation_inplace(s, &res->designation)) {
             return false;
         }
@@ -169,7 +171,8 @@ bool parse_init_list(ParserState* s, InitList* res) {
     }
 
     size_t alloc_len = res->len;
-    while (s->it->kind == TOKEN_COMMA && s->it[1].kind != TOKEN_RBRACE) {
+    while (ParserState_curr_kind(s) == TOKEN_COMMA
+           && ParserState_next_token_kind(s) != TOKEN_RBRACE) {
         parser_accept_it(s);
 
         if (res->len == alloc_len) {
@@ -209,15 +212,15 @@ void InitList_free_children(InitList* l) {
 }
 
 static bool parse_initializer_inplace(ParserState* s, Initializer* res) {
-    res->info = AstNodeInfo_create(s->it->loc);
-    if (s->it->kind == TOKEN_LBRACE) {
+    res->info = AstNodeInfo_create(ParserState_curr_loc(s));
+    if (ParserState_curr_kind(s) == TOKEN_LBRACE) {
         res->is_assign = false;
         parser_accept_it(s);
         if (!parse_init_list(s, &res->init_list)) {
             return false;
         }
 
-        if (s->it->kind == TOKEN_COMMA) {
+        if (ParserState_curr_kind(s) == TOKEN_COMMA) {
             parser_accept_it(s);
         }
 

@@ -9,7 +9,7 @@
 static bool parse_spec_or_qual(ParserState* s, SpecQualList* res) {
     assert(res);
 
-    if (is_type_qual(s->it->kind)) {
+    if (is_type_qual(ParserState_curr_kind(s))) {
         update_type_quals(s, &res->quals);
     } else if (!update_type_specs(s, &res->specs)) {
         return false;
@@ -20,7 +20,7 @@ static bool parse_spec_or_qual(ParserState* s, SpecQualList* res) {
 
 bool parse_spec_qual_list(ParserState* s, SpecQualList* res) {
     *res = (SpecQualList){
-        .info = AstNodeInfo_create(s->it->loc),
+        .info = AstNodeInfo_create(ParserState_curr_loc(s)),
         .quals = TypeQuals_create(),
         .specs = TypeSpecs_create(),
     };
@@ -29,7 +29,7 @@ bool parse_spec_qual_list(ParserState* s, SpecQualList* res) {
         return false;
     }
 
-    while (is_type_spec(s) || is_type_qual(s->it->kind)) {
+    while (is_type_spec(s) || is_type_qual(ParserState_curr_kind(s))) {
         if (!parse_spec_or_qual(s, res)) {
             SpecQualList_free_children(res);
             return false;

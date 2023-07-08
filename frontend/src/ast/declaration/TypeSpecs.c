@@ -50,8 +50,10 @@ TypeSpecs TypeSpecs_create(void) {
 
 static void cannot_combine_with_spec_err(const ParserState* s,
                                          TokenKind prev_spec) {
-    ParserErr_set(s->err, PARSER_ERR_INCOMPATIBLE_TYPE_SPECS, s->it->loc);
-    s->err->type_spec = s->it->kind;
+    ParserErr_set(s->err,
+                  PARSER_ERR_INCOMPATIBLE_TYPE_SPECS,
+                  ParserState_curr_loc(s));
+    s->err->type_spec = ParserState_curr_kind(s);
     s->err->prev_type_spec = prev_spec;
 }
 
@@ -76,7 +78,7 @@ static TypeSpecKind get_predef_type_spec(TokenKind t) {
 }
 
 static bool update_standalone_type_spec(ParserState* s, TypeSpecs* res) {
-    switch (s->it->kind) {
+    switch (ParserState_curr_kind(s)) {
         case TOKEN_VOID:
         case TOKEN_CHAR:
         case TOKEN_INT:
@@ -85,13 +87,13 @@ static bool update_standalone_type_spec(ParserState* s, TypeSpecs* res) {
         case TOKEN_BOOL:
             if (res->kind != TYPE_SPEC_NONE) {
                 ParserErr_set(s->err,
-                               PARSER_ERR_DISALLOWED_TYPE_QUALS,
-                               s->it->loc);
-                s->err->incompatible_type = s->it->kind;
+                              PARSER_ERR_DISALLOWED_TYPE_QUALS,
+                              ParserState_curr_loc(s));
+                s->err->incompatible_type = ParserState_curr_kind(s);
                 TypeSpecs_free_children(res);
                 return false;
             }
-            res->kind = get_predef_type_spec(s->it->kind);
+            res->kind = get_predef_type_spec(ParserState_curr_kind(s));
             break;
         case TOKEN_SHORT:
             if (res->mods.num_long != 0) {
@@ -108,7 +110,9 @@ static bool update_standalone_type_spec(ParserState* s, TypeSpecs* res) {
                 TypeSpecs_free_children(res);
                 return false;
             } else if (res->mods.num_long == 2) {
-                ParserErr_set(s->err, PARSER_ERR_TOO_MUCH_LONG, s->it->loc);
+                ParserErr_set(s->err,
+                              PARSER_ERR_TOO_MUCH_LONG,
+                              ParserState_curr_loc(s));
                 return false;
             }
             res->mods.num_long += 1;
@@ -144,7 +148,7 @@ static bool update_standalone_type_spec(ParserState* s, TypeSpecs* res) {
 }
 
 static bool update_non_standalone_type_spec(ParserState* s, TypeSpecs* res) {
-    switch (s->it->kind) {
+    switch (ParserState_curr_kind(s)) {
         case TOKEN_ATOMIC: {
             res->kind = TYPE_SPEC_ATOMIC;
             res->atomic_spec = parse_atomic_type_spec(s);
@@ -174,17 +178,19 @@ static bool update_non_standalone_type_spec(ParserState* s, TypeSpecs* res) {
             break;
         }
         case TOKEN_IDENTIFIER: {
-            if (parser_is_typedef_name(s, &s->it->spelling)) {
+            if (parser_is_typedef_name(s, ParserState_curr_spell(s))) {
                 res->kind = TYPE_SPEC_TYPENAME;
-                const StrBuf spell = Token_take_spelling(s->it);
-                res->typedef_name = Identifier_create(&spell, s->it->loc);
+                const StrBuf spell = ParserState_take_curr_spell(s);
+                res->typedef_name = Identifier_create(
+                    &spell,
+                    ParserState_curr_loc(s));
                 parser_accept_it(s);
                 break;
             } else {
                 ParserErr_set(s->err,
-                               PARSER_ERR_EXPECTED_TYPEDEF_NAME,
-                               s->it->loc);
-                s->err->non_typedef_spelling = Token_take_spelling(s->it);
+                              PARSER_ERR_EXPECTED_TYPEDEF_NAME,
+                              ParserState_curr_loc(s));
+                s->err->non_typedef_spelling = ParserState_take_curr_spell(s);
                 res->kind = TYPE_SPEC_NONE;
                 return false;
             }
@@ -221,7 +227,7 @@ static bool update_non_standalone_type_spec(ParserState* s, TypeSpecs* res) {
 bool update_type_specs(ParserState* s, TypeSpecs* res) {
     assert(res);
 
-    if (is_standalone_type_spec(s->it->kind)) {
+    if (is_standalone_type_spec(ParserState_curr_kind(s))) {
         return update_standalone_type_spec(s, res);
     } else {
         return update_non_standalone_type_spec(s, res);

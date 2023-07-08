@@ -383,7 +383,7 @@ static void preproc_state_close_file(PreprocState* s) {
 
 const PreprocMacro* find_preproc_macro(const PreprocState* state,
                                        const StrBuf* spelling) {
-    return StringMap_get(&state->_macro_map, spelling);
+    return StringMap_get(&state->_macro_map, StrBuf_as_str(spelling));
 }
 
 void register_preproc_macro(PreprocState* state,

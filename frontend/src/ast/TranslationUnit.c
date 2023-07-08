@@ -10,7 +10,7 @@ TranslationUnit parse_translation_unit(ParserState* s) {
     res.len = 0;
     res.external_decls = mycc_alloc(sizeof *res.external_decls * alloc_num);
 
-    while (s->it->kind != TOKEN_INVALID) {
+    while (ParserState_curr_kind(s) != TOKEN_INVALID) {
         if (res.len == alloc_num) {
             mycc_grow_alloc((void**)&res.external_decls,
                             &alloc_num,

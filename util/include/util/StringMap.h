@@ -51,7 +51,7 @@ bool StringMap_insert_overwrite(StringMap* map,
  * @return A pointer to the item associated with key, or null, if key is not
  *         present
  */
-const void* StringMap_get(const StringMap* map, const StrBuf* key);
+const void* StringMap_get(const StringMap* map, Str key);
 
 void StringMap_remove(StringMap* map, const StrBuf* key);
 

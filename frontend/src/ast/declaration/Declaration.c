@@ -9,7 +9,7 @@
 
 bool parse_declaration_inplace(ParserState* s, Declaration* res) {
     assert(res);
-    if (s->it->kind == TOKEN_STATIC_ASSERT) {
+    if (ParserState_curr_kind(s) == TOKEN_STATIC_ASSERT) {
         res->is_normal_decl = false;
         res->static_assert_decl = parse_static_assert_declaration(s);
         if (!res->static_assert_decl) {
@@ -24,7 +24,7 @@ bool parse_declaration_inplace(ParserState* s, Declaration* res) {
             return false;
         }
 
-        if (s->it->kind != TOKEN_SEMICOLON) {
+        if (ParserState_curr_kind(s) != TOKEN_SEMICOLON) {
             const bool success = found_typedef
                                      ? parse_init_declarator_list_typedef(
                                          s,

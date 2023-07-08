@@ -7,7 +7,7 @@
 #include "frontend/ast/declaration/TypeQuals.h"
 
 Pointer* parse_pointer(ParserState* s) {
-    const SourceLoc loc = s->it->loc;
+    const SourceLoc loc = ParserState_curr_loc(s);
     if (!parser_accept(s, TOKEN_ASTERISK)) {
         return NULL;
     }
@@ -17,7 +17,7 @@ Pointer* parse_pointer(ParserState* s) {
     res->num_indirs = 1;
     res->quals_after_ptr = mycc_alloc(sizeof *res->quals_after_ptr);
 
-    if (is_type_qual(s->it->kind)) {
+    if (is_type_qual(ParserState_curr_kind(s))) {
         if (!parse_type_qual_list(s, &res->quals_after_ptr[0])) {
             mycc_free(res->quals_after_ptr);
             mycc_free(res);
@@ -28,7 +28,7 @@ Pointer* parse_pointer(ParserState* s) {
     }
 
     size_t alloc_size = res->num_indirs;
-    while (s->it->kind == TOKEN_ASTERISK) {
+    while (ParserState_curr_kind(s) == TOKEN_ASTERISK) {
         parser_accept_it(s);
 
         if (res->num_indirs == alloc_size) {
@@ -37,7 +37,7 @@ Pointer* parse_pointer(ParserState* s) {
                             sizeof *res->quals_after_ptr);
         }
 
-        if (is_type_qual(s->it->kind)) {
+        if (is_type_qual(ParserState_curr_kind(s))) {
             if (!parse_type_qual_list(s,
                                       &res->quals_after_ptr[res->num_indirs])) {
                 Pointer_free(res);

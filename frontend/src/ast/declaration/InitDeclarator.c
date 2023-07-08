@@ -6,14 +6,17 @@
 
 #include "frontend/ast/declaration/Declarator.h"
 
-bool parse_init_declarator_typedef_inplace(ParserState* s, InitDeclarator* res) {
+bool parse_init_declarator_typedef_inplace(ParserState* s,
+                                           InitDeclarator* res) {
     res->decl = parse_declarator_typedef(s);
     if (!res->decl) {
         return false;
     }
 
-    if (s->it->kind == TOKEN_ASSIGN) {
-        ParserErr_set(s->err, PARSER_ERR_TYPEDEF_INIT, s->it->loc);
+    if (ParserState_curr_kind(s) == TOKEN_ASSIGN) {
+        ParserErr_set(s->err,
+                      PARSER_ERR_TYPEDEF_INIT,
+                      ParserState_curr_loc(s));
         return false;
     }
 
@@ -28,7 +31,7 @@ bool parse_init_declarator_inplace(ParserState* s, InitDeclarator* res) {
         return false;
     }
 
-    if (s->it->kind == TOKEN_ASSIGN) {
+    if (ParserState_curr_kind(s) == TOKEN_ASSIGN) {
         parser_accept_it(s);
         res->init = parse_initializer(s);
         if (!res->init) {

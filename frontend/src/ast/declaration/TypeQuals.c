@@ -16,9 +16,10 @@ TypeQuals TypeQuals_create(void) {
 }
 
 void update_type_quals(ParserState* s, TypeQuals* quals) {
-    assert(is_type_qual(s->it->kind));
+    const TokenKind kind = ParserState_curr_kind(s);
+    assert(is_type_qual(kind));
 
-    switch (s->it->kind) {
+    switch (kind) {
         case TOKEN_CONST:
             quals->is_const = true;
             break;
@@ -41,7 +42,7 @@ bool parse_type_qual_list(ParserState* s, TypeQuals* res) {
     assert(res);
     *res = TypeQuals_create();
 
-    if (!is_type_qual(s->it->kind)) {
+    if (!is_type_qual(ParserState_curr_kind(s))) {
         static const TokenKind expected[] = {
             TOKEN_CONST,
             TOKEN_RESTRICT,
@@ -53,7 +54,7 @@ bool parse_type_qual_list(ParserState* s, TypeQuals* res) {
         return false;
     }
 
-    while (is_type_qual(s->it->kind)) {
+    while (is_type_qual(ParserState_curr_kind(s))) {
         update_type_quals(s, res);
     }
 

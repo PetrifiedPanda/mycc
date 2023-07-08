@@ -12,13 +12,14 @@
 
 bool parse_align_spec_inplace(ParserState* s, AlignSpec* res) {
     assert(res);
-    res->info = AstNodeInfo_create(s->it->loc);
-    if (!(parser_accept(s, TOKEN_ALIGNAS) && parser_accept(s, TOKEN_LBRACKET))) {
+    res->info = AstNodeInfo_create(ParserState_curr_loc(s));
+    if (!(parser_accept(s, TOKEN_ALIGNAS)
+          && parser_accept(s, TOKEN_LBRACKET))) {
         return false;
     }
 
     // TODO: this condition may be wrong
-    if (is_type_spec(s) || is_type_qual(s->it->kind)) {
+    if (is_type_spec(s) || is_type_qual(ParserState_curr_kind(s))) {
         res->is_type_name = true;
         res->type_name = parse_type_name(s);
 

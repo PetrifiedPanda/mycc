@@ -14,7 +14,7 @@
 bool parse_type_name_inplace(ParserState* s, TypeName* res) {
     assert(res);
 
-    if (is_type_spec(s) || is_type_qual(s->it->kind)) {
+    if (is_type_spec(s) || is_type_qual(ParserState_curr_kind(s))) {
         res->spec_qual_list = mycc_alloc(sizeof *res->spec_qual_list);
         if (!parse_spec_qual_list(s, res->spec_qual_list)) {
             return false;
@@ -34,8 +34,9 @@ bool parse_type_name_inplace(ParserState* s, TypeName* res) {
         return false;
     }
 
-    if (s->it->kind == TOKEN_ASTERISK || s->it->kind == TOKEN_LBRACKET
-        || s->it->kind == TOKEN_LINDEX) {
+    if (ParserState_curr_kind(s) == TOKEN_ASTERISK
+        || ParserState_curr_kind(s) == TOKEN_LBRACKET
+        || ParserState_curr_kind(s) == TOKEN_LINDEX) {
         res->abstract_decl = parse_abs_declarator(s);
         if (!res->abstract_decl) {
             SpecQualList_free(res->spec_qual_list);

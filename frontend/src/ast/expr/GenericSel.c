@@ -13,8 +13,8 @@
 static bool parse_generic_assoc_inplace(ParserState* s, GenericAssoc* res) {
     assert(res);
 
-    res->info = AstNodeInfo_create(s->it->loc);
-    if (s->it->kind == TOKEN_DEFAULT) {
+    res->info = AstNodeInfo_create(ParserState_curr_loc(s));
+    if (ParserState_curr_kind(s) == TOKEN_DEFAULT) {
         parser_accept_it(s);
         res->type_name = NULL;
     } else {
@@ -51,7 +51,7 @@ void GenericAssoc_free_children(GenericAssoc* a) {
 static bool parse_generic_assoc_list(ParserState* s, GenericAssocList* res) {
     size_t alloc_len = 1;
     *res = (GenericAssocList){
-        .info = AstNodeInfo_create(s->it->loc),
+        .info = AstNodeInfo_create(ParserState_curr_loc(s)),
         .len = 1,
         .assocs = mycc_alloc(sizeof *res->assocs * alloc_len),
     };
@@ -61,7 +61,7 @@ static bool parse_generic_assoc_list(ParserState* s, GenericAssocList* res) {
         return false;
     }
 
-    while (s->it->kind == TOKEN_COMMA) {
+    while (ParserState_curr_kind(s) == TOKEN_COMMA) {
         parser_accept_it(s);
 
         if (res->len == alloc_len) {
@@ -92,8 +92,8 @@ void GenericAssocList_free(GenericAssocList* l) {
 }
 
 bool parse_generic_sel_inplace(ParserState* s, GenericSel* res) {
-    assert(s->it->kind == TOKEN_GENERIC);
-    res->info = AstNodeInfo_create(s->it->loc);
+    assert(ParserState_curr_kind(s) == TOKEN_GENERIC);
+    res->info = AstNodeInfo_create(ParserState_curr_loc(s));
     parser_accept_it(s);
 
     if (!parser_accept(s, TOKEN_LBRACKET)) {

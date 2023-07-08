@@ -7,7 +7,7 @@
 #include "frontend/ast/TypeName.h"
 
 AtomicTypeSpec* parse_atomic_type_spec(ParserState* s) {
-    const SourceLoc loc = s->it->loc;
+    const SourceLoc loc = ParserState_curr_loc(s);
     if (!parser_accept(s, TOKEN_ATOMIC)) {
         return NULL;
     }

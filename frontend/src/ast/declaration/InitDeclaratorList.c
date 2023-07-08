@@ -16,7 +16,7 @@ static bool parse_init_declarator_list_first_base(
     res->decls = first_decl;
 
     size_t alloc_len = res->len;
-    while (s->it->kind == TOKEN_COMMA) {
+    while (ParserState_curr_kind(s) == TOKEN_COMMA) {
         parser_accept_it(s);
 
         if (res->len == alloc_len) {

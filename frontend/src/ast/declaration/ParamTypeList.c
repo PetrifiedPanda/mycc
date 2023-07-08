@@ -23,7 +23,7 @@ typedef struct {
 static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
     assert(res);
     Pointer* ptr;
-    if (s->it->kind == TOKEN_ASTERISK) {
+    if (ParserState_curr_kind(s) == TOKEN_ASTERISK) {
         ptr = parse_pointer(s);
         if (!ptr) {
             return false;
@@ -32,7 +32,7 @@ static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
         ptr = NULL;
     }
 
-    if (s->it->kind == TOKEN_IDENTIFIER) {
+    if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
         res->is_abs = false;
         res->decl = mycc_alloc(sizeof *res->decl);
         res->decl->ptr = ptr;
@@ -41,7 +41,7 @@ static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
             mycc_free(res->decl);
             goto fail;
         }
-    } else if (s->it->kind == TOKEN_LINDEX) {
+    } else if (ParserState_curr_kind(s) == TOKEN_LINDEX) {
         res->is_abs = true;
         res->abs_decl = mycc_alloc(sizeof *res->abs_decl);
         res->abs_decl->ptr = ptr;
@@ -50,8 +50,8 @@ static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
             mycc_free(res->abs_decl);
             goto fail;
         }
-    } else if (s->it->kind == TOKEN_LBRACKET) {
-        const SourceLoc loc = s->it->loc;
+    } else if (ParserState_curr_kind(s) == TOKEN_LBRACKET) {
+        const SourceLoc loc = ParserState_curr_loc(s);
         parser_accept_it(s);
         AbsDeclOrDecl bracket_decl;
         if (!parse_abs_decl_or_decl(s, &bracket_decl)) {
@@ -104,9 +104,7 @@ static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
     } else {
         res->is_abs = true;
         if (ptr == NULL) {
-            ParserErr_set(s->err,
-                           PARSER_ERR_EMPTY_DIRECT_ABS_DECL,
-                           s->it->loc);
+            ParserErr_set(s->err, PARSER_ERR_EMPTY_DIRECT_ABS_DECL, ParserState_curr_loc(s));
             return false;
         }
         res->abs_decl = mycc_alloc(sizeof *res->abs_decl);
@@ -122,7 +120,8 @@ fail:
     return false;
 }
 
-static bool parse_param_declaration_inplace(ParserState* s, ParamDeclaration* res) {
+static bool parse_param_declaration_inplace(ParserState* s,
+                                            ParamDeclaration* res) {
     assert(res);
 
     bool found_typedef = false;
@@ -132,12 +131,13 @@ static bool parse_param_declaration_inplace(ParserState* s, ParamDeclaration* re
     }
 
     if (found_typedef) {
-        ParserErr_set(s->err, PARSER_ERR_TYPEDEF_PARAM_DECL, s->it->loc);
+        ParserErr_set(s->err, PARSER_ERR_TYPEDEF_PARAM_DECL, ParserState_curr_loc(s));
         DeclarationSpecs_free(res->decl_specs);
         return false;
     }
 
-    if (s->it->kind == TOKEN_COMMA || s->it->kind == TOKEN_RBRACKET) {
+    if (ParserState_curr_kind(s) == TOKEN_COMMA
+        || ParserState_curr_kind(s) == TOKEN_RBRACKET) {
         res->kind = PARAM_DECL_NONE;
         res->decl = NULL;
     } else {
@@ -183,7 +183,8 @@ static bool parse_param_list_inplace(ParserState* s, ParamList* res) {
     }
 
     size_t alloc_len = res->len;
-    while (s->it->kind == TOKEN_COMMA && s->it[1].kind != TOKEN_ELLIPSIS) {
+    while (ParserState_curr_kind(s) == TOKEN_COMMA
+           && ParserState_next_token_kind(s) != TOKEN_ELLIPSIS) {
         parser_accept_it(s);
 
         if (res->len == alloc_len) {
@@ -218,7 +219,7 @@ bool parse_param_type_list(ParserState* s, ParamTypeList* res) {
     }
 
     res->is_variadic = false;
-    if (s->it->kind == TOKEN_COMMA) {
+    if (ParserState_curr_kind(s) == TOKEN_COMMA) {
         parser_accept_it(s);
         if (!parser_accept(s, TOKEN_ELLIPSIS)) {
             ParamList_free(&res->param_list);

@@ -7,34 +7,34 @@
 #include "frontend/ast/Identifier.h"
 
 bool parse_identifier_list(ParserState* s, IdentifierList* res) {
-    if (s->it->kind != TOKEN_IDENTIFIER) {
+    if (ParserState_curr_kind(s) != TOKEN_IDENTIFIER) {
         return false;
     }
     *res = (IdentifierList){
         .len = 1,
         .identifiers = mycc_alloc(sizeof *res->identifiers),
     };
-    StrBuf spell = Token_take_spelling(s->it);
-    SourceLoc loc = s->it->loc;
+    StrBuf spell = ParserState_take_curr_spell(s);
+    SourceLoc loc = ParserState_curr_loc(s);
     parser_accept_it(s);
     Identifier_init(res->identifiers, &spell, loc);
 
     size_t alloc_len = res->len;
-    while (s->it->kind == TOKEN_COMMA) {
+    while (ParserState_curr_kind(s) == TOKEN_COMMA) {
         parser_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->identifiers,
-                       &alloc_len,
-                       sizeof *res->identifiers);
+                            &alloc_len,
+                            sizeof *res->identifiers);
         }
 
-        if (s->it->kind != TOKEN_IDENTIFIER) {
+        if (ParserState_curr_kind(s) != TOKEN_IDENTIFIER) {
             IdentifierList_free(res);
             return false;
         }
-        spell = Token_take_spelling(s->it);
-        loc = s->it->loc;
+        spell = ParserState_take_curr_spell(s);
+        loc = ParserState_curr_loc(s);
         parser_accept_it(s);
         Identifier_init(&res->identifiers[res->len], &spell, loc);
 
@@ -42,7 +42,7 @@ bool parse_identifier_list(ParserState* s, IdentifierList* res) {
     }
 
     res->identifiers = mycc_realloc(res->identifiers,
-                                sizeof *res->identifiers * res->len);
+                                    sizeof *res->identifiers * res->len);
 
     return res;
 }

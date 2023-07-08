@@ -22,14 +22,14 @@ StaticAssertDeclaration* parse_static_assert_declaration(ParserState* s) {
         return NULL;
     }
 
-    if (s->it->kind != TOKEN_STRING_LITERAL) {
+    if (ParserState_curr_kind(s) != TOKEN_STRING_LITERAL) {
         expected_token_error(s, TOKEN_STRING_LITERAL);
         ConstExpr_free(const_expr);
         return NULL;
     }
 
-    const StrLit lit = Token_take_str_lit(s->it);
-    SourceLoc loc = s->it->loc;
+    const StrLit lit = ParserState_take_curr_str_lit(s);
+    const SourceLoc loc = ParserState_curr_loc(s);
     parser_accept_it(s);
 
     if (!(parser_accept(s, TOKEN_RBRACKET)

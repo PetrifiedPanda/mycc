@@ -17,7 +17,7 @@ static bool parse_struct_declarator_inplace(ParserState* s,
                                             StructDeclarator* res) {
     assert(res);
 
-    if (s->it->kind != TOKEN_COLON) {
+    if (ParserState_curr_kind(s) != TOKEN_COLON) {
         res->decl = parse_declarator(s);
         if (!res->decl) {
             return false;
@@ -26,7 +26,7 @@ static bool parse_struct_declarator_inplace(ParserState* s,
         res->decl = NULL;
     }
 
-    if (s->it->kind == TOKEN_COLON) {
+    if (ParserState_curr_kind(s) == TOKEN_COLON) {
         parser_accept_it(s);
         res->bit_field = parse_const_expr(s);
         if (!res->bit_field) {
@@ -38,7 +38,7 @@ static bool parse_struct_declarator_inplace(ParserState* s,
         if (!res->decl) {
             ParserErr_set(s->err,
                           PARSER_ERR_EMPTY_STRUCT_DECLARATOR,
-                          s->it->loc);
+                          ParserState_curr_loc(s));
             return false;
         }
     }
@@ -59,7 +59,7 @@ static bool parse_struct_declarator_list(ParserState* s,
     }
 
     size_t alloc_len = res->len;
-    while (s->it->kind == TOKEN_COMMA) {
+    while (ParserState_curr_kind(s) == TOKEN_COMMA) {
         parser_accept_it(s);
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->decls,
@@ -82,7 +82,7 @@ static bool parse_struct_declarator_list(ParserState* s,
 
 static bool parse_struct_declaration_inplace(ParserState* s,
                                              StructDeclaration* res) {
-    if (s->it->kind == TOKEN_STATIC_ASSERT) {
+    if (ParserState_curr_kind(s) == TOKEN_STATIC_ASSERT) {
         res->is_static_assert = true;
         res->assert = parse_static_assert_declaration(s);
         if (!res->assert) {
@@ -97,10 +97,12 @@ static bool parse_struct_declaration_inplace(ParserState* s,
         }
 
         if (found_typedef) {
-            ParserErr_set(s->err, PARSER_ERR_TYPEDEF_STRUCT, s->it->loc);
+            ParserErr_set(s->err,
+                          PARSER_ERR_TYPEDEF_STRUCT,
+                          ParserState_curr_loc(s));
         }
 
-        if (s->it->kind != TOKEN_SEMICOLON) {
+        if (ParserState_curr_kind(s) != TOKEN_SEMICOLON) {
             if (!parse_struct_declarator_list(s, &res->decls)) {
                 DeclarationSpecs_free(res->decl_specs);
                 return false;
@@ -148,7 +150,8 @@ static bool parse_struct_declaration_list(ParserState* s,
     }
 
     size_t alloc_len = res->len;
-    while (is_declaration(s) || s->it->kind == TOKEN_STATIC_ASSERT) {
+    while (is_declaration(s)
+           || ParserState_curr_kind(s) == TOKEN_STATIC_ASSERT) {
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->decls,
                             &alloc_len,
@@ -169,10 +172,11 @@ static bool parse_struct_declaration_list(ParserState* s,
 }
 
 StructUnionSpec* parse_struct_union_spec(ParserState* s) {
-    assert(s->it->kind == TOKEN_STRUCT || s->it->kind == TOKEN_UNION);
-    const SourceLoc loc = s->it->loc;
+    assert(ParserState_curr_kind(s) == TOKEN_STRUCT
+           || ParserState_curr_kind(s) == TOKEN_UNION);
+    const SourceLoc loc = ParserState_curr_loc(s);
     bool is_struct;
-    if (s->it->kind == TOKEN_STRUCT) {
+    if (ParserState_curr_kind(s) == TOKEN_STRUCT) {
         is_struct = true;
         parser_accept_it(s);
     } else {
@@ -180,15 +184,15 @@ StructUnionSpec* parse_struct_union_spec(ParserState* s) {
         parser_accept_it(s);
     }
     Identifier* id = NULL;
-    if (s->it->kind == TOKEN_IDENTIFIER) {
-        const StrBuf spell = Token_take_spelling(s->it);
-        const SourceLoc id_loc = s->it->loc;
+    if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
+        const StrBuf spell = ParserState_take_curr_spell(s);
+        const SourceLoc id_loc = ParserState_curr_loc(s);
         parser_accept_it(s);
         id = Identifier_create(&spell, id_loc);
     }
 
     StructDeclarationList list = {.len = 0, .decls = NULL};
-    if (s->it->kind == TOKEN_LBRACE) {
+    if (ParserState_curr_kind(s) == TOKEN_LBRACE) {
         parser_accept_it(s);
         if (!parse_struct_declaration_list(s, &list)) {
             goto fail;

@@ -9,12 +9,11 @@
 #include "frontend/ast/declaration/InitDeclarator.h"
 #include "frontend/ast/declaration/StaticAssertDeclaration.h"
 
-static bool parse_external_decl_normal_decl(
-    ParserState* s,
-    ExternalDeclaration* res,
-    DeclarationSpecs* decl_specs,
-    Declarator* first_decl,
-    bool found_typedef) {
+static bool parse_external_decl_normal_decl(ParserState* s,
+                                            ExternalDeclaration* res,
+                                            DeclarationSpecs* decl_specs,
+                                            Declarator* first_decl,
+                                            bool found_typedef) {
     res->is_func_def = false;
 
     Declaration* decl = &res->decl;
@@ -23,9 +22,11 @@ static bool parse_external_decl_normal_decl(
     decl->decl_specs = decl_specs;
 
     Initializer* init = NULL;
-    if (s->it->kind == TOKEN_ASSIGN) {
+    if (ParserState_curr_kind(s) == TOKEN_ASSIGN) {
         if (found_typedef) {
-            ParserErr_set(s->err, PARSER_ERR_TYPEDEF_INIT, s->it->loc);
+            ParserErr_set(s->err,
+                          PARSER_ERR_TYPEDEF_INIT,
+                          ParserState_curr_loc(s));
             DeclarationSpecs_free(decl_specs);
             Declarator_free(first_decl);
             return false;
@@ -66,14 +67,15 @@ static bool parse_external_decl_normal_decl(
     return true;
 }
 
-static bool parse_external_declaration_func_def(
-    ParserState* s,
-    ExternalDeclaration* res,
-    DeclarationSpecs* decl_specs,
-    Declarator* first_decl,
-    bool found_typedef) {
+static bool parse_external_declaration_func_def(ParserState* s,
+                                                ExternalDeclaration* res,
+                                                DeclarationSpecs* decl_specs,
+                                                Declarator* first_decl,
+                                                bool found_typedef) {
     if (found_typedef) {
-        ParserErr_set(s->err, PARSER_ERR_TYPEDEF_FUNC_DEF, s->it->loc);
+        ParserErr_set(s->err,
+                      PARSER_ERR_TYPEDEF_FUNC_DEF,
+                      ParserState_curr_loc(s));
         DeclarationSpecs_free(decl_specs);
         Declarator_free(first_decl);
         return false;
@@ -84,7 +86,7 @@ static bool parse_external_declaration_func_def(
 
     func_def->specs = decl_specs;
     func_def->decl = first_decl;
-    if (s->it->kind != TOKEN_LBRACE) {
+    if (ParserState_curr_kind(s) != TOKEN_LBRACE) {
         if (!parse_declaration_list(s, &func_def->decl_list)) {
             DeclarationSpecs_free(decl_specs);
             Declarator_free(first_decl);
@@ -106,10 +108,11 @@ static bool parse_external_declaration_func_def(
     return true;
 }
 
-bool parse_external_declaration_inplace(ParserState* s, ExternalDeclaration* res) {
+bool parse_external_declaration_inplace(ParserState* s,
+                                        ExternalDeclaration* res) {
     assert(res);
 
-    if (s->it->kind == TOKEN_STATIC_ASSERT) {
+    if (ParserState_curr_kind(s) == TOKEN_STATIC_ASSERT) {
         res->is_func_def = false;
         res->decl.is_normal_decl = false;
         res->decl.static_assert_decl = parse_static_assert_declaration(s);
@@ -124,7 +127,7 @@ bool parse_external_declaration_inplace(ParserState* s, ExternalDeclaration* res
         return false;
     }
 
-    if (s->it->kind == TOKEN_SEMICOLON) {
+    if (ParserState_curr_kind(s) == TOKEN_SEMICOLON) {
         parser_accept_it(s);
         res->is_func_def = false;
         res->decl.is_normal_decl = true;
@@ -149,8 +152,9 @@ bool parse_external_declaration_inplace(ParserState* s, ExternalDeclaration* res
         return false;
     }
 
-    if (s->it->kind == TOKEN_ASSIGN || s->it->kind == TOKEN_COMMA
-        || s->it->kind == TOKEN_SEMICOLON) {
+    if (ParserState_curr_kind(s) == TOKEN_ASSIGN
+        || ParserState_curr_kind(s) == TOKEN_COMMA
+        || ParserState_curr_kind(s) == TOKEN_SEMICOLON) {
         return parse_external_decl_normal_decl(s,
                                                res,
                                                decl_specs,

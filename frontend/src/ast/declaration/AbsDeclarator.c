@@ -7,7 +7,7 @@
 
 AbsDeclarator* parse_abs_declarator(ParserState* s) {
     AbsDeclarator* res = mycc_alloc(sizeof *res);
-    if (s->it->kind == TOKEN_ASTERISK) {
+    if (ParserState_curr_kind(s) == TOKEN_ASTERISK) {
         res->ptr = parse_pointer(s);
         if (!res->ptr) {
             mycc_free(res);
@@ -17,7 +17,8 @@ AbsDeclarator* parse_abs_declarator(ParserState* s) {
         res->ptr = NULL;
     }
 
-    if (s->it->kind == TOKEN_LBRACKET || s->it->kind == TOKEN_LINDEX) {
+    if (ParserState_curr_kind(s) == TOKEN_LBRACKET
+        || ParserState_curr_kind(s) == TOKEN_LINDEX) {
         res->direct_abs_decl = parse_direct_abs_declarator(s);
         if (!res->direct_abs_decl) {
             if (res->ptr) {
@@ -31,7 +32,9 @@ AbsDeclarator* parse_abs_declarator(ParserState* s) {
     }
 
     if (res->direct_abs_decl == NULL && res->ptr == NULL) {
-        ParserErr_set(s->err, PARSER_ERR_EMPTY_DIRECT_ABS_DECL, s->it->loc);
+        ParserErr_set(s->err,
+                      PARSER_ERR_EMPTY_DIRECT_ABS_DECL,
+                      ParserState_curr_loc(s));
         mycc_free(res);
         return NULL;
     }

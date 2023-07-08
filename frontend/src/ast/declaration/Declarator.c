@@ -9,7 +9,7 @@ static Declarator* parse_declarator_base(
     ParserState* s,
     DirectDeclarator* (*parse_func)(ParserState* s)) {
     Declarator* res = mycc_alloc(sizeof *res);
-    if (s->it->kind == TOKEN_ASTERISK) {
+    if (ParserState_curr_kind(s) == TOKEN_ASTERISK) {
         res->ptr = parse_pointer(s);
         if (!res->ptr) {
             mycc_free(res);
