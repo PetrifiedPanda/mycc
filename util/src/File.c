@@ -33,6 +33,7 @@ static void get_mode_str(OpenMode mode, char buf[OPENMODE_MAX_LEN]) {
         buf[i] = 'b';
         ++i;
     }
+    assert(i <= OPENMODE_MAX_LEN);
 }
 
 File File_open(CStr filename, OpenMode mode) {
