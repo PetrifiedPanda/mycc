@@ -27,14 +27,19 @@ PreprocRes preproc(CStr path, const ArchTypeInfo* info, PreprocErr* err);
  * @return preprocessed tokens from this string, or NULL if an error occurred
  *         note that these tokens still need to be converted
  */
-PreprocRes preproc_string(Str str, Str path, const ArchTypeInfo* info, PreprocErr* err);
+PreprocRes preproc_string(Str str,
+                          Str path,
+                          const ArchTypeInfo* info,
+                          PreprocErr* err);
 
 #endif
 
 /**
  * Converts the given preprocessor tokens to parser tokens
  */
-bool convert_preproc_tokens(Token* tokens, const ArchTypeInfo* info, PreprocErr* err);
+bool convert_preproc_tokens(Token* tokens,
+                            const ArchTypeInfo* info,
+                            PreprocErr* err);
 
 /**
  * Frees tokens before calling convert_preproc_tokens
