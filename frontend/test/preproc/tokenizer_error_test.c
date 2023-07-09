@@ -8,19 +8,19 @@ TEST(unterminated_literal) {
     {
         PreprocErr err = PreprocErr_create();
         PreprocRes res = preproc_string(STR_LIT("\"this is a string literal"),
-                                              STR_LIT("file.c"),
-                                              &info,
-                                              &err);
+                                        STR_LIT("file.c"),
+                                        &info,
+                                        &err);
         ASSERT_NULL(res.toks);
         ASSERT_SIZE_T(res.file_info.len, (size_t)0);
         ASSERT_NULL(res.file_info.paths);
-        
+
         ASSERT(err.kind == PREPROC_ERR_UNTERMINATED_LIT);
         ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
         ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)1);
         ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
         ASSERT(!err.is_char_lit);
-        
+
         PreprocErr_free(&err);
     }
     {
@@ -33,13 +33,13 @@ TEST(unterminated_literal) {
         ASSERT_NULL(res.toks);
         ASSERT_SIZE_T(res.file_info.len, (size_t)0);
         ASSERT_NULL(res.file_info.paths);
-        
+
         ASSERT(err.kind == PREPROC_ERR_UNTERMINATED_LIT);
         ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)2);
         ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)10);
         ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
         ASSERT(err.is_char_lit);
-        
+
         PreprocErr_free(&err);
     }
     // TODO: escaped newlines when implemented
@@ -48,13 +48,16 @@ TEST(unterminated_literal) {
 TEST(invalid_identifier) {
     PreprocErr err = PreprocErr_create();
     const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
-    PreprocRes res = preproc_string(STR_LIT("int in$valid = 10;"), STR_LIT("file.c"), &info, &err);
+    PreprocRes res = preproc_string(STR_LIT("int in$valid = 10;"),
+                                    STR_LIT("file.c"),
+                                    &info,
+                                    &err);
     ASSERT_NULL(res.toks);
     ASSERT_SIZE_T(res.file_info.len, (size_t)0);
     ASSERT_NULL(res.file_info.paths);
-    
+
     ASSERT(err.kind == PREPROC_ERR_INVALID_ID);
-    
+
     ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
     ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
     ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)5);
@@ -66,11 +69,14 @@ TEST(invalid_identifier) {
 TEST(invalid_number) {
     PreprocErr err = PreprocErr_create();
     const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
-    PreprocRes res = preproc_string(STR_LIT("int 10in$valid = 10;"), STR_LIT("file.c"), &info, &err);
+    PreprocRes res = preproc_string(STR_LIT("int 10in$valid = 10;"),
+                                    STR_LIT("file.c"),
+                                    &info,
+                                    &err);
     ASSERT_NULL(res.toks);
     ASSERT_SIZE_T(res.file_info.len, (size_t)0);
     ASSERT_NULL(res.file_info.paths);
-    
+
     ASSERT(err.kind == PREPROC_ERR_INVALID_NUMBER);
 
     ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
@@ -79,12 +85,32 @@ TEST(invalid_number) {
     ASSERT_STR(StrBuf_as_str(&err.invalid_num), STR_LIT("10in$valid"));
 
     PreprocErr_free(&err);
-
 }
 
-TEST_SUITE_BEGIN(tokenizer_error) {
+TEST(preproc_token) {
+    PreprocErr err = PreprocErr_create();
+    const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
+    PreprocRes res = preproc_string(STR_LIT("int an_int = a ## b;"),
+                                    STR_LIT("file.c"),
+                                    &info,
+                                    &err);
+    ASSERT(res.toks);
+    ASSERT(!convert_preproc_tokens(res.toks, &info, &err));
+
+    ASSERT(err.kind == PREPROC_ERR_MISPLACED_PREPROC_TOKEN);
+
+    ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
+    ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
+    ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)16);
+
+    PreprocRes_free(&res);
+
+    PreprocErr_free(&err);
+}
+
+TEST_SUITE_BEGIN(tokenizer_error){
     REGISTER_TEST(unterminated_literal),
     REGISTER_TEST(invalid_identifier),
     REGISTER_TEST(invalid_number),
-}
-TEST_SUITE_END()
+    REGISTER_TEST(preproc_token),
+} TEST_SUITE_END()
