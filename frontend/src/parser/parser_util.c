@@ -9,7 +9,7 @@
 #include "frontend/parser/ParserErr.h"
 
 void expected_token_error(ParserState* s, TokenKind expected) {
-    ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it->loc);
+    ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, ParserState_curr_loc(s));
     s->err->expected_tokens_err = ExpectedTokensErr_create_single_token(
         ParserState_curr_kind(s),
         expected);
@@ -19,7 +19,7 @@ void expected_tokens_error(ParserState* s,
                            const TokenKind* expected,
                            size_t num_expected) {
     assert(expected);
-    ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it->loc);
+    ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, ParserState_curr_loc(s));
     s->err->expected_tokens_err = ExpectedTokensErr_create(
         ParserState_curr_kind(s),
         expected,
@@ -85,14 +85,14 @@ bool is_type_spec_token(const ParserState* s, const Token* token) {
 
 bool next_is_type_name(const ParserState* s) {
     assert(ParserState_curr_kind(s) != TOKEN_INVALID);
-    const Token* next = s->it + 1;
+    const Token* next = ParserState_next_token(s);
     return is_type_spec_token(s, next) || is_type_qual(next->kind)
            || (next->kind == TOKEN_IDENTIFIER
                && parser_is_typedef_name(s, StrBuf_as_str(&next->spelling)));
 }
 
 bool is_type_spec(const ParserState* s) {
-    return is_type_spec_token(s, s->it);
+    return is_type_spec_token(s, ParserState_curr_token(s));
 }
 
 static bool is_declaration_spec(const ParserState* s) {

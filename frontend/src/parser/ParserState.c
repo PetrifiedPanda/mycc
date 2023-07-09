@@ -78,9 +78,8 @@ StrBuf ParserState_take_curr_spell(ParserState* s) {
     return Token_take_spelling(s->it);
 }
 
-const StrBuf* ParserState_curr_spell_buf(const ParserState* s) {
-    assert(s->it->kind == TOKEN_IDENTIFIER);
-    return &s->it->spelling;
+const Token* ParserState_curr_token(const ParserState* s) {
+    return s->it;
 }
 
 Value ParserState_curr_val(const ParserState* s) {
