@@ -11,11 +11,11 @@ typedef enum {
     ID_KIND_NONE,
     ID_KIND_TYPEDEF_NAME,
     ID_KIND_ENUM_CONSTANT
-} IdentifierKind;
+} IDKind;
 
 typedef struct ParserIDData {
     SourceLoc loc;
-    IdentifierKind kind;
+    IDKind kind;
 } ParserIDData;
 
 enum {
@@ -25,9 +25,9 @@ enum {
 static bool register_identifier(ParserState* s,
                                 const StrBuf* spell,
                                 SourceLoc loc,
-                                IdentifierKind kind);
+                                IDKind kind);
 
-static IdentifierKind get_item(const ParserState* s, Str spell);
+static IDKind get_item(const ParserState* s, Str spell);
 
 ParserState ParserState_create(Token* tokens, ParserErr* err) {
     assert(tokens);
@@ -171,7 +171,7 @@ void ParserState_set_redefinition_err(ParserState* s,
 static bool register_identifier(ParserState* s,
                                 const StrBuf* spell,
                                 SourceLoc loc,
-                                IdentifierKind kind) {
+                                IDKind kind) {
     assert(kind != ID_KIND_NONE);
 
     // TODO: Add a warning when an identifier from a previous scope is shadowed
@@ -192,7 +192,7 @@ static bool register_identifier(ParserState* s,
     }
 }
 
-static IdentifierKind get_item(const ParserState* s, Str spell) {
+static IDKind get_item(const ParserState* s, Str spell) {
     for (size_t i = 0; i < s->_len; ++i) {
         const ParserIDData* data = StringMap_get(&s->_scope_maps[i], spell);
         if (data != NULL) {
