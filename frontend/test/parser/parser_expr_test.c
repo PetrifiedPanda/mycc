@@ -21,7 +21,7 @@ static PrimaryExpr parse_primary_helper(Str code) {
     UnaryExpr unary;
     ASSERT(parse_unary_expr_inplace(&s, &unary));
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
+    ASSERT_TOKEN_KIND(ParserState_curr_kind(&s), TOKEN_INVALID);
     ASSERT(unary.kind == UNARY_POSTFIX);
     ASSERT_SIZE_T(unary.len, 0);
 
@@ -119,7 +119,7 @@ static void primary_expr_generic_sel_test(void) {
     UnaryExpr unary;
     ASSERT(parse_unary_expr_inplace(&s, &unary));
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
+    ASSERT_TOKEN_KIND(ParserState_curr_kind(&s), TOKEN_INVALID);
     ASSERT(unary.kind == UNARY_POSTFIX);
     ASSERT_SIZE_T(unary.len, 0);
 
@@ -391,7 +391,7 @@ static AssignExpr* parse_assign_helper(Str code) {
     AssignExpr* res = parse_assign_expr(&s);
     ASSERT_NOT_NULL(res);
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
+    ASSERT_TOKEN_KIND(ParserState_curr_kind(&s), TOKEN_INVALID);
 
     PreprocRes_free(&preproc_res);
     ParserState_free(&s);

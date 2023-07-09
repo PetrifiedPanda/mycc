@@ -50,7 +50,7 @@ TEST(enum_list) {
         ASSERT_NOT_NULL(e_spec);
         const EnumList* res = &e_spec->enum_list;
         ASSERT(err.kind == PARSER_ERR_NONE);
-        ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
+        ASSERT_TOKEN_KIND(ParserState_curr_kind(&s), TOKEN_INVALID);
         ASSERT_SIZE_T(res->len, (size_t)EXPECTED_LEN);
         ASSERT_NOT_NULL(res->enums);
 
@@ -84,7 +84,7 @@ TEST(enum_list) {
         ASSERT_NULL(e_spec->identifier);
         const EnumList* res = &e_spec->enum_list;
         ASSERT(err.kind == PARSER_ERR_NONE);
-        ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
+        ASSERT_TOKEN_KIND(ParserState_curr_kind(&s), TOKEN_INVALID);
         ASSERT_SIZE_T(res->len, (size_t)EXPECTED_LEN);
         ASSERT_NOT_NULL(res->enums);
 
@@ -138,7 +138,7 @@ TEST(enum_spec) {
         EnumSpec* res = parse_enum_spec(&s);
         ASSERT(err.kind == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
-        ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
+        ASSERT_TOKEN_KIND(ParserState_curr_kind(&s), TOKEN_INVALID);
 
         ASSERT_NOT_NULL(res->identifier);
         ASSERT_STR(StrBuf_as_str(&res->identifier->spelling),
@@ -164,7 +164,7 @@ TEST(enum_spec) {
         EnumSpec* res = parse_enum_spec(&s);
         ASSERT(err.kind == PARSER_ERR_NONE);
         ASSERT_NOT_NULL(res);
-        ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
+        ASSERT_TOKEN_KIND(ParserState_curr_kind(&s), TOKEN_INVALID);
 
         ASSERT_NULL(res->identifier);
 
@@ -259,7 +259,7 @@ TEST(static_assert_declaration) {
 
     StaticAssertDeclaration* res = parse_static_assert_declaration(&s);
     ASSERT_NOT_NULL(res);
-    ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
+    ASSERT_TOKEN_KIND(ParserState_curr_kind(&s), TOKEN_INVALID);
     ASSERT(err.kind == PARSER_ERR_NONE);
 
     ASSERT_STR(StrBuf_as_str(&res->err_msg.lit.contents),
@@ -314,7 +314,7 @@ TEST(struct_declaration_list) {
     StructUnionSpec* su_spec = parse_struct_union_spec(&s);
     ASSERT(su_spec->is_struct);
     ASSERT_NULL(su_spec->identifier);
-    ASSERT(s.it->kind == TOKEN_INVALID);
+    ASSERT(ParserState_curr_kind(&s) == TOKEN_INVALID);
     StructDeclarationList* res = &su_spec->decl_list;
     ASSERT_SIZE_T(res->len, (size_t)4);
 

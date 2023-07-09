@@ -22,7 +22,7 @@ static JumpStatement* parse_jump_statement_helper(Str code) {
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT(stat.kind == STATEMENT_JUMP);
 
-    ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
+    ASSERT_TOKEN_KIND(ParserState_curr_kind(&s), TOKEN_INVALID);
 
     ParserState_free(&s);
     PreprocRes_free(&preproc_res);
@@ -112,7 +112,7 @@ TEST(statement) {
 
     Statement* res = parse_statement(&s);
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_TOKEN_KIND(s.it->kind, TOKEN_INVALID);
+    ASSERT_TOKEN_KIND(ParserState_curr_kind(&s), TOKEN_INVALID);
     ASSERT_NOT_NULL(res);
 
     ASSERT(res->kind == STATEMENT_ITERATION);

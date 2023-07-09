@@ -10,7 +10,7 @@
 #include "ParserErr.h"
 
 typedef struct {
-    Token* it;
+    Token* _it;
     size_t _len, _cap;
     StringMap* _scope_maps;
     ParserErr* err;

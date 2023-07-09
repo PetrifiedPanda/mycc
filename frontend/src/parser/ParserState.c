@@ -33,7 +33,7 @@ ParserState ParserState_create(Token* tokens, ParserErr* err) {
     assert(tokens);
 
     ParserState res = {
-        .it = tokens,
+        ._it = tokens,
         ._len = 1,
         ._cap = 1,
         ._scope_maps = mycc_alloc(sizeof *res._scope_maps),
@@ -58,56 +58,56 @@ bool parser_accept(ParserState* s, TokenKind expected) {
         expected_token_error(s, expected);
         return false;
     } else {
-        ++s->it;
+        ++s->_it;
         return true;
     }
 }
 
 void parser_accept_it(ParserState* s) {
-    assert(s->it->kind != TOKEN_INVALID);
-    ++s->it;
+    assert(s->_it->kind != TOKEN_INVALID);
+    ++s->_it;
 }
 
 StrLit ParserState_take_curr_str_lit(ParserState* s) {
-    assert(s->it->kind == TOKEN_STRING_LITERAL);
-    return Token_take_str_lit(s->it);
+    assert(s->_it->kind == TOKEN_STRING_LITERAL);
+    return Token_take_str_lit(s->_it);
 }
 
 StrBuf ParserState_take_curr_spell(ParserState* s) {
-    assert(s->it->kind == TOKEN_IDENTIFIER);
-    return Token_take_spelling(s->it);
+    assert(s->_it->kind == TOKEN_IDENTIFIER);
+    return Token_take_spelling(s->_it);
 }
 
 const Token* ParserState_curr_token(const ParserState* s) {
-    return s->it;
+    return s->_it;
 }
 
 Value ParserState_curr_val(const ParserState* s) {
-    assert(s->it->kind == TOKEN_I_CONSTANT || s->it->kind == TOKEN_F_CONSTANT);
-    return s->it->val;
+    assert(s->_it->kind == TOKEN_I_CONSTANT || s->_it->kind == TOKEN_F_CONSTANT);
+    return s->_it->val;
 }
 
 Str ParserState_curr_spell(const ParserState* s) {
-    assert(s->it->kind == TOKEN_IDENTIFIER);
-    return StrBuf_as_str(&s->it->spelling);
+    assert(s->_it->kind == TOKEN_IDENTIFIER);
+    return StrBuf_as_str(&s->_it->spelling);
 }
 
 TokenKind ParserState_curr_kind(const ParserState* s) {
-    return s->it->kind;
+    return s->_it->kind;
 }
 
 SourceLoc ParserState_curr_loc(const ParserState* s) {
-    return s->it->loc;
+    return s->_it->loc;
 }
 
 const Token* ParserState_next_token(const ParserState* s) {
-    assert(s->it->kind != TOKEN_INVALID);
-    return &s->it[1];
+    assert(s->_it->kind != TOKEN_INVALID);
+    return &s->_it[1];
 }
 
 TokenKind ParserState_next_token_kind(const ParserState* s) {
-    assert(s->it->kind != TOKEN_INVALID);
-    return s->it[1].kind;
+    assert(s->_it->kind != TOKEN_INVALID);
+    return s->_it[1].kind;
 }
 
 void parser_push_scope(ParserState* s) {
