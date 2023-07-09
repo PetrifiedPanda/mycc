@@ -16,12 +16,12 @@ bool parse_identifier_list(ParserState* s, IdentifierList* res) {
     };
     StrBuf spell = ParserState_take_curr_spell(s);
     SourceLoc loc = ParserState_curr_loc(s);
-    parser_accept_it(s);
+    ParserState_accept_it(s);
     Identifier_init(res->identifiers, &spell, loc);
 
     size_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_COMMA) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->identifiers,
@@ -35,7 +35,7 @@ bool parse_identifier_list(ParserState* s, IdentifierList* res) {
         }
         spell = ParserState_take_curr_spell(s);
         loc = ParserState_curr_loc(s);
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         Identifier_init(&res->identifiers[res->len], &spell, loc);
 
         ++res->len;

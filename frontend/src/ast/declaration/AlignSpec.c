@@ -13,8 +13,8 @@
 bool parse_align_spec_inplace(ParserState* s, AlignSpec* res) {
     assert(res);
     res->info = AstNodeInfo_create(ParserState_curr_loc(s));
-    if (!(parser_accept(s, TOKEN_ALIGNAS)
-          && parser_accept(s, TOKEN_LBRACKET))) {
+    if (!(ParserState_accept(s, TOKEN_ALIGNAS)
+          && ParserState_accept(s, TOKEN_LBRACKET))) {
         return false;
     }
 
@@ -34,7 +34,7 @@ bool parse_align_spec_inplace(ParserState* s, AlignSpec* res) {
         }
     }
 
-    if (!parser_accept(s, TOKEN_RBRACKET)) {
+    if (!ParserState_accept(s, TOKEN_RBRACKET)) {
         AlignSpec_free_children(res);
         return false;
     }

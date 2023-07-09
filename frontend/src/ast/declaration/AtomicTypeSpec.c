@@ -8,11 +8,11 @@
 
 AtomicTypeSpec* parse_atomic_type_spec(ParserState* s) {
     const SourceLoc loc = ParserState_curr_loc(s);
-    if (!parser_accept(s, TOKEN_ATOMIC)) {
+    if (!ParserState_accept(s, TOKEN_ATOMIC)) {
         return NULL;
     }
 
-    if (!parser_accept(s, TOKEN_LBRACKET)) {
+    if (!ParserState_accept(s, TOKEN_LBRACKET)) {
         return NULL;
     }
 
@@ -21,7 +21,7 @@ AtomicTypeSpec* parse_atomic_type_spec(ParserState* s) {
         return NULL;
     }
 
-    if (!parser_accept(s, TOKEN_RBRACKET)) {
+    if (!ParserState_accept(s, TOKEN_RBRACKET)) {
         TypeName_free(type_name);
         return NULL;
     }

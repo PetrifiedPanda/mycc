@@ -42,7 +42,7 @@ bool parse_declaration_inplace(ParserState* s, Declaration* res) {
                 .decls = NULL,
             };
         }
-        if (!parser_accept(s, TOKEN_SEMICOLON)) {
+        if (!ParserState_accept(s, TOKEN_SEMICOLON)) {
             DeclarationSpecs_free(res->decl_specs);
             InitDeclaratorList_free(&res->init_decls);
             return false;

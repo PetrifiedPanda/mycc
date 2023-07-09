@@ -70,13 +70,13 @@ static ParseDeclarationSpecRes parse_declaration_spec(
             default:
                 UNREACHABLE();
         }
-        parser_accept_it(s);
+        ParserState_accept_it(s);
     } else if (current_is_type_qual(s)) {
         update_type_quals(s, &res->type_quals);
     } else if (is_type_spec(s)) {
         if (res->storage_class.is_typedef
             && ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
-            const ParserIdentifierData* prev_def = parser_get_prev_definition(
+            const ParserIDData* prev_def = ParserState_get_prev_definition(
                 s,
                 ParserState_curr_spell(s));
             const Token* next = ParserState_next_token(s);
@@ -84,10 +84,10 @@ static ParseDeclarationSpecRes parse_declaration_spec(
                 && !is_type_qual(next->kind) && !is_type_spec_token(s, next)
                 && !is_func_spec(next->kind) && next->kind != TOKEN_ALIGNAS) {
                 const StrBuf spell = ParserState_take_curr_spell(s);
-                parser_set_redefinition_err(s,
-                                            prev_def,
-                                            &spell,
-                                            ParserState_curr_loc(s));
+                ParserState_set_redefinition_err(s,
+                                                 prev_def,
+                                                 &spell,
+                                                 ParserState_curr_loc(s));
                 return DECL_SPEC_ERROR;
             }
         }
@@ -106,7 +106,7 @@ static ParseDeclarationSpecRes parse_declaration_spec(
             default:
                 UNREACHABLE();
         }
-        parser_accept_it(s);
+        ParserState_accept_it(s);
     } else if (ParserState_curr_kind(s) == TOKEN_ALIGNAS) {
         if (res->num_align_specs == *alloc_len_align_specs) {
             mycc_grow_alloc((void**)&res->align_specs,

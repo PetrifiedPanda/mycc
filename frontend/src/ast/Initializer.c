@@ -15,12 +15,12 @@ static bool parse_designator_inplace(ParserState* s, Designator* res) {
     res->info = AstNodeInfo_create(ParserState_curr_loc(s));
     switch (ParserState_curr_kind(s)) {
         case TOKEN_LINDEX: {
-            parser_accept_it(s);
+            ParserState_accept_it(s);
             ConstExpr* index = parse_const_expr(s);
             if (!index) {
                 return false;
             }
-            if (!parser_accept(s, TOKEN_RINDEX)) {
+            if (!ParserState_accept(s, TOKEN_RINDEX)) {
                 ConstExpr_free(index);
                 return false;
             }
@@ -30,11 +30,11 @@ static bool parse_designator_inplace(ParserState* s, Designator* res) {
             return true;
         }
         case TOKEN_DOT: {
-            parser_accept_it(s);
+            ParserState_accept_it(s);
             if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
                 const StrBuf spell = ParserState_take_curr_spell(s);
                 const SourceLoc loc = ParserState_curr_loc(s);
-                parser_accept_it(s);
+                ParserState_accept_it(s);
                 res->is_index = false;
                 res->identifier = Identifier_create(&spell, loc);
                 return true;
@@ -109,7 +109,7 @@ static bool parse_designation_inplace(ParserState* s, Designation* res) {
         return false;
     }
 
-    if (!parser_accept(s, TOKEN_ASSIGN)) {
+    if (!ParserState_accept(s, TOKEN_ASSIGN)) {
         DesignatorList_free(&res->designators);
         return false;
     }
@@ -173,7 +173,7 @@ bool parse_init_list(ParserState* s, InitList* res) {
     size_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_COMMA
            && ParserState_next_token_kind(s) != TOKEN_RBRACE) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->inits,
@@ -215,16 +215,16 @@ static bool parse_initializer_inplace(ParserState* s, Initializer* res) {
     res->info = AstNodeInfo_create(ParserState_curr_loc(s));
     if (ParserState_curr_kind(s) == TOKEN_LBRACE) {
         res->is_assign = false;
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         if (!parse_init_list(s, &res->init_list)) {
             return false;
         }
 
         if (ParserState_curr_kind(s) == TOKEN_COMMA) {
-            parser_accept_it(s);
+            ParserState_accept_it(s);
         }
 
-        if (!parser_accept(s, TOKEN_RBRACE)) {
+        if (!ParserState_accept(s, TOKEN_RBRACE)) {
             InitList_free_children(&res->init_list);
             return false;
         }

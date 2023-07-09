@@ -31,7 +31,7 @@ static bool parse_external_decl_normal_decl(ParserState* s,
             Declarator_free(first_decl);
             return false;
         }
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         init = parse_initializer(s);
         if (!init) {
             DeclarationSpecs_free(decl_specs);
@@ -60,7 +60,7 @@ static bool parse_external_decl_normal_decl(ParserState* s,
         return false;
     }
 
-    if (!parser_accept(s, TOKEN_SEMICOLON)) {
+    if (!ParserState_accept(s, TOKEN_SEMICOLON)) {
         Declaration_free_children(decl);
         return false;
     }
@@ -128,7 +128,7 @@ bool parse_external_declaration_inplace(ParserState* s,
     }
 
     if (ParserState_curr_kind(s) == TOKEN_SEMICOLON) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         res->is_func_def = false;
         res->decl.is_normal_decl = true;
         res->decl.decl_specs = decl_specs;

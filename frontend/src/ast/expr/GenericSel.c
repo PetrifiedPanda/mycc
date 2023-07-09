@@ -15,7 +15,7 @@ static bool parse_generic_assoc_inplace(ParserState* s, GenericAssoc* res) {
 
     res->info = AstNodeInfo_create(ParserState_curr_loc(s));
     if (ParserState_curr_kind(s) == TOKEN_DEFAULT) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         res->type_name = NULL;
     } else {
         res->type_name = parse_type_name(s);
@@ -24,7 +24,7 @@ static bool parse_generic_assoc_inplace(ParserState* s, GenericAssoc* res) {
         }
     }
 
-    if (!parser_accept(s, TOKEN_COLON)) {
+    if (!ParserState_accept(s, TOKEN_COLON)) {
         goto fail;
     }
 
@@ -62,7 +62,7 @@ static bool parse_generic_assoc_list(ParserState* s, GenericAssocList* res) {
     }
 
     while (ParserState_curr_kind(s) == TOKEN_COMMA) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->assocs,
@@ -94,9 +94,9 @@ void GenericAssocList_free(GenericAssocList* l) {
 bool parse_generic_sel_inplace(ParserState* s, GenericSel* res) {
     assert(ParserState_curr_kind(s) == TOKEN_GENERIC);
     res->info = AstNodeInfo_create(ParserState_curr_loc(s));
-    parser_accept_it(s);
+    ParserState_accept_it(s);
 
-    if (!parser_accept(s, TOKEN_LBRACKET)) {
+    if (!ParserState_accept(s, TOKEN_LBRACKET)) {
         return false;
     }
 
@@ -105,7 +105,7 @@ bool parse_generic_sel_inplace(ParserState* s, GenericSel* res) {
         return false;
     }
 
-    if (!parser_accept(s, TOKEN_COMMA)) {
+    if (!ParserState_accept(s, TOKEN_COMMA)) {
         goto fail;
     }
 
@@ -113,7 +113,7 @@ bool parse_generic_sel_inplace(ParserState* s, GenericSel* res) {
         goto fail;
     }
 
-    if (!parser_accept(s, TOKEN_RBRACKET)) {
+    if (!ParserState_accept(s, TOKEN_RBRACKET)) {
         GenericAssocList_free(&res->assocs);
         goto fail;
     }

@@ -77,7 +77,7 @@ bool is_type_spec_token(const ParserState* s, const Token* token) {
         case TOKEN_ENUM:
             return true;
         case TOKEN_IDENTIFIER:
-            return parser_is_typedef_name(s, StrBuf_as_str(&token->spelling));
+            return ParserState_is_typedef(s, StrBuf_as_str(&token->spelling));
         default:
             return false;
     }
@@ -88,7 +88,7 @@ bool next_is_type_name(const ParserState* s) {
     const Token* next = ParserState_next_token(s);
     return is_type_spec_token(s, next) || is_type_qual(next->kind)
            || (next->kind == TOKEN_IDENTIFIER
-               && parser_is_typedef_name(s, StrBuf_as_str(&next->spelling)));
+               && ParserState_is_typedef(s, StrBuf_as_str(&next->spelling)));
 }
 
 bool is_type_spec(const ParserState* s) {

@@ -16,7 +16,7 @@ static bool parse_cast_expr_rest(ParserState* s, CastExpr* res) {
     while (ParserState_curr_kind(s) == TOKEN_LBRACKET
            && next_is_type_name(s)) {
         last_lbracket_loc = ParserState_curr_loc(s);
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->type_names,
@@ -28,7 +28,7 @@ static bool parse_cast_expr_rest(ParserState* s, CastExpr* res) {
             goto fail;
         }
 
-        if (!parser_accept(s, TOKEN_RBRACKET)) {
+        if (!ParserState_accept(s, TOKEN_RBRACKET)) {
             goto fail;
         }
         ++res->len;
@@ -143,7 +143,7 @@ static bool parse_mul_expr_mul_chain(ParserState* s, MulExpr* res) {
     size_t alloc_len = res->len;
     while (TokenKind_is_mul_op(ParserState_curr_kind(s))) {
         const TokenKind op = ParserState_curr_kind(s);
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->mul_chain,
@@ -202,7 +202,7 @@ static bool parse_add_expr_add_chain(ParserState* s, AddExpr* res) {
     size_t alloc_len = res->len;
     while (TokenKind_is_add_op(ParserState_curr_kind(s))) {
         const TokenKind op = ParserState_curr_kind(s);
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->add_chain,
@@ -262,7 +262,7 @@ static bool parse_shift_expr_shift_chain(ParserState* s, ShiftExpr* res) {
     size_t alloc_len = res->len;
     while (TokenKind_is_shift_op(ParserState_curr_kind(s))) {
         const TokenKind op = ParserState_curr_kind(s);
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->shift_chain,
@@ -348,7 +348,7 @@ static bool parse_rel_expr_rel_chain(ParserState* s, RelExpr* res) {
     size_t alloc_len = res->len;
     while (TokenKind_is_rel_op(ParserState_curr_kind(s))) {
         const TokenKind op = ParserState_curr_kind(s);
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->rel_chain,
@@ -409,7 +409,7 @@ static bool parse_eq_expr_eq_chain(ParserState* s, EqExpr* res) {
     size_t alloc_len = res->len;
     while (TokenKind_is_eq_op(ParserState_curr_kind(s))) {
         const TokenKind op = ParserState_curr_kind(s);
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->eq_chain,
@@ -473,7 +473,7 @@ static bool parse_and_expr_rest(ParserState* s, AndExpr* res) {
     size_t alloc_len = res->len;
 
     while (ParserState_curr_kind(s) == TOKEN_AND) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->eq_exprs,
                             &alloc_len,
@@ -533,7 +533,7 @@ static bool parse_xor_expr_rest(ParserState* s, XorExpr* res) {
 
     size_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_XOR) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->and_exprs,
@@ -596,7 +596,7 @@ static bool parse_or_expr_rest(ParserState* s, OrExpr* res) {
 
     size_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_OR) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->xor_exprs,
@@ -660,7 +660,7 @@ static bool parse_log_and_expr_rest(ParserState* s, LogAndExpr* res) {
     res->len = 1;
     size_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_LAND) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->or_exprs,
@@ -725,7 +725,7 @@ static bool parse_log_or_expr_ops(ParserState* s, LogOrExpr* res) {
 
     size_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_LOR) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->log_ands,
@@ -789,14 +789,14 @@ static bool parse_cond_expr_conditionals(ParserState* s, CondExpr* res) {
 
     size_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_QMARK) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         Expr expr;
         if (!parse_expr_inplace(s, &expr)) {
             goto fail;
         }
 
-        if (!parser_accept(s, TOKEN_COLON)) {
+        if (!ParserState_accept(s, TOKEN_COLON)) {
             Expr_free_children(&expr);
             goto fail;
         }
@@ -891,14 +891,14 @@ static UnaryOrCond parse_unary_or_cond(ParserState* s) {
     if (ParserState_curr_kind(s) == TOKEN_LBRACKET
         && next_is_type_name(s)) {
         const SourceLoc start_bracket_loc = ParserState_curr_loc(s);
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         TypeName* type_name = parse_type_name(s);
         if (!type_name) {
             return res;
         }
 
-        if (!parser_accept(s, TOKEN_RBRACKET)) {
+        if (!ParserState_accept(s, TOKEN_RBRACKET)) {
             TypeName_free(type_name);
             return res;
         }
@@ -1007,7 +1007,7 @@ bool parse_assign_expr_inplace(ParserState* s, AssignExpr* res) {
     size_t alloc_len = res->len;
     while (is_assign_op(ParserState_curr_kind(s))) {
         TokenKind op = ParserState_curr_kind(s);
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         opt = parse_unary_or_cond(s);
         if (!opt.is_valid) {

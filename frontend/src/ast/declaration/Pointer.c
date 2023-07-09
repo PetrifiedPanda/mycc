@@ -8,7 +8,7 @@
 
 Pointer* parse_pointer(ParserState* s) {
     const SourceLoc loc = ParserState_curr_loc(s);
-    if (!parser_accept(s, TOKEN_ASTERISK)) {
+    if (!ParserState_accept(s, TOKEN_ASTERISK)) {
         return NULL;
     }
 
@@ -29,7 +29,7 @@ Pointer* parse_pointer(ParserState* s) {
 
     size_t alloc_size = res->num_indirs;
     while (ParserState_curr_kind(s) == TOKEN_ASTERISK) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->num_indirs == alloc_size) {
             mycc_grow_alloc((void**)&res->quals_after_ptr,

@@ -52,7 +52,7 @@ static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
         }
     } else if (ParserState_curr_kind(s) == TOKEN_LBRACKET) {
         const SourceLoc loc = ParserState_curr_loc(s);
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         AbsDeclOrDecl bracket_decl;
         if (!parse_abs_decl_or_decl(s, &bracket_decl)) {
             goto fail;
@@ -67,7 +67,7 @@ static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
             decl->info = AstNodeInfo_create(loc);
             decl->bracket_decl = bracket_decl.abs_decl;
 
-            if (!parser_accept(s, TOKEN_RBRACKET)) {
+            if (!ParserState_accept(s, TOKEN_RBRACKET)) {
                 decl->len = 0;
                 decl->following_suffixes = NULL;
                 DirectAbsDeclarator_free(decl);
@@ -88,7 +88,7 @@ static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
             decl->is_id = false;
             decl->bracket_decl = bracket_decl.decl;
 
-            if (!parser_accept(s, TOKEN_RBRACKET)) {
+            if (!ParserState_accept(s, TOKEN_RBRACKET)) {
                 decl->len = 0;
                 decl->suffixes = NULL;
                 DirectDeclarator_free(decl);
@@ -185,7 +185,7 @@ static bool parse_param_list_inplace(ParserState* s, ParamList* res) {
     size_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_COMMA
            && ParserState_next_token_kind(s) != TOKEN_ELLIPSIS) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->decls,
@@ -220,8 +220,8 @@ bool parse_param_type_list(ParserState* s, ParamTypeList* res) {
 
     res->is_variadic = false;
     if (ParserState_curr_kind(s) == TOKEN_COMMA) {
-        parser_accept_it(s);
-        if (!parser_accept(s, TOKEN_ELLIPSIS)) {
+        ParserState_accept_it(s);
+        if (!ParserState_accept(s, TOKEN_ELLIPSIS)) {
             ParamList_free(&res->param_list);
             return false;
         }

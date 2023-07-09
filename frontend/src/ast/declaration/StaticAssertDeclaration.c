@@ -7,8 +7,8 @@
 #include "frontend/ast/expr/AssignExpr.h"
 
 StaticAssertDeclaration* parse_static_assert_declaration(ParserState* s) {
-    if (!(parser_accept(s, TOKEN_STATIC_ASSERT)
-          && parser_accept(s, TOKEN_LBRACKET))) {
+    if (!(ParserState_accept(s, TOKEN_STATIC_ASSERT)
+          && ParserState_accept(s, TOKEN_LBRACKET))) {
         return NULL;
     }
 
@@ -17,7 +17,7 @@ StaticAssertDeclaration* parse_static_assert_declaration(ParserState* s) {
         return NULL;
     }
 
-    if (!parser_accept(s, TOKEN_COMMA)) {
+    if (!ParserState_accept(s, TOKEN_COMMA)) {
         ConstExpr_free(const_expr);
         return NULL;
     }
@@ -30,10 +30,10 @@ StaticAssertDeclaration* parse_static_assert_declaration(ParserState* s) {
 
     const StrLit lit = ParserState_take_curr_str_lit(s);
     const SourceLoc loc = ParserState_curr_loc(s);
-    parser_accept_it(s);
+    ParserState_accept_it(s);
 
-    if (!(parser_accept(s, TOKEN_RBRACKET)
-          && parser_accept(s, TOKEN_SEMICOLON))) {
+    if (!(ParserState_accept(s, TOKEN_RBRACKET)
+          && ParserState_accept(s, TOKEN_SEMICOLON))) {
         ConstExpr_free(const_expr);
         StrLit_free(&lit);
         return NULL;

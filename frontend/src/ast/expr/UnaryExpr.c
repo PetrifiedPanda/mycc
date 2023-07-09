@@ -21,7 +21,7 @@ static bool parse_arg_expr_list(ParserState* s, ArgExprList* res) {
 
     size_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_COMMA) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->assign_exprs,
                             &alloc_len,
@@ -78,8 +78,8 @@ static bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res) {
         case TOKEN_IDENTIFIER: {
             const StrBuf spelling = ParserState_take_curr_spell(s);
             const SourceLoc loc = ParserState_curr_loc(s);
-            parser_accept_it(s);
-            if (parser_is_enum_constant(s, StrBuf_as_str(&spelling))) {
+            ParserState_accept_it(s);
+            if (ParserState_is_enum_constant(s, StrBuf_as_str(&spelling))) {
                 res->kind = PRIMARY_EXPR_CONSTANT;
                 res->constant = Constant_create_enum(&spelling, loc);
                 return true;
@@ -92,7 +92,7 @@ static bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res) {
         case TOKEN_I_CONSTANT: {
             const SourceLoc loc = ParserState_curr_loc(s);
             const Value val = ParserState_curr_val(s);
-            parser_accept_it(s);
+            ParserState_accept_it(s);
             res->kind = PRIMARY_EXPR_CONSTANT;
             res->constant = Constant_create(val, loc);
             return true;
@@ -100,14 +100,14 @@ static bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res) {
         case TOKEN_STRING_LITERAL: {
             const StrLit lit = ParserState_take_curr_str_lit(s);
             const SourceLoc loc = ParserState_curr_loc(s);
-            parser_accept_it(s);
+            ParserState_accept_it(s);
             res->kind = PRIMARY_EXPR_STRING_LITERAL;
             res->string = StringConstant_create(&lit, loc);
             return true;
         }
         case TOKEN_FUNC_NAME: {
             const SourceLoc loc = ParserState_curr_loc(s);
-            parser_accept_it(s);
+            ParserState_accept_it(s);
             res->kind = PRIMARY_EXPR_STRING_LITERAL;
             res->string = StringConstant_create_func_name(loc);
             return true;
@@ -122,12 +122,12 @@ static bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res) {
 
         default: {
             const SourceLoc loc = ParserState_curr_loc(s);
-            if (parser_accept(s, TOKEN_LBRACKET)) {
+            if (ParserState_accept(s, TOKEN_LBRACKET)) {
                 Expr bracket_expr;
                 if (!parse_expr_inplace(s, &bracket_expr)) {
                     return false;
                 }
-                if (parser_accept(s, TOKEN_RBRACKET)) {
+                if (ParserState_accept(s, TOKEN_RBRACKET)) {
                     res->kind = PRIMARY_EXPR_BRACKET;
                     res->bracket_expr = bracket_expr;
                     res->info = AstNodeInfo_create(loc);
@@ -162,12 +162,12 @@ static bool parse_postfix_arr_suffix(ParserState* s, PostfixSuffix* res) {
     assert(res);
     assert(ParserState_curr_kind(s) == TOKEN_LINDEX);
 
-    parser_accept_it(s);
+    ParserState_accept_it(s);
     Expr expr;
     if (!parse_expr_inplace(s, &expr)) {
         return false;
     }
-    if (!parser_accept(s, TOKEN_RINDEX)) {
+    if (!ParserState_accept(s, TOKEN_RINDEX)) {
         Expr_free_children(&expr);
         return false;
     }
@@ -181,7 +181,7 @@ static bool parse_postfix_func_suffix(ParserState* s, PostfixSuffix* res) {
     assert(res);
     assert(ParserState_curr_kind(s) == TOKEN_LBRACKET);
 
-    parser_accept_it(s);
+    ParserState_accept_it(s);
     ArgExprList arg_expr_list = {
         .assign_exprs = NULL,
         .len = 0,
@@ -191,7 +191,7 @@ static bool parse_postfix_func_suffix(ParserState* s, PostfixSuffix* res) {
             return false;
         }
     }
-    if (!parser_accept(s, TOKEN_RBRACKET)) {
+    if (!ParserState_accept(s, TOKEN_RBRACKET)) {
         ArgExprList_free(&arg_expr_list);
         return false;
     }
@@ -207,13 +207,13 @@ static bool parse_postfix_access_suffix(ParserState* s, PostfixSuffix* res) {
     PostfixSuffixKind kind = ParserState_curr_kind(s) == TOKEN_PTR_OP
                                  ? POSTFIX_PTR_ACCESS
                                  : POSTFIX_ACCESS;
-    parser_accept_it(s);
+    ParserState_accept_it(s);
     if (ParserState_curr_kind(s) != TOKEN_IDENTIFIER) {
         return false;
     }
     const StrBuf spelling = ParserState_take_curr_spell(s);
     const SourceLoc loc = ParserState_curr_loc(s);
-    parser_accept_it(s);
+    ParserState_accept_it(s);
     Identifier* identifier = Identifier_create(&spelling, loc);
     res->kind = kind;
     res->identifier = identifier;
@@ -224,7 +224,7 @@ PostfixSuffix parse_postfix_inc_dec_suffix(ParserState* s) {
     assert(ParserState_curr_kind(s) == TOKEN_INC
            || ParserState_curr_kind(s) == TOKEN_DEC);
     const TokenKind op = ParserState_curr_kind(s);
-    parser_accept_it(s);
+    ParserState_accept_it(s);
     return (PostfixSuffix){
         .kind = op == TOKEN_INC ? POSTFIX_INC : POSTFIX_DEC,
     };
@@ -286,7 +286,7 @@ static bool parse_postfix_expr_inplace(ParserState* s, PostfixExpr* res) {
     if (ParserState_curr_kind(s) == TOKEN_LBRACKET
         && next_is_type_name(s)) {
         res->info = AstNodeInfo_create(ParserState_curr_loc(s));
-        parser_accept_it(s);
+        ParserState_accept_it(s);
 
         res->is_primary = false;
 
@@ -295,8 +295,8 @@ static bool parse_postfix_expr_inplace(ParserState* s, PostfixExpr* res) {
             return false;
         }
 
-        if (!(parser_accept(s, TOKEN_RBRACKET)
-              && parser_accept(s, TOKEN_LBRACE))) {
+        if (!(ParserState_accept(s, TOKEN_RBRACKET)
+              && ParserState_accept(s, TOKEN_LBRACE))) {
             TypeName_free(res->type_name);
             return false;
         }
@@ -307,10 +307,10 @@ static bool parse_postfix_expr_inplace(ParserState* s, PostfixExpr* res) {
         }
 
         if (ParserState_curr_kind(s) == TOKEN_COMMA) {
-            parser_accept_it(s);
+            ParserState_accept_it(s);
         }
 
-        if (!parser_accept(s, TOKEN_RBRACE)) {
+        if (!ParserState_accept(s, TOKEN_RBRACE)) {
             PostfixExpr_free_children(res);
             return false;
         }
@@ -351,17 +351,17 @@ static bool parse_postfix_expr_type_name(ParserState* s,
     res->init_list.len = 0;
     res->init_list.inits = NULL;
 
-    parser_accept_it(s);
+    ParserState_accept_it(s);
 
     if (!parse_init_list(s, &res->init_list)) {
         goto fail;
     }
 
     if (ParserState_curr_kind(s) == TOKEN_COMMA) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
     }
 
-    if (!parser_accept(s, TOKEN_RBRACE)) {
+    if (!ParserState_accept(s, TOKEN_RBRACE)) {
         return false;
     }
 
@@ -525,7 +525,7 @@ bool parse_unary_expr_inplace(ParserState* s, UnaryExpr* res) {
             ParserState_curr_kind(s));
 
         ++len;
-        parser_accept_it(s);
+        ParserState_accept_it(s);
     }
 
     if (ops_before) {
@@ -534,7 +534,7 @@ bool parse_unary_expr_inplace(ParserState* s, UnaryExpr* res) {
 
     if (TokenKind_is_unary_op(ParserState_curr_kind(s))) {
         const TokenKind unary_op = ParserState_curr_kind(s);
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         CastExpr* cast = parse_cast_expr(s);
         if (!cast) {
             goto fail;
@@ -544,19 +544,19 @@ bool parse_unary_expr_inplace(ParserState* s, UnaryExpr* res) {
     } else {
         switch (ParserState_curr_kind(s)) {
             case TOKEN_SIZEOF: {
-                parser_accept_it(s);
+                ParserState_accept_it(s);
                 assert(ParserState_curr_kind(s) == TOKEN_LBRACKET);
                 const SourceLoc start_bracket_loc = ParserState_curr_loc(
                     s);
                 if (next_is_type_name(s)) {
-                    parser_accept_it(s);
+                    ParserState_accept_it(s);
 
                     TypeName* type_name = parse_type_name(s);
                     if (!type_name) {
                         goto fail;
                     }
 
-                    if (!parser_accept(s, TOKEN_RBRACKET)) {
+                    if (!ParserState_accept(s, TOKEN_RBRACKET)) {
                         goto fail;
                     }
                     if (ParserState_curr_kind(s) == TOKEN_LBRACE) {
@@ -598,8 +598,8 @@ bool parse_unary_expr_inplace(ParserState* s, UnaryExpr* res) {
                 }
             }
             case TOKEN_ALIGNOF: {
-                parser_accept_it(s);
-                if (!parser_accept(s, TOKEN_LBRACKET)) {
+                ParserState_accept_it(s);
+                if (!ParserState_accept(s, TOKEN_LBRACKET)) {
                     goto fail;
                 }
 
@@ -608,7 +608,7 @@ bool parse_unary_expr_inplace(ParserState* s, UnaryExpr* res) {
                     goto fail;
                 }
 
-                if (!parser_accept(s, TOKEN_RBRACKET)) {
+                if (!ParserState_accept(s, TOKEN_RBRACKET)) {
                     goto fail;
                 }
                 UnaryExpr_init_alignof(res, ops_before, len, type_name, loc);

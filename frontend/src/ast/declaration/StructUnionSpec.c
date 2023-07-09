@@ -27,7 +27,7 @@ static bool parse_struct_declarator_inplace(ParserState* s,
     }
 
     if (ParserState_curr_kind(s) == TOKEN_COLON) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         res->bit_field = parse_const_expr(s);
         if (!res->bit_field) {
             StructDeclarator_free_children(res);
@@ -60,7 +60,7 @@ static bool parse_struct_declarator_list(ParserState* s,
 
     size_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_COMMA) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->decls,
                             &alloc_len,
@@ -114,7 +114,7 @@ static bool parse_struct_declaration_inplace(ParserState* s,
             };
         }
 
-        if (!parser_accept(s, TOKEN_SEMICOLON)) {
+        if (!ParserState_accept(s, TOKEN_SEMICOLON)) {
             StructDeclaration_free_children(res);
             return false;
         }
@@ -178,27 +178,27 @@ StructUnionSpec* parse_struct_union_spec(ParserState* s) {
     bool is_struct;
     if (ParserState_curr_kind(s) == TOKEN_STRUCT) {
         is_struct = true;
-        parser_accept_it(s);
+        ParserState_accept_it(s);
     } else {
         is_struct = false;
-        parser_accept_it(s);
+        ParserState_accept_it(s);
     }
     Identifier* id = NULL;
     if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
         const StrBuf spell = ParserState_take_curr_spell(s);
         const SourceLoc id_loc = ParserState_curr_loc(s);
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         id = Identifier_create(&spell, id_loc);
     }
 
     StructDeclarationList list = {.len = 0, .decls = NULL};
     if (ParserState_curr_kind(s) == TOKEN_LBRACE) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         if (!parse_struct_declaration_list(s, &list)) {
             goto fail;
         }
 
-        if (!parser_accept(s, TOKEN_RBRACE)) {
+        if (!ParserState_accept(s, TOKEN_RBRACE)) {
             StructDeclarationList_free(&list);
             goto fail;
         }

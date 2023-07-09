@@ -32,7 +32,7 @@ bool parse_init_declarator_inplace(ParserState* s, InitDeclarator* res) {
     }
 
     if (ParserState_curr_kind(s) == TOKEN_ASSIGN) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         res->init = parse_initializer(s);
         if (!res->init) {
             Declarator_free(res->decl);

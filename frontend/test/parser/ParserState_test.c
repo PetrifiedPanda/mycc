@@ -23,7 +23,7 @@ TEST(ParserState) {
     for (size_t i = 0; i < NUM_STRINGS; ++i) {
 
         if (i % SCOPE_INTERVAL == 0) {
-            parser_push_scope(&s);
+            ParserState_push_scope(&s);
         }
 
         insert_string[i] = 'a';
@@ -36,9 +36,9 @@ TEST(ParserState) {
                                   (FileLoc){0, 0},
                                   0);
         if (i % 2 == 0) {
-            ASSERT(parser_register_enum_constant(&s, &to_insert, loc));
+            ASSERT(ParserState_register_enum_constant(&s, &to_insert, loc));
         } else {
-            ASSERT(parser_register_typedef_name(&s, &to_insert, loc));
+            ASSERT(ParserState_register_typedef(&s, &to_insert, loc));
         }
         ASSERT(err.kind == PARSER_ERR_NONE);
     }
@@ -49,11 +49,11 @@ TEST(ParserState) {
 
         const StrBuf test_string_str = StrBuf_non_heap(i + 1, test_string);
         if (i % 2 == 0) {
-            ASSERT(parser_is_enum_constant(&s, StrBuf_as_str(&test_string_str)));
-            ASSERT(!parser_is_typedef_name(&s, StrBuf_as_str(&test_string_str)));
+            ASSERT(ParserState_is_enum_constant(&s, StrBuf_as_str(&test_string_str)));
+            ASSERT(!ParserState_is_typedef(&s, StrBuf_as_str(&test_string_str)));
         } else {
-            ASSERT(parser_is_typedef_name(&s, StrBuf_as_str(&test_string_str)));
-            ASSERT(!parser_is_enum_constant(&s, StrBuf_as_str(&test_string_str)));
+            ASSERT(ParserState_is_typedef(&s, StrBuf_as_str(&test_string_str)));
+            ASSERT(!ParserState_is_enum_constant(&s, StrBuf_as_str(&test_string_str)));
         }
         ASSERT(err.kind == PARSER_ERR_NONE);
     }
@@ -67,11 +67,11 @@ TEST(ParserState) {
             const StrBuf pop_test_str = StrBuf_non_heap(j + 1, pop_test_string);
 
             if (j % 2 == 0) {
-                ASSERT(parser_is_enum_constant(&s, StrBuf_as_str(&pop_test_str)));
-                ASSERT(!parser_is_typedef_name(&s, StrBuf_as_str(&pop_test_str)));
+                ASSERT(ParserState_is_enum_constant(&s, StrBuf_as_str(&pop_test_str)));
+                ASSERT(!ParserState_is_typedef(&s, StrBuf_as_str(&pop_test_str)));
             } else {
-                ASSERT(parser_is_typedef_name(&s, StrBuf_as_str(&pop_test_str)));
-                ASSERT(!parser_is_enum_constant(&s, StrBuf_as_str(&pop_test_str)));
+                ASSERT(ParserState_is_typedef(&s, StrBuf_as_str(&pop_test_str)));
+                ASSERT(!ParserState_is_enum_constant(&s, StrBuf_as_str(&pop_test_str)));
             }
             ASSERT(err.kind == PARSER_ERR_NONE);
         }
@@ -81,15 +81,15 @@ TEST(ParserState) {
             pop_test_string[j] = 'a';
             const StrBuf pop_test_str = StrBuf_non_heap(j + 1, pop_test_string);
 
-            ASSERT(!parser_is_enum_constant(&s, StrBuf_as_str(&pop_test_str)));
-            ASSERT(!parser_is_typedef_name(&s, StrBuf_as_str(&pop_test_str)));
+            ASSERT(!ParserState_is_enum_constant(&s, StrBuf_as_str(&pop_test_str)));
+            ASSERT(!ParserState_is_typedef(&s, StrBuf_as_str(&pop_test_str)));
 
             ASSERT(err.kind == PARSER_ERR_NONE);
         }
 
         // do not pop last scope
         if (i != num_steps - 1) {
-            parser_pop_scope(&s);
+            ParserState_pop_scope(&s);
         }
     }
 
@@ -98,8 +98,8 @@ TEST(ParserState) {
     
     const StrBuf insert_test_spell = STR_BUF_NON_HEAP("Test");
     const SourceLoc loc = {0, {0, 0}};
-    ASSERT(parser_register_enum_constant(&s, &insert_test_spell, loc));
-    ASSERT(!parser_register_typedef_name(&s, &insert_test_spell, loc));
+    ASSERT(ParserState_register_enum_constant(&s, &insert_test_spell, loc));
+    ASSERT(!ParserState_register_typedef(&s, &insert_test_spell, loc));
 
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT_STR(StrBuf_as_str(&err.redefined_symbol), STR_LIT("Test"));
@@ -111,7 +111,7 @@ TEST(ParserState) {
     ParserErr_free(&err);
     err = ParserErr_create();
 
-    ASSERT(!parser_register_enum_constant(&s, &insert_test_spell, loc));
+    ASSERT(!ParserState_register_enum_constant(&s, &insert_test_spell, loc));
 
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT_STR(StrBuf_as_str(&err.redefined_symbol), STR_LIT("Test"));

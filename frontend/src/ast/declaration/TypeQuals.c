@@ -35,7 +35,7 @@ void update_type_quals(ParserState* s, TypeQuals* quals) {
         default:
             UNREACHABLE();
     }
-    parser_accept_it(s);
+    ParserState_accept_it(s);
 }
 
 bool parse_type_qual_list(ParserState* s, TypeQuals* res) {

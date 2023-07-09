@@ -143,7 +143,7 @@ static bool update_standalone_type_spec(ParserState* s, TypeSpecs* res) {
         default:
             UNREACHABLE();
     }
-    parser_accept_it(s);
+    ParserState_accept_it(s);
     return true;
 }
 
@@ -178,13 +178,13 @@ static bool update_non_standalone_type_spec(ParserState* s, TypeSpecs* res) {
             break;
         }
         case TOKEN_IDENTIFIER: {
-            if (parser_is_typedef_name(s, ParserState_curr_spell(s))) {
+            if (ParserState_is_typedef(s, ParserState_curr_spell(s))) {
                 res->kind = TYPE_SPEC_TYPENAME;
                 const StrBuf spell = ParserState_take_curr_spell(s);
                 res->typedef_name = Identifier_create(
                     &spell,
                     ParserState_curr_loc(s));
-                parser_accept_it(s);
+                ParserState_accept_it(s);
                 break;
             } else {
                 ParserErr_set(s->err,

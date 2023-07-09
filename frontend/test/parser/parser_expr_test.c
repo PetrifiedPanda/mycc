@@ -115,7 +115,7 @@ static void primary_expr_generic_sel_test(void) {
     ParserState s = ParserState_create(preproc_res.toks, &err);
     const StrBuf spell = STR_BUF_NON_HEAP("TypedefName");
 
-    parser_register_typedef_name(&s, &spell, (SourceLoc){0, {0, 0}});
+    ParserState_register_typedef(&s, &spell, (SourceLoc){0, {0, 0}});
     UnaryExpr unary;
     ASSERT(parse_unary_expr_inplace(&s, &unary));
     ASSERT(err.kind == PARSER_ERR_NONE);

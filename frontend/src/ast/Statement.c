@@ -18,7 +18,7 @@ static LabeledStatement* parse_labeled_statement(ParserState* s) {
     switch (ParserState_curr_kind(s)) {
         case TOKEN_CASE: {
             res->kind = LABELED_STATEMENT_CASE;
-            parser_accept_it(s);
+            ParserState_accept_it(s);
             ConstExpr case_expr;
             if (!parse_const_expr_inplace(s, &case_expr)) {
                 mycc_free(res);
@@ -32,21 +32,21 @@ static LabeledStatement* parse_labeled_statement(ParserState* s) {
             res->kind = LABELED_STATEMENT_LABEL;
             const StrBuf spell = ParserState_take_curr_spell(s);
             const SourceLoc loc = ParserState_curr_loc(s);
-            parser_accept_it(s);
+            ParserState_accept_it(s);
             res->label = Identifier_create(&spell, loc);
             break;
         }
 
         case TOKEN_DEFAULT: {
             res->kind = LABELED_STATEMENT_DEFAULT;
-            parser_accept_it(s);
+            ParserState_accept_it(s);
             break;
         }
         default:
             UNREACHABLE();
     }
 
-    if (!parser_accept(s, TOKEN_COLON)) {
+    if (!ParserState_accept(s, TOKEN_COLON)) {
         goto fail;
     }
 
@@ -82,11 +82,11 @@ static bool parse_block_item_inplace(ParserState* s, BlockItem* res) {
 
 bool parse_compound_statement_inplace(ParserState* s, CompoundStatement* res) {
     res->info = AstNodeInfo_create(ParserState_curr_loc(s));
-    if (!parser_accept(s, TOKEN_LBRACE)) {
+    if (!ParserState_accept(s, TOKEN_LBRACE)) {
         return false;
     }
 
-    parser_push_scope(s);
+    ParserState_push_scope(s);
     res->items = NULL;
     res->len = 0;
 
@@ -109,9 +109,9 @@ bool parse_compound_statement_inplace(ParserState* s, CompoundStatement* res) {
     res->items = mycc_realloc(res->items, sizeof *res->items * res->len);
 
     assert(ParserState_curr_kind(s) == TOKEN_RBRACE);
-    parser_accept_it(s);
+    ParserState_accept_it(s);
 
-    parser_pop_scope(s);
+    ParserState_pop_scope(s);
 
     return true;
 }
@@ -129,7 +129,7 @@ static ExprStatement* parse_expr_statement(ParserState* s) {
     ExprStatement* res = mycc_alloc(sizeof *res);
     res->info = AstNodeInfo_create(ParserState_curr_loc(s));
     if (ParserState_curr_kind(s) == TOKEN_SEMICOLON) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         res->expr.len = 0;
         res->expr.assign_exprs = NULL;
         return res;
@@ -139,7 +139,7 @@ static ExprStatement* parse_expr_statement(ParserState* s) {
             return NULL;
         }
 
-        if (!parser_accept(s, TOKEN_SEMICOLON)) {
+        if (!ParserState_accept(s, TOKEN_SEMICOLON)) {
             ExprStatement_free(res);
             return NULL;
         }
@@ -158,9 +158,9 @@ static SelectionStatement* parse_selection_statement(ParserState* s) {
     } else {
         res->is_if = false;
     }
-    parser_accept_it(s);
+    ParserState_accept_it(s);
 
-    if (!parser_accept(s, TOKEN_LBRACKET)) {
+    if (!ParserState_accept(s, TOKEN_LBRACKET)) {
         mycc_free(res);
         return NULL;
     }
@@ -170,7 +170,7 @@ static SelectionStatement* parse_selection_statement(ParserState* s) {
         return NULL;
     }
 
-    if (!parser_accept(s, TOKEN_RBRACKET)) {
+    if (!ParserState_accept(s, TOKEN_RBRACKET)) {
         Expr_free_children(&res->sel_expr);
         mycc_free(res);
         return NULL;
@@ -184,7 +184,7 @@ static SelectionStatement* parse_selection_statement(ParserState* s) {
     }
 
     if (res->is_if && ParserState_curr_kind(s) == TOKEN_ELSE) {
-        parser_accept_it(s);
+        ParserState_accept_it(s);
         res->else_stat = parse_statement(s);
         if (!res->else_stat) {
             Statement_free(res->sel_stat);
@@ -248,9 +248,9 @@ static IterationStatement* parse_while_statement(ParserState* s,
                                                  SourceLoc loc) {
     assert(ParserState_curr_kind(s) == TOKEN_WHILE);
 
-    parser_accept_it(s);
+    ParserState_accept_it(s);
 
-    if (!parser_accept(s, TOKEN_LBRACKET)) {
+    if (!ParserState_accept(s, TOKEN_LBRACKET)) {
         return NULL;
     }
 
@@ -259,7 +259,7 @@ static IterationStatement* parse_while_statement(ParserState* s,
         return NULL;
     }
 
-    if (!parser_accept(s, TOKEN_RBRACKET)) {
+    if (!ParserState_accept(s, TOKEN_RBRACKET)) {
         Expr_free_children(&while_cond);
         return NULL;
     }
@@ -276,14 +276,14 @@ static IterationStatement* parse_while_statement(ParserState* s,
 static IterationStatement* parse_do_loop(ParserState* s, SourceLoc loc) {
     assert(ParserState_curr_kind(s) == TOKEN_DO);
 
-    parser_accept_it(s);
+    ParserState_accept_it(s);
 
     Statement* loop_body = parse_statement(s);
     if (!loop_body) {
         return NULL;
     }
 
-    if (!parser_accept(s, TOKEN_WHILE) || !parser_accept(s, TOKEN_LBRACKET)) {
+    if (!ParserState_accept(s, TOKEN_WHILE) || !ParserState_accept(s, TOKEN_LBRACKET)) {
         Statement_free(loop_body);
         return NULL;
     }
@@ -293,8 +293,8 @@ static IterationStatement* parse_do_loop(ParserState* s, SourceLoc loc) {
         Statement_free(loop_body);
         return NULL;
     }
-    if (!(parser_accept(s, TOKEN_RBRACKET)
-          && parser_accept(s, TOKEN_SEMICOLON))) {
+    if (!(ParserState_accept(s, TOKEN_RBRACKET)
+          && ParserState_accept(s, TOKEN_SEMICOLON))) {
         Statement_free(loop_body);
         Expr_free_children(&while_cond);
         return NULL;
@@ -306,9 +306,9 @@ static IterationStatement* parse_do_loop(ParserState* s, SourceLoc loc) {
 static IterationStatement* parse_for_loop(ParserState* s, SourceLoc loc) {
     assert(ParserState_curr_kind(s) == TOKEN_FOR);
 
-    parser_accept_it(s);
+    ParserState_accept_it(s);
 
-    if (!parser_accept(s, TOKEN_LBRACKET)) {
+    if (!ParserState_accept(s, TOKEN_LBRACKET)) {
         return NULL;
     }
 
@@ -347,7 +347,7 @@ static IterationStatement* parse_for_loop(ParserState* s, SourceLoc loc) {
         };
     }
 
-    if (!parser_accept(s, TOKEN_RBRACKET)) {
+    if (!ParserState_accept(s, TOKEN_RBRACKET)) {
         goto fail;
     }
 
@@ -420,11 +420,11 @@ static JumpStatement* parse_jump_statement(ParserState* s) {
     JumpStatement* res = NULL;
     switch (ParserState_curr_kind(s)) {
         case TOKEN_GOTO: {
-            parser_accept_it(s);
+            ParserState_accept_it(s);
             if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
                 const StrBuf spell = ParserState_take_curr_spell(s);
                 const SourceLoc id_loc = ParserState_curr_loc(s);
-                parser_accept_it(s);
+                ParserState_accept_it(s);
                 res = create_goto_statement(loc,
                                             Identifier_create(&spell, id_loc));
                 break;
@@ -436,7 +436,7 @@ static JumpStatement* parse_jump_statement(ParserState* s) {
         case TOKEN_CONTINUE:
         case TOKEN_BREAK: {
             const TokenKind t = ParserState_curr_kind(s);
-            parser_accept_it(s);
+            ParserState_accept_it(s);
             res = create_jump_statement(loc,
                                         t == TOKEN_CONTINUE
                                             ? JUMP_STATEMENT_CONTINUE
@@ -448,7 +448,7 @@ static JumpStatement* parse_jump_statement(ParserState* s) {
             break;
         }
         case TOKEN_RETURN: {
-            parser_accept_it(s);
+            ParserState_accept_it(s);
             Expr ret_val;
             if (ParserState_curr_kind(s) == TOKEN_SEMICOLON) {
                 ret_val = (Expr){
@@ -469,7 +469,7 @@ static JumpStatement* parse_jump_statement(ParserState* s) {
             UNREACHABLE();
     }
 
-    if (!parser_accept(s, TOKEN_SEMICOLON)) {
+    if (!ParserState_accept(s, TOKEN_SEMICOLON)) {
         JumpStatement_free(res);
         return NULL;
     }
