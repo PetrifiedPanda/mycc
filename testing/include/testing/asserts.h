@@ -10,7 +10,8 @@
 
 #include "util/Str.h"
 
-#ifdef WIN32
+#ifdef _WIN32
+#pragma warning (push)
 // warning for comparing string literal addresses
 #pragma warning(disable : 4130)
 #endif
@@ -128,6 +129,10 @@
                              assert_not_null_got);                             \
         }                                                                      \
     } while (0)
+
+#ifdef _WIN32
+#pragma warning (pop)
+#endif
 
 #endif
 

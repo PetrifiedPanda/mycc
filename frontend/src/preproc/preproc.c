@@ -33,7 +33,7 @@ PreprocRes preproc(CStr path, const ArchTypeInfo* info, PreprocErr* err) {
         };
     }
     if (!preproc_impl(&state, info)) {
-        FileInfo info = state.file_info;
+        FileInfo file_info = state.file_info;
         state.file_info = (FileInfo){
             .len = 0,
             .paths = NULL,
@@ -41,7 +41,7 @@ PreprocRes preproc(CStr path, const ArchTypeInfo* info, PreprocErr* err) {
         PreprocState_free(&state);
         return (PreprocRes){
             .toks = NULL,
-            .file_info = info,
+            .file_info = file_info,
         };
     }
 

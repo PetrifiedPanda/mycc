@@ -68,6 +68,12 @@ void Token_free(Token* t) {
     }
 }
 
+#ifdef _WIN32
+#pragma warning (push)
+// Warning comparing string literal addresses
+#pragma warning(disable : 4130)
+#endif
+
 Str TokenKind_get_spelling(TokenKind kind) {
     switch (kind) {
 #define TOKEN_MACRO(kind, str)                                                 \
@@ -78,6 +84,10 @@ Str TokenKind_get_spelling(TokenKind kind) {
     }
     UNREACHABLE();
 }
+
+#ifdef _WIN32
+#pragma warning (pop)
+#endif
 
 Str TokenKind_str(TokenKind kind) {
     switch (kind) {

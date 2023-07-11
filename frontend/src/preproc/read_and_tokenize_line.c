@@ -261,8 +261,6 @@ static bool handle_else_elif(PreprocState* state,
         curr_if->had_true_branch = true;
         return true;
     }
-
-    return false;
 }
 
 static bool handle_include(PreprocState* state,
