@@ -1,5 +1,5 @@
-#ifndef STR_H
-#define STR_H
+#ifndef UTIL_STR_H
+#define UTIL_STR_H
 
 #include <stddef.h>
 #include <stdbool.h>

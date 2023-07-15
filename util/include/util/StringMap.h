@@ -1,5 +1,5 @@
-#ifndef STRING_HASH_MAP_H
-#define STRING_HASH_MAP_H
+#ifndef UTIL_STRING_MAP_H
+#define UTIL_STRING_MAP_H
 
 #include <stddef.h>
 #include <stdbool.h>

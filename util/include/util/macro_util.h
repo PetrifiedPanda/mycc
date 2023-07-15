@@ -1,5 +1,5 @@
-#ifndef UTIL_ANNOTATIONS_H
-#define UTIL_ANNOTATIONS_H
+#ifndef UTIL_MACRO_UTIL_H
+#define UTIL_MACRO_UTIL_H
 
 #include <stdbool.h>
 

@@ -1,5 +1,5 @@
-#ifndef STR_BUF_H
-#define STR_BUF_H
+#ifndef UTIL_STR_BUF_H
+#define UTIL_STR_BUF_H
 
 #include <stddef.h>
 #include <stdbool.h>
