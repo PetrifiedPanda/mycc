@@ -7,7 +7,7 @@
 
 #include "frontend/parser/parser_util.h"
 
-#include "frontend/ast/expr/AssignExpr.h"
+#include "frontend/ast/AssignExpr.h"
 
 #include "frontend/ast/declaration/AbsDeclarator.h"
 

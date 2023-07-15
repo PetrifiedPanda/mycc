@@ -1,4 +1,4 @@
-#include "frontend/ast/expr/Expr.h"
+#include "frontend/ast/Expr.h"
 
 #include <assert.h>
 
@@ -6,7 +6,7 @@
 
 #include "frontend/parser/parser_util.h"
 
-#include "frontend/ast/expr/AssignExpr.h"
+#include "frontend/ast/AssignExpr.h"
 
 bool parse_expr_inplace(ParserState* s, Expr* res) {
     assert(res);

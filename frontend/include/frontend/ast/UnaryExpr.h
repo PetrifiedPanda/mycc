@@ -1,5 +1,5 @@
-#ifndef UNARY_EXPR_H
-#define UNARY_EXPR_H
+#ifndef FRONTEND_AST_UNARY_EXPR_H
+#define FRONTEND_AST_UNARY_EXPR_H
 
 #include <stddef.h>
 

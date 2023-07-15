@@ -1,5 +1,5 @@
-#ifndef EXPR_H
-#define EXPR_H
+#ifndef FRONTEND_AST_EXPR_H
+#define FRONTEND_AST_EXPR_H
 
 #include <stddef.h>
 

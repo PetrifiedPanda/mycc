@@ -6,8 +6,7 @@
 
 #include "frontend/parser/parser_util.h"
 
-#include "frontend/ast/expr/AssignExpr.h"
-
+#include "frontend/ast/AssignExpr.h"
 #include "frontend/ast/TypeName.h"
 
 bool parse_align_spec_inplace(ParserState* s, AlignSpec* res) {

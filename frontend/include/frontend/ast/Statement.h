@@ -5,9 +5,8 @@
 
 #include "frontend/ast/declaration/Declaration.h"
 
-#include "frontend/ast/expr/Expr.h"
-#include "frontend/ast/expr/AssignExpr.h"
-
+#include "Expr.h"
+#include "AssignExpr.h"
 #include "AstNodeInfo.h"
 
 typedef struct LabeledStatement LabeledStatement;
