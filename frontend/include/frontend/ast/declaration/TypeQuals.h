@@ -1,5 +1,5 @@
-#ifndef TYPE_QUALS_H
-#define TYPE_QUALS_H
+#ifndef MYCC_FRONTEND_DECLARATION_TYPE_QUALS_H
+#define MYCC_FRONTEND_DECLARATION_TYPE_QUALS_H
 
 #include <stdbool.h>
 

@@ -1,5 +1,5 @@
-#ifndef STRUCT_UNION_SPEC_H
-#define STRUCT_UNION_SPEC_H
+#ifndef MYCC_FRONTEND_DECLARATION_STRUCT_UNION_SPEC_H
+#define MYCC_FRONTEND_DECLARATION_STRUCT_UNION_SPEC_H
 
 #include <stddef.h>
 #include <stdbool.h>

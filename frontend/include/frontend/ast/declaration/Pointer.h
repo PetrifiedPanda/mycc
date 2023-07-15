@@ -1,5 +1,5 @@
-#ifndef POINTER_H
-#define POINTER_H
+#ifndef MYCC_FRONTEND_DECLARATION_POINTER_H
+#define MYCC_FRONTEND_DECLARATION_POINTER_H
 
 #include <stddef.h>
 

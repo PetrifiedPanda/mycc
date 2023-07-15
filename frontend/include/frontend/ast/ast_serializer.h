@@ -1,5 +1,5 @@
-#ifndef AST_SERIALIZER_H
-#define AST_SERIALIZER_H
+#ifndef MYCC_FRONTEND_AST_AST_SERIALIZER_H
+#define MYCC_FRONTEND_AST_AST_SERIALIZER_H
 
 #include "util/File.h"
 

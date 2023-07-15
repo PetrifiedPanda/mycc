@@ -1,5 +1,5 @@
-#ifndef SPEC_QUAL_LIST_H
-#define SPEC_QUAL_LIST_H
+#ifndef MYCC_FRONTEND_AST_SPEC_QUAL_LIST_H
+#define MYCC_FRONTEND_AST_SPEC_QUAL_LIST_H
 
 #include <stdbool.h>
 #include <stddef.h>

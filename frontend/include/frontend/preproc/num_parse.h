@@ -1,5 +1,5 @@
-#ifndef NUM_PARSE_H
-#define NUM_PARSE_H
+#ifndef MYCC_FRONTEND_PREPROC_NUM_PARSE_H
+#define MYCC_FRONTEND_PREPROC_NUM_PARSE_H
 
 #include <stdbool.h>
 

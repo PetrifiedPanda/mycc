@@ -1,5 +1,5 @@
-#ifndef STR_LIT_H
-#define STR_LIT_H
+#ifndef MYCC_FRONTEND_STR_LIT_H
+#define MYCC_FRONTEND_STR_LIT_H
 
 #include "util/StrBuf.h"
 

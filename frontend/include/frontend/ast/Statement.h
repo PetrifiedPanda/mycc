@@ -1,5 +1,5 @@
-#ifndef STATEMENT_H
-#define STATEMENT_H
+#ifndef MYCC_FRONTEND_AST_STATEMENT_H
+#define MYCC_FRONTEND_AST_STATEMENT_H
 
 #include "frontend/parser/ParserState.h"
 

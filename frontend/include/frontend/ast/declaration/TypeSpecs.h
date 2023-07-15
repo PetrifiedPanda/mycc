@@ -1,5 +1,5 @@
-#ifndef TYPE_SPEC_H
-#define TYPE_SPEC_H
+#ifndef MYCC_FRONTEND_DECLARATION_TYPE_SPEC_H
+#define MYCC_FRONTEND_DECLARATION_TYPE_SPEC_H
 
 #include "frontend/Token.h"
 

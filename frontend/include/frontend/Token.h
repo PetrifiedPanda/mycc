@@ -1,5 +1,5 @@
-#ifndef TOKEN_H
-#define TOKEN_H
+#ifndef MYCC_FRONTEND_TOKEN_H
+#define MYCC_FRONTEND_TOKEN_H
 
 #include <stdbool.h>
 #include <stddef.h>

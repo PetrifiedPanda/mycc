@@ -1,5 +1,5 @@
-#ifndef FUNC_DEF_H
-#define FUNC_DEF_H
+#ifndef MYCC_FRONTEND_DECLARATION_FUNC_DEF_H
+#define MYCC_FRONTEND_DECLARATION_FUNC_DEF_H
 
 #include "DeclarationList.h"
 

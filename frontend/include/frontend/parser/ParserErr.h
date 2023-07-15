@@ -1,5 +1,5 @@
-#ifndef PARSER_ERR_H
-#define PARSER_ERR_H
+#ifndef MYCC_FRONTEND_PARSER_PARSER_ERR_H
+#define MYCC_FRONTEND_PARSER_PARSER_ERR_H
 
 #include "util/File.h"
 

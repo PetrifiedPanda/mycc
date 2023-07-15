@@ -1,5 +1,5 @@
-#ifndef DECLARATOR_H
-#define DECLARATOR_H
+#ifndef MYCC_FRONTEND_DECLARATION_DECLARATOR_H
+#define MYCC_FRONTEND_DECLARATION_DECLARATOR_H
 
 #include "frontend/parser/ParserState.h"
 

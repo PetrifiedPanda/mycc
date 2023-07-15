@@ -1,5 +1,5 @@
-#ifndef AST_NODE_INFO_H
-#define AST_NODE_INFO_H
+#ifndef MYCC_FRONTEND_AST_AST_NODE_INFO_H
+#define MYCC_FRONTEND_AST_AST_NODE_INFO_H
 
 #include "frontend/Token.h"
 

@@ -1,5 +1,5 @@
-#ifndef AST_DUMPER_H
-#define AST_DUMPER_H
+#ifndef MYCC_FRONTEND_AST_AST_DUMPER_H
+#define MYCC_FRONTEND_AST_AST_DUMPER_H
 
 #include "util/File.h"
 

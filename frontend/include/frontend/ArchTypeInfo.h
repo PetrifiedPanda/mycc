@@ -1,5 +1,5 @@
-#ifndef ARCH_TYPE_INFO_H
-#define ARCH_TYPE_INFO_H
+#ifndef MYCC_FRONTEND_ARCH_TYPE_INFO_H
+#define MYCC_FRONTEND_ARCH_TYPE_INFO_H
 
 #include <stdbool.h>
 #include <stdint.h>

@@ -1,5 +1,5 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef MYCC_FRONTEND_PARSER_PARSER_H
+#define MYCC_FRONTEND_PARSER_PARSER_H
 
 #include "frontend/Token.h"
 

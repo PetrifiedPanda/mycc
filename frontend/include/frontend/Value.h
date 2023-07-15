@@ -1,5 +1,5 @@
-#ifndef VALUE_H
-#define VALUE_H
+#ifndef MYCC_FRONTEND_VALUE_H
+#define MYCC_FRONTEND_VALUE_H
 
 #include <stdint.h>
 #include <stdbool.h>

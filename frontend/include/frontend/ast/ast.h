@@ -1,5 +1,5 @@
-#ifndef AST_H
-#define AST_H
+#ifndef MYCC_FRONTEND_AST_AST_H
+#define MYCC_FRONTEND_AST_AST_H
 
 #include "TranslationUnit.h"
 #include "declaration/ExternalDeclaration.h"

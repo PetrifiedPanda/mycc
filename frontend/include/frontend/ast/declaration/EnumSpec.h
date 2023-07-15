@@ -1,5 +1,5 @@
-#ifndef ENUM_SPEC_H
-#define ENUM_SPEC_H
+#ifndef MYCC_FRONTEND_DECLARATION_ENUM_SPEC_H
+#define MYCC_FRONTEND_DECLARATION_ENUM_SPEC_H
 
 #include <stddef.h>
 
