@@ -40,7 +40,7 @@ typedef struct DeclarationSpecs {
     TypeSpecs type_specs;
 } DeclarationSpecs;
 
-DeclarationSpecs* parse_declaration_specs(ParserState* s, bool* found_typedef);
+bool parse_declaration_specs(ParserState* s, DeclarationSpecs* res, bool* found_typedef);
 
 void DeclarationSpecs_free(DeclarationSpecs* s);
 

@@ -4,9 +4,11 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+#include "frontend/parser/ParserState.h"
+
 #include "frontend/ast/AstNodeInfo.h"
 
-#include "frontend/parser/ParserState.h"
+#include "DeclarationSpecs.h"
 
 typedef struct Declarator Declarator;
 typedef struct ConstExpr ConstExpr;
@@ -21,14 +23,13 @@ typedef struct {
     StructDeclarator* decls;
 } StructDeclaratorList;
 
-typedef struct DeclarationSpecs DeclarationSpecs;
 typedef struct StaticAssertDeclaration StaticAssertDeclaration;
 
 typedef struct {
     bool is_static_assert;
     union {
         struct {
-            DeclarationSpecs* decl_specs;
+            DeclarationSpecs decl_specs;
             StructDeclaratorList decls;
         };
         StaticAssertDeclaration* assert;

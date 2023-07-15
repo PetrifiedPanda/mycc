@@ -128,11 +128,10 @@ static ParseDeclarationSpecRes parse_declaration_spec(
     return DECL_SPEC_SUCCESS;
 }
 
-DeclarationSpecs* parse_declaration_specs(ParserState* s, bool* found_typedef) {
+bool parse_declaration_specs(ParserState* s, DeclarationSpecs* res, bool* found_typedef) {
     assert(found_typedef);
     assert(*found_typedef == false);
 
-    DeclarationSpecs* res = mycc_alloc(sizeof *res);
     res->info = AstNodeInfo_create(ParserState_curr_loc(s));
     res->func_specs = (FuncSpecs){
         .is_inline = false,
@@ -189,7 +188,5 @@ static void DeclarationSpecs_free_children(DeclarationSpecs* s) {
 
 void DeclarationSpecs_free(DeclarationSpecs* s) {
     DeclarationSpecs_free_children(s);
-
-    mycc_free(s);
 }
 

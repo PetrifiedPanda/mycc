@@ -5,7 +5,8 @@
 
 #include "frontend/parser/ParserState.h"
 
-typedef struct DeclarationSpecs DeclarationSpecs;
+#include "DeclarationSpecs.h"
+
 typedef struct Declarator Declarator;
 typedef struct AbsDeclarator AbsDeclarator;
 
@@ -16,7 +17,7 @@ typedef enum {
 } ParamDeclKind;
 
 typedef struct {
-    DeclarationSpecs* decl_specs;
+    DeclarationSpecs decl_specs;
     ParamDeclKind kind;
     union {
         Declarator* decl;

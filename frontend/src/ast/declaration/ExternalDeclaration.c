@@ -11,7 +11,7 @@
 
 static bool parse_external_decl_normal_decl(ParserState* s,
                                             ExternalDeclaration* res,
-                                            DeclarationSpecs* decl_specs,
+                                            const DeclarationSpecs* decl_specs,
                                             Declarator* first_decl,
                                             bool found_typedef) {
     res->is_func_def = false;
@@ -19,7 +19,7 @@ static bool parse_external_decl_normal_decl(ParserState* s,
     Declaration* decl = &res->decl;
 
     decl->is_normal_decl = true;
-    decl->decl_specs = decl_specs;
+    decl->decl_specs = *decl_specs;
 
     Initializer* init = NULL;
     if (ParserState_curr_kind(s) == TOKEN_ASSIGN) {
@@ -27,14 +27,14 @@ static bool parse_external_decl_normal_decl(ParserState* s,
             ParserErr_set(s->err,
                           PARSER_ERR_TYPEDEF_INIT,
                           ParserState_curr_loc(s));
-            DeclarationSpecs_free(decl_specs);
+            DeclarationSpecs_free(&decl->decl_specs);
             Declarator_free(first_decl);
             return false;
         }
         ParserState_accept_it(s);
         init = parse_initializer(s);
         if (!init) {
-            DeclarationSpecs_free(decl_specs);
+            DeclarationSpecs_free(&decl->decl_specs);
             Declarator_free(first_decl);
             return false;
         }
@@ -84,7 +84,7 @@ static bool parse_external_declaration_func_def(ParserState* s,
 
     FuncDef* func_def = &res->func_def;
 
-    func_def->specs = decl_specs;
+    func_def->specs = *decl_specs;
     func_def->decl = first_decl;
     if (ParserState_curr_kind(s) != TOKEN_LBRACE) {
         if (!parse_declaration_list(s, &func_def->decl_list)) {
@@ -122,8 +122,8 @@ bool parse_external_declaration_inplace(ParserState* s,
         return true;
     }
     bool found_typedef = false;
-    DeclarationSpecs* decl_specs = parse_declaration_specs(s, &found_typedef);
-    if (!decl_specs) {
+    DeclarationSpecs decl_specs;
+    if (!parse_declaration_specs(s, &decl_specs, &found_typedef)) {
         return false;
     }
 
@@ -148,7 +148,7 @@ bool parse_external_declaration_inplace(ParserState* s,
     }
 
     if (!first_decl) {
-        DeclarationSpecs_free(decl_specs);
+        DeclarationSpecs_free(&decl_specs);
         return false;
     }
 
@@ -157,13 +157,13 @@ bool parse_external_declaration_inplace(ParserState* s,
         || ParserState_curr_kind(s) == TOKEN_SEMICOLON) {
         return parse_external_decl_normal_decl(s,
                                                res,
-                                               decl_specs,
+                                               &decl_specs,
                                                first_decl,
                                                found_typedef);
     } else {
         return parse_external_declaration_func_def(s,
                                                    res,
-                                                   decl_specs,
+                                                   &decl_specs,
                                                    first_decl,
                                                    found_typedef);
     }

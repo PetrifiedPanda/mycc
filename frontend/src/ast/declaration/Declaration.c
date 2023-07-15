@@ -19,8 +19,7 @@ bool parse_declaration_inplace(ParserState* s, Declaration* res) {
         res->is_normal_decl = true;
 
         bool found_typedef = false;
-        res->decl_specs = parse_declaration_specs(s, &found_typedef);
-        if (!res->decl_specs) {
+        if (!parse_declaration_specs(s, &res->decl_specs, &found_typedef)) {
             return false;
         }
 
@@ -33,7 +32,7 @@ bool parse_declaration_inplace(ParserState* s, Declaration* res) {
                                          s,
                                          &res->init_decls);
             if (!success) {
-                DeclarationSpecs_free(res->decl_specs);
+                DeclarationSpecs_free(&res->decl_specs);
                 return false;
             }
         } else {
@@ -43,7 +42,7 @@ bool parse_declaration_inplace(ParserState* s, Declaration* res) {
             };
         }
         if (!ParserState_accept(s, TOKEN_SEMICOLON)) {
-            DeclarationSpecs_free(res->decl_specs);
+            DeclarationSpecs_free(&res->decl_specs);
             InitDeclaratorList_free(&res->init_decls);
             return false;
         }
@@ -54,7 +53,7 @@ bool parse_declaration_inplace(ParserState* s, Declaration* res) {
 
 void Declaration_free_children(Declaration* d) {
     if (d->is_normal_decl) {
-        DeclarationSpecs_free(d->decl_specs);
+        DeclarationSpecs_free(&d->decl_specs);
         InitDeclaratorList_free(&d->init_decls);
     } else {
         StaticAssertDeclaration_free(d->static_assert_decl);
