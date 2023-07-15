@@ -1,5 +1,5 @@
-#ifndef TESTING_H
-#define TESTING_H
+#ifndef MYCC_TESTING_TESTING_H
+#define MYCC_TESTING_TESTING_H
 
 #include <stdbool.h>
 #include <stddef.h>

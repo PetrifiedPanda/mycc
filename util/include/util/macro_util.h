@@ -1,5 +1,5 @@
-#ifndef UTIL_MACRO_UTIL_H
-#define UTIL_MACRO_UTIL_H
+#ifndef MYCC_UTIL_MACRO_UTIL_H
+#define MYCC_UTIL_MACRO_UTIL_H
 
 #include <stdbool.h>
 
