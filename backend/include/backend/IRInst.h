@@ -1,5 +1,5 @@
-#ifndef IR_INST_H
-#define IR_INST_H
+#ifndef MYCC_BACKEND_IR_INST_H
+#define MYCC_BACKEND_IR_INST_H
 
 #include <stdbool.h>
 #include <stdint.h>

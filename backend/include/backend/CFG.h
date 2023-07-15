@@ -1,5 +1,5 @@
-#ifndef CFG_H
-#define CFG_H
+#ifndef MYCC_BACKEND_CFG_H
+#define MYCC_BACKEND_CFG_H
 
 #include "util/StrBuf.h"
 

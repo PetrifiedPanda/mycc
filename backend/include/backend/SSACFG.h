@@ -1,5 +1,5 @@
-#ifndef SSA_CFG_H
-#define SSA_CFG_H
+#ifndef MYCC_BACKEND_SSA_CFG_H
+#define MYCC_BACKEND_SSA_CFG_H
 
 #include "SSABasicBlock.h"
 
