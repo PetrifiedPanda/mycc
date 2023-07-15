@@ -1,5 +1,5 @@
-#ifndef FRONTEND_AST_GENERIC_SEL_H
-#define FRONTEND_AST_GENERIC_SEL_H
+#ifndef MYCC_FRONTEND_AST_GENERIC_SEL_H
+#define MYCC_FRONTEND_AST_GENERIC_SEL_H
 
 #include <stddef.h>
 #include <stdbool.h>
