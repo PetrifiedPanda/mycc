@@ -69,9 +69,12 @@ void Token_free(Token* t) {
 }
 
 #ifdef _WIN32
-#pragma warning (push)
+#pragma warning(push)
 // Warning comparing string literal addresses
 #pragma warning(disable : 4130)
+// Warning local variable initialized but not referenced
+// TODO: remove this when not necessary anymore
+#pragma warning(disable : 4189)
 #endif
 
 Str TokenKind_get_spelling(TokenKind kind) {
@@ -86,7 +89,7 @@ Str TokenKind_get_spelling(TokenKind kind) {
 }
 
 #ifdef _WIN32
-#pragma warning (pop)
+#pragma warning(pop)
 #endif
 
 Str TokenKind_str(TokenKind kind) {
@@ -113,7 +116,7 @@ bool TokenKind_is_rel_op(TokenKind k) {
 }
 
 bool TokenKind_is_eq_op(TokenKind k) {
-     switch (k) {
+    switch (k) {
         case TOKEN_EQ:
         case TOKEN_NE:
             return true;
