@@ -1,5 +1,6 @@
-#ifndef IR_TYPE
-#define IR_TYPE
+#ifndef MYCC_BACKEND_IR_TYPE_H
+#define MYCC_BACKEND_IR_TYPE_H
+
 
 #include <stddef.h>
 

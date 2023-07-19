@@ -1,4 +1,4 @@
-#include "frontend/ast/expr/UnaryExpr.h"
+#include "frontend/ast/UnaryExpr.h"
 
 #include <assert.h>
 
@@ -8,8 +8,7 @@
 #include "frontend/parser/parser_util.h"
 
 #include "frontend/ast/Identifier.h"
-
-#include "frontend/ast/expr/AssignExpr.h"
+#include "frontend/ast/AssignExpr.h"
 
 static bool parse_arg_expr_list(ParserState* s, ArgExprList* res) {
     res->len = 1;

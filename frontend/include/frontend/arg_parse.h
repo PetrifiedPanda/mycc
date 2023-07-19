@@ -1,5 +1,5 @@
-#ifndef ARG_PARSE_H
-#define ARG_PARSE_H
+#ifndef MYCC_FRONTEND_ARG_PARSE_H
+#define MYCC_FRONTEND_ARG_PARSE_H
 
 #include <stdbool.h>
 

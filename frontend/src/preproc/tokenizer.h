@@ -22,6 +22,6 @@ bool tokenize_line(TokenArr* res, PreprocErr* err, LineInfo* info);
  * 
  * @returns false if an error occured
  */
-bool next_preproc_token(Token* res, PreprocErr* err, LineInfo* info);
+bool tokenize_next_token(Token* res, PreprocErr* err, LineInfo* info);
 
 #endif

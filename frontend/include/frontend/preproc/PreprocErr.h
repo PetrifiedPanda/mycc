@@ -1,5 +1,5 @@
-#ifndef PREPROC_ERR_H
-#define PREPROC_ERR_H
+#ifndef MYCC_FRONTEND_PREPROC_PREPROC_ERR_H
+#define MYCC_FRONTEND_PREPROC_PREPROC_ERR_H
 
 #include "util/File.h"
 #include "util/StrBuf.h"

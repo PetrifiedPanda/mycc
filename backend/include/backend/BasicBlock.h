@@ -1,5 +1,5 @@
-#ifndef BASIC_BLOCK_H
-#define BASIC_BLOCK_H
+#ifndef MYCC_BACKEND_BASIC_BLOCK_H
+#define MYCC_BACKEND_BASIC_BLOCK_H
 
 #include "util/StrBuf.h"
 

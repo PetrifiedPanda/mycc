@@ -1,5 +1,5 @@
-#ifndef DECLARATION_SPECS_H
-#define DECLARATION_SPECS_H
+#ifndef MYCC_FRONTEND_DECLARATION_DECLARATION_SPECS_H
+#define MYCC_FRONTEND_DECLARATION_DECLARATION_SPECS_H
 
 #include <stddef.h>
 
@@ -40,7 +40,7 @@ typedef struct DeclarationSpecs {
     TypeSpecs type_specs;
 } DeclarationSpecs;
 
-DeclarationSpecs* parse_declaration_specs(ParserState* s, bool* found_typedef);
+bool parse_declaration_specs(ParserState* s, DeclarationSpecs* res, bool* found_typedef);
 
 void DeclarationSpecs_free(DeclarationSpecs* s);
 

@@ -8,7 +8,7 @@
 
 #include "frontend/ast/Identifier.h"
 
-#include "frontend/ast/expr/AssignExpr.h"
+#include "frontend/ast/AssignExpr.h"
 
 static bool parse_enumerator_inplace(ParserState* s, Enumerator* res) {
     assert(res);

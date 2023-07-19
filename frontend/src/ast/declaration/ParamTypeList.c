@@ -125,14 +125,13 @@ static bool parse_param_declaration_inplace(ParserState* s,
     assert(res);
 
     bool found_typedef = false;
-    res->decl_specs = parse_declaration_specs(s, &found_typedef);
-    if (!res->decl_specs) {
+    if (!parse_declaration_specs(s, &res->decl_specs, &found_typedef)) {
         return false;
     }
 
     if (found_typedef) {
         ParserErr_set(s->err, PARSER_ERR_TYPEDEF_PARAM_DECL, ParserState_curr_loc(s));
-        DeclarationSpecs_free(res->decl_specs);
+        DeclarationSpecs_free(&res->decl_specs);
         return false;
     }
 
@@ -143,7 +142,7 @@ static bool parse_param_declaration_inplace(ParserState* s,
     } else {
         AbsDeclOrDecl abs_decl_or_decl;
         if (!parse_abs_decl_or_decl(s, &abs_decl_or_decl)) {
-            DeclarationSpecs_free(res->decl_specs);
+            DeclarationSpecs_free(&res->decl_specs);
             return false;
         }
 
@@ -160,7 +159,7 @@ static bool parse_param_declaration_inplace(ParserState* s,
 }
 
 void ParamDeclaration_free_children(ParamDeclaration* d) {
-    DeclarationSpecs_free(d->decl_specs);
+    DeclarationSpecs_free(&d->decl_specs);
     switch (d->kind) {
         case PARAM_DECL_DECL:
             Declarator_free(d->decl);

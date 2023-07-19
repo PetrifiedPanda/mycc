@@ -1,18 +1,18 @@
-#ifndef DECLARATION_H
-#define DECLARATION_H
-
-#include "InitDeclaratorList.h"
+#ifndef MYCC_FRONTEND_DECLARATION_DECLARATION_H
+#define MYCC_FRONTEND_DECLARATION_DECLARATION_H
 
 #include "frontend/parser/ParserState.h"
 
-typedef struct DeclarationSpecs DeclarationSpecs;
+#include "InitDeclaratorList.h"
+#include "DeclarationSpecs.h"
+
 typedef struct StaticAssertDeclaration StaticAssertDeclaration;
 
 typedef struct Declaration {
     bool is_normal_decl;
     union {
         struct {
-            DeclarationSpecs* decl_specs;
+            DeclarationSpecs decl_specs;
             InitDeclaratorList init_decls;
         };
         StaticAssertDeclaration* static_assert_decl;

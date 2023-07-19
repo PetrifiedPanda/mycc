@@ -6,8 +6,7 @@
 #include "frontend/parser/parser_util.h"
 
 #include "frontend/ast/Identifier.h"
-
-#include "frontend/ast/expr/AssignExpr.h"
+#include "frontend/ast/AssignExpr.h"
 
 #include "frontend/ast/declaration/Declarator.h"
 #include "frontend/ast/declaration/DeclarationSpecs.h"
@@ -91,8 +90,7 @@ static bool parse_struct_declaration_inplace(ParserState* s,
     } else {
         res->is_static_assert = false;
         bool found_typedef = false;
-        res->decl_specs = parse_declaration_specs(s, &found_typedef);
-        if (!res->decl_specs) {
+        if (!parse_declaration_specs(s, &res->decl_specs, &found_typedef)) {
             return false;
         }
 
@@ -104,7 +102,7 @@ static bool parse_struct_declaration_inplace(ParserState* s,
 
         if (ParserState_curr_kind(s) != TOKEN_SEMICOLON) {
             if (!parse_struct_declarator_list(s, &res->decls)) {
-                DeclarationSpecs_free(res->decl_specs);
+                DeclarationSpecs_free(&res->decl_specs);
                 return false;
             }
         } else {
@@ -232,7 +230,7 @@ void StructDeclaration_free_children(StructDeclaration* d) {
     if (d->is_static_assert) {
         StaticAssertDeclaration_free(d->assert);
     } else {
-        DeclarationSpecs_free(d->decl_specs);
+        DeclarationSpecs_free(&d->decl_specs);
         StructDeclaratorList_free(&d->decls);
     }
 }

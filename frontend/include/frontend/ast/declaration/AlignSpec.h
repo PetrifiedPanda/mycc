@@ -1,5 +1,5 @@
-#ifndef ALIGN_SPEC_H
-#define ALIGN_SPEC_H
+#ifndef MYCC_FRONTEND_DECLARATION_ALIGN_SPEC_H
+#define MYCC_FRONTEND_DECLARATION_ALIGN_SPEC_H
 
 #include <stdbool.h>
 

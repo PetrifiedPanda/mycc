@@ -1,5 +1,5 @@
-#ifndef PREPROC_MACRO_H
-#define PREPROC_MACRO_H
+#ifndef MYCC_FRONTEND_PREPROC_PREPROC_MACRO_H
+#define MYCC_FRONTEND_PREPROC_PREPROC_MACRO_H
 
 #include <stddef.h>
 #include <stdbool.h>

@@ -1,5 +1,5 @@
-#ifndef INITIALIZER_H
-#define INITIALIZER_H
+#ifndef MYCC_FRONTEND_AST_INITIALIZER_H
+#define MYCC_FRONTEND_AST_INITIALIZER_H
 
 #include <stdbool.h>
 

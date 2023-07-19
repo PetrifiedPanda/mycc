@@ -276,7 +276,7 @@ static void check_struct_declaration_non_static_assert(
     TypeSpecKind type,
     Str identifier,
     int bit_field) {
-    ASSERT(decl->decl_specs->type_specs.kind == type);
+    ASSERT(decl->decl_specs.type_specs.kind == type);
     if (!Str_valid(identifier) && bit_field < 0) {
         ASSERT_SIZE_T(decl->decls.len, (size_t)0);
         return;
@@ -351,8 +351,8 @@ TEST(redefine_typedef) {
     ParserState_register_typedef(&s, &spell, (SourceLoc){0, {0, 0}});
 
     bool found_typedef = false;
-    DeclarationSpecs* res = parse_declaration_specs(&s, &found_typedef);
-    ASSERT_NULL(res);
+    DeclarationSpecs res; 
+    ASSERT(!parse_declaration_specs(&s, &res, &found_typedef));
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT(err.was_typedef_name);
     ASSERT_STR(StrBuf_as_str(&err.redefined_symbol), STR_LIT("MyInt"));

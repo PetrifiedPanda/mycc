@@ -1,5 +1,5 @@
-#ifndef IDENTIFIER_H
-#define IDENTIFIER_H
+#ifndef MYCC_FRONTEND_AST_IDENTIFIER_H
+#define MYCC_FRONTEND_AST_IDENTIFIER_H
 
 #include <stdbool.h>
 

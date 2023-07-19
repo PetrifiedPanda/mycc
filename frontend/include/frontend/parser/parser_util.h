@@ -1,5 +1,5 @@
-#ifndef PARSER_UTIL_H
-#define PARSER_UTIL_H
+#ifndef MYCC_FRONTEND_PARSER_PARSER_UTIL_H
+#define MYCC_FRONTEND_PARSER_PARSER_UTIL_H
 
 #include <stddef.h>
 

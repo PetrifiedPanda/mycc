@@ -1,11 +1,12 @@
-#ifndef PARAM_TYPE_LIST_H
-#define PARAM_TYPE_LIST_H
+#ifndef MYCC_FRONTEND_DECLARATION_PARAM_TYPE_LIST_H
+#define MYCC_FRONTEND_DECLARATION_PARAM_TYPE_LIST_H
 
 #include <stdbool.h>
 
 #include "frontend/parser/ParserState.h"
 
-typedef struct DeclarationSpecs DeclarationSpecs;
+#include "DeclarationSpecs.h"
+
 typedef struct Declarator Declarator;
 typedef struct AbsDeclarator AbsDeclarator;
 
@@ -16,7 +17,7 @@ typedef enum {
 } ParamDeclKind;
 
 typedef struct {
-    DeclarationSpecs* decl_specs;
+    DeclarationSpecs decl_specs;
     ParamDeclKind kind;
     union {
         Declarator* decl;

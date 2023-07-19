@@ -1,5 +1,5 @@
-#ifndef TYPE_NAME_H
-#define TYPE_NAME_H
+#ifndef MYCC_FRONTEND_AST_TYPE_NAME_H
+#define MYCC_FRONTEND_AST_TYPE_NAME_H
 
 #include "frontend/parser/ParserState.h"
 

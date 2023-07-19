@@ -32,21 +32,21 @@ static void check_external_decl_struct(ExternalDeclaration* d,
                                        size_t decl_list_len) {
     ASSERT(d->is_func_def == false);
     ASSERT(d->decl.is_normal_decl);
-    ASSERT(d->decl.decl_specs->type_specs.kind == TYPE_SPEC_STRUCT);
+    ASSERT(d->decl.decl_specs.type_specs.kind == TYPE_SPEC_STRUCT);
     const FuncSpecs none = {false, false};
-    check_func_specs(&d->decl.decl_specs->func_specs, &none);
+    check_func_specs(&d->decl.decl_specs.func_specs, &none);
 
     StorageClass sc = {.is_typedef = is_typedef};
-    check_storage_class(&d->decl.decl_specs->storage_class, &sc);
+    check_storage_class(&d->decl.decl_specs.storage_class, &sc);
 
-    ASSERT_BOOL(d->decl.decl_specs->type_specs.struct_union_spec->is_struct,
+    ASSERT_BOOL(d->decl.decl_specs.type_specs.struct_union_spec->is_struct,
                 is_struct);
     check_identifier(
-        d->decl.decl_specs->type_specs.struct_union_spec->identifier,
+        d->decl.decl_specs.type_specs.struct_union_spec->identifier,
         id_spell);
 
     ASSERT_SIZE_T(
-        d->decl.decl_specs->type_specs.struct_union_spec->decl_list.len,
+        d->decl.decl_specs.type_specs.struct_union_spec->decl_list.len,
         decl_list_len);
 }
 
@@ -56,15 +56,15 @@ static void check_external_decl_enum(ExternalDeclaration* d,
                                      size_t enum_list_len) {
     ASSERT(d->is_func_def == false);
     ASSERT(d->decl.is_normal_decl);
-    ASSERT(d->decl.decl_specs->type_specs.kind == TYPE_SPEC_ENUM);
+    ASSERT(d->decl.decl_specs.type_specs.kind == TYPE_SPEC_ENUM);
     const FuncSpecs none = {false, false};
-    check_func_specs(&d->decl.decl_specs->func_specs, &none);
+    check_func_specs(&d->decl.decl_specs.func_specs, &none);
     StorageClass sc = {.is_typedef = is_typedef};
-    check_storage_class(&d->decl.decl_specs->storage_class, &sc);
-    check_identifier(d->decl.decl_specs->type_specs.enum_spec->identifier,
+    check_storage_class(&d->decl.decl_specs.storage_class, &sc);
+    check_identifier(d->decl.decl_specs.type_specs.enum_spec->identifier,
                      id_spell);
 
-    ASSERT_SIZE_T(d->decl.decl_specs->type_specs.enum_spec->enum_list.len,
+    ASSERT_SIZE_T(d->decl.decl_specs.type_specs.enum_spec->enum_list.len,
                   enum_list_len);
 }
 
@@ -88,8 +88,8 @@ static void check_external_decl_func_def(ExternalDeclaration* d,
     check_identifier(d->func_def.decl->direct_decl->id, id_spell);
     check_pointer_indirs(d->func_def.decl->ptr, num_indirs);
 
-    check_storage_class(&d->func_def.specs->storage_class, storage_class);
-    check_func_specs(&d->func_def.specs->func_specs, func_specs);
+    check_storage_class(&d->func_def.specs.storage_class, storage_class);
+    check_func_specs(&d->func_def.specs.func_specs, func_specs);
     ASSERT_SIZE_T(d->func_def.comp.len, body_len);
 }
 
@@ -107,10 +107,10 @@ static void check_external_decl_func_def_enum(ExternalDeclaration* d,
                                  func_name,
                                  body_len);
 
-    ASSERT(d->func_def.specs->type_specs.kind == TYPE_SPEC_ENUM);
-    check_identifier(d->func_def.specs->type_specs.enum_spec->identifier,
+    ASSERT(d->func_def.specs.type_specs.kind == TYPE_SPEC_ENUM);
+    check_identifier(d->func_def.specs.type_specs.enum_spec->identifier,
                      enum_name);
-    ASSERT_SIZE_T(d->func_def.specs->type_specs.enum_spec->enum_list.len,
+    ASSERT_SIZE_T(d->func_def.specs.type_specs.enum_spec->enum_list.len,
                   (size_t)0);
 }
 
@@ -128,13 +128,13 @@ static void check_external_decl_func_def_struct(ExternalDeclaration* d,
                                  func_name,
                                  body_len);
 
-    ASSERT(d->func_def.specs->type_specs.kind == TYPE_SPEC_STRUCT);
-    ASSERT(d->func_def.specs->type_specs.struct_union_spec->is_struct);
+    ASSERT(d->func_def.specs.type_specs.kind == TYPE_SPEC_STRUCT);
+    ASSERT(d->func_def.specs.type_specs.struct_union_spec->is_struct);
     check_identifier(
-        d->func_def.specs->type_specs.struct_union_spec->identifier,
+        d->func_def.specs.type_specs.struct_union_spec->identifier,
         struct_name);
     ASSERT_SIZE_T(
-        d->func_def.specs->type_specs.struct_union_spec->decl_list.len,
+        d->func_def.specs.type_specs.struct_union_spec->decl_list.len,
         (size_t)0);
 }
 
@@ -152,7 +152,7 @@ static void check_external_decl_func_def_predef(ExternalDeclaration* d,
                                  id_spell,
                                  body_len);
 
-    ASSERT(d->func_def.specs->type_specs.kind == ret_type);
+    ASSERT(d->func_def.specs.type_specs.kind == ret_type);
 }
 
 static void check_external_decl_func_def_typedef(ExternalDeclaration* d,
@@ -169,9 +169,9 @@ static void check_external_decl_func_def_typedef(ExternalDeclaration* d,
                                  func_name,
                                  body_len);
 
-    ASSERT(d->func_def.specs->type_specs.kind == TYPE_SPEC_TYPENAME);
+    ASSERT(d->func_def.specs.type_specs.kind == TYPE_SPEC_TYPENAME);
     ASSERT_STR(
-        StrBuf_as_str(&d->func_def.specs->type_specs.typedef_name->spelling),
+        StrBuf_as_str(&d->func_def.specs.type_specs.typedef_name->spelling),
         ret_type);
 }
 
@@ -286,7 +286,7 @@ TEST(parser_testfile) {
 
     ASSERT(tl.external_decls[1].is_func_def == false);
     ASSERT(tl.external_decls[1].decl.is_normal_decl);
-    ASSERT(tl.external_decls[1].decl.decl_specs->type_specs.kind
+    ASSERT(tl.external_decls[1].decl.decl_specs.type_specs.kind
            == TYPE_SPEC_INT);
     ASSERT_SIZE_T(tl.external_decls[1].decl.init_decls.len, (size_t)1);
 

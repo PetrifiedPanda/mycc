@@ -1,5 +1,5 @@
-#ifndef TESTING_H
-#define TESTING_H
+#ifndef MYCC_TESTING_TESTING_H
+#define MYCC_TESTING_TESTING_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -41,9 +41,7 @@ extern jmp_buf test_jump_buf;
  * TEST_SUITE_END
  */
 #define REGISTER_TEST(test_name)                                               \
-    (TestAndName) {                                                            \
-        test_name##_test, #test_name                                           \
-    }
+    (TestAndName) { test_name##_test, #test_name }
 
 /**
  * Terminate a test suite
@@ -160,7 +158,7 @@ extern jmp_buf test_jump_buf;
  * Prints an assert error, failing the test. Must not be called outside of tests
  */
 #define PRINT_ASSERT_ERR(format, ...)                                          \
-    mycc_printf("\tAssertion failure in {Str}, {size_t}\n\t\t",                \
+    mycc_printf("    Assertion failure in {Str}, {size_t}\n        ",              \
                 STR_LIT(__FILE__),                                             \
                 __LINE__);                                                     \
     mycc_printf(format, __VA_ARGS__);                                          \

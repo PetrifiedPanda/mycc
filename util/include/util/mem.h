@@ -1,5 +1,5 @@
-#ifndef UTIL_MEM_H
-#define UTIL_MEM_H
+#ifndef MYCC_UTIL_MEM_H
+#define MYCC_UTIL_MEM_H
 
 #include <stddef.h>
 

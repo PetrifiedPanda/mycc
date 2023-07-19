@@ -541,7 +541,7 @@ static void serialize_declaration_specs(AstSerializer* d,
 static void serialize_declarator(AstSerializer* d, const Declarator* decl);
 
 static void serialize_param_declaration(AstSerializer* d, const ParamDeclaration* decl) {
-    serialize_declaration_specs(d, decl->decl_specs);
+    serialize_declaration_specs(d, &decl->decl_specs);
     const uint64_t kind = decl->kind;
     assert((ParamDeclKind)kind == decl->kind);
     serialize_uint(d, kind);
@@ -656,7 +656,7 @@ static void serialize_struct_declaration(AstSerializer* d, const StructDeclarati
     if (decl->is_static_assert) {
         serialize_static_assert_declaration(d, decl->assert);
     } else {
-        serialize_declaration_specs(d, decl->decl_specs);
+        serialize_declaration_specs(d, &decl->decl_specs);
         serialize_struct_declarator_list(d, &decl->decls);
     }
 }
@@ -936,7 +936,7 @@ static void serialize_compound_statement(AstSerializer* d, const CompoundStateme
 }
 
 static void serialize_func_def(AstSerializer* d, const FuncDef* def) {
-    serialize_declaration_specs(d, def->specs);
+    serialize_declaration_specs(d, &def->specs);
     serialize_declarator(d, def->decl);
     serialize_declaration_list(d, &def->decl_list);
     serialize_compound_statement(d, &def->comp);
@@ -961,7 +961,7 @@ static void serialize_init_declarator_list(AstSerializer* d, const InitDeclarato
 static void serialize_declaration(AstSerializer* d, const Declaration* decl) {
     serialize_bool(d, decl->is_normal_decl);
     if (decl->is_normal_decl) {
-        serialize_declaration_specs(d, decl->decl_specs);
+        serialize_declaration_specs(d, &decl->decl_specs);
         serialize_init_declarator_list(d, &decl->init_decls);
     } else {
         serialize_static_assert_declaration(d, decl->static_assert_decl);

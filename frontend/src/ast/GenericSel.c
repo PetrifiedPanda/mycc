@@ -1,4 +1,4 @@
-#include "frontend/ast/expr/GenericSel.h"
+#include "frontend/ast/GenericSel.h"
 
 #include <assert.h>
 
@@ -7,8 +7,7 @@
 #include "frontend/parser/parser_util.h"
 
 #include "frontend/ast/TypeName.h"
-
-#include "frontend/ast/expr/AssignExpr.h"
+#include "frontend/ast/AssignExpr.h"
 
 static bool parse_generic_assoc_inplace(ParserState* s, GenericAssoc* res) {
     assert(res);

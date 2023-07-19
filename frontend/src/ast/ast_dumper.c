@@ -460,7 +460,7 @@ static void dump_struct_declaration(AstDumper* d,
     if (decl->is_static_assert) {
         dump_static_assert_declaration(d, decl->assert);
     } else {
-        dump_declaration_specs(d, decl->decl_specs);
+        dump_declaration_specs(d, &decl->decl_specs);
         dump_struct_declarator_list(d, &decl->decls);
     }
 
@@ -931,7 +931,7 @@ static void dump_param_declaration(AstDumper* d, const ParamDeclaration* decl) {
 
     add_indent(d);
 
-    dump_declaration_specs(d, decl->decl_specs);
+    dump_declaration_specs(d, &decl->decl_specs);
     switch (decl->kind) {
         case PARAM_DECL_DECL:
             dump_declarator(d, decl->decl);
@@ -1298,7 +1298,7 @@ static void dump_func_def(AstDumper* d, const FuncDef* f) {
 
     add_indent(d);
 
-    dump_declaration_specs(d, f->specs);
+    dump_declaration_specs(d, &f->specs);
     dump_declarator(d, f->decl);
     dump_declaration_list(d, &f->decl_list);
     dump_compound_statement(d, &f->comp);
@@ -1701,7 +1701,7 @@ static void dump_declaration(AstDumper* d, const Declaration* decl) {
     add_indent(d);
 
     if (decl->is_normal_decl) {
-        dump_declaration_specs(d, decl->decl_specs);
+        dump_declaration_specs(d, &decl->decl_specs);
         dump_init_declarator_list(d, &decl->init_decls);
     } else {
         dump_static_assert_declaration(d, decl->static_assert_decl);

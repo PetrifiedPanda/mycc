@@ -1254,19 +1254,18 @@ static AbsDeclarator* deserialize_abs_declarator(AstDeserializer* r) {
     return res;
 }
 
-static DeclarationSpecs* deserialize_declaration_specs(AstDeserializer* r);
+static bool deserialize_declaration_specs(AstDeserializer* r, DeclarationSpecs* res);
 
 static Declarator* deserialize_declarator(AstDeserializer* r);
 
 static bool deserialize_param_declaration(AstDeserializer* r, ParamDeclaration* res) {
-    res->decl_specs = deserialize_declaration_specs(r);
-    if (!res->decl_specs) {
+    if (!deserialize_declaration_specs(r, &res->decl_specs)) {
         return false;
     }
 
     uint64_t kind;
     if (!deserialize_uint(r, &kind)) {
-        DeclarationSpecs_free(res->decl_specs);
+        DeclarationSpecs_free(&res->decl_specs);
         return false;
     }
     res->kind = kind;
@@ -1503,8 +1502,7 @@ static bool deserialize_struct_declaration(AstDeserializer* r, StructDeclaration
         res->assert = deserialize_static_assert_declaration(r);
         return res->assert != NULL;
     } else {
-        res->decl_specs = deserialize_declaration_specs(r);
-        if (!res->decl_specs) {
+        if (!deserialize_declaration_specs(r, &res->decl_specs)) {
             return false;
         }
         if (!deserialize_struct_declarator_list(r, &res->decls)) {
@@ -1793,63 +1791,48 @@ static bool deserialize_storage_class(AstDeserializer* r, StorageClass* res) {
            && deserialize_bool(r, &res->is_register);
 }
 
-static DeclarationSpecs* deserialize_declaration_specs(AstDeserializer* r) {
-    AstNodeInfo info;
-    if (!deserialize_ast_node_info(r, &info)) {
-        return NULL;
+static bool deserialize_declaration_specs(AstDeserializer* r, DeclarationSpecs* res) {
+    if (!deserialize_ast_node_info(r, &res->info)) {
+        return false;
     }
-    FuncSpecs func_specs;
-    if (!deserialize_func_specs(r, &func_specs)) {
-        return NULL;
+    if (!deserialize_func_specs(r, &res->func_specs)) {
+        return false;
     }
 
-    StorageClass storage_class;
-    if (!deserialize_storage_class(r, &storage_class)) {
-        return NULL;
+    if (!deserialize_storage_class(r, &res->storage_class)) {
+        return false;
     }
 
-    TypeQuals quals;
-    if (!deserialize_type_quals(r, &quals)) {
-        return NULL;
+    if (!deserialize_type_quals(r, &res->type_quals)) {
+        return false;
     }
 
     uint64_t num_align_specs;
     if (!deserialize_uint(r, &num_align_specs)) {
-        return NULL;
+        return false;
     }
-
-    AlignSpec* align_specs = alloc_or_null(sizeof *align_specs * num_align_specs);
+    
+    res->num_align_specs = num_align_specs;
+    res->align_specs = alloc_or_null(sizeof *res->align_specs * num_align_specs);
     for (size_t i = 0; i < num_align_specs; ++i) {
-        if (!deserialize_align_spec(r, &align_specs[i])) {
+        if (!deserialize_align_spec(r, &res->align_specs[i])) {
             for (size_t j = 0; j < i; ++j) {
-                AlignSpec_free_children(&align_specs[j]);
+                AlignSpec_free_children(&res->align_specs[j]);
             }
-            mycc_free(align_specs);
-            return NULL;
+            mycc_free(res->align_specs);
+            return false;
         }
     }
 
-    TypeSpecs type_specs;
-    if (!deserialize_type_specs(r, &type_specs)) {
+    if (!deserialize_type_specs(r, &res->type_specs)) {
         for (size_t i = 0; i < num_align_specs; ++i) {
-            AlignSpec_free_children(&align_specs[i]);
+            AlignSpec_free_children(&res->align_specs[i]);
         }
-        mycc_free(align_specs);
-        return NULL;
+        mycc_free(res->align_specs);
+        return false;
     }
 
-    DeclarationSpecs* res = mycc_alloc(sizeof *res);
-    *res = (DeclarationSpecs){
-        .info = info,
-        .func_specs = func_specs,
-        .storage_class = storage_class,
-        .type_quals = quals,
-        .num_align_specs = num_align_specs,
-        .align_specs = align_specs,
-        .type_specs = type_specs,
-    };
-
-    return res;
+    return true;
 }
 
 static bool deserialize_declaration_inplace(AstDeserializer* r, Declaration* res);
@@ -2196,22 +2179,21 @@ static CompoundStatement* deserialize_compound_statement(AstDeserializer* r) {
 }
 
 static bool deserialize_func_def(AstDeserializer* r, FuncDef* res) {
-    res->specs = deserialize_declaration_specs(r);
-    if (!res->specs) {
+    if (!deserialize_declaration_specs(r, &res->specs)) {
         return false;
     }
     res->decl = deserialize_declarator(r);
     if (!res->decl) {
-        DeclarationSpecs_free(res->specs);
+        DeclarationSpecs_free(&res->specs);
         return false;
     }
     if (!deserialize_declaration_list(r, &res->decl_list)) {
-        DeclarationSpecs_free(res->specs);
+        DeclarationSpecs_free(&res->specs);
         Declarator_free(res->decl);
         return false;
     }
     if (!deserialize_compound_statement_inplace(r, &res->comp)) {
-        DeclarationSpecs_free(res->specs);
+        DeclarationSpecs_free(&res->specs);
         Declarator_free(res->decl);
         DeclarationList_free(&res->decl_list);
         return false;
@@ -2262,12 +2244,11 @@ static bool deserialize_declaration_inplace(AstDeserializer* r, Declaration* res
         return false;
     }
     if (res->is_normal_decl) {
-        res->decl_specs = deserialize_declaration_specs(r);
-        if (!res->decl_specs) {
+        if (!deserialize_declaration_specs(r, &res->decl_specs)) {
             return false;
         }
         if (!deserialize_init_declarator_list(r, &res->init_decls)) {
-            DeclarationSpecs_free(res->decl_specs);
+            DeclarationSpecs_free(&res->decl_specs);
             return false;
         }
     } else {

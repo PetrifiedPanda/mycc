@@ -3,7 +3,6 @@ set(This mycc-frontend)
 file(GLOB Sources src/*.c
                   src/preproc/*.c
                   src/ast/*.c
-                  src/ast/expr/*.c
                   src/ast/declaration/*.c
                   src/parser/*.c)
 

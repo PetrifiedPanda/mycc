@@ -1,5 +1,5 @@
-#ifndef ERR_BASE_H
-#define ERR_BASE_H
+#ifndef MYCC_FRONTEND_ERR_BASE_H
+#define MYCC_FRONTEND_ERR_BASE_H
 
 #include "util/File.h"
 

@@ -1,5 +1,5 @@
-#ifndef PREPROC_H
-#define PREPROC_H
+#ifndef MYCC_FRONTEND_PREPROC_PREPROC_H
+#define MYCC_FRONTEND_PREPROC_PREPROC_H
 
 #include "frontend/FileInfo.h"
 #include "frontend/Token.h"

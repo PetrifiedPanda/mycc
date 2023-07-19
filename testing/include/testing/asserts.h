@@ -1,5 +1,5 @@
-#ifndef TEST_ASSERTS_H
-#define TEST_ASSERTS_H
+#ifndef MYCC_TESTING_ASSERTS_H
+#define MYCC_TESTING_ASSERTS_H
 
 #include <stdio.h>
 #include <stdlib.h>

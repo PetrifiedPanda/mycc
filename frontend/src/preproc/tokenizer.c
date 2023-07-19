@@ -44,7 +44,7 @@ static void write_line_info(const TokenizerState* s, LineInfo* info) {
     info->curr_loc.file_loc = s->file_loc;
 }
 
-bool next_preproc_token(Token* res, PreprocErr* err, LineInfo* info) {
+bool tokenize_next_token(Token* res, PreprocErr* err, LineInfo* info) {
     assert(res);
     assert(info);
     assert(info->next.data);
@@ -89,12 +89,12 @@ bool next_preproc_token(Token* res, PreprocErr* err, LineInfo* info) {
         }
         advance_newline(&s);
         write_line_info(&s, info);
-        return next_preproc_token(res, err, info);
+        return tokenize_next_token(res, err, info);
     }
     if (info->is_in_comment) {
         handle_ongoing_comment(&s, &info->is_in_comment);
         write_line_info(&s, info);
-        return next_preproc_token(res, err, info);
+        return tokenize_next_token(res, err, info);
     }
 
     TokenKind kind = singlec_token_kind(Str_at(s.it, 0));
@@ -104,7 +104,7 @@ bool next_preproc_token(Token* res, PreprocErr* err, LineInfo* info) {
                 && (Str_at(s.it, 1) == '/' || Str_at(s.it, 1) == '*'))) {
             handle_comments(&s, &info->is_in_comment);
             write_line_info(&s, info);
-            return next_preproc_token(res, err, info);
+            return tokenize_next_token(res, err, info);
         }
         if (s.it.len != 1) {
             kind = check_next(kind, Str_incr(s.it));
@@ -137,7 +137,7 @@ bool tokenize_line(TokenArr* res, PreprocErr* err, LineInfo* info) {
     while (*info->next.data != '\0') {
         Token curr;
         do {
-            if (!next_preproc_token(&curr, err, info)) {
+            if (!tokenize_next_token(&curr, err, info)) {
                 return false;
             }
         } while (curr.kind == TOKEN_INVALID && *info->next.data != '\0');

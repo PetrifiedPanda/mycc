@@ -1,5 +1,5 @@
-#ifndef UTIL_FILE_H
-#define UTIL_FILE_H
+#ifndef MYCC_UTIL_FILE_H
+#define MYCC_UTIL_FILE_H
 
 #include <stdio.h>
 #include <stdarg.h>

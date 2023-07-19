@@ -1,5 +1,5 @@
-#ifndef PARSER_STATE_H
-#define PARSER_STATE_H
+#ifndef MYCC_FRONTEND_PARSER_PARSER_STATE_H
+#define MYCC_FRONTEND_PARSER_PARSER_STATE_H
 
 #include <stdbool.h>
 

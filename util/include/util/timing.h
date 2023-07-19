@@ -1,5 +1,5 @@
-#ifndef UTIL_TIMING_H
-#define UTIL_TIMING_H
+#ifndef MYCC_UTIL_TIMING_H
+#define MYCC_UTIL_TIMING_H
 
 #include <time.h>
 #include <stdint.h>

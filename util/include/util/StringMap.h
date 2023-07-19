@@ -1,5 +1,5 @@
-#ifndef UTIL_STRING_MAP_H
-#define UTIL_STRING_MAP_H
+#ifndef MYCC_UTIL_STRING_MAP_H
+#define MYCC_UTIL_STRING_MAP_H
 
 #include <stddef.h>
 #include <stdbool.h>

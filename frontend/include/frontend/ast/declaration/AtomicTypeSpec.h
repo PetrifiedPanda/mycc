@@ -1,5 +1,5 @@
-#ifndef ATOMIC_TYPE_SPEC_H
-#define ATOMIC_TYPE_SPEC_H
+#ifndef MYCC_FRONTEND_DECLARATION_ATOMIC_TYPE_SPEC_H
+#define MYCC_FRONTEND_DECLARATION_ATOMIC_TYPE_SPEC_H
 
 #include "frontend/parser/ParserState.h"
 

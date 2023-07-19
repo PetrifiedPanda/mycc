@@ -1,5 +1,5 @@
-#ifndef FILE_INFO_H
-#define FILE_INFO_H
+#ifndef MYCC_FRONTEND_FILE_INFO_H
+#define MYCC_FRONTEND_FILE_INFO_H
 
 #include "util/StrBuf.h"
 

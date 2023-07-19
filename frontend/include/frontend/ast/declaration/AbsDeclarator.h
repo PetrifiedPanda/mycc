@@ -1,5 +1,5 @@
-#ifndef ABSTRACT_DECL_H
-#define ABSTRACT_DECL_H
+#ifndef MYCC_FRONTEND_DECLARATION_ABSTRACT_DECL_H
+#define MYCC_FRONTEND_DECLARATION_ABSTRACT_DECL_H
 
 #include "frontend/parser/ParserState.h"
 

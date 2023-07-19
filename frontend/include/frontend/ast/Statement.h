@@ -1,13 +1,12 @@
-#ifndef STATEMENT_H
-#define STATEMENT_H
+#ifndef MYCC_FRONTEND_AST_STATEMENT_H
+#define MYCC_FRONTEND_AST_STATEMENT_H
 
 #include "frontend/parser/ParserState.h"
 
 #include "frontend/ast/declaration/Declaration.h"
 
-#include "frontend/ast/expr/Expr.h"
-#include "frontend/ast/expr/AssignExpr.h"
-
+#include "Expr.h"
+#include "AssignExpr.h"
 #include "AstNodeInfo.h"
 
 typedef struct LabeledStatement LabeledStatement;

@@ -1,5 +1,5 @@
-#ifndef COMPARE_ASTS_H
-#define COMPARE_ASTS_H
+#ifndef MYCC_FRONTEND_AST_COMPARE_ASTS_H
+#define MYCC_FRONTEND_AST_COMPARE_ASTS_H
 
 #include <stdbool.h>
 

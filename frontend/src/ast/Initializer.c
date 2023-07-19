@@ -7,8 +7,7 @@
 
 #include "frontend/parser/parser_util.h"
 
-#include "frontend/ast/expr/AssignExpr.h"
-
+#include "frontend/ast/AssignExpr.h"
 #include "frontend/ast/Identifier.h"
 
 static bool parse_designator_inplace(ParserState* s, Designator* res) {

@@ -1,5 +1,5 @@
-#ifndef IR_MODULE
-#define IR_MODULE
+#ifndef MYCC_BACKEND_IR_MODULE_H
+#define MYCC_BACKEND_IR_MODULE_H
 
 #include "util/StrBuf.h"
 
