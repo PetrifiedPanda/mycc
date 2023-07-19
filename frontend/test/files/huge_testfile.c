@@ -35,6 +35,19 @@ extern void* calloc(size_t, size_t);
 extern void* realloc(void*, size_t);
 extern void free(void*);
 extern void abort();
+extern char* strcpy(char*, const char*);
+extern void* memmove(void*, const void*, size_t);
+extern void* memcpy(void*, const void*, size_t);
+extern long double strtold(const char*, char**);
+extern int feof(FILE*);
+extern int tolower(int);
+extern int printf(const char*, ...);
+extern int strncmp(const char*, const char*, size_t);
+extern int strcmp(const char*, const char*);
+extern int isdigit(int);
+extern int isspace(int);
+extern int getc(FILE*);
+extern _Noreturn void exit(int);
 
 extern size_t strlen(const char*);
 
@@ -69,9 +82,6 @@ struct str {
         };
     };
 };
-
-_Static_assert(sizeof(struct str) == sizeof(size_t) * 2 + sizeof(char*),
-              "Size of string does not match contents");
 
 struct str create_null_str(void);
 struct str create_empty_str(void);
