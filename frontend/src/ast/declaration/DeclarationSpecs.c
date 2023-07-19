@@ -163,7 +163,7 @@ bool parse_declaration_specs(ParserState* s, DeclarationSpecs* res, bool* found_
 
         if (success == DECL_SPEC_ERROR) {
             DeclarationSpecs_free(res);
-            return NULL;
+            return false;
         } else if (success == DECL_SPEC_LAST) {
             break;
         }
