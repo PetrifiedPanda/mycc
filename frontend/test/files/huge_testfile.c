@@ -10,20 +10,20 @@ typedef long long intmax_t;
 
 enum {true = 1, false = 0};
 
-static int errno;
+extern int errno;
 
 enum {
     ERANGE
 };
 
-typedef struct { char data[100]; } FILE;
+typedef struct FILE FILE; 
 
 const bool EXIT_FAILURE = -1;
 
 FILE* stderr = (void*)NULL;
 FILE* stdout = (void*)NULL;
 
-enum { CHAR_BIT = 8};
+enum { CHAR_BIT = 8 };
 
 extern int fprintf(FILE*, const char*, ...);
 extern FILE* fopen(const char*, const char*);
