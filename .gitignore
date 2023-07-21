@@ -6,7 +6,9 @@
 .clangd/
 .vs/
 compile_commands.json
+CMakeSettings.json
 
 # build folders
 cmake-build-*/
 build*/
+out/
