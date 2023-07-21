@@ -29,7 +29,9 @@ enum {
                      / sizeof *(StrBuf){{{0}}}._static_buf
 };
 
-static StrBuf StrBuf_create_with_cap(uint32_t len, const char* str, uint32_t cap) {
+static StrBuf StrBuf_create_with_cap(uint32_t len,
+                                     const char* str,
+                                     uint32_t cap) {
     assert(cap >= len);
     assert(len == 0 || str);
     StrBuf res;
@@ -205,7 +207,9 @@ void StrBuf_pop_back(StrBuf* str) {
 void StrBuf_shrink_to_fit(StrBuf* str) {
     assert(str);
     assert(StrBuf_valid(str));
-    if (!str->_is_static_buf && str->_len + 1 != str->_cap) {
+    // The cast in this if is so gcc does not give a warning about signedness
+    // (even though both _len and _cap should be unsigned)
+    if (!str->_is_static_buf && (uint32_t)str->_len + 1 != str->_cap) {
         if (str->_len < STATIC_BUF_LEN) {
             char* data = str->_data;
             const uint32_t len = str->_len;
