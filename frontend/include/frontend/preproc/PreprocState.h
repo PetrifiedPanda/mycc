@@ -11,7 +11,7 @@
 #include "PreprocErr.h"
 
 typedef struct {
-    size_t len, cap;
+    uint32_t len, cap;
     Token* tokens;
 } TokenArr;
 
@@ -33,11 +33,11 @@ typedef struct OpenedFileInfo OpenedFileInfo;
 
 typedef struct {
     File files[FOPEN_MAX];
-    size_t opened_info_indices[FOPEN_MAX];
-    size_t current_file_idx;
-    size_t opened_info_len, opened_info_cap;
+    uint32_t opened_info_indices[FOPEN_MAX];
+    uint32_t current_file_idx;
+    uint32_t opened_info_len, opened_info_cap;
     OpenedFileInfo* opened_info;
-    size_t prefixes_len, prefixes_cap;
+    uint32_t prefixes_len, prefixes_cap;
     StrBuf* prefixes;
 } FileManager;
 
@@ -48,7 +48,7 @@ typedef struct {
 
     FileManager file_manager;
 
-    size_t conds_len, conds_cap;
+    uint32_t conds_len, conds_cap;
     PreprocCond* conds;
 
     PreprocErr* err;

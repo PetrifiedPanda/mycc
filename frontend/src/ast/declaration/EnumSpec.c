@@ -51,7 +51,7 @@ static bool parse_enum_list(ParserState* s, EnumList* res) {
         return false;
     }
 
-    size_t alloc_len = 1;
+    uint32_t alloc_len = 1;
     while (ParserState_curr_kind(s) == TOKEN_COMMA
            && ParserState_next_token_kind(s) == TOKEN_IDENTIFIER) {
         ParserState_accept_it(s);
@@ -139,7 +139,7 @@ void Enumerator_free(Enumerator* e) {
 }
 
 void EnumList_free(EnumList* l) {
-    for (size_t i = 0; i < l->len; ++i) {
+    for (uint32_t i = 0; i < l->len; ++i) {
         Enumerator_free(&l->enums[i]);
     }
     mycc_free(l->enums);

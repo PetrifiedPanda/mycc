@@ -12,7 +12,7 @@ void ErrBase_print(File out, const FileInfo* file_info, const ErrBase* err) {
     assert(err->loc.file_idx < file_info->len);
     const Str path = StrBuf_as_str(&file_info->paths[err->loc.file_idx]);
     File_printf(out,
-                "{Str}({size_t}, {size_t}):\n",
+                "{Str}({u32}, {u32}):\n",
                 path,
                 err->loc.file_loc.line,
                 err->loc.file_loc.index);

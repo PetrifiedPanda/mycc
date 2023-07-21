@@ -12,8 +12,8 @@ typedef struct {
 
 static void serializer_write(AstSerializer* d,
                              const void* buffer,
-                             size_t size,
-                             size_t count) {
+                             uint32_t size,
+                             uint32_t count) {
     if (File_write(buffer, size, count, d->file) < count) {
         longjmp(d->err_buf, 0);
     }
@@ -42,11 +42,15 @@ static void serialize_bool(AstSerializer* d, bool b) {
     serializer_write(d, &b, sizeof b, 1);
 }
 
-static void serialize_uint(AstSerializer* d, uint64_t i) {
+static void serialize_u64(AstSerializer* d, uint64_t i) {
     serializer_write(d, &i, sizeof i, 1);
 }
 
-static void serialize_int(AstSerializer* d, int64_t i) {
+static void serialize_u32(AstSerializer* d, uint32_t i) {
+    serializer_write(d, &i, sizeof i, 1);
+}
+
+static void serialize_i64(AstSerializer* d, int64_t i) {
     serializer_write(d, &i, sizeof i, 1);
 }
 
@@ -56,22 +60,22 @@ static void serialize_float(AstSerializer* d, double f) {
 
 static void serialize_str_buf(AstSerializer* d, const StrBuf* str) {
     const Str data = StrBuf_as_str(str);
-    serialize_uint(d, data.len);
+    serialize_u32(d, data.len);
     serializer_write(d, data.data, sizeof *data.data, data.len);
 }
 
 static void serialize_file_info(AstSerializer* d,
                                 const FileInfo* info) {
-    serialize_uint(d, info->len);
-    for (size_t i = 0; i < info->len; ++i) {
+    serialize_u32(d, info->len);
+    for (uint32_t i = 0; i < info->len; ++i) {
         serialize_str_buf(d, &info->paths[i]);
     }
 }
 
 static void serialize_ast_node_info(AstSerializer* d, const AstNodeInfo* info) {
-    serialize_uint(d, info->loc.file_idx);
-    serialize_uint(d, info->loc.file_loc.line);
-    serialize_uint(d, info->loc.file_loc.index);
+    serialize_u32(d, info->loc.file_idx);
+    serialize_u32(d, info->loc.file_loc.line);
+    serialize_u32(d, info->loc.file_loc.index);
 }
 
 static void serialize_type_quals(AstSerializer* d, const TypeQuals* quals) {
@@ -94,11 +98,11 @@ static void serialize_identifier(AstSerializer* d, const Identifier* id) {
 }
 
 static void serialize_value(AstSerializer* d, const Value* val) {
-    serialize_uint(d, val->kind);
+    serialize_u64(d, val->kind);
     if (ValueKind_is_sint(val->kind)) {
-        serialize_int(d, val->sint_val);
+        serialize_i64(d, val->sint_val);
     } else if (ValueKind_is_uint(val->kind)) {
-        serialize_uint(d, val->uint_val);
+        serialize_u64(d, val->uint_val);
     } else {
         serialize_float(d, val->float_val);
     }
@@ -108,7 +112,7 @@ static void serialize_constant(AstSerializer* d, const Constant* constant) {
     serialize_ast_node_info(d, &constant->info);
     const uint64_t kind = constant->kind;
     assert((ConstantKind)kind == constant->kind);
-    serialize_uint(d, kind);
+    serialize_u64(d, kind);
     switch (constant->kind) {
         case CONSTANT_ENUM:
             serialize_str_buf(d, &constant->spelling);
@@ -123,7 +127,7 @@ static void serialize_str_lit(AstSerializer* d,
                               const StrLit* lit) {
     const uint64_t kind = lit->kind;
     assert((StrLitKind)kind == lit->kind);
-    serialize_uint(d, kind);
+    serialize_u64(d, kind);
     serialize_str_buf(d, &lit->contents);
 }
 
@@ -149,20 +153,20 @@ static void serialize_cond_expr(AstSerializer* d,
                                 const CondExpr* expr);
 
 static void serialize_assign_expr(AstSerializer* d, const AssignExpr* expr) {
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         const UnaryAndOp* item = &expr->assign_chain[i];
         serialize_unary_expr(d, &item->unary);
         const uint64_t op = item->op;
         assert((AssignExprOp)op == item->op);
-        serialize_uint(d, op);
+        serialize_u64(d, op);
     }
     serialize_cond_expr(d, &expr->value);
 }
 
 static void serialize_expr(AstSerializer* d, const Expr* expr) {
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         serialize_assign_expr(d, &expr->assign_exprs[i]);
     }
 }
@@ -179,8 +183,8 @@ static void serialize_generic_assoc(AstSerializer* d, const GenericAssoc* assoc)
 
 static void serialize_generic_assoc_list(AstSerializer* d, const GenericAssocList* lst) {
     serialize_ast_node_info(d, &lst->info);
-    serialize_uint(d, lst->len);
-    for (size_t i = 0; i < lst->len; ++i) {
+    serialize_u32(d, lst->len);
+    for (uint32_t i = 0; i < lst->len; ++i) {
         serialize_generic_assoc(d, &lst->assocs[i]);
     }
 }
@@ -193,7 +197,7 @@ static void serialize_generic_sel(AstSerializer* d, const GenericSel* sel) {
 
 static void serialize_primary_expr(AstSerializer* d, const PrimaryExpr* expr) {
     const uint64_t kind = expr->kind;
-    serialize_uint(d, kind);
+    serialize_u64(d, kind);
     assert((PrimaryExprKind)kind == expr->kind);
     switch (expr->kind) {
         case PRIMARY_EXPR_IDENTIFIER:
@@ -230,8 +234,8 @@ static void serialize_designator(AstSerializer* d,
 
 static void serialize_designator_list(AstSerializer* d,
                                       const DesignatorList* des) {
-    serialize_uint(d, des->len);
-    for (size_t i = 0; i < des->len; ++i) {
+    serialize_u32(d, des->len);
+    for (uint32_t i = 0; i < des->len; ++i) {
         serialize_designator(d, &des->designators[i]);
     }
 }
@@ -267,22 +271,22 @@ static void serialize_designation_init(AstSerializer* d,
 
 static void serialize_init_list(AstSerializer* d,
                                 const InitList* lst) {
-    serialize_uint(d, lst->len);
-    for (size_t i = 0; i < lst->len; ++i) {
+    serialize_u32(d, lst->len);
+    for (uint32_t i = 0; i < lst->len; ++i) {
         serialize_designation_init(d, &lst->inits[i]);
     }
 }
 
 static void serialize_arg_expr_list(AstSerializer* d, const ArgExprList* lst) {
-    serialize_uint(d, lst->len);
-    for (size_t i = 0; i < lst->len; ++i) {
+    serialize_u32(d, lst->len);
+    for (uint32_t i = 0; i < lst->len; ++i) {
         serialize_assign_expr(d, &lst->assign_exprs[i]);
     }
 }
 
 static void serialize_postfix_suffix(AstSerializer* d, const PostfixSuffix* suffix) {
     const uint64_t kind = suffix->kind;
-    serialize_uint(d, kind);
+    serialize_u64(d, kind);
     assert((PostfixSuffixKind)kind == suffix->kind);
 
     switch (suffix->kind) {
@@ -311,8 +315,8 @@ static void serialize_postfix_expr(AstSerializer* d, const PostfixExpr* expr) {
         serialize_type_name(d, expr->type_name);
         serialize_init_list(d, &expr->init_list);
     }
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         serialize_postfix_suffix(d, &expr->suffixes[i]);
     }
 }
@@ -321,14 +325,14 @@ static void serialize_cast_expr(AstSerializer* d, const CastExpr* expr);
 
 static void serialize_unary_expr(AstSerializer* d, const UnaryExpr* expr) {
     serialize_ast_node_info(d, &expr->info);
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         const uint64_t unary_op = expr->ops_before[i];
         assert((UnaryExprOp)unary_op == expr->ops_before[i]);
-        serialize_uint(d, unary_op);
+        serialize_u64(d, unary_op);
     }
     const uint64_t kind = expr->kind;
-    serialize_uint(d, kind);
+    serialize_u64(d, kind);
     assert((UnaryExprKind)kind == expr->kind);
     switch (expr->kind) {
         case UNARY_POSTFIX:
@@ -351,8 +355,8 @@ static void serialize_unary_expr(AstSerializer* d, const UnaryExpr* expr) {
 
 static void serialize_cast_expr(AstSerializer* d, const CastExpr* expr) {
     serialize_ast_node_info(d, &expr->info);
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         serialize_type_name(d, &expr->type_names[i]);
     }
     serialize_unary_expr(d, &expr->rhs);
@@ -360,103 +364,103 @@ static void serialize_cast_expr(AstSerializer* d, const CastExpr* expr) {
 
 static void serialize_mul_expr(AstSerializer* d, const MulExpr* expr) {
     serialize_cast_expr(d, &expr->lhs);
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         const CastExprAndOp* item = &expr->mul_chain[i];
         const uint64_t mul_op = item->op;
         assert((MulExprOp)mul_op == item->op);
-        serialize_uint(d, mul_op);
+        serialize_u64(d, mul_op);
         serialize_cast_expr(d, &item->rhs);
     }
 }
 
 static void serialize_add_expr(AstSerializer* d, const AddExpr* expr) {
     serialize_mul_expr(d, &expr->lhs);
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         const MulExprAndOp* item = &expr->add_chain[i];
         const uint64_t add_op = item->op;
         assert((AddExprOp)add_op == item->op);
-        serialize_uint(d, add_op);
+        serialize_u64(d, add_op);
         serialize_mul_expr(d, &item->rhs);
     }
 }
 
 static void serialize_shift_expr(AstSerializer* d, const ShiftExpr* expr) {
     serialize_add_expr(d, &expr->lhs);
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         const AddExprAndOp* item = &expr->shift_chain[i];
         const uint64_t shift_op = item->op;
         assert((ShiftExprOp)shift_op == item->op);
-        serialize_uint(d, shift_op);
+        serialize_u64(d, shift_op);
         serialize_add_expr(d, &item->rhs);
     }
 }
 
 static void serialize_rel_expr(AstSerializer* d, const RelExpr* expr) {
     serialize_shift_expr(d, &expr->lhs);
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         const ShiftExprAndOp* item = &expr->rel_chain[i];
         const uint64_t rel_op = item->op;
         assert((RelExprOp)rel_op == item->op);
-        serialize_uint(d, rel_op);
+        serialize_u64(d, rel_op);
         serialize_shift_expr(d, &item->rhs);
     }
 }
 
 static void serialize_eq_expr(AstSerializer* d, const EqExpr* expr) {
     serialize_rel_expr(d, &expr->lhs);
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         const RelExprAndOp* item = &expr->eq_chain[i];
         const uint64_t eq_op = item->op;
         assert((EqExprOp)eq_op == item->op);
-        serialize_uint(d, eq_op);
+        serialize_u64(d, eq_op);
         serialize_rel_expr(d, &item->rhs);
     }
 }
 
 static void serialize_and_expr(AstSerializer* d, const AndExpr* expr) {
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         serialize_eq_expr(d, &expr->eq_exprs[i]);
     }
 }
 
 static void serialize_xor_expr(AstSerializer* d, const XorExpr* expr) {
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         serialize_and_expr(d, &expr->and_exprs[i]);
     }
 }
 
 static void serialize_or_expr(AstSerializer* d, const OrExpr* expr) {
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         serialize_xor_expr(d, &expr->xor_exprs[i]);
     }
 }
 
 static void serialize_log_and_expr(AstSerializer* d, const LogAndExpr* expr) {
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         serialize_or_expr(d, &expr->or_exprs[i]);
     }
 }
 
 static void serialize_log_or_expr(AstSerializer* d, const LogOrExpr* expr) {
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         serialize_log_and_expr(d, &expr->log_ands[i]);
     }
 }
 
 static void serialize_cond_expr(AstSerializer* d,
                                 const CondExpr* expr) {
-    serialize_uint(d, expr->len);
-    for (size_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->len);
+    for (uint32_t i = 0; i < expr->len; ++i) {
         const LogOrAndExpr* item = &expr->conditionals[i];
         serialize_log_or_expr(d, &item->log_or);
         serialize_expr(d, &item->expr);
@@ -475,8 +479,8 @@ static void serialize_static_assert_declaration(AstSerializer* d, const StaticAs
 
 static void serialize_pointer(AstSerializer* d, const Pointer* ptr) {
     serialize_ast_node_info(d, &ptr->info);
-    serialize_uint(d, ptr->num_indirs);
-    for (size_t i = 0; i < ptr->num_indirs; ++i) {
+    serialize_u32(d, ptr->num_indirs);
+    for (uint32_t i = 0; i < ptr->num_indirs; ++i) {
         serialize_type_quals(d, &ptr->quals_after_ptr[i]);
     }
 }
@@ -487,7 +491,7 @@ static void serialize_abs_arr_or_func_suffix(AstSerializer* d, const AbsArrOrFun
     serialize_ast_node_info(d, &suffix->info);
     const uint64_t kind = suffix->kind;
     assert((AbsArrOrFuncSuffixKind)kind == suffix->kind);
-    serialize_uint(d, kind);
+    serialize_u64(d, kind);
     switch (suffix->kind) {
         case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
             serialize_bool(d, suffix->has_asterisk);
@@ -516,8 +520,8 @@ static void serialize_direct_abs_declarator(AstSerializer* d, const DirectAbsDec
     if (has_bracket_decl) {
         serialize_abs_declarator(d, decl->bracket_decl);
     }
-    serialize_uint(d, decl->len);
-    for (size_t i = 0; i < decl->len; ++i) {
+    serialize_u32(d, decl->len);
+    for (uint32_t i = 0; i < decl->len; ++i) {
         serialize_abs_arr_or_func_suffix(d, &decl->following_suffixes[i]);
     }
 }
@@ -544,7 +548,7 @@ static void serialize_param_declaration(AstSerializer* d, const ParamDeclaration
     serialize_declaration_specs(d, &decl->decl_specs);
     const uint64_t kind = decl->kind;
     assert((ParamDeclKind)kind == decl->kind);
-    serialize_uint(d, kind);
+    serialize_u64(d, kind);
     switch (decl->kind) {
         case PARAM_DECL_DECL:
             serialize_declarator(d, decl->decl);
@@ -559,8 +563,8 @@ static void serialize_param_declaration(AstSerializer* d, const ParamDeclaration
 
 static void serialize_param_list(AstSerializer* d,
                                  const ParamList* lst) {
-    serialize_uint(d, lst->len);
-    for (size_t i = 0; i < lst->len; ++i) {
+    serialize_u32(d, lst->len);
+    for (uint32_t i = 0; i < lst->len; ++i) {
         serialize_param_declaration(d, &lst->decls[i]);
     }
 }
@@ -571,8 +575,8 @@ static void serialize_param_type_list(AstSerializer* d, const ParamTypeList* lst
 }
 
 static void serialize_identifier_list(AstSerializer* d, const IdentifierList* lst) {
-    serialize_uint(d, lst->len);
-    for (size_t i = 0; i < lst->len; ++i) {
+    serialize_u32(d, lst->len);
+    for (uint32_t i = 0; i < lst->len; ++i) {
         serialize_identifier(d, &lst->identifiers[i]);
     }
 }
@@ -592,7 +596,7 @@ static void serialize_arr_or_func_suffix(AstSerializer* d, const ArrOrFuncSuffix
     serialize_ast_node_info(d, &suffix->info);
     const uint64_t kind = suffix->kind;
     assert((ArrOrFuncSuffixKind)kind == suffix->kind);
-    serialize_uint(d, kind);
+    serialize_u64(d, kind);
     switch (suffix->kind) {
         case ARR_OR_FUNC_ARRAY:
             serialize_arr_suffix(d, &suffix->arr_suffix);
@@ -616,8 +620,8 @@ static void serialize_direct_declarator(AstSerializer* d, const DirectDeclarator
     } else {
         serialize_declarator(d, decl->bracket_decl);
     }
-    serialize_uint(d, decl->len);
-    for (size_t i = 0; i < decl->len; ++i) {
+    serialize_u32(d, decl->len);
+    for (uint32_t i = 0; i < decl->len; ++i) {
         serialize_arr_or_func_suffix(d, &decl->suffixes[i]);
     }
 }
@@ -645,8 +649,8 @@ static void serialize_struct_declarator(AstSerializer* d, const StructDeclarator
 }
 
 static void serialize_struct_declarator_list(AstSerializer* d, const StructDeclaratorList* decls) {
-    serialize_uint(d, decls->len);
-    for (size_t i = 0; i < decls->len; ++i) {
+    serialize_u32(d, decls->len);
+    for (uint32_t i = 0; i < decls->len; ++i) {
         serialize_struct_declarator(d, &decls->decls[i]);
     }
 }
@@ -662,8 +666,8 @@ static void serialize_struct_declaration(AstSerializer* d, const StructDeclarati
 }
 
 static void serialize_struct_declaration_list(AstSerializer* d, const StructDeclarationList* lst) {
-    serialize_uint(d, lst->len);
-    for (size_t i = 0; i < lst->len; ++i) {
+    serialize_u32(d, lst->len);
+    for (uint32_t i = 0; i < lst->len; ++i) {
         serialize_struct_declaration(d, &lst->decls[i]);
     }
 }
@@ -689,8 +693,8 @@ static void serialize_enumerator(AstSerializer* d, const Enumerator* enumerator)
 }
 
 static void serialize_enum_list(AstSerializer* d, const EnumList* lst) {
-    serialize_uint(d, lst->len);
-    for (size_t i = 0; i < lst->len; ++i) {
+    serialize_u32(d, lst->len);
+    for (uint32_t i = 0; i < lst->len; ++i) {
         serialize_enumerator(d, &lst->enums[i]);
     }
 }
@@ -709,7 +713,7 @@ static void serialize_type_modifiers(AstSerializer* d, const TypeModifiers* mods
     serialize_bool(d, mods->is_unsigned);
     serialize_bool(d, mods->is_signed);
     serialize_bool(d, mods->is_short);
-    serialize_uint(d, mods->num_long);
+    serialize_u64(d, mods->num_long);
     serialize_bool(d, mods->is_complex);
     serialize_bool(d, mods->is_imaginary);
 }
@@ -718,7 +722,7 @@ static void serialize_type_specs(AstSerializer* d, const TypeSpecs* specs) {
     serialize_type_modifiers(d, &specs->mods);
     const uint64_t kind = specs->kind;
     assert((TypeSpecKind)kind == specs->kind);
-    serialize_uint(d, kind);
+    serialize_u64(d, kind);
     switch (specs->kind) {
         case TYPE_SPEC_NONE:
         case TYPE_SPEC_VOID:
@@ -787,8 +791,8 @@ static void serialize_declaration_specs(AstSerializer* d, const DeclarationSpecs
     serialize_func_specs(d, &specs->func_specs);
     serialize_storage_class(d, &specs->storage_class);
     serialize_type_quals(d, &specs->type_quals);
-    serialize_uint(d, specs->num_align_specs);
-    for (size_t i = 0; i < specs->num_align_specs; ++i) {
+    serialize_u32(d, specs->num_align_specs);
+    for (uint32_t i = 0; i < specs->num_align_specs; ++i) {
         serialize_align_spec(d, &specs->align_specs[i]);
     }
 
@@ -798,8 +802,8 @@ static void serialize_declaration_specs(AstSerializer* d, const DeclarationSpecs
 static void serialize_declaration(AstSerializer* d, const Declaration* decl);
 
 static void serialize_declaration_list(AstSerializer* d, const DeclarationList* decls) {
-    serialize_uint(d, decls->len);
-    for (size_t i = 0; i < decls->len; ++i) {
+    serialize_u32(d, decls->len);
+    for (uint32_t i = 0; i < decls->len; ++i) {
         serialize_declaration(d, &decls->decls[i]);
     }
 }
@@ -810,7 +814,7 @@ static void serialize_labeled_statement(AstSerializer* d, const LabeledStatement
     serialize_ast_node_info(d, &stat->info);
     const uint64_t kind = stat->kind;
     assert((LabeledStatementKind)kind == stat->kind);
-    serialize_uint(d, kind);
+    serialize_u64(d, kind);
     switch (stat->kind) {
         case LABELED_STATEMENT_CASE:
             serialize_const_expr(d, &stat->case_expr);
@@ -858,7 +862,7 @@ static void serialize_iteration_statement(
     serialize_ast_node_info(d, &stat->info);
     const uint64_t kind = stat->kind;
     assert((IterationStatementKind)kind == stat->kind);
-    serialize_uint(d, kind);
+    serialize_u64(d, kind);
     serialize_statement(d, stat->loop_body);
     switch (stat->kind) {
         case ITERATION_STATEMENT_WHILE:
@@ -875,7 +879,7 @@ static void serialize_jump_statement(AstSerializer* d, const JumpStatement* stat
     serialize_ast_node_info(d, &stat->info);
     const uint64_t kind = stat->kind;
     assert((JumpStatementKind)kind == stat->kind);
-    serialize_uint(d, kind);
+    serialize_u64(d, kind);
     switch (stat->kind) {
         case JUMP_STATEMENT_GOTO:
             serialize_identifier(d, stat->goto_label);
@@ -895,7 +899,7 @@ static void serialize_compound_statement(AstSerializer* d, const CompoundStateme
 static void serialize_statement(AstSerializer* d, const Statement* stat) {
     const uint64_t kind = stat->kind;
     assert((StatementKind)kind == stat->kind);
-    serialize_uint(d, kind);
+    serialize_u64(d, kind);
     switch (stat->kind) {
         case STATEMENT_LABELED:
             serialize_labeled_statement(d, stat->labeled);
@@ -929,8 +933,8 @@ static void serialize_block_item(AstSerializer* d, const BlockItem* item) {
 
 static void serialize_compound_statement(AstSerializer* d, const CompoundStatement* stat) {
     serialize_ast_node_info(d, &stat->info);
-    serialize_uint(d, stat->len);
-    for (size_t i = 0; i < stat->len; ++i) {
+    serialize_u32(d, stat->len);
+    for (uint32_t i = 0; i < stat->len; ++i) {
         serialize_block_item(d, &stat->items[i]);
     }
 }
@@ -952,8 +956,8 @@ static void serialize_init_declarator(AstSerializer* d, const InitDeclarator* de
 }
 
 static void serialize_init_declarator_list(AstSerializer* d, const InitDeclaratorList* decls) {
-    serialize_uint(d, decls->len);
-    for (size_t i = 0; i < decls->len; ++i) {
+    serialize_u32(d, decls->len);
+    for (uint32_t i = 0; i < decls->len; ++i) {
         serialize_init_declarator(d, &decls->decls[i]);
     }
 }
@@ -978,8 +982,8 @@ static void serialize_external_declaration(AstSerializer* d, const ExternalDecla
 }
 
 static void serialize_translation_unit(AstSerializer* d, const TranslationUnit* tl) {
-    serialize_uint(d, tl->len);
-    for (size_t i = 0; i < tl->len; ++i) {
+    serialize_u32(d, tl->len);
+    for (uint32_t i = 0; i < tl->len; ++i) {
         serialize_external_declaration(d, &tl->external_decls[i]);
     }
 }

@@ -16,7 +16,7 @@ void IRLiteral_free(IRLiteral* lit) {
     switch (lit->type) {
         case IR_LITERAL_STRUCT:
         case IR_LITERAL_ARR:
-            for (size_t i = 0; i < lit->num_members; ++i) {
+            for (uint32_t i = 0; i < lit->num_members; ++i) {
                 IRLiteral_free(&lit->members[i]);
             }
             mycc_free(lit->members);
@@ -27,10 +27,10 @@ void IRLiteral_free(IRLiteral* lit) {
 }
 
 IRInst IRInst_create_call(const IRTypeRef* type,
-                             const IRRegRef* dest,
-                             const IRInstArg* func,
-                             size_t num_func_args,
-                             IRInstArg* func_args) {
+                          const IRRegRef* dest,
+                          const IRInstArg* func,
+                          uint32_t num_func_args,
+                          IRInstArg* func_args) {
     return (IRInst){
         .op = IR_INST_CALL,
         .type = *type,
@@ -42,8 +42,8 @@ IRInst IRInst_create_call(const IRTypeRef* type,
 }
 
 IRInst IRInst_create_assign(const IRTypeRef* type,
-                               const IRRegRef* dest,
-                               const IRInstArg* val) {
+                            const IRRegRef* dest,
+                            const IRInstArg* val) {
     return (IRInst){
         .op = IR_INST_ASSIGN,
         .type = *type,
@@ -54,8 +54,8 @@ IRInst IRInst_create_assign(const IRTypeRef* type,
 }
 
 IRInst IRInst_create_cast(const IRTypeRef* type,
-                             const IRRegRef* dest,
-                             const IRInstArg* val) {
+                          const IRRegRef* dest,
+                          const IRInstArg* val) {
     return (IRInst){
         .op = IR_INST_CAST,
         .type = *type,
@@ -64,8 +64,7 @@ IRInst IRInst_create_cast(const IRTypeRef* type,
     };
 }
 
-IRInst IRInst_create_alloca(const IRRegRef* dest,
-                               const IRTypeRef* type) {
+IRInst IRInst_create_alloca(const IRRegRef* dest, const IRTypeRef* type) {
     return (IRInst){
         .op = IR_INST_ALLOCA,
         .type = *type,
@@ -76,10 +75,10 @@ IRInst IRInst_create_alloca(const IRRegRef* dest,
 }
 
 IRInst IRInst_create(IRInstOp op,
-                        const IRTypeRef* type,
-                        const IRRegRef* dest,
-                        const IRInstArg* arg1,
-                        const IRInstArg* arg2) {
+                     const IRTypeRef* type,
+                     const IRRegRef* dest,
+                     const IRInstArg* arg1,
+                     const IRInstArg* arg2) {
     return (IRInst){
         .op = op,
         .type = *type,
@@ -89,8 +88,7 @@ IRInst IRInst_create(IRInstOp op,
     };
 }
 
-IRInst IRInst_create_store(const IRInstArg* ptr,
-                              const IRInstArg* to_store) {
+IRInst IRInst_create_store(const IRInstArg* ptr, const IRInstArg* to_store) {
     return (IRInst){
         .op = IR_INST_STORE,
         .arg1 = *ptr,
@@ -98,8 +96,7 @@ IRInst IRInst_create_store(const IRInstArg* ptr,
     };
 }
 
-IRInst IRInst_create_load(const IRRegRef* dest,
-                             const IRInstArg* ptr) {
+IRInst IRInst_create_load(const IRRegRef* dest, const IRInstArg* ptr) {
     return (IRInst){
         .op = IR_INST_LOAD,
         .dest = *dest,
@@ -109,10 +106,10 @@ IRInst IRInst_create_load(const IRRegRef* dest,
 }
 
 IRInst IRInst_create_getelem(const IRRegRef* dest,
-                                const IRTypeRef* type,
-                                const IRInstArg* accessed,
-                                size_t num_accesses,
-                                IRInstArg* elems) {
+                             const IRTypeRef* type,
+                             const IRInstArg* accessed,
+                             uint32_t num_accesses,
+                             IRInstArg* elems) {
     return (IRInst){
         .op = IR_INST_GETELEM,
         .type = *type,
@@ -125,10 +122,10 @@ IRInst IRInst_create_getelem(const IRRegRef* dest,
 }
 
 IRInst IRInst_create_getelemptr(const IRRegRef* dest,
-                                   const IRTypeRef* type,
-                                   const IRInstArg* accessed,
-                                   size_t num_accesses,
-                                   IRInstArg* elems) {
+                                const IRTypeRef* type,
+                                const IRInstArg* accessed,
+                                uint32_t num_accesses,
+                                IRInstArg* elems) {
     return (IRInst){
         .op = IR_INST_GETELEMPTR,
         .type = *type,
@@ -141,11 +138,11 @@ IRInst IRInst_create_getelemptr(const IRRegRef* dest,
 }
 
 IRInst IrInst_create_replace_elem(const IRRegRef* dest,
-                                     const IRTypeRef* type,
-                                     const IRInstArg* accessed,
-                                     size_t num_accesses,
-                                     IRInstArg* elems,
-                                     const IRInstArg* replacement) {
+                                  const IRTypeRef* type,
+                                  const IRInstArg* accessed,
+                                  uint32_t num_accesses,
+                                  IRInstArg* elems,
+                                  const IRInstArg* replacement) {
     return (IRInst){
         .op = IR_INST_REPLACEELEM,
         .type = *type,
@@ -163,8 +160,8 @@ void free_inst_arg(IRInstArg* arg) {
     }
 }
 
-static void free_args(IRInstArg* args, size_t len) {
-    for (size_t i = 0; i < len; ++i) {
+static void free_args(IRInstArg* args, uint32_t len) {
+    for (uint32_t i = 0; i < len; ++i) {
         free_inst_arg(&args[i]);
     }
     mycc_free(args);

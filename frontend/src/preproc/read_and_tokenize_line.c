@@ -11,7 +11,7 @@
 #include "tokenizer.h"
 
 static bool is_preproc_directive(Str line) {
-    size_t i = 0;
+    uint32_t i = 0;
     while (i != line.len && isspace(Str_at(line, i))) {
         ++i;
     }
@@ -71,8 +71,8 @@ bool read_and_tokenize_line(PreprocState* state, const ArchTypeInfo* info) {
     return true;
 }
 
-static size_t skip_whitespaces(Str line) {
-    size_t i = 0;
+static uint32_t skip_whitespaces(Str line) {
+    uint32_t i = 0;
     while (i != line.len && isspace(Str_at(line, i))) {
         ++i;
     }
@@ -81,7 +81,7 @@ static size_t skip_whitespaces(Str line) {
 }
 
 static bool is_cond_directive(Str line) {
-    size_t i = skip_whitespaces(line);
+    uint32_t i = skip_whitespaces(line);
 
     if (i == line.len || Str_at(line, i) != '#') {
         return false;
@@ -109,7 +109,7 @@ static bool is_cond_directive(Str line) {
 }
 
 static bool is_if_dir(Str line) {
-    size_t i = skip_whitespaces(line);
+    uint32_t i = skip_whitespaces(line);
 
     if (i == line.len || Str_at(line, i) != '#') {
         return false;

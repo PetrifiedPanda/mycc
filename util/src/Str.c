@@ -33,7 +33,7 @@ bool Str_valid(Str s) {
     return true;
 }
 
-Str Str_advance(Str s, size_t offset) {
+Str Str_advance(Str s, uint32_t offset) {
     assert(s.len >= offset);
     return (Str){s.len - offset, s.data + offset};
 }
@@ -43,7 +43,7 @@ Str Str_incr(Str s) {
     return (Str){s.len - 1, s.data + 1};
 }
 
-Str Str_substr(Str s, size_t begin, size_t end) {
+Str Str_substr(Str s, uint32_t begin, uint32_t end) {
     assert(end <= s.len);
     assert(begin <= s.len);
     assert(begin <= end);
@@ -53,7 +53,7 @@ Str Str_substr(Str s, size_t begin, size_t end) {
     };
 }
 
-char Str_at(Str s, size_t i) {
+char Str_at(Str s, uint32_t i) {
     assert(i < s.len);
     return s.data[i];
 }

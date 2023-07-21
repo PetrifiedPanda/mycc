@@ -66,9 +66,9 @@ bool File_seek(File f, long offset, FileSeekOrigin origin);
 
 Str File_read_line(File file,
                    StrBuf* str,
-                   size_t* res_len,
+                   uint32_t* res_len,
                    char* static_buf,
-                   size_t static_buf_len);
+                   uint32_t static_buf_len);
 
 File mycc_stdout(void);
 File mycc_stderr(void);

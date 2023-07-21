@@ -5,7 +5,7 @@
 void BranchInst_free(BranchInst* b) {
     switch (b->type) {
         case BRANCH_OP_SWITCH:
-            for (size_t i = 0; i < b->switch_len; ++i) {
+            for (uint32_t i = 0; i < b->switch_len; ++i) {
                 IRLiteral_free(&b->targets[i].val);
             }
             break;
@@ -16,7 +16,7 @@ void BranchInst_free(BranchInst* b) {
 
 void BasicBlock_free(BasicBlock* bb) {
     StrBuf_free(&bb->name);
-    for (size_t i = 0; i < bb->len; ++i) {
+    for (uint32_t i = 0; i < bb->len; ++i) {
         IRInst_free(&bb->ops[i]);
     }
     mycc_free(bb->ops);

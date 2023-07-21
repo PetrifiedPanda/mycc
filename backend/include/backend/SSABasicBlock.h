@@ -7,12 +7,12 @@
 typedef struct {
     IRRegRef dest;
     
-    size_t len;
+    uint32_t len;
     IRRegRef* options;
 } PhiInst;
 
 typedef struct {
-    size_t num_phis;
+    uint32_t num_phis;
     PhiInst* phis;
     BasicBlock bb;
 } SSABasicBlock;

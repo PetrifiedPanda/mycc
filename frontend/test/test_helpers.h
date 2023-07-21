@@ -48,7 +48,7 @@ void test_compare_files(CStr got_file, CStr ex_file);
 
 #define STR_BUF_NON_HEAP(lit) StrBuf_non_heap(ARR_LEN(lit) - 1, lit)
 
-StrBuf StrBuf_non_heap(size_t len, const char* str);
+StrBuf StrBuf_non_heap(uint32_t len, const char* str);
 
 #endif
 

@@ -61,7 +61,7 @@ typedef struct {
         StrBuf invalid_id;
         StrBuf invalid_num;
         struct {
-            size_t expected_arg_count;
+            uint32_t expected_arg_count;
             bool too_few_args;
             bool is_variadic;
         };

@@ -9,17 +9,17 @@
 typedef struct StringMapKey StringMapKey;
 
 typedef struct {
-    size_t _len;
-    size_t _cap;
-    size_t _item_size;
+    uint32_t _len;
+    uint32_t _cap;
+    uint32_t _item_size;
     bool _free_keys;
     void (*_item_free)(void*);
     StringMapKey* _keys;
     void* _items;
 } StringMap;
 
-StringMap StringMap_create(size_t elem_size,
-                           size_t init_cap,
+StringMap StringMap_create(uint32_t elem_size,
+                           uint32_t init_cap,
                            bool free_keys,
                            void (*item_free)(void*));
 void StringMap_free(StringMap* map);

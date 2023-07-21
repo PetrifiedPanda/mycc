@@ -29,7 +29,7 @@ enum {
                      / sizeof *(StrBuf){{{0}}}._static_buf
 };
 
-static StrBuf StrBuf_create_with_cap(size_t len, const char* str, size_t cap) {
+static StrBuf StrBuf_create_with_cap(uint32_t len, const char* str, uint32_t cap) {
     assert(cap >= len);
     assert(len == 0 || str);
     StrBuf res;
@@ -54,7 +54,7 @@ StrBuf StrBuf_create(Str str) {
     return StrBuf_create_with_cap(str.len, str.data, str.len);
 }
 
-StrBuf StrBuf_create_empty_with_cap(size_t cap) {
+StrBuf StrBuf_create_empty_with_cap(uint32_t cap) {
     StrBuf res;
     if (cap < STATIC_BUF_LEN) {
         res._is_static_buf = true;
@@ -75,7 +75,7 @@ bool StrBuf_valid(const StrBuf* str) {
     return str->_is_static_buf || str->_data != NULL;
 }
 
-size_t StrBuf_len(const StrBuf* str) {
+uint32_t StrBuf_len(const StrBuf* str) {
     assert(StrBuf_valid(str));
     if (str->_is_static_buf) {
         return str->_small_len;
@@ -84,7 +84,7 @@ size_t StrBuf_len(const StrBuf* str) {
     }
 }
 
-size_t StrBuf_cap(const StrBuf* str) {
+uint32_t StrBuf_cap(const StrBuf* str) {
     assert(StrBuf_valid(str));
     if (str->_is_static_buf) {
         return STATIC_BUF_LEN - 1;
@@ -132,7 +132,7 @@ static const char* StrBuf_data(const StrBuf* str) {
     }
 }
 
-char StrBuf_at(const StrBuf* str, size_t i) {
+char StrBuf_at(const StrBuf* str, uint32_t i) {
     assert(str);
     assert(StrBuf_valid(str));
     if (str->_is_static_buf) {
@@ -144,11 +144,11 @@ char StrBuf_at(const StrBuf* str, size_t i) {
     }
 }
 
-static void StrBuf_move_to_dyn_buf(StrBuf* str, size_t dyn_buf_cap) {
+static void StrBuf_move_to_dyn_buf(StrBuf* str, uint32_t dyn_buf_cap) {
     assert(str->_is_static_buf);
 
-    const size_t len = str->_small_len;
-    const size_t real_cap = dyn_buf_cap + 1;
+    const uint32_t len = str->_small_len;
+    const uint32_t real_cap = dyn_buf_cap + 1;
     char* data = mycc_alloc(sizeof *data * real_cap);
     memcpy(data, str->_static_buf, sizeof *data * (len + 1));
     str->_cap = real_cap;
@@ -183,7 +183,7 @@ void StrBuf_push_back(StrBuf* str, char c) {
     }
 }
 
-static void StrBuf_set_len(StrBuf* str, size_t len) {
+static void StrBuf_set_len(StrBuf* str, uint32_t len) {
     if (str->_is_static_buf) {
         assert(len < STATIC_BUF_LEN);
         str->_small_len = (uint8_t)len;
@@ -195,7 +195,7 @@ static void StrBuf_set_len(StrBuf* str, size_t len) {
 void StrBuf_pop_back(StrBuf* str) {
     assert(str);
     assert(StrBuf_valid(str));
-    const size_t len = StrBuf_len(str);
+    const uint32_t len = StrBuf_len(str);
     assert(len >= 1);
     char* data = StrBuf_get_mut_data(str);
     data[len - 1] = '\0';
@@ -208,7 +208,7 @@ void StrBuf_shrink_to_fit(StrBuf* str) {
     if (!str->_is_static_buf && str->_len + 1 != str->_cap) {
         if (str->_len < STATIC_BUF_LEN) {
             char* data = str->_data;
-            const size_t len = str->_len;
+            const uint32_t len = str->_len;
             str->_is_static_buf = true;
             str->_small_len = (uint8_t)len;
             memcpy(str->_static_buf, data, sizeof *data * (len + 1));
@@ -221,7 +221,7 @@ void StrBuf_shrink_to_fit(StrBuf* str) {
     }
 }
 
-void StrBuf_reserve(StrBuf* str, size_t new_cap) {
+void StrBuf_reserve(StrBuf* str, uint32_t new_cap) {
     if (str->_is_static_buf) {
         if (new_cap >= STATIC_BUF_LEN) {
             StrBuf_move_to_dyn_buf(str, new_cap);
@@ -232,17 +232,17 @@ void StrBuf_reserve(StrBuf* str, size_t new_cap) {
     }
 }
 
-void StrBuf_remove_front(StrBuf* str, size_t num_chars) {
+void StrBuf_remove_front(StrBuf* str, uint32_t num_chars) {
     char* data = StrBuf_get_mut_data(str);
-    const size_t new_len = StrBuf_len(str) - num_chars;
+    const uint32_t new_len = StrBuf_len(str) - num_chars;
     memmove(data, data + num_chars, new_len);
     data[new_len] = '\0';
     StrBuf_set_len(str, new_len);
 }
 
 void StrBuf_append(StrBuf* str, Str app) {
-    const size_t curr_len = StrBuf_len(str);
-    const size_t new_len = curr_len + app.len;
+    const uint32_t curr_len = StrBuf_len(str);
+    const uint32_t new_len = curr_len + app.len;
     if (StrBuf_cap(str) < new_len) {
         StrBuf_reserve(str, new_len);
     }
@@ -254,7 +254,7 @@ void StrBuf_append(StrBuf* str, Str app) {
 }
 
 StrBuf StrBuf_concat(Str s1, Str s2) {
-    const size_t len = s1.len + s2.len;
+    const uint32_t len = s1.len + s2.len;
     StrBuf res = StrBuf_create_with_cap(s1.len, s1.data, len);
     char* res_data = StrBuf_get_mut_data(&res);
     memcpy(res_data + s1.len, s2.data, s2.len * sizeof *res_data);
@@ -303,7 +303,7 @@ bool StrBuf_eq(const StrBuf* s1, const StrBuf* s2) {
     assert(StrBuf_valid(s1));
     assert(StrBuf_valid(s2));
 
-    const size_t l1 = StrBuf_len(s1);
+    const uint32_t l1 = StrBuf_len(s1);
     if (l1 != StrBuf_len(s2)) {
         return false;
     }

@@ -57,7 +57,7 @@ static bool parse_struct_declarator_list(ParserState* s,
         return false;
     }
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_COMMA) {
         ParserState_accept_it(s);
         if (res->len == alloc_len) {
@@ -147,7 +147,7 @@ static bool parse_struct_declaration_list(ParserState* s,
         return false;
     }
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (is_declaration(s)
            || ParserState_curr_kind(s) == TOKEN_STATIC_ASSERT) {
         if (res->len == alloc_len) {
@@ -220,7 +220,7 @@ void StructDeclarator_free_children(StructDeclarator* d) {
 }
 
 void StructDeclaratorList_free(StructDeclaratorList* l) {
-    for (size_t i = 0; i < l->len; ++i) {
+    for (uint32_t i = 0; i < l->len; ++i) {
         StructDeclarator_free_children(&l->decls[i]);
     }
     mycc_free(l->decls);
@@ -236,7 +236,7 @@ void StructDeclaration_free_children(StructDeclaration* d) {
 }
 
 void StructDeclarationList_free(StructDeclarationList* l) {
-    for (size_t i = 0; i < l->len; ++i) {
+    for (uint32_t i = 0; i < l->len; ++i) {
         StructDeclaration_free_children(&l->decls[i]);
     }
     mycc_free(l->decls);

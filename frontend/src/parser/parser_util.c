@@ -17,7 +17,7 @@ void expected_token_error(ParserState* s, TokenKind expected) {
 
 void expected_tokens_error(ParserState* s,
                            const TokenKind* expected,
-                           size_t num_expected) {
+                           uint32_t num_expected) {
     assert(expected);
     ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, ParserState_curr_loc(s));
     s->err->expected_tokens_err = ExpectedTokensErr_create(

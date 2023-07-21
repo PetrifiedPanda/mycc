@@ -26,7 +26,7 @@ typedef struct {
 } ParamDeclaration;
 
 typedef struct {
-    size_t len;
+    uint32_t len;
     ParamDeclaration* decls;
 } ParamList;
 

@@ -12,13 +12,13 @@ TEST(unterminated_literal) {
                                         &info,
                                         &err);
         ASSERT_NULL(res.toks);
-        ASSERT_SIZE_T(res.file_info.len, (size_t)0);
+        ASSERT_UINT(res.file_info.len, (uint32_t)0);
         ASSERT_NULL(res.file_info.paths);
 
         ASSERT(err.kind == PREPROC_ERR_UNTERMINATED_LIT);
-        ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
-        ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)1);
-        ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
+        ASSERT_UINT(err.base.loc.file_loc.line, (uint32_t)1);
+        ASSERT_UINT(err.base.loc.file_loc.index, (uint32_t)1);
+        ASSERT_UINT(err.base.loc.file_idx, (uint32_t)0);
         ASSERT(!err.is_char_lit);
 
         PreprocErr_free(&err);
@@ -31,13 +31,13 @@ TEST(unterminated_literal) {
             &info,
             &err);
         ASSERT_NULL(res.toks);
-        ASSERT_SIZE_T(res.file_info.len, (size_t)0);
+        ASSERT_UINT(res.file_info.len, (uint32_t)0);
         ASSERT_NULL(res.file_info.paths);
 
         ASSERT(err.kind == PREPROC_ERR_UNTERMINATED_LIT);
-        ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)2);
-        ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)10);
-        ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
+        ASSERT_UINT(err.base.loc.file_loc.line, (uint32_t)2);
+        ASSERT_UINT(err.base.loc.file_loc.index, (uint32_t)10);
+        ASSERT_UINT(err.base.loc.file_idx, (uint32_t)0);
         ASSERT(err.is_char_lit);
 
         PreprocErr_free(&err);
@@ -53,14 +53,14 @@ TEST(invalid_identifier) {
                                     &info,
                                     &err);
     ASSERT_NULL(res.toks);
-    ASSERT_SIZE_T(res.file_info.len, (size_t)0);
+    ASSERT_UINT(res.file_info.len, (uint32_t)0);
     ASSERT_NULL(res.file_info.paths);
 
     ASSERT(err.kind == PREPROC_ERR_INVALID_ID);
 
-    ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
-    ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
-    ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)5);
+    ASSERT_UINT(err.base.loc.file_idx, (uint32_t)0);
+    ASSERT_UINT(err.base.loc.file_loc.line, (uint32_t)1);
+    ASSERT_UINT(err.base.loc.file_loc.index, (uint32_t)5);
     ASSERT_STR(StrBuf_as_str(&err.invalid_id), STR_LIT("in$valid"));
 
     PreprocErr_free(&err);
@@ -74,14 +74,14 @@ TEST(invalid_number) {
                                     &info,
                                     &err);
     ASSERT_NULL(res.toks);
-    ASSERT_SIZE_T(res.file_info.len, (size_t)0);
+    ASSERT_UINT(res.file_info.len, (uint32_t)0);
     ASSERT_NULL(res.file_info.paths);
 
     ASSERT(err.kind == PREPROC_ERR_INVALID_NUMBER);
 
-    ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
-    ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
-    ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)5);
+    ASSERT_UINT(err.base.loc.file_idx, (uint32_t)0);
+    ASSERT_UINT(err.base.loc.file_loc.line, (uint32_t)1);
+    ASSERT_UINT(err.base.loc.file_loc.index, (uint32_t)5);
     ASSERT_STR(StrBuf_as_str(&err.invalid_num), STR_LIT("10in$valid"));
 
     PreprocErr_free(&err);
@@ -99,9 +99,9 @@ TEST(preproc_token) {
 
     ASSERT(err.kind == PREPROC_ERR_MISPLACED_PREPROC_TOKEN);
 
-    ASSERT_SIZE_T(err.base.loc.file_idx, (size_t)0);
-    ASSERT_SIZE_T(err.base.loc.file_loc.line, (size_t)1);
-    ASSERT_SIZE_T(err.base.loc.file_loc.index, (size_t)16);
+    ASSERT_UINT(err.base.loc.file_idx, (uint32_t)0);
+    ASSERT_UINT(err.base.loc.file_loc.line, (uint32_t)1);
+    ASSERT_UINT(err.base.loc.file_loc.index, (uint32_t)16);
 
     PreprocRes_free(&res);
 

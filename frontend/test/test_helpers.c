@@ -43,9 +43,9 @@ void test_compare_files(CStr got_file, CStr ex_file) {
     char got_buf[BUF_LEN] = {0};
     char ex_buf[BUF_LEN] = {0};
 
-    size_t got_len = 0, ex_len = 0;
+    uint32_t got_len = 0, ex_len = 0;
 
-    size_t line_counter = 1;
+    uint32_t line_counter = 1;
 
     Str got_line = File_read_line(got, &got_str, &got_len, got_buf, BUF_LEN);
     Str ex_line = File_read_line(ex, &ex_str, &ex_len, ex_buf, BUF_LEN);
@@ -54,7 +54,7 @@ void test_compare_files(CStr got_file, CStr ex_file) {
             File_close(got);
             File_close(ex);
             PRINT_ASSERT_ERR(
-                "Line {size_t} of file {size_t} differs from expected file "
+                "Line {u32} of file {u32} differs from expected file "
                 "{Str}: Expected {Str} but got {Str}",
                 line_counter,
                 got_file,
@@ -97,7 +97,7 @@ void test_compare_files(CStr got_file, CStr ex_file) {
     remove(got_file.data);
 }
 
-StrBuf StrBuf_non_heap(size_t len, const char* str) {
+StrBuf StrBuf_non_heap(uint32_t len, const char* str) {
     return (StrBuf){
         ._is_static_buf = false,
         ._cap = len + 1,

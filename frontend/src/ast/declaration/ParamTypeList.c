@@ -181,7 +181,7 @@ static bool parse_param_list_inplace(ParserState* s, ParamList* res) {
         return false;
     }
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_COMMA
            && ParserState_next_token_kind(s) != TOKEN_ELLIPSIS) {
         ParserState_accept_it(s);
@@ -206,7 +206,7 @@ static bool parse_param_list_inplace(ParserState* s, ParamList* res) {
 }
 
 void ParamList_free(ParamList* l) {
-    for (size_t i = 0; i < l->len; ++i) {
+    for (uint32_t i = 0; i < l->len; ++i) {
         ParamDeclaration_free_children(&l->decls[i]);
     }
     mycc_free(l->decls);

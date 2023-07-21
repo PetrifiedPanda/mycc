@@ -18,7 +18,7 @@ static bool parse_arg_expr_list(ParserState* s, ArgExprList* res) {
         return false;
     }
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_COMMA) {
         ParserState_accept_it(s);
         if (res->len == alloc_len) {
@@ -230,7 +230,7 @@ PostfixSuffix parse_postfix_inc_dec_suffix(ParserState* s) {
 }
 
 static bool parse_postfix_suffixes(ParserState* s, PostfixExpr* res) {
-    size_t alloc_len = 0;
+    uint32_t alloc_len = 0;
     while (is_posfix_op(ParserState_curr_kind(s))) {
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->suffixes,
@@ -375,7 +375,7 @@ fail:
 
 static inline void assign_operators_before(UnaryExpr* res,
                                            UnaryExprOp* ops_before,
-                                           size_t len) {
+                                           uint32_t len) {
     assert(res);
     if (len > 0) {
         assert(ops_before);
@@ -388,7 +388,7 @@ static inline void assign_operators_before(UnaryExpr* res,
 
 static void UnaryExpr_init_postfix(UnaryExpr* res,
                                    UnaryExprOp* ops_before,
-                                   size_t len,
+                                   uint32_t len,
                                    PostfixExpr postfix,
                                    SourceLoc loc) {
     res->info = AstNodeInfo_create(loc);
@@ -433,7 +433,7 @@ static UnaryExprKind TokenKind_to_unary_expr_type(TokenKind t) {
 
 static void UnaryExpr_init_unary_op(UnaryExpr* res,
                                     UnaryExprOp* ops_before,
-                                    size_t len,
+                                    uint32_t len,
                                     TokenKind unary_op,
                                     CastExpr* cast_expr,
                                     SourceLoc loc) {
@@ -447,7 +447,7 @@ static void UnaryExpr_init_unary_op(UnaryExpr* res,
 
 static void UnaryExpr_init_sizeof_type(UnaryExpr* res,
                                        UnaryExprOp* ops_before,
-                                       size_t len,
+                                       uint32_t len,
                                        TypeName* type_name,
                                        SourceLoc loc) {
     assert(type_name);
@@ -459,7 +459,7 @@ static void UnaryExpr_init_sizeof_type(UnaryExpr* res,
 
 static void UnaryExpr_init_alignof(UnaryExpr* res,
                                    UnaryExprOp* ops_before,
-                                   size_t len,
+                                   uint32_t len,
                                    TypeName* type_name,
                                    SourceLoc loc) {
     assert(type_name);
@@ -472,7 +472,7 @@ static void UnaryExpr_init_alignof(UnaryExpr* res,
 bool parse_unary_expr_type_name(ParserState* s,
                                 UnaryExpr* res,
                                 UnaryExprOp* ops_before,
-                                size_t len,
+                                uint32_t len,
                                 TypeName* type_name,
                                 SourceLoc start_bracket_loc) {
     assert(type_name);
@@ -505,11 +505,11 @@ UnaryExprOp TokenKind_to_unary_expr_op(TokenKind t) {
 }
 
 bool parse_unary_expr_inplace(ParserState* s, UnaryExpr* res) {
-    size_t alloc_len = 0;
+    uint32_t alloc_len = 0;
     UnaryExprOp* ops_before = NULL;
 
     const SourceLoc loc = ParserState_curr_loc(s);
-    size_t len = 0;
+    uint32_t len = 0;
     while (ParserState_curr_kind(s) == TOKEN_INC
            || ParserState_curr_kind(s) == TOKEN_DEC
            || (ParserState_curr_kind(s) == TOKEN_SIZEOF
@@ -665,7 +665,7 @@ void PrimaryExpr_free_children(PrimaryExpr* e) {
 }
 
 void ArgExprList_free(ArgExprList* l) {
-    for (size_t i = 0; i < l->len; ++i) {
+    for (uint32_t i = 0; i < l->len; ++i) {
         AssignExpr_free_children(&l->assign_exprs[i]);
     }
     mycc_free(l->assign_exprs);
@@ -678,7 +678,7 @@ void PostfixExpr_free_children(PostfixExpr* p) {
         TypeName_free(p->type_name);
         InitList_free_children(&p->init_list);
     }
-    for (size_t i = 0; i < p->len; ++i) {
+    for (uint32_t i = 0; i < p->len; ++i) {
         PostfixSuffix* s = &p->suffixes[i];
         switch (s->kind) {
             case POSTFIX_INDEX:

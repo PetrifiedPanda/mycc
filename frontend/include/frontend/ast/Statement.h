@@ -65,7 +65,7 @@ typedef struct {
 
 typedef struct CompoundStatement {
     AstNodeInfo info;
-    size_t len;
+    uint32_t len;
     BlockItem* items;
 } CompoundStatement;
 

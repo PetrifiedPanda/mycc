@@ -62,7 +62,7 @@ void* mycc_realloc(void* alloc, size_t bytes) {
     return res;
 }
 
-void mycc_grow_alloc(void** alloc, size_t* alloc_len, size_t elem_size) {
+void mycc_grow_alloc(void** alloc, uint32_t* alloc_len, size_t elem_size) {
     size_t new_num = *alloc_len + *alloc_len / 2 + 1;
     *alloc = mycc_realloc(*alloc, elem_size * new_num);
     *alloc_len = new_num;
@@ -91,8 +91,8 @@ struct alloc_entry {
 
 struct alloc_stats {
     struct alloc_entry* data;
-    size_t len;
-    size_t cap;
+    uint32_t len;
+    uint32_t cap;
     size_t num_allocs;
     size_t num_frees;
     size_t num_reallocs;
@@ -383,7 +383,7 @@ void mycc_memdebug_free_wrapper(void* alloc, Str func, Str file, size_t line) {
 }
 
 void mycc_memdebug_grow_alloc_wrapper(void** alloc,
-                                      size_t* alloc_len,
+                                      uint32_t* alloc_len,
                                       size_t elem_size,
                                       Str func,
                                       Str file,

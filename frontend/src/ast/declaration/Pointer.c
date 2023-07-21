@@ -27,7 +27,7 @@ Pointer* parse_pointer(ParserState* s) {
         res->quals_after_ptr[0] = TypeQuals_create();
     }
 
-    size_t alloc_size = res->num_indirs;
+    uint32_t alloc_size = res->num_indirs;
     while (ParserState_curr_kind(s) == TOKEN_ASTERISK) {
         ParserState_accept_it(s);
 

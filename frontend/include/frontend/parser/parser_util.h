@@ -11,7 +11,7 @@ void expected_token_error(ParserState* s, TokenKind expected);
 
 void expected_tokens_error(ParserState* s,
                            const TokenKind* expected,
-                           size_t num_expected);
+                           uint32_t num_expected);
 
 bool is_storage_class_spec(TokenKind k);
 bool is_type_qual(TokenKind k);

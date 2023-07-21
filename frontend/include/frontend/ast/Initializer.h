@@ -10,14 +10,14 @@
 typedef struct Designator Designator;
 
 typedef struct {
-    size_t len;
+    uint32_t len;
     Designator* designators;
 } DesignatorList;
 
 typedef struct DesignationInit DesignationInit;
 
 typedef struct {
-    size_t len;
+    uint32_t len;
     DesignationInit* inits;
 } InitList;
 

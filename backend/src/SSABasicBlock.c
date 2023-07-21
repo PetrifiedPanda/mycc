@@ -7,7 +7,7 @@ void PhiInst_free(PhiInst* i) {
 }
 
 void SSABasicBlock_free(SSABasicBlock* bb) {
-    for (size_t i = 0; i < bb->num_phis; ++i) {
+    for (uint32_t i = 0; i < bb->num_phis; ++i) {
         PhiInst_free(&bb->phis[i]);
     }
 

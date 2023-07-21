@@ -47,7 +47,7 @@ ParserState ParserState_create(Token* tokens, ParserErr* err) {
 }
 
 void ParserState_free(ParserState* s) {
-    for (size_t i = 0; i < s->_len; ++i) {
+    for (uint32_t i = 0; i < s->_len; ++i) {
         StringMap_free(&s->_scope_maps[i]);
     }
     mycc_free(s->_scope_maps);
@@ -193,7 +193,7 @@ static bool register_identifier(ParserState* s,
 }
 
 static IDKind get_item(const ParserState* s, Str spell) {
-    for (size_t i = 0; i < s->_len; ++i) {
+    for (uint32_t i = 0; i < s->_len; ++i) {
         const ParserIDData* data = StringMap_get(&s->_scope_maps[i], spell);
         if (data != NULL) {
             return data->kind;

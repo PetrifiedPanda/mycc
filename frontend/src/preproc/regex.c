@@ -1,7 +1,7 @@
 #include "regex.h"
 
+#include <stdint.h>
 #include <ctype.h>
-#include <stdbool.h>
 #include <assert.h>
 
 static bool is_dec_const(Str str);
@@ -28,7 +28,7 @@ static bool is_hex_digit(char c) {
 }
 
 static bool is_int_suffix(Str str) {
-    for (size_t i = 0; i != str.len; ++i) {
+    for (uint32_t i = 0; i != str.len; ++i) {
         unsigned char uc = (unsigned char)Str_at(str, i);
         if (tolower(uc) != 'u' && tolower(uc) != 'l') {
             return false;
@@ -40,7 +40,7 @@ static bool is_int_suffix(Str str) {
 static bool is_hex_const(Str str) {
     assert(str.len > 2 && Str_at(str, 0) == '0' && tolower((unsigned char)Str_at(str, 1)) == 'x');
 
-    size_t i = 2;
+    uint32_t i = 2;
     if (!is_hex_digit(Str_at(str, i))) {
         return false;
     }
@@ -64,7 +64,7 @@ static bool is_oct_or_hex_const_start(Str str) {
 static bool is_oct_const(Str str) {
     assert(is_oct_or_hex_const_start(str)
            && tolower((unsigned char)Str_at(str, 1)) != 'x');
-    size_t i = 1;
+    uint32_t i = 1;
 
     while (i != str.len && isdigit(Str_at(str, i))) {
         ++i;
@@ -82,7 +82,7 @@ static bool is_dec_const(Str str) {
     if (!isdigit(Str_at(str, 0))) {
         return false;
     }
-    size_t i = 1;
+    uint32_t i = 1;
 
     while (i != str.len && isdigit(Str_at(str, i))) {
         ++i;
@@ -96,8 +96,8 @@ static bool is_dec_const(Str str) {
 }
 
 bool is_char_const(Str str) {
-    size_t last = str.len - 1;
-    size_t i = 0;
+    uint32_t last = str.len - 1;
+    uint32_t i = 0;
     if (Str_at(str, i) == 'L') {
         ++i;
     }
@@ -139,7 +139,7 @@ static bool is_float_suffix(char c) {
 
 static bool is_exp_suffix(Str str, bool is_hex) {
     const char exp_char = is_hex ? 'p' : 'e';
-    size_t i = 0;
+    uint32_t i = 0;
     if (str.len < 2 || tolower((unsigned char)Str_at(str, 0)) != exp_char) {
         return false;
     }
@@ -171,7 +171,7 @@ static bool is_exp_suffix(Str str, bool is_hex) {
 
 static bool is_dec_float_const(Str str) {
 
-    size_t i = 0;
+    uint32_t i = 0;
     while (i != str.len && isdigit(Str_at(str, i))) {
         ++i;
     }
@@ -200,7 +200,7 @@ static bool is_hex_float_const(Str str) {
     assert(str.len >= 2);
     assert(Str_at(str, 0) == '0' && tolower(Str_at(str, 1)) == 'x');
 
-    size_t i = 2;
+    uint32_t i = 2;
     while (i < str.len && tolower(Str_at(str, i)) != 'p') {
         if (!is_hex_digit(Str_at(str, i)) && Str_at(str, i) != '.') {
             return false;
@@ -216,8 +216,8 @@ static bool is_hex_float_const(Str str) {
 }
 
 bool is_string_literal(Str str) {
-    size_t last = str.len - 1;
-    size_t i = 0;
+    uint32_t last = str.len - 1;
+    uint32_t i = 0;
     if (Str_at(str, i) == 'L') {
         ++i;
     }
@@ -245,7 +245,7 @@ bool is_valid_identifier(Str str) {
     if (!isalpha(Str_at(str, 0)) && Str_at(str, 0) != '_') {
         return false;
     }
-    for (size_t i = 1; i != str.len; ++i) {
+    for (uint32_t i = 1; i != str.len; ++i) {
         if (!is_id_char(Str_at(str, i))) {
             return false;
         }

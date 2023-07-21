@@ -8,9 +8,9 @@
 #include "frontend/parser/parser_util.h"
 
 static bool parse_cast_expr_rest(ParserState* s, CastExpr* res) {
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     SourceLoc last_lbracket_loc = {
-        .file_idx = (size_t)-1,
+        .file_idx = (uint32_t)-1,
         .file_loc = {0, 0},
     };
     while (ParserState_curr_kind(s) == TOKEN_LBRACKET
@@ -67,7 +67,7 @@ static bool parse_cast_expr_rest(ParserState* s, CastExpr* res) {
     return true;
 
 fail:
-    for (size_t i = 0; i < res->len; ++i) {
+    for (uint32_t i = 0; i < res->len; ++i) {
         TypeName_free_children(&res->type_names[i]);
     }
     mycc_free(res->type_names);
@@ -140,7 +140,7 @@ static bool parse_mul_expr_mul_chain(ParserState* s, MulExpr* res) {
     res->len = 0;
     res->mul_chain = NULL;
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (TokenKind_is_mul_op(ParserState_curr_kind(s))) {
         const TokenKind op = ParserState_curr_kind(s);
         ParserState_accept_it(s);
@@ -199,7 +199,7 @@ static bool parse_add_expr_add_chain(ParserState* s, AddExpr* res) {
     res->len = 0;
     res->add_chain = NULL;
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (TokenKind_is_add_op(ParserState_curr_kind(s))) {
         const TokenKind op = ParserState_curr_kind(s);
         ParserState_accept_it(s);
@@ -259,7 +259,7 @@ static bool parse_shift_expr_shift_chain(ParserState* s, ShiftExpr* res) {
     res->len = 0;
     res->shift_chain = NULL;
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (TokenKind_is_shift_op(ParserState_curr_kind(s))) {
         const TokenKind op = ParserState_curr_kind(s);
         ParserState_accept_it(s);
@@ -318,7 +318,7 @@ static bool parse_shift_expr_cast(ParserState* s,
 
 void ShiftExpr_free_children(ShiftExpr* e) {
     AddExpr_free_children(&e->lhs);
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         AddExpr_free_children(&e->shift_chain[i].rhs);
     }
     mycc_free(e->shift_chain);
@@ -345,7 +345,7 @@ static bool parse_rel_expr_rel_chain(ParserState* s, RelExpr* res) {
     res->len = 0;
     res->rel_chain = NULL;
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (TokenKind_is_rel_op(ParserState_curr_kind(s))) {
         const TokenKind op = ParserState_curr_kind(s);
         ParserState_accept_it(s);
@@ -406,7 +406,7 @@ static bool parse_eq_expr_eq_chain(ParserState* s, EqExpr* res) {
     res->len = 0;
     res->eq_chain = NULL;
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (TokenKind_is_eq_op(ParserState_curr_kind(s))) {
         const TokenKind op = ParserState_curr_kind(s);
         ParserState_accept_it(s);
@@ -470,7 +470,7 @@ static bool parse_and_expr_rest(ParserState* s, AndExpr* res) {
     assert(res->eq_exprs);
 
     res->len = 1;
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
 
     while (ParserState_curr_kind(s) == TOKEN_AND) {
         ParserState_accept_it(s);
@@ -531,7 +531,7 @@ static bool parse_xor_expr_rest(ParserState* s, XorExpr* res) {
 
     res->len = 1;
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_XOR) {
         ParserState_accept_it(s);
 
@@ -594,7 +594,7 @@ static XorExpr* parse_xor_expr_cast(ParserState* s, const CastExpr* start) {
 static bool parse_or_expr_rest(ParserState* s, OrExpr* res) {
     res->len = 1;
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_OR) {
         ParserState_accept_it(s);
 
@@ -658,7 +658,7 @@ static OrExpr* parse_or_expr_cast(ParserState* s, const CastExpr* start) {
 static bool parse_log_and_expr_rest(ParserState* s, LogAndExpr* res) {
     assert(res);
     res->len = 1;
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_LAND) {
         ParserState_accept_it(s);
 
@@ -723,7 +723,7 @@ static bool parse_log_or_expr_ops(ParserState* s, LogOrExpr* res) {
     assert(res);
     assert(res->len == 1);
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_LOR) {
         ParserState_accept_it(s);
 
@@ -787,7 +787,7 @@ static bool parse_cond_expr_conditionals(ParserState* s, CondExpr* res) {
     res->len = 0;
     res->conditionals = NULL;
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_QMARK) {
         ParserState_accept_it(s);
 
@@ -1004,7 +1004,7 @@ bool parse_assign_expr_inplace(ParserState* s, AssignExpr* res) {
 
     UnaryExpr last_unary = opt.unary;
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (is_assign_op(ParserState_curr_kind(s))) {
         TokenKind op = ParserState_curr_kind(s);
         ParserState_accept_it(s);
@@ -1053,7 +1053,7 @@ bool parse_assign_expr_inplace(ParserState* s, AssignExpr* res) {
 
     return true;
 fail:
-    for (size_t i = 0; i < res->len; ++i) {
+    for (uint32_t i = 0; i < res->len; ++i) {
         UnaryExpr_free_children(&res->assign_chain[i].unary);
     }
     mycc_free(res->assign_chain);
@@ -1071,7 +1071,7 @@ struct AssignExpr* parse_assign_expr(ParserState* s) {
 }
 
 void CastExpr_free_children(CastExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         TypeName_free_children(&e->type_names[i]);
     }
     mycc_free(e->type_names);
@@ -1085,7 +1085,7 @@ void CastExpr_free(CastExpr* e) {
 
 void MulExpr_free_children(MulExpr* e) {
     CastExpr_free_children(&e->lhs);
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         CastExpr_free_children(&e->mul_chain[i].rhs);
     }
     mycc_free(e->mul_chain);
@@ -1093,7 +1093,7 @@ void MulExpr_free_children(MulExpr* e) {
 
 void AddExpr_free_children(AddExpr* e) {
     MulExpr_free_children(&e->lhs);
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         MulExpr_free_children(&e->add_chain[i].rhs);
     }
     mycc_free(e->add_chain);
@@ -1101,7 +1101,7 @@ void AddExpr_free_children(AddExpr* e) {
 
 void RelExpr_free_children(RelExpr* e) {
     ShiftExpr_free_children(&e->lhs);
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         ShiftExpr_free_children(&e->rel_chain[i].rhs);
     }
     mycc_free(e->rel_chain);
@@ -1109,49 +1109,49 @@ void RelExpr_free_children(RelExpr* e) {
 
 void EqExpr_free_children(EqExpr* e) {
     RelExpr_free_children(&e->lhs);
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         RelExpr_free_children(&e->eq_chain[i].rhs);
     }
     mycc_free(e->eq_chain);
 }
 
 void AndExpr_free_children(AndExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         EqExpr_free_children(&e->eq_exprs[i]);
     }
     mycc_free(e->eq_exprs);
 }
 
 void XorExpr_free_children(XorExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         AndExpr_free_children(&e->and_exprs[i]);
     }
     mycc_free(e->and_exprs);
 }
 
 void OrExpr_free_children(OrExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         XorExpr_free_children(&e->xor_exprs[i]);
     }
     mycc_free(e->xor_exprs);
 }
 
 void LogAndExpr_free_children(LogAndExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         OrExpr_free_children(&e->or_exprs[i]);
     }
     mycc_free(e->or_exprs);
 }
 
 void LogOrExpr_free_children(LogOrExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         LogAndExpr_free_children(&e->log_ands[i]);
     }
     mycc_free(e->log_ands);
 }
 
 void CondExpr_free_children(CondExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         LogOrAndExpr* item = &e->conditionals[i];
         LogOrExpr_free_children(&item->log_or);
         Expr_free_children(&item->expr);
@@ -1171,7 +1171,7 @@ void ConstExpr_free(ConstExpr* e) {
 }
 
 void AssignExpr_free_children(struct AssignExpr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         UnaryExpr_free_children(&e->assign_chain[i].unary);
     }
     mycc_free(e->assign_chain);

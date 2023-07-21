@@ -8,9 +8,9 @@
 Token Token_create(TokenKind kind,
                    const StrBuf* spelling,
                    FileLoc file_loc,
-                   size_t file_idx) {
+                   uint32_t file_idx) {
     assert(spelling);
-    assert(file_idx != (size_t)-1);
+    assert(file_idx != (uint32_t)-1);
     if (TokenKind_get_spelling(kind).data == NULL) {
         assert(StrBuf_valid(spelling));
     } else {
@@ -31,7 +31,7 @@ Token Token_create(TokenKind kind,
 Token Token_create_copy(TokenKind kind,
                         const StrBuf* spelling,
                         FileLoc file_loc,
-                        size_t file_idx) {
+                        uint32_t file_idx) {
     assert(spelling);
     assert(StrBuf_valid(spelling));
 

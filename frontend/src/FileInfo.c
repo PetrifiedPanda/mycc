@@ -23,7 +23,7 @@ void FileInfo_add(FileInfo* info, const StrBuf* path) {
 }
 
 void FileInfo_free(FileInfo* info) {
-    for (size_t i = 0;  i < info->len; ++i) {
+    for (uint32_t i = 0;  i < info->len; ++i) {
         StrBuf_free(&info->paths[i]); 
     }
     mycc_free(info->paths);

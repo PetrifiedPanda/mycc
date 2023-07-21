@@ -2,13 +2,13 @@
 #define MYCC_BACKEND_IR_TYPE_H
 
 
-#include <stddef.h>
+#include <stdint.h>
 
 // TODO: pointer modifiers like restrict, volatile
 
 typedef struct {
-    size_t id; // ID in LUT for types
-    size_t num_indirs;
+    uint32_t id; // ID in LUT for types
+    uint32_t num_indirs;
 } IRTypeRef;
 
 typedef enum {
@@ -24,15 +24,15 @@ typedef struct {
     union {
         struct {
             IRTypeRef type;
-            size_t len;
+            uint32_t len;
         } arr_type;
         struct {
-            size_t num_members;
+            uint32_t num_members;
             IRTypeRef* member_types;
         } struct_type;
         struct {
             IRTypeRef ret_type;
-            size_t num_args;
+            uint32_t num_args;
             IRTypeRef* arg_types;
         } func_type;
     };

@@ -18,11 +18,11 @@ typedef enum {
 } TokenKind;
 
 typedef struct {
-    size_t line, index;
+    uint32_t line, index;
 } FileLoc;
 
 typedef struct {
-    size_t file_idx;
+    uint32_t file_idx;
     FileLoc file_loc;
 } SourceLoc;
 
@@ -47,7 +47,7 @@ typedef struct {
 Token Token_create(TokenKind kind,
                    const StrBuf* spelling,
                    FileLoc file_loc,
-                   size_t file_idx);
+                   uint32_t file_idx);
 
 /**
  *
@@ -60,7 +60,7 @@ Token Token_create(TokenKind kind,
 Token Token_create_copy(TokenKind kind,
                         const StrBuf* spelling,
                         FileLoc file_loc,
-                        size_t file_idx);
+                        uint32_t file_idx);
 
 StrBuf Token_take_spelling(Token* t);
 

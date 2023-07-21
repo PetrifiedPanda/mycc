@@ -11,7 +11,7 @@
 typedef struct {
     bool is_arg;
     union {
-        size_t arg_num;
+        uint32_t arg_num;
         Token token;
     };
 } TokenOrArg;
@@ -19,13 +19,13 @@ typedef struct {
 typedef struct PreprocMacro {
     bool is_func_macro;
     bool is_variadic;
-    size_t num_args;
+    uint32_t num_args;
 
-    size_t expansion_len;
+    uint32_t expansion_len;
     TokenOrArg* expansion;
 } PreprocMacro;
 
-bool expand_all_macros(PreprocState* state, TokenArr* res, size_t start, const ArchTypeInfo* info);
+bool expand_all_macros(PreprocState* state, TokenArr* res, uint32_t start, const ArchTypeInfo* info);
 
 PreprocMacro parse_preproc_macro(TokenArr* arr, PreprocErr* err);
 

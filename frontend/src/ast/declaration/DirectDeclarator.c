@@ -154,7 +154,7 @@ static bool parse_arr_or_func_suffix(ParserState* s, ArrOrFuncSuffix* res) {
 bool parse_arr_or_func_suffixes(ParserState* s, DirectDeclarator* res) {
     res->suffixes = NULL;
     res->len = 0;
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_LBRACKET
            || ParserState_curr_kind(s) == TOKEN_LINDEX) {
         if (alloc_len == res->len) {
@@ -252,7 +252,7 @@ static void DirectDeclarator_free_children(DirectDeclarator* d) {
         Declarator_free(d->bracket_decl);
     }
 
-    for (size_t i = 0; i < d->len; ++i) {
+    for (uint32_t i = 0; i < d->len; ++i) {
         ArrOrFuncSuffix* item = &d->suffixes[i];
         switch (item->kind) {
             case ARR_OR_FUNC_ARRAY:

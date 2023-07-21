@@ -9,7 +9,7 @@ StrLit convert_to_str_lit(StrBuf* spell) {
 
     const Str str = StrBuf_as_str(&cont);
     StrLitKind kind;
-    size_t chars_to_remove;
+    uint32_t chars_to_remove;
     switch (Str_at(str, 0)) {
         case '"':
             kind = STR_LIT_DEFAULT;

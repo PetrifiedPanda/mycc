@@ -7,10 +7,10 @@
 
 typedef struct {
     StrBuf name;
-    size_t len;
+    uint32_t len;
     BasicBlock* blocks;
-    size_t num_func_args; // first n regs are args
-    size_t num_regs;
+    uint32_t num_func_args; // first n regs are args
+    uint32_t num_regs;
     IRReg* regs;
 } CFG;
 

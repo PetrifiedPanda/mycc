@@ -90,7 +90,7 @@ bool parse_compound_statement_inplace(ParserState* s, CompoundStatement* res) {
     res->items = NULL;
     res->len = 0;
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (ParserState_curr_kind(s) != TOKEN_RBRACE) {
         if (res->len == alloc_len) {
             mycc_grow_alloc((void**)&res->items,
@@ -616,7 +616,7 @@ static void BlockItem_free_children(BlockItem* i) {
 }
 
 void CompoundStatement_free_children(CompoundStatement* s) {
-    for (size_t i = 0; i < s->len; ++i) {
+    for (uint32_t i = 0; i < s->len; ++i) {
         BlockItem_free_children(&s->items[i]);
     }
     mycc_free(s->items);

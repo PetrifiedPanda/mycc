@@ -4,21 +4,21 @@
 #include "SSABasicBlock.h"
 
 typedef struct {
-    size_t name_idx;
-    size_t val_inst_num;
+    uint32_t name_idx;
+    uint32_t val_inst_num;
     IRTypeRef type;
 } SSARegInfo;
 
 typedef struct {
     StrBuf name;
-    size_t len;
+    uint32_t len;
     SSABasicBlock* blocks;
 
-    size_t num_func_args;
-    size_t num_regs;
+    uint32_t num_func_args;
+    uint32_t num_regs;
     SSARegInfo* regs;
     
-    size_t num_val_names;
+    uint32_t num_val_names;
     StrBuf* val_names;
 } SSACFG;
 

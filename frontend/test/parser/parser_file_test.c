@@ -29,7 +29,7 @@ static void check_external_decl_struct(ExternalDeclaration* d,
                                        bool is_typedef,
                                        bool is_struct,
                                        Str id_spell,
-                                       size_t decl_list_len) {
+                                       uint32_t decl_list_len) {
     ASSERT(d->is_func_def == false);
     ASSERT(d->decl.is_normal_decl);
     ASSERT(d->decl.decl_specs.type_specs.kind == TYPE_SPEC_STRUCT);
@@ -45,7 +45,7 @@ static void check_external_decl_struct(ExternalDeclaration* d,
         d->decl.decl_specs.type_specs.struct_union_spec->identifier,
         id_spell);
 
-    ASSERT_SIZE_T(
+    ASSERT_UINT(
         d->decl.decl_specs.type_specs.struct_union_spec->decl_list.len,
         decl_list_len);
 }
@@ -53,7 +53,7 @@ static void check_external_decl_struct(ExternalDeclaration* d,
 static void check_external_decl_enum(ExternalDeclaration* d,
                                      bool is_typedef,
                                      Str id_spell,
-                                     size_t enum_list_len) {
+                                     uint32_t enum_list_len) {
     ASSERT(d->is_func_def == false);
     ASSERT(d->decl.is_normal_decl);
     ASSERT(d->decl.decl_specs.type_specs.kind == TYPE_SPEC_ENUM);
@@ -64,25 +64,25 @@ static void check_external_decl_enum(ExternalDeclaration* d,
     check_identifier(d->decl.decl_specs.type_specs.enum_spec->identifier,
                      id_spell);
 
-    ASSERT_SIZE_T(d->decl.decl_specs.type_specs.enum_spec->enum_list.len,
+    ASSERT_UINT(d->decl.decl_specs.type_specs.enum_spec->enum_list.len,
                   enum_list_len);
 }
 
-static void check_pointer_indirs(Pointer* ptr, size_t num_indirs) {
+static void check_pointer_indirs(Pointer* ptr, uint32_t num_indirs) {
     if (num_indirs == 0) {
         ASSERT_NULL(ptr);
     } else {
         ASSERT_NOT_NULL(ptr);
-        ASSERT_SIZE_T(ptr->num_indirs, num_indirs);
+        ASSERT_UINT(ptr->num_indirs, num_indirs);
     }
 }
 
 static void check_external_decl_func_def(ExternalDeclaration* d,
                                          const StorageClass* storage_class,
                                          const FuncSpecs* func_specs,
-                                         size_t num_indirs,
+                                         uint32_t num_indirs,
                                          Str id_spell,
-                                         size_t body_len) {
+                                         uint32_t body_len) {
     ASSERT(d->is_func_def);
     ASSERT(d->func_def.decl->direct_decl->is_id);
     check_identifier(d->func_def.decl->direct_decl->id, id_spell);
@@ -90,16 +90,16 @@ static void check_external_decl_func_def(ExternalDeclaration* d,
 
     check_storage_class(&d->func_def.specs.storage_class, storage_class);
     check_func_specs(&d->func_def.specs.func_specs, func_specs);
-    ASSERT_SIZE_T(d->func_def.comp.len, body_len);
+    ASSERT_UINT(d->func_def.comp.len, body_len);
 }
 
 static void check_external_decl_func_def_enum(ExternalDeclaration* d,
                                               StorageClass storage_class,
                                               FuncSpecs func_specs,
                                               Str enum_name,
-                                              size_t num_indirs,
+                                              uint32_t num_indirs,
                                               Str func_name,
-                                              size_t body_len) {
+                                              uint32_t body_len) {
     check_external_decl_func_def(d,
                                  &storage_class,
                                  &func_specs,
@@ -110,17 +110,17 @@ static void check_external_decl_func_def_enum(ExternalDeclaration* d,
     ASSERT(d->func_def.specs.type_specs.kind == TYPE_SPEC_ENUM);
     check_identifier(d->func_def.specs.type_specs.enum_spec->identifier,
                      enum_name);
-    ASSERT_SIZE_T(d->func_def.specs.type_specs.enum_spec->enum_list.len,
-                  (size_t)0);
+    ASSERT_UINT(d->func_def.specs.type_specs.enum_spec->enum_list.len,
+                  (uint32_t)0);
 }
 
 static void check_external_decl_func_def_struct(ExternalDeclaration* d,
                                                 StorageClass storage_class,
                                                 FuncSpecs func_specs,
                                                 Str struct_name,
-                                                size_t num_indirs,
+                                                uint32_t num_indirs,
                                                 Str func_name,
-                                                size_t body_len) {
+                                                uint32_t body_len) {
     check_external_decl_func_def(d,
                                  &storage_class,
                                  &func_specs,
@@ -133,18 +133,18 @@ static void check_external_decl_func_def_struct(ExternalDeclaration* d,
     check_identifier(
         d->func_def.specs.type_specs.struct_union_spec->identifier,
         struct_name);
-    ASSERT_SIZE_T(
+    ASSERT_UINT(
         d->func_def.specs.type_specs.struct_union_spec->decl_list.len,
-        (size_t)0);
+        (uint32_t)0);
 }
 
 static void check_external_decl_func_def_predef(ExternalDeclaration* d,
                                                 StorageClass storage_class,
                                                 FuncSpecs func_specs,
-                                                size_t num_indirs,
+                                                uint32_t num_indirs,
                                                 TypeSpecKind ret_type,
                                                 Str id_spell,
-                                                size_t body_len) {
+                                                uint32_t body_len) {
     check_external_decl_func_def(d,
                                  &storage_class,
                                  &func_specs,
@@ -158,10 +158,10 @@ static void check_external_decl_func_def_predef(ExternalDeclaration* d,
 static void check_external_decl_func_def_typedef(ExternalDeclaration* d,
                                                  StorageClass storage_class,
                                                  FuncSpecs func_specs,
-                                                 size_t num_indirs,
+                                                 uint32_t num_indirs,
                                                  Str ret_type,
                                                  Str func_name,
-                                                 size_t body_len) {
+                                                 uint32_t body_len) {
     check_external_decl_func_def(d,
                                  &storage_class,
                                  &func_specs,
@@ -197,7 +197,7 @@ TEST(no_preproc) {
     ParserErr err = ParserErr_create();
     TranslationUnit tl = parse_tokens(res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_SIZE_T(tl.len, (size_t)10);
+    ASSERT_UINT(tl.len, (uint32_t)10);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
 
     compare_with_ex_file(&tl,
@@ -255,7 +255,7 @@ TEST(parser_testfile) {
     ParserErr err = ParserErr_create();
     TranslationUnit tl = parse_tokens(res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_SIZE_T(tl.len, (size_t)18);
+    ASSERT_UINT(tl.len, (uint32_t)18);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
 
     compare_with_ex_file(
@@ -288,7 +288,7 @@ TEST(parser_testfile) {
     ASSERT(tl.external_decls[1].decl.is_normal_decl);
     ASSERT(tl.external_decls[1].decl.decl_specs.type_specs.kind
            == TYPE_SPEC_INT);
-    ASSERT_SIZE_T(tl.external_decls[1].decl.init_decls.len, (size_t)1);
+    ASSERT_UINT(tl.external_decls[1].decl.init_decls.len, (uint32_t)1);
 
     check_external_decl_struct(&tl.external_decls[2],
                                false,
@@ -339,7 +339,7 @@ TEST(large_testfile) {
     ParserErr err = ParserErr_create();
     TranslationUnit tl = parse_tokens(res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_SIZE_T(tl.len, (size_t)88);
+    ASSERT_UINT(tl.len, (uint32_t)88);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
 
     compare_with_ex_file(

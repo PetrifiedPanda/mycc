@@ -8,7 +8,7 @@
 typedef struct ExternalDeclaration ExternalDeclaration;
 
 typedef struct {
-    size_t len;
+    uint32_t len;
     ExternalDeclaration* external_decls;
 } TranslationUnit;
 

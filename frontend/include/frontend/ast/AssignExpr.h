@@ -12,7 +12,7 @@ typedef struct TypeName TypeName;
 
 typedef struct CastExpr {
     AstNodeInfo info;
-    size_t len;
+    uint32_t len;
     TypeName* type_names;
     UnaryExpr rhs;
 } CastExpr;
@@ -30,7 +30,7 @@ typedef struct {
 
 typedef struct MulExpr {
     CastExpr lhs;
-    size_t len;
+    uint32_t len;
     CastExprAndOp* mul_chain;
 } MulExpr;
 
@@ -46,7 +46,7 @@ typedef struct {
 
 typedef struct AddExpr {
     MulExpr lhs;
-    size_t len;
+    uint32_t len;
     MulExprAndOp* add_chain;
 } AddExpr;
 
@@ -62,7 +62,7 @@ typedef struct {
 
 typedef struct ShiftExpr {
     AddExpr lhs;
-    size_t len;
+    uint32_t len;
     AddExprAndOp* shift_chain;
 } ShiftExpr;
 
@@ -80,7 +80,7 @@ typedef struct {
 
 typedef struct RelExpr {
     ShiftExpr lhs;
-    size_t len;
+    uint32_t len;
     ShiftExprAndOp* rel_chain;
 } RelExpr;
 
@@ -96,32 +96,32 @@ typedef struct {
 
 typedef struct EqExpr {
     RelExpr lhs;
-    size_t len;
+    uint32_t len;
     RelExprAndOp* eq_chain;
 } EqExpr;
 
 typedef struct AndExpr {
-    size_t len;
+    uint32_t len;
     EqExpr* eq_exprs;
 } AndExpr;
 
 typedef struct XorExpr {
-    size_t len;
+    uint32_t len;
     AndExpr* and_exprs;
 } XorExpr;
 
 typedef struct OrExpr {
-    size_t len;
+    uint32_t len;
     XorExpr* xor_exprs;
 } OrExpr;
 
 typedef struct LogAndExpr {
-    size_t len;
+    uint32_t len;
     OrExpr* or_exprs;
 } LogAndExpr;
 
 typedef struct LogOrExpr {
-    size_t len;
+    uint32_t len;
     LogAndExpr* log_ands;
 } LogOrExpr;
 
@@ -131,7 +131,7 @@ typedef struct {
 } LogOrAndExpr;
 
 typedef struct CondExpr {
-    size_t len;
+    uint32_t len;
     LogOrAndExpr* conditionals;
     LogOrExpr last_else;
 } CondExpr;
@@ -160,7 +160,7 @@ typedef struct {
 } UnaryAndOp;
 
 typedef struct AssignExpr {
-    size_t len;
+    uint32_t len;
     UnaryAndOp* assign_chain;
     CondExpr value;
 } AssignExpr;

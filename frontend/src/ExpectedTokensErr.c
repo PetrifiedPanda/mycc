@@ -8,7 +8,7 @@ ExpectedTokensErr ExpectedTokensErr_create_single_token(TokenKind got, TokenKind
     return ExpectedTokensErr_create(got, &ex, 1);
 }
 
-ExpectedTokensErr ExpectedTokensErr_create(TokenKind got, const TokenKind* expected, size_t num_expected) {
+ExpectedTokensErr ExpectedTokensErr_create(TokenKind got, const TokenKind* expected, uint32_t num_expected) {
     assert(expected);
     assert(num_expected >= 1);
     ExpectedTokensErr res = {
@@ -16,14 +16,14 @@ ExpectedTokensErr ExpectedTokensErr_create(TokenKind got, const TokenKind* expec
         .num_expected = num_expected,
     };
     assert(num_expected <= ARR_LEN(res.expected));
-    const size_t bytes = sizeof *res.expected * num_expected;
+    const uint32_t bytes = sizeof *res.expected * num_expected;
     memcpy(res.expected, expected, bytes);
     return res;
 }
 
 void ExpectedTokensErr_print(File out, const ExpectedTokensErr* err) {
     File_printf(out, "Expected token of kind {Str}", TokenKind_str(err->expected[0]));
-    for (size_t i = 1; i < err->num_expected; ++i) {
+    for (uint32_t i = 1; i < err->num_expected; ++i) {
         File_printf(out, ", {Str}", TokenKind_str(err->expected[i]));
     }
 

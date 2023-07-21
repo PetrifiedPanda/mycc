@@ -15,14 +15,14 @@ typedef struct {
     char prev;
     char prev_prev;
     FileLoc file_loc;
-    size_t current_file_idx;
+    uint32_t current_file_idx;
 } TokenizerState;
 
 static TokenKind singlec_token_kind(char c);
 static TokenKind check_next(TokenKind kind, Str next);
 static bool is_singlec_token(const TokenizerState* s, TokenKind t);
 
-static void advance(TokenizerState* s, size_t num);
+static void advance(TokenizerState* s, uint32_t num);
 static void advance_one(TokenizerState* s);
 static void advance_newline(TokenizerState* s);
 
@@ -48,7 +48,7 @@ bool tokenize_next_token(Token* res, PreprocErr* err, LineInfo* info) {
     assert(res);
     assert(info);
     assert(info->next.data);
-    assert(info->curr_loc.file_idx != (size_t)-1);
+    assert(info->curr_loc.file_idx != (uint32_t)-1);
 
     TokenizerState s = {
         .it = info->next,
@@ -68,8 +68,8 @@ bool tokenize_next_token(Token* res, PreprocErr* err, LineInfo* info) {
             .spelling = null_str,
             .loc =
                 {
-                    .file_idx = (size_t)-1,
-                    .file_loc = (FileLoc){(size_t)-1, (size_t)-1},
+                    .file_idx = (uint32_t)-1,
+                    .file_loc = (FileLoc){(uint32_t)-1, (uint32_t)-1},
                 },
         };
         write_line_info(&s, info);
@@ -113,7 +113,7 @@ bool tokenize_next_token(Token* res, PreprocErr* err, LineInfo* info) {
         const StrBuf null_str = StrBuf_null();
         *res = Token_create(kind, &null_str, s.file_loc, s.current_file_idx);
 
-        size_t len = TokenKind_get_spelling(kind).len;
+        uint32_t len = TokenKind_get_spelling(kind).len;
         advance(&s, len);
 
         write_line_info(&s, info);
@@ -132,7 +132,7 @@ bool tokenize_next_token(Token* res, PreprocErr* err, LineInfo* info) {
 bool tokenize_line(TokenArr* res, PreprocErr* err, LineInfo* info) {
     assert(res);
     assert(info->next.data);
-    assert(info->curr_loc.file_idx != (size_t)-1);
+    assert(info->curr_loc.file_idx != (uint32_t)-1);
 
     while (*info->next.data != '\0') {
         Token curr;
@@ -340,7 +340,7 @@ static bool is_singlec_token(const TokenizerState* s, TokenKind t) {
     }
 }
 
-static void advance(TokenizerState* s, size_t num) {
+static void advance(TokenizerState* s, uint32_t num) {
     assert(num > 0);
     s->it = Str_advance(s->it, num);
     s->file_loc.index += num;
@@ -419,7 +419,7 @@ static TokenKind get_char_lit_kind(Str spell, char terminator) {
 static void unterminated_literal_err(PreprocErr* err,
                                      char terminator,
                                      FileLoc start_loc,
-                                     size_t file_idx) {
+                                     uint32_t file_idx) {
     const bool is_char_lit = terminator == '\'';
 
     const SourceLoc loc = {

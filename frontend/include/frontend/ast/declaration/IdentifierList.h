@@ -8,7 +8,7 @@
 typedef struct Identifier Identifier;
 
 typedef struct {
-    size_t len;
+    uint32_t len;
     Identifier* identifiers;
 } IdentifierList;
 

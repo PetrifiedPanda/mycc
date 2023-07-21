@@ -34,7 +34,7 @@ typedef struct {
         struct { // redefined symbol
             StrBuf redefined_symbol;
             bool was_typedef_name;
-            size_t prev_def_file;
+            uint32_t prev_def_file;
             FileLoc prev_def_loc;
         };
         struct { // incompatible type specs

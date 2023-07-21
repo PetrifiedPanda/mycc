@@ -64,7 +64,7 @@ PreprocRes preproc(CStr path, const ArchTypeInfo* info, PreprocErr* err) {
 
 static bool preproc_impl(PreprocState* state, const ArchTypeInfo* info) {
     while (!PreprocState_over(state)) {
-        const size_t prev_len = state->res.len;
+        const uint32_t prev_len = state->res.len;
         if (!read_and_tokenize_line(state, info)) {
             return false;
         }
@@ -248,8 +248,8 @@ static void append_terminator_token(TokenArr* arr) {
         .spelling = StrBuf_null(),
         .loc =
             {
-                .file_idx = (size_t)-1,
-                .file_loc = {(size_t)-1, (size_t)-1},
+                .file_idx = (uint32_t)-1,
+                .file_loc = {(uint32_t)-1, (uint32_t)-1},
             },
     };
 }

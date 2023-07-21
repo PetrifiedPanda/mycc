@@ -7,8 +7,8 @@
 
 #include "../test_helpers.h"
 
-static size_t get_tokens_len(const Token* tokens) {
-    size_t len = 0;
+static uint32_t get_tokens_len(const Token* tokens) {
+    uint32_t len = 0;
     const Token* it = tokens;
 
     while (it->kind != TOKEN_INVALID) {
@@ -31,7 +31,7 @@ static void test_preproc_macro(const PreprocMacro* macro,
                                     &input_err);
     ASSERT(input_err.kind == PREPROC_ERR_NONE);
 
-    const size_t tokens_len = get_tokens_len(res.toks);
+    const uint32_t tokens_len = get_tokens_len(res.toks);
 
     PreprocErr err = PreprocErr_create();
     PreprocState state = PreprocState_create_string(input,
@@ -57,9 +57,9 @@ static void test_preproc_macro(const PreprocMacro* macro,
                                          &output_err);
     ASSERT(output_err.kind == PREPROC_ERR_NONE);
 
-    ASSERT_SIZE_T(state.res.len, get_tokens_len(expected.toks));
+    ASSERT_UINT(state.res.len, get_tokens_len(expected.toks));
 
-    for (size_t i = 0; i < state.res.len; ++i) {
+    for (uint32_t i = 0; i < state.res.len; ++i) {
         ASSERT_TOKEN_KIND(state.res.tokens[i].kind, expected.toks[i].kind);
         ASSERT_STR(StrBuf_as_str(&state.res.tokens[i].spelling),
                    StrBuf_as_str(&expected.toks[i].spelling));
@@ -108,8 +108,8 @@ TEST(expand_obj_like) {
     test_preproc_macro(
         &macro,
         STR_LIT("MACRO"),
-        STR_LIT("MACRO; for (size_t i = 0; i < 42; ++i) continue;"),
-        STR_LIT("1 + 2; for (size_t i = 0; i < 42; ++i) continue;"));
+        STR_LIT("MACRO; for (uint32_t i = 0; i < 42; ++i) continue;"),
+        STR_LIT("1 + 2; for (uint32_t i = 0; i < 42; ++i) continue;"));
     test_preproc_macro(&macro,
                        STR_LIT("MACRO"),
                        STR_LIT("int x = 1000; MACRO"),

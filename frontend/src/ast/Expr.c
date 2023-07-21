@@ -18,7 +18,7 @@ bool parse_expr_inplace(ParserState* s, Expr* res) {
         return false;
     }
     res->len = 1;
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_COMMA) {
         ParserState_accept_it(s);
         if (alloc_len == res->len) {
@@ -44,7 +44,7 @@ bool parse_expr_inplace(ParserState* s, Expr* res) {
 }
 
 void Expr_free_children(Expr* e) {
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         AssignExpr_free_children(&e->assign_exprs[i]);
     }
     mycc_free(e->assign_exprs);

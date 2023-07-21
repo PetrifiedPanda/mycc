@@ -11,7 +11,7 @@ typedef struct TypeQuals TypeQuals;
 
 typedef struct Pointer {
     AstNodeInfo info;
-    size_t num_indirs;
+    uint32_t num_indirs;
     TypeQuals* quals_after_ptr;
 } Pointer;
 

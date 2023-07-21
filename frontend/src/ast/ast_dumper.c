@@ -12,7 +12,7 @@
 typedef struct {
     jmp_buf err_buf;
     File file;
-    size_t num_indents;
+    uint32_t num_indents;
     const FileInfo* file_info;
 } AstDumper;
 
@@ -25,7 +25,7 @@ static void remove_indent(AstDumper* d) {
 }
 
 static void print_indents(AstDumper* d) {
-    for (size_t i = 0; i < d->num_indents; ++i) {
+    for (uint32_t i = 0; i < d->num_indents; ++i) {
         if (!File_put_str_val(STR_LIT("  "), d->file)) {
             longjmp(d->err_buf, 0);
         }
@@ -69,7 +69,7 @@ static void dumper_print_node_head_impl(AstDumper* d,
     assert(loc->file_idx < d->file_info->len);
     Str file_path = StrBuf_as_str(&d->file_info->paths[loc->file_idx]);
     dumper_println(d,
-                   "{Str}: {Str}:{size_t},{size_t}",
+                   "{Str}: {Str}:{u32},{u32}",
                    name,
                    file_path,
                    loc->file_loc.line,
@@ -175,8 +175,8 @@ static void dump_declaration_specs(AstDumper* d, const DeclarationSpecs* s) {
 
     dump_type_quals(d, &s->type_quals);
 
-    dumper_println(d, "num_align_specs: {size_t}", s->num_align_specs);
-    for (size_t i = 0; i < s->num_align_specs; ++i) {
+    dumper_println(d, "num_align_specs: {u32}", s->num_align_specs);
+    for (uint32_t i = 0; i < s->num_align_specs; ++i) {
         dump_align_spec(d, &s->align_specs[i]);
     }
 
@@ -192,8 +192,8 @@ static void dump_pointer(AstDumper* d, const Pointer* p) {
 
     add_indent(d);
 
-    dumper_println(d, "num_indirs: {size_t}", p->num_indirs);
-    for (size_t i = 0; i < p->num_indirs; ++i) {
+    dumper_println(d, "num_indirs: {u32}", p->num_indirs);
+    for (uint32_t i = 0; i < p->num_indirs; ++i) {
         dump_type_quals(d, &p->quals_after_ptr[i]);
     }
 
@@ -308,9 +308,9 @@ static void dump_generic_assoc_list(AstDumper* d, const GenericAssocList* l) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", l->len);
+    dumper_println(d, "len: {u32}", l->len);
 
-    for (size_t i = 0; i < l->len; ++i) {
+    for (uint32_t i = 0; i < l->len; ++i) {
         dump_generic_assoc(d, &l->assocs[i]);
     }
 
@@ -437,9 +437,9 @@ static void dump_struct_declarator_list(AstDumper* d,
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", l->len);
+    dumper_println(d, "len: {u32}", l->len);
 
-    for (size_t i = 0; i < l->len; ++i) {
+    for (uint32_t i = 0; i < l->len; ++i) {
         dump_struct_declarator(d, &l->decls[i]);
     }
 
@@ -475,8 +475,8 @@ static void dump_struct_declaration_list(AstDumper* d,
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", l->len);
-    for (size_t i = 0; i < l->len; ++i) {
+    dumper_println(d, "len: {u32}", l->len);
+    for (uint32_t i = 0; i < l->len; ++i) {
         dump_struct_declaration(d, &l->decls[i]);
     }
 
@@ -527,8 +527,8 @@ static void dump_enum_list(AstDumper* d, const EnumList* l) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", l->len);
-    for (size_t i = 0; i < l->len; ++i) {
+    dumper_println(d, "len: {u32}", l->len);
+    for (uint32_t i = 0; i < l->len; ++i) {
         dump_enumerator(d, &l->enums[i]);
     }
 
@@ -645,8 +645,8 @@ static void dump_arg_expr_list(AstDumper* d, const ArgExprList* l) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", l->len);
-    for (size_t i = 0; i < l->len; ++i) {
+    dumper_println(d, "len: {u32}", l->len);
+    for (uint32_t i = 0; i < l->len; ++i) {
         dump_assign_expr(d, &l->assign_exprs[i]);
     }
 
@@ -706,8 +706,8 @@ static void dump_postfix_expr(AstDumper* d, const PostfixExpr* e) {
         dump_init_list(d, &e->init_list);
     }
 
-    dumper_println(d, "len: {size_t}", e->len);
-    for (size_t i = 0; i < e->len; ++i) {
+    dumper_println(d, "len: {u32}", e->len);
+    for (uint32_t i = 0; i < e->len; ++i) {
         dump_postfix_suffix(d, &e->suffixes[i]);
     }
 
@@ -723,8 +723,8 @@ static void dump_cast_expr(AstDumper* d, const CastExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
-    for (size_t i = 0; i < e->len; ++i) {
+    dumper_println(d, "len: {u32}", e->len);
+    for (uint32_t i = 0; i < e->len; ++i) {
         dump_type_name(d, &e->type_names[i]);
     }
 
@@ -773,8 +773,8 @@ static void dump_unary_expr(AstDumper* d, const UnaryExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
-    for (size_t i = 0; i < e->len; ++i) {
+    dumper_println(d, "len: {u32}", e->len);
+    for (uint32_t i = 0; i < e->len; ++i) {
         dumper_print_str_val(d, unary_expr_op_str(e->ops_before[i]));
     }
 
@@ -842,8 +842,8 @@ static void dump_assign_expr(AstDumper* d, const AssignExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
-    for (size_t i = 0; i < e->len; ++i) {
+    dumper_println(d, "len: {u32}", e->len);
+    for (uint32_t i = 0; i < e->len; ++i) {
         dumper_print_str(d, "unary_and_op:");
         add_indent(d);
 
@@ -899,7 +899,7 @@ static void dump_direct_abs_declarator(AstDumper* d,
     if (decl->bracket_decl) {
         dump_abs_declarator(d, decl->bracket_decl);
     }
-    for (size_t i = 0; i < decl->len; ++i) {
+    for (uint32_t i = 0; i < decl->len; ++i) {
         dump_abs_arr_or_func_suffix(d, &decl->following_suffixes[i]);
     }
 
@@ -954,8 +954,8 @@ static void dump_param_list(AstDumper* d, const ParamList* l) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", l->len);
-    for (size_t i = 0; i < l->len; ++i) {
+    dumper_println(d, "len: {u32}", l->len);
+    for (uint32_t i = 0; i < l->len; ++i) {
         dump_param_declaration(d, &l->decls[i]);
     }
 
@@ -981,8 +981,8 @@ static void dump_identifier_list(AstDumper* d, const IdentifierList* l) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", l->len);
-    for (size_t i = 0; i < l->len; ++i) {
+    dumper_println(d, "len: {u32}", l->len);
+    for (uint32_t i = 0; i < l->len; ++i) {
         dump_identifier(d, &l->identifiers[i]);
     }
 
@@ -1042,7 +1042,7 @@ static void dump_direct_declarator(AstDumper* d, DirectDeclarator* decl) {
         dump_declarator(d, decl->bracket_decl);
     }
 
-    for (size_t i = 0; i < decl->len; ++i) {
+    for (uint32_t i = 0; i < decl->len; ++i) {
         ArrOrFuncSuffix* item = &decl->suffixes[i];
         dump_arr_or_func_suffix(d, item);
     }
@@ -1074,8 +1074,8 @@ static void dump_declaration_list(AstDumper* d, const DeclarationList* l) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", l->len);
-    for (size_t i = 0; i < l->len; ++i) {
+    dumper_println(d, "len: {u32}", l->len);
+    for (uint32_t i = 0; i < l->len; ++i) {
         dump_declaration(d, &l->decls[i]);
     }
 
@@ -1118,8 +1118,8 @@ static void dump_expr(AstDumper* d, const Expr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
-    for (size_t i = 0; i < e->len; ++i) {
+    dumper_println(d, "len: {u32}", e->len);
+    for (uint32_t i = 0; i < e->len; ++i) {
         dump_assign_expr(d, &e->assign_exprs[i]);
     }
 
@@ -1283,8 +1283,8 @@ static void dump_compound_statement(AstDumper* d,
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", s->len);
-    for (size_t i = 0; i < s->len; ++i) {
+    dumper_println(d, "len: {u32}", s->len);
+    for (uint32_t i = 0; i < s->len; ++i) {
         dump_block_item(d, &s->items[i]);
     }
 
@@ -1328,8 +1328,8 @@ static void dump_designator_list(AstDumper* d, const DesignatorList* l) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", l->len);
-    for (size_t i = 0; i < l->len; ++i) {
+    dumper_println(d, "len: {u32}", l->len);
+    for (uint32_t i = 0; i < l->len; ++i) {
         dump_designator(d, &l->designators[i]);
     }
 
@@ -1372,8 +1372,8 @@ static void dump_init_list(AstDumper* d, const InitList* l) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", l->len);
-    for (size_t i = 0; i < l->len; ++i) {
+    dumper_println(d, "len: {u32}", l->len);
+    for (uint32_t i = 0; i < l->len; ++i) {
         dump_designation_init(d, &l->inits[i]);
     }
 
@@ -1419,8 +1419,8 @@ static void dump_init_declarator_list(AstDumper* d,
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", l->len);
-    for (size_t i = 0; i < l->len; ++i) {
+    dumper_println(d, "len: {u32}", l->len);
+    for (uint32_t i = 0; i < l->len; ++i) {
         dump_init_declarator(d, &l->decls[i]);
     }
 
@@ -1446,9 +1446,9 @@ static void dump_mul_expr(AstDumper* d, const MulExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
+    dumper_println(d, "len: {u32}", e->len);
     dump_cast_expr(d, &e->lhs);
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         CastExprAndOp* item = &e->mul_chain[i];
         dumper_println(d, "mul_op: {Str}", mul_expr_op_str(item->op));
         dump_cast_expr(d, &item->rhs);
@@ -1474,9 +1474,9 @@ static void dump_add_expr(AstDumper* d, const AddExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
+    dumper_println(d, "len: {u32}", e->len);
     dump_mul_expr(d, &e->lhs);
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         MulExprAndOp* item = &e->add_chain[i];
         dumper_println(d, "add_op: {Str}", add_expr_op_str(item->op));
         dump_mul_expr(d, &item->rhs);
@@ -1502,9 +1502,9 @@ static void dump_shift_expr(AstDumper* d, const ShiftExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
+    dumper_println(d, "len: {u32}", e->len);
     dump_add_expr(d, &e->lhs);
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         AddExprAndOp* item = &e->shift_chain[i];
         dumper_println(d, "shift_op: {Str}", shift_expr_op_str(item->op));
         dump_add_expr(d, &item->rhs);
@@ -1534,9 +1534,9 @@ static void dump_rel_expr(AstDumper* d, const RelExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
+    dumper_println(d, "len: {u32}", e->len);
     dump_shift_expr(d, &e->lhs);
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         ShiftExprAndOp* item = &e->rel_chain[i];
         dumper_println(d, "rel_op: {Str}", rel_expr_op_str(item->op));
         dump_shift_expr(d, &item->rhs);
@@ -1562,9 +1562,9 @@ static void dump_eq_expr(AstDumper* d, const EqExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
+    dumper_println(d, "len: {u32}", e->len);
     dump_rel_expr(d, &e->lhs);
-    for (size_t i = 0; i < e->len; ++i) {
+    for (uint32_t i = 0; i < e->len; ++i) {
         RelExprAndOp* item = &e->eq_chain[i];
         dumper_println(d, "eq_op: {Str}", eq_expr_op_str(item->op));
         dump_rel_expr(d, &item->rhs);
@@ -1580,8 +1580,8 @@ static void dump_and_expr(AstDumper* d, const AndExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
-    for (size_t i = 0; i < e->len; ++i) {
+    dumper_println(d, "len: {u32}", e->len);
+    for (uint32_t i = 0; i < e->len; ++i) {
         dump_eq_expr(d, &e->eq_exprs[i]);
     }
 
@@ -1595,8 +1595,8 @@ static void dump_xor_expr(AstDumper* d, const XorExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
-    for (size_t i = 0; i < e->len; ++i) {
+    dumper_println(d, "len: {u32}", e->len);
+    for (uint32_t i = 0; i < e->len; ++i) {
         dump_and_expr(d, &e->and_exprs[i]);
     }
 
@@ -1610,8 +1610,8 @@ static void dump_or_expr(AstDumper* d, const OrExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
-    for (size_t i = 0; i < e->len; ++i) {
+    dumper_println(d, "len: {u32}", e->len);
+    for (uint32_t i = 0; i < e->len; ++i) {
         dump_xor_expr(d, &e->xor_exprs[i]);
     }
 
@@ -1625,8 +1625,8 @@ static void dump_log_and_expr(AstDumper* d, const LogAndExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
-    for (size_t i = 0; i < e->len; ++i) {
+    dumper_println(d, "len: {u32}", e->len);
+    for (uint32_t i = 0; i < e->len; ++i) {
         dump_or_expr(d, &e->or_exprs[i]);
     }
 
@@ -1640,8 +1640,8 @@ static void dump_log_or_expr(AstDumper* d, const LogOrExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
-    for (size_t i = 0; i < e->len; ++i) {
+    dumper_println(d, "len: {u32}", e->len);
+    for (uint32_t i = 0; i < e->len; ++i) {
         dump_log_and_expr(d, &e->log_ands[i]);
     }
 
@@ -1655,8 +1655,8 @@ static void dump_cond_expr(AstDumper* d, const CondExpr* e) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", e->len);
-    for (size_t i = 0; i < e->len; ++i) {
+    dumper_println(d, "len: {u32}", e->len);
+    for (uint32_t i = 0; i < e->len; ++i) {
         LogOrAndExpr* item = &e->conditionals[i];
         dump_log_or_expr(d, &item->log_or);
         dump_expr(d, &item->expr);
@@ -1733,9 +1733,9 @@ static void dump_translation_unit(AstDumper* d, const TranslationUnit* tl) {
 
     add_indent(d);
 
-    dumper_println(d, "len: {size_t}", tl->len);
+    dumper_println(d, "len: {u32}", tl->len);
 
-    for (size_t i = 0; i < tl->len; ++i) {
+    for (uint32_t i = 0; i < tl->len; ++i) {
         dump_external_declaration(d, &tl->external_decls[i]);
     }
 

@@ -6,7 +6,7 @@
 #include <stddef.h>
 
 typedef struct {
-    size_t len;
+    uint32_t len;
     StrBuf* paths;
 } FileInfo;
 

@@ -10,7 +10,7 @@
 
 typedef struct OpenedFileInfo {
     long pos;
-    size_t prefix_idx;
+    uint32_t prefix_idx;
     SourceLoc loc;
 } OpenedFileInfo;
 
@@ -32,9 +32,9 @@ static bool is_file_sep(char c) {
     }
 }
 
-static size_t get_last_file_sep(Str path) {
-    size_t i = path.len - 1;
-    while (i != (size_t)-1 && !is_file_sep(Str_at(path, i))) {
+static uint32_t get_last_file_sep(Str path) {
+    uint32_t i = path.len - 1;
+    while (i != (uint32_t)-1 && !is_file_sep(Str_at(path, i))) {
         --i;
     }
 
@@ -42,8 +42,8 @@ static size_t get_last_file_sep(Str path) {
 }
 
 static StrBuf get_path_prefix(Str path) {
-    size_t sep_idx = get_last_file_sep(path);
-    if (sep_idx == (size_t)-1) {
+    uint32_t sep_idx = get_last_file_sep(path);
+    if (sep_idx == (uint32_t)-1) {
         return StrBuf_create_empty();
     } else {
         return StrBuf_create(Str_substr(path, 0, sep_idx + 1));
@@ -57,7 +57,7 @@ static FileData create_file_data(CStr start_file, PreprocErr* err) {
     if (!File_valid(file)) {
         PreprocErr_set_file_err(err,
                                 &file_name,
-                                (SourceLoc){(size_t)-1, {0, 0}});
+                                (SourceLoc){(uint32_t)-1, {0, 0}});
         return (FileData){0};
     }
     FileManager fm = {
@@ -169,7 +169,7 @@ static bool is_escaped_newline(Str line) {
         return false;
     }
 
-    size_t i = line.len - 1;
+    uint32_t i = line.len - 1;
     while (i != 0 && isspace(Str_at(line, i))) {
         --i;
     }
@@ -210,7 +210,7 @@ static void preproc_state_close_file(PreprocState* s);
 void PreprocState_read_line(PreprocState* state) {
     assert(state);
     StrBuf_clear(&state->line_info.line);
-    size_t len = 0;
+    uint32_t len = 0;
     enum {
         STATIC_BUF_LEN = ARR_LEN(state->line_info.static_buf),
     };
@@ -255,10 +255,10 @@ bool PreprocState_over(const PreprocState* state) {
 typedef struct {
     File file;
     StrBuf path;
-    size_t prefix_idx;
+    uint32_t prefix_idx;
 } FileOpenRes;
 
-static size_t get_current_prefix_idx(const FileManager* fm) {
+static uint32_t get_current_prefix_idx(const FileManager* fm) {
     return fm->opened_info[fm->opened_info_len - 1].prefix_idx;
 }
 
@@ -278,9 +278,9 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
                                          const StrBuf* filename,
                                          SourceLoc include_loc) {
     const Str filename_str = StrBuf_as_str(filename);
-    const size_t sep_idx = get_last_file_sep(filename_str);
+    const uint32_t sep_idx = get_last_file_sep(filename_str);
 
-    const size_t current_prefix_idx = get_current_prefix_idx(&s->file_manager);
+    const uint32_t current_prefix_idx = get_current_prefix_idx(&s->file_manager);
     const StrBuf* prefix = &s->file_manager.prefixes[current_prefix_idx];
 
     const Str prefix_str = StrBuf_as_str(prefix);
@@ -292,8 +292,8 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
         return (FileOpenRes){0};
     }
 
-    size_t prefix_idx;
-    if (sep_idx != (size_t)-1) {
+    uint32_t prefix_idx;
+    if (sep_idx != (uint32_t)-1) {
         StrBuf new_prefix = StrBuf_concat(
             prefix_str,
             Str_substr(filename_str, 0, sep_idx + 1));
@@ -331,7 +331,7 @@ bool PreprocState_open_file(PreprocState* s,
         return false;
     }
     FileInfo_add(&s->file_info, &fp.path);
-    const size_t idx = s->file_info.len - 1;
+    const uint32_t idx = s->file_info.len - 1;
     ++fm->current_file_idx;
     if (fm->opened_info_len == fm->opened_info_cap) {
         mycc_grow_alloc((void**)&fm->opened_info,
@@ -425,7 +425,7 @@ PreprocCond* peek_preproc_cond(PreprocState* state) {
 }
 
 static void TokenArr_free_elems(TokenArr* arr) {
-    for (size_t i = 0; i < arr->len; ++i) {
+    for (uint32_t i = 0; i < arr->len; ++i) {
         StrBuf_free(&arr->tokens[i].spelling);
     }
 }
@@ -444,10 +444,10 @@ static void FileManager_free(FileManager* fm) {
         return;
     }
     mycc_free(fm->opened_info);
-    for (size_t i = 0; i <= fm->current_file_idx; ++i) {
+    for (uint32_t i = 0; i <= fm->current_file_idx; ++i) {
         File_close(fm->files[i]);
     }
-    for (size_t i = 0; i < fm->prefixes_len; ++i) {
+    for (uint32_t i = 0; i < fm->prefixes_len; ++i) {
         StrBuf_free(&fm->prefixes[i]);
     }
     mycc_free(fm->prefixes);

@@ -9,18 +9,18 @@
 static void compare_preproc_macros(const PreprocMacro* got,
                                    const PreprocMacro* ex) {
     ASSERT_BOOL(got->is_func_macro, ex->is_func_macro);
-    ASSERT_SIZE_T(got->num_args, ex->num_args);
+    ASSERT_UINT(got->num_args, ex->num_args);
     ASSERT_BOOL(got->is_variadic, ex->is_variadic);
 
-    ASSERT_SIZE_T(got->expansion_len, ex->expansion_len);
+    ASSERT_UINT(got->expansion_len, ex->expansion_len);
 
-    for (size_t i = 0; i < got->expansion_len; ++i) {
+    for (uint32_t i = 0; i < got->expansion_len; ++i) {
         const TokenOrArg* got_item = &got->expansion[i];
         const TokenOrArg* ex_item = &ex->expansion[i];
         ASSERT_BOOL(got_item->is_arg, ex_item->is_arg);
 
         if (got_item->is_arg) {
-            ASSERT_SIZE_T(got_item->arg_num, ex_item->arg_num);
+            ASSERT_UINT(got_item->arg_num, ex_item->arg_num);
         } else {
             const Token* got_tok = &got_item->token;
             const Token* ex_tok = &ex_item->token;
@@ -29,10 +29,10 @@ static void compare_preproc_macros(const PreprocMacro* got,
             ASSERT_STR(StrBuf_as_str(&got_tok->spelling),
                        StrBuf_as_str(&ex_tok->spelling));
 
-            ASSERT_SIZE_T(got_tok->loc.file_idx, ex_tok->loc.file_idx);
-            ASSERT_SIZE_T(got_tok->loc.file_loc.line,
+            ASSERT_UINT(got_tok->loc.file_idx, ex_tok->loc.file_idx);
+            ASSERT_UINT(got_tok->loc.file_loc.line,
                           ex_tok->loc.file_loc.line);
-            ASSERT_SIZE_T(got_tok->loc.file_loc.index,
+            ASSERT_UINT(got_tok->loc.file_loc.index,
                           ex_tok->loc.file_loc.index);
         }
     }
@@ -104,7 +104,7 @@ TEST(parse_obj_like) {
             EXPANSION_LEN = TOKENS_LEN - 3
         };
         TokenOrArg expansion[EXPANSION_LEN];
-        for (size_t i = 0; i < EXPANSION_LEN; ++i) {
+        for (uint32_t i = 0; i < EXPANSION_LEN; ++i) {
             expansion[i] = (TokenOrArg){
                 .is_arg = false,
                 .token = tokens[i + 3],
@@ -235,7 +235,7 @@ TEST(parse_func_like) {
         };
 
         TokenOrArg expansion[EXPANSION_LEN];
-        for (size_t i = 0; i < EXPANSION_LEN; ++i) {
+        for (uint32_t i = 0; i < EXPANSION_LEN; ++i) {
             expansion[i] = (TokenOrArg){
                 .is_arg = false,
                 .token = tokens[i + 5],
@@ -475,8 +475,8 @@ TEST(parse_variadic) {
 static void is_zeroed_macro(const PreprocMacro* got) {
     ASSERT_BOOL(got->is_func_macro, false);
     ASSERT_BOOL(got->is_variadic, false);
-    ASSERT_SIZE_T(got->num_args, 0);
-    ASSERT_SIZE_T(got->expansion_len, 0);
+    ASSERT_UINT(got->num_args, 0);
+    ASSERT_UINT(got->expansion_len, 0);
     ASSERT_NULL(got->expansion);
 }
 
@@ -533,9 +533,9 @@ TEST(parse_duplicate_arg_name) {
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(StrBuf_as_str(&err.duplicate_arg_name), STR_LIT("a"));
-        ASSERT_SIZE_T(err.base.loc.file_idx, 0);
-        ASSERT_SIZE_T(err.base.loc.file_loc.line, 1);
-        ASSERT_SIZE_T(err.base.loc.file_loc.index, 25);
+        ASSERT_UINT(err.base.loc.file_idx, 0);
+        ASSERT_UINT(err.base.loc.file_loc.line, 1);
+        ASSERT_UINT(err.base.loc.file_loc.index, 25);
     }
 
     tokens[8].spelling = STR_BUF_NON_HEAP("c");
@@ -546,9 +546,9 @@ TEST(parse_duplicate_arg_name) {
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(StrBuf_as_str(&err.duplicate_arg_name), STR_LIT("c"));
-        ASSERT_SIZE_T(err.base.loc.file_idx, 0);
-        ASSERT_SIZE_T(err.base.loc.file_loc.line, 1);
-        ASSERT_SIZE_T(err.base.loc.file_loc.index, 25);
+        ASSERT_UINT(err.base.loc.file_idx, 0);
+        ASSERT_UINT(err.base.loc.file_loc.line, 1);
+        ASSERT_UINT(err.base.loc.file_loc.index, 25);
     }
     tokens[6].spelling = STR_BUF_NON_HEAP("a");
     {
@@ -557,9 +557,9 @@ TEST(parse_duplicate_arg_name) {
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(StrBuf_as_str(&err.duplicate_arg_name), STR_LIT("a"));
-        ASSERT_SIZE_T(err.base.loc.file_idx, 0);
-        ASSERT_SIZE_T(err.base.loc.file_loc.line, 1);
-        ASSERT_SIZE_T(err.base.loc.file_loc.index, 22);
+        ASSERT_UINT(err.base.loc.file_idx, 0);
+        ASSERT_UINT(err.base.loc.file_loc.line, 1);
+        ASSERT_UINT(err.base.loc.file_loc.index, 22);
     }
 }
 

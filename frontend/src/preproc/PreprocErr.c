@@ -35,7 +35,7 @@ void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
             UNREACHABLE();
             break;
         case PREPROC_ERR_OPEN_FILE:
-            if (err->base.loc.file_idx != (size_t)-1) {
+            if (err->base.loc.file_idx != (uint32_t)-1) {
                 ErrBase_print(out, file_info, &err->base);
             }
 
@@ -70,14 +70,14 @@ void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
                 File_printf(
                     out,
                     "Too few arguments in function-like macro invocation: "
-                    "Expected{Str} {size_t} arguments",
+                    "Expected{Str} {u32} arguments",
                     err->is_variadic ? STR_LIT(" at least") : STR_LIT(""),
                     err->expected_arg_count);
             } else {
                 File_printf(
                     out,
                     "Too many arguments in function like macro invocation: "
-                    "Expected only {size_t} arguments",
+                    "Expected only {u32} arguments",
                     err->expected_arg_count);
             }
             break;
@@ -92,7 +92,7 @@ void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
                 &file_info->paths[loc->file_idx]);
             File_printf(
                 out,
-                "Conditional started at {Str}:{size_t},{size_t} not terminated",
+                "Conditional started at {Str}:{u32},{u32} not terminated",
                 cond_file,
                 loc->file_loc.line,
                 loc->file_loc.index);
@@ -142,14 +142,14 @@ void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
                 case ELSE_OP_ELIF:
                     File_printf(out,
                                 "elif directive after else directive in "
-                                "{Str}:({size_t},{size_t})",
+                                "{Str}:({u32},{u32})",
                                 prev_else_file,
                                 loc.line,
                                 loc.index);
                     break;
                 case ELSE_OP_ELSE:
                     File_printf(out,
-                            "Second else directive after else in {Str}:({size_t},{size_t})",
+                            "Second else directive after else in {Str}:({u32},{u32})",
                             prev_else_file,
                             loc.line,
                             loc.index);

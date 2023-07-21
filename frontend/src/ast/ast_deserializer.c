@@ -61,8 +61,8 @@ DeserializeAstRes deserialize_ast(File f) {
 
 static bool deserializer_read(AstDeserializer* r,
                               void* res,
-                              size_t size,
-                              size_t count) {
+                              uint32_t size,
+                              uint32_t count) {
     return File_read(res, size, count, r->file) == count;
 }
 
@@ -70,11 +70,15 @@ static bool deserialize_bool(AstDeserializer* r, bool* res) {
     return deserializer_read(r, res, sizeof *res, 1);
 }
 
-static bool deserialize_uint(AstDeserializer* r, uint64_t* res) {
+static bool deserialize_u64(AstDeserializer* r, uint64_t* res) {
     return deserializer_read(r, res, sizeof *res, 1);
 }
 
-static bool deserialize_int(AstDeserializer* r, int64_t* res) {
+static bool deserialize_u32(AstDeserializer* r, uint32_t* res) {
+    return deserializer_read(r, res, sizeof *res, 1);
+}
+
+static bool deserialize_i64(AstDeserializer* r, int64_t* res) {
     return deserializer_read(r, res, sizeof *res, 1);
 }
 
@@ -82,7 +86,7 @@ static bool deserialize_float(AstDeserializer* r, double* res) {
     return deserializer_read(r, res, sizeof *res, 1);
 }
 
-static void* alloc_or_null(size_t num_bytes) {
+static void* alloc_or_null(uint32_t num_bytes) {
     if (num_bytes == 0) {
         return NULL;
     } else {
@@ -90,14 +94,14 @@ static void* alloc_or_null(size_t num_bytes) {
     }
 }
 
-static StrBuf deserialize_str(AstDeserializer* r) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+static StrBuf deserialize_str_buf(AstDeserializer* r) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return StrBuf_null();
     }
 
     StrBuf res = StrBuf_create_empty_with_cap(len);
-    for (size_t i = 0; i < len; ++i) {
+    for (uint32_t i = 0; i < len; ++i) {
         FileGetcRes getc_res = File_getc(r->file);
         if (!getc_res.valid) {
             StrBuf_free(&res);
@@ -110,8 +114,8 @@ static StrBuf deserialize_str(AstDeserializer* r) {
 }
 
 static FileInfo deserialize_file_info(AstDeserializer* r) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return (FileInfo){
             .len = 0,
             .paths = NULL,
@@ -122,10 +126,10 @@ static FileInfo deserialize_file_info(AstDeserializer* r) {
         .len = len,
         .paths = mycc_alloc(sizeof *res.paths * len),
     };
-    for (size_t i = 0; i < len; ++i) {
-        res.paths[i] = deserialize_str(r);
+    for (uint32_t i = 0; i < len; ++i) {
+        res.paths[i] = deserialize_str_buf(r);
         if (!StrBuf_valid(&res.paths[i])) {
-            for (size_t j = 0; j < i; ++j) {
+            for (uint32_t j = 0; j < i; ++j) {
                 StrBuf_free(&res.paths[j]);
             }
             mycc_free(res.paths);
@@ -139,9 +143,9 @@ static FileInfo deserialize_file_info(AstDeserializer* r) {
 }
 
 static bool deserialize_ast_node_info(AstDeserializer* r, AstNodeInfo* info) {
-    uint64_t file_idx, line, idx;
-    if (!(deserialize_uint(r, &file_idx) && deserialize_uint(r, &line)
-          && deserialize_uint(r, &idx))) {
+    uint32_t file_idx, line, idx;
+    if (!(deserialize_u32(r, &file_idx) && deserialize_u32(r, &line)
+          && deserialize_u32(r, &idx))) {
         return false;
     }
     *info = (AstNodeInfo){
@@ -192,7 +196,7 @@ static bool deserialize_identifier_inplace(AstDeserializer* r, Identifier* res) 
         return false;
     }
 
-    res->spelling = deserialize_str(r);
+    res->spelling = deserialize_str_buf(r);
     if (!StrBuf_valid(&res->spelling)) {
         return false;
     }
@@ -210,7 +214,7 @@ static Identifier* deserialize_identifier(AstDeserializer* r) {
 
 static bool deserialize_value(AstDeserializer* r, Value* res) {
     uint64_t kind;
-    if (!deserialize_uint(r, &kind)) {
+    if (!deserialize_u64(r, &kind)) {
         return false;
     }
     
@@ -223,7 +227,7 @@ static bool deserialize_value(AstDeserializer* r, Value* res) {
         case VALUE_LINT:
         case VALUE_LLINT: {
             int64_t val;
-            if (!deserialize_int(r, &val)) {
+            if (!deserialize_i64(r, &val)) {
                 return false;
             }
             res->sint_val = val;
@@ -235,7 +239,7 @@ static bool deserialize_value(AstDeserializer* r, Value* res) {
         case VALUE_ULINT:
         case VALUE_ULLINT: {
             uint64_t val;
-            if (!deserialize_uint(r, &val)) {
+            if (!deserialize_u64(r, &val)) {
                 return false;
             }
             res->uint_val = val;
@@ -261,14 +265,14 @@ static bool deserialize_constant(AstDeserializer* r, Constant* res) {
     }
 
     uint64_t kind;
-    if (!deserialize_uint(r, &kind)) {
+    if (!deserialize_u64(r, &kind)) {
         return false;
     }
     res->kind = kind;
     assert((uint64_t)res->kind == kind);
     switch (res->kind) {
         case CONSTANT_ENUM:
-            res->spelling = deserialize_str(r);
+            res->spelling = deserialize_str_buf(r);
             return StrBuf_valid(&res->spelling);
         case CONSTANT_VAL:
             return deserialize_value(r, &res->val);
@@ -278,13 +282,13 @@ static bool deserialize_constant(AstDeserializer* r, Constant* res) {
 
 static bool deserialize_str_lit(AstDeserializer* r, StrLit* res) {
     uint64_t kind;
-    if (!deserialize_uint(r, &kind)) {
+    if (!deserialize_u64(r, &kind)) {
         return false;
     }
  
     res->kind = kind;
     assert((uint64_t)res->kind == kind);
-    res->contents = deserialize_str(r);
+    res->contents = deserialize_str_buf(r);
     return StrBuf_valid(&res->contents);
 }
 
@@ -309,8 +313,8 @@ static bool deserialize_string_constant(AstDeserializer* r, StringConstant* cons
 
 static bool deserialize_unary_expr(AstDeserializer* r, UnaryExpr* res);
 
-static void free_assign_chain(UnaryAndOp* assign_chain, size_t len) {
-    for (size_t i = 0; i < len; ++i) {
+static void free_assign_chain(UnaryAndOp* assign_chain, uint32_t len) {
+    for (uint32_t i = 0; i < len; ++i) {
         UnaryAndOp* item = &assign_chain[i];
         UnaryExpr_free_children(&item->unary);
     }
@@ -320,21 +324,21 @@ static void free_assign_chain(UnaryAndOp* assign_chain, size_t len) {
 static bool deserialize_cond_expr_inplace(AstDeserializer* r, CondExpr* res);
 
 static bool deserialize_assign_expr_inplace(AstDeserializer* r, AssignExpr* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
     res->len = len;
     res->assign_chain = alloc_or_null(sizeof *res->assign_chain * len);
-    for (size_t i = 0; i < len; ++i) {
+    for (uint32_t i = 0; i < len; ++i) {
         UnaryAndOp* item = &res->assign_chain[i];
         if (!deserialize_unary_expr(r, &item->unary)) {
             free_assign_chain(res->assign_chain, i);
             return false;
         }
         uint64_t op;
-        if (!deserialize_uint(r, &op)) {
+        if (!deserialize_u64(r, &op)) {
             UnaryExpr_free_children(&item->unary);
             free_assign_chain(res->assign_chain, i);
             return false;
@@ -360,8 +364,8 @@ static struct AssignExpr* deserialize_assign_expr(AstDeserializer* r) {
 }
 
 static bool deserialize_expr_inplace(AstDeserializer* r, Expr* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
@@ -401,8 +405,8 @@ static bool deserialize_generic_assoc_list(AstDeserializer* r, GenericAssocList*
         return false;
     }
 
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
@@ -435,7 +439,7 @@ static bool deserialize_generic_sel(AstDeserializer* r, GenericSel* res) {
 
 static bool deserialize_primary_expr(AstDeserializer* r, PrimaryExpr* res) {
     uint64_t kind;
-    if (!deserialize_uint(r, &kind)) {
+    if (!deserialize_u64(r, &kind)) {
         return false;
     }
 
@@ -496,8 +500,8 @@ static bool deserialize_designator(AstDeserializer* r,
 }
 
 static bool deserialize_designator_list(AstDeserializer* r, DesignatorList* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
@@ -574,8 +578,8 @@ static bool deserialize_designation_init(AstDeserializer* r, DesignationInit* re
 }
 
 static bool deserialize_init_list(AstDeserializer* r, InitList* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
@@ -590,8 +594,8 @@ static bool deserialize_init_list(AstDeserializer* r, InitList* res) {
 }
 
 static bool deserialize_arg_expr_list(AstDeserializer* r, ArgExprList* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
@@ -607,7 +611,7 @@ static bool deserialize_arg_expr_list(AstDeserializer* r, ArgExprList* res) {
 
 static bool deserialize_postfix_suffix(AstDeserializer* r, PostfixSuffix* res) {
     uint64_t kind;
-    if (!deserialize_uint(r, &kind)) {
+    if (!deserialize_u64(r, &kind)) {
         return false;
     }
     res->kind = kind;
@@ -656,8 +660,8 @@ static bool deserialize_postfix_expr(AstDeserializer* r, PostfixExpr* res) {
     res->len = 0;
     res->suffixes = NULL;
 
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         goto fail;
     }
 
@@ -681,15 +685,15 @@ static bool deserialize_unary_expr(AstDeserializer* r, UnaryExpr* res) {
         return false;
     }
 
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
     UnaryExprOp* ops_before = alloc_or_null(sizeof *ops_before * len);
-    for (size_t i = 0; i < len; ++i) {
+    for (uint32_t i = 0; i < len; ++i) {
         uint64_t unary_op;
-        if (!deserialize_uint(r, &unary_op)) {
+        if (!deserialize_u64(r, &unary_op)) {
             mycc_free(ops_before);
             return false;
         }
@@ -697,7 +701,7 @@ static bool deserialize_unary_expr(AstDeserializer* r, UnaryExpr* res) {
         assert((UnaryExprOp)unary_op == ops_before[i]);
     }
     uint64_t expr_kind;
-    if (!deserialize_uint(r, &expr_kind)) {
+    if (!deserialize_u64(r, &expr_kind)) {
         mycc_free(ops_before);
         return false;
     }
@@ -742,8 +746,8 @@ fail:
 
 static bool deserialize_type_name_inplace(AstDeserializer* r, TypeName* res);
 
-static void free_type_names_up_to(TypeName* type_names, size_t len) {
-    for (size_t i = 0; i < len; ++i) {
+static void free_type_names_up_to(TypeName* type_names, uint32_t len) {
+    for (uint32_t i = 0; i < len; ++i) {
         TypeName_free_children(&type_names[i]);
     }
     mycc_free(type_names);
@@ -753,14 +757,14 @@ static bool deserialize_cast_expr_inplace(AstDeserializer* r, CastExpr* res) {
     if (!deserialize_ast_node_info(r, &res->info)) {
         return false;
     }
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
     res->len = len;
 
     res->type_names = alloc_or_null(sizeof *res->type_names * len);
-    for (size_t i = 0; i < res->len; ++i) {
+    for (uint32_t i = 0; i < res->len; ++i) {
         if (!deserialize_type_name_inplace(r, &res->type_names[i])) {
             free_type_names_up_to(res->type_names, i);
             return false;
@@ -791,15 +795,15 @@ static bool deserialize_mul_expr(AstDeserializer* r, MulExpr* res) {
     res->len = 0;
     res->mul_chain = NULL;
 
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         goto fail;
     }
     
     res->mul_chain = alloc_or_null(sizeof *res->mul_chain * len);
     for (; res->len != len; ++res->len) {
         uint64_t mul_op;
-        if (!deserialize_uint(r, &mul_op)) {
+        if (!deserialize_u64(r, &mul_op)) {
             goto fail;
         }
 
@@ -825,15 +829,15 @@ static bool deserialize_add_expr(AstDeserializer* r, AddExpr* res) {
     res->len = 0;
     res->add_chain = NULL;
 
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         goto fail;
     }
 
     res->add_chain = alloc_or_null(sizeof *res->add_chain * len);
     for (; res->len != len; ++res->len) {
         uint64_t add_op;
-        if (!deserialize_uint(r, &add_op)) {
+        if (!deserialize_u64(r, &add_op)) {
             goto fail;
         }
 
@@ -858,15 +862,15 @@ static bool deserialize_shift_expr(AstDeserializer* r, ShiftExpr* res) {
     }
     res->len = 0;
     res->shift_chain = NULL;
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         goto fail;
     }
 
     res->shift_chain = alloc_or_null(sizeof *res->shift_chain * len);
     for (; res->len != len; ++res->len) {
         uint64_t shift_op;
-        if (!deserialize_uint(r, &shift_op)) {
+        if (!deserialize_u64(r, &shift_op)) {
             goto fail;
         }
 
@@ -891,15 +895,15 @@ static bool deserialize_rel_expr(AstDeserializer* r, RelExpr* res) {
     }
     res->len = 0;
     res->rel_chain = NULL;
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         goto fail;
     }
 
     res->rel_chain = alloc_or_null(sizeof *res->rel_chain * len);
     for (; res->len != len; ++res->len) {
         uint64_t rel_op;
-        if (!deserialize_uint(r, &rel_op)) {
+        if (!deserialize_u64(r, &rel_op)) {
             goto fail;
         }
 
@@ -924,15 +928,15 @@ static bool deserialize_eq_expr(AstDeserializer* r, EqExpr* res) {
 
     res->len = 0;
     res->eq_chain = NULL;
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         goto fail;
     }
 
     res->eq_chain = alloc_or_null(sizeof *res->eq_chain * len);
     for (; res->len != len; ++res->len) {
         uint64_t eq_op;
-        if (!deserialize_uint(r, &eq_op)) {
+        if (!deserialize_u64(r, &eq_op)) {
             goto fail;
         }
 
@@ -951,8 +955,8 @@ fail:
 }
 
 static bool deserialize_and_expr(AstDeserializer* r, AndExpr* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
@@ -967,8 +971,8 @@ static bool deserialize_and_expr(AstDeserializer* r, AndExpr* res) {
 }
 
 static bool deserialize_xor_expr(AstDeserializer* r, XorExpr* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
@@ -983,8 +987,8 @@ static bool deserialize_xor_expr(AstDeserializer* r, XorExpr* res) {
 }
 
 static bool deserialize_or_expr(AstDeserializer* r, OrExpr* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
@@ -999,8 +1003,8 @@ static bool deserialize_or_expr(AstDeserializer* r, OrExpr* res) {
 }
 
 static bool deserialize_log_and_expr(AstDeserializer* r, LogAndExpr* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
@@ -1015,8 +1019,8 @@ static bool deserialize_log_and_expr(AstDeserializer* r, LogAndExpr* res) {
 }
 
 static bool deserialize_log_or_expr(AstDeserializer* r, LogOrExpr* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
@@ -1031,8 +1035,8 @@ static bool deserialize_log_or_expr(AstDeserializer* r, LogOrExpr* res) {
     return res;
 }
 
-static void free_cond_expr_conds(CondExpr* cond, size_t len) {
-    for (size_t i = 0; i < len; ++i) {
+static void free_cond_expr_conds(CondExpr* cond, uint32_t len) {
+    for (uint32_t i = 0; i < len; ++i) {
         LogOrAndExpr* item = &cond->conditionals[i];
         LogOrExpr_free_children(&item->log_or);
         Expr_free_children(&item->expr);
@@ -1041,14 +1045,14 @@ static void free_cond_expr_conds(CondExpr* cond, size_t len) {
 }
 
 static bool deserialize_cond_expr_inplace(AstDeserializer* r, CondExpr* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
     res->len = len;
     res->conditionals = alloc_or_null(sizeof *res->conditionals * res->len);
-    for (size_t i = 0; i < res->len; ++i) {
+    for (uint32_t i = 0; i < res->len; ++i) {
         LogOrAndExpr* item = &res->conditionals[i];
         if (!deserialize_log_or_expr(r, &item->log_or)) {
             free_cond_expr_conds(res, i);
@@ -1109,8 +1113,8 @@ static Pointer* deserialize_pointer(AstDeserializer* r) {
         return NULL;
     }
 
-    uint64_t num_indirs;
-    if (!deserialize_uint(r, &num_indirs)) {
+    uint32_t num_indirs;
+    if (!deserialize_u32(r, &num_indirs)) {
         return NULL;
     }
 
@@ -1137,7 +1141,7 @@ static bool deserialize_abs_arr_or_func_suffix(AstDeserializer* r, AbsArrOrFuncS
     }
 
     uint64_t kind;
-    if (!deserialize_uint(r, &kind)) {
+    if (!deserialize_u64(r, &kind)) {
         return false;
     }
     res->kind = kind;
@@ -1193,8 +1197,8 @@ static DirectAbsDeclarator* deserialize_direct_abs_declarator(
         bracket_decl = NULL;
     }
 
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         if (has_bracket_decl) {
             AbsDeclarator_free(bracket_decl);
         }
@@ -1264,7 +1268,7 @@ static bool deserialize_param_declaration(AstDeserializer* r, ParamDeclaration* 
     }
 
     uint64_t kind;
-    if (!deserialize_uint(r, &kind)) {
+    if (!deserialize_u64(r, &kind)) {
         DeclarationSpecs_free(&res->decl_specs);
         return false;
     }
@@ -1284,8 +1288,8 @@ static bool deserialize_param_declaration(AstDeserializer* r, ParamDeclaration* 
 }
 
 static bool deserialize_param_list(AstDeserializer* r, ParamList* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
@@ -1307,8 +1311,8 @@ static bool deserialize_param_type_list(AstDeserializer* r, ParamTypeList* res) 
 }
 
 static bool deserialize_identifier_list(AstDeserializer* r, IdentifierList* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
     res->identifiers = mycc_alloc(sizeof *res->identifiers * len);
@@ -1348,7 +1352,7 @@ static bool deserialize_arr_or_func_suffix(AstDeserializer* r, ArrOrFuncSuffix* 
         return false;
     }
     uint64_t kind;
-    if (!deserialize_uint(r, &kind)) {
+    if (!deserialize_u64(r, &kind)) {
         return false;
     }
     res->kind = kind;
@@ -1395,8 +1399,8 @@ static DirectDeclarator* deserialize_direct_declarator(
         }
     }
 
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         if (res->is_id) {
             Identifier_free(res->id);
         } else {
@@ -1479,8 +1483,8 @@ static bool deserialize_struct_declarator(AstDeserializer* r, StructDeclarator* 
 }
 
 static bool deserialize_struct_declarator_list(AstDeserializer* r, StructDeclaratorList* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
@@ -1514,8 +1518,8 @@ static bool deserialize_struct_declaration(AstDeserializer* r, StructDeclaration
 }
 
 static bool deserialize_struct_declaration_list(AstDeserializer* r, StructDeclarationList* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
@@ -1597,8 +1601,8 @@ static bool deserialize_enumerator(AstDeserializer* r, Enumerator* res) {
 }
 
 static bool deserialize_enum_list(AstDeserializer* r, EnumList* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
     res->enums = alloc_or_null(sizeof *res->enums * len);
@@ -1656,7 +1660,7 @@ static bool deserialize_type_modifiers(AstDeserializer* r, TypeModifiers* res) {
     }
 
     uint64_t num_long;
-    if (!deserialize_uint(r, &num_long)) {
+    if (!deserialize_u64(r, &num_long)) {
         return false;
     }
     res->num_long = (unsigned int)num_long;
@@ -1670,7 +1674,7 @@ static bool deserialize_type_specs(AstDeserializer* r, TypeSpecs* res) {
         return false;
     }
     uint64_t kind;
-    if (!deserialize_uint(r, &kind)) {
+    if (!deserialize_u64(r, &kind)) {
         return false;
     }
     res->kind = (TypeSpecKind)kind;
@@ -1807,16 +1811,16 @@ static bool deserialize_declaration_specs(AstDeserializer* r, DeclarationSpecs* 
         return false;
     }
 
-    uint64_t num_align_specs;
-    if (!deserialize_uint(r, &num_align_specs)) {
+    uint32_t num_align_specs;
+    if (!deserialize_u32(r, &num_align_specs)) {
         return false;
     }
     
     res->num_align_specs = num_align_specs;
     res->align_specs = alloc_or_null(sizeof *res->align_specs * num_align_specs);
-    for (size_t i = 0; i < num_align_specs; ++i) {
+    for (uint32_t i = 0; i < num_align_specs; ++i) {
         if (!deserialize_align_spec(r, &res->align_specs[i])) {
-            for (size_t j = 0; j < i; ++j) {
+            for (uint32_t j = 0; j < i; ++j) {
                 AlignSpec_free_children(&res->align_specs[j]);
             }
             mycc_free(res->align_specs);
@@ -1825,7 +1829,7 @@ static bool deserialize_declaration_specs(AstDeserializer* r, DeclarationSpecs* 
     }
 
     if (!deserialize_type_specs(r, &res->type_specs)) {
-        for (size_t i = 0; i < num_align_specs; ++i) {
+        for (uint32_t i = 0; i < num_align_specs; ++i) {
             AlignSpec_free_children(&res->align_specs[i]);
         }
         mycc_free(res->align_specs);
@@ -1838,8 +1842,8 @@ static bool deserialize_declaration_specs(AstDeserializer* r, DeclarationSpecs* 
 static bool deserialize_declaration_inplace(AstDeserializer* r, Declaration* res);
 
 static bool deserialize_declaration_list(AstDeserializer* r, DeclarationList* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
     res->decls = alloc_or_null(sizeof *res->decls * len);
@@ -1862,7 +1866,7 @@ static LabeledStatement* deserialize_labeled_statement(
     }
 
     uint64_t kind;
-    if (!deserialize_uint(r, &kind)) {
+    if (!deserialize_u64(r, &kind)) {
         return NULL;
     }
 
@@ -2022,7 +2026,7 @@ static IterationStatement* deserialize_iteration_statement(AstDeserializer* r) {
         return false;
     }
     uint64_t kind;
-    if (!deserialize_uint(r, &kind)) {
+    if (!deserialize_u64(r, &kind)) {
         return false;
     }
 
@@ -2065,7 +2069,7 @@ static JumpStatement* deserialize_jump_statement(
     }
 
     uint64_t kind;
-    if (!deserialize_uint(r, &kind)) {
+    if (!deserialize_u64(r, &kind)) {
         return NULL;
     }
 
@@ -2099,7 +2103,7 @@ static CompoundStatement* deserialize_compound_statement(AstDeserializer* r);
 
 static bool deserialize_statement_inplace(AstDeserializer* r, Statement* res) {
     uint64_t kind;
-    if (!deserialize_uint(r, &kind)) {
+    if (!deserialize_u64(r, &kind)) {
         return false;
     }
     res->kind = kind;
@@ -2153,8 +2157,8 @@ static bool deserialize_compound_statement_inplace(AstDeserializer* r, CompoundS
         return false;
     }
 
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
     res->len = len;
@@ -2224,8 +2228,8 @@ static bool deserialize_init_declarator(AstDeserializer* r, InitDeclarator* res)
 }
 
 static bool deserialize_init_declarator_list(AstDeserializer* r, InitDeclaratorList* res) {
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return false;
     }
 
@@ -2274,8 +2278,8 @@ static bool deserialize_external_declaration(AstDeserializer* r,
 
 static TranslationUnit deserialize_translation_unit(AstDeserializer* r) {
     TranslationUnit res;
-    uint64_t len;
-    if (!deserialize_uint(r, &len)) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
         return (TranslationUnit){
             .len = 0,
             .external_decls = NULL,
@@ -2284,9 +2288,9 @@ static TranslationUnit deserialize_translation_unit(AstDeserializer* r) {
 
     res.len = len;
     res.external_decls = mycc_alloc(sizeof *res.external_decls * res.len);
-    for (size_t i = 0; i < res.len; ++i) {
+    for (uint32_t i = 0; i < res.len; ++i) {
         if (!deserialize_external_declaration(r, &res.external_decls[i])) {
-            for (size_t j = 0; j < i; ++j) {
+            for (uint32_t j = 0; j < i; ++j) {
                 ExternalDeclaration_free_children(&res.external_decls[j]);
             }
             mycc_free(res.external_decls);

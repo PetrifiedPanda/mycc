@@ -48,7 +48,7 @@ void GenericAssoc_free_children(GenericAssoc* a) {
 }
 
 static bool parse_generic_assoc_list(ParserState* s, GenericAssocList* res) {
-    size_t alloc_len = 1;
+    uint32_t alloc_len = 1;
     *res = (GenericAssocList){
         .info = AstNodeInfo_create(ParserState_curr_loc(s)),
         .len = 1,
@@ -84,7 +84,7 @@ fail:
 }
 
 void GenericAssocList_free(GenericAssocList* l) {
-    for (size_t i = 0; i < l->len; ++i) {
+    for (uint32_t i = 0; i < l->len; ++i) {
         GenericAssoc_free_children(&l->assocs[i]);
     }
     mycc_free(l->assocs);

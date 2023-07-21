@@ -11,7 +11,7 @@
 #include "util/Str.h"
 
 #ifdef _WIN32
-#pragma warning (push)
+#pragma warning(push)
 // warning for comparing string literal addresses
 #pragma warning(disable : 4130)
 #endif
@@ -47,45 +47,23 @@
 
 #define ASSERT_INT(got, expected)                                              \
     do {                                                                       \
-        const int assert_int_got = (got);                                      \
-        const int assert_int_expected = (expected);                            \
+        const intmax_t assert_int_got = (got);                                 \
+        const intmax_t assert_int_expected = (expected);                       \
         if (assert_int_got != assert_int_expected) {                           \
-            PRINT_ASSERT_ERR("Expected {int} but got {int}",                   \
+            PRINT_ASSERT_ERR("Expected {intmax} but got {intmax}",             \
                              assert_int_expected,                              \
                              assert_int_got);                                  \
         }                                                                      \
     } while (0)
 
-#define ASSERT_I64(got, expected)                                              \
+#define ASSERT_UINT(got, expected)                                             \
     do {                                                                       \
-        const int64_t assert_intmax_t_got = (got);                             \
-        const int64_t assert_intmax_t_expected = (expected);                   \
-        if (assert_intmax_t_got != assert_intmax_t_expected) {                 \
-            PRINT_ASSERT_ERR("Expected {i64} but got {i64}",                   \
-                             assert_intmax_t_expected,                         \
-                             assert_intmax_t_got);                             \
-        }                                                                      \
-    } while (0)
-
-#define ASSERT_U64(got, expected)                                              \
-    do {                                                                       \
-        const uint64_t assert_uintmax_t_got = (got);                           \
-        const uint64_t assert_uintmax_t_expected = (expected);                 \
-        if (assert_uintmax_t_got != assert_uintmax_t_expected) {               \
-            PRINT_ASSERT_ERR("Expected {u64} but got {u64}",                   \
-                             assert_uintmax_t_expected,                        \
-                             assert_uintmax_t_got);                            \
-        }                                                                      \
-    } while (0)
-
-#define ASSERT_SIZE_T(got_expr, expected_expr)                                 \
-    do {                                                                       \
-        const size_t assert_size_t_got = (got_expr);                           \
-        const size_t assert_size_t_ex = (expected_expr);                       \
-        if (assert_size_t_got != assert_size_t_ex) {                           \
-            PRINT_ASSERT_ERR("Expected {size_t} but got {size_t}",             \
-                             assert_size_t_ex,                                 \
-                             assert_size_t_got);                               \
+        const uintmax_t assert_uint_got = (got);                               \
+        const uintmax_t assert_uint_ex = (expected);                           \
+        if (assert_uint_got != assert_uint_ex) {                               \
+            PRINT_ASSERT_ERR("Expected {uintmax} but got {uintmax}",           \
+                             assert_uint_ex,                                   \
+                             assert_uint_got);                                 \
         }                                                                      \
     } while (0)
 
@@ -131,7 +109,7 @@
     } while (0)
 
 #ifdef _WIN32
-#pragma warning (pop)
+#pragma warning(pop)
 #endif
 
 #endif

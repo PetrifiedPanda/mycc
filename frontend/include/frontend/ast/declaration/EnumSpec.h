@@ -16,7 +16,7 @@ typedef struct {
 } Enumerator;
 
 typedef struct {
-    size_t len;
+    uint32_t len;
     Enumerator* enums;
 } EnumList;
 

@@ -25,18 +25,18 @@ typedef struct IRLiteral {
         intmax_t int_val;
         long double float_val;
         struct { // struct, array
-            size_t num_members;
+            uint32_t num_members;
             struct IRLiteral* members;
         };
     };
 } IRLiteral;
 
 typedef struct {
-    size_t id;
+    uint32_t id;
 } IRRegRef;
 
 typedef struct {
-    size_t id;
+    uint32_t id;
 } IRGlobalRef;
 
 typedef struct {
@@ -113,12 +113,12 @@ typedef struct {
         };
         struct {
             IRInstArg func;
-            size_t num_func_args;
+            uint32_t num_func_args;
             IRInstArg* func_args;
         };
         struct {
             IRInstArg accessed;
-            size_t num_accesses;
+            uint32_t num_accesses;
             IRInstArg* elems;
             IRInstArg replacement;
         };
@@ -133,7 +133,7 @@ void IRLiteral_free(IRLiteral* lit);
 IRInst IRInst_create_call(const IRTypeRef* type,
                           const IRRegRef* dest,
                           const IRInstArg* func,
-                          size_t num_args,
+                          uint32_t num_args,
                           IRInstArg* func_args);
 
 IRInst IRInst_create_assign(const IRTypeRef* type,
@@ -159,19 +159,19 @@ IRInst IRInst_create_store(const IRInstArg* ptr, const IRInstArg* to_store);
 IRInst IRInst_create_getelem(const IRRegRef* dest,
                              const IRTypeRef* type,
                              const IRInstArg* accessed,
-                             size_t num_accesses,
+                             uint32_t num_accesses,
                              IRInstArg* elems);
 
 IRInst IRInst_create_getelemptr(const IRRegRef* dest,
                                 const IRTypeRef* type,
                                 const IRInstArg* accessed,
-                                size_t num_accesses,
+                                uint32_t num_accesses,
                                 IRInstArg* elems);
 
 IRInst IrInst_create_replace_elem(const IRRegRef* dest,
                                   const IRTypeRef* type,
                                   const IRInstArg* accessed,
-                                  size_t num_accesses,
+                                  uint32_t num_accesses,
                                   IRInstArg* elems,
                                   const IRInstArg* replacement);
 void IRInst_free(IRInst* tac);

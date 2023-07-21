@@ -48,7 +48,7 @@ typedef struct DirectDeclarator {
         Identifier* id;
         Declarator* bracket_decl;
     };
-    size_t len;
+    uint32_t len;
     ArrOrFuncSuffix* suffixes;
 } DirectDeclarator;
 

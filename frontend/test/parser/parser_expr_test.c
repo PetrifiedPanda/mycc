@@ -23,10 +23,10 @@ static PrimaryExpr parse_primary_helper(Str code) {
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_TOKEN_KIND(ParserState_curr_kind(&s), TOKEN_INVALID);
     ASSERT(unary.kind == UNARY_POSTFIX);
-    ASSERT_SIZE_T(unary.len, 0);
+    ASSERT_UINT(unary.len, 0);
 
     ASSERT(unary.postfix.is_primary);
-    ASSERT_SIZE_T(unary.postfix.len, 0);
+    ASSERT_UINT(unary.postfix.len, 0);
 
     ParserState_free(&s);
     PreprocRes_free(&preproc_res);
@@ -121,17 +121,17 @@ static void primary_expr_generic_sel_test(void) {
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_TOKEN_KIND(ParserState_curr_kind(&s), TOKEN_INVALID);
     ASSERT(unary.kind == UNARY_POSTFIX);
-    ASSERT_SIZE_T(unary.len, 0);
+    ASSERT_UINT(unary.len, 0);
 
     ASSERT(unary.postfix.is_primary);
-    ASSERT_SIZE_T(unary.postfix.len, 0);
+    ASSERT_UINT(unary.postfix.len, 0);
 
     PrimaryExpr res = unary.postfix.primary;
 
     ASSERT(res.kind == PRIMARY_EXPR_GENERIC);
     check_assign_expr_id(res.generic.assign, STR_LIT("var"));
 
-    ASSERT_SIZE_T(res.generic.assocs.len, (size_t)4);
+    ASSERT_UINT(res.generic.assocs.len, (uint32_t)4);
     GenericAssoc* assoc = res.generic.assocs.assocs;
 
     ASSERT_NULL(assoc->type_name->abstract_decl);
@@ -152,9 +152,9 @@ static void primary_expr_generic_sel_test(void) {
     ASSERT(assoc->type_name->spec_qual_list->specs.kind == TYPE_SPEC_STRUCT);
     ASSERT(
         assoc->type_name->spec_qual_list->specs.struct_union_spec->is_struct);
-    ASSERT_SIZE_T(assoc->type_name->spec_qual_list->specs.struct_union_spec
+    ASSERT_UINT(assoc->type_name->spec_qual_list->specs.struct_union_spec
                       ->decl_list.len,
-                  (size_t)0);
+                  (uint32_t)0);
     check_identifier(
         assoc->type_name->spec_qual_list->specs.struct_union_spec->identifier,
         STR_LIT("a_struct"));
@@ -212,7 +212,7 @@ TEST(unary_expr) {
 
         ASSERT(res.kind == UNARY_DEREF);
 
-        ASSERT_SIZE_T(res.len, (size_t)3);
+        ASSERT_UINT(res.len, (uint32_t)3);
 
         ASSERT(res.ops_before[0] == UNARY_OP_INC);
         ASSERT(res.ops_before[1] == UNARY_OP_DEC);
@@ -225,7 +225,7 @@ TEST(unary_expr) {
     {
         UnaryExpr res = parse_unary_helper(STR_LIT("++++--++--100"));
 
-        ASSERT_SIZE_T(res.len, (size_t)5);
+        ASSERT_UINT(res.len, (uint32_t)5);
         ASSERT(res.kind == UNARY_POSTFIX);
 
         ASSERT(res.ops_before[0] == UNARY_OP_INC);
@@ -256,7 +256,7 @@ TEST(unary_expr) {
         ASSERT(res.kind == UNARY_BNOT);
 
         CastExpr* cast = res.cast_expr;
-        ASSERT_SIZE_T(cast->len, (size_t)0);
+        ASSERT_UINT(cast->len, (uint32_t)0);
         UnaryExpr* child_unary = &cast->rhs;
 
         ASSERT(child_unary->kind == UNARY_DEREF);
@@ -275,7 +275,7 @@ static PostfixExpr parse_postfix_helper(Str code) {
     UnaryExpr unary;
     ASSERT(parse_unary_expr_inplace(&s, &unary));
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_SIZE_T(unary.len, 0);
+    ASSERT_UINT(unary.len, 0);
     ASSERT(unary.kind == UNARY_POSTFIX);
 
     PreprocRes_free(&preproc_res);
@@ -292,7 +292,7 @@ static void test_postfix_expr_intializer(bool tailing_comma) {
     PostfixExpr res = parse_postfix_helper(STR_LIT(code));
 
     ASSERT(res.is_primary == false);
-    ASSERT_SIZE_T(res.init_list.len, (size_t)2);
+    ASSERT_UINT(res.init_list.len, (uint32_t)2);
 
     ASSERT(!Designation_is_valid(&res.init_list.inits[0].designation));
     ASSERT(res.init_list.inits[0].init.is_assign);
@@ -313,7 +313,7 @@ TEST(postfix_expr) {
 
         ASSERT(res.is_primary);
 
-        ASSERT_SIZE_T(res.len, (size_t)5);
+        ASSERT_UINT(res.len, (uint32_t)5);
 
         check_primary_expr_id(&res.primary, STR_LIT("test"));
 
@@ -338,7 +338,7 @@ TEST(postfix_expr) {
         PostfixExpr res = parse_postfix_helper(
             STR_LIT("test[i_am_id]()[23](another_id, 34, id)"));
 
-        ASSERT_SIZE_T(res.len, (size_t)4);
+        ASSERT_UINT(res.len, (uint32_t)4);
         PostfixSuffix* suffix = res.suffixes;
 
         ASSERT(suffix->kind == POSTFIX_INDEX);
@@ -347,7 +347,7 @@ TEST(postfix_expr) {
         ++suffix;
 
         ASSERT(suffix->kind == POSTFIX_BRACKET);
-        ASSERT_SIZE_T(suffix->bracket_list.len, (size_t)0);
+        ASSERT_UINT(suffix->bracket_list.len, (uint32_t)0);
 
         ++suffix;
 
@@ -357,7 +357,7 @@ TEST(postfix_expr) {
         ++suffix;
 
         ASSERT(suffix->kind == POSTFIX_BRACKET);
-        ASSERT_SIZE_T(suffix->bracket_list.len, (size_t)3);
+        ASSERT_UINT(suffix->bracket_list.len, (uint32_t)3);
         check_assign_expr_id(&suffix->bracket_list.assign_exprs[0],
                              STR_LIT("another_id"));
         check_assign_expr_val(&suffix->bracket_list.assign_exprs[1],
@@ -377,7 +377,7 @@ static void check_assign_expr_cast_int(CondExpr* expr,
                                        Value val) {
     CastExpr* cast = &expr->last_else.log_ands->or_exprs->xor_exprs->and_exprs
                           ->eq_exprs->lhs.lhs.lhs.lhs.lhs;
-    ASSERT_SIZE_T(cast->len, (size_t)1);
+    ASSERT_UINT(cast->len, (uint32_t)1);
     ASSERT(cast->type_names[0].spec_qual_list->specs.kind == cast_type);
     check_unary_expr_val(&cast->rhs, val);
 }
@@ -412,7 +412,7 @@ TEST(assign_expr) {
         AssignExpr* res = parse_assign_helper(
             STR_LIT("x = 100 += y *= 100.0 /= 2"));
         ASSERT_NOT_NULL(res);
-        ASSERT_SIZE_T(res->len, (size_t)4);
+        ASSERT_UINT(res->len, (uint32_t)4);
 
         AssignExprOp expected_ops[] = {
             ASSIGN_EXPR_ASSIGN,
@@ -442,7 +442,7 @@ TEST(assign_expr) {
             LEN = ARR_LEN(expected_ops)
         };
 
-        for (size_t i = 0; i < LEN; ++i) {
+        for (uint32_t i = 0; i < LEN; ++i) {
             ASSERT(res->assign_chain[i].op == expected_ops[i]);
 
             ValOrStr curr = expected_spellings[i];
@@ -468,7 +468,7 @@ TEST(assign_expr) {
     {
         AssignExpr* res = parse_assign_helper(STR_LIT("(char)100"));
 
-        ASSERT_SIZE_T(res->len, (size_t)0);
+        ASSERT_UINT(res->len, (uint32_t)0);
         check_assign_expr_cast_int(&res->value,
                                    TYPE_SPEC_CHAR,
                                    Value_create_sint(VALUE_INT, 100));
@@ -480,18 +480,18 @@ TEST(assign_expr) {
         AssignExpr* res = parse_assign_helper(
             STR_LIT("(struct a_struct){1, var} = 0.0"));
 
-        ASSERT_SIZE_T(res->len, (size_t)1);
+        ASSERT_UINT(res->len, (uint32_t)1);
 
         ASSERT(res->assign_chain[0].op == ASSIGN_EXPR_ASSIGN);
 
         UnaryExpr* unary = &res->assign_chain[0].unary;
         ASSERT(unary->kind == UNARY_POSTFIX);
-        ASSERT_SIZE_T(unary->len, (size_t)0);
+        ASSERT_UINT(unary->len, (uint32_t)0);
 
         ASSERT(unary->postfix.is_primary == false);
-        ASSERT_SIZE_T(unary->postfix.len, (size_t)0);
+        ASSERT_UINT(unary->postfix.len, (uint32_t)0);
 
-        ASSERT_SIZE_T(unary->postfix.init_list.len, (size_t)2);
+        ASSERT_UINT(unary->postfix.init_list.len, (uint32_t)2);
         check_assign_expr_val(unary->postfix.init_list.inits[0].init.assign,
                               Value_create_sint(VALUE_INT, 1));
         check_assign_expr_id(unary->postfix.init_list.inits[1].init.assign,
@@ -505,7 +505,7 @@ TEST(assign_expr) {
     {
         AssignExpr* res = parse_assign_helper(STR_LIT("var *= (double)12"));
 
-        ASSERT_SIZE_T(res->len, (size_t)1);
+        ASSERT_UINT(res->len, (uint32_t)1);
 
         ASSERT(res->assign_chain[0].op == ASSIGN_EXPR_MUL);
         check_unary_expr_id(&res->assign_chain[0].unary, STR_LIT("var"));
@@ -521,7 +521,7 @@ TEST(assign_expr) {
         AssignExpr* res = parse_assign_helper(
             STR_LIT("var ^= (struct a_struct){1, var}"));
 
-        ASSERT_SIZE_T(res->len, (size_t)1);
+        ASSERT_UINT(res->len, (uint32_t)1);
 
         ASSERT(res->assign_chain[0].op == ASSIGN_EXPR_XOR);
         check_unary_expr_id(&res->assign_chain[0].unary, STR_LIT("var"));
@@ -530,9 +530,9 @@ TEST(assign_expr) {
                                 ->and_exprs->eq_exprs->lhs.lhs.lhs.lhs.lhs.rhs;
 
         ASSERT(unary->kind == UNARY_POSTFIX);
-        ASSERT_SIZE_T(unary->len, (size_t)0);
+        ASSERT_UINT(unary->len, (uint32_t)0);
         ASSERT(unary->postfix.is_primary == false);
-        ASSERT_SIZE_T(unary->postfix.init_list.len, (size_t)2);
+        ASSERT_UINT(unary->postfix.init_list.len, (uint32_t)2);
 
         ASSERT(!Designation_is_valid(
             &unary->postfix.init_list.inits[0].designation));
@@ -553,7 +553,7 @@ void check_assign_expr_single_assign_id(AssignExpr* expr,
                                         Str lhs,
                                         AssignExprOp op,
                                         Str rhs) {
-    ASSERT_SIZE_T(expr->len, (size_t)1);
+    ASSERT_UINT(expr->len, (uint32_t)1);
     ASSERT(expr->assign_chain[0].op == op);
     check_unary_expr_id(&expr->assign_chain[0].unary, lhs);
     check_cond_expr_id(&expr->value, rhs);
@@ -563,7 +563,7 @@ void check_assign_expr_single_assign_int(AssignExpr* expr,
                                          Str lhs,
                                          AssignExprOp op,
                                          Value rhs) {
-    ASSERT_SIZE_T(expr->len, (size_t)1);
+    ASSERT_UINT(expr->len, (uint32_t)1);
     ASSERT(expr->assign_chain[0].op == op);
     check_unary_expr_id(&expr->assign_chain[0].unary, lhs);
     check_cond_expr_val(&expr->value, rhs);
@@ -573,7 +573,7 @@ void check_assign_expr_single_assign_float(AssignExpr* expr,
                                            Str lhs,
                                            AssignExprOp op,
                                            Value rhs) {
-    ASSERT_SIZE_T(expr->len, (size_t)1);
+    ASSERT_UINT(expr->len, (uint32_t)1);
     ASSERT(expr->assign_chain[0].op == op);
     check_unary_expr_id(&expr->assign_chain[0].unary, lhs);
     check_cond_expr_val(&expr->value, rhs);
@@ -592,7 +592,7 @@ TEST(expr) {
     ASSERT(parse_expr_inplace(&s, &expr));
     ASSERT(err.kind == PARSER_ERR_NONE);
 
-    ASSERT_SIZE_T(expr.len, (size_t)3);
+    ASSERT_UINT(expr.len, (uint32_t)3);
     check_assign_expr_single_assign_int(&expr.assign_exprs[0],
                                         STR_LIT("a"),
                                         ASSIGN_EXPR_ASSIGN,

@@ -20,7 +20,7 @@ TEST(ParserState) {
 
     Token dummy_string_tokens[NUM_STRINGS] = {{0}};
     char insert_string[STRLEN] = {0};
-    for (size_t i = 0; i < NUM_STRINGS; ++i) {
+    for (uint32_t i = 0; i < NUM_STRINGS; ++i) {
 
         if (i % SCOPE_INTERVAL == 0) {
             ParserState_push_scope(&s);
@@ -44,7 +44,7 @@ TEST(ParserState) {
     }
 
     char test_string[STRLEN] = {0};
-    for (size_t i = 0; i < NUM_STRINGS; ++i) {
+    for (uint32_t i = 0; i < NUM_STRINGS; ++i) {
         test_string[i] = 'a';
 
         const StrBuf test_string_str = StrBuf_non_heap(i + 1, test_string);
@@ -58,10 +58,10 @@ TEST(ParserState) {
         ASSERT(err.kind == PARSER_ERR_NONE);
     }
 
-    const size_t num_steps = NUM_STRINGS / SCOPE_INTERVAL + 1;
-    for (size_t i = 0; i < num_steps; ++i) {
+    const uint32_t num_steps = NUM_STRINGS / SCOPE_INTERVAL + 1;
+    for (uint32_t i = 0; i < num_steps; ++i) {
         char pop_test_string[STRLEN] = {0};
-        size_t j;
+        uint32_t j;
         for (j = 0; j < NUM_STRINGS - i * SCOPE_INTERVAL; ++j) {
             pop_test_string[j] = 'a';
             const StrBuf pop_test_str = StrBuf_non_heap(j + 1, pop_test_string);
@@ -104,9 +104,9 @@ TEST(ParserState) {
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT_STR(StrBuf_as_str(&err.redefined_symbol), STR_LIT("Test"));
     ASSERT(!err.was_typedef_name);
-    ASSERT_SIZE_T(err.prev_def_file, (size_t)0);
-    ASSERT_SIZE_T(err.prev_def_loc.line, (size_t)0);
-    ASSERT_SIZE_T(err.prev_def_loc.index, (size_t)0);
+    ASSERT_UINT(err.prev_def_file, (uint32_t)0);
+    ASSERT_UINT(err.prev_def_loc.line, (uint32_t)0);
+    ASSERT_UINT(err.prev_def_loc.index, (uint32_t)0);
 
     ParserErr_free(&err);
     err = ParserErr_create();
@@ -116,11 +116,11 @@ TEST(ParserState) {
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT_STR(StrBuf_as_str(&err.redefined_symbol), STR_LIT("Test"));
     ASSERT(!err.was_typedef_name);
-    ASSERT_SIZE_T(err.prev_def_file, (size_t)0);
-    ASSERT_SIZE_T(err.prev_def_loc.line, (size_t)0);
-    ASSERT_SIZE_T(err.prev_def_loc.index, (size_t)0);
+    ASSERT_UINT(err.prev_def_file, (uint32_t)0);
+    ASSERT_UINT(err.prev_def_loc.line, (uint32_t)0);
+    ASSERT_UINT(err.prev_def_loc.index, (uint32_t)0);
 
-    for (size_t i = 0; i < NUM_STRINGS; ++i) {
+    for (uint32_t i = 0; i < NUM_STRINGS; ++i) {
         Token_free(&dummy_string_tokens[i]);
     }
     ParserErr_free(&err);

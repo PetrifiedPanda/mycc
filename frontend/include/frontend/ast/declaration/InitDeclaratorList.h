@@ -8,7 +8,7 @@
 typedef struct InitDeclarator InitDeclarator;
 
 typedef struct {
-    size_t len;
+    uint32_t len;
     InitDeclarator* decls;
 } InitDeclaratorList;
 

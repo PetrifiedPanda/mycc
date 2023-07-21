@@ -34,7 +34,7 @@ typedef struct DeclarationSpecs {
     StorageClass storage_class;
     TypeQuals type_quals;
     
-    size_t num_align_specs;
+    uint32_t num_align_specs;
     AlignSpec* align_specs;
     
     TypeSpecs type_specs;

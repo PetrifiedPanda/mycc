@@ -8,7 +8,7 @@
 typedef struct Declaration Declaration;
 
 typedef struct {
-    size_t len;
+    uint32_t len;
     Declaration* decls;
 } DeclarationList;
 

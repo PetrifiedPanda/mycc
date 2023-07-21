@@ -39,7 +39,7 @@ typedef struct DirectAbsDeclarator {
     AstNodeInfo info;
     AbsDeclarator* bracket_decl;
 
-    size_t len;
+    uint32_t len;
     AbsArrOrFuncSuffix* following_suffixes;
 } DirectAbsDeclarator;
 

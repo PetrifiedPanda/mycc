@@ -10,9 +10,9 @@
 
 static void check_enum_list_ids(const EnumList* l,
                                 const StrBuf* enum_constants,
-                                size_t len) {
-    ASSERT_SIZE_T(l->len, len);
-    for (size_t i = 0; i < len; ++i) {
+                                uint32_t len) {
+    ASSERT_UINT(l->len, len);
+    for (uint32_t i = 0; i < len; ++i) {
         const Identifier* id = l->enums[i].identifier;
         ASSERT_NOT_NULL(id);
         ASSERT_STR(StrBuf_as_str(&id->spelling),
@@ -51,16 +51,16 @@ TEST(enum_list) {
         const EnumList* res = &e_spec->enum_list;
         ASSERT(err.kind == PARSER_ERR_NONE);
         ASSERT_TOKEN_KIND(ParserState_curr_kind(&s), TOKEN_INVALID);
-        ASSERT_SIZE_T(res->len, (size_t)EXPECTED_LEN);
+        ASSERT_UINT(res->len, (uint32_t)EXPECTED_LEN);
         ASSERT_NOT_NULL(res->enums);
 
-        for (size_t i = 0; i < EXPECTED_LEN; ++i) {
+        for (uint32_t i = 0; i < EXPECTED_LEN; ++i) {
             ASSERT_NOT_NULL(res->enums[i].identifier);
             ASSERT_NULL(res->enums[i].enum_val);
         }
         check_enum_list_ids(res, enum_constants, ARR_LEN(enum_constants));
 
-        for (size_t i = 0; i < EXPECTED_LEN; ++i) {
+        for (uint32_t i = 0; i < EXPECTED_LEN; ++i) {
             ASSERT(ParserState_is_enum_constant(&s, StrBuf_as_str(&enum_constants[i])));
         }
 
@@ -85,10 +85,10 @@ TEST(enum_list) {
         const EnumList* res = &e_spec->enum_list;
         ASSERT(err.kind == PARSER_ERR_NONE);
         ASSERT_TOKEN_KIND(ParserState_curr_kind(&s), TOKEN_INVALID);
-        ASSERT_SIZE_T(res->len, (size_t)EXPECTED_LEN);
+        ASSERT_UINT(res->len, (uint32_t)EXPECTED_LEN);
         ASSERT_NOT_NULL(res->enums);
 
-        for (size_t i = 0; i < EXPECTED_LEN; ++i) {
+        for (uint32_t i = 0; i < EXPECTED_LEN; ++i) {
             ASSERT_NOT_NULL(res->enums[i].identifier);
         }
 
@@ -106,11 +106,11 @@ TEST(enum_list) {
         ASSERT_NOT_NULL(res->enums[3].enum_val);
         check_const_expr_id(res->enums[3].enum_val, STR_LIT("test"));
 
-        for (size_t i = 4; i < EXPECTED_LEN; ++i) {
+        for (uint32_t i = 4; i < EXPECTED_LEN; ++i) {
             ASSERT_NULL(res->enums[i].enum_val);
         }
 
-        for (size_t i = 0; i < EXPECTED_LEN; ++i) {
+        for (uint32_t i = 0; i < EXPECTED_LEN; ++i) {
             ASSERT(ParserState_is_enum_constant(&s, StrBuf_as_str(&enum_constants[i])));
         }
 
@@ -191,13 +191,13 @@ TEST(designation) {
     ASSERT(!init->is_assign);
 
     const InitList* list = &init->init_list;
-    ASSERT_SIZE_T(list->len, 2);
+    ASSERT_UINT(list->len, 2);
     const Designation* des1 = &list->inits[0].designation;
     const Initializer* val1 = &list->inits[0].init;
     ASSERT(val1->is_assign);
     check_assign_expr_id(val1->assign, STR_LIT("a"));
 
-    ASSERT_SIZE_T(des1->designators.len, (size_t)4);
+    ASSERT_UINT(des1->designators.len, (uint32_t)4);
 
     struct Designator* designators = des1->designators.designators;
     ASSERT(designators[0].is_index == false);
@@ -218,7 +218,7 @@ TEST(designation) {
     ASSERT(val2->is_assign);
     check_assign_expr_val(val2->assign, Value_create_sint(VALUE_INT, 2));
 
-    ASSERT_SIZE_T(des2->designators.len, (size_t)6);
+    ASSERT_UINT(des2->designators.len, (uint32_t)6);
 
     designators = des2->designators.designators;
     ASSERT(designators[0].is_index == true);
@@ -278,10 +278,10 @@ static void check_struct_declaration_non_static_assert(
     int bit_field) {
     ASSERT(decl->decl_specs.type_specs.kind == type);
     if (!Str_valid(identifier) && bit_field < 0) {
-        ASSERT_SIZE_T(decl->decls.len, (size_t)0);
+        ASSERT_UINT(decl->decls.len, (uint32_t)0);
         return;
     } else {
-        ASSERT_SIZE_T(decl->decls.len, (size_t)1);
+        ASSERT_UINT(decl->decls.len, (uint32_t)1);
     }
     const StructDeclarator* declarator = &decl->decls.decls[0];
     if (bit_field > 0) {
@@ -293,7 +293,7 @@ static void check_struct_declaration_non_static_assert(
         ASSERT_NOT_NULL(inner_decl);
         ASSERT_NOT_NULL(inner_decl->direct_decl);
         ASSERT_NULL(inner_decl->ptr);
-        ASSERT_SIZE_T(inner_decl->direct_decl->len, (size_t)0);
+        ASSERT_UINT(inner_decl->direct_decl->len, (uint32_t)0);
         ASSERT(inner_decl->direct_decl->is_id);
         ASSERT_NOT_NULL(inner_decl->direct_decl->id);
         ASSERT_STR(StrBuf_as_str(&inner_decl->direct_decl->id->spelling),
@@ -316,7 +316,7 @@ TEST(struct_declaration_list) {
     ASSERT_NULL(su_spec->identifier);
     ASSERT(ParserState_curr_kind(&s) == TOKEN_INVALID);
     StructDeclarationList* res = &su_spec->decl_list;
-    ASSERT_SIZE_T(res->len, (size_t)4);
+    ASSERT_UINT(res->len, (uint32_t)4);
 
     check_struct_declaration_non_static_assert(&res->decls[0],
                                                TYPE_SPEC_INT,
@@ -394,9 +394,9 @@ static void check_cannot_combine_type_specs(Str code,
     ASSERT(err.kind == PARSER_ERR_INCOMPATIBLE_TYPE_SPECS);
     ASSERT_TOKEN_KIND(err.prev_type_spec, prev_spec);
     ASSERT_TOKEN_KIND(err.type_spec, type_spec);
-    ASSERT_SIZE_T(loc.file_idx, err.base.loc.file_idx);
-    ASSERT_SIZE_T(loc.file_loc.line, err.base.loc.file_loc.line);
-    ASSERT_SIZE_T(loc.file_loc.index, err.base.loc.file_loc.index);
+    ASSERT_UINT(loc.file_idx, err.base.loc.file_idx);
+    ASSERT_UINT(loc.file_loc.line, err.base.loc.file_loc.line);
+    ASSERT_UINT(loc.file_loc.index, err.base.loc.file_loc.index);
 }
 
 TEST(type_spec_error) {

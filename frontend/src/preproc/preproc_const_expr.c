@@ -51,11 +51,11 @@ static bool PreprocConstExprVal_is_nonzero(const PreprocConstExprVal* val) {
     return val->is_signed ? val->sint_val != 0 : val->uint_val != 0;
 }
 
-static PreprocConstExprVal evaluate_preproc_cond_expr(size_t* it,
+static PreprocConstExprVal evaluate_preproc_cond_expr(uint32_t* it,
                                                       const TokenArr* arr,
                                                       PreprocErr* err);
 
-static PreprocConstExprVal evaluate_preproc_primary_expr(size_t* it,
+static PreprocConstExprVal evaluate_preproc_primary_expr(uint32_t* it,
                                                          const TokenArr* arr,
                                                          PreprocErr* err) {
     if (*it >= arr->len) {
@@ -123,7 +123,7 @@ static bool is_preproc_unary_op(TokenKind k) {
     }
 }
 
-static PreprocConstExprVal evaluate_preproc_unary_expr(size_t* it,
+static PreprocConstExprVal evaluate_preproc_unary_expr(uint32_t* it,
                                                        const TokenArr* arr,
                                                        PreprocErr* err) {
     if (is_preproc_unary_op(arr->tokens[*it].kind)) {
@@ -174,7 +174,7 @@ static PreprocConstExprVal evaluate_preproc_unary_expr(size_t* it,
     }
 }
 
-static PreprocConstExprVal evaluate_preproc_mul_expr(size_t* it,
+static PreprocConstExprVal evaluate_preproc_mul_expr(uint32_t* it,
                                                      const TokenArr* arr,
                                                      PreprocErr* err) {
     PreprocConstExprVal res = evaluate_preproc_unary_expr(it, arr, err);
@@ -208,7 +208,7 @@ static PreprocConstExprVal evaluate_preproc_mul_expr(size_t* it,
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_add_expr(size_t* it,
+static PreprocConstExprVal evaluate_preproc_add_expr(uint32_t* it,
                                                      const TokenArr* arr,
                                                      PreprocErr* err) {
     PreprocConstExprVal res = evaluate_preproc_mul_expr(it, arr, err);
@@ -233,7 +233,7 @@ static PreprocConstExprVal evaluate_preproc_add_expr(size_t* it,
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_shift_expr(size_t* it,
+static PreprocConstExprVal evaluate_preproc_shift_expr(uint32_t* it,
                                                        const TokenArr* arr,
                                                        PreprocErr* err) {
     PreprocConstExprVal res = evaluate_preproc_add_expr(it, arr, err);
@@ -258,7 +258,7 @@ static PreprocConstExprVal evaluate_preproc_shift_expr(size_t* it,
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_rel_expr(size_t* it,
+static PreprocConstExprVal evaluate_preproc_rel_expr(uint32_t* it,
                                                      const TokenArr* arr,
                                                      PreprocErr* err) {
     PreprocConstExprVal res = evaluate_preproc_shift_expr(it, arr, err);
@@ -295,7 +295,7 @@ static PreprocConstExprVal evaluate_preproc_rel_expr(size_t* it,
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it,
+static PreprocConstExprVal evaluate_preproc_eq_expr(uint32_t* it,
                                                     const TokenArr* arr,
                                                     PreprocErr* err) {
     PreprocConstExprVal res = evaluate_preproc_rel_expr(it, arr, err);
@@ -322,7 +322,7 @@ static PreprocConstExprVal evaluate_preproc_eq_expr(size_t* it,
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_and_expr(size_t* it,
+static PreprocConstExprVal evaluate_preproc_and_expr(uint32_t* it,
                                                      const TokenArr* arr,
                                                      PreprocErr* err) {
     PreprocConstExprVal res = evaluate_preproc_eq_expr(it, arr, err);
@@ -342,7 +342,7 @@ static PreprocConstExprVal evaluate_preproc_and_expr(size_t* it,
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_xor_expr(size_t* it,
+static PreprocConstExprVal evaluate_preproc_xor_expr(uint32_t* it,
                                                      const TokenArr* arr,
                                                      PreprocErr* err) {
     PreprocConstExprVal res = evaluate_preproc_and_expr(it, arr, err);
@@ -362,7 +362,7 @@ static PreprocConstExprVal evaluate_preproc_xor_expr(size_t* it,
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_or_expr(size_t* it,
+static PreprocConstExprVal evaluate_preproc_or_expr(uint32_t* it,
                                                     const TokenArr* arr,
                                                     PreprocErr* err) {
     PreprocConstExprVal res = evaluate_preproc_xor_expr(it, arr, err);
@@ -382,7 +382,7 @@ static PreprocConstExprVal evaluate_preproc_or_expr(size_t* it,
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_log_and_expr(size_t* it,
+static PreprocConstExprVal evaluate_preproc_log_and_expr(uint32_t* it,
                                                          const TokenArr* arr,
                                                          PreprocErr* err) {
     PreprocConstExprVal res = evaluate_preproc_or_expr(it, arr, err);
@@ -406,7 +406,7 @@ static PreprocConstExprVal evaluate_preproc_log_and_expr(size_t* it,
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_log_or_expr(size_t* it,
+static PreprocConstExprVal evaluate_preproc_log_or_expr(uint32_t* it,
                                                         const TokenArr* arr,
                                                         PreprocErr* err) {
     PreprocConstExprVal res = evaluate_preproc_log_and_expr(it, arr, err);
@@ -430,7 +430,7 @@ static PreprocConstExprVal evaluate_preproc_log_or_expr(size_t* it,
     return res;
 }
 
-static PreprocConstExprVal evaluate_preproc_cond_expr(size_t* it,
+static PreprocConstExprVal evaluate_preproc_cond_expr(uint32_t* it,
                                                       const TokenArr* arr,
                                                       PreprocErr* err) {
     PreprocConstExprVal curr_res = evaluate_preproc_log_or_expr(it, arr, err);
@@ -469,8 +469,8 @@ static PreprocConstExprVal evaluate_preproc_cond_expr(size_t* it,
     return curr_res;
 }
 
-static void remove_non_preproc_tokens(TokenArr* arr, size_t limit) {
-    for (size_t i = 2; i < limit; ++i) {
+static void remove_non_preproc_tokens(TokenArr* arr, uint32_t limit) {
+    for (uint32_t i = 2; i < limit; ++i) {
         Token_free(&arr->tokens[i]);
     }
     arr->len = 2;
@@ -480,7 +480,7 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
                                                 TokenArr* arr,
                                                 const ArchTypeInfo* info,
                                                 PreprocErr* err) {
-    for (size_t i = 2; i < arr->len; ++i) {
+    for (uint32_t i = 2; i < arr->len; ++i) {
         Token* const curr = &arr->tokens[i];
         if (curr->kind == TOKEN_IDENTIFIER
             && Str_eq(StrBuf_as_str(&curr->spelling), STR_LIT("defined"))) {
@@ -491,7 +491,7 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
                 };
             }
 
-            size_t it = i + 1;
+            uint32_t it = i + 1;
             bool has_bracket = false;
             if (arr->tokens[it].kind == TOKEN_LBRACKET) {
                 has_bracket = true;
@@ -528,7 +528,7 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
             }
             ++it;
             const SourceLoc loc = curr->loc;
-            for (size_t j = i; j < it; ++j) {
+            for (uint32_t j = i; j < it; ++j) {
                 Token_free(&arr->tokens[j]);
             }
             StrBuf spell = StrBuf_create(has_macro ? STR_LIT("1")
@@ -551,7 +551,7 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
         };
     }
 
-    for (size_t i = 2; i < arr->len; ++i) {
+    for (uint32_t i = 2; i < arr->len; ++i) {
         Token* curr = &arr->tokens[i];
         switch (curr->kind) {
             case TOKEN_I_CONSTANT:
@@ -599,7 +599,7 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
         }
     }
 
-    size_t i = 2;
+    uint32_t i = 2;
     PreprocConstExprVal val = evaluate_preproc_cond_expr(&i, arr, err);
     if (!val.valid) {
         remove_non_preproc_tokens(arr, arr->len);

@@ -11,7 +11,7 @@
 typedef struct AssignExpr AssignExpr;
 
 typedef struct Expr {
-    size_t len;
+    uint32_t len;
     AssignExpr* assign_exprs;
 } Expr;
 

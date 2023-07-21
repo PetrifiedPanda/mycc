@@ -8,11 +8,11 @@ enum {
     KEY_CHAR_ARR_LEN = KEY_STR_LEN + 1,
 };
 
-static size_t write_str_combos_rec(char strs[][KEY_CHAR_ARR_LEN],
-                                   size_t num,
-                                   size_t str_len,
-                                   size_t str_idx,
-                                   size_t current_idx) {
+static uint32_t write_str_combos_rec(char strs[][KEY_CHAR_ARR_LEN],
+                                   uint32_t num,
+                                   uint32_t str_len,
+                                   uint32_t str_idx,
+                                   uint32_t current_idx) {
     enum {
         START_CHAR = 'A',
         END_CHAR = 'z' + 1
@@ -25,7 +25,7 @@ static size_t write_str_combos_rec(char strs[][KEY_CHAR_ARR_LEN],
     } else {
         char tmp_str[KEY_CHAR_ARR_LEN] = {0};
         memcpy(tmp_str, strs[current_idx], sizeof *tmp_str * (str_idx));
-        size_t child_idx = current_idx;
+        uint32_t child_idx = current_idx;
         for (char i = START_CHAR; i < END_CHAR; ++i) {
             if (child_idx == num) {
                 return child_idx;
@@ -45,10 +45,10 @@ static size_t write_str_combos_rec(char strs[][KEY_CHAR_ARR_LEN],
 
 // generates either all possible combinations of strings of length str_len, or
 // num strings
-static size_t write_str_combos(char strs[][KEY_CHAR_ARR_LEN],
-                               size_t num,
-                               size_t str_len) {
-    for (size_t i = 0; i < num; ++i) {
+static uint32_t write_str_combos(char strs[][KEY_CHAR_ARR_LEN],
+                               uint32_t num,
+                               uint32_t str_len) {
+    for (uint32_t i = 0; i < num; ++i) {
         strs[i][str_len] = '\0';
     }
 
@@ -66,16 +66,16 @@ static StrBuf str_from_generated(char* str) {
 
 static void insert_items(StringMap* map,
                          char keys[][KEY_CHAR_ARR_LEN],
-                         size_t num_inserts) {
-    assert(map->_item_size == sizeof(size_t));
-    for (size_t i = 0; i < num_inserts; ++i) {
+                         uint32_t num_inserts) {
+    assert(map->_item_size == sizeof(uint32_t));
+    for (uint32_t i = 0; i < num_inserts; ++i) {
         const StrBuf to_insert = str_from_generated(keys[i]);
-        const size_t* ret = StringMap_insert(map, &to_insert, &i);
+        const uint32_t* ret = StringMap_insert(map, &to_insert, &i);
         ASSERT(ret == &i);
 
         // check if the item is present directly after insertions
-        const size_t* item = StringMap_get(map, StrBuf_as_str(&to_insert));
-        ASSERT_SIZE_T(*item, i);
+        const uint32_t* item = StringMap_get(map, StrBuf_as_str(&to_insert));
+        ASSERT_UINT(*item, i);
     }
 }
 
@@ -84,28 +84,28 @@ TEST(insert) {
         INIT_CAP = 20,
         NUM_INSERTS = INIT_CAP * 4,
     };
-    StringMap map = StringMap_create(sizeof(size_t),
+    StringMap map = StringMap_create(sizeof(uint32_t),
                                               INIT_CAP,
                                               false,
                                               NULL);
 
     char keys[NUM_INSERTS][KEY_CHAR_ARR_LEN];
 
-    const size_t written = write_str_combos(keys, NUM_INSERTS, KEY_STR_LEN);
-    ASSERT_SIZE_T(written, (size_t)NUM_INSERTS);
+    const uint32_t written = write_str_combos(keys, NUM_INSERTS, KEY_STR_LEN);
+    ASSERT_UINT(written, (uint32_t)NUM_INSERTS);
 
     insert_items(&map, keys, NUM_INSERTS);
 
-    const size_t to_insert = (size_t)-1;
-    for (size_t i = 0; i < NUM_INSERTS; ++i) {
+    const uint32_t to_insert = (uint32_t)-1;
+    for (uint32_t i = 0; i < NUM_INSERTS; ++i) {
         // try to insert already existing item
         const StrBuf insert_key = str_from_generated(keys[i]);
-        const size_t* ret = StringMap_insert(&map, &insert_key, &to_insert);
-        ASSERT_SIZE_T(*ret, i);
+        const uint32_t* ret = StringMap_insert(&map, &insert_key, &to_insert);
+        ASSERT_UINT(*ret, i);
 
         // check if item was overwritten
-        const size_t* item = StringMap_get(&map, StrBuf_as_str(&insert_key));
-        ASSERT_SIZE_T(*item, i);
+        const uint32_t* item = StringMap_get(&map, StrBuf_as_str(&insert_key));
+        ASSERT_UINT(*item, i);
     }
 
     StringMap_free(&map);
@@ -117,58 +117,58 @@ TEST(remove) {
         NUM_INSERTS = INIT_CAP * 2
     };
 
-    StringMap map = StringMap_create(sizeof(size_t),
+    StringMap map = StringMap_create(sizeof(uint32_t),
                                               INIT_CAP,
                                               false,
                                               NULL);
 
     char keys[NUM_INSERTS][KEY_CHAR_ARR_LEN];
 
-    const size_t written = write_str_combos(keys, NUM_INSERTS, KEY_STR_LEN);
-    ASSERT_SIZE_T(written, (size_t)NUM_INSERTS);
+    const uint32_t written = write_str_combos(keys, NUM_INSERTS, KEY_STR_LEN);
+    ASSERT_UINT(written, (uint32_t)NUM_INSERTS);
 
     insert_items(&map, keys, NUM_INSERTS);
 
-    for (size_t i = 0; i < NUM_INSERTS; ++i) {
+    for (uint32_t i = 0; i < NUM_INSERTS; ++i) {
         const StrBuf key = str_from_generated(keys[i]);
         StringMap_remove(&map, &key);
-        ASSERT_SIZE_T(map._len, (size_t)NUM_INSERTS - 1);
+        ASSERT_UINT(map._len, (uint32_t)NUM_INSERTS - 1);
 
         const void* item = StringMap_get(&map, StrBuf_as_str(&key));
         ASSERT_NULL(item);
-        for (size_t j = 0; j < NUM_INSERTS; ++j) {
+        for (uint32_t j = 0; j < NUM_INSERTS; ++j) {
             if (j == i) {
                 continue;
             }
             const StrBuf other_key = str_from_generated(keys[j]);
-            const size_t* ret = StringMap_get(&map, StrBuf_as_str(&other_key));
+            const uint32_t* ret = StringMap_get(&map, StrBuf_as_str(&other_key));
             ASSERT_NOT_NULL(ret);
-            ASSERT_SIZE_T(*ret, j);
+            ASSERT_UINT(*ret, j);
         }
 
-        const size_t* insert_ret = StringMap_insert(&map, &key, &i);
-        ASSERT_SIZE_T(*insert_ret, i);
-        ASSERT_SIZE_T(map._len, (size_t)NUM_INSERTS);
-        for (size_t j = 0; j < NUM_INSERTS; ++j) {
+        const uint32_t* insert_ret = StringMap_insert(&map, &key, &i);
+        ASSERT_UINT(*insert_ret, i);
+        ASSERT_UINT(map._len, (uint32_t)NUM_INSERTS);
+        for (uint32_t j = 0; j < NUM_INSERTS; ++j) {
             const StrBuf other_key = str_from_generated(keys[j]);
-            const size_t* ret = StringMap_get(&map, StrBuf_as_str(&other_key));
+            const uint32_t* ret = StringMap_get(&map, StrBuf_as_str(&other_key));
             ASSERT_NOT_NULL(ret);
-            ASSERT_SIZE_T(*ret, j);
+            ASSERT_UINT(*ret, j);
         }
     }
 
-    for (size_t i = 0; i < NUM_INSERTS; ++i) {
-        ASSERT_SIZE_T(map._len, (size_t)NUM_INSERTS - i);
+    for (uint32_t i = 0; i < NUM_INSERTS; ++i) {
+        ASSERT_UINT(map._len, (uint32_t)NUM_INSERTS - i);
         const StrBuf to_remove = str_from_generated(keys[i]);
         StringMap_remove(&map, &to_remove);
 
         const void* item = StringMap_get(&map, StrBuf_as_str(&to_remove));
         ASSERT_NULL(item);
-        for (size_t j = i + 1; j < NUM_INSERTS; ++j) {
+        for (uint32_t j = i + 1; j < NUM_INSERTS; ++j) {
             const StrBuf other_key = str_from_generated(keys[j]);
-            const size_t* ret = StringMap_get(&map, StrBuf_as_str(&other_key));
+            const uint32_t* ret = StringMap_get(&map, StrBuf_as_str(&other_key));
             ASSERT_NOT_NULL(ret);
-            ASSERT_SIZE_T(*ret, j);
+            ASSERT_UINT(*ret, j);
         }
     }
 

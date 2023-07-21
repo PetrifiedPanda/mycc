@@ -11,7 +11,7 @@
 
 typedef struct {
     Token* _it;
-    size_t _len, _cap;
+    uint32_t _len, _cap;
     StringMap* _scope_maps;
     ParserErr* err;
 } ParserState;

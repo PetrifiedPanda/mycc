@@ -184,7 +184,7 @@ static IntTypeAttrs get_int_attrs(Str suffix, IntConstErr* err) {
     };
     bool l_is_upper = false;
     bool last_was_u = false;
-    for (size_t i = 0; i < suffix.len; ++i) {
+    for (uint32_t i = 0; i < suffix.len; ++i) {
         if (i == 3) {
             err->kind = INT_CONST_ERR_SUFFIX_TOO_LONG;
             return (IntTypeAttrs){0};
@@ -392,7 +392,7 @@ static ValueKind get_value_type_other(IntTypeAttrs attrs,
     }
 }
 
-static ValueKind get_uint_leastn_t_type(size_t n,
+static ValueKind get_uint_leastn_t_type(uint32_t n,
                                         const ArchTypeInfo* type_info);
 
 ParseCharConstRes parse_char_const(Str spell, const ArchTypeInfo* type_info) {
@@ -638,7 +638,7 @@ void CharConstErr_print(File out, const CharConstErr* err) {
     File_putc('\n', out);
 }
 
-static ValueKind get_uint_leastn_t_type(size_t n,
+static ValueKind get_uint_leastn_t_type(uint32_t n,
                                         const ArchTypeInfo* type_info) {
     assert(n == 8 || n == 16 || n == 32 || n == 64);
 

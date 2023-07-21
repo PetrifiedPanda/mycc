@@ -59,7 +59,7 @@ typedef struct PrimaryExpr {
 } PrimaryExpr;
 
 typedef struct {
-    size_t len;
+    uint32_t len;
     AssignExpr* assign_exprs;
 } ArgExprList;
 
@@ -94,7 +94,7 @@ typedef struct PostfixExpr {
             InitList init_list;
         };
     };
-    size_t len;
+    uint32_t len;
     PostfixSuffix* suffixes;
 } PostfixExpr;
 
@@ -121,7 +121,7 @@ typedef enum {
 
 typedef struct UnaryExpr {
     AstNodeInfo info;
-    size_t len;
+    uint32_t len;
     UnaryExprOp* ops_before;
     UnaryExprKind kind;
     union {
@@ -147,7 +147,7 @@ bool parse_unary_expr_inplace(ParserState* s, UnaryExpr* res);
 bool parse_unary_expr_type_name(ParserState* s,
                                 UnaryExpr* res,
                                 UnaryExprOp* ops_before,
-                                size_t len,
+                                uint32_t len,
                                 TypeName* type_name,
                                 SourceLoc start_bracket_loc);
 

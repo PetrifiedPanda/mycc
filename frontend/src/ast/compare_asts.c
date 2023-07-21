@@ -9,7 +9,7 @@
 #define PRINT_ASSERT_ERR(format, ...)                                          \
     do {                                                                       \
         File_printf(mycc_stdout(),                                             \
-                    "        {Str}:{size_t}: ",                                \
+                    "        {Str}:{u32}: ",                                \
                     STR_LIT(__func__),                                         \
                     __LINE__);                                                 \
         File_printf(mycc_stdout(), format, __VA_ARGS__);                       \
@@ -28,10 +28,10 @@
 
 #define ASSERT_SIZE_T(s1_val, s2_val)                                          \
     do {                                                                       \
-        const size_t sz1 = (s1_val), sz2 = (s2_val);                           \
+        const uint32_t sz1 = (s1_val), sz2 = (s2_val);                           \
         if (sz1 != sz2) {                                                      \
-            PRINT_ASSERT_ERR("mismatch: " #s1_val ": {size_t} vs. " #s2_val    \
-                             ": {size_t}",                                     \
+            PRINT_ASSERT_ERR("mismatch: " #s1_val ": {u32} vs. " #s2_val    \
+                             ": {u32}",                                     \
                              sz1,                                              \
                              sz2);                                             \
             return false;                                                      \
@@ -134,7 +134,7 @@ static bool compare_ast_node_infos(const AstNodeInfo* i1,
 
 static bool compare_file_infos(const FileInfo* i1, const FileInfo* i2) {
     ASSERT_SIZE_T(i1->len, i2->len);
-    for (size_t i = 0; i < i1->len; ++i) {
+    for (uint32_t i = 0; i < i1->len; ++i) {
         ASSERT_STR_BUF(&i1->paths[i], &i2->paths[i]);
     }
     return true;
@@ -218,7 +218,7 @@ static bool compare_cond_exprs(const CondExpr* e1, const CondExpr* e2);
 
 static bool compare_assign_exprs(const AssignExpr* e1, const AssignExpr* e2) {
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         UnaryAndOp* item1 = &e1->assign_chain[i];
         UnaryAndOp* item2 = &e2->assign_chain[i];
         ASSERT(compare_unary_exprs(&item1->unary, &item2->unary));
@@ -240,7 +240,7 @@ static bool compare_generic_assoc_lists(const GenericAssocList* l1,
                                         const GenericAssocList* l2) {
     ASSERT(compare_ast_node_infos(&l1->info, &l2->info));
     ASSERT_SIZE_T(l1->len, l2->len);
-    for (size_t i = 0; i < l1->len; ++i) {
+    for (uint32_t i = 0; i < l1->len; ++i) {
         ASSERT(compare_generic_assocs(&l1->assocs[i], &l2->assocs[i]));
     }
     return true;
@@ -295,7 +295,7 @@ static bool compare_designator(const struct Designator* d1,
 static bool compare_designator_list(const DesignatorList* l1,
                                     const DesignatorList* l2) {
     ASSERT_SIZE_T(l1->len, l2->len);
-    for (size_t i = 0; i < l1->len; ++i) {
+    for (uint32_t i = 0; i < l1->len; ++i) {
         ASSERT(compare_designator(&l1->designators[i], &l2->designators[i]));
     }
     return true;
@@ -328,7 +328,7 @@ static bool compare_designation_inits(const DesignationInit* i1,
 
 static bool compare_init_list(const InitList* l1, const InitList* l2) {
     ASSERT_SIZE_T(l1->len, l2->len);
-    for (size_t i = 0; i < l1->len; ++i) {
+    for (uint32_t i = 0; i < l1->len; ++i) {
         ASSERT(compare_designation_inits(&l1->inits[i], &l2->inits[i]));
     }
     return true;
@@ -337,7 +337,7 @@ static bool compare_init_list(const InitList* l1, const InitList* l2) {
 static bool compare_arg_expr_lists(const ArgExprList* l1,
                                    const ArgExprList* l2) {
     ASSERT_SIZE_T(l1->len, l2->len);
-    for (size_t i = 0; i < l1->len; ++i) {
+    for (uint32_t i = 0; i < l1->len; ++i) {
         ASSERT(
             compare_assign_exprs(&l1->assign_exprs[i], &l2->assign_exprs[i]));
     }
@@ -377,7 +377,7 @@ static bool compare_postfix_exprs(const PostfixExpr* e1,
         ASSERT(compare_init_list(&e1->init_list, &e2->init_list));
     }
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         ASSERT(compare_postfix_suffixes(&e1->suffixes[i], &e2->suffixes[i]));
     }
     return true;
@@ -388,7 +388,7 @@ static bool compare_cast_exprs(const CastExpr* e1, const CastExpr* e2);
 static bool compare_unary_exprs(const UnaryExpr* e1, const UnaryExpr* e2) {
     ASSERT(compare_ast_node_infos(&e1->info, &e2->info));
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         ASSERT(e1->ops_before[i] == e2->ops_before[i]);
     }
     ASSERT(e1->kind == e2->kind);
@@ -415,7 +415,7 @@ static bool compare_unary_exprs(const UnaryExpr* e1, const UnaryExpr* e2) {
 static bool compare_cast_exprs(const CastExpr* e1, const CastExpr* e2) {
     ASSERT(compare_ast_node_infos(&e1->info, &e2->info));
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         ASSERT(compare_type_names(&e1->type_names[i], &e2->type_names[i]));
     }
     ASSERT(compare_unary_exprs(&e1->rhs, &e2->rhs));
@@ -425,7 +425,7 @@ static bool compare_cast_exprs(const CastExpr* e1, const CastExpr* e2) {
 static bool compare_mul_exprs(const MulExpr* e1, const MulExpr* e2) {
     ASSERT(compare_cast_exprs(&e1->lhs, &e2->lhs));
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         const CastExprAndOp* item1 = &e1->mul_chain[i];
         const CastExprAndOp* item2 = &e2->mul_chain[i];
         ASSERT(item1->op == item2->op);
@@ -437,7 +437,7 @@ static bool compare_mul_exprs(const MulExpr* e1, const MulExpr* e2) {
 static bool compare_add_exprs(const AddExpr* e1, const AddExpr* e2) {
     ASSERT(compare_mul_exprs(&e1->lhs, &e2->lhs));
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         const MulExprAndOp* item1 = &e1->add_chain[i];
         const MulExprAndOp* item2 = &e2->add_chain[i];
         ASSERT(item1->op == item2->op);
@@ -449,7 +449,7 @@ static bool compare_add_exprs(const AddExpr* e1, const AddExpr* e2) {
 static bool compare_shift_exprs(const ShiftExpr* e1, const ShiftExpr* e2) {
     ASSERT(compare_add_exprs(&e1->lhs, &e2->lhs));
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         const AddExprAndOp* item1 = &e1->shift_chain[i];
         const AddExprAndOp* item2 = &e2->shift_chain[i];
         ASSERT(item1->op == item2->op);
@@ -461,7 +461,7 @@ static bool compare_shift_exprs(const ShiftExpr* e1, const ShiftExpr* e2) {
 static bool compare_rel_exprs(const RelExpr* e1, const RelExpr* e2) {
     ASSERT(compare_shift_exprs(&e1->lhs, &e2->lhs));
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         const ShiftExprAndOp* item1 = &e1->rel_chain[i];
         const ShiftExprAndOp* item2 = &e2->rel_chain[i];
         ASSERT(item1->op == item2->op);
@@ -473,7 +473,7 @@ static bool compare_rel_exprs(const RelExpr* e1, const RelExpr* e2) {
 static bool compare_eq_exprs(const EqExpr* e1, const EqExpr* e2) {
     ASSERT(compare_rel_exprs(&e1->lhs, &e2->lhs));
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         const RelExprAndOp* item1 = &e1->eq_chain[i];
         const RelExprAndOp* item2 = &e2->eq_chain[i];
         ASSERT(item1->op == item2->op);
@@ -484,7 +484,7 @@ static bool compare_eq_exprs(const EqExpr* e1, const EqExpr* e2) {
 
 static bool compare_and_exprs(const AndExpr* e1, const AndExpr* e2) {
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         ASSERT(compare_eq_exprs(&e1->eq_exprs[i], &e2->eq_exprs[i]));
     }
     return true;
@@ -492,7 +492,7 @@ static bool compare_and_exprs(const AndExpr* e1, const AndExpr* e2) {
 
 static bool compare_xor_exprs(const XorExpr* e1, const XorExpr* e2) {
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         ASSERT(compare_and_exprs(&e1->and_exprs[i], &e2->and_exprs[i]));
     }
     return true;
@@ -500,7 +500,7 @@ static bool compare_xor_exprs(const XorExpr* e1, const XorExpr* e2) {
 
 static bool compare_or_exprs(const OrExpr* e1, const OrExpr* e2) {
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         ASSERT(compare_xor_exprs(&e1->xor_exprs[i], &e2->xor_exprs[i]));
     }
     return true;
@@ -508,7 +508,7 @@ static bool compare_or_exprs(const OrExpr* e1, const OrExpr* e2) {
 
 static bool compare_log_and_exprs(const LogAndExpr* e1, const LogAndExpr* e2) {
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         ASSERT(compare_or_exprs(&e1->or_exprs[i], &e2->or_exprs[i]));
     }
     return true;
@@ -516,7 +516,7 @@ static bool compare_log_and_exprs(const LogAndExpr* e1, const LogAndExpr* e2) {
 
 static bool compare_log_or_exprs(const LogOrExpr* e1, const LogOrExpr* e2) {
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         ASSERT(compare_log_and_exprs(&e1->log_ands[i], &e2->log_ands[i]));
     }
     return true;
@@ -524,7 +524,7 @@ static bool compare_log_or_exprs(const LogOrExpr* e1, const LogOrExpr* e2) {
 
 static bool compare_exprs(const Expr* e1, const Expr* e2) {
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         ASSERT(
             compare_assign_exprs(&e1->assign_exprs[i], &e2->assign_exprs[i]));
     }
@@ -534,7 +534,7 @@ static bool compare_exprs(const Expr* e1, const Expr* e2) {
 static bool compare_cond_exprs(const struct CondExpr* e1,
                                const struct CondExpr* e2) {
     ASSERT_SIZE_T(e1->len, e2->len);
-    for (size_t i = 0; i < e1->len; ++i) {
+    for (uint32_t i = 0; i < e1->len; ++i) {
         const LogOrAndExpr* item1 = &e1->conditionals[i];
         const LogOrAndExpr* item2 = &e2->conditionals[i];
         ASSERT(compare_log_or_exprs(&item1->log_or, &item2->log_or));
@@ -560,7 +560,7 @@ static bool compare_static_assert_declarations(
 static bool compare_pointers(const Pointer* p1, const Pointer* p2) {
     ASSERT(compare_ast_node_infos(&p1->info, &p2->info));
     ASSERT_SIZE_T(p1->num_indirs, p2->num_indirs);
-    for (size_t i = 0; i < p1->num_indirs; ++i) {
+    for (uint32_t i = 0; i < p1->num_indirs; ++i) {
         ASSERT(compare_type_quals(&p1->quals_after_ptr[i],
                                   &p1->quals_after_ptr[i]));
     }
@@ -601,7 +601,7 @@ static bool compare_direct_abs_declarators(
                      d2->bracket_decl,
                      compare_abs_declarators);
     ASSERT_SIZE_T(d1->len, d2->len);
-    for (size_t i = 0; i < d1->len; ++i) {
+    for (uint32_t i = 0; i < d1->len; ++i) {
         ASSERT(compare_abs_arr_or_func_suffix(&d1->following_suffixes[i],
                                               &d2->following_suffixes[i]));
     }
@@ -642,7 +642,7 @@ static bool compare_param_declarations(const ParamDeclaration* d1,
 
 static bool compare_param_lists(const ParamList* l1, const ParamList* l2) {
     ASSERT_SIZE_T(l1->len, l2->len);
-    for (size_t i = 0; i < l1->len; ++i) {
+    for (uint32_t i = 0; i < l1->len; ++i) {
         ASSERT(compare_param_declarations(&l1->decls[i], &l2->decls[i]));
     }
     return true;
@@ -658,7 +658,7 @@ static bool compare_param_type_lists(const ParamTypeList* l1,
 static bool compare_identifier_lists(const IdentifierList* l1,
                                      const IdentifierList* l2) {
     ASSERT_SIZE_T(l1->len, l2->len);
-    for (size_t i = 0; i < l1->len; ++i) {
+    for (uint32_t i = 0; i < l1->len; ++i) {
         ASSERT(compare_identifiers(&l1->identifiers[i], &l2->identifiers[i]));
     }
     return true;
@@ -702,7 +702,7 @@ static bool compare_direct_declarators(const DirectDeclarator* d1,
         ASSERT(compare_declarators(d1->bracket_decl, d2->bracket_decl));
     }
     ASSERT_SIZE_T(d1->len, d2->len);
-    for (size_t i = 0; i < d1->len; ++i) {
+    for (uint32_t i = 0; i < d1->len; ++i) {
         ASSERT(compare_arr_or_func_suffix(&d1->suffixes[i], &d2->suffixes[i]));
     }
     return true;
@@ -724,7 +724,7 @@ static bool compare_struct_declarator(const StructDeclarator* d1,
 static bool compare_struct_declarator_list(const StructDeclaratorList* l1,
                                            const StructDeclaratorList* l2) {
     ASSERT_SIZE_T(l1->len, l2->len);
-    for (size_t i = 0; i < l1->len; ++i) {
+    for (uint32_t i = 0; i < l1->len; ++i) {
         ASSERT(compare_struct_declarator(&l1->decls[i], &l2->decls[i]));
     }
     return true;
@@ -745,7 +745,7 @@ static bool compare_struct_declarations(const StructDeclaration* d1,
 static bool compare_struct_declaration_lists(const StructDeclarationList* l1,
                                              const StructDeclarationList* l2) {
     ASSERT_SIZE_T(l1->len, l2->len);
-    for (size_t i = 0; i < l1->len; ++i) {
+    for (uint32_t i = 0; i < l1->len; ++i) {
         ASSERT(compare_struct_declarations(&l1->decls[i], &l2->decls[i]));
     }
     return true;
@@ -768,7 +768,7 @@ static bool compare_enumerators(const Enumerator* e1, const Enumerator* e2) {
 
 static bool compare_enum_list(const EnumList* l1, const EnumList* l2) {
     ASSERT_SIZE_T(l1->len, l2->len);
-    for (size_t i = 0; i < l1->len; ++i) {
+    for (uint32_t i = 0; i < l1->len; ++i) {
         ASSERT(compare_enumerators(&l1->enums[i], &l2->enums[i]));
     }
     return true;
@@ -872,7 +872,7 @@ static bool compare_declaration_specs(const DeclarationSpecs* s1,
     ASSERT(compare_storage_class(&s1->storage_class, &s2->storage_class));
     ASSERT(compare_type_quals(&s1->type_quals, &s2->type_quals));
     ASSERT_SIZE_T(s1->num_align_specs, s2->num_align_specs);
-    for (size_t i = 0; i < s1->num_align_specs; ++i) {
+    for (uint32_t i = 0; i < s1->num_align_specs; ++i) {
         ASSERT(compare_align_spec(&s1->align_specs[i], &s1->align_specs[i]));
     }
     ASSERT(compare_type_specs(&s1->type_specs, &s2->type_specs));
@@ -889,7 +889,7 @@ static bool compare_init_declarators(const InitDeclarator* d1,
 static bool compare_init_declarator_lists(const InitDeclaratorList* l1,
                                           const InitDeclaratorList* l2) {
     ASSERT_SIZE_T(l1->len, l2->len);
-    for (size_t i = 0; i < l1->len; ++i) {
+    for (uint32_t i = 0; i < l1->len; ++i) {
         ASSERT(compare_init_declarators(&l1->decls[i], &l2->decls[i]));
     }
     return true;
@@ -910,7 +910,7 @@ static bool compare_declarations(const Declaration* d1, const Declaration* d2) {
 static bool compare_declaration_lists(const DeclarationList* l1,
                                       const DeclarationList* l2) {
     ASSERT_SIZE_T(l1->len, l2->len);
-    for (size_t i = 0; i < l1->len; ++i) {
+    for (uint32_t i = 0; i < l1->len; ++i) {
         ASSERT(compare_declarations(&l1->decls[i], &l2->decls[i]));
     }
     return true;
@@ -951,7 +951,7 @@ static bool compare_compound_statements(const CompoundStatement* s1,
                                         const CompoundStatement* s2) {
     ASSERT(compare_ast_node_infos(&s1->info, &s2->info));
     ASSERT_SIZE_T(s1->len, s2->len);
-    for (size_t i = 0; i < s1->len; ++i) {
+    for (uint32_t i = 0; i < s1->len; ++i) {
         ASSERT(compare_block_items(&s1->items[i], &s2->items[i]));
     }
     return true;
@@ -1070,7 +1070,7 @@ static bool compare_translation_units(const TranslationUnit* tl1,
                                       const TranslationUnit* tl2) {
     ASSERT_SIZE_T(tl1->len, tl2->len);
 
-    for (size_t i = 0; i < tl1->len; ++i) {
+    for (uint32_t i = 0; i < tl1->len; ++i) {
         const ExternalDeclaration* d1 = &tl1->external_decls[i];
         const ExternalDeclaration* d2 = &tl2->external_decls[i];
         ASSERT(compare_external_declarations(d1, d2));

@@ -9,11 +9,11 @@
 
 typedef struct {
     StrBuf name;
-    size_t num_funcs;
+    uint32_t num_funcs;
     CFG* funcs;
-    size_t num_globals;
+    uint32_t num_globals;
     IRGlobal* globals;
-    size_t num_types;
+    uint32_t num_types;
     IRType* types;
 } IRModule;
 

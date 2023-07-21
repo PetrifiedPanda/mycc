@@ -19,7 +19,7 @@ typedef struct {
 } StructDeclarator;
 
 typedef struct {
-    size_t len;
+    uint32_t len;
     StructDeclarator* decls;
 } StructDeclaratorList;
 
@@ -37,7 +37,7 @@ typedef struct {
 } StructDeclaration;
 
 typedef struct {
-    size_t len;
+    uint32_t len;
     StructDeclaration* decls;
 } StructDeclarationList;
 

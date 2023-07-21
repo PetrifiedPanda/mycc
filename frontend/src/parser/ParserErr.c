@@ -41,7 +41,7 @@ void ParserErr_print(File out,
             File_printf(
                 out,
                 "Redefined symbol {Str} that was already defined as {Str} in "
-                "{Str}({size_t}, {size_t})",
+                "{Str}({u32}, {u32})",
                 StrBuf_as_str(&err->redefined_symbol),
                 type_str,
                 path,

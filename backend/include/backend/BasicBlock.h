@@ -14,7 +14,7 @@ typedef enum {
 
 typedef struct {
     IRLiteral val;
-    size_t target;
+    uint32_t target;
 } InstSwitchTarget;
 
 typedef struct {
@@ -22,14 +22,14 @@ typedef struct {
     union {
         struct {
             IRInstArg br_cond;
-            size_t true_target;
-            size_t false_target;
+            uint32_t true_target;
+            uint32_t false_target;
         };
-        size_t branch_target;
+        uint32_t branch_target;
         struct {
             IRInstArg switch_cond;
-            size_t default_target;
-            size_t switch_len;
+            uint32_t default_target;
+            uint32_t switch_len;
             InstSwitchTarget* targets;
         };
         IRInstArg return_val;
@@ -38,11 +38,11 @@ typedef struct {
 
 typedef struct {
     StrBuf name;
-    size_t len;
+    uint32_t len;
     IRInst* ops;
     BranchInst branch;
-    size_t num_preds;
-    size_t* preds;
+    uint32_t num_preds;
+    uint32_t* preds;
 } BasicBlock;
 
 void BranchInst_free(BranchInst* b);

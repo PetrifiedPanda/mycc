@@ -13,7 +13,7 @@ enum {
 
 // TODO: asserts for incompatible flags
 static void get_mode_str(OpenMode mode, char buf[OPENMODE_MAX_LEN]) {
-    size_t i = 0;
+    uint32_t i = 0;
     if (mode & FILE_WRITE) {
         buf[i] = 'w';
         ++i;
@@ -100,7 +100,7 @@ bool File_ungetc(char c, File f) {
 Str get_format_str(Str bracket_start) {
     assert(Str_at(bracket_start, 0) == '{');
     assert(bracket_start.len > 1);
-    for (size_t i = 1; i < bracket_start.len; ++i) {
+    for (uint32_t i = 1; i < bracket_start.len; ++i) {
         if (Str_at(bracket_start, i) == '}') {
             return Str_substr(bracket_start, 1, i);
         }
@@ -116,7 +116,7 @@ void File_printf_impl(File f, Str format, ...) {
 }
 
 void File_printf_varargs_impl(File f, Str format, va_list args) {
-    for (size_t i = 0; i < format.len; ++i) {
+    for (uint32_t i = 0; i < format.len; ++i) {
         const char curr = Str_at(format, i);
         if (curr == '{') {
             const Str format_str = get_format_str(Str_advance(format, i));
@@ -129,9 +129,18 @@ void File_printf_varargs_impl(File f, Str format, va_list args) {
             } else if (Str_eq(format_str, STR_LIT("i64"))) {
                 int64_t arg = va_arg(args, int64_t);
                 fprintf(f._file, "%" PRId64, arg);
+            } else if (Str_eq(format_str, STR_LIT("u32"))) {
+                uint32_t arg = va_arg(args, uint32_t);
+                fprintf(f._file, "%" PRIu32, arg);
             } else if (Str_eq(format_str, STR_LIT("Str"))) {
                 Str arg = va_arg(args, Str);
                 fwrite(arg.data, 1, arg.len, f._file);
+            } else if (Str_eq(format_str, STR_LIT("intmax"))) {
+                intmax_t arg = va_arg(args, intmax_t);
+                fprintf(f._file, "%" PRIiMAX, arg);
+            } else if (Str_eq(format_str, STR_LIT("uintmax"))) {
+                uintmax_t arg = va_arg(args, uintmax_t);
+                fprintf(f._file, "%" PRIuMAX, arg);
             } else if (Str_eq(format_str, STR_LIT("uint"))) {
                 unsigned arg = va_arg(args, unsigned);
                 fprintf(f._file, "%u", arg);
@@ -163,7 +172,7 @@ void File_printf_varargs_impl(File f, Str format, va_list args) {
                     if (first == '.') {
                         float_format[0] = '%';
                         assert(suffix.len < sizeof float_format - 3);
-                        memcpy(float_format + 1, suffix.data, suffix.len); 
+                        memcpy(float_format + 1, suffix.data, suffix.len);
                         float_format[suffix.len + 1] = 'f';
                         float_format[suffix.len + 2] = '\0';
                         fprintf(f._file, float_format, arg);
@@ -210,9 +219,9 @@ static void handle_win_line_ending(char newline_char, File file) {
 
 Str File_read_line(File file,
                    StrBuf* str,
-                   size_t* res_len,
+                   uint32_t* res_len,
                    char* static_buf,
-                   size_t static_buf_len) {
+                   uint32_t static_buf_len) {
     assert(str);
     assert(static_buf_len == 0 || static_buf != NULL);
 
@@ -231,7 +240,7 @@ Str File_read_line(File file,
         handle_win_line_ending(c.res, file);
 #endif
         if (copy_to_str) {
-            size_t new_cap = static_buf_len * 2;
+            uint32_t new_cap = static_buf_len * 2;
             StrBuf_reserve(str, new_cap);
             StrBuf_append(str, (Str){*res_len, static_buf});
         } else if (*res_len == 0 && !c.valid) {

@@ -9,23 +9,23 @@
 #include "read_and_tokenize_line.h"
 
 // TODO: make this also collect macro args?
-static size_t find_macro_end(PreprocState* state,
+static uint32_t find_macro_end(PreprocState* state,
                              const TokenArr* res,
-                             size_t macro_start,
+                             uint32_t macro_start,
                              const ArchTypeInfo* info) {
-    size_t i = macro_start;
+    uint32_t i = macro_start;
     assert(res->tokens[i].kind == TOKEN_IDENTIFIER);
     ++i;
     assert(res->tokens[i].kind == TOKEN_LBRACKET);
     ++i;
 
     const bool can_read_new_toks = res == &state->res;
-    size_t open_bracket_count = 1;
+    uint32_t open_bracket_count = 1;
     while (i != res->len || (can_read_new_toks && !PreprocState_over(state))) {
         if (can_read_new_toks) {
             while (i == res->len && !PreprocState_over(state)) {
                 if (!read_and_tokenize_line(state, info)) {
-                    return (size_t)-1;
+                    return (uint32_t)-1;
                 }
             }
 
@@ -50,13 +50,13 @@ static size_t find_macro_end(PreprocState* state,
         PreprocErr_set(state->err,
                        PREPROC_ERR_UNTERMINATED_MACRO,
                        res->tokens[macro_start].loc);
-        return (size_t)-1;
+        return (uint32_t)-1;
     }
     return i;
 }
 
 typedef struct {
-    size_t len, cap;
+    uint32_t len, cap;
     const PreprocMacro** data;
 } ExpandedMacroStack;
 
@@ -75,7 +75,7 @@ static void ExpandedMacroStack_pop(ExpandedMacroStack* stack) {
 
 static bool ExpandedMacroStack_contains(const ExpandedMacroStack* stack,
                                         const PreprocMacro* to_check) {
-    for (size_t i = 0; i < stack->len; ++i) {
+    for (uint32_t i = 0; i < stack->len; ++i) {
         if (stack->data[i] == to_check) {
             return true;
         }
@@ -97,27 +97,27 @@ static void ExpandedMacroStack_free(ExpandedMacroStack* stack) {
 
 typedef struct {
     ptrdiff_t alloc_change;
-    size_t next;
+    uint32_t next;
 } ExpansionInfo;
 
 static ExpansionInfo expand_func_macro(PreprocState* state,
                                        TokenArr* res,
                                        const PreprocMacro* macro,
-                                       size_t macro_idx,
-                                       size_t macro_end,
+                                       uint32_t macro_idx,
+                                       uint32_t macro_end,
                                        ExpandedMacroStack* expanded,
                                        const ArchTypeInfo* info);
 
 static ExpansionInfo expand_obj_macro(PreprocState* state,
                                       TokenArr* res,
                                       const PreprocMacro* macro,
-                                      size_t macro_idx,
+                                      uint32_t macro_idx,
                                       ExpandedMacroStack* expanded,
                                       const ArchTypeInfo* info);
 
 static ExpansionInfo find_and_expand_macro(PreprocState* state,
                                            TokenArr* res,
-                                           size_t i,
+                                           uint32_t i,
                                            ExpandedMacroStack* expanded,
                                            const ArchTypeInfo* info) {
     const Token* curr = &res->tokens[i];
@@ -128,16 +128,16 @@ static ExpansionInfo find_and_expand_macro(PreprocState* state,
     if (macro == NULL || ExpandedMacroStack_contains(expanded, macro)) {
         return (ExpansionInfo){0, i + 1};
     }
-    size_t macro_end;
+    uint32_t macro_end;
     if (macro->is_func_macro) {
-        const size_t next_idx = i + 1;
+        const uint32_t next_idx = i + 1;
         if (next_idx < res->len
             && res->tokens[next_idx].kind == TOKEN_LBRACKET) {
             macro_end = find_macro_end(state, res, i, info);
             if (state->err->kind != PREPROC_ERR_NONE) {
-                return (ExpansionInfo){0, (size_t)-1};
+                return (ExpansionInfo){0, (uint32_t)-1};
             }
-            assert(macro_end != (size_t)-1);
+            assert(macro_end != (uint32_t)-1);
             return expand_func_macro(state, res, macro, i, macro_end, expanded, info);
         } else {
             // not considered func_macro without brackets
@@ -150,21 +150,21 @@ static ExpansionInfo find_and_expand_macro(PreprocState* state,
 
 static ExpansionInfo expand_all_macros_in_range(PreprocState* state,
                                                 TokenArr* res,
-                                                size_t start,
-                                                size_t end,
+                                                uint32_t start,
+                                                uint32_t end,
                                                 ExpandedMacroStack* expanded,
                                                 const ArchTypeInfo* info) {
     assert(end <= res->len);
     ptrdiff_t alloc_change = 0;
-    size_t i = start;
+    uint32_t i = start;
     while (i < end) {
         const ExpansionInfo ex_info = find_and_expand_macro(state,
                                                             res,
                                                             i,
                                                             expanded,
                                                             info);
-        if (ex_info.next == (size_t)-1) {
-            return (ExpansionInfo){0, (size_t)-1};
+        if (ex_info.next == (uint32_t)-1) {
+            return (ExpansionInfo){0, (uint32_t)-1};
         }
         end += ex_info.alloc_change;
         alloc_change += ex_info.alloc_change;
@@ -175,7 +175,7 @@ static ExpansionInfo expand_all_macros_in_range(PreprocState* state,
     return (ExpansionInfo){alloc_change, end};
 }
 
-bool expand_all_macros(PreprocState* state, TokenArr* res, size_t start, const ArchTypeInfo* info) {
+bool expand_all_macros(PreprocState* state, TokenArr* res, uint32_t start, const ArchTypeInfo* info) {
     ExpandedMacroStack expanded = ExpandedMacroStack_create();
     const ExpansionInfo success = expand_all_macros_in_range(state,
                                                              res,
@@ -184,24 +184,24 @@ bool expand_all_macros(PreprocState* state, TokenArr* res, size_t start, const A
                                                              &expanded,
                                                              info);
     ExpandedMacroStack_free(&expanded);
-    return success.next != (size_t)-1;
+    return success.next != (uint32_t)-1;
 }
 
-static size_t get_str_idx(Str* strs, size_t len, Str to_find) {
-    for (size_t i = 0; i < len; ++i) {
+static uint32_t get_str_idx(Str* strs, uint32_t len, Str to_find) {
+    for (uint32_t i = 0; i < len; ++i) {
         if (Str_eq(strs[i], to_find)) {
             return i;
         }
     }
-    return (size_t)-1;
+    return (uint32_t)-1;
 }
 
 static bool is_duplicate_arg(Token* tok,
                              Str* arg_spells,
-                             size_t num_args,
+                             uint32_t num_args,
                              PreprocErr* err) {
     Str data = StrBuf_as_str(&tok->spelling);
-    for (size_t i = 0; i < num_args; ++i) {
+    for (uint32_t i = 0; i < num_args; ++i) {
         if (Str_eq(arg_spells[i], data)) {
             PreprocErr_set(err, PREPROC_ERR_DUPLICATE_MACRO_PARAM, tok->loc);
             err->duplicate_arg_name = Token_take_spelling(tok);
@@ -216,11 +216,11 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
         .is_func_macro = true,
     };
 
-    size_t it = 4;
+    uint32_t it = 4;
     res.num_args = 0;
 
     Str* arg_spells = NULL;
-    size_t arg_spells_cap = 0;
+    uint32_t arg_spells_cap = 0;
     while (it < arr->len && arr->tokens[it].kind != TOKEN_RBRACKET
            && arr->tokens[it].kind != TOKEN_ELLIPSIS) {
         if (arr->tokens[it].kind != TOKEN_IDENTIFIER) {
@@ -300,8 +300,8 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
                         ? NULL
                         : mycc_alloc(sizeof *res.expansion * res.expansion_len);
 
-    for (size_t i = it + 1; i < arr->len; ++i) {
-        const size_t res_idx = i - it - 1;
+    for (uint32_t i = it + 1; i < arr->len; ++i) {
+        const uint32_t res_idx = i - it - 1;
 
         Token* curr_tok = &arr->tokens[i];
         TokenOrArg* res_curr = &res.expansion[res_idx];
@@ -314,11 +314,11 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
                 continue;
             }
 
-            const size_t idx = get_str_idx(arg_spells,
+            const uint32_t idx = get_str_idx(arg_spells,
                                            res.num_args,
                                            StrBuf_as_str(&curr_tok->spelling));
 
-            if (idx != (size_t)-1) {
+            if (idx != (uint32_t)-1) {
                 res_curr->is_arg = true;
                 res_curr->arg_num = idx;
                 continue;
@@ -341,7 +341,7 @@ fail:
 static Token Token_move(Token* t);
 
 static PreprocMacro parse_object_like_macro(TokenArr* arr) {
-    const size_t ex_len = arr->len - 3;
+    const uint32_t ex_len = arr->len - 3;
     PreprocMacro res = {
         .is_func_macro = false,
         .num_args = 0,
@@ -351,8 +351,8 @@ static PreprocMacro parse_object_like_macro(TokenArr* arr) {
                                  : mycc_alloc(sizeof *res.expansion * ex_len),
     };
 
-    for (size_t i = 3; i < arr->len; ++i) {
-        const size_t res_idx = i - 3;
+    for (uint32_t i = 3; i < arr->len; ++i) {
+        const uint32_t res_idx = i - 3;
         TokenOrArg* res_curr = &res.expansion[res_idx];
         res_curr->is_arg = false;
         res_curr->token = Token_move(&arr->tokens[i]);
@@ -389,7 +389,7 @@ static void Token_free_preproc(Token* tok) {
 }
 
 void PreprocMacro_free(PreprocMacro* m) {
-    for (size_t i = 0; i < m->expansion_len; ++i) {
+    for (uint32_t i = 0; i < m->expansion_len; ++i) {
         if (!m->expansion[i].is_arg) {
             Token_free_preproc(&m->expansion[i].token);
         }
@@ -406,13 +406,13 @@ static Token Token_move(Token* t) {
 }
 
 static TokenArr collect_until(Token* start, const Token* end) {
-    const size_t len = end - start;
+    const uint32_t len = end - start;
     TokenArr res = {
         .len = len,
         .tokens = len == 0 ? NULL : mycc_alloc(sizeof *res.tokens * len),
     };
 
-    for (size_t i = 0; i < len; ++i) {
+    for (uint32_t i = 0; i < len; ++i) {
         res.tokens[i] = Token_move(&start[i]);
     }
     return res;
@@ -426,7 +426,7 @@ static TokenArr collect_until(Token* start, const Token* end) {
  * @return The macro argument given at the start of this pointer
  */
 static TokenArr collect_macro_arg(Token* it, const Token* limit_ptr) {
-    size_t num_open_brackets = 0;
+    uint32_t num_open_brackets = 0;
     Token* arg_start = it;
     while (it != limit_ptr
            && (it->kind != TOKEN_COMMA || num_open_brackets != 0)) {
@@ -443,12 +443,12 @@ static TokenArr collect_macro_arg(Token* it, const Token* limit_ptr) {
 }
 
 typedef struct {
-    size_t len;
+    uint32_t len;
     TokenArr* arrs;
 } MacroArgs;
 
 static void MacroArgs_free(MacroArgs* args) {
-    for (size_t i = 0; i < args->len; ++i) {
+    for (uint32_t i = 0; i < args->len; ++i) {
         TokenArr_free(&args->arrs[i]);
     }
     mycc_free(args->arrs);
@@ -468,12 +468,12 @@ static void MacroArgs_free(MacroArgs* args) {
  */
 MacroArgs collect_macro_args(Token* args_start,
                              const Token* limit_ptr,
-                             size_t expected_args,
+                             uint32_t expected_args,
                              bool is_variadic,
                              PreprocErr* err) {
     assert(args_start->kind == TOKEN_LBRACKET);
 
-    const size_t cap = is_variadic ? expected_args + 1 : expected_args;
+    const uint32_t cap = is_variadic ? expected_args + 1 : expected_args;
     assert(!is_variadic || cap != 0);
     assert(cap != 0 || args_start + 1 == limit_ptr);
     MacroArgs res = {
@@ -536,10 +536,10 @@ fail:
     };
 }
 
-static size_t get_expansion_len(const PreprocMacro* macro,
+static uint32_t get_expansion_len(const PreprocMacro* macro,
                                 const MacroArgs* args) {
-    size_t len = 0;
-    for (size_t i = 0; i < macro->expansion_len; ++i) {
+    uint32_t len = 0;
+    for (uint32_t i = 0; i < macro->expansion_len; ++i) {
         const TokenOrArg* item = &macro->expansion[i];
         if (item->is_arg) {
             assert(args->arrs);
@@ -552,21 +552,21 @@ static size_t get_expansion_len(const PreprocMacro* macro,
     return len;
 }
 
-static void shift_back(Token* tokens, size_t num, size_t from, size_t to) {
+static void shift_back(Token* tokens, uint32_t num, uint32_t from, uint32_t to) {
     memmove(tokens + from + num, tokens + from, sizeof *tokens * (to - from));
 }
 
-static void shift_forward(Token* tokens, size_t num, size_t from, size_t to) {
+static void shift_forward(Token* tokens, uint32_t num, uint32_t from, uint32_t to) {
     memmove(tokens + from,
             tokens + from + num,
             sizeof *tokens * (to - from - num));
 }
 
 static void copy_into_tokens(Token* tokens,
-                             size_t* token_idx,
+                             uint32_t* token_idx,
                              const TokenArr* arr) {
     assert(arr);
-    for (size_t i = 0; i < arr->len; ++i) {
+    for (uint32_t i = 0; i < arr->len; ++i) {
         tokens[*token_idx] = Token_copy(&arr->tokens[i]);
         ++*token_idx;
     }
@@ -576,8 +576,8 @@ static void copy_into_tokens(Token* tokens,
 static ExpansionInfo expand_func_macro(PreprocState* state,
                                        TokenArr* res,
                                        const PreprocMacro* macro,
-                                       size_t macro_idx,
-                                       size_t macro_end,
+                                       uint32_t macro_idx,
+                                       uint32_t macro_end,
                                        ExpandedMacroStack* expanded,
                                        const ArchTypeInfo* info) {
     assert(macro->is_func_macro);
@@ -590,10 +590,10 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
                                         state->err);
     if (args.len == 0 && macro->num_args != 0) {
         assert(state->err->kind != PREPROC_ERR_NONE);
-        return (ExpansionInfo){0, (size_t)-1};
+        return (ExpansionInfo){0, (uint32_t)-1};
     }
 
-    for (size_t i = 0; i < args.len; ++i) {
+    for (uint32_t i = 0; i < args.len; ++i) {
         const ExpansionInfo success = expand_all_macros_in_range(
             state,
             &args.arrs[i],
@@ -601,7 +601,7 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
             args.arrs[i].len,
             expanded,
             info);
-        if (success.next == (size_t)-1) {
+        if (success.next == (uint32_t)-1) {
             MacroArgs_free(&args);
             return success;
         }
@@ -610,14 +610,14 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
     assert((macro->is_variadic && args.len == macro->num_args + 1)
            || (!macro->is_variadic && args.len == macro->num_args));
 
-    const size_t exp_len = get_expansion_len(macro, &args);
-    const size_t macro_call_len = macro_end - macro_idx + 1;
+    const uint32_t exp_len = get_expansion_len(macro, &args);
+    const uint32_t macro_call_len = macro_end - macro_idx + 1;
 
     const bool alloc_grows = exp_len > macro_call_len;
-    const size_t alloc_change_abs = alloc_grows ? exp_len - macro_call_len
+    const uint32_t alloc_change_abs = alloc_grows ? exp_len - macro_call_len
                                                 : macro_call_len - exp_len;
 
-    const size_t old_len = res->len;
+    const uint32_t old_len = res->len;
 
     Token_free(&res->tokens[macro_idx]);                      // identifier
     Token_free(&res->tokens[macro_idx + 1]);                  // opening bracket
@@ -644,8 +644,8 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
                       old_len);
     }
 
-    size_t token_idx = macro_idx;
-    for (size_t i = 0; i < macro->expansion_len; ++i) {
+    uint32_t token_idx = macro_idx;
+    for (uint32_t i = 0; i < macro->expansion_len; ++i) {
         const TokenOrArg* curr = &macro->expansion[i];
         if (curr->is_arg) {
             copy_into_tokens(res->tokens,
@@ -657,7 +657,7 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
         }
     }
 
-    const size_t last_after_macro = token_idx == 0 ? 0 : token_idx - 1;
+    const uint32_t last_after_macro = token_idx == 0 ? 0 : token_idx - 1;
     ExpandedMacroStack_push(expanded, macro);
     ExpansionInfo ex_info = expand_all_macros_in_range(state,
                                                        res,
@@ -675,14 +675,14 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
 static ExpansionInfo expand_obj_macro(PreprocState* state,
                                       TokenArr* res,
                                       const PreprocMacro* macro,
-                                      size_t macro_idx,
+                                      uint32_t macro_idx,
                                       ExpandedMacroStack* expanded,
                                       const ArchTypeInfo* info) {
     assert(macro->is_func_macro == false);
     assert(macro->num_args == 0);
 
-    const size_t exp_len = macro->expansion_len;
-    const size_t old_len = res->len;
+    const uint32_t exp_len = macro->expansion_len;
+    const uint32_t old_len = res->len;
 
     Token_free(&res->tokens[macro_idx]);
 
@@ -701,7 +701,7 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
         shift_forward(res->tokens, 1, macro_idx, old_len);
     }
 
-    for (size_t i = 0; i < exp_len; ++i) {
+    for (uint32_t i = 0; i < exp_len; ++i) {
         const TokenOrArg* curr = &macro->expansion[i];
         assert(!curr->is_arg);
 

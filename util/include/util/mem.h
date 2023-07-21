@@ -2,6 +2,7 @@
 #define MYCC_UTIL_MEM_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 /**
  * @brief Calls malloc(), exiting when malloc() fails
@@ -45,7 +46,7 @@ void mycc_free(void* alloc);
  * number of elements will be written
  * @param elem_size Size of one element in bytes
  */
-void mycc_grow_alloc(void** alloc, size_t* alloc_len, size_t elem_size);
+void mycc_grow_alloc(void** alloc, uint32_t* alloc_len, size_t elem_size);
 
 #ifdef MYCC_MEMDEBUG
 
@@ -69,7 +70,7 @@ void* mycc_memdebug_realloc_wrapper(void* alloc,
 void mycc_memdebug_free_wrapper(void* alloc, Str func, Str file, size_t line);
 
 void mycc_memdebug_grow_alloc_wrapper(void** alloc,
-                                      size_t* alloc_len,
+                                      uint32_t* alloc_len,
                                       size_t elem_size,
                                       Str func,
                                       Str file,

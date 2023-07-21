@@ -8,24 +8,24 @@
 
 static Token create_file(TokenKind kind,
                          StrBuf spelling,
-                         size_t line,
-                         size_t idx,
-                         size_t file);
+                         uint32_t line,
+                         uint32_t idx,
+                         uint32_t file);
 
-static Token create(TokenKind kind, StrBuf spelling, size_t line, size_t index);
-static Token create_tok_val(Value val, size_t line, size_t index);
+static Token create(TokenKind kind, StrBuf spelling, uint32_t line, uint32_t index);
+static Token create_tok_val(Value val, uint32_t line, uint32_t index);
 
 static Token create_tok_str_lit(StrLitKind kind,
                                 StrBuf cont,
-                                size_t line,
-                                size_t index);
+                                uint32_t line,
+                                uint32_t index);
 
 static void check_token_arr_file(CStr filename,
                                  const Token* expected,
-                                 size_t expected_len);
+                                 uint32_t expected_len);
 static void check_token_arr_str(CStr code,
                                 const Token* expected,
-                                size_t expected_len);
+                                uint32_t expected_len);
 
 TEST(simple) {
     CStr code = CSTR_LIT(
@@ -1214,9 +1214,9 @@ TEST_SUITE_BEGIN(tokenizer){
 
     static Token create_file(TokenKind kind,
                              StrBuf spelling,
-                             size_t line,
-                             size_t idx,
-                             size_t file) {
+                             uint32_t line,
+                             uint32_t idx,
+                             uint32_t file) {
     return (Token){
         .kind = kind,
         .spelling = spelling,
@@ -1230,12 +1230,12 @@ TEST_SUITE_BEGIN(tokenizer){
 
 static Token create(TokenKind kind,
                     StrBuf spelling,
-                    size_t line,
-                    size_t index) {
+                    uint32_t line,
+                    uint32_t index) {
     return create_file(kind, spelling, line, index, 0);
 }
 
-static Token create_tok_val(Value val, size_t line, size_t index) {
+static Token create_tok_val(Value val, uint32_t line, uint32_t index) {
     return (Token){
         .kind = ValueKind_is_float(val.kind) ? TOKEN_F_CONSTANT
                                              : TOKEN_I_CONSTANT,
@@ -1250,8 +1250,8 @@ static Token create_tok_val(Value val, size_t line, size_t index) {
 
 static Token create_tok_str_lit(StrLitKind kind,
                                 StrBuf cont,
-                                size_t line,
-                                size_t index) {
+                                uint32_t line,
+                                uint32_t index) {
     return (Token){
         .kind = TOKEN_STRING_LITERAL,
         .str_lit = (StrLit){kind, cont},
@@ -1263,15 +1263,15 @@ static Token create_tok_str_lit(StrLitKind kind,
     };
 }
 
-static void check_size(const Token* tokens, size_t expected) {
-    size_t size = 0;
+static void check_size(const Token* tokens, uint32_t expected) {
+    uint32_t size = 0;
     const Token* it = tokens;
 
     while (it->kind != TOKEN_INVALID) {
         ++it;
         ++size;
     }
-    ASSERT_SIZE_T(size, expected);
+    ASSERT_UINT(size, expected);
 }
 
 static void check_token(const Token* t, const Token* expected) {
@@ -1280,9 +1280,9 @@ static void check_token(const Token* t, const Token* expected) {
     if (t->kind == TOKEN_I_CONSTANT) {
         ASSERT_VALUE_KIND(t->val.kind, expected->val.kind);
         if (ValueKind_is_sint(t->val.kind)) {
-            ASSERT_I64(t->val.sint_val, expected->val.sint_val);
+            ASSERT_INT(t->val.sint_val, expected->val.sint_val);
         } else {
-            ASSERT_U64(t->val.uint_val, expected->val.uint_val);
+            ASSERT_UINT(t->val.uint_val, expected->val.uint_val);
         }
     } else if (t->kind == TOKEN_F_CONSTANT) {
         ASSERT_VALUE_KIND(t->val.kind, expected->val.kind);
@@ -1296,22 +1296,22 @@ static void check_token(const Token* t, const Token* expected) {
                    StrBuf_as_str(&expected->spelling));
     }
 
-    ASSERT_SIZE_T(t->loc.file_loc.line, expected->loc.file_loc.line);
-    ASSERT_SIZE_T(t->loc.file_loc.index, expected->loc.file_loc.index);
-    ASSERT_SIZE_T(t->loc.file_idx, expected->loc.file_idx);
+    ASSERT_UINT(t->loc.file_loc.line, expected->loc.file_loc.line);
+    ASSERT_UINT(t->loc.file_loc.index, expected->loc.file_loc.index);
+    ASSERT_UINT(t->loc.file_idx, expected->loc.file_idx);
 }
 
 static void compare_tokens(const Token* got,
                            const Token* expected,
-                           size_t len) {
-    for (size_t i = 0; i < len; ++i) {
+                           uint32_t len) {
+    for (uint32_t i = 0; i < len; ++i) {
         check_token(&got[i], &expected[i]);
     }
 }
 
 static void check_token_arr_helper(CStr file_or_code,
                                    const Token* expected,
-                                   size_t expected_len,
+                                   uint32_t expected_len,
                                    PreprocRes (*func)(CStr)) {
     PreprocRes preproc_res = func(file_or_code);
     ASSERT_NOT_NULL(preproc_res.toks);
@@ -1324,7 +1324,7 @@ static void check_token_arr_helper(CStr file_or_code,
 
 static void check_token_arr_file(CStr filename,
                                  const Token* expected,
-                                 size_t expected_len) {
+                                 uint32_t expected_len) {
     check_token_arr_helper(filename, expected, expected_len, tokenize);
 }
 
@@ -1334,7 +1334,7 @@ static PreprocRes tokenize_string_wrapper(CStr code) {
 
 static void check_token_arr_str(CStr code,
                                 const Token* expected,
-                                size_t expected_len) {
+                                uint32_t expected_len) {
     check_token_arr_helper(code,
                            expected,
                            expected_len,

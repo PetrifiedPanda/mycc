@@ -71,7 +71,7 @@ static bool parse_designator_list(ParserState* s, DesignatorList* res) {
         return false;
     }
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_LINDEX
            || ParserState_curr_kind(s) == TOKEN_DOT) {
         if (res->len == alloc_len) {
@@ -97,7 +97,7 @@ fail:
 }
 
 void DesignatorList_free(DesignatorList* l) {
-    for (size_t i = 0; i < l->len; ++i) {
+    for (uint32_t i = 0; i < l->len; ++i) {
         Designator_free_children(&l->designators[i]);
     }
     mycc_free(l->designators);
@@ -169,7 +169,7 @@ bool parse_init_list(ParserState* s, InitList* res) {
         return false;
     }
 
-    size_t alloc_len = res->len;
+    uint32_t alloc_len = res->len;
     while (ParserState_curr_kind(s) == TOKEN_COMMA
            && ParserState_next_token_kind(s) != TOKEN_RBRACE) {
         ParserState_accept_it(s);
@@ -200,7 +200,7 @@ bool Designation_is_valid(const Designation* d) {
 }
 
 void InitList_free_children(InitList* l) {
-    for (size_t i = 0; i < l->len; ++i) {
+    for (uint32_t i = 0; i < l->len; ++i) {
         struct DesignationInit* item = &l->inits[i];
         if (Designation_is_valid(&item->designation)) {
             Designation_free_children(&item->designation);

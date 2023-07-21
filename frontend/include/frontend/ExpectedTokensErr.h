@@ -10,14 +10,14 @@
 
 typedef struct {
     TokenKind got;
-    size_t num_expected;
+    uint32_t num_expected;
     // size must be increased when throwing error with more expected tokens
     TokenKind expected[21];
 } ExpectedTokensErr;
 
 ExpectedTokensErr ExpectedTokensErr_create_single_token(TokenKind got, TokenKind ex);
 
-ExpectedTokensErr ExpectedTokensErr_create(TokenKind got, const TokenKind* expected, size_t num_expected);
+ExpectedTokensErr ExpectedTokensErr_create(TokenKind got, const TokenKind* expected, uint32_t num_expected);
 
 void ExpectedTokensErr_print(File f, const ExpectedTokensErr* err);
 

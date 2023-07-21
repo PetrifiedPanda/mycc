@@ -19,7 +19,7 @@ typedef struct {
 
 typedef struct {
     AstNodeInfo info;
-    size_t len;
+    uint32_t len;
     GenericAssoc* assocs;
 } GenericAssocList;
 

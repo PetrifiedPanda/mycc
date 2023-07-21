@@ -10,7 +10,7 @@
                                                      &info);                   \
         ASSERT(res.err.kind == INT_CONST_ERR_NONE);                            \
         ASSERT(res.res.kind == expected_val_type);                             \
-        ASSERT_U64(num, res.res.uint_val);                                \
+        ASSERT_UINT(num, res.res.uint_val);                                \
     } while (0)
 
 #define TEST_INT_LITERAL(constant, expected_val_type)                          \
@@ -21,7 +21,7 @@
                                                      &info);                   \
         ASSERT(res.err.kind == INT_CONST_ERR_NONE);                            \
         ASSERT(res.res.kind == expected_val_type);                             \
-        ASSERT_U64(num, res.res.sint_val);                                \
+        ASSERT_UINT(num, res.res.sint_val);                                \
     } while (0)
 
 TEST(integer) {

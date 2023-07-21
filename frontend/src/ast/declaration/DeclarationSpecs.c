@@ -42,7 +42,7 @@ typedef enum {
 static ParseDeclarationSpecRes parse_declaration_spec(
     ParserState* s,
     DeclarationSpecs* res,
-    size_t* alloc_len_align_specs) {
+    uint32_t* alloc_len_align_specs) {
     assert(res);
     assert(alloc_len_align_specs);
 
@@ -151,7 +151,7 @@ bool parse_declaration_specs(ParserState* s, DeclarationSpecs* res, bool* found_
 
     res->align_specs = NULL;
     res->num_align_specs = 0;
-    size_t alloc_len_align_specs = 0;
+    uint32_t alloc_len_align_specs = 0;
 
     res->type_specs = TypeSpecs_create();
 
@@ -179,7 +179,7 @@ bool parse_declaration_specs(ParserState* s, DeclarationSpecs* res, bool* found_
 }
 
 static void DeclarationSpecs_free_children(DeclarationSpecs* s) {
-    for (size_t i = 0; i < s->num_align_specs; ++i) {
+    for (uint32_t i = 0; i < s->num_align_specs; ++i) {
         AlignSpec_free_children(&s->align_specs[i]);
     }
     mycc_free(s->align_specs);
