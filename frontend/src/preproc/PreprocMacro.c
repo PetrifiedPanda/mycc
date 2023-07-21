@@ -96,7 +96,7 @@ static void ExpandedMacroStack_free(ExpandedMacroStack* stack) {
 }
 
 typedef struct {
-    ptrdiff_t alloc_change;
+    int32_t alloc_change;
     uint32_t next;
 } ExpansionInfo;
 
@@ -155,7 +155,7 @@ static ExpansionInfo expand_all_macros_in_range(PreprocState* state,
                                                 ExpandedMacroStack* expanded,
                                                 const ArchTypeInfo* info) {
     assert(end <= res->len);
-    ptrdiff_t alloc_change = 0;
+    int32_t alloc_change = 0;
     uint32_t i = start;
     while (i < end) {
         const ExpansionInfo ex_info = find_and_expand_macro(state,
@@ -406,7 +406,9 @@ static Token Token_move(Token* t) {
 }
 
 static TokenArr collect_until(Token* start, const Token* end) {
-    const uint32_t len = end - start;
+    const size_t sz_len = end - start;
+    const uint32_t len = (uint32_t)sz_len;
+    assert((size_t)len == sz_len);
     TokenArr res = {
         .len = len,
         .tokens = len == 0 ? NULL : mycc_alloc(sizeof *res.tokens * len),
@@ -623,7 +625,7 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
     Token_free(&res->tokens[macro_idx + 1]);                  // opening bracket
     Token_free(&res->tokens[macro_idx + macro_call_len - 1]); // closing bracket
 
-    ptrdiff_t alloc_change = 0;
+    int32_t alloc_change = 0;
     if (alloc_grows) {
         alloc_change = alloc_change_abs;
         res->len += alloc_change_abs;
@@ -686,7 +688,7 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
 
     Token_free(&res->tokens[macro_idx]);
 
-    ptrdiff_t alloc_change;
+    int32_t alloc_change;
     if (exp_len > 0) {
         alloc_change = exp_len - 1;
         res->cap += exp_len - 1;

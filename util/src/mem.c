@@ -63,7 +63,7 @@ void* mycc_realloc(void* alloc, size_t bytes) {
 }
 
 void mycc_grow_alloc(void** alloc, uint32_t* alloc_len, size_t elem_size) {
-    size_t new_num = *alloc_len + *alloc_len / 2 + 1;
+    uint32_t new_num = *alloc_len + *alloc_len / 2 + 1;
     *alloc = mycc_realloc(*alloc, elem_size * new_num);
     *alloc_len = new_num;
 }

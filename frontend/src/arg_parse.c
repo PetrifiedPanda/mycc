@@ -34,7 +34,10 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
                         exit_with_err(
                             STR_LIT("-o Option without output file argument\n"));
                     }
-                    res.output_file = (CStr){strlen(argv[i + 1]), argv[i + 1]};
+                    const size_t sz_len = strlen(argv[i + 1]);
+                    const uint32_t len = (uint32_t)sz_len;
+                    assert((size_t)len == sz_len);
+                    res.output_file = (CStr){len, argv[i + 1]};
                     ++i;
                     break;
                 case 'b':
@@ -51,12 +54,19 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
             ++res.num_files;
             res.files = mycc_realloc(res.files,
                                      res.num_files * sizeof *res.files);
-            res.files[res.num_files - 1] = (CStr){strlen(item), item};
+            const size_t sz_len = strlen(item);
+            const uint32_t len = (uint32_t)sz_len;
+            assert((size_t)len == sz_len);
+            res.files[res.num_files - 1] = (CStr){len, item};
         }
     }
 
     if (res.num_files == 0) {
-        exit_with_err(STR_LIT("{Str}: no input files\n"), (Str){strlen(argv[0]), argv[0]});
+        const char* command = argv[0];
+        const size_t sz_len = strlen(command);
+        const uint32_t len = (uint32_t)sz_len;
+        assert((size_t)len == sz_len);
+        exit_with_err(STR_LIT("{Str}: no input files\n"), (Str){len, command});
     } else if (res.output_file.data != NULL && res.num_files > 1) {
         exit_with_err(STR_LIT("Cannot write output of multiple sources in one file\n"));
     }

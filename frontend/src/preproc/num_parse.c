@@ -116,7 +116,11 @@ ParseIntConstRes parse_int_const(Str spell, const ArchTypeInfo* type_info) {
     IntConstErr err = {
         .kind = INT_CONST_ERR_NONE,
     };
-    IntTypeAttrs attrs = get_int_attrs(Str_advance(spell, suffix - spell.data),
+    
+    const size_t sz_len = suffix - spell.data;
+    const uint32_t len = (uint32_t)sz_len;
+    assert((size_t)len == sz_len);
+    IntTypeAttrs attrs = get_int_attrs(Str_advance(spell, len),
                                        &err);
     if (err.kind != INT_CONST_ERR_NONE) {
         return (ParseIntConstRes){
@@ -646,13 +650,13 @@ static ValueKind get_uint_leastn_t_type(uint32_t n,
     const uint8_t bits_in_char = type_info->bits_in_char;
     if (bits_in_char >= n) {
         return VALUE_UCHAR;
-    } else if (bits_in_char * info->sint_size >= n) {
+    } else if ((uint32_t)bits_in_char * info->sint_size >= n) {
         return VALUE_USHORT;
-    } else if (bits_in_char * info->int_size >= n) {
+    } else if ((uint32_t)bits_in_char * info->int_size >= n) {
         return VALUE_UINT;
-    } else if (bits_in_char * info->lint_size >= n) {
+    } else if ((uint32_t)bits_in_char * info->lint_size >= n) {
         return VALUE_ULINT;
-    } else if (bits_in_char * info->llint_size >= n) {
+    } else if ((uint32_t)bits_in_char * info->llint_size >= n) {
         return VALUE_ULLINT;
     }
     UNREACHABLE();
