@@ -69,13 +69,13 @@ const PreprocMacro* find_preproc_macro(const PreprocState* state, const StrBuf* 
 
 bool PreprocState_open_file(PreprocState* s, const StrBuf* filename_str, SourceLoc include_loc);
 
-void register_preproc_macro(PreprocState* state, const StrBuf* spelling, const PreprocMacro* macro);
+void PreprocState_register_macro(PreprocState* state, const StrBuf* spelling, const PreprocMacro* macro);
 
-void remove_preproc_macro(PreprocState* state, const StrBuf* spelling);
+void PreprocState_remove_macro(PreprocState* state, const StrBuf* spelling);
 
-void push_preproc_cond(PreprocState* state, SourceLoc loc, bool was_true);
+void PreprocState_push_cond(PreprocState* state, SourceLoc loc, bool was_true);
 
-void pop_preproc_cond(PreprocState* state);
+void PreprocState_pop_cond(PreprocState* state);
 
 PreprocCond* peek_preproc_cond(PreprocState* state);
 

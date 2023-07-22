@@ -134,7 +134,7 @@ static bool skip_until_next_cond(PreprocState* state,
     while (!PreprocState_over(state)) {
         PreprocState_read_line(state);
         if (is_if_dir(state->line_info.next)) {
-            push_preproc_cond(state, state->line_info.curr_loc, false);
+            PreprocState_push_cond(state, state->line_info.curr_loc, false);
             if (!skip_until_next_cond(state, info)) {
                 return false;
             }
@@ -144,7 +144,9 @@ static bool skip_until_next_cond(PreprocState* state,
                 .cap = 0,
                 .tokens = NULL,
             };
-            const bool tokenize_res = tokenize_line(&arr, state->err, &state->line_info);
+            const bool tokenize_res = tokenize_line(&arr,
+                                                    state->err,
+                                                    &state->line_info);
             if (!tokenize_res) {
                 return false;
             }
@@ -165,7 +167,7 @@ static bool handle_preproc_if(PreprocState* state,
                               bool cond,
                               SourceLoc loc,
                               const ArchTypeInfo* info) {
-    push_preproc_cond(state, loc, cond);
+    PreprocState_push_cond(state, loc, cond);
 
     if (!cond) {
         return skip_until_next_cond(state, info);
@@ -340,7 +342,7 @@ static bool preproc_statement(PreprocState* state,
         if (state->err->kind != PREPROC_ERR_NONE) {
             return false;
         }
-        register_preproc_macro(state, &spell, &macro);
+        PreprocState_register_macro(state, &spell, &macro);
     } else if (Str_eq(directive, STR_LIT("undef"))) {
         if (arr->len < 3) {
             PreprocErr_set(state->err,
@@ -365,7 +367,7 @@ static bool preproc_statement(PreprocState* state,
             return false;
         }
 
-        remove_preproc_macro(state, &arr->tokens[2].spelling);
+        PreprocState_remove_macro(state, &arr->tokens[2].spelling);
     } else if (Str_eq(directive, STR_LIT("include"))) {
         return handle_include(state, arr, info);
     } else if (Str_eq(directive, STR_LIT("pragma"))) {
@@ -383,7 +385,7 @@ static bool preproc_statement(PreprocState* state,
             return false;
         }
 
-        pop_preproc_cond(state);
+        PreprocState_pop_cond(state);
     } else {
         PreprocErr_set(state->err,
                        PREPROC_ERR_INVALID_PREPROC_DIR,

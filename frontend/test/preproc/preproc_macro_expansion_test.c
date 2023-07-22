@@ -45,7 +45,7 @@ static void test_preproc_macro(const PreprocMacro* macro,
     // Do not free stack allocated macros
     state._macro_map._item_free = NULL;
     StrBuf macro_str = StrBuf_create(spell);
-    register_preproc_macro(&state, &macro_str, macro);
+    PreprocState_register_macro(&state, &macro_str, macro);
 
     ASSERT(expand_all_macros(&state, &state.res, 0, &info));
     ASSERT(err.kind == PREPROC_ERR_NONE);

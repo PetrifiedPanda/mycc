@@ -280,7 +280,8 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
     const Str filename_str = StrBuf_as_str(filename);
     const uint32_t sep_idx = get_last_file_sep(filename_str);
 
-    const uint32_t current_prefix_idx = get_current_prefix_idx(&s->file_manager);
+    const uint32_t current_prefix_idx = get_current_prefix_idx(
+        &s->file_manager);
     const StrBuf* prefix = &s->file_manager.prefixes[current_prefix_idx];
 
     const Str prefix_str = StrBuf_as_str(prefix);
@@ -386,20 +387,20 @@ const PreprocMacro* find_preproc_macro(const PreprocState* state,
     return StringMap_get(&state->_macro_map, StrBuf_as_str(spelling));
 }
 
-void register_preproc_macro(PreprocState* state,
-                            const StrBuf* spelling,
-                            const PreprocMacro* macro) {
+void PreprocState_register_macro(PreprocState* state,
+                                 const StrBuf* spelling,
+                                 const PreprocMacro* macro) {
     bool overwritten = StringMap_insert_overwrite(&state->_macro_map,
                                                   spelling,
                                                   macro);
     (void)overwritten; // TODO: warning if redefined
 }
 
-void remove_preproc_macro(PreprocState* state, const StrBuf* spelling) {
+void PreprocState_remove_macro(PreprocState* state, const StrBuf* spelling) {
     StringMap_remove(&state->_macro_map, spelling);
 }
 
-void push_preproc_cond(PreprocState* state, SourceLoc loc, bool was_true) {
+void PreprocState_push_cond(PreprocState* state, SourceLoc loc, bool was_true) {
     if (state->conds_len == state->conds_cap) {
         mycc_grow_alloc((void**)&state->conds,
                         &state->conds_cap,
@@ -415,7 +416,7 @@ void push_preproc_cond(PreprocState* state, SourceLoc loc, bool was_true) {
     ++state->conds_len;
 }
 
-void pop_preproc_cond(PreprocState* state) {
+void PreprocState_pop_cond(PreprocState* state) {
     --state->conds_len;
 }
 
@@ -431,7 +432,7 @@ static void TokenArr_free_elems(TokenArr* arr) {
 }
 
 void TokenArr_free(TokenArr* arr) {
-    TokenArr_free_elems(arr); 
+    TokenArr_free_elems(arr);
     mycc_free(arr->tokens);
 }
 
