@@ -61,8 +61,8 @@ DeserializeAstRes deserialize_ast(File f) {
 
 static bool deserializer_read(AstDeserializer* r,
                               void* res,
-                              uint32_t size,
-                              uint32_t count) {
+                              size_t size,
+                              size_t count) {
     return File_read(res, size, count, r->file) == count;
 }
 
