@@ -12,24 +12,20 @@
 typedef struct {
     jmp_buf err_buf;
     File file;
-    uint32_t num_indents;
     const FileInfo* file_info;
+    StrBuf indent_buf;
 } AstDumper;
 
 static void add_indent(AstDumper* d) {
-    d->num_indents += 1;
+    StrBuf_append(&d->indent_buf, STR_LIT("  "));
 }
 
 static void remove_indent(AstDumper* d) {
-    d->num_indents -= 1;
+    StrBuf_remove_back(&d->indent_buf, 2);
 }
 
 static void print_indents(AstDumper* d) {
-    for (uint32_t i = 0; i < d->num_indents; ++i) {
-        if (!File_put_str_val(STR_LIT("  "), d->file)) {
-            longjmp(d->err_buf, 0);
-        }
-    }
+    File_put_str_val(StrBuf_as_str(&d->indent_buf), d->file);
 }
 
 static void dumper_println_impl(AstDumper* d, Str format, ...) {
@@ -85,16 +81,17 @@ bool dump_ast(const TranslationUnit* tl, const FileInfo* file_info, File f) {
     AstDumper d = {
         .file = f,
         .file_info = file_info,
-        .num_indents = 0,
+        .indent_buf = StrBuf_create_empty(),
     };
 
+    bool res = true;
     if (setjmp(d.err_buf) == 0) {
         dump_translation_unit(&d, tl);
     } else {
-        return false;
+        res = false;
     }
-
-    return true;
+    StrBuf_free(&d.indent_buf);
+    return res;
 }
 
 static void dump_func_specs(AstDumper* d, const FuncSpecs* s) {

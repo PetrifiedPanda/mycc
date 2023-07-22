@@ -48,6 +48,7 @@ void StrBuf_shrink_to_fit(StrBuf* str);
 void StrBuf_reserve(StrBuf* str, uint32_t new_cap);
 
 void StrBuf_remove_front(StrBuf* str, uint32_t num_chars);
+void StrBuf_remove_back(StrBuf* str, uint32_t num_chars);
 
 void StrBuf_append(StrBuf* str, Str app);
 

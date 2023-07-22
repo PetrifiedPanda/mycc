@@ -244,6 +244,13 @@ void StrBuf_remove_front(StrBuf* str, uint32_t num_chars) {
     StrBuf_set_len(str, new_len);
 }
 
+void StrBuf_remove_back(StrBuf* str, uint32_t num_chars) {
+    assert(StrBuf_len(str) >= num_chars);
+    const uint32_t new_len = StrBuf_len(str) - num_chars;
+    StrBuf_set_len(str, new_len);
+    StrBuf_get_mut_data(str)[new_len] = '\0';
+}
+
 void StrBuf_append(StrBuf* str, Str app) {
     const uint32_t curr_len = StrBuf_len(str);
     const uint32_t new_len = curr_len + app.len;
