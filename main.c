@@ -60,7 +60,7 @@ static bool is_file_sep(char c) {
 
 static Str strip_file_location(Str filename) {
     Str res = filename;
-    size_t i = 0;
+    uint32_t i = 0;
     while (i != filename.len) {
         if (is_file_sep(Str_at(filename, i))) {
             res = Str_advance(filename, i + 1);
