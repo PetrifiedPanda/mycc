@@ -211,6 +211,7 @@ typedef enum {
 typedef struct {
     ASTNodeKind kind;
     int main_token;
+    // lhs is implicit, as it is always the next node
     int rhs;
 } ASTNode;
 
