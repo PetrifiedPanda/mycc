@@ -1237,7 +1237,7 @@ static AbsDeclarator* deserialize_abs_declarator(AstDeserializer* r) {
         if (has_ptr) {
             Pointer_free(ptr);
         }
-        return false;
+        return NULL;
     }
 
     DirectAbsDeclarator* direct_abs_decl = NULL;
@@ -1247,7 +1247,7 @@ static AbsDeclarator* deserialize_abs_declarator(AstDeserializer* r) {
             if (has_ptr) {
                 Pointer_free(ptr);
             }
-            return false;
+            return NULL;
         }
     }
     AbsDeclarator* res = mycc_alloc(sizeof *res);
@@ -2023,11 +2023,11 @@ fail_before_cond:
 static IterationStatement* deserialize_iteration_statement(AstDeserializer* r) {
     AstNodeInfo info;
     if (!deserialize_ast_node_info(r, &info)) {
-        return false;
+        return NULL;
     }
     uint64_t kind;
     if (!deserialize_u64(r, &kind)) {
-        return false;
+        return NULL;
     }
 
     IterationStatement* res = mycc_alloc(sizeof *res);

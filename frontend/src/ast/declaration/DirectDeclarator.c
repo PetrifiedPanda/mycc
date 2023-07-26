@@ -220,7 +220,7 @@ static DirectDeclarator* parse_direct_declarator_base(
     }
 
     if (!parse_arr_or_func_suffixes(s, res)) {
-        return false;
+        return NULL;
     }
 
     return res;
