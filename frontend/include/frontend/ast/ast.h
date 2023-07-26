@@ -136,7 +136,7 @@ typedef enum {
     AST_DESIGNATOR,
     // lhs assign_expr, rhs ?assign_expr
     AST_EXPR,
-    // lhs (assign_expr | cond_expr) assign_op rhs cond_expr
+    // lhs cond_expr assign_op rhs (assign_expr | cond_expr)
     AST_ASSIGN,
     AST_ASSIGN_MUL,
     AST_ASSIGN_DIV,
@@ -152,33 +152,33 @@ typedef enum {
     AST_CONST_EXPR,
     // lhs log_or_expr ? rhs cond_items
     AST_COND_EXPR,
-    // rhs (expr | cond_expr) : lhs (cond_expr | expr)
+    // rhs (cond_expr | expr) : lhs (cond_expr | expr)
     AST_COND_ITEMS,
-    // lhs (log_or_expr | log_and_expr) || rhs log_and_expr
+    // lhs log_and_expr || rhs (log_or_expr | log_and_expr)
     AST_LOG_OR_EXPR,
-    // lhs (log_and_expr | or_expr) && rhs or_expr
+    // lhs or_expr && rhs (log_and_expr | or_expr)
     AST_LOG_AND_EXPR,
-    // lhs (or_expr | xor_expr) | rhs xor_expr
+    // lhs xor_expr | rhs (or_expr | xor_expr)
     AST_OR_EXPR,
-    // lhs (xor_expr | and_expr) ^ rhs and_expr
+    // lhs and_expr ^ rhs (xor_expr | and_expr)
     AST_XOR_EXPR,
-    // lhs (and_expr | eq_expr) & rhs eq_expr
+    // lhs eq_expr & rhs (and_expr | eq_expr)
     AST_AND_EXPR,
-    // lhs (eq_expr | rel_expr) eq_op rhs (rel_expr)
+    // lhs rel_expr eq_op rhs (eq_expr | rel_expr)
     AST_EQ_EXPR,
     AST_NE_EXPR,
-    // lhs (rel_expr | shift_expr) rel_op rhs shift_expr
+    // lhs shift_expr rel_op rhs (rel_expr | shift_expr)
     AST_REL_EXPR_LT,
     AST_REL_EXPR_GT,
     AST_REL_EXPR_LE,
     AST_REL_EXPR_GE,
-    // lhs (shift_expr | add_expr) shift_op rhs add_expr
-    AST_SHIFT_EXPR_LEFT,
-    AST_SHIFT_EXPR_RIGHT,
-    // lhs (add_expr | mul_expr) add_expr rhs mul_expr
+    // lhs add_expr shift_op rhs (shift_expr | add_expr)
+    AST_LSHIFT_EXPR,
+    AST_RSHIFT_EXPR,
+    // lhs mul_expr add_expr rhs (add_expr | mul_expr)
     AST_ADD_EXPR,
     AST_SUB_EXPR,
-    // lhs (mul_expr | cast_expr) mul_epxr rhs cast_expr
+    // lhs cast_expr mul_op rhs (mul_expr | cast_expr)
     AST_MUL_EXPR,
     AST_DIV_EXPR,
     AST_MOD_EXPR,
