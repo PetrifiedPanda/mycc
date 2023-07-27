@@ -134,6 +134,8 @@ typedef enum {
     AST_DESIGNATOR_LIST,
     // constexpr or identifier (might be removeable)
     AST_DESIGNATOR,
+    // cond_expr (might be removeable)
+    AST_CONST_EXPR,
     // lhs assign_expr, rhs ?assign_expr
     AST_EXPR,
     // lhs cond_expr assign_op rhs (assign_expr | cond_expr)
@@ -148,8 +150,6 @@ typedef enum {
     AST_ASSIGN_AND,
     AST_ASSIGN_XOR,
     AST_ASSIGN_OR,
-    // cond_expr (might be removeable)
-    AST_CONST_EXPR,
     // lhs log_or_expr ? rhs cond_items
     AST_COND_EXPR,
     // rhs (cond_expr | expr) : lhs (cond_expr | expr)
@@ -190,7 +190,7 @@ typedef enum {
     AST_UNARY_EXPR_INC,
     AST_UNARY_EXPR_DEC,
     AST_UNARY_EXPR_SIZEOF,
-    // lhs postfix_expr[rhs expr]
+    // lhs (postfix_expr | primary_expr | struct_literal)[rhs expr]
     AST_POSTFIX_EXPR_INDEX,
     // lhs postfix_expr(rhs arg_expr_list)
     AST_POSTFIX_EXPR_BRACKET,
@@ -204,6 +204,16 @@ typedef enum {
     AST_POSTFIX_DEC,
     // subrange assign_expr[lhs...rhs]
     AST_ARG_EXPR_LIST,
+    // constant | string_constant | identifier | bracket_expr | generic_sel
+    AST_PRIMARY_EXPR,
+    // main token is value / identifier
+    AST_CONSTANT,
+    AST_ENUM_CONSTANT,
+    // main token is string literal / __func__
+    AST_STRING_LITERAL,
+    AST_FUNC,
+    // TODO:
+    AST_STRUCT_LITERAL,
     // main token is identifier
     AST_IDENTIFIER,
 } ASTNodeKind;
