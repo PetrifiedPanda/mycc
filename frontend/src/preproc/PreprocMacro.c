@@ -360,7 +360,20 @@ static PreprocMacro parse_object_like_macro(TokenArr* arr) {
     return res;
 }
 
-PreprocMacro parse_preproc_macro(TokenArr* arr, PreprocErr* err) {
+static bool is_func_like_macro(const TokenArr* arr, uint32_t name_len) {
+    assert(arr->tokens[2].kind == TOKEN_IDENTIFIER);
+    if (arr->len <= 3 || arr->tokens[3].kind != TOKEN_LBRACKET) {
+        return false;
+    }
+    const SourceLoc macro_name_loc = arr->tokens[2].loc;
+    const SourceLoc bracket_loc = arr->tokens[3].loc;
+    assert(macro_name_loc.file_loc.line == bracket_loc.file_loc.line);
+    const uint32_t macro_name_idx = macro_name_loc.file_loc.index;
+    const uint32_t bracket_idx = bracket_loc.file_loc.index;
+    return bracket_idx == macro_name_idx + name_len;
+}
+
+PreprocMacro parse_preproc_macro(TokenArr* arr, uint32_t name_len, PreprocErr* err) {
     assert(arr);
     assert(arr->len >= 2);
     assert(arr->tokens[0].kind == TOKEN_PP_STRINGIFY);
@@ -377,7 +390,7 @@ PreprocMacro parse_preproc_macro(TokenArr* arr, PreprocErr* err) {
         return (PreprocMacro){0};
     }
 
-    if (arr->len > 3 && arr->tokens[3].kind == TOKEN_LBRACKET) {
+    if (is_func_like_macro(arr, name_len)) {
         return parse_func_like_macro(arr, err);
     } else {
         return parse_object_like_macro(arr);

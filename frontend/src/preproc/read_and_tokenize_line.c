@@ -338,7 +338,7 @@ static bool preproc_statement(PreprocState* state,
         return handle_ifdef_ifndef(state, arr, true, info);
     } else if (Str_eq(directive, STR_LIT("define"))) {
         const StrBuf spell = Token_take_spelling(&arr->tokens[2]);
-        PreprocMacro macro = parse_preproc_macro(arr, state->err);
+        PreprocMacro macro = parse_preproc_macro(arr, StrBuf_len(&spell), state->err);
         if (state->err->kind != PREPROC_ERR_NONE) {
             return false;
         }
