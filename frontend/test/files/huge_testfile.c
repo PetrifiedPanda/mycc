@@ -1,9 +1,10 @@
 
-enum {NULL = 0, EOF = -1};
+#define NULL 0
+#define EOF -1
 
 typedef _Bool bool;
 
-typedef unsigned long long size_t;
+typedef unsigned long size_t;
 typedef unsigned char uint8_t;
 typedef unsigned long long uintmax_t;
 typedef long long intmax_t;
@@ -20,10 +21,10 @@ typedef struct FILE FILE;
 
 const bool EXIT_FAILURE = -1;
 
-FILE* stderr = (void*)NULL;
-FILE* stdout = (void*)NULL;
+extern FILE* stderr;
+extern FILE* stdout;
 
-enum { CHAR_BIT = 8 };
+#define CHAR_BIT 8
 
 extern int fprintf(FILE*, const char*, ...);
 extern FILE* fopen(const char*, const char*);
@@ -34,7 +35,7 @@ extern void* malloc(size_t);
 extern void* calloc(size_t, size_t);
 extern void* realloc(void*, size_t);
 extern void free(void*);
-extern void abort();
+extern void abort(void);
 extern char* strcpy(char*, const char*);
 extern void* memmove(void*, const void*, size_t);
 extern void* memcpy(void*, const void*, size_t);
