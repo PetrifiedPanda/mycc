@@ -1,6 +1,6 @@
 
-#define NULL 0
-#define EOF -1
+#define NULL ((void*)0)
+#define EOF (-1)
 
 typedef _Bool bool;
 
