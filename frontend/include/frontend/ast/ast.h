@@ -10,8 +10,10 @@ typedef enum {
     AST_DECLARATION,
     // lhs expr rhs string_literal 
     AST_STATIC_ASSERT_DECLARATION,
-    // lhs TODO:, rhs declaration_list 
+    // lhs func_declaration rhs declaration_list 
     AST_FUNC_SIGNATURE,
+    // lhs declaration_specs rhs declarator
+    AST_FUNC_DECLARATION,
     // subrange (declaration | statement)[lhs...rhs] 
     AST_COMPOUND_STATEMENT,
     // labeled_statement | compound_statement | expr_statement | selection_statement | iteration_statement | jump_statement (might be removeable)
@@ -251,6 +253,12 @@ typedef enum {
     AST_ARG_EXPR_LIST,
     // constant | string_constant | identifier | bracket_expr | generic_sel
     AST_PRIMARY_EXPR,
+    // '_Generic' '(' lhs assign_expr ',' rhs generic_assoc_list ')'
+    AST_GENERIC_SEL,
+    // subrange generic_assoc[lhs...rhs] 
+    AST_GENERIC_ASSOC_LIST,
+    // lhs ?type_name ':' assign_expr
+    AST_GENERIC_ASSOC,
     // main token is value / identifier
     AST_CONSTANT,
     AST_ENUM_CONSTANT,
