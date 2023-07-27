@@ -397,7 +397,7 @@ void PreprocMacro_free(PreprocMacro* m) {
     mycc_free(m->expansion);
 }
 
-static Token Token_copy(const Token* t);
+static Token Token_copy(const Token* t, SourceLoc loc);
 
 static Token Token_move(Token* t) {
     Token res = *t;
@@ -566,10 +566,11 @@ static void shift_forward(Token* tokens, uint32_t num, uint32_t from, uint32_t t
 
 static void copy_into_tokens(Token* tokens,
                              uint32_t* token_idx,
-                             const TokenArr* arr) {
+                             const TokenArr* arr, 
+                             SourceLoc loc) {
     assert(arr);
     for (uint32_t i = 0; i < arr->len; ++i) {
-        tokens[*token_idx] = Token_copy(&arr->tokens[i]);
+        tokens[*token_idx] = Token_copy(&arr->tokens[i], loc);
         ++*token_idx;
     }
 }
@@ -582,6 +583,7 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
                                        uint32_t macro_end,
                                        ExpandedMacroStack* expanded,
                                        const ArchTypeInfo* info) {
+    const SourceLoc loc = res->tokens[macro_idx].loc;
     assert(macro->is_func_macro);
     assert(macro_end < res->len);
     assert(res->tokens[macro_idx + 1].kind == TOKEN_LBRACKET);
@@ -652,9 +654,9 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
         if (curr->is_arg) {
             copy_into_tokens(res->tokens,
                              &token_idx,
-                             &args.arrs[curr->arg_num]);
+                             &args.arrs[curr->arg_num], loc);
         } else {
-            res->tokens[token_idx] = Token_copy(&curr->token);
+            res->tokens[token_idx] = Token_copy(&curr->token, loc);
             ++token_idx;
         }
     }
@@ -680,6 +682,7 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
                                       uint32_t macro_idx,
                                       ExpandedMacroStack* expanded,
                                       const ArchTypeInfo* info) {
+    const SourceLoc loc = res->tokens[macro_idx].loc;
     assert(macro->is_func_macro == false);
     assert(macro->num_args == 0);
 
@@ -707,7 +710,7 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
         const TokenOrArg* curr = &macro->expansion[i];
         assert(!curr->is_arg);
 
-        res->tokens[macro_idx + i] = Token_copy(&curr->token);
+        res->tokens[macro_idx + i] = Token_copy(&curr->token, loc);
     }
 
     ExpandedMacroStack_push(expanded, macro);
@@ -722,17 +725,12 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
     return ex_info;
 }
 
-static Token Token_copy(const Token* t) {
+static Token Token_copy(const Token* t, SourceLoc loc) {
     assert(t);
     return (Token){
         .kind = t->kind,
         .spelling = StrBuf_copy(&t->spelling),
-        // TODO: identify as token from macro expansion
-        .loc =
-            {
-                .file_idx = t->loc.file_idx,
-                .file_loc = t->loc.file_loc,
-            },
+        .loc = loc,
     };
 }
 
