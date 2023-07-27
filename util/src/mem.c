@@ -181,14 +181,14 @@ static void pretty_print_size_t(File out, size_t n) {
     while (num_digits_to_print != 0) {
         const int to_print = (int)(remainder / pow);
         remainder -= pow * to_print;
-        File_putc('0' + to_print, out);
+        File_putc('0' + (char)to_print, out);
         if (num_digits_to_print % 3 == 0) {
             File_putc(',', out);
         }
         --num_digits_to_print;
         pow /= 10;
     }
-    File_putc('0' + (int)remainder, out);
+    File_putc('0' + (char)remainder, out);
 }
 
 static void memdebug_cleanup(void) {
