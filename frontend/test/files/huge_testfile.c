@@ -9,7 +9,8 @@ typedef unsigned char uint8_t;
 typedef unsigned long long uintmax_t;
 typedef long long intmax_t;
 
-enum {true = 1, false = 0};
+#define true 1
+#define false 0
 
 extern int errno;
 
