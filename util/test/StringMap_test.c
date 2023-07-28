@@ -175,7 +175,51 @@ TEST(remove) {
     StringMap_free(&map);
 }
 
+TEST(correct_rehashing) {
+    enum {MAP_CAP = 20 };
+    StringMap map = StringMap_create(sizeof(uint32_t), MAP_CAP, false, NULL);
+    const Str to_insert[] = {
+        STR_LIT("test"),
+        STR_LIT("blah"),
+        STR_LIT("something_a_bit_longer"),
+        STR_LIT("SOMETHING_ELSE"),
+        STR_LIT("long_identifier_ok_this_is_getting_ridiculous_stop"),
+        STR_LIT("gleb"),
+        STR_LIT("glurbidurb"),
+        STR_LIT("identifier"),
+        STR_LIT("chairoikoguma"),
+        STR_LIT("jammie_dodgers"),
+        STR_LIT("indento_switch"),
+        STR_LIT("fuck_that_rock_in_tears_of_the_kingdom_that_fell_in_a_lake"),
+        STR_LIT("IamRunningOutOfIdeas"),
+        STR_LIT("ThatsIt"),
+        STR_LIT("camelCase"),
+        STR_LIT("PascalCase"),
+        STR_LIT("snake_case"),
+        STR_LIT("running_out_of_naming_conventions"),
+        STR_LIT("lotsOfEffortToTestOneVeryDumbBug"),
+        STR_LIT("it_is_done_we_have_enough"),
+    };
+    static_assert(ARR_LEN(to_insert) == MAP_CAP, "Need same amount of items as map capacity");
+
+    for (uint32_t i = 0; i < MAP_CAP; ++i) {
+        const StrBuf buf = {
+            ._is_static_buf = false,
+            ._len = to_insert[i].len,
+            ._data = (char*)to_insert[i].data,
+        };
+        const uint32_t* res = StringMap_insert(&map, &buf, &i);
+        ASSERT_UINT(*res, i);
+    }
+
+    const uint32_t* res = StringMap_get(&map, STR_LIT("not_in_map"));
+    ASSERT_NULL(res);
+
+    StringMap_free(&map);
+}
+
 TEST_SUITE_BEGIN(string_map){
     REGISTER_TEST(insert),
     REGISTER_TEST(remove),
+    REGISTER_TEST(correct_rehashing),
 } TEST_SUITE_END()

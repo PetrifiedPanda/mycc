@@ -88,7 +88,7 @@ static uint32_t find_item_index(const StringMap* map, Str key) {
 }
 
 static void rehash_if_necessary(StringMap* map) {
-    if (map->_len == map->_cap) {
+    if (map->_len == map->_cap - 1) {
         resize_map(map);
     }
 }
