@@ -16,13 +16,12 @@ typedef enum {
     AST_FUNC_DECLARATION,
     // subrange (declaration | statement)[lhs...rhs] 
     AST_COMPOUND_STATEMENT,
-    // labeled_statement | compound_statement | expr_statement | selection_statement | iteration_statement | jump_statement (might be removeable)
-    AST_STATEMENT,
+    // statement:
     // lhs identifier ':' rhs statement
     AST_LABELED_STATEMENT,
     // 'case' lhs const_expr ':' rhs statement
     AST_CASE_STATEMENT,
-    // 'default' ':' rhs (merge with case statement?)
+    // 'default' ':' rhs statement (merge with case statement?)
     AST_DEFAULT_STATEMENT,
     // expr ';' (might be removeable)
     AST_EXPR_STATEMENT,
@@ -48,13 +47,13 @@ typedef enum {
     AST_CONTINUE_STATEMENT,
     // 'break' ';'
     AST_BREAK_STATEMENT,
-    // 'return' lhs expr ';'
+    // 'return' lhs ?expr ';'
     AST_RETURN_STATEMENT,
-    // lhs (storage_class_spec | type_spec | func_spec | align_spec) rhs declaration_specifiers
+    // subrange (storage_class_spec | type_spec | func_spec | align_spec)[lhs...rhs]
     AST_DECLARATION_SPECS,
-    // typedef extern static thread_local auto register
+    // main token is (typedef extern static thread_local auto register)
     AST_STORAGE_CLASS_SPEC,
-    // lhs ?(identifier | enum_spec | struct_union_spec | atomic_type_spec) (otherwise void char int float double bool atomic struct enum)
+    // lhs ?(identifier | enum_spec | struct_union_spec | atomic_type_spec) (otherwise main token void char int float double bool atomic struct enum)
     AST_TYPE_SPEC,
     // 'enum' lhs ?identifier rhs enum_list 
     AST_ENUM_SPEC,
@@ -62,12 +61,10 @@ typedef enum {
     AST_ENUM_LIST,
     // lhs identifier '=' rhs ?const_expr
     AST_ENUMERATOR,
-    // struct_union_spec:
+    // main token is either 'struct' or 'union'
     // needs either identifier or struct_declaration_list
-    // 'struct' lhs ?identifier rhs ?struct_declaration_list
-    AST_STRUCT_SPEC,
-    // 'union' lhs ?identifier rhs ?struct_declaration_list
-    AST_UNION_SPEC,
+    // ('struct' | 'union') lhs ?identifier rhs ?struct_declaration_list
+    AST_STRUCT_UNION_SPEC,
     // subrange (struct_declaration | static_assert_declaration)[lhs...rhs]
     AST_STRUCT_DECLARATION_LIST,
     // lhs declaration_specs rhs struct_declarator_list
