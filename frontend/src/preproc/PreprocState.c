@@ -94,12 +94,7 @@ PreprocState PreprocState_create(CStr start_file, PreprocErr* err) {
         return res;
     }
     return (PreprocState){
-        .res =
-            {
-                .len = 0,
-                .cap = 0,
-                .tokens = NULL,
-            },
+        .res = TokenArr_create_empty(),
         .line_info =
             {
                 .line = StrBuf_create_empty(),
@@ -128,12 +123,7 @@ PreprocState PreprocState_create_string(Str code,
                                         PreprocErr* err) {
     StrBuf filename_str = StrBuf_create(filename);
     return (PreprocState){
-        .res =
-            {
-                .len = 0,
-                .cap = 0,
-                .tokens = NULL,
-            },
+        .res = TokenArr_create_empty(),
         .line_info =
             {
                 .line = StrBuf_create_empty(),

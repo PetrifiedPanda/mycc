@@ -47,11 +47,7 @@ PreprocRes preproc(CStr path, const ArchTypeInfo* info, PreprocErr* err) {
         .toks = state.res,
         .file_info = state.file_info,
     };
-    state.res = (TokenArr){
-        .len = 0,
-        .cap = 0,
-        .tokens = NULL,
-    };
+    state.res = TokenArr_create_empty();
     state.file_info = (FileInfo){
         .len = 0,
         .paths = NULL,
@@ -101,11 +97,7 @@ PreprocRes preproc_string(Str str, Str path, const ArchTypeInfo* info, PreprocEr
         .toks = state.res,
         .file_info = state.file_info,
     };
-    state.res = (TokenArr){
-        .len = 0,
-        .cap = 0,
-        .tokens = NULL,
-    };
+    state.res = TokenArr_create_empty();
     state.file_info = (FileInfo){
         .len = 0,
         .paths = NULL,

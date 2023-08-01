@@ -28,24 +28,6 @@ Token Token_create(TokenKind kind,
     };
 }
 
-Token Token_create_copy(TokenKind kind,
-                        const StrBuf* spelling,
-                        FileLoc file_loc,
-                        uint32_t file_idx) {
-    assert(spelling);
-    assert(StrBuf_valid(spelling));
-
-    return (Token){
-        .kind = kind,
-        .spelling = StrBuf_copy(spelling),
-        .loc =
-            {
-                .file_idx = file_idx,
-                .file_loc = file_loc,
-            },
-    };
-}
-
 StrBuf Token_take_spelling(Token* t) {
     assert(StrBuf_valid(&t->spelling));
     StrBuf spelling = StrBuf_take(&t->spelling);
@@ -66,6 +48,14 @@ void Token_free(Token* t) {
     } else if (t->kind != TOKEN_I_CONSTANT && t->kind != TOKEN_F_CONSTANT) {
         StrBuf_free(&t->spelling);
     }
+}
+
+TokenArr TokenArr_create_empty(void) {
+    return (TokenArr){
+        .len = 0,
+        .cap = 0,
+        .tokens = NULL,
+    };
 }
 
 void TokenArr_free(TokenArr* arr) {

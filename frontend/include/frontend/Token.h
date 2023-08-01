@@ -42,7 +42,6 @@ typedef struct {
 } TokenArr;
 
 
-
 /**
  *
  * @param kind The kind of the token
@@ -56,24 +55,13 @@ Token Token_create(TokenKind kind,
                    FileLoc file_loc,
                    uint32_t file_idx);
 
-/**
- *
- * @param kind The kind of the token
- * @param spelling The spelling of the token, which is to be copied, must not be
- *        NULL
- * @param file_loc The location of the token in the file
- * @param filename The file this token is in (This is copied into the token)
- */
-Token Token_create_copy(TokenKind kind,
-                        const StrBuf* spelling,
-                        FileLoc file_loc,
-                        uint32_t file_idx);
-
 StrBuf Token_take_spelling(Token* t);
 
 StrLit Token_take_str_lit(Token* t);
 
 void Token_free(Token* t);
+
+TokenArr TokenArr_create_empty(void);
 
 void TokenArr_free(TokenArr* arr);
 

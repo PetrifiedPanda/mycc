@@ -39,11 +39,7 @@ bool read_and_tokenize_line(PreprocState* state, const ArchTypeInfo* info) {
         }
 
         if (is_preproc_directive(state->line_info.next)) {
-            TokenArr arr = {
-                .len = 0,
-                .cap = 0,
-                .tokens = NULL,
-            };
+            TokenArr arr = TokenArr_create_empty();
 
             const bool res = tokenize_line(&arr, state->err, &state->line_info);
             if (!res) {
@@ -139,11 +135,7 @@ static bool skip_until_next_cond(PreprocState* state,
                 return false;
             }
         } else if (is_cond_directive(state->line_info.next)) {
-            TokenArr arr = {
-                .len = 0,
-                .cap = 0,
-                .tokens = NULL,
-            };
+            TokenArr arr = TokenArr_create_empty();
             const bool tokenize_res = tokenize_line(&arr,
                                                     state->err,
                                                     &state->line_info);
