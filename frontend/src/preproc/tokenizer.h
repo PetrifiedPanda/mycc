@@ -16,12 +16,4 @@
  */
 bool tokenize_line(TokenArr* res, PreprocErr* err, LineInfo* info);
 
-/**
- * @param res The token where the result is written in
- * @param info Will be written with the advanced source location and pointer
- * 
- * @returns false if an error occured
- */
-bool tokenize_next_token(Token* res, PreprocErr* err, LineInfo* info);
-
 #endif

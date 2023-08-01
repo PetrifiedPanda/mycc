@@ -44,7 +44,7 @@ static void write_line_info(const TokenizerState* s, LineInfo* info) {
     info->curr_loc.file_loc = s->file_loc;
 }
 
-bool tokenize_next_token(Token* res, PreprocErr* err, LineInfo* info) {
+static bool tokenize_next_token(Token* res, PreprocErr* err, LineInfo* info) {
     assert(res);
     assert(info);
     assert(info->next.data);
