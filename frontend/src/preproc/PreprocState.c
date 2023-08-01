@@ -425,17 +425,6 @@ PreprocCond* peek_preproc_cond(PreprocState* state) {
     return &state->conds[state->conds_len - 1];
 }
 
-static void TokenArr_free_elems(TokenArr* arr) {
-    for (uint32_t i = 0; i < arr->len; ++i) {
-        StrBuf_free(&arr->tokens[i].spelling);
-    }
-}
-
-void TokenArr_free(TokenArr* arr) {
-    TokenArr_free_elems(arr);
-    mycc_free(arr->tokens);
-}
-
 static void LineInfo_free(LineInfo* info) {
     StrBuf_free(&info->line);
 }

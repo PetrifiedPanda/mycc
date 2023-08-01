@@ -9,11 +9,7 @@
 #include "frontend/FileInfo.h"
 
 #include "PreprocErr.h"
-
-typedef struct {
-    uint32_t len, cap;
-    Token* tokens;
-} TokenArr;
+#include "TokenArr.h"
 
 typedef struct {
     StrBuf line;
@@ -78,8 +74,6 @@ void PreprocState_push_cond(PreprocState* state, SourceLoc loc, bool was_true);
 void PreprocState_pop_cond(PreprocState* state);
 
 PreprocCond* peek_preproc_cond(PreprocState* state);
-
-void TokenArr_free(TokenArr* arr);
 
 void PreprocState_free(PreprocState* state);
 
