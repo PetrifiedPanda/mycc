@@ -11,7 +11,7 @@ TEST(unterminated_literal) {
                                         STR_LIT("file.c"),
                                         &info,
                                         &err);
-        ASSERT_NULL(res.toks);
+        ASSERT_UINT(res.toks.len, 0);
         ASSERT_UINT(res.file_info.len, (uint32_t)0);
         ASSERT_NULL(res.file_info.paths);
 
@@ -30,7 +30,7 @@ TEST(unterminated_literal) {
             STR_LIT("file.c"),
             &info,
             &err);
-        ASSERT_NULL(res.toks);
+        ASSERT_UINT(res.toks.len, 0);
         ASSERT_UINT(res.file_info.len, (uint32_t)0);
         ASSERT_NULL(res.file_info.paths);
 
@@ -52,7 +52,7 @@ TEST(invalid_identifier) {
                                     STR_LIT("file.c"),
                                     &info,
                                     &err);
-    ASSERT_NULL(res.toks);
+    ASSERT_UINT(res.toks.len, 0);
     ASSERT_UINT(res.file_info.len, (uint32_t)0);
     ASSERT_NULL(res.file_info.paths);
 
@@ -73,7 +73,7 @@ TEST(invalid_number) {
                                     STR_LIT("file.c"),
                                     &info,
                                     &err);
-    ASSERT_NULL(res.toks);
+    ASSERT_UINT(res.toks.len, 0);
     ASSERT_UINT(res.file_info.len, (uint32_t)0);
     ASSERT_NULL(res.file_info.paths);
 
@@ -94,8 +94,8 @@ TEST(preproc_token) {
                                     STR_LIT("file.c"),
                                     &info,
                                     &err);
-    ASSERT(res.toks);
-    ASSERT(!convert_preproc_tokens(res.toks, &info, &err));
+    ASSERT(res.toks.len != 0);
+    ASSERT(!convert_preproc_tokens(&res.toks, &info, &err));
 
     ASSERT(err.kind == PREPROC_ERR_MISPLACED_PREPROC_TOKEN);
 

@@ -10,13 +10,14 @@
 #include "ParserErr.h"
 
 typedef struct {
-    Token* _it;
+    TokenArr _arr;
+    uint32_t _it;
     uint32_t _len, _cap;
     StringMap* _scope_maps;
     ParserErr* err;
 } ParserState;
 
-ParserState ParserState_create(Token* tokens, ParserErr* err);
+ParserState ParserState_create(TokenArr* tokens, ParserErr* err);
 void ParserState_free(ParserState* s);
 
 bool ParserState_accept(ParserState* s, TokenKind expected);

@@ -6,8 +6,13 @@
 
 TEST(ParserState) {
     Token dummy = {.kind = TOKEN_INVALID};
+    TokenArr dummy_arr = {
+        .len = 1,
+        .cap = 1,
+        .tokens = &dummy,
+    };
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(&dummy, &err);
+    ParserState s = ParserState_create(&dummy_arr, &err);
 
     enum {
         NUM_STRINGS = 100,

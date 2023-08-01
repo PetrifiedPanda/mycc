@@ -195,7 +195,7 @@ TEST(no_preproc) {
     PreprocRes res = tokenize(file);
 
     ParserErr err = ParserErr_create();
-    TranslationUnit tl = parse_tokens(res.toks, &err);
+    TranslationUnit tl = parse_tokens(&res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_UINT(tl.len, (uint32_t)10);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
@@ -253,7 +253,7 @@ TEST(parser_testfile) {
     PreprocRes res = tokenize(file);
 
     ParserErr err = ParserErr_create();
-    TranslationUnit tl = parse_tokens(res.toks, &err);
+    TranslationUnit tl = parse_tokens(&res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_UINT(tl.len, (uint32_t)18);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
@@ -337,7 +337,7 @@ TEST(large_testfile) {
     PreprocRes res = tokenize(file);
 
     ParserErr err = ParserErr_create();
-    TranslationUnit tl = parse_tokens(res.toks, &err);
+    TranslationUnit tl = parse_tokens(&res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
     ASSERT_UINT(tl.len, (uint32_t)88);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));

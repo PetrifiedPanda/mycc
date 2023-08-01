@@ -47,12 +47,12 @@ bool read_and_tokenize_line(PreprocState* state, const ArchTypeInfo* info) {
 
             const bool res = tokenize_line(&arr, state->err, &state->line_info);
             if (!res) {
-                TokenArr_free(&arr);
+                TokenArr_free_preproc(&arr);
                 return false;
             }
 
             const bool stat_res = preproc_statement(state, &arr, info);
-            TokenArr_free(&arr);
+            TokenArr_free_preproc(&arr);
             if (!stat_res) {
                 return false;
             }
@@ -152,7 +152,7 @@ static bool skip_until_next_cond(PreprocState* state,
             }
 
             const bool stat_res = preproc_statement(state, &arr, info);
-            TokenArr_free(&arr);
+            TokenArr_free_preproc(&arr);
             return stat_res;
         }
     }

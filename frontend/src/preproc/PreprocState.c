@@ -444,7 +444,7 @@ static void FileManager_free(FileManager* fm) {
 }
 
 void PreprocState_free(PreprocState* state) {
-    TokenArr_free(&state->res);
+    TokenArr_free_preproc(&state->res);
     LineInfo_free(&state->line_info);
     FileManager_free(&state->file_manager);
     mycc_free(state->conds);

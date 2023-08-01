@@ -17,8 +17,6 @@
 
 static TokenKind keyword_kind(Str spelling);
 
-static void append_terminator_token(TokenArr* arr);
-
 static bool preproc_impl(PreprocState* state, const ArchTypeInfo* info);
 
 PreprocRes preproc(CStr path, const ArchTypeInfo* info, PreprocErr* err) {
@@ -28,7 +26,7 @@ PreprocRes preproc(CStr path, const ArchTypeInfo* info, PreprocErr* err) {
     PreprocState state = PreprocState_create(path, err);
     if (err->kind != PREPROC_ERR_NONE) {
         return (PreprocRes){
-            .toks = NULL,
+            .toks = {0},
             .file_info = state.file_info,
         };
     }
@@ -40,13 +38,13 @@ PreprocRes preproc(CStr path, const ArchTypeInfo* info, PreprocErr* err) {
         };
         PreprocState_free(&state);
         return (PreprocRes){
-            .toks = NULL,
+            .toks = {0},
             .file_info = file_info,
         };
     }
 
     PreprocRes res = {
-        .toks = state.res.tokens,
+        .toks = state.res,
         .file_info = state.file_info,
     };
     state.res = (TokenArr){
@@ -78,7 +76,6 @@ static bool preproc_impl(PreprocState* state, const ArchTypeInfo* info) {
         state->err->unterminated_cond_loc = state->conds[state->conds_len - 1].loc;
         return false;
     }
-    append_terminator_token(&state->res);
     return true;
 }
 
@@ -91,7 +88,7 @@ PreprocRes preproc_string(Str str, Str path, const ArchTypeInfo* info, PreprocEr
     if (!preproc_impl(&state, info)) {
         PreprocState_free(&state);
         return (PreprocRes){
-            .toks = NULL,
+            .toks = {0},
             .file_info =
                 {
                     .len = 0,
@@ -101,7 +98,7 @@ PreprocRes preproc_string(Str str, Str path, const ArchTypeInfo* info, PreprocEr
     }
 
     PreprocRes res = {
-        .toks = state.res.tokens,
+        .toks = state.res,
         .file_info = state.file_info,
     };
     state.res = (TokenArr){
@@ -119,33 +116,24 @@ PreprocRes preproc_string(Str str, Str path, const ArchTypeInfo* info, PreprocEr
 }
 #endif // MYCC_TEST_FUNCTIONALITY
 
-static void free_tokens(Token* tokens) {
-    for (Token* it = tokens; it->kind != TOKEN_INVALID; ++it) {
-        Token_free(it);
-    }
-    mycc_free(tokens);
-}
-
-static void free_preproc_tokens_only(Token* toks) {
-    for (Token* it = toks; it->kind != TOKEN_INVALID; ++it) {
-        StrBuf_free(&it->spelling);
+static void free_preproc_tokens_from(TokenArr* toks, uint32_t start_idx) {
+    for (uint32_t i = start_idx; i < toks->len; ++i) {
+        StrBuf_free(&toks->tokens[i].spelling);
     }
 }
 
-static void free_preproc_tokens(Token* toks) {
-    free_preproc_tokens_only(toks);
-    mycc_free(toks);
+static void free_preproc_tokens(TokenArr* toks) {
+    free_preproc_tokens_from(toks, 0);
+    mycc_free(toks->tokens);
 }
 
 void PreprocRes_free_preproc_tokens(PreprocRes* res) {
-    free_preproc_tokens(res->toks);
+    free_preproc_tokens(&res->toks);
     FileInfo_free(&res->file_info);
 }
 
 void PreprocRes_free(PreprocRes* res) {
-    if (res->toks) {
-        free_tokens(res->toks);
-    }
+    TokenArr_free(&res->toks);
     FileInfo_free(&res->file_info);
 }
 
@@ -226,32 +214,19 @@ static bool convert_preproc_token(Token* t,
     return true;
 }
 
-bool convert_preproc_tokens(Token* tokens,
+bool convert_preproc_tokens(TokenArr* tokens,
                             const ArchTypeInfo* info,
                             PreprocErr* err) {
     assert(tokens);
     assert(info);
-    for (Token* t = tokens; t->kind != TOKEN_INVALID; ++t) {
-        if (!convert_preproc_token(t, info, err)) {
-            free_preproc_tokens_only(t);
-            t->kind = TOKEN_INVALID;
+    for (uint32_t i = 0; i < tokens->len; ++i) {
+        if (!convert_preproc_token(&tokens->tokens[i], info, err)) {
+            free_preproc_tokens_from(tokens, i);
+            tokens->len = i;
             return false;
         }
     }
     return true;
-}
-
-static void append_terminator_token(TokenArr* arr) {
-    arr->tokens = mycc_realloc(arr->tokens, sizeof *arr->tokens * (arr->len + 1));
-    arr->tokens[arr->len] = (Token){
-        .kind = TOKEN_INVALID,
-        .spelling = StrBuf_null(),
-        .loc =
-            {
-                .file_idx = (uint32_t)-1,
-                .file_loc = {(uint32_t)-1, (uint32_t)-1},
-            },
-    };
 }
 
 static inline bool is_spelling(Str spelling, TokenKind type) {

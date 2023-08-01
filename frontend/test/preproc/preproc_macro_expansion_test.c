@@ -7,18 +7,6 @@
 
 #include "../test_helpers.h"
 
-static uint32_t get_tokens_len(const Token* tokens) {
-    uint32_t len = 0;
-    const Token* it = tokens;
-
-    while (it->kind != TOKEN_INVALID) {
-        ++len;
-        ++it;
-    }
-
-    return len;
-}
-
 static void test_preproc_macro(const PreprocMacro* macro,
                                Str spell,
                                Str input,
@@ -31,17 +19,11 @@ static void test_preproc_macro(const PreprocMacro* macro,
                                     &input_err);
     ASSERT(input_err.kind == PREPROC_ERR_NONE);
 
-    const uint32_t tokens_len = get_tokens_len(res.toks);
-
     PreprocErr err = PreprocErr_create();
     PreprocState state = PreprocState_create_string(input,
                                                     STR_LIT("source_file.c"),
                                                     &err);
-    state.res = (TokenArr){
-        .len = tokens_len,
-        .cap = tokens_len,
-        .tokens = res.toks,
-    };
+    state.res = res.toks;
     // Do not free stack allocated macros
     state._macro_map._item_free = NULL;
     StrBuf macro_str = StrBuf_create(spell);
@@ -57,12 +39,12 @@ static void test_preproc_macro(const PreprocMacro* macro,
                                          &output_err);
     ASSERT(output_err.kind == PREPROC_ERR_NONE);
 
-    ASSERT_UINT(state.res.len, get_tokens_len(expected.toks));
+    ASSERT_UINT(state.res.len, expected.toks.len);
 
     for (uint32_t i = 0; i < state.res.len; ++i) {
-        ASSERT_TOKEN_KIND(state.res.tokens[i].kind, expected.toks[i].kind);
+        ASSERT_TOKEN_KIND(state.res.tokens[i].kind, expected.toks.tokens[i].kind);
         ASSERT_STR(StrBuf_as_str(&state.res.tokens[i].spelling),
-                   StrBuf_as_str(&expected.toks[i].spelling));
+                   StrBuf_as_str(&expected.toks.tokens[i].spelling));
         StrBuf_free(&state.res.tokens[i].spelling);
     }
     mycc_free(state.res.tokens);

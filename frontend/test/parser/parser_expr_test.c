@@ -17,7 +17,7 @@ static PrimaryExpr parse_primary_helper(Str code) {
     PreprocRes preproc_res = tokenize_string(code, STR_LIT("not_file.c"));
 
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(preproc_res.toks, &err);
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
     UnaryExpr unary;
     ASSERT(parse_unary_expr_inplace(&s, &unary));
     ASSERT(err.kind == PARSER_ERR_NONE);
@@ -112,7 +112,7 @@ static void primary_expr_generic_sel_test(void) {
         STR_LIT("not_file.c"));
 
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(preproc_res.toks, &err);
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
     const StrBuf spell = STR_BUF_NON_HEAP("TypedefName");
 
     ParserState_register_typedef(&s, &spell, (SourceLoc){0, {0, 0}});
@@ -195,7 +195,7 @@ static UnaryExpr parse_unary_helper(Str code) {
     PreprocRes preproc_res = tokenize_string(code, STR_LIT("skfjdlfs"));
 
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(preproc_res.toks, &err);
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
     UnaryExpr res;
     ASSERT(parse_unary_expr_inplace(&s, &res));
     ASSERT(err.kind == PARSER_ERR_NONE);
@@ -270,7 +270,7 @@ static PostfixExpr parse_postfix_helper(Str code) {
     PreprocRes preproc_res = tokenize_string(code, STR_LIT("sjfkds"));
 
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(preproc_res.toks, &err);
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
 
     UnaryExpr unary;
     ASSERT(parse_unary_expr_inplace(&s, &unary));
@@ -386,7 +386,7 @@ static AssignExpr* parse_assign_helper(Str code) {
     PreprocRes preproc_res = tokenize_string(code, STR_LIT("blah"));
 
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(preproc_res.toks, &err);
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
 
     AssignExpr* res = parse_assign_expr(&s);
     ASSERT_NOT_NULL(res);
@@ -583,10 +583,10 @@ TEST(expr) {
     PreprocRes preproc_res = tokenize_string(
         STR_LIT("a = 10, b *= x, c += 3.1"),
         STR_LIT("file.c"));
-    ASSERT_NOT_NULL(preproc_res.toks);
+    ASSERT(preproc_res.toks.len != 0);
 
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(preproc_res.toks, &err);
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
 
     Expr expr;
     ASSERT(parse_expr_inplace(&s, &expr));

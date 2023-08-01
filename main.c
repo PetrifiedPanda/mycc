@@ -142,14 +142,14 @@ static bool output_ast(const CmdArgs* args,
         PreprocErr_free(&preproc_err);
         goto fail_before_ast_generated;
     }
-    if (!convert_preproc_tokens(preproc_res.toks, type_info, &preproc_err)) {
+    if (!convert_preproc_tokens(&preproc_res.toks, type_info, &preproc_err)) {
         PreprocErr_print(mycc_stderr(), &preproc_res.file_info, &preproc_err);
         PreprocErr_free(&preproc_err);
         goto fail_before_ast_generated;
     }
 
     ParserErr parser_err = ParserErr_create();
-    TranslationUnit tl = parse_tokens(preproc_res.toks, &parser_err);
+    TranslationUnit tl = parse_tokens(&preproc_res.toks, &parser_err);
     if (parser_err.kind != PARSER_ERR_NONE) {
         ParserErr_print(mycc_stderr(), &preproc_res.file_info, &parser_err);
         ParserErr_free(&parser_err);

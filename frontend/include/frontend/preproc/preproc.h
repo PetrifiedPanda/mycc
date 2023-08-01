@@ -7,7 +7,7 @@
 #include "PreprocErr.h"
 
 typedef struct {
-    Token* toks;
+    TokenArr toks;
     FileInfo file_info;
 } PreprocRes;
 
@@ -37,7 +37,7 @@ PreprocRes preproc_string(Str str,
 /**
  * Converts the given preprocessor tokens to parser tokens
  */
-bool convert_preproc_tokens(Token* tokens,
+bool convert_preproc_tokens(TokenArr* tokens,
                             const ArchTypeInfo* info,
                             PreprocErr* err);
 

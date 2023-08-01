@@ -14,7 +14,7 @@ static JumpStatement* parse_jump_statement_helper(Str code) {
     PreprocRes preproc_res = tokenize_string(code, STR_LIT("skfjlskf"));
 
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(preproc_res.toks, &err);
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
 
     Statement stat;
     bool res = parse_statement_inplace(&s, &stat);
@@ -42,7 +42,7 @@ static void check_expected_semicolon_jump_statement(Str spell) {
     PreprocRes preproc_res = tokenize_string(spell, STR_LIT("file.c"));
 
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(preproc_res.toks, &err);
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
 
     Statement* res = parse_statement(&s);
     ASSERT_NULL(res);
@@ -108,7 +108,7 @@ TEST(statement) {
     PreprocRes preproc_res = tokenize_string(code, STR_LIT("file.c"));
 
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(preproc_res.toks, &err);
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
 
     Statement* res = parse_statement(&s);
     ASSERT(err.kind == PARSER_ERR_NONE);

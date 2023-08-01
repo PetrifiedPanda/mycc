@@ -10,11 +10,11 @@ PreprocRes tokenize(CStr file) {
     PreprocErr err = PreprocErr_create();
     const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
     PreprocRes res = preproc(file, &info, &err);
-    ASSERT_NOT_NULL(res.toks);
+    ASSERT(res.toks.len != 0);
     ASSERT_NOT_NULL(res.file_info.paths);
     ASSERT(err.kind == PREPROC_ERR_NONE);
     const ArchTypeInfo type_info = get_arch_type_info(ARCH_X86_64, false);
-    ASSERT(convert_preproc_tokens(res.toks, &type_info, &err));
+    ASSERT(convert_preproc_tokens(&res.toks, &type_info, &err));
     ASSERT(err.kind == PREPROC_ERR_NONE);
     return res;
 }
@@ -23,10 +23,10 @@ PreprocRes tokenize_string(Str str, Str file) {
     PreprocErr err = PreprocErr_create();
     const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
     PreprocRes res = preproc_string(str, file, &info, &err);
-    ASSERT_NOT_NULL(res.toks);
+    ASSERT(res.toks.len != 0);
     ASSERT(err.kind == PREPROC_ERR_NONE);
     const ArchTypeInfo type_info = get_arch_type_info(ARCH_X86_64, false);
-    ASSERT(convert_preproc_tokens(res.toks, &type_info, &err));
+    ASSERT(convert_preproc_tokens(&res.toks, &type_info, &err));
     ASSERT(err.kind == PREPROC_ERR_NONE);
     return res;
 }

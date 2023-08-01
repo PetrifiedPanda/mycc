@@ -464,7 +464,7 @@ typedef struct {
 
 static void MacroArgs_free(MacroArgs* args) {
     for (uint32_t i = 0; i < args->len; ++i) {
-        TokenArr_free(&args->arrs[i]);
+        TokenArr_free_preproc(&args->arrs[i]);
     }
     mycc_free(args->arrs);
 }

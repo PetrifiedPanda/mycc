@@ -36,6 +36,13 @@ typedef struct {
     SourceLoc loc;
 } Token;
 
+typedef struct {
+    uint32_t len, cap;
+    Token* tokens;
+} TokenArr;
+
+
+
 /**
  *
  * @param kind The kind of the token
@@ -67,6 +74,9 @@ StrBuf Token_take_spelling(Token* t);
 StrLit Token_take_str_lit(Token* t);
 
 void Token_free(Token* t);
+
+void TokenArr_free_preproc(TokenArr* arr);
+void TokenArr_free(TokenArr* arr);
 
 /**
  * @brief Gets a spelling for the given token_kind

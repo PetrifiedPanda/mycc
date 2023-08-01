@@ -1263,17 +1263,6 @@ static Token create_tok_str_lit(StrLitKind kind,
     };
 }
 
-static void check_size(const Token* tokens, uint32_t expected) {
-    uint32_t size = 0;
-    const Token* it = tokens;
-
-    while (it->kind != TOKEN_INVALID) {
-        ++it;
-        ++size;
-    }
-    ASSERT_UINT(size, expected);
-}
-
 static void check_token(const Token* t, const Token* expected) {
     ASSERT_TOKEN_KIND(t->kind, expected->kind);
 
@@ -1314,10 +1303,10 @@ static void check_token_arr_helper(CStr file_or_code,
                                    uint32_t expected_len,
                                    PreprocRes (*func)(CStr)) {
     PreprocRes preproc_res = func(file_or_code);
-    ASSERT_NOT_NULL(preproc_res.toks);
-    check_size(preproc_res.toks, expected_len);
+    ASSERT(preproc_res.toks.len != 0);
+    ASSERT_UINT(preproc_res.toks.len, expected_len);
 
-    compare_tokens(preproc_res.toks, expected, expected_len);
+    compare_tokens(preproc_res.toks.tokens, expected, expected_len);
 
     PreprocRes_free(&preproc_res);
 }

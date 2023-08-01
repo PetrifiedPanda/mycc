@@ -9,7 +9,6 @@
 #include "frontend/FileInfo.h"
 
 #include "PreprocErr.h"
-#include "TokenArr.h"
 
 typedef struct {
     StrBuf line;

@@ -4,7 +4,7 @@
 
 #include "frontend/parser/ParserState.h"
 
-TranslationUnit parse_tokens(Token* tokens, ParserErr* err) {
+TranslationUnit parse_tokens(TokenArr* tokens, ParserErr* err) {
     assert(tokens);
 
     ParserState state = ParserState_create(tokens, err);

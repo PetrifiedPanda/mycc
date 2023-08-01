@@ -43,7 +43,7 @@ TEST(enum_list) {
             STR_LIT("saffds"));
 
         ParserErr err = ParserErr_create();
-        ParserState s = ParserState_create(preproc_res.toks, &err);
+        ParserState s = ParserState_create(&preproc_res.toks, &err);
 
         EnumSpec* e_spec = parse_enum_spec(&s);
         ASSERT_NULL(e_spec->identifier);
@@ -77,7 +77,7 @@ TEST(enum_list) {
             STR_LIT("saffds"));
 
         ParserErr err = ParserErr_create();
-        ParserState s = ParserState_create(preproc_res.toks, &err);
+        ParserState s = ParserState_create(&preproc_res.toks, &err);
 
         EnumSpec* e_spec = parse_enum_spec(&s);
         ASSERT_NOT_NULL(e_spec);
@@ -133,7 +133,7 @@ TEST(enum_spec) {
             STR_LIT("sfjlfjk"));
 
         ParserErr err = ParserErr_create();
-        ParserState s = ParserState_create(preproc_res.toks, &err);
+        ParserState s = ParserState_create(&preproc_res.toks, &err);
 
         EnumSpec* res = parse_enum_spec(&s);
         ASSERT(err.kind == PARSER_ERR_NONE);
@@ -159,7 +159,7 @@ TEST(enum_spec) {
             STR_LIT("jsfjsf"));
 
         ParserErr err = ParserErr_create();
-        ParserState s = ParserState_create(preproc_res.toks, &err);
+        ParserState s = ParserState_create(&preproc_res.toks, &err);
 
         EnumSpec* res = parse_enum_spec(&s);
         ASSERT(err.kind == PARSER_ERR_NONE);
@@ -185,7 +185,7 @@ TEST(designation) {
                 "= 2 }"),
         STR_LIT("kdsjflkf"));
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(preproc_res.toks, &err);
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
     Initializer* init = parse_initializer(&s);
     ASSERT_NOT_NULL(init);
     ASSERT(!init->is_assign);
@@ -255,7 +255,7 @@ TEST(static_assert_declaration) {
         STR_LIT("slkfjsak"));
 
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(preproc_res.toks, &err);
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
 
     StaticAssertDeclaration* res = parse_static_assert_declaration(&s);
     ASSERT_NOT_NULL(res);
@@ -309,7 +309,7 @@ TEST(struct_declaration_list) {
         STR_LIT("maybe_a_file.c"));
 
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(preproc_res.toks, &err);
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
 
     StructUnionSpec* su_spec = parse_struct_union_spec(&s);
     ASSERT(su_spec->is_struct);
@@ -345,7 +345,7 @@ TEST(redefine_typedef) {
                                              STR_LIT("a file"));
 
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(preproc_res.toks, &err);
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
 
     const StrBuf spell = STR_BUF_NON_HEAP("MyInt");
     ParserState_register_typedef(&s, &spell, (SourceLoc){0, {0, 0}});
@@ -365,7 +365,7 @@ static ParserErr parse_type_specs_until_fail(Str code) {
     PreprocRes preproc_res = tokenize_string(code, STR_LIT("file.c"));
 
     ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(preproc_res.toks, &err);
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
 
     TypeSpecs specs = TypeSpecs_create();
 
