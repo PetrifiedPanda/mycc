@@ -74,6 +74,8 @@ void PreprocState_pop_cond(PreprocState* state);
 
 PreprocCond* peek_preproc_cond(PreprocState* state);
 
+void TokenArr_free_preproc(TokenArr* arr);
+
 void PreprocState_free(PreprocState* state);
 
 #endif

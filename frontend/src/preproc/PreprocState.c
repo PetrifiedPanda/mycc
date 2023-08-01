@@ -443,6 +443,13 @@ static void FileManager_free(FileManager* fm) {
     mycc_free(fm->prefixes);
 }
 
+void TokenArr_free_preproc(TokenArr* arr) {
+    for (uint32_t i = 0; i < arr->len; ++i) {
+        StrBuf_free(&arr->tokens[i].spelling);
+    }
+    mycc_free(arr->tokens);
+}
+
 void PreprocState_free(PreprocState* state) {
     TokenArr_free_preproc(&state->res);
     LineInfo_free(&state->line_info);

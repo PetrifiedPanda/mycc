@@ -75,7 +75,6 @@ StrLit Token_take_str_lit(Token* t);
 
 void Token_free(Token* t);
 
-void TokenArr_free_preproc(TokenArr* arr);
 void TokenArr_free(TokenArr* arr);
 
 /**

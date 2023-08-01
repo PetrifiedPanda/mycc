@@ -68,13 +68,6 @@ void Token_free(Token* t) {
     }
 }
 
-void TokenArr_free_preproc(TokenArr* arr) {
-    for (uint32_t i = 0; i < arr->len; ++i) {
-        StrBuf_free(&arr->tokens[i].spelling);
-    }
-    mycc_free(arr->tokens);
-}
-
 void TokenArr_free(TokenArr* arr) {
     for (uint32_t i = 0; i < arr->len; ++i) {
         Token_free(&arr->tokens[i]);
