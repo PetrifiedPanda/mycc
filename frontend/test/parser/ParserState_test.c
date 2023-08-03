@@ -24,7 +24,7 @@ TEST(ParserState) {
         NUM_STRINGS % SCOPE_INTERVAL == 0,
         "Number of test strings must be divisible by the scope interval");
 
-    StrBuf dummy_strings[NUM_STRINGS] = {{0}};
+    StrBuf dummy_strings[NUM_STRINGS] = {0};
     char insert_string[STRLEN] = {0};
     for (uint32_t i = 0; i < NUM_STRINGS; ++i) {
 
