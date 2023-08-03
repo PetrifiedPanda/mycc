@@ -61,19 +61,19 @@ static PreprocConstExprVal evaluate_preproc_primary_expr(uint32_t* it,
     if (*it >= arr->len) {
         PreprocErr_set(err,
                        PREPROC_ERR_INCOMPLETE_EXPR,
-                       arr->tokens[*it - 1].loc);
+                       arr->locs[*it - 1]);
         return (PreprocConstExprVal){0};
     }
-    switch (arr->tokens[*it].kind) {
+    switch (arr->kinds[*it]) {
         case TOKEN_I_CONSTANT: {
             PreprocConstExprVal res;
             res.valid = true;
-            if (ValueKind_is_sint(arr->tokens[*it].val.kind)) {
+            if (ValueKind_is_sint(arr->vals[*it].val.kind)) {
                 res.is_signed = true;
-                res.sint_val = arr->tokens[*it].val.sint_val;
+                res.sint_val = arr->vals[*it].val.sint_val;
             } else {
                 res.is_signed = false;
-                res.uint_val = arr->tokens[*it].val.uint_val;
+                res.uint_val = arr->vals[*it].val.uint_val;
             }
             ++*it;
             return res;
@@ -84,12 +84,12 @@ static PreprocConstExprVal evaluate_preproc_primary_expr(uint32_t* it,
             if (!res.valid) {
                 return res;
             }
-            if (arr->tokens[*it].kind != TOKEN_RBRACKET) {
+            if (arr->kinds[*it] != TOKEN_RBRACKET) {
                 PreprocErr_set(err,
                                PREPROC_ERR_EXPECTED_TOKENS,
-                               arr->tokens[*it].loc);
+                               arr->locs[*it]);
                 err->expected_tokens_err =
-                    ExpectedTokensErr_create_single_token(arr->tokens[*it].kind,
+                    ExpectedTokensErr_create_single_token(arr->kinds[*it],
                                                           TOKEN_RBRACKET);
                 return (PreprocConstExprVal){0};
             }
@@ -98,13 +98,13 @@ static PreprocConstExprVal evaluate_preproc_primary_expr(uint32_t* it,
         default:
             PreprocErr_set(err,
                            PREPROC_ERR_EXPECTED_TOKENS,
-                           arr->tokens[*it].loc);
+                           arr->locs[*it]);
             static const TokenKind ex[] = {
                 TOKEN_I_CONSTANT,
                 TOKEN_LBRACKET,
             };
             err->expected_tokens_err = ExpectedTokensErr_create(
-                arr->tokens[*it].kind,
+                arr->kinds[*it],
                 ex,
                 ARR_LEN(ex));
             return (PreprocConstExprVal){0};
@@ -126,8 +126,8 @@ static bool is_preproc_unary_op(TokenKind k) {
 static PreprocConstExprVal evaluate_preproc_unary_expr(uint32_t* it,
                                                        const TokenArr* arr,
                                                        PreprocErr* err) {
-    if (is_preproc_unary_op(arr->tokens[*it].kind)) {
-        const TokenKind op = arr->tokens[*it].kind;
+    if (is_preproc_unary_op(arr->kinds[*it])) {
+        const TokenKind op = arr->kinds[*it];
         ++*it;
         PreprocConstExprVal rhs = evaluate_preproc_unary_expr(it, arr, err);
         if (!rhs.valid) {
@@ -182,8 +182,8 @@ static PreprocConstExprVal evaluate_preproc_mul_expr(uint32_t* it,
         return res;
     }
 
-    while (*it < arr->len && TokenKind_is_mul_op(arr->tokens[*it].kind)) {
-        const TokenKind op = arr->tokens[*it].kind;
+    while (*it < arr->len && TokenKind_is_mul_op(arr->kinds[*it])) {
+        const TokenKind op = arr->kinds[*it];
         ++*it;
         PreprocConstExprVal rhs = evaluate_preproc_unary_expr(it, arr, err);
         if (!rhs.valid) {
@@ -216,8 +216,8 @@ static PreprocConstExprVal evaluate_preproc_add_expr(uint32_t* it,
         return res;
     }
 
-    while (*it < arr->len && TokenKind_is_add_op(arr->tokens[*it].kind)) {
-        const TokenKind op = arr->tokens[*it].kind;
+    while (*it < arr->len && TokenKind_is_add_op(arr->kinds[*it])) {
+        const TokenKind op = arr->kinds[*it];
         ++*it;
         PreprocConstExprVal rhs = evaluate_preproc_mul_expr(it, arr, err);
         if (!rhs.valid) {
@@ -241,8 +241,8 @@ static PreprocConstExprVal evaluate_preproc_shift_expr(uint32_t* it,
         return res;
     }
 
-    while (*it < arr->len && TokenKind_is_shift_op(arr->tokens[*it].kind)) {
-        const TokenKind op = arr->tokens[*it].kind;
+    while (*it < arr->len && TokenKind_is_shift_op(arr->kinds[*it])) {
+        const TokenKind op = arr->kinds[*it];
         ++*it;
         PreprocConstExprVal rhs = evaluate_preproc_add_expr(it, arr, err);
         if (!rhs.valid) {
@@ -266,8 +266,8 @@ static PreprocConstExprVal evaluate_preproc_rel_expr(uint32_t* it,
         return res;
     }
 
-    while (*it < arr->len && TokenKind_is_rel_op(arr->tokens[*it].kind)) {
-        const TokenKind op = arr->tokens[*it].kind;
+    while (*it < arr->len && TokenKind_is_rel_op(arr->kinds[*it])) {
+        const TokenKind op = arr->kinds[*it];
         ++*it;
         PreprocConstExprVal rhs = evaluate_preproc_shift_expr(it, arr, err);
         if (!rhs.valid) {
@@ -303,8 +303,8 @@ static PreprocConstExprVal evaluate_preproc_eq_expr(uint32_t* it,
         return res;
     }
 
-    while (*it < arr->len && TokenKind_is_eq_op(arr->tokens[*it].kind)) {
-        const bool is_eq = arr->tokens[*it].kind == TOKEN_EQ;
+    while (*it < arr->len && TokenKind_is_eq_op(arr->kinds[*it])) {
+        const bool is_eq = arr->kinds[*it] == TOKEN_EQ;
         ++*it;
 
         PreprocConstExprVal rhs = evaluate_preproc_rel_expr(it, arr, err);
@@ -330,7 +330,7 @@ static PreprocConstExprVal evaluate_preproc_and_expr(uint32_t* it,
         return res;
     }
 
-    while (*it < arr->len && arr->tokens[*it].kind == TOKEN_AND) {
+    while (*it < arr->len && arr->kinds[*it] == TOKEN_AND) {
         ++*it;
         PreprocConstExprVal rhs = evaluate_preproc_eq_expr(it, arr, err);
         if (!rhs.valid) {
@@ -350,7 +350,7 @@ static PreprocConstExprVal evaluate_preproc_xor_expr(uint32_t* it,
         return res;
     }
 
-    while (*it < arr->len && arr->tokens[*it].kind == TOKEN_XOR) {
+    while (*it < arr->len && arr->kinds[*it] == TOKEN_XOR) {
         ++*it;
         PreprocConstExprVal rhs = evaluate_preproc_and_expr(it, arr, err);
         if (!rhs.valid) {
@@ -370,7 +370,7 @@ static PreprocConstExprVal evaluate_preproc_or_expr(uint32_t* it,
         return res;
     }
 
-    while (*it < arr->len && arr->tokens[*it].kind == TOKEN_OR) {
+    while (*it < arr->len && arr->kinds[*it] == TOKEN_OR) {
         ++*it;
         PreprocConstExprVal rhs = evaluate_preproc_xor_expr(it, arr, err);
         if (!rhs.valid) {
@@ -390,7 +390,7 @@ static PreprocConstExprVal evaluate_preproc_log_and_expr(uint32_t* it,
         return res;
     }
 
-    while (*it < arr->len && arr->tokens[*it].kind == TOKEN_LAND) {
+    while (*it < arr->len && arr->kinds[*it] == TOKEN_LAND) {
         ++*it;
         PreprocConstExprVal rhs = evaluate_preproc_or_expr(it, arr, err);
         if (!rhs.valid) {
@@ -414,7 +414,7 @@ static PreprocConstExprVal evaluate_preproc_log_or_expr(uint32_t* it,
         return res;
     }
 
-    while (*it < arr->len && arr->tokens[*it].kind == TOKEN_LOR) {
+    while (*it < arr->len && arr->kinds[*it] == TOKEN_LOR) {
         ++*it;
         PreprocConstExprVal rhs = evaluate_preproc_log_and_expr(it, arr, err);
         if (!rhs.valid) {
@@ -438,7 +438,7 @@ static PreprocConstExprVal evaluate_preproc_cond_expr(uint32_t* it,
         return curr_res;
     }
 
-    while (*it < arr->len && arr->tokens[*it].kind == TOKEN_QMARK) {
+    while (*it < arr->len && arr->kinds[*it] == TOKEN_QMARK) {
         ++*it;
         PreprocConstExprVal true_val = evaluate_preproc_log_or_expr(it,
                                                                     arr,
@@ -446,12 +446,12 @@ static PreprocConstExprVal evaluate_preproc_cond_expr(uint32_t* it,
         if (!true_val.valid) {
             return true_val;
         }
-        if (arr->tokens[*it].kind != TOKEN_COLON) {
+        if (arr->kinds[*it] != TOKEN_COLON) {
             PreprocErr_set(err,
                            PREPROC_ERR_EXPECTED_TOKENS,
-                           arr->tokens[*it].loc);
+                           arr->locs[*it]);
             err->expected_tokens_err = ExpectedTokensErr_create_single_token(
-                arr->tokens[*it].kind,
+                arr->kinds[*it],
                 TOKEN_COLON);
             return (PreprocConstExprVal){0};
         }
@@ -471,7 +471,9 @@ static PreprocConstExprVal evaluate_preproc_cond_expr(uint32_t* it,
 
 static void remove_non_preproc_tokens(TokenArr* arr, uint32_t limit) {
     for (uint32_t i = 2; i < limit; ++i) {
-        Token_free(&arr->tokens[i]);
+        if (arr->kinds[i] == TOKEN_IDENTIFIER) {
+            StrBuf_free(&arr->vals[i].spelling);
+        }
     }
     arr->len = 2;
 }
@@ -481,9 +483,8 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
                                                 const ArchTypeInfo* info,
                                                 PreprocErr* err) {
     for (uint32_t i = 2; i < arr->len; ++i) {
-        Token* const curr = &arr->tokens[i];
-        if (curr->kind == TOKEN_IDENTIFIER
-            && Str_eq(StrBuf_as_str(&curr->spelling), STR_LIT("defined"))) {
+        if (arr->kinds[i] == TOKEN_IDENTIFIER
+            && Str_eq(StrBuf_as_str(&arr->vals[i].spelling), STR_LIT("defined"))) {
             if (i == arr->len - 1) {
                 // TODO: error
                 return (PreprocConstExprRes){
@@ -493,17 +494,17 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
 
             uint32_t it = i + 1;
             bool has_bracket = false;
-            if (arr->tokens[it].kind == TOKEN_LBRACKET) {
+            if (arr->kinds[it] == TOKEN_LBRACKET) {
                 has_bracket = true;
                 ++it;
             }
 
-            if (arr->tokens[it].kind != TOKEN_IDENTIFIER) {
+            if (arr->kinds[it] != TOKEN_IDENTIFIER) {
                 PreprocErr_set(err,
                                PREPROC_ERR_EXPECTED_TOKENS,
-                               arr->tokens[it].loc);
+                               arr->locs[it]);
                 err->expected_tokens_err =
-                    ExpectedTokensErr_create_single_token(arr->tokens[it].kind,
+                    ExpectedTokensErr_create_single_token(arr->kinds[it],
                                                           TOKEN_IDENTIFIER);
                 return (PreprocConstExprRes){
                     .valid = false,
@@ -511,36 +512,37 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
             }
 
             const bool has_macro = find_preproc_macro(state,
-                                                      &arr->tokens[it].spelling)
+                                                      &arr->vals[it].spelling)
                                    != NULL;
             ++it;
 
-            if (has_bracket && arr->tokens[it].kind != TOKEN_RBRACKET) {
+            if (has_bracket && arr->kinds[it] != TOKEN_RBRACKET) {
                 PreprocErr_set(err,
                                PREPROC_ERR_EXPECTED_TOKENS,
-                               arr->tokens[it].loc);
+                               arr->locs[it]);
                 err->expected_tokens_err =
-                    ExpectedTokensErr_create_single_token(arr->tokens[it].kind,
+                    ExpectedTokensErr_create_single_token(arr->kinds[it],
                                                           TOKEN_RBRACKET);
                 return (PreprocConstExprRes){
                     .valid = false,
                 };
             }
             ++it;
-            const SourceLoc loc = curr->loc;
+            const SourceLoc loc = arr->locs[i];
+            // TODO: is this correct
             for (uint32_t j = i; j < it; ++j) {
-                Token_free(&arr->tokens[j]);
+                StrBuf_free(&arr->vals[j].spelling);
             }
             StrBuf spell = StrBuf_create(has_macro ? STR_LIT("1")
                                                    : STR_LIT("0"));
-            *curr = Token_create(TOKEN_I_CONSTANT,
-                                 &spell,
-                                 loc.file_loc,
-                                 loc.file_idx);
-
-            memmove(arr->tokens + i + 1,
-                    arr->tokens + it,
-                    sizeof *arr->tokens * (arr->len - it));
+            arr->kinds[i] = TOKEN_I_CONSTANT;
+            arr->vals[i].spelling = spell;
+            arr->locs[i] = loc;
+            
+            const uint32_t len = arr->len - it;
+            memmove(arr->kinds + i + 1, arr->kinds + it, sizeof *arr->kinds * len);
+            memmove(arr->vals + i + 1, arr->vals + it, sizeof *arr->vals * len);
+            memmove(arr->locs + i + 1, arr->locs + it, sizeof *arr->locs * len);
             arr->len -= it - i - 1;
         }
     }
@@ -552,39 +554,40 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
     }
 
     for (uint32_t i = 2; i < arr->len; ++i) {
-        Token* curr = &arr->tokens[i];
-        switch (curr->kind) {
+        switch (arr->kinds[i]) {
             case TOKEN_I_CONSTANT:
-                if (StrBuf_at(&curr->spelling, 0) == '\'') {
+                if (StrBuf_at(&arr->vals[i].spelling, 0) == '\'') {
                     ParseCharConstRes res = parse_char_const(
-                        StrBuf_as_str(&curr->spelling),
+                        StrBuf_as_str(&arr->vals[i].spelling),
                         info);
                     if (res.err.kind != CHAR_CONST_ERR_NONE) {
                         remove_non_preproc_tokens(arr, i);
-                        PreprocErr_set(err, PREPROC_ERR_CHAR_CONST, curr->loc);
+                        PreprocErr_set(err, PREPROC_ERR_CHAR_CONST, arr->locs[i]);
                         err->char_const_err = res.err;
-                        err->constant_spell = curr->spelling;
+                        // TODO: do we need to take this
+                        err->constant_spell = arr->vals[i].spelling;
                         return (PreprocConstExprRes){
                             .valid = false,
                         };
                     }
-                    StrBuf_free(&curr->spelling);
-                    curr->val = res.res;
+                    StrBuf_free(&arr->vals[i].spelling);
+                    arr->vals[i].val = res.res;
                 } else {
                     ParseIntConstRes res = parse_int_const(
-                        StrBuf_as_str(&curr->spelling),
+                        StrBuf_as_str(&arr->vals[i].spelling),
                         info);
                     if (res.err.kind != INT_CONST_ERR_NONE) {
                         remove_non_preproc_tokens(arr, i);
-                        PreprocErr_set(err, PREPROC_ERR_INT_CONST, curr->loc);
+                        PreprocErr_set(err, PREPROC_ERR_INT_CONST, arr->locs[i]);
                         err->int_const_err = res.err;
-                        err->constant_spell = curr->spelling;
+                        // TODO: do we need to take this
+                        err->constant_spell = arr->vals[i].spelling;
                         return (PreprocConstExprRes){
                             .valid = false,
                         };
                     }
-                    StrBuf_free(&curr->spelling);
-                    curr->val = res.res;
+                    StrBuf_free(&arr->vals[i].spelling);
+                    arr->vals[i].val = res.res;
                 }
                 break;
             case TOKEN_F_CONSTANT:

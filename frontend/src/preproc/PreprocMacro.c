@@ -14,9 +14,9 @@ static uint32_t find_macro_end(PreprocState* state,
                              uint32_t macro_start,
                              const ArchTypeInfo* info) {
     uint32_t i = macro_start;
-    assert(res->tokens[i].kind == TOKEN_IDENTIFIER);
+    assert(res->kinds[i] == TOKEN_IDENTIFIER);
     ++i;
-    assert(res->tokens[i].kind == TOKEN_LBRACKET);
+    assert(res->kinds[i] == TOKEN_LBRACKET);
     ++i;
 
     const bool can_read_new_toks = res == &state->res;
@@ -33,11 +33,11 @@ static uint32_t find_macro_end(PreprocState* state,
                 break;
             }
         }
-
-        const Token* curr = &res->tokens[i];
-        if (curr->kind == TOKEN_LBRACKET) {
+        
+        const TokenKind kind = res->kinds[i];
+        if (kind == TOKEN_LBRACKET) {
             ++open_bracket_count;
-        } else if (curr->kind == TOKEN_RBRACKET) {
+        } else if (kind == TOKEN_RBRACKET) {
             --open_bracket_count;
             if (open_bracket_count == 0) {
                 break;
@@ -46,10 +46,10 @@ static uint32_t find_macro_end(PreprocState* state,
         ++i;
     }
 
-    if (res->tokens[i].kind != TOKEN_RBRACKET) {
+    if (res->kinds[i] != TOKEN_RBRACKET) {
         PreprocErr_set(state->err,
                        PREPROC_ERR_UNTERMINATED_MACRO,
-                       res->tokens[macro_start].loc);
+                       res->locs[macro_start]);
         return (uint32_t)-1;
     }
     return i;
@@ -120,11 +120,12 @@ static ExpansionInfo find_and_expand_macro(PreprocState* state,
                                            uint32_t i,
                                            ExpandedMacroStack* expanded,
                                            const ArchTypeInfo* info) {
-    const Token* curr = &res->tokens[i];
-    if (curr->kind != TOKEN_IDENTIFIER) {
+    const TokenKind kind = res->kinds[i];
+    const StrBuf* spell = &res->vals[i].spelling;
+    if (kind != TOKEN_IDENTIFIER) {
         return (ExpansionInfo){0, i + 1};
     }
-    const PreprocMacro* macro = find_preproc_macro(state, &curr->spelling);
+    const PreprocMacro* macro = find_preproc_macro(state, spell);
     if (macro == NULL || ExpandedMacroStack_contains(expanded, macro)) {
         return (ExpansionInfo){0, i + 1};
     }
@@ -132,7 +133,7 @@ static ExpansionInfo find_and_expand_macro(PreprocState* state,
     if (macro->is_func_macro) {
         const uint32_t next_idx = i + 1;
         if (next_idx < res->len
-            && res->tokens[next_idx].kind == TOKEN_LBRACKET) {
+            && res->kinds[next_idx] == TOKEN_LBRACKET) {
             macro_end = find_macro_end(state, res, i, info);
             if (state->err->kind != PREPROC_ERR_NONE) {
                 return (ExpansionInfo){0, (uint32_t)-1};
@@ -196,15 +197,16 @@ static uint32_t get_str_idx(Str* strs, uint32_t len, Str to_find) {
     return (uint32_t)-1;
 }
 
-static bool is_duplicate_arg(Token* tok,
+static bool is_duplicate_arg(StrBuf* spell,
+                             SourceLoc loc,
                              Str* arg_spells,
                              uint32_t num_args,
                              PreprocErr* err) {
-    Str data = StrBuf_as_str(&tok->spelling);
+    Str data = StrBuf_as_str(spell);
     for (uint32_t i = 0; i < num_args; ++i) {
         if (Str_eq(arg_spells[i], data)) {
-            PreprocErr_set(err, PREPROC_ERR_DUPLICATE_MACRO_PARAM, tok->loc);
-            err->duplicate_arg_name = Token_take_spelling(tok);
+            PreprocErr_set(err, PREPROC_ERR_DUPLICATE_MACRO_PARAM, loc);
+            err->duplicate_arg_name = StrBuf_take(spell);
             return true;
         }
     }
@@ -221,18 +223,18 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
 
     Str* arg_spells = NULL;
     uint32_t arg_spells_cap = 0;
-    while (it < arr->len && arr->tokens[it].kind != TOKEN_RBRACKET
-           && arr->tokens[it].kind != TOKEN_ELLIPSIS) {
-        if (arr->tokens[it].kind != TOKEN_IDENTIFIER) {
+    while (it < arr->len && arr->kinds[it] != TOKEN_RBRACKET
+           && arr->kinds[it] != TOKEN_ELLIPSIS) {
+        if (arr->kinds[it] != TOKEN_IDENTIFIER) {
             PreprocErr_set(err,
                            PREPROC_ERR_EXPECTED_TOKENS,
-                           arr->tokens[it].loc);
+                           arr->locs[it]);
             static const TokenKind ex[] = {
                 TOKEN_ELLIPSIS,
                 TOKEN_IDENTIFIER,
             };
             err->expected_tokens_err = ExpectedTokensErr_create(
-                arr->tokens[it].kind,
+                arr->kinds[it],
                 ex,
                 ARR_LEN(ex));
             goto fail;
@@ -243,26 +245,26 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
                             &arg_spells_cap,
                             sizeof *arg_spells);
         }
-        arg_spells[res.num_args] = StrBuf_as_str(&arr->tokens[it].spelling);
+        arg_spells[res.num_args] = StrBuf_as_str(&arr->vals[it].spelling);
         assert(Str_valid(arg_spells[res.num_args]));
-        if (is_duplicate_arg(&arr->tokens[it], arg_spells, res.num_args, err)) {
+        if (is_duplicate_arg(&arr->vals[it].spelling, arr->locs[it], arg_spells, res.num_args, err)) {
             goto fail;
         }
 
         ++res.num_args;
         ++it;
 
-        if (arr->tokens[it].kind != TOKEN_RBRACKET) {
-            if (arr->tokens[it].kind != TOKEN_COMMA) {
+        if (arr->kinds[it] != TOKEN_RBRACKET) {
+            if (arr->kinds[it] != TOKEN_COMMA) {
                 PreprocErr_set(err,
                                PREPROC_ERR_EXPECTED_TOKENS,
-                               arr->tokens[it].loc);
+                               arr->locs[it]);
                 static const TokenKind ex[] = {
                     TOKEN_COMMA,
                     TOKEN_RBRACKET,
                 };
                 err->expected_tokens_err = ExpectedTokensErr_create(
-                    arr->tokens[it].kind,
+                    arr->kinds[it],
                     ex,
                     ARR_LEN(ex));
                 goto fail;
@@ -272,20 +274,20 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
     }
 
     if (it == arr->len) {
-        assert(arr->tokens[3].kind == TOKEN_LBRACKET);
-        PreprocErr_set(err, PREPROC_ERR_UNTERMINATED_MACRO, arr->tokens[3].loc);
+        assert(arr->kinds[3] == TOKEN_LBRACKET);
+        PreprocErr_set(err, PREPROC_ERR_UNTERMINATED_MACRO, arr->locs[3]);
         goto fail;
     }
 
-    if (arr->tokens[it].kind == TOKEN_ELLIPSIS) {
+    if (arr->kinds[it] == TOKEN_ELLIPSIS) {
         ++it;
         res.is_variadic = true;
-        if (arr->tokens[it].kind != TOKEN_RBRACKET) {
+        if (arr->kinds[it] != TOKEN_RBRACKET) {
             PreprocErr_set(err,
                            PREPROC_ERR_EXPECTED_TOKENS,
-                           arr->tokens[it].loc);
+                           arr->locs[it]);
             err->expected_tokens_err = ExpectedTokensErr_create_single_token(
-                arr->tokens[it].kind,
+                arr->kinds[it],
                 TOKEN_RBRACKET);
             goto fail;
         }
@@ -293,41 +295,42 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
         res.is_variadic = false;
     }
 
-    assert(arr->tokens[it].kind == TOKEN_RBRACKET);
+    assert(arr->kinds[it] == TOKEN_RBRACKET);
 
     res.expansion_len = arr->len - it - 1; // TODO: not sure about - 1
-    res.expansion = res.expansion_len == 0
-                        ? NULL
-                        : mycc_alloc(sizeof *res.expansion * res.expansion_len);
+    res.kinds = res.expansion_len == 0 ? NULL : mycc_alloc(sizeof *res.kinds * res.expansion_len);
+    res.vals = res.expansion_len == 0 ? NULL : mycc_alloc(sizeof *res.vals * res.expansion_len);
 
     for (uint32_t i = it + 1; i < arr->len; ++i) {
         const uint32_t res_idx = i - it - 1;
 
-        Token* curr_tok = &arr->tokens[i];
-        TokenOrArg* res_curr = &res.expansion[res_idx];
-        if (curr_tok->kind == TOKEN_IDENTIFIER) {
+        StrBuf* curr_spell = &arr->vals[i].spelling;
+        const TokenKind kind = arr->kinds[i];
+        uint8_t* res_kind = &res.kinds[res_idx];
+        TokenValOrArg* res_val = &res.vals[res_idx];
+        if (kind == TOKEN_IDENTIFIER) {
             if (res.is_variadic
-                && Str_eq(StrBuf_as_str(&curr_tok->spelling),
+                && Str_eq(StrBuf_as_str(curr_spell),
                           STR_LIT("__VA_ARGS__"))) {
-                res_curr->is_arg = true;
-                res_curr->arg_num = res.num_args;
+                *res_kind = TOKEN_INVALID;
+                res_val->arg_num = res.num_args;
                 continue;
             }
 
             const uint32_t idx = get_str_idx(arg_spells,
                                            res.num_args,
-                                           StrBuf_as_str(&curr_tok->spelling));
+                                           StrBuf_as_str(curr_spell));
 
             if (idx != (uint32_t)-1) {
-                res_curr->is_arg = true;
-                res_curr->arg_num = idx;
+                *res_kind = TOKEN_INVALID;
+                res_val->arg_num = idx;
                 continue;
             }
         }
 
-        res_curr->is_arg = false;
-        res_curr->token = *curr_tok;
-        curr_tok->spelling = StrBuf_null();
+        *res_kind = kind;
+        res_val->val.spelling = *curr_spell;
+        *curr_spell = StrBuf_null();
     }
 
     // cast to make msvc happy (though it shouldn't be like this)
@@ -338,8 +341,6 @@ fail:
     return (PreprocMacro){0};
 }
 
-static Token Token_move(Token* t);
-
 static PreprocMacro parse_object_like_macro(TokenArr* arr) {
     const uint32_t ex_len = arr->len - 3;
     PreprocMacro res = {
@@ -347,26 +348,26 @@ static PreprocMacro parse_object_like_macro(TokenArr* arr) {
         .num_args = 0,
         .is_variadic = false,
         .expansion_len = ex_len,
-        .expansion = ex_len == 0 ? NULL
-                                 : mycc_alloc(sizeof *res.expansion * ex_len),
+        .kinds = ex_len == 0 ? NULL : mycc_alloc(sizeof *res.kinds * ex_len),
+        .vals = ex_len == 0 ? NULL : mycc_alloc(sizeof *res.vals * ex_len),
     };
 
     for (uint32_t i = 3; i < arr->len; ++i) {
         const uint32_t res_idx = i - 3;
-        TokenOrArg* res_curr = &res.expansion[res_idx];
-        res_curr->is_arg = false;
-        res_curr->token = Token_move(&arr->tokens[i]);
+        res.kinds[res_idx] = arr->kinds[i];
+        res.vals[res_idx].val.spelling = arr->vals[i].spelling;
+        arr->vals[i].spelling = StrBuf_null();
     }
     return res;
 }
 
 static bool is_func_like_macro(const TokenArr* arr, uint32_t name_len) {
-    assert(arr->tokens[2].kind == TOKEN_IDENTIFIER);
-    if (arr->len <= 3 || arr->tokens[3].kind != TOKEN_LBRACKET) {
+    assert(arr->kinds[2] == TOKEN_IDENTIFIER);
+    if (arr->len <= 3 || arr->kinds[3] != TOKEN_LBRACKET) {
         return false;
     }
-    const SourceLoc macro_name_loc = arr->tokens[2].loc;
-    const SourceLoc bracket_loc = arr->tokens[3].loc;
+    const SourceLoc macro_name_loc = arr->locs[2];
+    const SourceLoc bracket_loc = arr->locs[3];
     assert(macro_name_loc.file_loc.line == bracket_loc.file_loc.line);
     const uint32_t macro_name_idx = macro_name_loc.file_loc.index;
     const uint32_t bracket_idx = bracket_loc.file_loc.index;
@@ -376,17 +377,17 @@ static bool is_func_like_macro(const TokenArr* arr, uint32_t name_len) {
 PreprocMacro parse_preproc_macro(TokenArr* arr, uint32_t name_len, PreprocErr* err) {
     assert(arr);
     assert(arr->len >= 2);
-    assert(arr->tokens[0].kind == TOKEN_PP_STRINGIFY);
-    assert(arr->tokens[1].kind == TOKEN_IDENTIFIER);
-    assert(Str_eq(StrBuf_as_str(&arr->tokens[1].spelling), STR_LIT("define")));
+    assert(arr->kinds[0] == TOKEN_PP_STRINGIFY);
+    assert(arr->kinds[1] == TOKEN_IDENTIFIER);
+    assert(Str_eq(StrBuf_as_str(&arr->vals[1].spelling), STR_LIT("define")));
 
     if (arr->len < 3) {
         assert(arr->len > 0);
-        PreprocErr_set(err, PREPROC_ERR_EMPTY_DEFINE, arr->tokens[0].loc);
+        PreprocErr_set(err, PREPROC_ERR_EMPTY_DEFINE, arr->locs[0]);
         return (PreprocMacro){0};
-    } else if (arr->tokens[2].kind != TOKEN_IDENTIFIER) {
-        PreprocErr_set(err, PREPROC_ERR_DEFINE_NOT_ID, arr->tokens[2].loc);
-        err->type_instead_of_identifier = arr->tokens[2].kind;
+    } else if (arr->kinds[2] != TOKEN_IDENTIFIER) {
+        PreprocErr_set(err, PREPROC_ERR_DEFINE_NOT_ID, arr->locs[2]);
+        err->type_instead_of_identifier = arr->kinds[2];
         return (PreprocMacro){0};
     }
 
@@ -397,38 +398,32 @@ PreprocMacro parse_preproc_macro(TokenArr* arr, uint32_t name_len, PreprocErr* e
     }
 }
 
-static void Token_free_preproc(Token* tok) {
-    StrBuf_free(&tok->spelling);
-}
-
 void PreprocMacro_free(PreprocMacro* m) {
     for (uint32_t i = 0; i < m->expansion_len; ++i) {
-        if (!m->expansion[i].is_arg) {
-            Token_free_preproc(&m->expansion[i].token);
+        if (m->kinds[i] != TOKEN_INVALID) {
+            StrBuf_free(&m->vals[i].val.spelling);
         }
     }
-    mycc_free(m->expansion);
+    mycc_free(m->kinds);
+    mycc_free(m->vals);
 }
 
-static Token Token_copy(const Token* t, SourceLoc loc);
-
-static Token Token_move(Token* t) {
-    Token res = *t;
-    t->spelling = StrBuf_null();
-    return res;
-}
-
-static TokenArr collect_until(Token* start, const Token* end) {
-    const size_t sz_len = end - start;
-    const uint32_t len = (uint32_t)sz_len;
-    assert((size_t)len == sz_len);
-    TokenArr res = {
+static TokenArr collect_until(TokenArr* arr, uint32_t start, uint32_t end) {
+    const uint32_t len = end - start;
+    TokenArr res = len == 0 ? TokenArr_create_empty() : (TokenArr){
         .len = len,
-        .tokens = len == 0 ? NULL : mycc_alloc(sizeof *res.tokens * len),
+        .cap = len,
+        .kinds = mycc_alloc(sizeof *res.kinds * len),
+        .vals = mycc_alloc(sizeof *res.vals * len),
+        .locs = mycc_alloc(sizeof *res.locs * len),
     };
 
     for (uint32_t i = 0; i < len; ++i) {
-        res.tokens[i] = Token_move(&start[i]);
+        const uint32_t arr_it = start + i;
+        res.kinds[i] = arr->kinds[arr_it];
+        res.vals[i].spelling = arr->vals[arr_it].spelling;
+        arr->vals[arr_it].spelling = StrBuf_null();
+        res.locs[i] = arr->locs[arr_it];
     }
     return res;
 }
@@ -440,21 +435,21 @@ static TokenArr collect_until(Token* start, const Token* end) {
  *
  * @return The macro argument given at the start of this pointer
  */
-static TokenArr collect_macro_arg(Token* it, const Token* limit_ptr) {
+static TokenArr collect_macro_arg(TokenArr* arr, uint32_t it, uint32_t end) {
     uint32_t num_open_brackets = 0;
-    Token* arg_start = it;
-    while (it != limit_ptr
-           && (it->kind != TOKEN_COMMA || num_open_brackets != 0)) {
-        if (it->kind == TOKEN_LBRACKET) {
+    uint32_t arg_start = it;
+    while (it != end 
+           && (arr->kinds[it] != TOKEN_COMMA || num_open_brackets != 0)) {
+        if (arr->kinds[it] == TOKEN_LBRACKET) {
             ++num_open_brackets;
-        } else if (it->kind == TOKEN_RBRACKET) {
+        } else if (arr->kinds[it] == TOKEN_RBRACKET) {
             --num_open_brackets;
         }
 
         ++it;
     }
 
-    return collect_until(arg_start, it);
+    return collect_until(arr, arg_start, it);
 }
 
 typedef struct {
@@ -481,61 +476,57 @@ static void MacroArgs_free(MacroArgs* args) {
  * @return Pointer to #expected_args token_arrs representing the arguments of
  *         this macro call
  */
-MacroArgs collect_macro_args(Token* args_start,
-                             const Token* limit_ptr,
-                             uint32_t expected_args,
-                             bool is_variadic,
-                             PreprocErr* err) {
-    assert(args_start->kind == TOKEN_LBRACKET);
+MacroArgs collect_macro_args(TokenArr* arr, uint32_t args_start, uint32_t end, uint32_t expected_args, bool is_variadic, PreprocErr* err) {
+    assert(arr->kinds[args_start] == TOKEN_LBRACKET);
 
     const uint32_t cap = is_variadic ? expected_args + 1 : expected_args;
     assert(!is_variadic || cap != 0);
-    assert(cap != 0 || args_start + 1 == limit_ptr);
+    assert(cap != 0 || args_start + 1 == end);
     MacroArgs res = {
         .len = 0,
         .arrs = cap == 0 ? NULL : mycc_alloc(sizeof *res.arrs * cap),
     };
 
-    Token* it = args_start + 1;
-    while (res.len < expected_args && it != limit_ptr) {
-        res.arrs[res.len] = collect_macro_arg(it, limit_ptr);
+    uint32_t it = args_start + 1;
+    while (res.len < expected_args && it != end) {
+        res.arrs[res.len] = collect_macro_arg(arr, it, end);
         it += res.arrs[res.len].len;
 
         ++res.len;
-        if (it->kind == TOKEN_COMMA) {
-            if ((it + 1 == limit_ptr && res.len < expected_args)
+        if (arr->kinds[it] == TOKEN_COMMA) {
+            if ((it + 1 == end && res.len < expected_args)
                 || (is_variadic && res.len == expected_args)) {
                 break;
             } else {
-                Token_free(it);
+                StrBuf_free(&arr->vals[it].spelling);
                 ++it;
             }
         }
     }
 
-    if (it->kind == TOKEN_COMMA
-        && ((it + 1 == limit_ptr && res.len < expected_args) || is_variadic)) {
-        Token_free(it);
+    if (arr->kinds[it] == TOKEN_COMMA
+        && ((it + 1 == end && res.len < expected_args) || is_variadic)) {
+        StrBuf_free(&arr->vals[it].spelling);
         ++it;
-        res.arrs[res.len] = collect_until(it, limit_ptr);
+        res.arrs[res.len] = collect_until(arr, it, end);
         it += res.arrs[res.len].len;
-        assert(it == limit_ptr);
+        assert(it == end);
         ++res.len;
     } else if (is_variadic && res.len == expected_args) {
-        assert(it == limit_ptr || it == args_start + 1);
-        res.arrs[res.len] = collect_until(it, limit_ptr);
+        assert(it == end || it == args_start + 1);
+        res.arrs[res.len] = collect_until(arr, it, end);
         it += res.arrs[res.len].len;
         ++res.len;
     }
 
     if (res.len < expected_args) {
-        PreprocErr_set(err, PREPROC_ERR_MACRO_ARG_COUNT, it->loc);
+        PreprocErr_set(err, PREPROC_ERR_MACRO_ARG_COUNT, arr->locs[it]);
         err->expected_arg_count = expected_args;
         err->is_variadic = is_variadic;
         err->too_few_args = true;
         goto fail;
-    } else if (it != limit_ptr) {
-        PreprocErr_set(err, PREPROC_ERR_MACRO_ARG_COUNT, it->loc);
+    } else if (it != end) {
+        PreprocErr_set(err, PREPROC_ERR_MACRO_ARG_COUNT, arr->locs[it]);
         err->expected_arg_count = expected_args;
         err->is_variadic = is_variadic;
         err->too_few_args = false;
@@ -552,13 +543,12 @@ fail:
 }
 
 static uint32_t get_expansion_len(const PreprocMacro* macro,
-                                const MacroArgs* args) {
+                                  const MacroArgs* args) {
     uint32_t len = 0;
     for (uint32_t i = 0; i < macro->expansion_len; ++i) {
-        const TokenOrArg* item = &macro->expansion[i];
-        if (item->is_arg) {
+        if (macro->kinds[i] == TOKEN_INVALID) {
             assert(args->arrs);
-            len += args->arrs[item->arg_num].len;
+            len += args->arrs[macro->vals[i].arg_num].len;
         } else {
             len += 1;
         }
@@ -567,23 +557,29 @@ static uint32_t get_expansion_len(const PreprocMacro* macro,
     return len;
 }
 
-static void shift_back(Token* tokens, uint32_t num, uint32_t from, uint32_t to) {
-    memmove(tokens + from + num, tokens + from, sizeof *tokens * (to - from));
+static void shift_back(TokenArr* arr, uint32_t num, uint32_t from, uint32_t to) {
+    const uint32_t len = to - from;
+    memmove(arr->kinds + from + num, arr->kinds + from, sizeof *arr->kinds * len);
+    memmove(arr->vals + from + num, arr->vals + from, sizeof *arr->vals * len);
+    memmove(arr->locs + from + num, arr->locs + from, sizeof *arr->locs * len);
 }
 
-static void shift_forward(Token* tokens, uint32_t num, uint32_t from, uint32_t to) {
-    memmove(tokens + from,
-            tokens + from + num,
-            sizeof *tokens * (to - from - num));
+static void shift_forward(TokenArr* arr, uint32_t num, uint32_t from, uint32_t to) {
+    const uint32_t len = to - from - num;
+    memmove(arr->kinds + from, arr->kinds + from + num, sizeof *arr->kinds * len);
+    memmove(arr->vals + from, arr->vals + from + num, sizeof *arr->vals * len);
+    memmove(arr->locs + from, arr->locs + from + num, sizeof *arr->locs * len);
 }
 
-static void copy_into_tokens(Token* tokens,
+static void copy_into_tokens(TokenArr* res,
                              uint32_t* token_idx,
                              const TokenArr* arr, 
                              SourceLoc loc) {
     assert(arr);
     for (uint32_t i = 0; i < arr->len; ++i) {
-        tokens[*token_idx] = Token_copy(&arr->tokens[i], loc);
+        res->kinds[*token_idx] = arr->kinds[i];
+        res->vals[*token_idx].spelling = StrBuf_copy(&arr->vals[i].spelling);
+        res->locs[*token_idx] = loc;
         ++*token_idx;
     }
 }
@@ -596,15 +592,11 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
                                        uint32_t macro_end,
                                        ExpandedMacroStack* expanded,
                                        const ArchTypeInfo* info) {
-    const SourceLoc loc = res->tokens[macro_idx].loc;
+    const SourceLoc loc = res->locs[macro_idx];
     assert(macro->is_func_macro);
     assert(macro_end < res->len);
-    assert(res->tokens[macro_idx + 1].kind == TOKEN_LBRACKET);
-    MacroArgs args = collect_macro_args(res->tokens + macro_idx + 1,
-                                        &res->tokens[macro_end],
-                                        macro->num_args,
-                                        macro->is_variadic,
-                                        state->err);
+    assert(res->kinds[macro_idx + 1] == TOKEN_LBRACKET);
+    MacroArgs args = collect_macro_args(res, macro_idx + 1, macro_end, macro->num_args, macro->is_variadic, state->err);
     if (args.len == 0 && macro->num_args != 0) {
         assert(state->err->kind != PREPROC_ERR_NONE);
         return (ExpansionInfo){0, (uint32_t)-1};
@@ -636,18 +628,20 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
 
     const uint32_t old_len = res->len;
 
-    Token_free(&res->tokens[macro_idx]);                      // identifier
-    Token_free(&res->tokens[macro_idx + 1]);                  // opening bracket
-    Token_free(&res->tokens[macro_idx + macro_call_len - 1]); // closing bracket
+    StrBuf_free(&res->vals[macro_idx].spelling);                      // identifier
+    StrBuf_free(&res->vals[macro_idx + 1].spelling);                  // opening bracket
+    StrBuf_free(&res->vals[macro_idx + macro_call_len - 1].spelling); // closing bracket
 
     int32_t alloc_change = 0;
     if (alloc_grows) {
         alloc_change = alloc_change_abs;
         res->len += alloc_change_abs;
         res->cap += alloc_change_abs;
-        res->tokens = mycc_realloc(res->tokens, sizeof *res->tokens * res->cap);
+        res->kinds = mycc_realloc(res->kinds, sizeof *res->kinds * res->cap);
+        res->vals = mycc_realloc(res->vals, sizeof *res->vals * res->cap);
+        res->locs = mycc_realloc(res->locs, sizeof *res->locs * res->cap);
 
-        shift_back(res->tokens,
+        shift_back(res,
                    alloc_change_abs,
                    macro_idx + macro_call_len,
                    old_len);
@@ -655,7 +649,7 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
         alloc_change = -(ptrdiff_t)alloc_change_abs;
         res->len -= alloc_change_abs;
 
-        shift_forward(res->tokens,
+        shift_forward(res,
                       alloc_change_abs,
                       macro_idx + exp_len,
                       old_len);
@@ -663,13 +657,16 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
 
     uint32_t token_idx = macro_idx;
     for (uint32_t i = 0; i < macro->expansion_len; ++i) {
-        const TokenOrArg* curr = &macro->expansion[i];
-        if (curr->is_arg) {
-            copy_into_tokens(res->tokens,
+        const TokenKind kind = macro->kinds[i];
+        const TokenValOrArg* curr = &macro->vals[i];
+        if (kind == TOKEN_INVALID) {
+            copy_into_tokens(res,
                              &token_idx,
                              &args.arrs[curr->arg_num], loc);
         } else {
-            res->tokens[token_idx] = Token_copy(&curr->token, loc);
+            res->kinds[token_idx] = kind;
+            res->vals[token_idx].spelling = StrBuf_copy(&curr->val.spelling);
+            res->locs[token_idx] = loc;
             ++token_idx;
         }
     }
@@ -695,35 +692,38 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
                                       uint32_t macro_idx,
                                       ExpandedMacroStack* expanded,
                                       const ArchTypeInfo* info) {
-    const SourceLoc loc = res->tokens[macro_idx].loc;
+    const SourceLoc loc = res->locs[macro_idx];
     assert(macro->is_func_macro == false);
     assert(macro->num_args == 0);
 
     const uint32_t exp_len = macro->expansion_len;
     const uint32_t old_len = res->len;
 
-    Token_free(&res->tokens[macro_idx]);
+    StrBuf_free(&res->vals[macro_idx].spelling);
 
     int32_t alloc_change;
     if (exp_len > 0) {
         alloc_change = exp_len - 1;
         res->cap += exp_len - 1;
         res->len += exp_len - 1;
-        res->tokens = mycc_realloc(res->tokens, sizeof *res->tokens * res->cap);
-
-        shift_back(res->tokens, exp_len - 1, macro_idx, old_len);
+        res->kinds = mycc_realloc(res->kinds, sizeof *res->kinds * res->cap);
+        res->vals = mycc_realloc(res->vals, sizeof *res->vals * res->cap);
+        res->locs = mycc_realloc(res->locs, sizeof *res->locs * res->cap);
+        
+        shift_back(res, exp_len - 1, macro_idx, old_len);
     } else {
         alloc_change = -1;
         res->len -= 1;
 
-        shift_forward(res->tokens, 1, macro_idx, old_len);
+        shift_forward(res, 1, macro_idx, old_len);
     }
 
     for (uint32_t i = 0; i < exp_len; ++i) {
-        const TokenOrArg* curr = &macro->expansion[i];
-        assert(!curr->is_arg);
-
-        res->tokens[macro_idx + i] = Token_copy(&curr->token, loc);
+        assert(macro->kinds[i] != TOKEN_INVALID);
+        
+        res->kinds[macro_idx + i] = macro->kinds[i];
+        res->vals[macro_idx + i].spelling = StrBuf_copy(&macro->vals[i].val.spelling);
+        res->locs[macro_idx + i] = loc;
     }
 
     ExpandedMacroStack_push(expanded, macro);
@@ -736,14 +736,5 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
     ExpandedMacroStack_pop(expanded);
     ex_info.alloc_change += alloc_change;
     return ex_info;
-}
-
-static Token Token_copy(const Token* t, SourceLoc loc) {
-    assert(t);
-    return (Token){
-        .kind = t->kind,
-        .spelling = StrBuf_copy(&t->spelling),
-        .loc = loc,
-    };
 }
 

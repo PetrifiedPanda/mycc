@@ -200,7 +200,7 @@ static DirectDeclarator* parse_direct_declarator_base(
     } else if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
         res->is_id = true;
         if (!identifier_handler(s,
-                                &ParserState_curr_token(s)->spelling,
+                                ParserState_curr_spell_buf(s),
                                 ParserState_curr_loc(s))) {
             mycc_free(res);
             return NULL;

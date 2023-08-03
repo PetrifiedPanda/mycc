@@ -175,39 +175,39 @@ static bool handle_ifdef_ifndef(PreprocState* state,
                                 bool is_ifndef,
                                 const ArchTypeInfo* info) {
     assert(arr);
-    assert(arr->tokens[0].kind == TOKEN_PP_STRINGIFY);
+    assert(arr->kinds[0] == TOKEN_PP_STRINGIFY);
     assert(
         (!is_ifndef
-         && Str_eq(StrBuf_as_str(&arr->tokens[1].spelling), STR_LIT("ifdef")))
+         && Str_eq(StrBuf_as_str(&arr->vals[1].spelling), STR_LIT("ifdef")))
         || (is_ifndef
-            && Str_eq(StrBuf_as_str(&arr->tokens[1].spelling),
+            && Str_eq(StrBuf_as_str(&arr->vals[1].spelling),
                       STR_LIT("ifndef"))));
-    const SourceLoc loc = arr->tokens[1].loc;
+    const SourceLoc loc = arr->locs[1];
 
     if (arr->len < 3) {
-        PreprocErr_set(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[1].loc);
+        PreprocErr_set(state->err, PREPROC_ERR_ARG_COUNT, arr->locs[1]);
         state->err->count_empty = true;
         state->err->count_dir_kind = is_ifndef ? SINGLE_MACRO_OP_IFNDEF
                                                : SINGLE_MACRO_OP_IFDEF;
         return false;
     } else if (arr->len > 3) {
-        PreprocErr_set(state->err, PREPROC_ERR_ARG_COUNT, arr->tokens[3].loc);
+        PreprocErr_set(state->err, PREPROC_ERR_ARG_COUNT, arr->locs[3]);
         state->err->count_empty = false;
         state->err->count_dir_kind = is_ifndef ? SINGLE_MACRO_OP_IFNDEF
                                                : SINGLE_MACRO_OP_IFDEF;
         return false;
     }
-    if (arr->tokens[2].kind != TOKEN_IDENTIFIER) {
+    if (arr->kinds[2] != TOKEN_IDENTIFIER) {
         PreprocErr_set(state->err,
                        PREPROC_ERR_IFDEF_NOT_ID,
-                       arr->tokens[2].loc);
-        state->err->not_identifier_got = arr->tokens[2].kind;
+                       arr->locs[2]);
+        state->err->not_identifier_got = arr->kinds[2];
         state->err->not_identifier_op = is_ifndef ? SINGLE_MACRO_OP_IFNDEF
                                                   : SINGLE_MACRO_OP_IFDEF;
         return false;
     }
 
-    const StrBuf* macro_spell = &arr->tokens[2].spelling;
+    const StrBuf* macro_spell = &arr->vals[2].spelling;
     assert(macro_spell);
     assert(StrBuf_valid(macro_spell));
     const PreprocMacro* macro = find_preproc_macro(state, macro_spell);
@@ -222,7 +222,7 @@ static bool handle_else_elif(PreprocState* state,
                              const ArchTypeInfo* info) {
     assert(arr->len > 1);
     if (state->conds_len == 0) {
-        PreprocErr_set(state->err, PREPROC_ERR_MISSING_IF, arr->tokens[1].loc);
+        PreprocErr_set(state->err, PREPROC_ERR_MISSING_IF, arr->locs[1]);
         state->err->missing_if_op = is_else ? ELSE_OP_ELSE : ELSE_OP_ELIF;
         return false;
     }
@@ -231,7 +231,7 @@ static bool handle_else_elif(PreprocState* state,
     if (curr_if->had_else) {
         PreprocErr_set(state->err,
                        PREPROC_ERR_ELIF_ELSE_AFTER_ELSE,
-                       arr->tokens[1].loc);
+                       arr->locs[1]);
         state->err->elif_after_else_op = is_else ? ELSE_OP_ELSE : ELSE_OP_ELIF;
         state->err->prev_else_loc = curr_if->loc;
         return false;
@@ -264,35 +264,35 @@ static bool handle_include(PreprocState* state,
     if (arr->len == 2 || arr->len > 3) {
         PreprocErr_set(state->err,
                        PREPROC_ERR_INCLUDE_NUM_ARGS,
-                       arr->tokens[1].loc);
+                       arr->locs[1]);
         return false;
     }
 
-    if (arr->tokens[2].kind != TOKEN_STRING_LITERAL) {
+    if (arr->kinds[2] != TOKEN_STRING_LITERAL) {
         if (!expand_all_macros(state, arr, 2, info)) {
             return false;
         }
     }
 
     // TODO: "<" ">" string literals
-    if (arr->tokens[2].kind == TOKEN_STRING_LITERAL) {
-        StrLit filename = convert_to_str_lit(&arr->tokens[2].spelling);
+    if (arr->kinds[2] == TOKEN_STRING_LITERAL) {
+        StrLit filename = convert_to_str_lit(&arr->vals[2].spelling);
         if (filename.kind != STR_LIT_DEFAULT) {
             PreprocErr_set(state->err,
                            PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL,
-                           arr->tokens[2].loc);
+                           arr->locs[2]);
             return false;
         }
         if (!PreprocState_open_file(state,
                                     &filename.contents,
-                                    arr->tokens[2].loc)) {
+                                    arr->locs[2])) {
             return false;
         }
         return true;
     } else {
         PreprocErr_set(state->err,
                        PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL,
-                       arr->tokens[2].loc);
+                       arr->locs[2]);
         return false;
     }
 }
@@ -301,18 +301,20 @@ static bool preproc_statement(PreprocState* state,
                               TokenArr* arr,
                               const ArchTypeInfo* info) {
     assert(arr);
-    assert(arr->tokens);
-    assert(arr->tokens[0].kind == TOKEN_PP_STRINGIFY);
+    assert(arr->kinds);
+    assert(arr->vals);
+    assert(arr->locs);
+    assert(arr->kinds[0] == TOKEN_PP_STRINGIFY);
     if (arr->len == 1) {
         return true;
-    } else if (arr->tokens[1].kind != TOKEN_IDENTIFIER) {
+    } else if (arr->kinds[1] != TOKEN_IDENTIFIER) {
         PreprocErr_set(state->err,
                        PREPROC_ERR_INVALID_PREPROC_DIR,
-                       arr->tokens[1].loc);
+                       arr->locs[1]);
         return false;
     }
 
-    const Str directive = StrBuf_as_str(&arr->tokens[1].spelling);
+    const Str directive = StrBuf_as_str(&arr->vals[1].spelling);
     assert(Str_valid(directive));
 
     if (Str_eq(directive, STR_LIT("if"))) {
@@ -323,13 +325,13 @@ static bool preproc_statement(PreprocState* state,
         if (!res.valid) {
             return false;
         }
-        return handle_preproc_if(state, res.res, arr->tokens[1].loc, info);
+        return handle_preproc_if(state, res.res, arr->locs[1], info);
     } else if (Str_eq(directive, STR_LIT("ifdef"))) {
         return handle_ifdef_ifndef(state, arr, false, info);
     } else if (Str_eq(directive, STR_LIT("ifndef"))) {
         return handle_ifdef_ifndef(state, arr, true, info);
     } else if (Str_eq(directive, STR_LIT("define"))) {
-        const StrBuf spell = Token_take_spelling(&arr->tokens[2]);
+        const StrBuf spell = StrBuf_take(&arr->vals[2].spelling);
         PreprocMacro macro = parse_preproc_macro(arr, StrBuf_len(&spell), state->err);
         if (state->err->kind != PREPROC_ERR_NONE) {
             return false;
@@ -339,27 +341,27 @@ static bool preproc_statement(PreprocState* state,
         if (arr->len < 3) {
             PreprocErr_set(state->err,
                            PREPROC_ERR_ARG_COUNT,
-                           arr->tokens[1].loc);
+                           arr->locs[1]);
             state->err->count_empty = true;
             state->err->count_dir_kind = SINGLE_MACRO_OP_UNDEF;
             return false;
         } else if (arr->len > 3) {
             PreprocErr_set(state->err,
                            PREPROC_ERR_ARG_COUNT,
-                           arr->tokens[3].loc);
+                           arr->locs[3]);
             state->err->count_empty = false;
             state->err->count_dir_kind = SINGLE_MACRO_OP_UNDEF;
             return false;
-        } else if (arr->tokens[2].kind != TOKEN_IDENTIFIER) {
+        } else if (arr->kinds[2] != TOKEN_IDENTIFIER) {
             PreprocErr_set(state->err,
                            PREPROC_ERR_IFDEF_NOT_ID,
-                           arr->tokens[2].loc);
-            state->err->not_identifier_got = arr->tokens[2].kind;
+                           arr->locs[2]);
+            state->err->not_identifier_got = arr->kinds[2];
             state->err->not_identifier_op = SINGLE_MACRO_OP_UNDEF;
             return false;
         }
 
-        PreprocState_remove_macro(state, &arr->tokens[2].spelling);
+        PreprocState_remove_macro(state, &arr->vals[2].spelling);
     } else if (Str_eq(directive, STR_LIT("include"))) {
         return handle_include(state, arr, info);
     } else if (Str_eq(directive, STR_LIT("pragma"))) {
@@ -372,7 +374,7 @@ static bool preproc_statement(PreprocState* state,
         if (state->conds_len == 0) {
             PreprocErr_set(state->err,
                            PREPROC_ERR_MISSING_IF,
-                           arr->tokens[1].loc);
+                           arr->locs[1]);
             state->err->missing_if_op = ELSE_OP_ENDIF;
             return false;
         }
@@ -381,7 +383,7 @@ static bool preproc_statement(PreprocState* state,
     } else {
         PreprocErr_set(state->err,
                        PREPROC_ERR_INVALID_PREPROC_DIR,
-                       arr->tokens[1].loc);
+                       arr->locs[1]);
         return false;
     }
 

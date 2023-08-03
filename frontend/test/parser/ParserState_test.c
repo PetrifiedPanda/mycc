@@ -5,11 +5,12 @@
 #include "../test_helpers.h"
 
 TEST(ParserState) {
-    Token dummy = {.kind = TOKEN_INVALID};
     TokenArr dummy_arr = {
-        .len = 1,
-        .cap = 1,
-        .tokens = &dummy,
+        .len = 0,
+        .cap = 0,
+        .kinds = NULL,
+        .vals = NULL,
+        .locs = NULL,
     };
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(&dummy_arr, &err);
@@ -23,7 +24,7 @@ TEST(ParserState) {
         NUM_STRINGS % SCOPE_INTERVAL == 0,
         "Number of test strings must be divisible by the scope interval");
 
-    Token dummy_string_tokens[NUM_STRINGS] = {{0}};
+    StrBuf dummy_strings[NUM_STRINGS] = {{0}};
     char insert_string[STRLEN] = {0};
     for (uint32_t i = 0; i < NUM_STRINGS; ++i) {
 
@@ -34,9 +35,9 @@ TEST(ParserState) {
         insert_string[i] = 'a';
         const StrBuf to_insert = StrBuf_create((Str){i + 1, insert_string});
 
-        Token* item = &dummy_string_tokens[i];
+        StrBuf* item = &dummy_strings[i];
         const SourceLoc loc = {0, {0, 0}};
-        *item = Token_create(TOKEN_IDENTIFIER, &to_insert, (FileLoc){0, 0}, 0);
+        *item = to_insert;
         if (i % 2 == 0) {
             ASSERT(ParserState_register_enum_constant(&s, &to_insert, loc));
         } else {
@@ -135,7 +136,7 @@ TEST(ParserState) {
     ASSERT_UINT(err.prev_def_loc.index, (uint32_t)0);
 
     for (uint32_t i = 0; i < NUM_STRINGS; ++i) {
-        Token_free(&dummy_string_tokens[i]);
+        StrBuf_free(&dummy_strings[i]);
     }
     ParserErr_free(&err);
     ParserState_free(&s);

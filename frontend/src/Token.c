@@ -5,64 +5,27 @@
 #include "util/mem.h"
 #include "util/macro_util.h"
 
-Token Token_create(TokenKind kind,
-                   const StrBuf* spelling,
-                   FileLoc file_loc,
-                   uint32_t file_idx) {
-    assert(spelling);
-    assert(file_idx != (uint32_t)-1);
-    if (TokenKind_get_spelling(kind).data == NULL) {
-        assert(StrBuf_valid(spelling));
-    } else {
-        assert(!StrBuf_valid(spelling));
-    }
-
-    return (Token){
-        .kind = kind,
-        .spelling = *spelling,
-        .loc =
-            {
-                .file_idx = file_idx,
-                .file_loc = file_loc,
-            },
-    };
-}
-
-StrBuf Token_take_spelling(Token* t) {
-    assert(StrBuf_valid(&t->spelling));
-    StrBuf spelling = StrBuf_take(&t->spelling);
-    return spelling;
-}
-
-StrLit Token_take_str_lit(Token* t) {
-    assert(t->kind == TOKEN_STRING_LITERAL);
-    StrLit res = t->str_lit;
-    t->str_lit.contents = StrBuf_null();
-    return res;
-}
-
-void Token_free(Token* t) {
-    assert(t);
-    if (t->kind == TOKEN_STRING_LITERAL) {
-        StrLit_free(&t->str_lit);
-    } else if (t->kind != TOKEN_I_CONSTANT && t->kind != TOKEN_F_CONSTANT) {
-        StrBuf_free(&t->spelling);
-    }
-}
-
 TokenArr TokenArr_create_empty(void) {
     return (TokenArr){
         .len = 0,
         .cap = 0,
-        .tokens = NULL,
+        .kinds = NULL,
+        .vals = NULL,
+        .locs = NULL,
     };
 }
 
 void TokenArr_free(TokenArr* arr) {
     for (uint32_t i = 0; i < arr->len; ++i) {
-        Token_free(&arr->tokens[i]);
+        if (arr->kinds[i] == TOKEN_STRING_LITERAL) {
+            StrLit_free(&arr->vals[i].str_lit); 
+        } else if (arr->kinds[i] == TOKEN_IDENTIFIER) {
+            StrBuf_free(&arr->vals[i].spelling);
+        }
     }
-    mycc_free(arr->tokens);
+    mycc_free(arr->kinds);
+    mycc_free(arr->vals);
+    mycc_free(arr->locs);
 }
 
 #ifdef _WIN32

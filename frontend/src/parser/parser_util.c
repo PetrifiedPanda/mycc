@@ -57,8 +57,8 @@ bool is_func_spec(TokenKind k) {
     return k == TOKEN_INLINE || k == TOKEN_NORETURN;
 }
 
-bool is_type_spec_token(const ParserState* s, const Token* token) {
-    switch (token->kind) {
+bool is_type_spec_token(const ParserState* s, TokenKind kind, Str spell) {
+    switch (kind) {
         case TOKEN_VOID:
         case TOKEN_CHAR:
         case TOKEN_SHORT:
@@ -77,22 +77,55 @@ bool is_type_spec_token(const ParserState* s, const Token* token) {
         case TOKEN_ENUM:
             return true;
         case TOKEN_IDENTIFIER:
-            return ParserState_is_typedef(s, StrBuf_as_str(&token->spelling));
+            return ParserState_is_typedef(s, spell);
         default:
             return false;
     }
 }
 
+static bool is_type_spec_helper(const ParserState* s, TokenKind(*get_kind)(const ParserState*), Str(*get_spell)(const ParserState*)) {
+    TokenKind kind = get_kind(s);
+    switch (kind) {
+        case TOKEN_VOID:
+        case TOKEN_CHAR:
+        case TOKEN_SHORT:
+        case TOKEN_INT:
+        case TOKEN_LONG:
+        case TOKEN_FLOAT:
+        case TOKEN_DOUBLE:
+        case TOKEN_SIGNED:
+        case TOKEN_UNSIGNED:
+        case TOKEN_BOOL:
+        case TOKEN_COMPLEX:
+        case TOKEN_IMAGINARY:
+        case TOKEN_ATOMIC:
+        case TOKEN_STRUCT:
+        case TOKEN_UNION:
+        case TOKEN_ENUM:
+            return true;
+        case TOKEN_IDENTIFIER:
+            return ParserState_is_typedef(s, get_spell(s));
+        default:
+            return false;
+    }
+}
+
+bool next_is_type_spec(const ParserState* s) {
+    return is_type_spec_helper(s,
+                              ParserState_next_token_kind,
+                              ParserState_next_token_spell);
+}
+
 bool next_is_type_name(const ParserState* s) {
     assert(ParserState_curr_kind(s) != TOKEN_INVALID);
-    const Token* next = ParserState_next_token(s);
-    return is_type_spec_token(s, next) || is_type_qual(next->kind)
-           || (next->kind == TOKEN_IDENTIFIER
-               && ParserState_is_typedef(s, StrBuf_as_str(&next->spelling)));
+    TokenKind kind = ParserState_next_token_kind(s);
+    return next_is_type_spec(s) || is_type_qual(kind);
 }
 
 bool is_type_spec(const ParserState* s) {
-    return is_type_spec_token(s, ParserState_curr_token(s));
+    return is_type_spec_helper(s,
+                               ParserState_curr_kind,
+                               ParserState_curr_spell);
 }
 
 static bool is_declaration_spec(const ParserState* s) {

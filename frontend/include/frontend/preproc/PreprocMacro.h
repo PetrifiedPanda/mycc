@@ -8,13 +8,10 @@
 
 #include "PreprocState.h"
 
-typedef struct {
-    bool is_arg;
-    union {
-        uint32_t arg_num;
-        Token token;
-    };
-} TokenOrArg;
+typedef union {
+    uint32_t arg_num;
+    TokenVal val;
+} TokenValOrArg;
 
 typedef struct PreprocMacro {
     bool is_func_macro;
@@ -22,7 +19,8 @@ typedef struct PreprocMacro {
     uint32_t num_args;
 
     uint32_t expansion_len;
-    TokenOrArg* expansion;
+    uint8_t* kinds;
+    TokenValOrArg* vals;
 } PreprocMacro;
 
 bool expand_all_macros(PreprocState* state, TokenArr* res, uint32_t start, const ArchTypeInfo* info);

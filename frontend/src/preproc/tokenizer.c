@@ -31,11 +31,16 @@ static void handle_ongoing_comment(TokenizerState* s,
                                    bool* comment_not_terminated);
 
 static bool handle_character_literal(TokenizerState* s,
-                                     Token* res,
+                                     uint8_t* res_kind,
+                                     TokenVal* res_val,
+                                     SourceLoc* res_loc,
                                      LineInfo* info,
                                      PreprocErr* err);
+
 static bool handle_other(TokenizerState* s,
-                         Token* res,
+                         uint8_t* res_kind,
+                         TokenVal* res_val,
+                         SourceLoc* loc,
                          LineInfo* info,
                          PreprocErr* err);
 
@@ -44,8 +49,14 @@ static void write_line_info(const TokenizerState* s, LineInfo* info) {
     info->curr_loc.file_loc = s->file_loc;
 }
 
-static bool tokenize_next_token(Token* res, PreprocErr* err, LineInfo* info) {
-    assert(res);
+static bool tokenize_next_token(uint8_t* res_kind,
+                                TokenVal* res_val,
+                                SourceLoc* res_loc,
+                                PreprocErr* err,
+                                LineInfo* info) {
+    assert(res_kind);
+    assert(res_val);
+    assert(res_loc);
     assert(info);
     assert(info->next.data);
     assert(info->curr_loc.file_idx != (uint32_t)-1);
@@ -62,15 +73,13 @@ static bool tokenize_next_token(Token* res, PreprocErr* err, LineInfo* info) {
         advance_newline(&s);
     }
     if (*s.it.data == '\0') {
-        const StrBuf null_str = StrBuf_null();
-        *res = (Token){
-            .kind = TOKEN_INVALID,
-            .spelling = null_str,
-            .loc =
-                {
-                    .file_idx = (uint32_t)-1,
-                    .file_loc = (FileLoc){(uint32_t)-1, (uint32_t)-1},
-                },
+        *res_kind = TOKEN_INVALID;
+        *res_val = (TokenVal){
+            .spelling = StrBuf_null(),
+        };
+        *res_loc = (SourceLoc){
+            .file_idx = (uint32_t)-1,
+            .file_loc = (FileLoc){(uint32_t)-1, (uint32_t)-1},
         };
         write_line_info(&s, info);
         return true;
@@ -89,12 +98,12 @@ static bool tokenize_next_token(Token* res, PreprocErr* err, LineInfo* info) {
         }
         advance_newline(&s);
         write_line_info(&s, info);
-        return tokenize_next_token(res, err, info);
+        return tokenize_next_token(res_kind, res_val, res_loc, err, info);
     }
     if (info->is_in_comment) {
         handle_ongoing_comment(&s, &info->is_in_comment);
         write_line_info(&s, info);
-        return tokenize_next_token(res, err, info);
+        return tokenize_next_token(res_kind, res_val, res_loc, err, info);
     }
 
     TokenKind kind = singlec_token_kind(Str_at(s.it, 0));
@@ -104,14 +113,17 @@ static bool tokenize_next_token(Token* res, PreprocErr* err, LineInfo* info) {
                 && (Str_at(s.it, 1) == '/' || Str_at(s.it, 1) == '*'))) {
             handle_comments(&s, &info->is_in_comment);
             write_line_info(&s, info);
-            return tokenize_next_token(res, err, info);
+            return tokenize_next_token(res_kind, res_val, res_loc, err, info);
         }
         if (s.it.len != 1) {
             kind = check_next(kind, Str_incr(s.it));
         }
 
-        const StrBuf null_str = StrBuf_null();
-        *res = Token_create(kind, &null_str, s.file_loc, s.current_file_idx);
+        *res_kind = kind;
+        *res_val = (TokenVal){
+            .spelling = StrBuf_null(),
+        };
+        *res_loc = (SourceLoc){s.current_file_idx, s.file_loc};
 
         uint32_t len = TokenKind_get_spelling(kind).len;
         advance(&s, len);
@@ -123,9 +135,9 @@ static bool tokenize_next_token(Token* res, PreprocErr* err, LineInfo* info) {
                    && (s.it.len > 1
                        && (Str_at(s.it, 1) == '\"'
                            || Str_at(s.it, 1) == '\'')))) {
-        return handle_character_literal(&s, res, info, err);
+        return handle_character_literal(&s, res_kind, res_val, res_loc, info, err);
     } else {
-        return handle_other(&s, res, info, err);
+        return handle_other(&s, res_kind, res_val, res_loc, info, err);
     }
 }
 
@@ -135,20 +147,21 @@ bool tokenize_line(TokenArr* res, PreprocErr* err, LineInfo* info) {
     assert(info->curr_loc.file_idx != (uint32_t)-1);
 
     while (*info->next.data != '\0') {
-        Token curr;
+        if (res->len == res->cap) {
+            mycc_grow_alloc((void**)&res->kinds, &res->cap, sizeof *res->kinds);
+            res->vals = mycc_realloc(res->vals, res->cap * sizeof *res->vals);
+            res->locs = mycc_realloc(res->locs, res->cap * sizeof *res->locs);
+        }
+        uint8_t* res_kind = &res->kinds[res->len];
+        TokenVal* res_val = &res->vals[res->len];
+        SourceLoc* res_loc = &res->locs[res->len];
         do {
-            if (!tokenize_next_token(&curr, err, info)) {
+            if (!tokenize_next_token(res_kind, res_val, res_loc, err, info)) {
                 return false;
             }
-        } while (curr.kind == TOKEN_INVALID && *info->next.data != '\0');
+        } while (*res_kind == TOKEN_INVALID && *info->next.data != '\0');
 
-        if (curr.kind != TOKEN_INVALID) {
-            if (res->len == res->cap) {
-                mycc_grow_alloc((void**)&res->tokens,
-                                &res->cap,
-                                sizeof *res->tokens);
-            }
-            res->tokens[res->len] = curr;
+        if (*res_kind != TOKEN_INVALID) {
             ++res->len;
         }
     }
@@ -432,7 +445,9 @@ static void unterminated_literal_err(PreprocErr* err,
 }
 
 static bool handle_character_literal(TokenizerState* s,
-                                     Token* res,
+                                     uint8_t* res_kind,
+                                     TokenVal* res_val,
+                                     SourceLoc* res_loc,
                                      LineInfo* info,
                                      PreprocErr* err) {
     assert(*s->it.data == '\'' || *s->it.data == '\"' || *s->it.data == 'L');
@@ -479,7 +494,9 @@ static bool handle_character_literal(TokenizerState* s,
         const TokenKind kind = get_char_lit_kind(StrBuf_as_str(&spell),
                                                  terminator);
         assert(kind != TOKEN_INVALID);
-        *res = Token_create(kind, &spell, start_loc, s->current_file_idx);
+        *res_kind = kind;
+        res_val->spelling = spell;
+        *res_loc = (SourceLoc){s->current_file_idx, start_loc};
 
         write_line_info(s, info);
         return true;
@@ -511,7 +528,9 @@ static bool token_is_over(const TokenizerState* s, bool is_num) {
 }
 
 static bool handle_other(TokenizerState* s,
-                         Token* res,
+                         uint8_t* res_kind,
+                         TokenVal* res_val,
+                         SourceLoc* res_loc,
                          LineInfo* info,
                          PreprocErr* err) {
     const bool is_num = isdigit(*s->it.data) || *s->it.data == '.';
@@ -555,8 +574,10 @@ static bool handle_other(TokenizerState* s,
         err->invalid_id = spell;
         return false;
     }
-
-    *res = Token_create(kind, &spell, start_loc, s->current_file_idx);
+    
+    *res_kind = kind;
+    res_val->spelling = spell;
+    *res_loc = (SourceLoc){s->current_file_idx, start_loc};
     write_line_info(s, info);
     return true;
 }

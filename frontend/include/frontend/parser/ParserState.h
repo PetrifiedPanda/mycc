@@ -26,14 +26,14 @@ void ParserState_accept_it(ParserState* s);
 StrLit ParserState_take_curr_str_lit(ParserState* s);
 StrBuf ParserState_take_curr_spell(ParserState* s);
 
-const Token* ParserState_curr_token(const ParserState* s);
 Value ParserState_curr_val(const ParserState* s);
 Str ParserState_curr_spell(const ParserState* s);
+const StrBuf* ParserState_curr_spell_buf(const ParserState* s);
 TokenKind ParserState_curr_kind(const ParserState* s);
 SourceLoc ParserState_curr_loc(const ParserState* s);
 
-const Token* ParserState_next_token(const ParserState* s);
 TokenKind ParserState_next_token_kind(const ParserState* s);
+Str ParserState_next_token_spell(const ParserState* s);
 
 void ParserState_push_scope(ParserState* s);
 void ParserState_pop_scope(ParserState* s);

@@ -1,3 +1,4 @@
+#include "frontend/Token.h"
 #include "frontend/preproc/preproc.h"
 #include "frontend/preproc/PreprocMacro.h"
 
@@ -42,45 +43,51 @@ static void test_preproc_macro(const PreprocMacro* macro,
     ASSERT_UINT(state.res.len, expected.toks.len);
 
     for (uint32_t i = 0; i < state.res.len; ++i) {
-        ASSERT_TOKEN_KIND(state.res.tokens[i].kind, expected.toks.tokens[i].kind);
-        ASSERT_STR(StrBuf_as_str(&state.res.tokens[i].spelling),
-                   StrBuf_as_str(&expected.toks.tokens[i].spelling));
-        StrBuf_free(&state.res.tokens[i].spelling);
+        ASSERT_TOKEN_KIND(state.res.kinds[i], expected.toks.kinds[i]);
+        ASSERT_STR(StrBuf_as_str(&state.res.vals[i].spelling),
+                   StrBuf_as_str(&expected.toks.vals[i].spelling));
+        StrBuf_free(&state.res.vals[i].spelling);
     }
-    mycc_free(state.res.tokens);
+    mycc_free(state.res.kinds);
+    mycc_free(state.res.vals);
+    mycc_free(state.res.locs);
     FileInfo_free(&res.file_info);
     PreprocRes_free_preproc_tokens(&expected);
     state.res = (TokenArr){
-        .tokens = NULL,
         .len = 0,
         .cap = 0,
+        .kinds = NULL,
+        .vals = NULL,
+        .locs = NULL,
     };
     PreprocState_free(&state);
 }
 
 TEST(expand_obj_like) {
     // #define MACRO 1 + 2
-    TokenOrArg expansion[] = {
-        {.is_arg = false,
-         .token = {TOKEN_I_CONSTANT,
-                   .spelling = STR_BUF_NON_HEAP("1"),
-                   {0, {1, 15}}}},
-        {.is_arg = false,
-         .token = {TOKEN_ADD, .spelling = StrBuf_null(), {0, {1, 17}}}},
-        {.is_arg = false,
-         .token = {TOKEN_I_CONSTANT,
-                   .spelling = STR_BUF_NON_HEAP("2"),
-                   {0, {1, 19}}}},
+    uint8_t kinds[] = {
+        TOKEN_I_CONSTANT,
+        TOKEN_ADD,
+        TOKEN_I_CONSTANT,
+    };
+
+    TokenValOrArg vals[] = {
+        {.val = {.spelling = STR_BUF_NON_HEAP("1")}},
+        {.val = {.spelling = StrBuf_null()}},
+        {.val = {.spelling = STR_BUF_NON_HEAP("2")}},
     };
     enum {
-        EXP_LEN = ARR_LEN(expansion)
+        EXP_LEN = ARR_LEN(kinds)
     };
+
+    static_assert(EXP_LEN == ARR_LEN(vals), "");
 
     PreprocMacro macro = {
         .is_func_macro = false,
         .num_args = 0,
         .expansion_len = EXP_LEN,
-        .expansion = expansion,
+        .kinds = kinds,
+        .vals = vals,
     };
 
     test_preproc_macro(&macro,
@@ -105,7 +112,8 @@ TEST(expand_obj_like_empty) {
         .is_variadic = false,
 
         .expansion_len = 0,
-        .expansion = NULL,
+        .kinds = NULL,
+        .vals = NULL,
     };
 
     test_preproc_macro(&macro,
@@ -123,20 +131,22 @@ TEST(expand_obj_like_empty) {
 }
 
 TEST(expand_recursive) {
-    TokenOrArg rec_obj_ex[] = {
-        {.is_arg = false,
-         .token = {TOKEN_IDENTIFIER,
-                   .spelling = STR_BUF_NON_HEAP("REC_MACRO"),
-                   {0, {1, 1}}}},
-    };
     // #define REC_MACRO REC_MACRO
+    uint8_t rec_obj_kinds[] = {
+        TOKEN_IDENTIFIER,
+    };
+    TokenValOrArg rec_obj_vals[] = {
+        {.val = {.spelling = STR_BUF_NON_HEAP("REC_MACRO")}},
+    };
+
     const PreprocMacro rec_obj = {
         .is_func_macro = false,
         .num_args = 0,
         .is_variadic = false,
 
-        .expansion_len = ARR_LEN(rec_obj_ex),
-        .expansion = rec_obj_ex,
+        .expansion_len = ARR_LEN(rec_obj_kinds),
+        .kinds = rec_obj_kinds,
+        .vals = rec_obj_vals,
     };
 
     test_preproc_macro(&rec_obj,
@@ -152,25 +162,26 @@ TEST(expand_recursive) {
                        STR_LIT("x = REC_MACRO - 10;REC_MACRO"),
                        STR_LIT("x = REC_MACRO - 10;REC_MACRO"));
 
-    TokenOrArg rec_func_ex[] = {
-        {.is_arg = false,
-         .token = {TOKEN_IDENTIFIER,
-                   .spelling = STR_BUF_NON_HEAP("REC_FUNC_MACRO"),
-                   {0, {1, 1}}}},
-        {.is_arg = false,
-         .token = {TOKEN_LBRACKET, .spelling = StrBuf_null(), {0, {1, 1}}}},
-        {.is_arg = false,
-         .token = {TOKEN_RBRACKET, .spelling = StrBuf_null(), {0, {1, 1}}}},
+    // #define REC_FUNC_MACRO() REC_FUNC_MACRO()
+    uint8_t rec_func_kinds[] = {
+        TOKEN_IDENTIFIER,
+        TOKEN_LBRACKET,
+        TOKEN_RBRACKET,
+    };
+    TokenValOrArg rec_func_vals[] = {
+        {.val = {.spelling = STR_BUF_NON_HEAP("REC_FUNC_MACRO")}},
+        {.val = {.spelling = StrBuf_null()}},
+        {.val = {.spelling = StrBuf_null()}},
     };
 
-    // #define REC_FUNC_MACRO() REC_FUNC_MACRO()
     const PreprocMacro rec_func = {
         .is_func_macro = true,
         .num_args = 0,
         .is_variadic = false,
 
-        .expansion_len = ARR_LEN(rec_func_ex),
-        .expansion = rec_func_ex,
+        .expansion_len = ARR_LEN(rec_func_kinds),
+        .kinds = rec_func_kinds,
+        .vals = rec_func_vals,
     };
     test_preproc_macro(&rec_func,
                        STR_LIT("REC_FUNC_MACRO"),
@@ -188,29 +199,35 @@ TEST(expand_recursive) {
 
 TEST(expand_func_like) {
     // #define FUNC_LIKE_MACRO(x, y) x + y * 3 - y
-    TokenOrArg ex1[] = {
-        {.is_arg = true, .arg_num = 0},
-        {.is_arg = false,
-         .token = {TOKEN_ADD, .spelling = StrBuf_null(), {0, {1, 33}}}},
-        {.is_arg = true, .arg_num = 1},
-        {.is_arg = false,
-         .token = {TOKEN_ASTERISK, .spelling = StrBuf_null(), {0, {1, 37}}}},
-        {.is_arg = false,
-         .token = {TOKEN_I_CONSTANT,
-                   .spelling = STR_BUF_NON_HEAP("3"),
-                   {0, {1, 39}}}},
-        {.is_arg = false,
-         .token = {TOKEN_SUB, .spelling = StrBuf_null(), {0, {1, 41}}}},
-        {.is_arg = true, .arg_num = 1},
+    uint8_t kinds1[] = {
+        TOKEN_INVALID,
+        TOKEN_ADD,
+        TOKEN_INVALID,
+        TOKEN_ASTERISK,
+        TOKEN_I_CONSTANT,
+        TOKEN_SUB,
+        TOKEN_INVALID,
     };
+    TokenValOrArg vals1[] = {
+        {.arg_num = 0},
+        {.val = {.spelling = StrBuf_null()}},
+        {.arg_num = 1},
+        {.val = {.spelling = StrBuf_null()}},
+        {.val = {.spelling = STR_BUF_NON_HEAP("3")}},
+        {.val = {.spelling = StrBuf_null()}},
+        {.arg_num = 1},
+    };
+    
+    static_assert(ARR_LEN(kinds1) == ARR_LEN(vals1), "");
 
     const PreprocMacro macro1 = {
         .is_func_macro = true,
         .num_args = 2,
         .is_variadic = false,
 
-        .expansion_len = ARR_LEN(ex1),
-        .expansion = ex1,
+        .expansion_len = ARR_LEN(kinds1),
+        .kinds = kinds1,
+        .vals = vals1,
     };
 
     test_preproc_macro(
@@ -237,8 +254,11 @@ TEST(expand_func_like) {
                        STR_LIT("f = f + * 3 -;"));
 
     // #define OTHER_FUNC_LIKE(x, y, z, a, b, c) x
-    TokenOrArg ex2[] = {
-        {.is_arg = true, .arg_num = 0},
+    uint8_t kinds2[] = {
+        TOKEN_INVALID,
+    };
+    TokenValOrArg vals2[] = {
+        {.arg_num = 0},
     };
 
     const PreprocMacro macro2 = {
@@ -246,8 +266,9 @@ TEST(expand_func_like) {
         .num_args = 6,
         .is_variadic = false,
 
-        .expansion_len = ARR_LEN(ex2),
-        .expansion = ex2,
+        .expansion_len = ARR_LEN(kinds2),
+        .kinds = kinds2,
+        .vals = vals2,
     };
 
     test_preproc_macro(&macro2,
@@ -267,17 +288,15 @@ TEST(expand_func_like) {
         STR_LIT("int n = 1;"));
 
     // #define YET_ANOTHER_FUNC_LIKE() 1 + 1
-    TokenOrArg ex3[] = {
-        {.is_arg = false,
-         .token = {TOKEN_I_CONSTANT,
-                   .spelling = STR_BUF_NON_HEAP("1"),
-                   {0, {1, 33}}}},
-        {.is_arg = false,
-         .token = {TOKEN_ADD, .spelling = StrBuf_null(), {0, {1, 35}}}},
-        {.is_arg = false,
-         .token = {TOKEN_I_CONSTANT,
-                   .spelling = STR_BUF_NON_HEAP("1"),
-                   {0, {1, 37}}}},
+    uint8_t kinds3[] = {
+        TOKEN_I_CONSTANT,
+        TOKEN_ADD,
+        TOKEN_I_CONSTANT,
+    };
+    TokenValOrArg vals3[] = {
+        {.val = {.spelling = STR_BUF_NON_HEAP("1")}},
+        {.val = {.spelling = StrBuf_null()}},
+        {.val = {.spelling = STR_BUF_NON_HEAP("1")}},
     };
 
     const PreprocMacro macro3 = {
@@ -285,8 +304,9 @@ TEST(expand_func_like) {
         .num_args = 0,
         .is_variadic = false,
 
-        .expansion_len = ARR_LEN(ex3),
-        .expansion = ex3,
+        .expansion_len = ARR_LEN(kinds3),
+        .kinds = kinds3,
+        .vals = vals3,
     };
 
     test_preproc_macro(&macro3,
@@ -306,7 +326,8 @@ TEST(expand_func_like) {
         .is_variadic = false,
 
         .expansion_len = 0,
-        .expansion = NULL,
+        .kinds = NULL,
+        .vals = NULL,
     };
 
     test_preproc_macro(&macro4,
@@ -321,13 +342,17 @@ TEST(expand_func_like) {
 
 TEST(expand_func_like_variadic) {
     // #define CALL_FUNC(func, ...) func(__VA_ARGS__)
-    TokenOrArg ex1[] = {
-        {.is_arg = true, .arg_num = 0},
-        {.is_arg = false,
-         .token = {TOKEN_LBRACKET, .spelling = StrBuf_null(), {0, {1, 33}}}},
-        {.is_arg = true, .arg_num = 1},
-        {.is_arg = false,
-         .token = {TOKEN_RBRACKET, .spelling = StrBuf_null(), {0, {1, 45}}}},
+    uint8_t kinds1[] = {
+        TOKEN_INVALID,
+        TOKEN_LBRACKET,
+        TOKEN_INVALID,
+        TOKEN_RBRACKET,
+    };
+    TokenValOrArg vals1[] = {
+        {.arg_num = 0},
+        {.val = {.spelling = StrBuf_null()}},
+        {.arg_num = 1},
+        {.val = {.spelling = StrBuf_null()}},
     };
 
     const PreprocMacro macro1 = {
@@ -335,8 +360,9 @@ TEST(expand_func_like_variadic) {
         .num_args = 1,
         .is_variadic = true,
 
-        .expansion_len = ARR_LEN(ex1),
-        .expansion = ex1,
+        .expansion_len = ARR_LEN(kinds1),
+        .kinds = kinds1,
+        .vals = vals1,
     };
 
     test_preproc_macro(
@@ -350,20 +376,19 @@ TEST(expand_func_like_variadic) {
                        STR_LIT("function();"));
 
     // #define ONLY_VARARGS(...) 1, 2, __VA_ARGS__
-    TokenOrArg ex2[] = {
-        {.is_arg = false,
-         .token = {TOKEN_I_CONSTANT,
-                   .spelling = STR_BUF_NON_HEAP("1"),
-                   {0, {1, 27}}}},
-        {.is_arg = false,
-         .token = {TOKEN_COMMA, .spelling = StrBuf_null(), {0, {1, 28}}}},
-        {.is_arg = false,
-         .token = {TOKEN_I_CONSTANT,
-                   .spelling = STR_BUF_NON_HEAP("2"),
-                   {0, {1, 30}}}},
-        {.is_arg = false,
-         .token = {TOKEN_COMMA, .spelling = StrBuf_null(), {0, {1, 31}}}},
-        {.is_arg = true, .arg_num = 0},
+    uint8_t kinds2[] = {
+        TOKEN_I_CONSTANT,
+        TOKEN_COMMA,
+        TOKEN_I_CONSTANT,
+        TOKEN_COMMA,
+        TOKEN_INVALID,
+    };
+    TokenValOrArg vals2[] = {
+        {.val = {.spelling = STR_BUF_NON_HEAP("1")}},
+        {.val = {.spelling = StrBuf_null()}},
+        {.val = {.spelling = STR_BUF_NON_HEAP("2")}},
+        {.val = {.spelling = StrBuf_null()}},
+        {.arg_num = 0},
     };
 
     const PreprocMacro macro2 = {
@@ -371,8 +396,9 @@ TEST(expand_func_like_variadic) {
         .num_args = 0,
         .is_variadic = true,
 
-        .expansion_len = ARR_LEN(ex2),
-        .expansion = ex2,
+        .expansion_len = ARR_LEN(kinds2),
+        .kinds = kinds2,
+        .vals = vals2,
     };
 
     test_preproc_macro(&macro2,

@@ -15,6 +15,7 @@
 
 static PrimaryExpr parse_primary_helper(Str code) {
     PreprocRes preproc_res = tokenize_string(code, STR_LIT("not_file.c"));
+    ASSERT(preproc_res.toks.len != 0);
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(&preproc_res.toks, &err);

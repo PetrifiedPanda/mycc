@@ -110,13 +110,15 @@ PreprocRes preproc_string(Str str, Str path, const ArchTypeInfo* info, PreprocEr
 
 static void free_preproc_tokens_from(TokenArr* toks, uint32_t start_idx) {
     for (uint32_t i = start_idx; i < toks->len; ++i) {
-        StrBuf_free(&toks->tokens[i].spelling);
+        StrBuf_free(&toks->vals[i].spelling);
     }
 }
 
 static void free_preproc_tokens(TokenArr* toks) {
     free_preproc_tokens_from(toks, 0);
-    mycc_free(toks->tokens);
+    mycc_free(toks->kinds);
+    mycc_free(toks->vals);
+    mycc_free(toks->locs);
 }
 
 void PreprocRes_free_preproc_tokens(PreprocRes* res) {
@@ -129,76 +131,78 @@ void PreprocRes_free(PreprocRes* res) {
     FileInfo_free(&res->file_info);
 }
 
-static bool convert_string_literal(Token* t) {
-    StrBuf spelling = t->spelling;
-    t->str_lit = convert_to_str_lit(&spelling);
-    if (t->str_lit.kind == STR_LIT_INCLUDE) {
-        StrLit_free(&t->str_lit);
+static bool convert_string_literal(TokenVal* val) {
+    StrBuf spelling = val->spelling;
+    val->str_lit = convert_to_str_lit(&spelling);
+    if (val->str_lit.kind == STR_LIT_INCLUDE) {
+        StrLit_free(&val->str_lit);
         // TODO: error
         return false;
     }
     return true;
 }
 
-static bool convert_preproc_token(Token* t,
+static bool convert_preproc_token(uint8_t* kind,
+                                  TokenVal* val,
+                                  SourceLoc loc,
                                   const ArchTypeInfo* info,
                                   PreprocErr* err) {
-    assert(t);
+    assert(val);
     assert(info);
     assert(err);
-    switch (t->kind) {
+    switch (*kind) {
         case TOKEN_I_CONSTANT: {
-            if (StrBuf_at(&t->spelling, 0) == '\'') {
-                ParseCharConstRes res = parse_char_const(StrBuf_as_str(&t->spelling), info);
+            if (StrBuf_at(&val->spelling, 0) == '\'') {
+                ParseCharConstRes res = parse_char_const(StrBuf_as_str(&val->spelling), info);
                 if (res.err.kind != CHAR_CONST_ERR_NONE) {
-                    PreprocErr_set(err, PREPROC_ERR_CHAR_CONST, t->loc);
+                    PreprocErr_set(err, PREPROC_ERR_CHAR_CONST, loc);
                     err->char_const_err = res.err;
-                    err->constant_spell = t->spelling;
+                    err->constant_spell = val->spelling;
                     return false;
                 }
-                StrBuf_free(&t->spelling);
-                t->val = res.res;
+                StrBuf_free(&val->spelling);
+                val->val = res.res;
             } else {
-                ParseIntConstRes res = parse_int_const(StrBuf_as_str(&t->spelling), info);
+                ParseIntConstRes res = parse_int_const(StrBuf_as_str(&val->spelling), info);
                 if (res.err.kind != INT_CONST_ERR_NONE) {
-                    PreprocErr_set(err, PREPROC_ERR_INT_CONST, t->loc);
+                    PreprocErr_set(err, PREPROC_ERR_INT_CONST, loc);
                     err->int_const_err = res.err;
-                    err->constant_spell = t->spelling;
+                    err->constant_spell = val->spelling;
                     return false;
                 }
-                StrBuf_free(&t->spelling);
-                t->val = res.res;
+                StrBuf_free(&val->spelling);
+                val->val = res.res;
             }
             break;
         }
         case TOKEN_F_CONSTANT: {
-            ParseFloatConstRes res = parse_float_const(StrBuf_as_str(&t->spelling));
+            ParseFloatConstRes res = parse_float_const(StrBuf_as_str(&val->spelling));
             if (res.err.kind != FLOAT_CONST_ERR_NONE) {
-                PreprocErr_set(err, PREPROC_ERR_FLOAT_CONST, t->loc);
+                PreprocErr_set(err, PREPROC_ERR_FLOAT_CONST, loc);
                 err->float_const_err = res.err;
-                err->constant_spell = t->spelling;
+                err->constant_spell = val->spelling;
                 return false;
             }
-            StrBuf_free(&t->spelling);
-            t->val = res.res;
+            StrBuf_free(&val->spelling);
+            val->val = res.res;
             break;
         }
         case TOKEN_IDENTIFIER:
-            t->kind = keyword_kind(StrBuf_as_str(&t->spelling));
-            if (t->kind != TOKEN_IDENTIFIER) {
-                StrBuf_free(&t->spelling);
-                t->spelling = StrBuf_null();
+            *kind = keyword_kind(StrBuf_as_str(&val->spelling));
+            if (*kind != TOKEN_IDENTIFIER) {
+                StrBuf_free(&val->spelling);
+                val->spelling = StrBuf_null();
             }
             break;
         case TOKEN_STRING_LITERAL:
-            if (!convert_string_literal(t)) {
+            if (!convert_string_literal(val)) {
                 return false;
             }
             break;
         case TOKEN_PP_STRINGIFY:
         case TOKEN_PP_CONCAT:
-            PreprocErr_set(err, PREPROC_ERR_MISPLACED_PREPROC_TOKEN, t->loc);
-            err->misplaced_preproc_tok = t->kind;
+            PreprocErr_set(err, PREPROC_ERR_MISPLACED_PREPROC_TOKEN, loc);
+            err->misplaced_preproc_tok = *kind;
             return false;
         default:
             break;
@@ -212,7 +216,7 @@ bool convert_preproc_tokens(TokenArr* tokens,
     assert(tokens);
     assert(info);
     for (uint32_t i = 0; i < tokens->len; ++i) {
-        if (!convert_preproc_token(&tokens->tokens[i], info, err)) {
+        if (!convert_preproc_token(&tokens->kinds[i], &tokens->vals[i], tokens->locs[i], info, err)) {
             free_preproc_tokens_from(tokens, i);
             tokens->len = i;
             return false;

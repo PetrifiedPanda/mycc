@@ -435,9 +435,11 @@ static void FileManager_free(FileManager* fm) {
 
 void TokenArr_free_preproc(TokenArr* arr) {
     for (uint32_t i = 0; i < arr->len; ++i) {
-        StrBuf_free(&arr->tokens[i].spelling);
+        StrBuf_free(&arr->vals[i].spelling);
     }
-    mycc_free(arr->tokens);
+    mycc_free(arr->kinds);
+    mycc_free(arr->vals);
+    mycc_free(arr->locs);
 }
 
 void PreprocState_free(PreprocState* state) {

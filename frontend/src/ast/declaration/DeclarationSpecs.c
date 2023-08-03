@@ -79,14 +79,14 @@ static ParseDeclarationSpecRes parse_declaration_spec(
             const ParserIDData* prev_def = ParserState_get_prev_definition(
                 s,
                 ParserState_curr_spell(s));
-            const Token* next = ParserState_next_token(s);
-            if (prev_def != NULL && !is_storage_class_spec(next->kind)
-                && !is_type_qual(next->kind) && !is_type_spec_token(s, next)
-                && !is_func_spec(next->kind) && next->kind != TOKEN_ALIGNAS) {
-                const StrBuf spell = ParserState_take_curr_spell(s);
+            const TokenKind kind = ParserState_next_token_kind(s);
+            if (prev_def != NULL && !is_storage_class_spec(kind)
+                && !is_type_qual(kind) && !next_is_type_spec(s)
+                && !is_func_spec(kind) && kind != TOKEN_ALIGNAS) {
+                const StrBuf spell_buf = ParserState_take_curr_spell(s);
                 ParserState_set_redefinition_err(s,
                                                  prev_def,
-                                                 &spell,
+                                                 &spell_buf,
                                                  ParserState_curr_loc(s));
                 return DECL_SPEC_ERROR;
             }

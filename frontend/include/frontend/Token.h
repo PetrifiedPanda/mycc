@@ -17,6 +17,8 @@ typedef enum {
 #undef META_TOKEN_MACRO
 } TokenKind;
 
+_Static_assert(TOKEN_INVALID < 255, "TokenKind does not fit into 8-bit integer");
+
 typedef struct {
     uint32_t line, index;
 } FileLoc;
@@ -26,40 +28,18 @@ typedef struct {
     FileLoc file_loc;
 } SourceLoc;
 
-typedef struct {
-    TokenKind kind;
-    union {
-        StrBuf spelling;
-        Value val;
-        StrLit str_lit;
-    };
-    SourceLoc loc;
-} Token;
+typedef union {
+    StrBuf spelling;
+    Value val;
+    StrLit str_lit;
+} TokenVal;
 
 typedef struct {
     uint32_t len, cap;
-    Token* tokens;
+    uint8_t* kinds;
+    TokenVal* vals;
+    SourceLoc* locs;
 } TokenArr;
-
-
-/**
- *
- * @param kind The kind of the token
- * @param spelling The spelling of the token, or NULL if tokens of the given
- *        kind have only one spelling
- * @param file_loc The location of the token in the file
- * @param filename The file this token is in (This is copied into the token)
- */
-Token Token_create(TokenKind kind,
-                   const StrBuf* spelling,
-                   FileLoc file_loc,
-                   uint32_t file_idx);
-
-StrBuf Token_take_spelling(Token* t);
-
-StrLit Token_take_str_lit(Token* t);
-
-void Token_free(Token* t);
 
 TokenArr TokenArr_create_empty(void);
 
