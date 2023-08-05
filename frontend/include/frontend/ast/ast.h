@@ -1,6 +1,9 @@
 #ifndef MYCC_FRONTEND_AST_AST_H
 #define MYCC_FRONTEND_AST_AST_H
 
+#include <stdint.h>
+#include <stdbool.h>
+
 typedef enum {
     // subrange (func_def | declaration)[lhs...rhs]
     AST_TRANSLATION_UNIT,
@@ -268,12 +271,19 @@ typedef enum {
     AST_IDENTIFIER,
 } ASTNodeKind;
 
+_Static_assert(AST_IDENTIFIER < 255, "");
+
 typedef struct {
-    ASTNodeKind kind;
-    int main_token;
+    uint32_t main_token;
     // lhs is implicit, as it is always the next node
-    int rhs;
-} ASTNode;
+    uint32_t rhs;
+} ASTNodeData;
+
+typedef struct {
+    uint32_t len, cap;
+    uint8_t* kinds;
+    ASTNodeData* datas;
+} AST;
 
 #include "TranslationUnit.h"
 #include "declaration/ExternalDeclaration.h"
