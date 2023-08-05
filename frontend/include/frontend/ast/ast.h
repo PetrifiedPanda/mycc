@@ -6,7 +6,7 @@
 
 typedef enum {
     // subrange (func_def | declaration)[lhs...rhs]
-    AST_TRANSLATION_UNIT,
+    AST_TRANSLATION_UNIT = 0,
     // lhs func_signature rhs compound_statement
     AST_FUNC_DEF,
     // lhs declaration_specs rhs init_declarator_list 
@@ -271,7 +271,7 @@ typedef enum {
     AST_IDENTIFIER,
 } ASTNodeKind;
 
-_Static_assert(AST_IDENTIFIER < 255, "");
+_Static_assert(AST_IDENTIFIER < 255, "ASTNodeKind does not fit into a byte");
 
 typedef struct {
     uint32_t main_token;
