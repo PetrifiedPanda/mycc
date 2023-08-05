@@ -68,15 +68,29 @@ static bool preproc_impl(PreprocState* state, const ArchTypeInfo* info) {
         }
     }
     if (state->conds_len != 0) {
-        PreprocErr_set(state->err, PREPROC_ERR_UNTERMINATED_COND, state->line_info.curr_loc);
-        state->err->unterminated_cond_loc = state->conds[state->conds_len - 1].loc;
+        PreprocErr_set(state->err,
+                       PREPROC_ERR_UNTERMINATED_COND,
+                       state->line_info.curr_loc);
+        state->err->unterminated_cond_loc = state->conds[state->conds_len - 1]
+                                                .loc;
         return false;
     }
+
+    state->res.cap = state->res.len;
+    state->res.kinds = mycc_realloc(state->res.kinds,
+                                    sizeof *state->res.kinds * state->res.cap);
+    state->res.vals = mycc_realloc(state->res.vals,
+                                   sizeof *state->res.vals * state->res.cap);
+    state->res.locs = mycc_realloc(state->res.locs,
+                                   sizeof *state->res.locs * state->res.cap);
     return true;
 }
 
 #ifdef MYCC_TEST_FUNCTIONALITY
-PreprocRes preproc_string(Str str, Str path, const ArchTypeInfo* info, PreprocErr* err) {
+PreprocRes preproc_string(Str str,
+                          Str path,
+                          const ArchTypeInfo* info,
+                          PreprocErr* err) {
     assert(err);
 
     PreprocState state = PreprocState_create_string(str, path, err);
@@ -144,7 +158,7 @@ static bool convert_string_literal(TokenVal* val) {
 
 static bool convert_preproc_token(uint8_t* kind,
                                   TokenVal* val,
-                                  SourceLoc loc,
+                                  const SourceLoc* loc,
                                   const ArchTypeInfo* info,
                                   PreprocErr* err) {
     assert(val);
@@ -153,9 +167,11 @@ static bool convert_preproc_token(uint8_t* kind,
     switch (*kind) {
         case TOKEN_I_CONSTANT: {
             if (StrBuf_at(&val->spelling, 0) == '\'') {
-                ParseCharConstRes res = parse_char_const(StrBuf_as_str(&val->spelling), info);
+                ParseCharConstRes res = parse_char_const(
+                    StrBuf_as_str(&val->spelling),
+                    info);
                 if (res.err.kind != CHAR_CONST_ERR_NONE) {
-                    PreprocErr_set(err, PREPROC_ERR_CHAR_CONST, loc);
+                    PreprocErr_set(err, PREPROC_ERR_CHAR_CONST, *loc);
                     err->char_const_err = res.err;
                     err->constant_spell = val->spelling;
                     return false;
@@ -163,9 +179,11 @@ static bool convert_preproc_token(uint8_t* kind,
                 StrBuf_free(&val->spelling);
                 val->val = res.res;
             } else {
-                ParseIntConstRes res = parse_int_const(StrBuf_as_str(&val->spelling), info);
+                ParseIntConstRes res = parse_int_const(
+                    StrBuf_as_str(&val->spelling),
+                    info);
                 if (res.err.kind != INT_CONST_ERR_NONE) {
-                    PreprocErr_set(err, PREPROC_ERR_INT_CONST, loc);
+                    PreprocErr_set(err, PREPROC_ERR_INT_CONST, *loc);
                     err->int_const_err = res.err;
                     err->constant_spell = val->spelling;
                     return false;
@@ -176,9 +194,10 @@ static bool convert_preproc_token(uint8_t* kind,
             break;
         }
         case TOKEN_F_CONSTANT: {
-            ParseFloatConstRes res = parse_float_const(StrBuf_as_str(&val->spelling));
+            ParseFloatConstRes res = parse_float_const(
+                StrBuf_as_str(&val->spelling));
             if (res.err.kind != FLOAT_CONST_ERR_NONE) {
-                PreprocErr_set(err, PREPROC_ERR_FLOAT_CONST, loc);
+                PreprocErr_set(err, PREPROC_ERR_FLOAT_CONST, *loc);
                 err->float_const_err = res.err;
                 err->constant_spell = val->spelling;
                 return false;
@@ -201,7 +220,7 @@ static bool convert_preproc_token(uint8_t* kind,
             break;
         case TOKEN_PP_STRINGIFY:
         case TOKEN_PP_CONCAT:
-            PreprocErr_set(err, PREPROC_ERR_MISPLACED_PREPROC_TOKEN, loc);
+            PreprocErr_set(err, PREPROC_ERR_MISPLACED_PREPROC_TOKEN, *loc);
             err->misplaced_preproc_tok = *kind;
             return false;
         default:
@@ -216,7 +235,11 @@ bool convert_preproc_tokens(TokenArr* tokens,
     assert(tokens);
     assert(info);
     for (uint32_t i = 0; i < tokens->len; ++i) {
-        if (!convert_preproc_token(&tokens->kinds[i], &tokens->vals[i], tokens->locs[i], info, err)) {
+        if (!convert_preproc_token(&tokens->kinds[i],
+                                   &tokens->vals[i],
+                                   &tokens->locs[i],
+                                   info,
+                                   err)) {
             free_preproc_tokens_from(tokens, i);
             tokens->len = i;
             return false;
