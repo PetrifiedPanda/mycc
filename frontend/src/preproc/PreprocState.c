@@ -266,7 +266,7 @@ static void add_prefix(FileManager* fm, const StrBuf* prefix) {
 // TODO: maybe use filename instead of creating a new string
 static FileOpenRes resolve_path_and_open(PreprocState* s,
                                          const StrBuf* filename,
-                                         SourceLoc include_loc) {
+                                         const SourceLoc* include_loc) {
     const Str filename_str = StrBuf_as_str(filename);
     const uint32_t sep_idx = get_last_file_sep(filename_str);
 
@@ -279,7 +279,7 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
     File file = File_open(StrBuf_c_str(&full_path), FILE_READ);
     if (!File_valid(file)) {
         // TODO: check include dirs (and system dirs)
-        PreprocErr_set_file_err(s->err, filename, include_loc);
+        PreprocErr_set_file_err(s->err, filename, *include_loc);
         return (FileOpenRes){0};
     }
 
@@ -303,7 +303,7 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
 
 bool PreprocState_open_file(PreprocState* s,
                             const StrBuf* filename,
-                            SourceLoc include_loc) {
+                            const SourceLoc* include_loc) {
     FileManager* fm = &s->file_manager;
     if (fm->current_file_idx == FOPEN_MAX - 1) {
         long pos = File_tell(fm->files[0]);

@@ -53,18 +53,25 @@ typedef struct {
 
 PreprocState PreprocState_create(CStr start_file, PreprocErr* err);
 
-PreprocState PreprocState_create_string(Str code, Str filename, PreprocErr* err);
+PreprocState PreprocState_create_string(Str code,
+                                        Str filename,
+                                        PreprocErr* err);
 
 void PreprocState_read_line(PreprocState* state);
 bool PreprocState_over(const PreprocState* state);
 
 typedef struct PreprocMacro PreprocMacro;
 
-const PreprocMacro* find_preproc_macro(const PreprocState* state, const StrBuf* spelling);
+const PreprocMacro* find_preproc_macro(const PreprocState* state,
+                                       const StrBuf* spelling);
 
-bool PreprocState_open_file(PreprocState* s, const StrBuf* filename_str, SourceLoc include_loc);
+bool PreprocState_open_file(PreprocState* s,
+                            const StrBuf* filename_str,
+                            const SourceLoc* include_loc);
 
-void PreprocState_register_macro(PreprocState* state, const StrBuf* spelling, const PreprocMacro* macro);
+void PreprocState_register_macro(PreprocState* state,
+                                 const StrBuf* spelling,
+                                 const PreprocMacro* macro);
 
 void PreprocState_remove_macro(PreprocState* state, const StrBuf* spelling);
 

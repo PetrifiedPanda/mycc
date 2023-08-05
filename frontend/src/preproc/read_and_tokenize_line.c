@@ -285,7 +285,7 @@ static bool handle_include(PreprocState* state,
         }
         if (!PreprocState_open_file(state,
                                     &filename.contents,
-                                    arr->locs[2])) {
+                                    &arr->locs[2])) {
             return false;
         }
         return true;
