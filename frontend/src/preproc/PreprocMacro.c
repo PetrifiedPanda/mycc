@@ -198,14 +198,14 @@ static uint32_t get_str_idx(Str* strs, uint32_t len, Str to_find) {
 }
 
 static bool is_duplicate_arg(StrBuf* spell,
-                             SourceLoc loc,
+                             const SourceLoc* loc,
                              Str* arg_spells,
                              uint32_t num_args,
                              PreprocErr* err) {
     Str data = StrBuf_as_str(spell);
     for (uint32_t i = 0; i < num_args; ++i) {
         if (Str_eq(arg_spells[i], data)) {
-            PreprocErr_set(err, PREPROC_ERR_DUPLICATE_MACRO_PARAM, loc);
+            PreprocErr_set(err, PREPROC_ERR_DUPLICATE_MACRO_PARAM, *loc);
             err->duplicate_arg_name = StrBuf_take(spell);
             return true;
         }
@@ -247,7 +247,7 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
         }
         arg_spells[res.num_args] = StrBuf_as_str(&arr->vals[it].spelling);
         assert(Str_valid(arg_spells[res.num_args]));
-        if (is_duplicate_arg(&arr->vals[it].spelling, arr->locs[it], arg_spells, res.num_args, err)) {
+        if (is_duplicate_arg(&arr->vals[it].spelling, &arr->locs[it], arg_spells, res.num_args, err)) {
             goto fail;
         }
 
