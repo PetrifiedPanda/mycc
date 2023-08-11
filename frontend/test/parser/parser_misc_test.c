@@ -459,6 +459,33 @@ TEST(type_spec_error) {
     // TODO: DISALLOWED_TYPE_QUALS
 }
 
+static void check_expected_semicolon_jump_statement(Str spell) {
+    PreprocRes preproc_res = tokenize_string(spell, STR_LIT("file.c"));
+
+    ParserErr err = ParserErr_create();
+    ParserState s = ParserState_create(&preproc_res.toks, &err);
+
+    Statement* res = parse_statement(&s);
+    ASSERT_NULL(res);
+
+    ASSERT(err.kind == PARSER_ERR_EXPECTED_TOKENS);
+    const ExpectedTokensErr* ex_tokens_err = &err.expected_tokens_err;
+    ASSERT_UINT(ex_tokens_err->num_expected, (uint32_t)1);
+    ASSERT_TOKEN_KIND(ex_tokens_err->expected[0], TOKEN_SEMICOLON);
+    ASSERT_TOKEN_KIND(ex_tokens_err->got, TOKEN_INVALID);
+
+    PreprocRes_free(&preproc_res);
+    ParserState_free(&s);
+    TokenArr_free(&s._arr);
+}
+
+TEST(jump_statement_error) {
+    check_expected_semicolon_jump_statement(STR_LIT("continue"));
+    check_expected_semicolon_jump_statement(STR_LIT("break"));
+    check_expected_semicolon_jump_statement(STR_LIT("return an_identifier"));
+    check_expected_semicolon_jump_statement(STR_LIT("return *id += (int)100"));
+}
+
 TEST_SUITE_BEGIN(parser_misc){
     REGISTER_TEST(enum_list),
     REGISTER_TEST(enum_spec),
@@ -467,4 +494,5 @@ TEST_SUITE_BEGIN(parser_misc){
     REGISTER_TEST(struct_declaration_list),
     REGISTER_TEST(redefine_typedef),
     REGISTER_TEST(type_spec_error),
+    REGISTER_TEST(jump_statement_error),
 } TEST_SUITE_END()
