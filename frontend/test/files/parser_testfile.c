@@ -68,12 +68,12 @@ int main(void) {
     int a, b = 6 * 4, c = 4 * 5 + 2, d = 3214 > 100, e = 1 - 2 / 2 ^ 3 - (unsigned int)5 % 5 & 1, f = (int)2.5 , g;
     a /= b *= c -= d %= e ^= f |= g = 1000;
 
-    (AlsoMyStruct){.ptr = 0, .str = "Hewo"};
+    (AlsoMyStruct){.ptr = 0, .str = "Hewo",};
     (char*)s_ptr->ptr;
 
     *s_ptr = (AlsoMyStruct) {
-        .ptr = 0xdeadbeef,
-        .str = "sfsfd"
+        0xdeadbeef,
+        "sfsfd",
     };
 
     *s_ptr->ptr = (char*)s_ptr->str;

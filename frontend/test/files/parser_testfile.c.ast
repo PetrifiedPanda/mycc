@@ -3203,13 +3203,7 @@ translation_unit:
                                               init_list:
                                                 len: 2
                                                 designation_init:
-                                                  designation:
-                                                    designator_list:
-                                                      len: 1
-                                                      designator: ../frontend/test/files/parser_testfile.c:75,9
-                                                        identifier: ../frontend/test/files/parser_testfile.c:75,10
-                                                          spelling: ptr
-                                                  initializer: ../frontend/test/files/parser_testfile.c:75,16
+                                                  initializer: ../frontend/test/files/parser_testfile.c:75,9
                                                     assign_expr:
                                                       len: 0
                                                       cond_expr:
@@ -3234,25 +3228,19 @@ translation_unit:
                                                                           len: 0
                                                                           mul_expr:
                                                                             len: 0
-                                                                            cast_expr: ../frontend/test/files/parser_testfile.c:75,16
+                                                                            cast_expr: ../frontend/test/files/parser_testfile.c:75,9
                                                                               len: 0
-                                                                              unary_expr: ../frontend/test/files/parser_testfile.c:75,16
+                                                                              unary_expr: ../frontend/test/files/parser_testfile.c:75,9
                                                                                 len: 0
                                                                                 postfix_expr:
                                                                                   primary_expr:
-                                                                                    constant: ../frontend/test/files/parser_testfile.c:75,16
+                                                                                    constant: ../frontend/test/files/parser_testfile.c:75,9
                                                                                       value:
                                                                                         type: VALUE_UINT
                                                                                         uint_val: 3735928559
                                                                                   len: 0
                                                 designation_init:
-                                                  designation:
-                                                    designator_list:
-                                                      len: 1
-                                                      designator: ../frontend/test/files/parser_testfile.c:76,9
-                                                        identifier: ../frontend/test/files/parser_testfile.c:76,10
-                                                          spelling: str
-                                                  initializer: ../frontend/test/files/parser_testfile.c:76,16
+                                                  initializer: ../frontend/test/files/parser_testfile.c:76,9
                                                     assign_expr:
                                                       len: 0
                                                       cond_expr:
@@ -3277,14 +3265,14 @@ translation_unit:
                                                                           len: 0
                                                                           mul_expr:
                                                                             len: 0
-                                                                            cast_expr: ../frontend/test/files/parser_testfile.c:76,16
+                                                                            cast_expr: ../frontend/test/files/parser_testfile.c:76,9
                                                                               len: 0
-                                                                              unary_expr: ../frontend/test/files/parser_testfile.c:76,16
+                                                                              unary_expr: ../frontend/test/files/parser_testfile.c:76,9
                                                                                 len: 0
                                                                                 postfix_expr:
                                                                                   primary_expr:
                                                                                       string_constant:
-                                                                                      string_literal: ../frontend/test/files/parser_testfile.c:76,16
+                                                                                      string_literal: ../frontend/test/files/parser_testfile.c:76,9
                                                                                         str_lit:
                                                                                           kind: STR_LIT_DEFAULT
                                                                                           contents: sfsfd
