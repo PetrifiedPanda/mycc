@@ -2829,7 +2829,7 @@ translation_unit:
           statement:
             expr_statement: ../frontend/test/files/parser_testfile.c:69,5
               expr:
-                len: 1
+                len: 3
                 assign_expr:
                   len: 7
                   unary_and_op:
@@ -2927,6 +2927,92 @@ translation_unit:
                                                   value:
                                                     type: VALUE_INT
                                                     sint_val: 1000
+                                              len: 0
+                assign_expr:
+                  len: 1
+                  unary_and_op:
+                    unary_expr: ../frontend/test/files/parser_testfile.c:69,45
+                      len: 0
+                      postfix_expr:
+                        primary_expr:
+                          identifier: ../frontend/test/files/parser_testfile.c:69,45
+                            spelling: d
+                        len: 0
+                    *=
+                  cond_expr:
+                    len: 0
+                    log_or_expr:
+                      len: 1
+                      log_and_expr:
+                        len: 1
+                        or_expr:
+                          len: 1
+                          xor_expr:
+                            len: 1
+                            and_expr:
+                              len: 1
+                              eq_expr:
+                                len: 0
+                                rel_expr:
+                                  len: 0
+                                  shift_expr:
+                                    len: 0
+                                    add_expr:
+                                      len: 0
+                                      mul_expr:
+                                        len: 0
+                                        cast_expr: ../frontend/test/files/parser_testfile.c:69,50
+                                          len: 0
+                                          unary_expr: ../frontend/test/files/parser_testfile.c:69,50
+                                            len: 0
+                                            postfix_expr:
+                                              primary_expr:
+                                                constant: ../frontend/test/files/parser_testfile.c:69,50
+                                                  value:
+                                                    type: VALUE_INT
+                                                    sint_val: 10
+                                              len: 0
+                assign_expr:
+                  len: 1
+                  unary_and_op:
+                    unary_expr: ../frontend/test/files/parser_testfile.c:69,54
+                      len: 0
+                      postfix_expr:
+                        primary_expr:
+                          identifier: ../frontend/test/files/parser_testfile.c:69,54
+                            spelling: a
+                        len: 0
+                    *=
+                  cond_expr:
+                    len: 0
+                    log_or_expr:
+                      len: 1
+                      log_and_expr:
+                        len: 1
+                        or_expr:
+                          len: 1
+                          xor_expr:
+                            len: 1
+                            and_expr:
+                              len: 1
+                              eq_expr:
+                                len: 0
+                                rel_expr:
+                                  len: 0
+                                  shift_expr:
+                                    len: 0
+                                    add_expr:
+                                      len: 0
+                                      mul_expr:
+                                        len: 0
+                                        cast_expr: ../frontend/test/files/parser_testfile.c:69,59
+                                          len: 0
+                                          unary_expr: ../frontend/test/files/parser_testfile.c:69,59
+                                            len: 0
+                                            postfix_expr:
+                                              primary_expr:
+                                                identifier: ../frontend/test/files/parser_testfile.c:69,59
+                                                  spelling: d
                                               len: 0
         block_item:
           statement:

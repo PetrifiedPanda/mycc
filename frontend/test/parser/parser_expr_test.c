@@ -186,77 +186,7 @@ TEST(postfix_expr) {
 
 }
 
-static void check_assign_expr_single_assign_id(AssignExpr* expr,
-                                        Str lhs,
-                                        AssignExprOp op,
-                                        Str rhs,
-                                        const TokenArr* arr) {
-    ASSERT_UINT(expr->len, (uint32_t)1);
-    ASSERT(expr->assign_chain[0].op == op);
-    check_unary_expr_id(&expr->assign_chain[0].unary, lhs, arr);
-    check_cond_expr_id(&expr->value, rhs, arr);
-}
-
-static void check_assign_expr_single_assign_int(AssignExpr* expr,
-                                         Str lhs,
-                                         AssignExprOp op,
-                                         Value rhs,
-                                         const TokenArr* arr) {
-    ASSERT_UINT(expr->len, (uint32_t)1);
-    ASSERT(expr->assign_chain[0].op == op);
-    check_unary_expr_id(&expr->assign_chain[0].unary, lhs, arr);
-    check_cond_expr_val(&expr->value, rhs, arr);
-}
-
-void check_assign_expr_single_assign_float(AssignExpr* expr,
-                                           Str lhs,
-                                           AssignExprOp op,
-                                           Value rhs,
-                                           const TokenArr* arr) {
-    ASSERT_UINT(expr->len, (uint32_t)1);
-    ASSERT(expr->assign_chain[0].op == op);
-    check_unary_expr_id(&expr->assign_chain[0].unary, lhs, arr);
-    check_cond_expr_val(&expr->value, rhs, arr);
-}
-
-TEST(expr) {
-    PreprocRes preproc_res = tokenize_string(
-        STR_LIT("a = 10, b *= x, c += 3.1"),
-        STR_LIT("file.c"));
-    ASSERT(preproc_res.toks.len != 0);
-
-    ParserErr err = ParserErr_create();
-    ParserState s = ParserState_create(&preproc_res.toks, &err);
-
-    Expr expr;
-    ASSERT(parse_expr_inplace(&s, &expr));
-    ASSERT(err.kind == PARSER_ERR_NONE);
-
-    ASSERT_UINT(expr.len, (uint32_t)3);
-    check_assign_expr_single_assign_int(&expr.assign_exprs[0],
-                                        STR_LIT("a"),
-                                        ASSIGN_EXPR_ASSIGN,
-                                        Value_create_sint(VALUE_INT, 10),
-                                        &s._arr);
-    check_assign_expr_single_assign_id(&expr.assign_exprs[1],
-                                       STR_LIT("b"),
-                                       ASSIGN_EXPR_MUL,
-                                       STR_LIT("x"),
-                                       &s._arr);
-    check_assign_expr_single_assign_float(&expr.assign_exprs[2],
-                                          STR_LIT("c"),
-                                          ASSIGN_EXPR_ADD,
-                                          Value_create_float(VALUE_DOUBLE, 3.1),
-                                          &s._arr);
-
-    Expr_free_children(&expr);
-    ParserState_free(&s);
-    TokenArr_free(&s._arr);
-    PreprocRes_free(&preproc_res);
-}
-
 TEST_SUITE_BEGIN(parser_expr){
     REGISTER_TEST(unary_expr),
     REGISTER_TEST(postfix_expr),
-    REGISTER_TEST(expr),
 } TEST_SUITE_END()
