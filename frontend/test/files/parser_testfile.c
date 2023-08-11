@@ -186,3 +186,29 @@ int sum_arr(int* arr, long len, int(*add_func)(int, int)) {
     return sum;
 }
 
+void do_stuff_with_designators(int a) {
+    typedef struct {
+        struct {
+            union {
+                int another_member;
+            } what_is_this;
+        } test[37];
+    } ForTestingDesignators;
+    ForTestingDesignators des = {
+        .test[19].what_is_this.another_member = a,
+    };
+
+    struct blerg {
+        struct {
+            int oof[4][16];
+        } blah[324];
+    };
+
+    struct blerg arr[] = {
+        [4].blah[321].oof[2][10] = 2345,
+    };
+
+    des = (ForTestingDesignators){
+        .test[2].what_is_this.another_member = arr[4].blah[324].oof[3][1],
+    };
+}

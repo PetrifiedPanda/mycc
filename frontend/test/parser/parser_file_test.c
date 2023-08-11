@@ -272,7 +272,7 @@ TEST(parser_testfile) {
     ParserErr err = ParserErr_create();
     TranslationUnit tl = parse_tokens(&res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_UINT(tl.len, (uint32_t)18);
+    ASSERT_UINT(tl.len, (uint32_t)19);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
 
     compare_with_ex_file(
