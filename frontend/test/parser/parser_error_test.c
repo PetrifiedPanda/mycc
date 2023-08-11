@@ -131,7 +131,7 @@ TEST(jump_statement_error) {
     check_expected_semicolon_jump_statement(STR_LIT("return *id += (int)100"));
 }
 
-TEST_SUITE_BEGIN(parser_misc){
+TEST_SUITE_BEGIN(parser_error){
     REGISTER_TEST(redefine_typedef_error),
     REGISTER_TEST(type_spec_error),
     REGISTER_TEST(jump_statement_error),

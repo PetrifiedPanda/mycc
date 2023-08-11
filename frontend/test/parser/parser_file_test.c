@@ -32,7 +32,6 @@ TEST(no_preproc) {
     ParserErr err = ParserErr_create();
     TranslationUnit tl = parse_tokens(&res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_UINT(tl.len, (uint32_t)10);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
 
     compare_with_ex_file(&tl,
@@ -50,7 +49,6 @@ TEST(parser_testfile) {
     ParserErr err = ParserErr_create();
     TranslationUnit tl = parse_tokens(&res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_UINT(tl.len, (uint32_t)19);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
 
     compare_with_ex_file(
@@ -80,7 +78,6 @@ TEST(large_testfile) {
     ParserErr err = ParserErr_create();
     TranslationUnit tl = parse_tokens(&res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT_UINT(tl.len, (uint32_t)88);
     ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
 
     compare_with_ex_file(

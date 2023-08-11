@@ -54,6 +54,7 @@ int main(void) {
 
     MyStruct *s_ptr = &s;
     s_ptr->str = "Goodbye";
+    char val = -~*s_ptr->str;
     *s_ptr = (MyStruct){L"Lstrings seem to be int pointers", "doot"};
 
     union my_union soviet_union;
@@ -179,7 +180,7 @@ int sum_arr(int* arr, long len, int(*add_func)(int, int)) {
     AddFunc* uselessVar = add_func; 
     int sum = +0;
     long i;
-    for (i = (0); i < len; ++i) {
+    for (i = (0); i < len; ++--++--++--++i) {
         sum = add_func(sum, arr[i]);
     }
     ; // Empty statement
@@ -211,4 +212,10 @@ void do_stuff_with_designators(int a) {
     des = (ForTestingDesignators){
         .test[2].what_is_this.another_member = arr[4].blah[324].oof[3][1],
     };
+}
+
+extern int (**return_func_ptr_arr)(void)(int n, long l, double d);
+
+int cursed_postfix(double d) {
+    return return_func_ptr_arr()[32](2, 234l, d);
 }
