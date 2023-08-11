@@ -1467,7 +1467,9 @@ translation_unit:
                                                         postfix_expr:
                                                           primary_expr:
                                                             constant: ../frontend/test/files/parser_testfile.c:37,14
-                                                              enum: VAL_2
+                                                              value:
+                                                                type: VALUE_INT
+                                                                sint_val: 37
                                                           len: 0
                             statement:
                               expr_statement: ../frontend/test/files/parser_testfile.c:38,13
@@ -9037,7 +9039,7 @@ translation_unit:
       declaration_list:
         len: 0
       compound_statement: ../frontend/test/files/parser_testfile.c:178,59
-        len: 4
+        len: 6
         block_item:
           declaration:
             declaration_specs: ../frontend/test/files/parser_testfile.c:179,5
@@ -9192,80 +9194,92 @@ translation_unit:
                                                           sint_val: 0
                                                     len: 0
         block_item:
+          declaration:
+            declaration_specs: ../frontend/test/files/parser_testfile.c:181,5
+              func_specs:
+                is_inline: false
+                is_noreturn: false
+              storage_class:
+                is_typedef: false
+                is_extern: false
+                is_static: false
+                is_thread_local: false
+                is_auto: false
+                is_register: false
+              type_quals:
+                is_const: false
+                is_restrict: false
+                is_volatile: false
+                is_atomic: false
+              num_align_specs: 0
+              type_specs:
+                type_modifiers:
+                  is_unsigned: false
+                  is_signed: false
+                  is_short: false
+                  num_long: 1
+                  is_complex: false
+                  is_imaginary: false
+                NO_TYPE_SPEC
+            init_declarator_list:
+              len: 1
+              init_declarator:
+                declarator:
+                  direct_declarator: ../frontend/test/files/parser_testfile.c:181,10
+                    identifier: ../frontend/test/files/parser_testfile.c:181,10
+                      spelling: i
+        block_item:
           statement:
-            iteration_statement: ../frontend/test/files/parser_testfile.c:181,5
+            iteration_statement: ../frontend/test/files/parser_testfile.c:182,5
               type: for
-              declaration:
-                declaration_specs: ../frontend/test/files/parser_testfile.c:181,10
-                  func_specs:
-                    is_inline: false
-                    is_noreturn: false
-                  storage_class:
-                    is_typedef: false
-                    is_extern: false
-                    is_static: false
-                    is_thread_local: false
-                    is_auto: false
-                    is_register: false
-                  type_quals:
-                    is_const: false
-                    is_restrict: false
-                    is_volatile: false
-                    is_atomic: false
-                  num_align_specs: 0
-                  type_specs:
-                    type_modifiers:
-                      is_unsigned: false
-                      is_signed: false
-                      is_short: false
-                      num_long: 1
-                      is_complex: false
-                      is_imaginary: false
-                    NO_TYPE_SPEC
-                init_declarator_list:
+              expr_statement: ../frontend/test/files/parser_testfile.c:182,10
+                expr:
                   len: 1
-                  init_declarator:
-                    declarator:
-                      direct_declarator: ../frontend/test/files/parser_testfile.c:181,15
-                        identifier: ../frontend/test/files/parser_testfile.c:181,15
-                          spelling: i
-                    initializer: ../frontend/test/files/parser_testfile.c:181,19
-                      assign_expr:
+                  assign_expr:
+                    len: 1
+                    unary_and_op:
+                      unary_expr: ../frontend/test/files/parser_testfile.c:182,10
                         len: 0
-                        cond_expr:
+                        postfix_expr:
+                          primary_expr:
+                            identifier: ../frontend/test/files/parser_testfile.c:182,10
+                              spelling: i
                           len: 0
-                          log_or_expr:
+                      =
+                    cond_expr:
+                      len: 0
+                      log_or_expr:
+                        len: 1
+                        log_and_expr:
+                          len: 1
+                          or_expr:
                             len: 1
-                            log_and_expr:
+                            xor_expr:
                               len: 1
-                              or_expr:
+                              and_expr:
                                 len: 1
-                                xor_expr:
-                                  len: 1
-                                  and_expr:
-                                    len: 1
-                                    eq_expr:
+                                eq_expr:
+                                  len: 0
+                                  rel_expr:
+                                    len: 0
+                                    shift_expr:
                                       len: 0
-                                      rel_expr:
+                                      add_expr:
                                         len: 0
-                                        shift_expr:
+                                        mul_expr:
                                           len: 0
-                                          add_expr:
+                                          cast_expr: ../frontend/test/files/parser_testfile.c:182,14
                                             len: 0
-                                            mul_expr:
+                                            unary_expr: ../frontend/test/files/parser_testfile.c:182,14
                                               len: 0
-                                              cast_expr: ../frontend/test/files/parser_testfile.c:181,19
+                                              postfix_expr:
+                                                primary_expr:
+                                                  constant: ../frontend/test/files/parser_testfile.c:182,14
+                                                    value:
+                                                      type: VALUE_INT
+                                                      sint_val: 0
                                                 len: 0
-                                                unary_expr: ../frontend/test/files/parser_testfile.c:181,19
-                                                  len: 0
-                                                  postfix_expr:
-                                                    primary_expr:
-                                                      constant: ../frontend/test/files/parser_testfile.c:181,19
-                                                        value:
-                                                          type: VALUE_INT
-                                                          sint_val: 0
-                                                    len: 0
-              expr_statement: ../frontend/test/files/parser_testfile.c:181,22
+              expr_statement: ../frontend/test/files/parser_testfile.c:182,17
                 expr:
                   len: 1
                   assign_expr:
@@ -9292,13 +9306,13 @@ translation_unit:
                                         len: 0
                                         mul_expr:
                                           len: 0
-                                          cast_expr: ../frontend/test/files/parser_testfile.c:181,22
+                                          cast_expr: ../frontend/test/files/parser_testfile.c:182,17
                                             len: 0
-                                            unary_expr: ../frontend/test/files/parser_testfile.c:181,22
+                                            unary_expr: ../frontend/test/files/parser_testfile.c:182,17
                                               len: 0
                                               postfix_expr:
                                                 primary_expr:
-                                                  identifier: ../frontend/test/files/parser_testfile.c:181,22
+                                                  identifier: ../frontend/test/files/parser_testfile.c:182,17
                                                     spelling: i
                                                 len: 0
                                     rel_op: <
@@ -9308,13 +9322,13 @@ translation_unit:
                                         len: 0
                                         mul_expr:
                                           len: 0
-                                          cast_expr: ../frontend/test/files/parser_testfile.c:181,26
+                                          cast_expr: ../frontend/test/files/parser_testfile.c:182,21
                                             len: 0
-                                            unary_expr: ../frontend/test/files/parser_testfile.c:181,26
+                                            unary_expr: ../frontend/test/files/parser_testfile.c:182,21
                                               len: 0
                                               postfix_expr:
                                                 primary_expr:
-                                                  identifier: ../frontend/test/files/parser_testfile.c:181,26
+                                                  identifier: ../frontend/test/files/parser_testfile.c:182,21
                                                     spelling: len
                                                 len: 0
               expr:
@@ -9343,32 +9357,32 @@ translation_unit:
                                       len: 0
                                       mul_expr:
                                         len: 0
-                                        cast_expr: ../frontend/test/files/parser_testfile.c:181,31
+                                        cast_expr: ../frontend/test/files/parser_testfile.c:182,26
                                           len: 0
-                                          unary_expr: ../frontend/test/files/parser_testfile.c:181,31
+                                          unary_expr: ../frontend/test/files/parser_testfile.c:182,26
                                             len: 1
                                             ++
                                             postfix_expr:
                                               primary_expr:
-                                                identifier: ../frontend/test/files/parser_testfile.c:181,33
+                                                identifier: ../frontend/test/files/parser_testfile.c:182,28
                                                   spelling: i
                                               len: 0
               statement:
-                compound_statement: ../frontend/test/files/parser_testfile.c:181,36
+                compound_statement: ../frontend/test/files/parser_testfile.c:182,31
                   len: 1
                   block_item:
                     statement:
-                      expr_statement: ../frontend/test/files/parser_testfile.c:182,9
+                      expr_statement: ../frontend/test/files/parser_testfile.c:183,9
                         expr:
                           len: 1
                           assign_expr:
                             len: 1
                             unary_and_op:
-                              unary_expr: ../frontend/test/files/parser_testfile.c:182,9
+                              unary_expr: ../frontend/test/files/parser_testfile.c:183,9
                                 len: 0
                                 postfix_expr:
                                   primary_expr:
-                                    identifier: ../frontend/test/files/parser_testfile.c:182,9
+                                    identifier: ../frontend/test/files/parser_testfile.c:183,9
                                       spelling: sum
                                   len: 0
                               =
@@ -9394,13 +9408,13 @@ translation_unit:
                                                 len: 0
                                                 mul_expr:
                                                   len: 0
-                                                  cast_expr: ../frontend/test/files/parser_testfile.c:182,15
+                                                  cast_expr: ../frontend/test/files/parser_testfile.c:183,15
                                                     len: 0
-                                                    unary_expr: ../frontend/test/files/parser_testfile.c:182,15
+                                                    unary_expr: ../frontend/test/files/parser_testfile.c:183,15
                                                       len: 0
                                                       postfix_expr:
                                                         primary_expr:
-                                                          identifier: ../frontend/test/files/parser_testfile.c:182,15
+                                                          identifier: ../frontend/test/files/parser_testfile.c:183,15
                                                             spelling: add_func
                                                         len: 1
                                                         postfix_suffix:
@@ -9430,13 +9444,13 @@ translation_unit:
                                                                                   len: 0
                                                                                   mul_expr:
                                                                                     len: 0
-                                                                                    cast_expr: ../frontend/test/files/parser_testfile.c:182,24
+                                                                                    cast_expr: ../frontend/test/files/parser_testfile.c:183,24
                                                                                       len: 0
-                                                                                      unary_expr: ../frontend/test/files/parser_testfile.c:182,24
+                                                                                      unary_expr: ../frontend/test/files/parser_testfile.c:183,24
                                                                                         len: 0
                                                                                         postfix_expr:
                                                                                           primary_expr:
-                                                                                            identifier: ../frontend/test/files/parser_testfile.c:182,24
+                                                                                            identifier: ../frontend/test/files/parser_testfile.c:183,24
                                                                                               spelling: sum
                                                                                           len: 0
                                                             assign_expr:
@@ -9463,13 +9477,13 @@ translation_unit:
                                                                                   len: 0
                                                                                   mul_expr:
                                                                                     len: 0
-                                                                                    cast_expr: ../frontend/test/files/parser_testfile.c:182,29
+                                                                                    cast_expr: ../frontend/test/files/parser_testfile.c:183,29
                                                                                       len: 0
-                                                                                      unary_expr: ../frontend/test/files/parser_testfile.c:182,29
+                                                                                      unary_expr: ../frontend/test/files/parser_testfile.c:183,29
                                                                                         len: 0
                                                                                         postfix_expr:
                                                                                           primary_expr:
-                                                                                            identifier: ../frontend/test/files/parser_testfile.c:182,29
+                                                                                            identifier: ../frontend/test/files/parser_testfile.c:183,29
                                                                                               spelling: arr
                                                                                           len: 1
                                                                                           postfix_suffix:
@@ -9499,18 +9513,21 @@ translation_unit:
                                                                                                                     len: 0
                                                                                                                     mul_expr:
                                                                                                                       len: 0
-                                                                                                                      cast_expr: ../frontend/test/files/parser_testfile.c:182,33
+                                                                                                                      cast_expr: ../frontend/test/files/parser_testfile.c:183,33
                                                                                                                         len: 0
-                                                                                                                        unary_expr: ../frontend/test/files/parser_testfile.c:182,33
+                                                                                                                        unary_expr: ../frontend/test/files/parser_testfile.c:183,33
                                                                                                                           len: 0
                                                                                                                           postfix_expr:
                                                                                                                             primary_expr:
-                                                                                                                              identifier: ../frontend/test/files/parser_testfile.c:182,33
+                                                                                                                              identifier: ../frontend/test/files/parser_testfile.c:183,33
                                                                                                                                 spelling: i
                                                                                                                             len: 0
         block_item:
           statement:
-            jump_statement: ../frontend/test/files/parser_testfile.c:184,5
+            expr_statement: ../frontend/test/files/parser_testfile.c:185,5
+        block_item:
+          statement:
+            jump_statement: ../frontend/test/files/parser_testfile.c:186,5
               type: return
               expr:
                 len: 1
@@ -9538,12 +9555,12 @@ translation_unit:
                                       len: 0
                                       mul_expr:
                                         len: 0
-                                        cast_expr: ../frontend/test/files/parser_testfile.c:184,12
+                                        cast_expr: ../frontend/test/files/parser_testfile.c:186,12
                                           len: 0
-                                          unary_expr: ../frontend/test/files/parser_testfile.c:184,12
+                                          unary_expr: ../frontend/test/files/parser_testfile.c:186,12
                                             len: 0
                                             postfix_expr:
                                               primary_expr:
-                                                identifier: ../frontend/test/files/parser_testfile.c:184,12
+                                                identifier: ../frontend/test/files/parser_testfile.c:186,12
                                                   spelling: sum
                                               len: 0

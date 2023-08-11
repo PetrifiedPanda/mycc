@@ -34,7 +34,7 @@ int main(void) {
     auto long signed int value;
     switch (type) {
         case VAL_1:
-        case VAL_2:
+        case 37:
             value = 1000l % 5;
             break;
 
@@ -178,9 +178,11 @@ typedef int AddFunc(int, int);
 int sum_arr(int* arr, long len, int(*add_func)(int, int)) {
     AddFunc* uselessVar = add_func; 
     int sum = +0;
-    for (long i = 0; i < len; ++i) {
+    long i;
+    for (i = 0; i < len; ++i) {
         sum = add_func(sum, arr[i]);
     }
+    ; // Empty statement
     return sum;
 }
 
