@@ -291,67 +291,6 @@ TEST(parser_testfile) {
         Str_c_str(tmp_filename),
         Str_c_str(STR_LIT("../frontend/test/files/parser_testfile.c.ast")));
 
-    const StorageClass sc = {false, false, false, false, false, false};
-    const StorageClass sc_static = {.is_static = true};
-    const FuncSpecs fs = {false, false};
-
-    check_external_decl_struct(&tl.external_decls[0],
-                               true,
-                               true,
-                               Str_null(),
-                               2,
-                               &tl.tokens);
-
-    ASSERT(tl.external_decls[1].is_func_def == false);
-    ASSERT(tl.external_decls[1].decl.is_normal_decl);
-    ASSERT(tl.external_decls[1].decl.decl_specs.type_specs.kind
-           == TYPE_SPEC_INT);
-    ASSERT_UINT(tl.external_decls[1].decl.init_decls.len, (uint32_t)1);
-
-    check_external_decl_struct(&tl.external_decls[2],
-                               false,
-                               false,
-                               STR_LIT("my_union"),
-                               3,
-                               &tl.tokens);
-    check_external_decl_enum(&tl.external_decls[3],
-                             false,
-                             STR_LIT("my_enum"),
-                             3,
-                             &tl.tokens);
-    check_external_decl_func_def_predef(&tl.external_decls[7],
-                                        sc,
-                                        fs,
-                                        0,
-                                        TYPE_SPEC_INT,
-                                        STR_LIT("main"),
-                                        22,
-                                        &tl.tokens);
-    check_external_decl_func_def_predef(&tl.external_decls[8],
-                                        sc_static,
-                                        fs,
-                                        3,
-                                        TYPE_SPEC_INT,
-                                        STR_LIT("do_shit"),
-                                        18,
-                                        &tl.tokens);
-    check_external_decl_func_def_predef(&tl.external_decls[9],
-                                        sc_static,
-                                        (FuncSpecs){.is_noreturn = true},
-                                        0,
-                                        TYPE_SPEC_VOID,
-                                        STR_LIT("variadic"),
-                                        6,
-                                        &tl.tokens);
-    check_external_decl_func_def_predef(&tl.external_decls[10],
-                                        sc,
-                                        fs,
-                                        0,
-                                        TYPE_SPEC_VOID,
-                                        STR_LIT("strcpy_for_some_reason"),
-                                        2,
-                                        &tl.tokens);
-
     TranslationUnit_free(&tl);
     PreprocRes_free(&res);
 }
