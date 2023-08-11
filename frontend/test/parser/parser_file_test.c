@@ -8,8 +8,6 @@
 
 #include "../test_helpers.h"
 
-#include "parser_test_util.h"
-
 static void compare_with_ex_file(const TranslationUnit* got,
                                  const FileInfo* file_info,
                                  Str ex_filename) {

@@ -6,8 +6,6 @@
 
 #include "../test_helpers.h"
 
-#include "parser_test_util.h"
-
 TEST(redefine_typedef_error) {
     PreprocRes preproc_res = tokenize_string(STR_LIT("typedef int MyInt;"),
                                              STR_LIT("a file"));
