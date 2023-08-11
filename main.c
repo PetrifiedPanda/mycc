@@ -140,20 +140,20 @@ static bool output_ast(const CmdArgs* args,
     if (preproc_err.kind != PREPROC_ERR_NONE) {
         PreprocErr_print(mycc_stderr(), &preproc_res.file_info, &preproc_err);
         PreprocErr_free(&preproc_err);
-        goto fail_before_ast_generated;
+        goto fail_preproc;
     }
     if (!convert_preproc_tokens(&preproc_res.toks, type_info, &preproc_err)) {
         PreprocErr_print(mycc_stderr(), &preproc_res.file_info, &preproc_err);
         PreprocErr_free(&preproc_err);
-        goto fail_before_ast_generated;
+        goto fail_preproc;
     }
 
     ParserErr parser_err = ParserErr_create();
     TranslationUnit tl = parse_tokens(&preproc_res.toks, &parser_err);
     if (parser_err.kind != PARSER_ERR_NONE) {
-        ParserErr_print(mycc_stderr(), &preproc_res.file_info, &parser_err);
-        ParserErr_free(&parser_err);
-        goto fail_before_ast_generated;
+        // TODO: tokens are now in tl and need to be freed
+        ParserErr_print(mycc_stderr(), &preproc_res.file_info, &tl.tokens, &parser_err);
+        goto fail_parse;
     }
 
     Str suffix = args->action == ARG_ACTION_OUTPUT_BIN ? STR_LIT(".binast")
@@ -172,7 +172,7 @@ static bool output_ast(const CmdArgs* args,
         File_printf(mycc_stderr(),
                     "Failed to open output file {Str}\n",
                     out_filename);
-        goto fail_with_out_file_closed;
+        goto fail_out_file_closed;
     }
 
     const bool success = args->action == ARG_ACTION_OUTPUT_BIN
@@ -189,26 +189,27 @@ static bool output_ast(const CmdArgs* args,
                         "Failed to flush output file {Str}\n",
                         out_filename);
         }
-        goto fail_with_out_file_open;
+        goto fail_out_file_open;
     }
 
     if (!File_flush(out_file)) {
         File_printf(mycc_stderr(),
                     "Failed to flush output file {Str}\n",
                     out_filename);
-        goto fail_with_out_file_open;
+        goto fail_out_file_open;
     }
     File_close(out_file);
     StrBuf_free(&out_filename_str);
     TranslationUnit_free(&tl);
     PreprocRes_free(&preproc_res);
     return true;
-fail_with_out_file_open:
+fail_out_file_open:
     File_close(out_file);
-fail_with_out_file_closed:
+fail_out_file_closed:
     StrBuf_free(&out_filename_str);
+fail_parse:
     TranslationUnit_free(&tl);
-fail_before_ast_generated:
+fail_preproc:
     PreprocRes_free(&preproc_res);
     return false;
 }

@@ -28,31 +28,26 @@ typedef enum {
 
 typedef struct {
     ParserErrKind kind;
-    ErrBase base;
+    uint32_t err_token_idx;
     union {
         ExpectedTokensErr expected_tokens_err; 
         struct { // redefined symbol
-            StrBuf redefined_symbol;
             bool was_typedef_name;
-            uint32_t prev_def_file;
-            FileLoc prev_def_loc;
+            uint32_t prev_def_idx;
         };
         struct { // incompatible type specs
             TokenKind type_spec, prev_type_spec;
         };
         // disallowed type specs
         TokenKind incompatible_type;
-        StrBuf non_typedef_spelling;
     };
 } ParserErr;
 
 ParserErr ParserErr_create(void);
 
-void ParserErr_set(ParserErr* err, ParserErrKind kind, SourceLoc loc);
+void ParserErr_set(ParserErr* err, ParserErrKind kind, uint32_t loc);
 
-void ParserErr_print(File out, const FileInfo* file_info, const ParserErr* err);
-
-void ParserErr_free(ParserErr* err);
+void ParserErr_print(File out, const FileInfo* file_info, const TokenArr* tokens, const ParserErr* err);
 
 #endif
 

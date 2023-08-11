@@ -37,7 +37,7 @@ static bool parse_struct_declarator_inplace(ParserState* s,
         if (!res->decl) {
             ParserErr_set(s->err,
                           PARSER_ERR_EMPTY_STRUCT_DECLARATOR,
-                          ParserState_curr_loc(s));
+                          ParserState_curr_idx(s));
             return false;
         }
     }
@@ -97,7 +97,7 @@ static bool parse_struct_declaration_inplace(ParserState* s,
         if (found_typedef) {
             ParserErr_set(s->err,
                           PARSER_ERR_TYPEDEF_STRUCT,
-                          ParserState_curr_loc(s));
+                          ParserState_curr_idx(s));
         }
 
         if (ParserState_curr_kind(s) != TOKEN_SEMICOLON) {
@@ -122,12 +122,12 @@ static bool parse_struct_declaration_inplace(ParserState* s,
 }
 
 static StructUnionSpec* StructUnionSpec_create(
-    SourceLoc loc,
+    uint32_t idx,
     bool is_struct,
     Identifier* identifier,
     StructDeclarationList decl_list) {
     StructUnionSpec* res = mycc_alloc(sizeof *res);
-    res->info = AstNodeInfo_create(loc);
+    res->info = AstNodeInfo_create(idx);
     res->is_struct = is_struct;
     res->identifier = identifier;
     res->decl_list = decl_list;
@@ -172,7 +172,7 @@ static bool parse_struct_declaration_list(ParserState* s,
 StructUnionSpec* parse_struct_union_spec(ParserState* s) {
     assert(ParserState_curr_kind(s) == TOKEN_STRUCT
            || ParserState_curr_kind(s) == TOKEN_UNION);
-    const SourceLoc loc = ParserState_curr_loc(s);
+    const uint32_t idx = ParserState_curr_idx(s);
     bool is_struct;
     if (ParserState_curr_kind(s) == TOKEN_STRUCT) {
         is_struct = true;
@@ -183,10 +183,9 @@ StructUnionSpec* parse_struct_union_spec(ParserState* s) {
     }
     Identifier* id = NULL;
     if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
-        const StrBuf spell = ParserState_take_curr_spell(s);
-        const SourceLoc id_loc = ParserState_curr_loc(s);
+        const uint32_t id_idx = ParserState_curr_idx(s);
         ParserState_accept_it(s);
-        id = Identifier_create(&spell, id_loc);
+        id = Identifier_create(id_idx);
     }
 
     StructDeclarationList list = {.len = 0, .decls = NULL};
@@ -201,7 +200,7 @@ StructUnionSpec* parse_struct_union_spec(ParserState* s) {
             goto fail;
         }
     }
-    return StructUnionSpec_create(loc, is_struct, id, list);
+    return StructUnionSpec_create(idx, is_struct, id, list);
 
 fail:
     if (id) {

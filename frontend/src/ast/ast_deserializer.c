@@ -143,22 +143,11 @@ static FileInfo deserialize_file_info(AstDeserializer* r) {
 }
 
 static bool deserialize_ast_node_info(AstDeserializer* r, AstNodeInfo* info) {
-    uint32_t file_idx, line, idx;
-    if (!(deserialize_u32(r, &file_idx) && deserialize_u32(r, &line)
-          && deserialize_u32(r, &idx))) {
+    uint32_t token_idx;
+    if (!deserialize_u32(r, &token_idx)) {
         return false;
     }
-    *info = (AstNodeInfo){
-        .loc =
-            {
-                .file_idx = file_idx,
-                .file_loc =
-                    {
-                        .line = line,
-                        .index = idx,
-                    },
-            },
-    };
+    info->token_idx = token_idx;
     return true;
 }
 
@@ -192,15 +181,7 @@ static AtomicTypeSpec* deserialize_atomic_type_spec(AstDeserializer* r) {
 }
 
 static bool deserialize_identifier_inplace(AstDeserializer* r, Identifier* res) {
-    if (!deserialize_ast_node_info(r, &res->info)) {
-        return false;
-    }
-
-    res->spelling = deserialize_str_buf(r);
-    if (!StrBuf_valid(&res->spelling)) {
-        return false;
-    }
-    return true;
+    return deserialize_ast_node_info(r, &res->info);
 }
 
 static Identifier* deserialize_identifier(AstDeserializer* r) {
@@ -270,14 +251,7 @@ static bool deserialize_constant(AstDeserializer* r, Constant* res) {
     }
     res->kind = kind;
     assert((uint64_t)res->kind == kind);
-    switch (res->kind) {
-        case CONSTANT_ENUM:
-            res->spelling = deserialize_str_buf(r);
-            return StrBuf_valid(&res->spelling);
-        case CONSTANT_VAL:
-            return deserialize_value(r, &res->val);
-    }
-    UNREACHABLE();
+    return true;
 }
 
 static bool deserialize_str_lit(AstDeserializer* r, StrLit* res) {
@@ -293,11 +267,7 @@ static bool deserialize_str_lit(AstDeserializer* r, StrLit* res) {
 }
 
 static bool deserialize_string_literal_node(AstDeserializer* r, StringLiteralNode* res) {
-    if (!deserialize_ast_node_info(r, &res->info)) {
-        return false;
-    }
-
-    return deserialize_str_lit(r, &res->lit);
+    return deserialize_ast_node_info(r, &res->info);
 }
 
 static bool deserialize_string_constant(AstDeserializer* r, StringConstant* constant) {
@@ -2276,8 +2246,56 @@ static bool deserialize_external_declaration(AstDeserializer* r,
     }
 }
 
+static bool deserialize_token_arr(AstDeserializer* r, TokenArr* res) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
+        return false;
+    }
+
+    res->cap = len;
+
+    res->kinds = mycc_alloc(sizeof *res->kinds * len);
+    res->vals = mycc_alloc(sizeof *res->vals * len);
+    res->locs = mycc_alloc(sizeof *res->locs * len);
+
+    deserializer_read(r, res->kinds, sizeof *res->kinds, len);
+    for (res->len = 0; res->len < len; ++res->len) {
+        switch (res->kinds[res->len]) {
+            case TOKEN_IDENTIFIER:
+                res->vals[res->len].spelling = deserialize_str_buf(r);
+                if (!StrBuf_valid(&res->vals[res->len].spelling)) {
+                    TokenArr_free(res);
+                    return false;
+                }
+                break;
+            case TOKEN_I_CONSTANT:
+            case TOKEN_F_CONSTANT:
+                if (!deserialize_value(r, &res->vals[res->len].val)) {
+                    TokenArr_free(res);
+                    return false;
+                }
+                break;
+            case TOKEN_STRING_LITERAL:
+                if (!deserialize_str_lit(r, &res->vals[res->len].str_lit)) {
+                    TokenArr_free(res);
+                    return false;
+                }
+                break;
+            default:
+                res->vals[res->len].spelling = StrBuf_null();
+                break;
+        }
+    }
+    deserializer_read(r, res->locs, sizeof *res->locs, len);
+
+    return true;
+}
+
 static TranslationUnit deserialize_translation_unit(AstDeserializer* r) {
     TranslationUnit res;
+    if (!deserialize_token_arr(r, &res.tokens)) {
+        return (TranslationUnit){0};
+    }
     uint32_t len;
     if (!deserialize_u32(r, &len)) {
         return (TranslationUnit){

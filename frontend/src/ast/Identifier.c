@@ -4,24 +4,18 @@
 
 #include "util/mem.h"
 
-void Identifier_init(Identifier* res, const StrBuf* spelling, SourceLoc loc) {
+void Identifier_init(Identifier* res, uint32_t token_idx) {
     assert(res);
-    res->info = AstNodeInfo_create(loc);
-    res->spelling = *spelling;
+    res->info = AstNodeInfo_create(token_idx);
 }
 
-Identifier* Identifier_create(const StrBuf* spelling, SourceLoc loc) {
+Identifier* Identifier_create(uint32_t token_idx) {
     Identifier* res = mycc_alloc(sizeof *res);
-    Identifier_init(res, spelling, loc);
+    Identifier_init(res, token_idx);
     return res;
 }
 
-void Identifier_free_children(Identifier* i) {
-    StrBuf_free(&i->spelling);
-}
-
 void Identifier_free(Identifier* i) {
-    Identifier_free_children(i);
     mycc_free(i);
 }
 

@@ -56,7 +56,7 @@ static bool parse_arr_suffix(ParserState* s, ArrOrFuncSuffix* res) {
             if (suffix->is_static) {
                 ParserErr_set(s->err,
                               PARSER_ERR_ARR_STATIC_ASTERISK,
-                              ParserState_curr_loc(s));
+                              ParserState_curr_idx(s));
                 ArrSuffix_free(suffix);
                 return false;
             }
@@ -74,7 +74,7 @@ static bool parse_arr_suffix(ParserState* s, ArrOrFuncSuffix* res) {
         if (suffix->is_static) {
             ParserErr_set(s->err,
                           PARSER_ERR_ARR_DOUBLE_STATIC,
-                          ParserState_curr_loc(s));
+                          ParserState_curr_idx(s));
             ArrSuffix_free(suffix);
             return false;
         }
@@ -86,7 +86,7 @@ static bool parse_arr_suffix(ParserState* s, ArrOrFuncSuffix* res) {
         if (suffix->is_static) {
             ParserErr_set(s->err,
                           PARSER_ERR_ARR_STATIC_NO_LEN,
-                          ParserState_curr_loc(s));
+                          ParserState_curr_idx(s));
             ArrSuffix_free(suffix);
             return false;
         }
@@ -138,7 +138,7 @@ static bool parse_arr_or_func_suffix(ParserState* s, ArrOrFuncSuffix* res) {
     assert(res);
     assert(ParserState_curr_kind(s) == TOKEN_LINDEX
            || ParserState_curr_kind(s) == TOKEN_LBRACKET);
-    res->info = AstNodeInfo_create(ParserState_curr_loc(s));
+    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
     switch (ParserState_curr_kind(s)) {
         case TOKEN_LINDEX:
             return parse_arr_suffix(s, res);
@@ -180,9 +180,9 @@ bool parse_arr_or_func_suffixes(ParserState* s, DirectDeclarator* res) {
 static DirectDeclarator* parse_direct_declarator_base(
     ParserState* s,
     Declarator* (*parse_func)(ParserState*),
-    bool (*identifier_handler)(ParserState*, const StrBuf*, SourceLoc)) {
+    bool (*identifier_handler)(ParserState*, const StrBuf*, uint32_t)) {
     DirectDeclarator* res = mycc_alloc(sizeof *res);
-    res->info = AstNodeInfo_create(ParserState_curr_loc(s));
+    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
     if (ParserState_curr_kind(s) == TOKEN_LBRACKET) {
         ParserState_accept_it(s);
         res->is_id = false;
@@ -201,14 +201,13 @@ static DirectDeclarator* parse_direct_declarator_base(
         res->is_id = true;
         if (!identifier_handler(s,
                                 ParserState_curr_spell_buf(s),
-                                ParserState_curr_loc(s))) {
+                                ParserState_curr_idx(s))) {
             mycc_free(res);
             return NULL;
         }
-        const StrBuf spell = ParserState_take_curr_spell(s);
-        const SourceLoc loc = ParserState_curr_loc(s);
+        const uint32_t idx = ParserState_curr_idx(s);
         ParserState_accept_it(s);
-        res->id = Identifier_create(&spell, loc);
+        res->id = Identifier_create(idx);
     } else {
         mycc_free(res);
         static const TokenKind expected[] = {
@@ -228,10 +227,10 @@ static DirectDeclarator* parse_direct_declarator_base(
 
 static bool empty_id_handler(ParserState* s,
                              const StrBuf* spell,
-                             SourceLoc loc) {
+                             uint32_t idx) {
     UNUSED(s);
     UNUSED(spell);
-    UNUSED(loc);
+    UNUSED(idx);
     return true;
 }
 

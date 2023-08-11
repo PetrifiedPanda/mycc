@@ -51,7 +51,7 @@ static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
             goto fail;
         }
     } else if (ParserState_curr_kind(s) == TOKEN_LBRACKET) {
-        const SourceLoc loc = ParserState_curr_loc(s);
+        const uint32_t idx = ParserState_curr_idx(s);
         ParserState_accept_it(s);
         AbsDeclOrDecl bracket_decl;
         if (!parse_abs_decl_or_decl(s, &bracket_decl)) {
@@ -64,7 +64,7 @@ static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
             res->abs_decl->direct_abs_decl = mycc_alloc(
                 sizeof *res->abs_decl->direct_abs_decl);
             struct DirectAbsDeclarator* decl = res->abs_decl->direct_abs_decl;
-            decl->info = AstNodeInfo_create(loc);
+            decl->info = AstNodeInfo_create(idx);
             decl->bracket_decl = bracket_decl.abs_decl;
 
             if (!ParserState_accept(s, TOKEN_RBRACKET)) {
@@ -84,7 +84,7 @@ static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
             res->decl->ptr = ptr;
             res->decl->direct_decl = mycc_alloc(sizeof *res->decl->direct_decl);
             DirectDeclarator* decl = res->decl->direct_decl;
-            decl->info = AstNodeInfo_create(loc);
+            decl->info = AstNodeInfo_create(idx);
             decl->is_id = false;
             decl->bracket_decl = bracket_decl.decl;
 
@@ -104,7 +104,7 @@ static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
     } else {
         res->is_abs = true;
         if (ptr == NULL) {
-            ParserErr_set(s->err, PARSER_ERR_EMPTY_DIRECT_ABS_DECL, ParserState_curr_loc(s));
+            ParserErr_set(s->err, PARSER_ERR_EMPTY_DIRECT_ABS_DECL, ParserState_curr_idx(s));
             return false;
         }
         res->abs_decl = mycc_alloc(sizeof *res->abs_decl);
@@ -130,7 +130,7 @@ static bool parse_param_declaration_inplace(ParserState* s,
     }
 
     if (found_typedef) {
-        ParserErr_set(s->err, PARSER_ERR_TYPEDEF_PARAM_DECL, ParserState_curr_loc(s));
+        ParserErr_set(s->err, PARSER_ERR_TYPEDEF_PARAM_DECL, ParserState_curr_idx(s));
         DeclarationSpecs_free(&res->decl_specs);
         return false;
     }

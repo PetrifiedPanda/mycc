@@ -6,6 +6,7 @@
 
 TranslationUnit parse_translation_unit(ParserState* s) {
     TranslationUnit res;
+    res.tokens = s->_arr;
     uint32_t alloc_num = 1;
     res.len = 0;
     res.external_decls = mycc_alloc(sizeof *res.external_decls * alloc_num);
@@ -33,6 +34,7 @@ TranslationUnit parse_translation_unit(ParserState* s) {
 }
 
 static void TranslationUnit_free_children(TranslationUnit* u) {
+    TokenArr_free(&u->tokens);
     for (uint32_t i = 0; i < u->len; ++i) {
         ExternalDeclaration_free_children(&u->external_decls[i]);
     }

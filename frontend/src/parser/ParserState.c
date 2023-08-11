@@ -14,7 +14,7 @@ typedef enum {
 } IDKind;
 
 typedef struct ParserIDData {
-    SourceLoc loc;
+    uint32_t token_idx;
     IDKind kind;
 } ParserIDData;
 
@@ -24,7 +24,7 @@ enum {
 
 static bool register_identifier(ParserState* s,
                                 const StrBuf* spell,
-                                SourceLoc loc,
+                                uint32_t idx,
                                 IDKind kind);
 
 static IDKind get_item(const ParserState* s, Str spell);
@@ -44,6 +44,7 @@ ParserState ParserState_create(TokenArr* tokens, ParserErr* err) {
                                           SCOPE_MAP_INIT_CAP,
                                           false,
                                           NULL);
+    *tokens = TokenArr_create_empty();
     return res;
 }
 
@@ -67,20 +68,6 @@ bool ParserState_accept(ParserState* s, TokenKind expected) {
 void ParserState_accept_it(ParserState* s) {
     assert(s->_it != s->_arr.len);
     ++s->_it;
-}
-
-StrLit ParserState_take_curr_str_lit(ParserState* s) {
-    TokenVal* curr = &s->_arr.vals[s->_it];
-    assert(s->_arr.kinds[s->_it] == TOKEN_STRING_LITERAL);
-    StrLit res = curr->str_lit;
-    curr->str_lit.contents = StrBuf_null();
-    return res;
-}
-
-StrBuf ParserState_take_curr_spell(ParserState* s) {
-    TokenVal* curr = &s->_arr.vals[s->_it];
-    assert(s->_arr.kinds[s->_it] == TOKEN_IDENTIFIER);
-    return StrBuf_take(&curr->spelling);
 }
 
 Value ParserState_curr_val(const ParserState* s) {
@@ -109,8 +96,8 @@ TokenKind ParserState_curr_kind(const ParserState* s) {
     return s->_arr.kinds[s->_it];
 }
 
-SourceLoc ParserState_curr_loc(const ParserState* s) {
-    return s->_arr.locs[s->_it];
+uint32_t ParserState_curr_idx(const ParserState* s) {
+    return s->_it;
 }
 
 TokenKind ParserState_next_token_kind(const ParserState* s) {
@@ -145,14 +132,14 @@ void ParserState_pop_scope(ParserState* s) {
 
 bool ParserState_register_enum_constant(ParserState* s,
                                         const StrBuf* spell,
-                                        SourceLoc loc) {
-    return register_identifier(s, spell, loc, ID_KIND_ENUM_CONSTANT);
+                                        uint32_t idx) {
+    return register_identifier(s, spell, idx, ID_KIND_ENUM_CONSTANT);
 }
 
 bool ParserState_register_typedef(ParserState* s,
                                   const StrBuf* spell,
-                                  SourceLoc loc) {
-    return register_identifier(s, spell, loc, ID_KIND_TYPEDEF_NAME);
+                                  uint32_t idx) {
+    return register_identifier(s, spell, idx, ID_KIND_TYPEDEF_NAME);
 }
 
 bool ParserState_is_enum_constant(const ParserState* s, Str spell) {
@@ -171,34 +158,30 @@ const ParserIDData* ParserState_get_prev_definition(const ParserState* s,
 
 void ParserState_set_redefinition_err(ParserState* s,
                                       const ParserIDData* prev_def,
-                                      const StrBuf* spell,
-                                      SourceLoc loc) {
-    ParserErr_set(s->err, PARSER_ERR_REDEFINED_SYMBOL, loc);
+                                      uint32_t idx) {
+    ParserErr_set(s->err, PARSER_ERR_REDEFINED_SYMBOL, idx);
 
-    s->err->redefined_symbol = *spell;
     s->err->was_typedef_name = prev_def->kind == ID_KIND_TYPEDEF_NAME;
-    s->err->prev_def_file = prev_def->loc.file_idx;
-    s->err->prev_def_loc = prev_def->loc.file_loc;
+    s->err->prev_def_idx = prev_def->token_idx; 
 }
 
 static bool register_identifier(ParserState* s,
                                 const StrBuf* spell,
-                                SourceLoc loc,
+                                uint32_t idx,
                                 IDKind kind) {
     assert(kind != ID_KIND_NONE);
 
     // TODO: Add a warning when an identifier from a previous scope is shadowed
 
     const ParserIDData to_insert = {
-        .loc = loc,
+        .token_idx = idx,
         .kind = kind,
     };
     const ParserIDData* item = StringMap_insert(&s->_scope_maps[s->_len - 1],
                                                 spell,
                                                 &to_insert);
     if (item != &to_insert) {
-        const StrBuf copy = StrBuf_copy(spell);
-        ParserState_set_redefinition_err(s, item, &copy, loc);
+        ParserState_set_redefinition_err(s, item, idx);
         return false;
     } else {
         return true;

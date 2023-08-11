@@ -309,7 +309,7 @@ bool PreprocState_open_file(PreprocState* s,
         long pos = File_tell(fm->files[0]);
         File_close(fm->files[0]);
         fm->opened_info[fm->opened_info_indices[0]].pos = pos;
-        memmove(fm->files, fm->files + 1, sizeof fm->files - sizeof(FILE*));
+        memmove(fm->files, fm->files + 1, sizeof fm->files - sizeof(File));
         memmove(fm->opened_info_indices,
                 fm->opened_info_indices + 1,
                 sizeof fm->opened_info_indices

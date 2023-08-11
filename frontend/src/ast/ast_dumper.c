@@ -13,6 +13,7 @@ typedef struct {
     jmp_buf err_buf;
     File file;
     const FileInfo* file_info;
+    TokenArr tokens;
     StrBuf indent_buf;
 } AstDumper;
 
@@ -61,15 +62,15 @@ static void dumper_print_str_val(AstDumper* d, Str str) {
 static void dumper_print_node_head_impl(AstDumper* d,
                                         Str name,
                                         const AstNodeInfo* node) {
-    const SourceLoc* loc = &node->loc;
-    assert(loc->file_idx < d->file_info->len);
-    Str file_path = StrBuf_as_str(&d->file_info->paths[loc->file_idx]);
+    const SourceLoc loc = d->tokens.locs[node->token_idx];
+    assert(loc.file_idx < d->file_info->len);
+    Str file_path = StrBuf_as_str(&d->file_info->paths[loc.file_idx]);
     dumper_println(d,
                    "{Str}: {Str}:{u32},{u32}",
                    name,
                    file_path,
-                   loc->file_loc.line,
-                   loc->file_loc.index);
+                   loc.file_loc.line,
+                   loc.file_loc.index);
 }
 
 #define dumper_print_node_head(d, name, node)                                  \
@@ -81,6 +82,7 @@ bool dump_ast(const TranslationUnit* tl, const FileInfo* file_info, File f) {
     AstDumper d = {
         .file = f,
         .file_info = file_info,
+        .tokens = tl->tokens,
         .indent_buf = StrBuf_create_empty(),
     };
 
@@ -203,7 +205,7 @@ static void dump_identifier(AstDumper* d, Identifier* i) {
     dumper_print_node_head(d, "identifier", &i->info);
 
     add_indent(d);
-    dumper_println(d, "spelling: {Str}", StrBuf_as_str(&i->spelling));
+    dumper_println(d, "spelling: {Str}", StrBuf_as_str(&d->tokens.vals[i->info.token_idx].spelling));
     remove_indent(d);
 }
 
@@ -230,14 +232,18 @@ static void dump_constant(AstDumper* d, const Constant* c) {
     dumper_print_node_head(d, "constant", &c->info);
 
     add_indent(d);
-
+    
+    const TokenVal* val = &d->tokens.vals[c->info.token_idx];
     switch (c->kind) {
-        case CONSTANT_ENUM:
-            dumper_println(d, "enum: {Str}", StrBuf_as_str(&c->spelling));
+        case CONSTANT_ENUM: {
+            const Str spell = StrBuf_as_str(&val->spelling);
+            dumper_println(d, "enum: {Str}", spell);
             break;
-        case CONSTANT_VAL:
-            dump_value(d, &c->val);
+        }
+        case CONSTANT_VAL: {
+            dump_value(d, &val->val);
             break;
+        }
     }
 
     remove_indent(d);
@@ -258,7 +264,8 @@ static void dump_string_literal(AstDumper* d, const StringLiteralNode* l) {
     dumper_print_node_head(d, "string_literal", &l->info);
 
     add_indent(d);
-    dump_str_lit(d, &l->lit);
+    const StrLit* lit = &d->tokens.vals[l->info.token_idx].str_lit;
+    dump_str_lit(d, lit);
     remove_indent(d);
 }
 

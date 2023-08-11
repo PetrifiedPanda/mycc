@@ -26,7 +26,7 @@ static bool parse_external_decl_normal_decl(ParserState* s,
         if (found_typedef) {
             ParserErr_set(s->err,
                           PARSER_ERR_TYPEDEF_INIT,
-                          ParserState_curr_loc(s));
+                          ParserState_curr_idx(s));
             DeclarationSpecs_free(&decl->decl_specs);
             Declarator_free(first_decl);
             return false;
@@ -75,7 +75,7 @@ static bool parse_external_declaration_func_def(ParserState* s,
     if (found_typedef) {
         ParserErr_set(s->err,
                       PARSER_ERR_TYPEDEF_FUNC_DEF,
-                      ParserState_curr_loc(s));
+                      ParserState_curr_idx(s));
         DeclarationSpecs_free(decl_specs);
         Declarator_free(first_decl);
         return false;

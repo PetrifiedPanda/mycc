@@ -29,7 +29,8 @@ static void check_external_decl_struct(ExternalDeclaration* d,
                                        bool is_typedef,
                                        bool is_struct,
                                        Str id_spell,
-                                       uint32_t decl_list_len) {
+                                       uint32_t decl_list_len,
+                                       const TokenArr* arr) {
     ASSERT(d->is_func_def == false);
     ASSERT(d->decl.is_normal_decl);
     ASSERT(d->decl.decl_specs.type_specs.kind == TYPE_SPEC_STRUCT);
@@ -43,7 +44,7 @@ static void check_external_decl_struct(ExternalDeclaration* d,
                 is_struct);
     check_identifier(
         d->decl.decl_specs.type_specs.struct_union_spec->identifier,
-        id_spell);
+        id_spell, arr);
 
     ASSERT_UINT(
         d->decl.decl_specs.type_specs.struct_union_spec->decl_list.len,
@@ -53,7 +54,8 @@ static void check_external_decl_struct(ExternalDeclaration* d,
 static void check_external_decl_enum(ExternalDeclaration* d,
                                      bool is_typedef,
                                      Str id_spell,
-                                     uint32_t enum_list_len) {
+                                     uint32_t enum_list_len,
+                                     const TokenArr* arr) {
     ASSERT(d->is_func_def == false);
     ASSERT(d->decl.is_normal_decl);
     ASSERT(d->decl.decl_specs.type_specs.kind == TYPE_SPEC_ENUM);
@@ -62,7 +64,7 @@ static void check_external_decl_enum(ExternalDeclaration* d,
     StorageClass sc = {.is_typedef = is_typedef};
     check_storage_class(&d->decl.decl_specs.storage_class, &sc);
     check_identifier(d->decl.decl_specs.type_specs.enum_spec->identifier,
-                     id_spell);
+                     id_spell, arr);
 
     ASSERT_UINT(d->decl.decl_specs.type_specs.enum_spec->enum_list.len,
                   enum_list_len);
@@ -82,10 +84,11 @@ static void check_external_decl_func_def(ExternalDeclaration* d,
                                          const FuncSpecs* func_specs,
                                          uint32_t num_indirs,
                                          Str id_spell,
-                                         uint32_t body_len) {
+                                         uint32_t body_len,
+                                         const TokenArr* arr) {
     ASSERT(d->is_func_def);
     ASSERT(d->func_def.decl->direct_decl->is_id);
-    check_identifier(d->func_def.decl->direct_decl->id, id_spell);
+    check_identifier(d->func_def.decl->direct_decl->id, id_spell, arr);
     check_pointer_indirs(d->func_def.decl->ptr, num_indirs);
 
     check_storage_class(&d->func_def.specs.storage_class, storage_class);
@@ -99,17 +102,19 @@ static void check_external_decl_func_def_enum(ExternalDeclaration* d,
                                               Str enum_name,
                                               uint32_t num_indirs,
                                               Str func_name,
-                                              uint32_t body_len) {
+                                              uint32_t body_len,
+                                              const TokenArr* arr) {
     check_external_decl_func_def(d,
                                  &storage_class,
                                  &func_specs,
                                  num_indirs,
                                  func_name,
-                                 body_len);
+                                 body_len,
+                                 arr);
 
     ASSERT(d->func_def.specs.type_specs.kind == TYPE_SPEC_ENUM);
     check_identifier(d->func_def.specs.type_specs.enum_spec->identifier,
-                     enum_name);
+                     enum_name, arr);
     ASSERT_UINT(d->func_def.specs.type_specs.enum_spec->enum_list.len,
                   (uint32_t)0);
 }
@@ -120,19 +125,21 @@ static void check_external_decl_func_def_struct(ExternalDeclaration* d,
                                                 Str struct_name,
                                                 uint32_t num_indirs,
                                                 Str func_name,
-                                                uint32_t body_len) {
+                                                uint32_t body_len,
+                                                const TokenArr* arr) {
     check_external_decl_func_def(d,
                                  &storage_class,
                                  &func_specs,
                                  num_indirs,
                                  func_name,
-                                 body_len);
+                                 body_len,
+                                 arr);
 
     ASSERT(d->func_def.specs.type_specs.kind == TYPE_SPEC_STRUCT);
     ASSERT(d->func_def.specs.type_specs.struct_union_spec->is_struct);
     check_identifier(
         d->func_def.specs.type_specs.struct_union_spec->identifier,
-        struct_name);
+        struct_name, arr);
     ASSERT_UINT(
         d->func_def.specs.type_specs.struct_union_spec->decl_list.len,
         (uint32_t)0);
@@ -144,13 +151,15 @@ static void check_external_decl_func_def_predef(ExternalDeclaration* d,
                                                 uint32_t num_indirs,
                                                 TypeSpecKind ret_type,
                                                 Str id_spell,
-                                                uint32_t body_len) {
+                                                uint32_t body_len,
+                                                const TokenArr* arr) {
     check_external_decl_func_def(d,
                                  &storage_class,
                                  &func_specs,
                                  num_indirs,
                                  id_spell,
-                                 body_len);
+                                 body_len,
+                                 arr);
 
     ASSERT(d->func_def.specs.type_specs.kind == ret_type);
 }
@@ -161,17 +170,19 @@ static void check_external_decl_func_def_typedef(ExternalDeclaration* d,
                                                  uint32_t num_indirs,
                                                  Str ret_type,
                                                  Str func_name,
-                                                 uint32_t body_len) {
+                                                 uint32_t body_len,
+                                                 const TokenArr* arr) {
     check_external_decl_func_def(d,
                                  &storage_class,
                                  &func_specs,
                                  num_indirs,
                                  func_name,
-                                 body_len);
+                                 body_len,
+                                 arr);
 
     ASSERT(d->func_def.specs.type_specs.kind == TYPE_SPEC_TYPENAME);
     ASSERT_STR(
-        StrBuf_as_str(&d->func_def.specs.type_specs.typedef_name->spelling),
+        StrBuf_as_str(&arr->vals[d->func_def.specs.type_specs.typedef_name->info.token_idx].spelling),
         ret_type);
 }
 
@@ -212,37 +223,43 @@ TEST(no_preproc) {
                                true,
                                true,
                                Str_null(),
-                               2);
+                               2,
+                               &tl.tokens);
     check_external_decl_struct(&tl.external_decls[1],
                                false,
                                false,
                                STR_LIT("my_union"),
-                               2);
+                               2,
+                               &tl.tokens);
     check_external_decl_enum(&tl.external_decls[2],
                              false,
                              STR_LIT("my_enum"),
-                             3);
+                             3,
+                             &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[6],
                                         sc,
                                         fs,
                                         0,
                                         TYPE_SPEC_INT,
                                         STR_LIT("main"),
-                                        15);
+                                        15,
+                                        &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[7],
                                         sc_static,
                                         fs,
                                         0,
                                         TYPE_SPEC_INT,
                                         STR_LIT("do_shit"),
-                                        13);
+                                        13,
+                                        &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[8],
                                         sc_static,
                                         (FuncSpecs){.is_noreturn = true},
                                         0,
                                         TYPE_SPEC_VOID,
                                         STR_LIT("variadic"),
-                                        8);
+                                        8,
+                                        &tl.tokens);
 
     TranslationUnit_free(&tl);
     PreprocRes_free(&res);
@@ -282,7 +299,8 @@ TEST(parser_testfile) {
                                true,
                                true,
                                Str_null(),
-                               2);
+                               2,
+                               &tl.tokens);
 
     ASSERT(tl.external_decls[1].is_func_def == false);
     ASSERT(tl.external_decls[1].decl.is_normal_decl);
@@ -294,39 +312,45 @@ TEST(parser_testfile) {
                                false,
                                false,
                                STR_LIT("my_union"),
-                               3);
+                               3,
+                               &tl.tokens);
     check_external_decl_enum(&tl.external_decls[3],
                              false,
                              STR_LIT("my_enum"),
-                             3);
+                             3,
+                             &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[7],
                                         sc,
                                         fs,
                                         0,
                                         TYPE_SPEC_INT,
                                         STR_LIT("main"),
-                                        22);
+                                        22,
+                                        &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[8],
                                         sc_static,
                                         fs,
                                         3,
                                         TYPE_SPEC_INT,
                                         STR_LIT("do_shit"),
-                                        18);
+                                        18,
+                                        &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[9],
                                         sc_static,
                                         (FuncSpecs){.is_noreturn = true},
                                         0,
                                         TYPE_SPEC_VOID,
                                         STR_LIT("variadic"),
-                                        6);
+                                        6,
+                                        &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[10],
                                         sc,
                                         fs,
                                         0,
                                         TYPE_SPEC_VOID,
                                         STR_LIT("strcpy_for_some_reason"),
-                                        2);
+                                        2,
+                                        &tl.tokens);
 
     TranslationUnit_free(&tl);
     PreprocRes_free(&res);
@@ -354,34 +378,40 @@ TEST(large_testfile) {
     check_external_decl_enum(&tl.external_decls[21],
                              false,
                              STR_LIT("token_type"),
-                             97);
+                             97,
+                             &tl.tokens);
 
     check_external_decl_struct(&tl.external_decls[35],
                                false,
                                true,
                                STR_LIT("source_location"),
-                               1);
+                               1,
+                               &tl.tokens);
     check_external_decl_struct(&tl.external_decls[36],
                                false,
                                true,
                                STR_LIT("token"),
-                               4);
+                               4,
+                               &tl.tokens);
 
     check_external_decl_enum(&tl.external_decls[40],
                              false,
                              STR_LIT("error_type"),
-                             3);
+                             3,
+                             &tl.tokens);
 
     check_external_decl_struct(&tl.external_decls[53],
                                false,
                                true,
                                STR_LIT("token_arr"),
-                               3);
+                               3,
+                               &tl.tokens);
     check_external_decl_struct(&tl.external_decls[54],
                                false,
                                true,
                                STR_LIT("tokenizer_state"),
-                               5);
+                               5,
+                               &tl.tokens);
 
     check_external_decl_func_def_struct(&tl.external_decls[68],
                                         sc,
@@ -389,14 +419,16 @@ TEST(large_testfile) {
                                         STR_LIT("token"),
                                         1,
                                         STR_LIT("tokenize"),
-                                        10);
+                                        10,
+                                        &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[69],
                                         sc,
                                         fs,
                                         0,
                                         TYPE_SPEC_VOID,
                                         STR_LIT("free_tokenizer_result"),
-                                        2);
+                                        2,
+                                        &tl.tokens);
     check_external_decl_func_def_typedef(
         &tl.external_decls[70],
         sc_static,
@@ -404,126 +436,144 @@ TEST(large_testfile) {
         0,
         STR_LIT("bool"),
         STR_LIT("is_spelling"),
-        1);
+        1,
+        &tl.tokens);
     check_external_decl_func_def_enum(&tl.external_decls[71],
                                       sc_static,
                                       fs,
                                       STR_LIT("token_type"),
                                       0,
                                       STR_LIT("multic_token_type"),
-                                      1);
+                                      1,
+                                      &tl.tokens);
     check_external_decl_func_def_enum(&tl.external_decls[72],
                                       sc_static,
                                       fs,
                                       STR_LIT("token_type"),
                                       0,
                                       STR_LIT("singlec_token_type"),
-                                      1);
+                                      1,
+                                      &tl.tokens);
     check_external_decl_func_def_typedef(&tl.external_decls[73],
                                          sc_static,
                                          fs,
                                          0,
                                          STR_LIT("bool"),
                                          STR_LIT("check_type"),
-                                         5);
+                                         5,
+                                         &tl.tokens);
     check_external_decl_func_def_enum(&tl.external_decls[74],
                                       sc_static,
                                       fs,
                                       STR_LIT("token_type"),
                                       0,
                                       STR_LIT("check_next"),
-                                      3);
+                                      3,
+                                      &tl.tokens);
     check_external_decl_func_def_typedef(&tl.external_decls[75],
                                          sc_static,
                                          fs,
                                          0,
                                          STR_LIT("bool"),
                                          STR_LIT("is_valid_singlec_token"),
-                                         2);
+                                         2,
+                                         &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[76],
                                         sc_static,
                                         fs,
                                         0,
                                         TYPE_SPEC_VOID,
                                         STR_LIT("advance"),
-                                        4);
+                                        4,
+                                        &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[77],
                                         sc_static,
                                         fs,
                                         0,
                                         TYPE_SPEC_VOID,
                                         STR_LIT("advance_one"),
-                                        4);
+                                        4,
+                                        &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[78],
                                         sc_static,
                                         fs,
                                         0,
                                         TYPE_SPEC_VOID,
                                         STR_LIT("advance_newline"),
-                                        4);
+                                        4,
+                                        &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[79],
                                         sc_static,
                                         fs,
                                         0,
                                         TYPE_SPEC_VOID,
                                         STR_LIT("realloc_tokens_if_needed"),
-                                        1);
+                                        1,
+                                        &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[80],
                                         sc_static,
                                         fs,
                                         0,
                                         TYPE_SPEC_VOID,
                                         STR_LIT("add_token_copy"),
-                                        3);
+                                        3,
+                                        &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[81],
                                         sc_static,
                                         fs,
                                         0,
                                         TYPE_SPEC_VOID,
                                         STR_LIT("add_token"),
-                                        3);
+                                        3,
+                                        &tl.tokens);
     check_external_decl_func_def_typedef(&tl.external_decls[82],
                                          sc_static,
                                          fs,
                                          0,
                                          STR_LIT("bool"),
                                          STR_LIT("handle_comments"),
-                                         1);
+                                         1,
+                                         &tl.tokens);
     check_external_decl_func_def_enum(&tl.external_decls[83],
                                       sc_static,
                                       fs,
                                       STR_LIT("token_type"),
                                       0,
                                       STR_LIT("get_char_lit_type"),
-                                      1);
+                                      1,
+                                      &tl.tokens);
     check_external_decl_func_def_predef(&tl.external_decls[84],
                                         sc_static,
                                         fs,
                                         0,
                                         TYPE_SPEC_VOID,
                                         STR_LIT("unterminated_literal_err"),
-                                        3);
+                                        3,
+                                        &tl.tokens);
     check_external_decl_func_def_typedef(&tl.external_decls[85],
                                          sc_static,
                                          fs,
                                          0,
                                          STR_LIT("bool"),
                                          STR_LIT("handle_character_literal"),
-                                         16);
+                                         16,
+                                         &tl.tokens);
     check_external_decl_func_def_typedef(&tl.external_decls[86],
                                          sc_static,
                                          fs,
                                          0,
                                          STR_LIT("bool"),
                                          STR_LIT("token_is_over"),
-                                         2);
+                                         2,
+                                         &tl.tokens);
     check_external_decl_func_def_typedef(&tl.external_decls[87],
                                          sc_static,
                                          fs,
                                          0,
                                          STR_LIT("bool"),
                                          STR_LIT("handle_other"),
-                                         11);
+                                         11,
+                                         &tl.tokens);
 
     TranslationUnit_free(&tl);
     PreprocRes_free(&res);

@@ -17,37 +17,38 @@ void check_value(Value got, Value expected) {
     }
 }
 
-void check_identifier(Identifier* id, Str spell) {
+void check_identifier(const Identifier* id, Str spell, const TokenArr* arr) {
     if (Str_valid(spell)) {
-        ASSERT_STR(StrBuf_as_str(&id->spelling), spell);
+        ASSERT_STR(StrBuf_as_str(&arr->vals[id->info.token_idx].spelling), spell);
     } else {
         ASSERT_NULL(id);
     }
 }
 
-void check_primary_expr_id(const PrimaryExpr* e, Str spell) {
+void check_primary_expr_id(const PrimaryExpr* e, Str spell, const TokenArr* arr) {
     ASSERT(e->kind == PRIMARY_EXPR_IDENTIFIER);
     ASSERT_NOT_NULL(e->identifier);
-    ASSERT_STR(StrBuf_as_str(&e->identifier->spelling), spell);
+    check_identifier(e->identifier, spell, arr);
 }
 
 void check_primary_expr_val(const PrimaryExpr* e,
-                            Value val) {
+                            Value val,
+                            const TokenArr* arr) {
     ASSERT(e->kind == PRIMARY_EXPR_CONSTANT);
     ASSERT(e->constant.kind != CONSTANT_ENUM);
 
     ASSERT(e->constant.kind == CONSTANT_VAL);
-    check_value(e->constant.val, val);
+    check_value(arr->vals[e->constant.info.token_idx].val, val);
 }
 
-void check_postfix_expr_id(const PostfixExpr* e, Str spell) {
+void check_postfix_expr_id(const PostfixExpr* e, Str spell, const TokenArr* arr) {
     ASSERT(e->is_primary);
-    check_primary_expr_id(&e->primary, spell);
+    check_primary_expr_id(&e->primary, spell, arr);
 }
 
-void check_postfix_expr_val(const PostfixExpr* e, Value val) {
+void check_postfix_expr_val(const PostfixExpr* e, Value val, const TokenArr* arr) {
     ASSERT(e->is_primary);
-    check_primary_expr_val(&e->primary, val);
+    check_primary_expr_val(&e->primary, val, arr);
 }
 
 static void check_unary_expr_empty(const UnaryExpr* e) {
@@ -57,16 +58,16 @@ static void check_unary_expr_empty(const UnaryExpr* e) {
     ASSERT(e->kind == UNARY_POSTFIX);
 }
 
-void check_unary_expr_id(const UnaryExpr* e, Str spell) {
+void check_unary_expr_id(const UnaryExpr* e, Str spell, const TokenArr* arr) {
     check_unary_expr_empty(e);
 
-    check_postfix_expr_id(&e->postfix, spell);
+    check_postfix_expr_id(&e->postfix, spell, arr);
 }
 
-void check_unary_expr_val(const UnaryExpr* e, Value val) {
+void check_unary_expr_val(const UnaryExpr* e, Value val, const TokenArr* arr) {
     check_unary_expr_empty(e);
 
-    check_postfix_expr_val(&e->postfix, val);
+    check_postfix_expr_val(&e->postfix, val, arr);
 }
 
 static void check_cast_expr_empty(const CastExpr* e) {
@@ -74,14 +75,14 @@ static void check_cast_expr_empty(const CastExpr* e) {
     ASSERT_NULL(e->type_names);
 }
 
-void check_cast_expr_id(const CastExpr* e, Str spell) {
+void check_cast_expr_id(const CastExpr* e, Str spell, const TokenArr* arr) {
     check_cast_expr_empty(e);
-    check_unary_expr_id(&e->rhs, spell);
+    check_unary_expr_id(&e->rhs, spell, arr);
 }
 
-void check_cast_expr_val(const CastExpr* e, Value val) {
+void check_cast_expr_val(const CastExpr* e, Value val, const TokenArr* arr) {
     check_cast_expr_empty(e);
-    check_unary_expr_val(&e->rhs, val);
+    check_unary_expr_val(&e->rhs, val, arr);
 }
 
 static void check_shift_expr_empty(const ShiftExpr* e) {
@@ -91,14 +92,14 @@ static void check_shift_expr_empty(const ShiftExpr* e) {
     ASSERT_UINT(e->lhs.lhs.len, zero);
 }
 
-void check_shift_expr_id(const ShiftExpr* e, Str spell) {
+void check_shift_expr_id(const ShiftExpr* e, Str spell, const TokenArr* arr) {
     check_shift_expr_empty(e);
-    check_cast_expr_id(&e->lhs.lhs.lhs, spell);
+    check_cast_expr_id(&e->lhs.lhs.lhs, spell, arr);
 }
 
-void check_shift_expr_val(const ShiftExpr* e, Value val) {
+void check_shift_expr_val(const ShiftExpr* e, Value val, const TokenArr* arr) {
     check_shift_expr_empty(e);
-    check_cast_expr_val(&e->lhs.lhs.lhs, val);
+    check_cast_expr_val(&e->lhs.lhs.lhs, val, arr);
 }
 
 static void check_cond_expr_empty(const CondExpr* e) {
@@ -122,32 +123,32 @@ static void check_cond_expr_empty(const CondExpr* e) {
                   zero);
 }
 
-void check_cond_expr_id(const CondExpr* e, Str spell) {
+void check_cond_expr_id(const CondExpr* e, Str spell, const TokenArr* arr) {
     check_cond_expr_empty(e);
     check_shift_expr_id(&e->last_else.log_ands->or_exprs->xor_exprs->and_exprs
                             ->eq_exprs->lhs.lhs,
-                        spell);
+                        spell, arr);
 }
 
-void check_cond_expr_val(const CondExpr* e, Value val) {
+void check_cond_expr_val(const CondExpr* e, Value val, const TokenArr* arr) {
     check_cond_expr_empty(e);
     check_shift_expr_val(&e->last_else.log_ands->or_exprs->xor_exprs->and_exprs
                              ->eq_exprs->lhs.lhs,
-                         val);
+                         val, arr);
 }
 
 static void check_const_expr_empty(const ConstExpr* e) {
     ASSERT_UINT(e->expr.len, (uint32_t)0);
 }
 
-void check_const_expr_id(const ConstExpr* e, Str spell) {
+void check_const_expr_id(const ConstExpr* e, Str spell, const TokenArr* arr) {
     check_const_expr_empty(e);
-    check_cond_expr_id(&e->expr, spell);
+    check_cond_expr_id(&e->expr, spell, arr);
 }
 
-void check_const_expr_val(const ConstExpr* e, Value val) {
+void check_const_expr_val(const ConstExpr* e, Value val, const TokenArr* arr) {
     check_const_expr_empty(e);
-    check_cond_expr_val(&e->expr, val);
+    check_cond_expr_val(&e->expr, val, arr);
 }
 
 static void check_assign_expr_empty(const AssignExpr* e) {
@@ -155,14 +156,14 @@ static void check_assign_expr_empty(const AssignExpr* e) {
     ASSERT_NULL(e->assign_chain);
 }
 
-void check_assign_expr_id(const AssignExpr* e, Str spell) {
+void check_assign_expr_id(const AssignExpr* e, Str spell, const TokenArr* arr) {
     check_assign_expr_empty(e);
-    check_cond_expr_id(&e->value, spell);
+    check_cond_expr_id(&e->value, spell, arr);
 }
 
-void check_assign_expr_val(const AssignExpr* e, Value val) {
+void check_assign_expr_val(const AssignExpr* e, Value val, const TokenArr* arr) {
     check_assign_expr_empty(e);
-    check_cond_expr_val(&e->value, val);
+    check_cond_expr_val(&e->value, val, arr);
 }
 
 static void check_expr_empty(const Expr* e) {
@@ -170,13 +171,13 @@ static void check_expr_empty(const Expr* e) {
     ASSERT_NOT_NULL(e->assign_exprs);
 }
 
-void check_expr_id(const Expr* e, Str spell) {
+void check_expr_id(const Expr* e, Str spell, const TokenArr* arr) {
     check_expr_empty(e);
-    check_assign_expr_id(&e->assign_exprs[0], spell);
+    check_assign_expr_id(&e->assign_exprs[0], spell, arr);
 }
 
-void check_expr_val(const Expr* e, Value val) {
+void check_expr_val(const Expr* e, Value val, const TokenArr* arr) {
     check_expr_empty(e);
-    check_assign_expr_val(&e->assign_exprs[0], val);
+    check_assign_expr_val(&e->assign_exprs[0], val, arr);
 }
 

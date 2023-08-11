@@ -8,6 +8,7 @@
 typedef struct ExternalDeclaration ExternalDeclaration;
 
 typedef struct {
+    TokenArr tokens;
     uint32_t len;
     ExternalDeclaration* external_decls;
 } TranslationUnit;

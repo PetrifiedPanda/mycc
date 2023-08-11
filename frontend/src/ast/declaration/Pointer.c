@@ -7,13 +7,13 @@
 #include "frontend/ast/declaration/TypeQuals.h"
 
 Pointer* parse_pointer(ParserState* s) {
-    const SourceLoc loc = ParserState_curr_loc(s);
+    const uint32_t idx = ParserState_curr_idx(s);
     if (!ParserState_accept(s, TOKEN_ASTERISK)) {
         return NULL;
     }
 
     Pointer* res = mycc_alloc(sizeof *res);
-    res->info = AstNodeInfo_create(loc);
+    res->info = AstNodeInfo_create(idx);
     res->num_indirs = 1;
     res->quals_after_ptr = mycc_alloc(sizeof *res->quals_after_ptr);
 

@@ -14,7 +14,7 @@ static LabeledStatement* parse_labeled_statement(ParserState* s) {
            || ParserState_curr_kind(s) == TOKEN_IDENTIFIER
            || ParserState_curr_kind(s) == TOKEN_DEFAULT);
     LabeledStatement* res = mycc_alloc(sizeof *res);
-    res->info = AstNodeInfo_create(ParserState_curr_loc(s));
+    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
     switch (ParserState_curr_kind(s)) {
         case TOKEN_CASE: {
             res->kind = LABELED_STATEMENT_CASE;
@@ -30,10 +30,9 @@ static LabeledStatement* parse_labeled_statement(ParserState* s) {
 
         case TOKEN_IDENTIFIER: {
             res->kind = LABELED_STATEMENT_LABEL;
-            const StrBuf spell = ParserState_take_curr_spell(s);
-            const SourceLoc loc = ParserState_curr_loc(s);
+            const uint32_t idx = ParserState_curr_idx(s);
             ParserState_accept_it(s);
-            res->label = Identifier_create(&spell, loc);
+            res->label = Identifier_create(idx);
             break;
         }
 
@@ -81,7 +80,7 @@ static bool parse_block_item_inplace(ParserState* s, BlockItem* res) {
 }
 
 bool parse_compound_statement_inplace(ParserState* s, CompoundStatement* res) {
-    res->info = AstNodeInfo_create(ParserState_curr_loc(s));
+    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
     if (!ParserState_accept(s, TOKEN_LBRACE)) {
         return false;
     }
@@ -127,7 +126,7 @@ static struct CompoundStatement* parse_compound_statement(ParserState* s) {
 
 static ExprStatement* parse_expr_statement(ParserState* s) {
     ExprStatement* res = mycc_alloc(sizeof *res);
-    res->info = AstNodeInfo_create(ParserState_curr_loc(s));
+    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
     if (ParserState_curr_kind(s) == TOKEN_SEMICOLON) {
         ParserState_accept_it(s);
         res->expr.len = 0;
@@ -152,7 +151,7 @@ static SelectionStatement* parse_selection_statement(ParserState* s) {
     assert(ParserState_curr_kind(s) == TOKEN_IF
            || ParserState_curr_kind(s) == TOKEN_SWITCH);
     SelectionStatement* res = mycc_alloc(sizeof *res);
-    res->info = AstNodeInfo_create(ParserState_curr_loc(s));
+    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
     if (ParserState_curr_kind(s) == TOKEN_IF) {
         res->is_if = true;
     } else {
@@ -199,44 +198,44 @@ static SelectionStatement* parse_selection_statement(ParserState* s) {
     return res;
 }
 
-static void assign_do_or_while(SourceLoc loc,
+static void assign_do_or_while(uint32_t idx,
                                IterationStatement* res,
                                Expr while_cond,
                                Statement* loop_body) {
     assert(res);
     assert(loop_body);
-    res->info = AstNodeInfo_create(loc);
+    res->info = AstNodeInfo_create(idx);
     res->while_cond = while_cond;
     res->loop_body = loop_body;
 }
 
-static IterationStatement* create_while_loop(SourceLoc loc,
+static IterationStatement* create_while_loop(uint32_t idx,
                                              Expr while_cond,
                                              Statement* loop_body) {
     IterationStatement* res = mycc_alloc(sizeof *res);
     res->kind = ITERATION_STATEMENT_WHILE;
-    assign_do_or_while(loc, res, while_cond, loop_body);
+    assign_do_or_while(idx, res, while_cond, loop_body);
 
     return res;
 }
 
-static IterationStatement* create_do_loop(SourceLoc loc,
+static IterationStatement* create_do_loop(uint32_t idx,
                                           Expr while_cond,
                                           Statement* loop_body) {
     IterationStatement* res = mycc_alloc(sizeof *res);
     res->kind = ITERATION_STATEMENT_DO;
-    assign_do_or_while(loc, res, while_cond, loop_body);
+    assign_do_or_while(idx, res, while_cond, loop_body);
 
     return res;
 }
 
-static IterationStatement* create_for_loop(SourceLoc loc,
+static IterationStatement* create_for_loop(uint32_t idx,
                                            ForLoop for_loop,
                                            Statement* loop_body) {
     assert(for_loop.cond);
     assert(loop_body);
     struct IterationStatement* res = mycc_alloc(sizeof *res);
-    res->info = AstNodeInfo_create(loc);
+    res->info = AstNodeInfo_create(idx);
     res->kind = ITERATION_STATEMENT_FOR;
     res->loop_body = loop_body;
     res->for_loop = for_loop;
@@ -245,7 +244,7 @@ static IterationStatement* create_for_loop(SourceLoc loc,
 }
 
 static IterationStatement* parse_while_statement(ParserState* s,
-                                                 SourceLoc loc) {
+                                                 uint32_t idx) {
     assert(ParserState_curr_kind(s) == TOKEN_WHILE);
 
     ParserState_accept_it(s);
@@ -270,10 +269,10 @@ static IterationStatement* parse_while_statement(ParserState* s,
         return NULL;
     }
 
-    return create_while_loop(loc, while_cond, loop_body);
+    return create_while_loop(idx, while_cond, loop_body);
 }
 
-static IterationStatement* parse_do_loop(ParserState* s, SourceLoc loc) {
+static IterationStatement* parse_do_loop(ParserState* s, uint32_t idx) {
     assert(ParserState_curr_kind(s) == TOKEN_DO);
 
     ParserState_accept_it(s);
@@ -300,10 +299,10 @@ static IterationStatement* parse_do_loop(ParserState* s, SourceLoc loc) {
         return NULL;
     }
 
-    return create_do_loop(loc, while_cond, loop_body);
+    return create_do_loop(idx, while_cond, loop_body);
 }
 
-static IterationStatement* parse_for_loop(ParserState* s, SourceLoc loc) {
+static IterationStatement* parse_for_loop(ParserState* s, uint32_t idx) {
     assert(ParserState_curr_kind(s) == TOKEN_FOR);
 
     ParserState_accept_it(s);
@@ -356,7 +355,7 @@ static IterationStatement* parse_for_loop(ParserState* s, SourceLoc loc) {
         goto fail;
     }
 
-    return create_for_loop(loc, loop, loop_body);
+    return create_for_loop(idx, loop, loop_body);
 fail:
     if (loop.is_decl) {
         Declaration_free_children(&loop.init_decl);
@@ -371,40 +370,40 @@ static IterationStatement* parse_iteration_statement(ParserState* s) {
     assert(ParserState_curr_kind(s) == TOKEN_WHILE
            || ParserState_curr_kind(s) == TOKEN_DO
            || ParserState_curr_kind(s) == TOKEN_FOR);
-    const SourceLoc loc = ParserState_curr_loc(s);
+    const uint32_t idx = ParserState_curr_idx(s);
     switch (ParserState_curr_kind(s)) {
         case TOKEN_WHILE:
-            return parse_while_statement(s, loc);
+            return parse_while_statement(s, idx);
         case TOKEN_DO:
-            return parse_do_loop(s, loc);
+            return parse_do_loop(s, idx);
         case TOKEN_FOR:
-            return parse_for_loop(s, loc);
+            return parse_for_loop(s, idx);
 
         default:
             UNREACHABLE();
     }
 }
 
-static JumpStatement* create_jump_statement(SourceLoc loc,
+static JumpStatement* create_jump_statement(uint32_t idx,
                                             JumpStatementKind kind) {
     JumpStatement* res = mycc_alloc(sizeof *res);
-    res->info = AstNodeInfo_create(loc);
+    res->info = AstNodeInfo_create(idx);
     res->kind = kind;
 
     return res;
 }
 
-static JumpStatement* create_goto_statement(SourceLoc loc,
+static JumpStatement* create_goto_statement(uint32_t idx,
                                             Identifier* identifier) {
     assert(identifier);
-    JumpStatement* res = create_jump_statement(loc, JUMP_STATEMENT_GOTO);
+    JumpStatement* res = create_jump_statement(idx, JUMP_STATEMENT_GOTO);
     res->goto_label = identifier;
 
     return res;
 }
 
-static JumpStatement* create_return_statement(SourceLoc loc, Expr ret_val) {
-    JumpStatement* res = create_jump_statement(loc, JUMP_STATEMENT_RETURN);
+static JumpStatement* create_return_statement(uint32_t idx, Expr ret_val) {
+    JumpStatement* res = create_jump_statement(idx, JUMP_STATEMENT_RETURN);
     res->ret_val = ret_val;
     return res;
 }
@@ -416,17 +415,16 @@ static JumpStatement* parse_jump_statement(ParserState* s) {
            || ParserState_curr_kind(s) == TOKEN_CONTINUE
            || ParserState_curr_kind(s) == TOKEN_BREAK
            || ParserState_curr_kind(s) == TOKEN_RETURN);
-    const SourceLoc loc = ParserState_curr_loc(s);
+    const uint32_t idx = ParserState_curr_idx(s);
     JumpStatement* res = NULL;
     switch (ParserState_curr_kind(s)) {
         case TOKEN_GOTO: {
             ParserState_accept_it(s);
             if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
-                const StrBuf spell = ParserState_take_curr_spell(s);
-                const SourceLoc id_loc = ParserState_curr_loc(s);
+                const uint32_t id_idx = ParserState_curr_idx(s);
                 ParserState_accept_it(s);
-                res = create_goto_statement(loc,
-                                            Identifier_create(&spell, id_loc));
+                res = create_goto_statement(idx,
+                                            Identifier_create(id_idx));
                 break;
             } else {
                 expected_token_error(s, TOKEN_IDENTIFIER);
@@ -437,7 +435,7 @@ static JumpStatement* parse_jump_statement(ParserState* s) {
         case TOKEN_BREAK: {
             const TokenKind t = ParserState_curr_kind(s);
             ParserState_accept_it(s);
-            res = create_jump_statement(loc,
+            res = create_jump_statement(idx,
                                         t == TOKEN_CONTINUE
                                             ? JUMP_STATEMENT_CONTINUE
                                             : JUMP_STATEMENT_BREAK);
@@ -461,7 +459,7 @@ static JumpStatement* parse_jump_statement(ParserState* s) {
                 }
             }
 
-            res = create_return_statement(loc, ret_val);
+            res = create_return_statement(idx, ret_val);
             break;
         }
 

@@ -20,10 +20,6 @@ typedef enum {
 typedef struct {
     AstNodeInfo info;
     ConstantKind kind;
-    union {
-        StrBuf spelling;
-        Value val;
-    };
 } Constant;
 
 typedef struct {
@@ -149,11 +145,7 @@ bool parse_unary_expr_type_name(ParserState* s,
                                 UnaryExprOp* ops_before,
                                 uint32_t len,
                                 TypeName* type_name,
-                                SourceLoc start_bracket_loc);
-
-void Constant_free(Constant* c);
-
-void StringConstant_free(StringConstant* c);
+                                uint32_t start_bracket_idx);
 
 void PrimaryExpr_free_children(PrimaryExpr* e);
 

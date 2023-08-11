@@ -18,12 +18,11 @@ static bool parse_enumerator_inplace(ParserState* s, Enumerator* res) {
         return false;
     }
 
-    const StrBuf spell = ParserState_take_curr_spell(s);
-    const SourceLoc loc = ParserState_curr_loc(s);
+    const StrBuf* spell = ParserState_curr_spell_buf(s);
+    const uint32_t idx = ParserState_curr_idx(s);
     ParserState_accept_it(s);
 
-    if (!ParserState_register_enum_constant(s, &spell, loc)) {
-        StrBuf_free(&spell);
+    if (!ParserState_register_enum_constant(s, spell, idx)) {
         return false;
     }
 
@@ -32,12 +31,11 @@ static bool parse_enumerator_inplace(ParserState* s, Enumerator* res) {
         ParserState_accept_it(s);
         enum_val = parse_const_expr(s);
         if (!enum_val) {
-            StrBuf_free(&spell);
             return false;
         }
     }
 
-    res->identifier = Identifier_create(&spell, loc);
+    res->identifier = Identifier_create(idx);
     res->enum_val = enum_val;
 
     return true;
@@ -77,12 +75,12 @@ fail:
     return false;
 }
 
-static EnumSpec* EnumSpec_create(SourceLoc loc,
+static EnumSpec* EnumSpec_create(uint32_t idx,
                                  Identifier* identifier,
                                  EnumList enum_list) {
     assert(identifier || enum_list.len > 0);
     EnumSpec* res = mycc_alloc(sizeof *res);
-    res->info = AstNodeInfo_create(loc);
+    res->info = AstNodeInfo_create(idx);
     res->identifier = identifier;
     res->enum_list = enum_list;
 
@@ -90,17 +88,16 @@ static EnumSpec* EnumSpec_create(SourceLoc loc,
 }
 
 EnumSpec* parse_enum_spec(ParserState* s) {
-    const SourceLoc loc = ParserState_curr_loc(s);
+    const uint32_t idx = ParserState_curr_idx(s);
     if (!ParserState_accept(s, TOKEN_ENUM)) {
         return NULL;
     }
 
     Identifier* id = NULL;
     if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
-        const StrBuf spell = ParserState_take_curr_spell(s);
-        const SourceLoc id_loc = ParserState_curr_loc(s);
+        const uint32_t id_idx = ParserState_curr_idx(s);
         ParserState_accept_it(s);
-        id = Identifier_create(&spell, id_loc);
+        id = Identifier_create(id_idx);
     }
 
     EnumList enums = {.len = 0, .enums = NULL};
@@ -123,7 +120,7 @@ EnumSpec* parse_enum_spec(ParserState* s) {
         goto fail;
     }
 
-    return EnumSpec_create(loc, id, enums);
+    return EnumSpec_create(idx, id, enums);
 fail:
     if (id) {
         Identifier_free(id);

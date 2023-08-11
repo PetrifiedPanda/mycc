@@ -126,9 +126,7 @@ bool compare_asts(const TranslationUnit* tl1,
 
 static bool compare_ast_node_infos(const AstNodeInfo* i1,
                                    const AstNodeInfo* i2) {
-    ASSERT_U32(i1->loc.file_idx, i2->loc.file_idx);
-    ASSERT_U32(i1->loc.file_loc.line, i2->loc.file_loc.line);
-    ASSERT_U32(i1->loc.file_loc.index, i2->loc.file_loc.index);
+    ASSERT_U32(i1->token_idx, i2->token_idx);
     return true;
 }
 
@@ -159,46 +157,18 @@ static bool compare_atomic_type_specs(const AtomicTypeSpec* s1,
 
 static bool compare_identifiers(const Identifier* i1, const Identifier* i2) {
     ASSERT(compare_ast_node_infos(&i1->info, &i2->info));
-    ASSERT_STR_BUF(&i1->spelling, &i2->spelling);
-    return true;
-}
-
-static bool compare_values(const Value* v1, const Value* v2) {
-    ASSERT(v1->kind == v2->kind);
-    if (ValueKind_is_sint(v1->kind)) {
-        ASSERT_I64(v1->sint_val, v2->sint_val);
-    } else if (ValueKind_is_uint(v1->kind)) {
-        ASSERT_U64(v1->uint_val, v2->uint_val);
-    } else {
-        ASSERT_DOUBLE(v1->float_val, v2->float_val);
-    }
     return true;
 }
 
 static bool compare_constants(const Constant* c1, const Constant* c2) {
     ASSERT(compare_ast_node_infos(&c1->info, &c2->info));
     ASSERT(c1->kind == c2->kind);
-    switch (c1->kind) {
-        case CONSTANT_ENUM:
-            ASSERT_STR_BUF(&c1->spelling, &c2->spelling);
-            return true;
-        case CONSTANT_VAL:
-            ASSERT(compare_values(&c1->val, &c2->val));
-            return true;
-    }
-    UNREACHABLE();
-}
-
-static bool compare_str_lits(const StrLit* l1, const StrLit* l2) {
-    ASSERT(l1->kind == l2->kind);
-    ASSERT_STR_BUF(&l1->contents, &l2->contents);
     return true;
 }
 
 static bool compare_string_literal_nodes(const StringLiteralNode* l1,
                                          const StringLiteralNode* l2) {
     ASSERT(compare_ast_node_infos(&l1->info, &l2->info));
-    ASSERT(compare_str_lits(&l1->lit, &l2->lit));
     return true;
 }
 
@@ -1066,8 +1036,61 @@ static bool compare_external_declarations(const ExternalDeclaration* d1,
     return true;
 }
 
+static bool compare_values(const Value* v1, const Value* v2) {
+    ASSERT(v1->kind == v2->kind);
+    if (ValueKind_is_sint(v1->kind)) {
+        ASSERT_I64(v1->sint_val, v2->sint_val);
+    } else if (ValueKind_is_uint(v1->kind)) {
+        ASSERT_U64(v1->uint_val, v2->uint_val);
+    } else {
+        ASSERT_DOUBLE(v1->float_val, v2->float_val);
+    }
+    return true;
+}
+
+static bool compare_str_lits(const StrLit* l1, const StrLit* l2) {
+    ASSERT(l1->kind == l2->kind);
+    ASSERT_STR_BUF(&l1->contents, &l2->contents);
+    return true;
+}
+
+static bool compare_tokens(const TokenArr* toks1, const TokenArr* toks2) {
+    ASSERT_U32(toks1->len, toks2->len);
+    if (memcmp(toks1->kinds, toks2->kinds, sizeof *toks1->kinds * toks1->len) != 0) {
+        return false;
+    }
+    
+    for (uint32_t i = 0; i < toks1->len; ++i) {
+        switch (toks1->kinds[i]) {
+            case TOKEN_IDENTIFIER:
+                ASSERT_STR_BUF(&toks1->vals[i].spelling, &toks2->vals[i].spelling);
+                break;
+            case TOKEN_I_CONSTANT:
+            case TOKEN_F_CONSTANT:
+                if (!compare_values(&toks1->vals[i].val, &toks2->vals[i].val)) {
+                    return false;
+                }
+                break;
+            case TOKEN_STRING_LITERAL:
+                if (!compare_str_lits(&toks1->vals[i].str_lit, &toks2->vals[i].str_lit)) {
+                    return false;
+                }
+                break;
+            default:
+                assert(!StrBuf_valid(&toks1->vals[i].spelling));
+                assert(!StrBuf_valid(&toks2->vals[i].spelling));
+                break;
+        }
+    }
+
+    return memcmp(toks1->locs, toks2->locs, sizeof *toks1->locs * toks1->len) == 0;
+}
+
 static bool compare_translation_units(const TranslationUnit* tl1,
                                       const TranslationUnit* tl2) {
+    if (!compare_tokens(&tl1->tokens, &tl2->tokens)) {
+        return false;
+    }
     ASSERT_U32(tl1->len, tl2->len);
 
     for (uint32_t i = 0; i < tl1->len; ++i) {

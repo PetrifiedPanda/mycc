@@ -4,10 +4,10 @@
 #include "frontend/Token.h"
 
 typedef struct {
-    SourceLoc loc; 
+    uint32_t token_idx; 
 } AstNodeInfo;
 
-AstNodeInfo AstNodeInfo_create(SourceLoc loc);
+AstNodeInfo AstNodeInfo_create(uint32_t token_idx);
 
 #endif
 

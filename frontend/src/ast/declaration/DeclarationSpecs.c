@@ -83,11 +83,9 @@ static ParseDeclarationSpecRes parse_declaration_spec(
             if (prev_def != NULL && !is_storage_class_spec(kind)
                 && !is_type_qual(kind) && !next_is_type_spec(s)
                 && !is_func_spec(kind) && kind != TOKEN_ALIGNAS) {
-                const StrBuf spell_buf = ParserState_take_curr_spell(s);
                 ParserState_set_redefinition_err(s,
                                                  prev_def,
-                                                 &spell_buf,
-                                                 ParserState_curr_loc(s));
+                                                 ParserState_curr_idx(s));
                 return DECL_SPEC_ERROR;
             }
         }
@@ -132,7 +130,7 @@ bool parse_declaration_specs(ParserState* s, DeclarationSpecs* res, bool* found_
     assert(found_typedef);
     assert(*found_typedef == false);
 
-    res->info = AstNodeInfo_create(ParserState_curr_loc(s));
+    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
     res->func_specs = (FuncSpecs){
         .is_inline = false,
         .is_noreturn = false,

@@ -11,21 +11,23 @@ ParserErr ParserErr_create(void) {
     };
 }
 
-void ParserErr_set(ParserErr* err, ParserErrKind kind, SourceLoc loc) {
+void ParserErr_set(ParserErr* err, ParserErrKind kind, uint32_t idx) {
     assert(err);
     assert(kind != PARSER_ERR_NONE);
     assert(err->kind == PARSER_ERR_NONE);
 
     err->kind = kind;
-    err->base = ErrBase_create(loc);
+    err->err_token_idx = idx;
 }
 
 void ParserErr_print(File out,
                      const FileInfo* file_info,
+                     const TokenArr* tokens,
                      const ParserErr* err) {
     assert(err->kind != PARSER_ERR_NONE);
-
-    ErrBase_print(out, file_info, &err->base);
+    
+    ErrBase base = ErrBase_create(tokens->locs[err->err_token_idx]);
+    ErrBase_print(out, file_info, &base);
     switch (err->kind) {
         case PARSER_ERR_NONE:
             UNREACHABLE();
@@ -34,19 +36,20 @@ void ParserErr_print(File out,
             break;
         }
         case PARSER_ERR_REDEFINED_SYMBOL: {
-            assert(err->prev_def_file < file_info->len);
-            Str path = StrBuf_as_str(&file_info->paths[err->prev_def_file]);
+            assert(err->prev_def_idx < tokens->len);
+            const SourceLoc loc = tokens->locs[err->prev_def_idx];
+            Str path = StrBuf_as_str(&file_info->paths[loc.file_idx]);
             Str type_str = err->was_typedef_name ? STR_LIT("typedef name")
                                                  : STR_LIT("enum constant");
             File_printf(
                 out,
                 "Redefined symbol {Str} that was already defined as {Str} in "
                 "{Str}({u32}, {u32})",
-                StrBuf_as_str(&err->redefined_symbol),
+                StrBuf_as_str(&tokens->vals[err->err_token_idx].spelling),
                 type_str,
                 path,
-                err->prev_def_loc.line,
-                err->prev_def_loc.index);
+                loc.file_loc.line,
+                loc.file_loc.index);
             break;
         }
         case PARSER_ERR_ARR_DOUBLE_STATIC:
@@ -92,25 +95,12 @@ void ParserErr_print(File out,
             File_printf(out,
                         "Expected a typedef name but got identifier with "
                         "spelling {Str}",
-                        StrBuf_as_str(&err->non_typedef_spelling));
+                        StrBuf_as_str(&tokens->vals[err->err_token_idx].spelling));
             break;
         case PARSER_ERR_EMPTY_DIRECT_ABS_DECL:
             File_put_str("Empty abstract declarator", out);
             break;
     }
     File_putc('\n', out);
-}
-
-void ParserErr_free(ParserErr* err) {
-    switch (err->kind) {
-        case PARSER_ERR_REDEFINED_SYMBOL:
-            StrBuf_free(&err->redefined_symbol);
-            break;
-        case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
-            StrBuf_free(&err->non_typedef_spelling);
-            break;
-        default:
-            break;
-    }
 }
 

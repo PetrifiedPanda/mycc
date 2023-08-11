@@ -20,7 +20,7 @@ static bool parse_spec_or_qual(ParserState* s, SpecQualList* res) {
 
 bool parse_spec_qual_list(ParserState* s, SpecQualList* res) {
     *res = (SpecQualList){
-        .info = AstNodeInfo_create(ParserState_curr_loc(s)),
+        .info = AstNodeInfo_create(ParserState_curr_idx(s)),
         .quals = TypeQuals_create(),
         .specs = TypeSpecs_create(),
     };

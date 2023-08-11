@@ -7,12 +7,9 @@
 
 typedef struct {
     AstNodeInfo info;
-    StrLit lit;
 } StringLiteralNode;
 
-StringLiteralNode StringLiteralNode_create(const StrLit* lit, SourceLoc loc);
-
-void StringLiteralNode_free(StringLiteralNode* l);
+StringLiteralNode StringLiteralNode_create(uint32_t idx);
 
 #endif
 

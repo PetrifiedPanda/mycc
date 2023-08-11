@@ -5,12 +5,21 @@
 #include "../test_helpers.h"
 
 TEST(ParserState) {
+    uint8_t kinds[] = {
+        TOKEN_IDENTIFIER,
+    };
+    TokenVal vals[] = {
+        {.spelling = STR_BUF_NON_HEAP("Test")},
+    };
+    SourceLoc locs[] = {
+        {0, {0, 0}},
+    };
     TokenArr dummy_arr = {
-        .len = 0,
-        .cap = 0,
-        .kinds = NULL,
-        .vals = NULL,
-        .locs = NULL,
+        .len = 1,
+        .cap = 1,
+        .kinds = kinds,
+        .vals = vals,
+        .locs = locs,
     };
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(&dummy_arr, &err);
@@ -36,12 +45,11 @@ TEST(ParserState) {
         const StrBuf to_insert = StrBuf_create((Str){i + 1, insert_string});
 
         StrBuf* item = &dummy_strings[i];
-        const SourceLoc loc = {0, {0, 0}};
         *item = to_insert;
         if (i % 2 == 0) {
-            ASSERT(ParserState_register_enum_constant(&s, &to_insert, loc));
+            ASSERT(ParserState_register_enum_constant(&s, &to_insert, (uint32_t)-1));
         } else {
-            ASSERT(ParserState_register_typedef(&s, &to_insert, loc));
+            ASSERT(ParserState_register_typedef(&s, &to_insert, (uint32_t)-1));
         }
         ASSERT(err.kind == PARSER_ERR_NONE);
     }
@@ -112,33 +120,25 @@ TEST(ParserState) {
     ASSERT(err.kind == PARSER_ERR_NONE);
 
     const StrBuf insert_test_spell = STR_BUF_NON_HEAP("Test");
-    const SourceLoc loc = {0, {0, 0}};
-    ASSERT(ParserState_register_enum_constant(&s, &insert_test_spell, loc));
-    ASSERT(!ParserState_register_typedef(&s, &insert_test_spell, loc));
+    const uint32_t idx = 1;
+    ASSERT(ParserState_register_enum_constant(&s, &insert_test_spell, idx));
+    ASSERT(!ParserState_register_typedef(&s, &insert_test_spell, idx));
 
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
-    ASSERT_STR(StrBuf_as_str(&err.redefined_symbol), STR_LIT("Test"));
+    ASSERT_UINT(err.err_token_idx, idx);
     ASSERT(!err.was_typedef_name);
-    ASSERT_UINT(err.prev_def_file, (uint32_t)0);
-    ASSERT_UINT(err.prev_def_loc.line, (uint32_t)0);
-    ASSERT_UINT(err.prev_def_loc.index, (uint32_t)0);
 
-    ParserErr_free(&err);
     err = ParserErr_create();
 
-    ASSERT(!ParserState_register_enum_constant(&s, &insert_test_spell, loc));
+    ASSERT(!ParserState_register_enum_constant(&s, &insert_test_spell, idx));
 
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
-    ASSERT_STR(StrBuf_as_str(&err.redefined_symbol), STR_LIT("Test"));
+    ASSERT_UINT(err.err_token_idx, idx);
     ASSERT(!err.was_typedef_name);
-    ASSERT_UINT(err.prev_def_file, (uint32_t)0);
-    ASSERT_UINT(err.prev_def_loc.line, (uint32_t)0);
-    ASSERT_UINT(err.prev_def_loc.index, (uint32_t)0);
 
     for (uint32_t i = 0; i < NUM_STRINGS; ++i) {
         StrBuf_free(&dummy_strings[i]);
     }
-    ParserErr_free(&err);
     ParserState_free(&s);
 }
 

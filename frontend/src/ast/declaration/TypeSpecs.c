@@ -52,7 +52,7 @@ static void cannot_combine_with_spec_err(const ParserState* s,
                                          TokenKind prev_spec) {
     ParserErr_set(s->err,
                   PARSER_ERR_INCOMPATIBLE_TYPE_SPECS,
-                  ParserState_curr_loc(s));
+                  ParserState_curr_idx(s));
     s->err->type_spec = ParserState_curr_kind(s);
     s->err->prev_type_spec = prev_spec;
 }
@@ -88,7 +88,7 @@ static bool update_standalone_type_spec(ParserState* s, TypeSpecs* res) {
             if (res->kind != TYPE_SPEC_NONE) {
                 ParserErr_set(s->err,
                               PARSER_ERR_DISALLOWED_TYPE_QUALS,
-                              ParserState_curr_loc(s));
+                              ParserState_curr_idx(s));
                 s->err->incompatible_type = ParserState_curr_kind(s);
                 TypeSpecs_free_children(res);
                 return false;
@@ -112,7 +112,7 @@ static bool update_standalone_type_spec(ParserState* s, TypeSpecs* res) {
             } else if (res->mods.num_long == 2) {
                 ParserErr_set(s->err,
                               PARSER_ERR_TOO_MUCH_LONG,
-                              ParserState_curr_loc(s));
+                              ParserState_curr_idx(s));
                 return false;
             }
             res->mods.num_long += 1;
@@ -180,17 +180,14 @@ static bool update_non_standalone_type_spec(ParserState* s, TypeSpecs* res) {
         case TOKEN_IDENTIFIER: {
             if (ParserState_is_typedef(s, ParserState_curr_spell(s))) {
                 res->kind = TYPE_SPEC_TYPENAME;
-                const StrBuf spell = ParserState_take_curr_spell(s);
-                res->typedef_name = Identifier_create(
-                    &spell,
-                    ParserState_curr_loc(s));
+                res->typedef_name = Identifier_create(ParserState_curr_idx(s));
                 ParserState_accept_it(s);
                 break;
             } else {
+                const uint32_t idx = ParserState_curr_idx(s);
                 ParserErr_set(s->err,
                               PARSER_ERR_EXPECTED_TYPEDEF_NAME,
-                              ParserState_curr_loc(s));
-                s->err->non_typedef_spelling = ParserState_take_curr_spell(s);
+                              idx);
                 res->kind = TYPE_SPEC_NONE;
                 return false;
             }

@@ -9,13 +9,10 @@
 
 static bool parse_cast_expr_rest(ParserState* s, CastExpr* res) {
     uint32_t alloc_len = res->len;
-    SourceLoc last_lbracket_loc = {
-        .file_idx = (uint32_t)-1,
-        .file_loc = {0, 0},
-    };
+    uint32_t last_lbracket_loc = (uint32_t)-1;
     while (ParserState_curr_kind(s) == TOKEN_LBRACKET
            && next_is_type_name(s)) {
-        last_lbracket_loc = ParserState_curr_loc(s);
+        last_lbracket_loc = ParserState_curr_idx(s);
         ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
@@ -75,7 +72,7 @@ fail:
 }
 
 static bool parse_cast_expr_inplace(ParserState* s, CastExpr* res) {
-    res->info = AstNodeInfo_create(ParserState_curr_loc(s));
+    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
     res->type_names = NULL;
     res->len = 0;
 
@@ -97,10 +94,10 @@ CastExpr* parse_cast_expr(ParserState* s) {
 static bool parse_cast_expr_type_name(ParserState* s,
                                       CastExpr* res,
                                       TypeName* type_name,
-                                      SourceLoc start_bracket_loc) {
+                                      uint32_t start_bracket_idx) {
     assert(type_name);
 
-    res->info = AstNodeInfo_create(start_bracket_loc);
+    res->info = AstNodeInfo_create(start_bracket_idx);
     res->type_names = type_name;
     res->len = 1;
 
@@ -114,7 +111,7 @@ static bool parse_cast_expr_type_name(ParserState* s,
 static CastExpr CastExpr_create_unary(const UnaryExpr* start) {
     assert(start);
     return (CastExpr){
-        .info = AstNodeInfo_create(start->info.loc),
+        .info = AstNodeInfo_create(start->info.token_idx),
         .type_names = NULL,
         .len = 0,
         .rhs = *start,
@@ -890,7 +887,7 @@ static UnaryOrCond parse_unary_or_cond(ParserState* s) {
     };
     if (ParserState_curr_kind(s) == TOKEN_LBRACKET
         && next_is_type_name(s)) {
-        const SourceLoc start_bracket_loc = ParserState_curr_loc(s);
+        const uint32_t start_bracket_idx = ParserState_curr_idx(s);
         ParserState_accept_it(s);
 
         TypeName* type_name = parse_type_name(s);
@@ -910,7 +907,7 @@ static UnaryOrCond parse_unary_or_cond(ParserState* s) {
                                             NULL,
                                             0,
                                             type_name,
-                                            start_bracket_loc)) {
+                                            start_bracket_idx)) {
                 return res;
             }
         } else {
@@ -918,7 +915,7 @@ static UnaryOrCond parse_unary_or_cond(ParserState* s) {
             if (!parse_cast_expr_type_name(s,
                                            &cast,
                                            type_name,
-                                           start_bracket_loc)) {
+                                           start_bracket_idx)) {
                 return res;
             }
 

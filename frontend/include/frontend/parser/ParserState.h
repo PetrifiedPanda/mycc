@@ -23,14 +23,11 @@ void ParserState_free(ParserState* s);
 bool ParserState_accept(ParserState* s, TokenKind expected);
 void ParserState_accept_it(ParserState* s);
 
-StrLit ParserState_take_curr_str_lit(ParserState* s);
-StrBuf ParserState_take_curr_spell(ParserState* s);
-
 Value ParserState_curr_val(const ParserState* s);
 Str ParserState_curr_spell(const ParserState* s);
 const StrBuf* ParserState_curr_spell_buf(const ParserState* s);
 TokenKind ParserState_curr_kind(const ParserState* s);
-SourceLoc ParserState_curr_loc(const ParserState* s);
+uint32_t ParserState_curr_idx(const ParserState* s);
 
 TokenKind ParserState_next_token_kind(const ParserState* s);
 Str ParserState_next_token_spell(const ParserState* s);
@@ -40,10 +37,10 @@ void ParserState_pop_scope(ParserState* s);
 
 bool ParserState_register_enum_constant(ParserState* s,
                                         const StrBuf* spell,
-                                        SourceLoc loc);
+                                        uint32_t idx);
 bool ParserState_register_typedef(ParserState* s,
                                   const StrBuf* spell,
-                                  SourceLoc loc);
+                                  uint32_t idx);
 
 bool ParserState_is_enum_constant(const ParserState* s, Str spell);
 bool ParserState_is_typedef(const ParserState* s, Str spell);
@@ -55,7 +52,6 @@ const ParserIDData* ParserState_get_prev_definition(const ParserState* s,
 
 void ParserState_set_redefinition_err(ParserState* s,
                                       const ParserIDData* prev_def,
-                                      const StrBuf* spell,
-                                      SourceLoc loc);
+                                      uint32_t idx);
 #endif
 
