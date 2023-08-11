@@ -138,7 +138,7 @@ _Noreturn static void variadic(int m, char v, MyStruct s, ...) {
 
     const char* func_name = __func__;
     double _Complex comp_d = 0;
-    double _Imaginary im_d = _Generic(1.0, float: 10, double: 12.0);
+    double _Imaginary im_d = _Generic(1.0, float: 10, double: 12.0, MyStruct: comp_d, default: 0.0);
     _Static_assert(1, "Something is wrong");
     return;
 }
@@ -179,11 +179,11 @@ int sum_arr(int* arr, long len, int(*add_func)(int, int)) {
     AddFunc* uselessVar = add_func; 
     int sum = +0;
     long i;
-    for (i = 0; i < len; ++i) {
+    for (i = (0); i < len; ++i) {
         sum = add_func(sum, arr[i]);
     }
     ; // Empty statement
-    return sum;
+    return (sum);
 }
 
 void do_stuff_with_designators(int a) {
