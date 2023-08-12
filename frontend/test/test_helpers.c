@@ -33,20 +33,13 @@ void test_compare_files(CStr got_file, CStr ex_file) {
     File got = File_open(got_file, FILE_READ);
     File ex = File_open(ex_file, FILE_READ);
 
-    enum {
-        BUF_LEN = 500
-    };
     StrBuf got_str = StrBuf_create_empty();
     StrBuf ex_str = StrBuf_create_empty();
-    char got_buf[BUF_LEN] = {0};
-    char ex_buf[BUF_LEN] = {0};
-
-    uint32_t got_len = 0, ex_len = 0;
 
     uint32_t line_counter = 1;
 
-    Str got_line = File_read_line(got, &got_str, &got_len, got_buf, BUF_LEN);
-    Str ex_line = File_read_line(ex, &ex_str, &ex_len, ex_buf, BUF_LEN);
+    Str got_line = File_read_line(got, &got_str);
+    Str ex_line = File_read_line(ex, &ex_str);
     while (Str_valid(got_line) && Str_valid(ex_line)) {
         if (!Str_eq(got_line, ex_line)) {
             File_close(got);
@@ -65,12 +58,9 @@ void test_compare_files(CStr got_file, CStr ex_file) {
 
         StrBuf_clear(&got_str);
         StrBuf_clear(&ex_str);
-        got_buf[0] = '\0';
-        ex_buf[0] = '\0';
-        got_len = ex_len = 0;
 
-        got_line = File_read_line(got, &got_str, &got_len, got_buf, BUF_LEN);
-        ex_line = File_read_line(ex, &ex_str, &ex_len, ex_buf, BUF_LEN);
+        got_line = File_read_line(got, &got_str);
+        ex_line = File_read_line(ex, &ex_str);
     }
 
     if (!Str_valid(got_line) && Str_valid(ex_line)) {

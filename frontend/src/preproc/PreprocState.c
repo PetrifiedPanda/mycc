@@ -180,39 +180,15 @@ static void preproc_state_close_file(PreprocState* s);
 void PreprocState_read_line(PreprocState* state) {
     assert(state);
     StrBuf_clear(&state->line_info.line);
-    uint32_t len = 0;
-    enum {
-        STATIC_BUF_LEN = ARR_LEN(state->line_info.static_buf),
-    };
     while (current_file_over(state) && !is_start_file(state)) {
         preproc_state_close_file(state);
     }
-    char* static_buf = state->line_info.static_buf;
     StrBuf* line = &state->line_info.line;
     File file = get_current_file(state);
-    state->line_info.next = File_read_line(file,
-                                           line,
-                                           &len,
-                                           static_buf,
-                                           STATIC_BUF_LEN);
+    state->line_info.next = File_read_line(file, line);
     while (is_escaped_newline(state->line_info.next)) {
-        if (state->line_info.next.data == StrBuf_as_str(line).data) {
-            StrBuf_push_back(line, '\n');
-        } else if (len < STATIC_BUF_LEN - 1) {
-            static_buf[len] = '\n';
-            static_buf[len + 1] = '\0';
-        } else {
-            assert(StrBuf_len(line) == 0);
-            StrBuf_reserve(line, len + 1);
-            StrBuf_append(line, (Str){len, static_buf});
-            StrBuf_push_back(line, '\n');
-        }
-        ++len;
-        state->line_info.next = File_read_line(file,
-                                               line,
-                                               &len,
-                                               static_buf,
-                                               STATIC_BUF_LEN);
+        StrBuf_push_back(line, '\n');
+        state->line_info.next = File_read_line(file, line);
     }
     state->line_info.curr_loc.file_loc.line += 1;
     state->line_info.curr_loc.file_loc.index = 1;

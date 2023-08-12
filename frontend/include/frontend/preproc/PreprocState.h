@@ -15,7 +15,6 @@ typedef struct {
     Str next;
     SourceLoc curr_loc;
     bool is_in_comment;
-    char static_buf[200];
 } LineInfo;
 
 typedef struct {
@@ -46,9 +45,9 @@ typedef struct {
     uint32_t conds_len, conds_cap;
     PreprocCond* conds;
 
-    PreprocErr* err;
     StringMap _macro_map;
     FileInfo file_info;
+    PreprocErr* err;
 } PreprocState;
 
 PreprocState PreprocState_create(CStr start_file, PreprocErr* err);

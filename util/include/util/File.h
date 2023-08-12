@@ -49,9 +49,12 @@ bool File_ungetc(char c, File f);
 void File_printf_impl(File f, Str format, ...);
 void File_printf_varargs_impl(File f, Str format, va_list args);
 
-#define mycc_printf(format, ...) File_printf_impl(mycc_stdout(), STR_LIT(format), __VA_ARGS__)
-#define File_printf(f, format, ...) File_printf_impl(f, STR_LIT(format), __VA_ARGS__)
-#define File_printf_varargs(f, format, args) File_printf_varargs_impl(f, STR_LIT(format), args)
+#define mycc_printf(format, ...)                                               \
+    File_printf_impl(mycc_stdout(), STR_LIT(format), __VA_ARGS__)
+#define File_printf(f, format, ...)                                            \
+    File_printf_impl(f, STR_LIT(format), __VA_ARGS__)
+#define File_printf_varargs(f, format, args)                                   \
+    File_printf_varargs_impl(f, STR_LIT(format), args)
 
 long File_tell(File f);
 
@@ -64,11 +67,13 @@ typedef enum {
 // TODO: Origin with enum?
 bool File_seek(File f, long offset, FileSeekOrigin origin);
 
-Str File_read_line(File file,
-                   StrBuf* str,
-                   uint32_t* res_len,
-                   char* static_buf,
-                   uint32_t static_buf_len);
+/*
+ * @brief Reads file, appending into res and returns res converted to a Str
+ *
+ * @param file file to read from
+ * @param res buffer the line will be appended to
+ */
+Str File_read_line(File file, StrBuf* res);
 
 File mycc_stdout(void);
 File mycc_stderr(void);

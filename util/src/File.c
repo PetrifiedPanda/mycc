@@ -217,51 +217,21 @@ static void handle_win_line_ending(char newline_char, File file) {
 
 #endif
 
-Str File_read_line(File file,
-                   StrBuf* str,
-                   uint32_t* res_len,
-                   char* static_buf,
-                   uint32_t static_buf_len) {
-    assert(str);
-    assert(static_buf_len == 0 || static_buf != NULL);
+Str File_read_line(File file, StrBuf* res) {
+    assert(res);
 
     FileGetcRes c;
-    if (*res_len < static_buf_len && StrBuf_cap(str) < static_buf_len) {
-        bool copy_to_str = false;
-        while ((c = File_getc(file)).valid && c.res != '\n' && c.res != '\r') {
-            static_buf[*res_len] = c.res;
-            ++*res_len;
-            if (*res_len == static_buf_len - 1) {
-                copy_to_str = true;
-                break;
-            }
-        }
-#ifndef _WIN32
-        handle_win_line_ending(c.res, file);
-#endif
-        if (copy_to_str) {
-            uint32_t new_cap = static_buf_len * 2;
-            StrBuf_reserve(str, new_cap);
-            StrBuf_append(str, (Str){*res_len, static_buf});
-        } else if (*res_len == 0 && !c.valid) {
-            return Str_null();
-        } else {
-            static_buf[*res_len] = '\0';
-            return (Str){*res_len, static_buf};
-        }
-    }
 
     while ((c = File_getc(file)).valid && c.res != '\n' && c.res != '\r') {
-        StrBuf_push_back(str, c.res);
+        StrBuf_push_back(res, c.res);
     }
 #ifndef _WIN32
     handle_win_line_ending(c.res, file);
 #endif
-    *res_len = StrBuf_len(str);
-    if (*res_len == 0 && !c.valid) {
+    if (StrBuf_len(res) == 0 && !c.valid) {
         return Str_null();
     }
-    return StrBuf_as_str(str);
+    return StrBuf_as_str(res);
 }
 
 File mycc_stdout(void) {
