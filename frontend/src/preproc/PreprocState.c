@@ -4,6 +4,7 @@
 #include <ctype.h>
 
 #include "util/mem.h"
+#include "util/paths.h"
 #include "util/macro_util.h"
 
 #include "frontend/preproc/PreprocMacro.h"
@@ -19,27 +20,6 @@ typedef struct {
     FileManager fm;
     FileInfo fi;
 } FileData;
-
-static bool is_file_sep(char c) {
-    switch (c) {
-        case '/':
-#ifdef _WIN32
-        case '\\':
-#endif
-            return true;
-        default:
-            return false;
-    }
-}
-
-static uint32_t get_last_file_sep(Str path) {
-    uint32_t i = path.len - 1;
-    while (i != (uint32_t)-1 && !is_file_sep(Str_at(path, i))) {
-        --i;
-    }
-
-    return i;
-}
 
 static StrBuf get_path_prefix(Str path) {
     uint32_t sep_idx = get_last_file_sep(path);

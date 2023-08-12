@@ -11,6 +11,7 @@
 #include "frontend/arg_parse.h"
 
 #include "util/StrBuf.h"
+#include "util/paths.h"
 
 static bool convert_bin_to_text(const CmdArgs* args, CStr filename);
 
@@ -46,32 +47,9 @@ int main(int argc, char** argv) {
     return EXIT_SUCCESS;
 }
 
-static bool is_file_sep(char c) {
-    switch (c) {
-        case '/':
-#ifdef _WIN32
-        case '\\':
-#endif
-            return true;
-        default:
-            return false;
-    }
-}
-
-static Str strip_file_location(Str filename) {
-    Str res = filename;
-    uint32_t i = 0;
-    while (i != filename.len) {
-        if (is_file_sep(Str_at(filename, i))) {
-            res = Str_advance(filename, i + 1);
-        }
-        ++i;
-    }
-    return res;
-}
-
 static StrBuf get_out_filename(Str origin_file, Str suffix) {
-    Str filename_only = strip_file_location(origin_file);
+    uint32_t last_sep_idx = get_last_file_sep(origin_file);
+    Str filename_only = Str_advance(origin_file, last_sep_idx + 1);
     return StrBuf_concat(filename_only, suffix);
 }
 
