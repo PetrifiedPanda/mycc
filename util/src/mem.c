@@ -244,7 +244,7 @@ static void insert_alloc(AllocStats* stats,
                          Str file,
                          uint32_t line) {
     assert(alloc != NULL);
-    const size_t idx = find_alloc_idx(stats, alloc);
+    const uint32_t idx = find_alloc_idx(stats, alloc);
     if (idx >= stats->len || stats->data[idx].alloc != alloc) {
         if (stats->len == stats->cap) {
             mycc_grow_alloc((void**)&stats->data,
