@@ -4,12 +4,19 @@
 #include <string.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <stdnoreturn.h>
 
 #include "util/mem.h"
 #include "util/macro_util.h"
 #include "util/File.h"
 
-static _Noreturn void exit_with_err(Str format, ...) {
+static noreturn void exit_with_err_str(Str msg) {
+    File_put_str_val(msg, mycc_stderr());
+    exit(EXIT_FAILURE);
+}
+#define exit_with_err(msg) exit_with_err_str(STR_LIT(msg))
+
+static noreturn void exit_with_err_fmt_str(Str format, ...) {
     va_list list;
     va_start(list, format);
     File_printf_varargs_impl(mycc_stderr(), format, list);
@@ -17,6 +24,7 @@ static _Noreturn void exit_with_err(Str format, ...) {
 
     exit(EXIT_FAILURE);
 }
+#define exit_with_err_fmt(lit, ...) exit_with_err_fmt_str(STR_LIT(lit), __VA_ARGS__)
 
 CmdArgs parse_cmd_args(int argc, char** argv) {
     CmdArgs res = {
@@ -31,8 +39,7 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
             switch (item[1]) {
                 case 'o':
                     if (i == argc - 1) {
-                        exit_with_err(
-                            STR_LIT("-o Option without output file argument\n"));
+                        exit_with_err("-o Option without output file argument\n");
                     }
                     const size_t sz_len = strlen(argv[i + 1]);
                     const uint32_t len = (uint32_t)sz_len;
@@ -47,8 +54,7 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
                     res.action = ARG_ACTION_CONVERT_BIN_TO_TEXT;
                     break;
                 default:
-                    exit_with_err(STR_LIT("Invalid command line option \"-{char}\"\n"),
-                                  item[1]);
+                    exit_with_err_fmt("Invalid command line option \"-{char}\"\n", item[1]);
             }
         } else {
             ++res.num_files;
@@ -66,9 +72,9 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
         const size_t sz_len = strlen(command);
         const uint32_t len = (uint32_t)sz_len;
         assert((size_t)len == sz_len);
-        exit_with_err(STR_LIT("{Str}: no input files\n"), (Str){len, command});
+        exit_with_err_fmt("{Str}: no input files\n", (Str){len, command});
     } else if (res.output_file.data != NULL && res.num_files > 1) {
-        exit_with_err(STR_LIT("Cannot write output of multiple sources in one file\n"));
+        exit_with_err("Cannot write output of multiple sources in one file\n");
     }
     return res;
 }
