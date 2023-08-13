@@ -74,35 +74,34 @@ void mycc_free(void* alloc) {
 
 #ifdef MYCC_MEMDEBUG
 
-struct alloc_loc {
+typedef struct {
     Str func;
     Str file;
-    size_t line;
-};
+    uint32_t line;
+} AllocLoc;
 
-struct alloc_entry {
+typedef struct {
     void* alloc;
     size_t bytes;
     bool freed;
     bool realloced; // if freed by realloc
-    struct alloc_loc alloced_loc;
-    struct alloc_loc freed_loc;
-};
+    AllocLoc alloced_loc;
+    AllocLoc freed_loc;
+} AllocEntry;
 
-struct alloc_stats {
-    struct alloc_entry* data;
-    uint32_t len;
-    uint32_t cap;
+typedef struct {
+    uint32_t len, cap;
+    AllocEntry* data;
     size_t num_allocs;
     size_t num_frees;
     size_t num_reallocs;
     size_t num_reallocs_without_copy;
     size_t bytes_alloced;
     size_t bytes_freed;
-};
+} AllocStats;
 
 static bool g_cleanup_func_set = false;
-static struct alloc_stats g_alloc_stats = {
+static AllocStats g_alloc_stats = {
     .data = NULL,
     .len = 0,
     .cap = 0,
@@ -114,7 +113,7 @@ static struct alloc_stats g_alloc_stats = {
     .bytes_freed = 0,
 };
 
-static size_t find_alloc_idx(const struct alloc_stats* stats, void* alloc) {
+static uint32_t find_alloc_idx(const AllocStats* stats, void* alloc) {
     assert(alloc != NULL);
     size_t left = 0;
     size_t right = stats->len;
@@ -129,19 +128,19 @@ static size_t find_alloc_idx(const struct alloc_stats* stats, void* alloc) {
     return left;
 }
 
-static struct alloc_entry create_alloc_entry(void* alloc,
-                                             size_t bytes,
-                                             Str func,
-                                             Str file,
-                                             size_t line) {
+static AllocEntry create_alloc_entry(void* alloc,
+                                     size_t bytes,
+                                     Str func,
+                                     Str file,
+                                     size_t line) {
     assert(alloc != NULL);
-    return (struct alloc_entry){
+    return (AllocEntry){
         .alloc = alloc,
         .bytes = bytes,
         .freed = false,
         .realloced = false,
         .alloced_loc = {func, file, line},
-        .freed_loc = {{0, NULL}, {0, NULL}, (size_t)-1},
+        .freed_loc = {{0, NULL}, {0, NULL}, (uint32_t)-1},
     };
 }
 
@@ -201,7 +200,7 @@ static void memdebug_cleanup(void) {
     File_putc('\n', mycc_stderr());
     bool leak_detected = false;
     for (size_t i = 0; i < g_alloc_stats.len; ++i) {
-        struct alloc_entry* curr = &g_alloc_stats.data[i];
+        AllocEntry* curr = &g_alloc_stats.data[i];
         if (!curr->freed) {
             leak_detected = true;
             File_put_str("Leak detected:\n", mycc_stderr());
@@ -238,12 +237,12 @@ static void memdebug_cleanup(void) {
     }
 }
 
-static void insert_alloc(struct alloc_stats* stats,
+static void insert_alloc(AllocStats* stats,
                          void* alloc,
                          size_t bytes,
                          Str func,
                          Str file,
-                         size_t line) {
+                         uint32_t line) {
     assert(alloc != NULL);
     const size_t idx = find_alloc_idx(stats, alloc);
     if (idx >= stats->len || stats->data[idx].alloc != alloc) {
@@ -269,25 +268,25 @@ static void insert_alloc(struct alloc_stats* stats,
     }
 }
 
-static void set_freed(struct alloc_stats* stats,
-                      size_t alloc_idx,
+static void set_freed(AllocStats* stats,
+                      uint32_t alloc_idx,
                       bool realloced,
                       Str func,
                       Str file,
-                      size_t line) {
-    struct alloc_entry* curr = &stats->data[alloc_idx];
+                      uint32_t line) {
+    AllocEntry* curr = &stats->data[alloc_idx];
     assert(!curr->freed);
     curr->freed = true;
     curr->realloced = realloced;
-    curr->freed_loc = (struct alloc_loc){func, file, line};
+    curr->freed_loc = (AllocLoc){func, file, line};
     stats->bytes_freed += curr->bytes;
     stats->num_frees += 1;
 }
 
-static void set_alloc_bytes(struct alloc_stats* stats,
-                            size_t alloc_idx,
+static void set_alloc_bytes(AllocStats* stats,
+                            uint32_t alloc_idx,
                             size_t bytes) {
-    struct alloc_entry* curr = &stats->data[alloc_idx];
+    AllocEntry* curr = &stats->data[alloc_idx];
     assert(!curr->freed);
     stats->num_reallocs_without_copy += 1;
     if (bytes > curr->bytes) {
@@ -298,8 +297,8 @@ static void set_alloc_bytes(struct alloc_stats* stats,
     curr->bytes = bytes;
 }
 
-static void check_if_freed(const struct alloc_stats* stats, size_t alloc_idx) {
-    const struct alloc_entry* entry = &stats->data[alloc_idx];
+static void check_if_freed(const AllocStats* stats, uint32_t alloc_idx) {
+    const AllocEntry* entry = &stats->data[alloc_idx];
     if (entry->freed) {
         File_put_str("Double free detected, exiting...\n", mycc_stderr());
         Str by_realloc = entry->realloced ? STR_LIT(" by realloc")
@@ -319,7 +318,7 @@ static void check_if_freed(const struct alloc_stats* stats, size_t alloc_idx) {
 void* mycc_memdebug_alloc_wrapper(size_t bytes,
                                   Str func,
                                   Str file,
-                                  size_t line) {
+                                  uint32_t line) {
     void* alloc = mycc_alloc(bytes);
     insert_alloc(&g_alloc_stats, alloc, bytes, func, file, line);
     return alloc;
@@ -329,7 +328,7 @@ void* mycc_memdebug_alloc_zeroed_wrapper(size_t len,
                                          size_t elem_size,
                                          Str func,
                                          Str file,
-                                         size_t line) {
+                                         uint32_t line) {
     void* alloc = mycc_alloc_zeroed(len, elem_size);
     insert_alloc(&g_alloc_stats, alloc, len * elem_size, func, file, line);
     return alloc;
@@ -339,7 +338,7 @@ void* mycc_memdebug_realloc_wrapper(void* alloc,
                                     size_t bytes,
                                     Str func,
                                     Str file,
-                                    size_t line) {
+                                    uint32_t line) {
     g_alloc_stats.num_reallocs += 1;
     if (alloc == NULL) {
         void* new_alloc = mycc_realloc(alloc, bytes);
@@ -369,9 +368,12 @@ void* mycc_memdebug_realloc_wrapper(void* alloc,
     }
 }
 
-void mycc_memdebug_free_wrapper(void* alloc, Str func, Str file, size_t line) {
+void mycc_memdebug_free_wrapper(void* alloc,
+                                Str func,
+                                Str file,
+                                uint32_t line) {
     if (alloc != NULL) {
-        const size_t alloc_idx = find_alloc_idx(&g_alloc_stats, alloc);
+        const uint32_t alloc_idx = find_alloc_idx(&g_alloc_stats, alloc);
         assert(g_alloc_stats.data[alloc_idx].alloc == alloc
                && "Tried to free untracked allocation");
         check_if_freed(&g_alloc_stats, alloc_idx);
@@ -387,7 +389,7 @@ void mycc_memdebug_grow_alloc_wrapper(void** alloc,
                                       size_t elem_size,
                                       Str func,
                                       Str file,
-                                      size_t line) {
+                                      uint32_t line) {
     g_alloc_stats.num_reallocs += 1;
     if (*alloc == NULL) {
         mycc_grow_alloc(alloc, alloc_len, elem_size);
@@ -398,7 +400,7 @@ void mycc_memdebug_grow_alloc_wrapper(void** alloc,
                      file,
                      line);
     } else {
-        const size_t alloc_idx = find_alloc_idx(&g_alloc_stats, *alloc);
+        const uint32_t alloc_idx = find_alloc_idx(&g_alloc_stats, *alloc);
         assert(g_alloc_stats.data[alloc_idx].alloc == *alloc);
         check_if_freed(&g_alloc_stats, alloc_idx);
         void* old_alloc = *alloc;

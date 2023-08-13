@@ -55,26 +55,26 @@ void mycc_grow_alloc(void** alloc, uint32_t* alloc_len, size_t elem_size);
 void* mycc_memdebug_alloc_wrapper(size_t bytes,
                                   Str func,
                                   Str file,
-                                  size_t line);
+                                  uint32_t line);
 void* mycc_memdebug_alloc_zeroed_wrapper(size_t len,
                                          size_t elem_size,
                                          Str func,
                                          Str file,
-                                         size_t line);
+                                         uint32_t line);
 void* mycc_memdebug_realloc_wrapper(void* alloc,
                                     size_t bytes,
                                     Str func,
                                     Str file,
-                                    size_t line);
+                                    uint32_t line);
 
-void mycc_memdebug_free_wrapper(void* alloc, Str func, Str file, size_t line);
+void mycc_memdebug_free_wrapper(void* alloc, Str func, Str file, uint32_t line);
 
 void mycc_memdebug_grow_alloc_wrapper(void** alloc,
                                       uint32_t* alloc_len,
                                       size_t elem_size,
                                       Str func,
                                       Str file,
-                                      size_t line);
+                                      uint32_t line);
 
 #define mycc_alloc(bytes)                                                      \
     mycc_memdebug_alloc_wrapper(bytes,                                         \
