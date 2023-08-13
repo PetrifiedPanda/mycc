@@ -14,6 +14,8 @@ typedef enum {
 typedef struct {
     int num_files;
     CStr* files;
+    int num_include_dirs;
+    Str* include_dirs;
     CStr output_file;
     ArgAction action;
 } CmdArgs;

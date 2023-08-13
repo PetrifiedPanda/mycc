@@ -24,12 +24,15 @@ static noreturn void exit_with_err_fmt_str(Str format, ...) {
 
     exit(EXIT_FAILURE);
 }
-#define exit_with_err_fmt(lit, ...) exit_with_err_fmt_str(STR_LIT(lit), __VA_ARGS__)
+#define exit_with_err_fmt(lit, ...)                                            \
+    exit_with_err_fmt_str(STR_LIT(lit), __VA_ARGS__)
 
 CmdArgs parse_cmd_args(int argc, char** argv) {
     CmdArgs res = {
         .num_files = 0,
         .files = NULL,
+        .num_include_dirs = 0,
+        .include_dirs = NULL,
         .output_file = {0, NULL},
         .action = ARG_ACTION_OUTPUT_TEXT,
     };
@@ -37,9 +40,10 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
         const char* item = argv[i];
         if (item[0] == '-') {
             switch (item[1]) {
-                case 'o':
+                case 'o': {
                     if (i == argc - 1) {
-                        exit_with_err("-o Option without output file argument\n");
+                        exit_with_err(
+                            "-o Option without output file argument\n");
                     }
                     const size_t sz_len = strlen(argv[i + 1]);
                     const uint32_t len = (uint32_t)sz_len;
@@ -47,14 +51,35 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
                     res.output_file = (CStr){len, argv[i + 1]};
                     ++i;
                     break;
+                }
                 case 'b':
                     res.action = ARG_ACTION_OUTPUT_BIN;
                     break;
                 case 'c':
                     res.action = ARG_ACTION_CONVERT_BIN_TO_TEXT;
                     break;
+                case 'I': {
+                    if (i == argc - 1) {
+                        exit_with_err("-I Option without folder argument\n");
+                    }
+                    const char* include_dir = argv[i + 1];
+                    const size_t sz_len = strlen(include_dir);
+                    const uint32_t len = (uint32_t)sz_len;
+                    assert((size_t)len == sz_len);
+                    ++res.num_include_dirs;
+                    res.include_dirs = mycc_realloc(res.include_dirs,
+                                                    sizeof *res.include_dirs
+                                                        * res.num_include_dirs);
+                    res.include_dirs[res.num_include_dirs - 1] = (Str){
+                        len,
+                        include_dir};
+                    ++i;
+                    break;
+                }
                 default:
-                    exit_with_err_fmt("Invalid command line option \"-{char}\"\n", item[1]);
+                    exit_with_err_fmt(
+                        "Invalid command line option \"-{char}\"\n",
+                        item[1]);
             }
         } else {
             ++res.num_files;
@@ -72,8 +97,10 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
         const size_t sz_len = strlen(command);
         const uint32_t len = (uint32_t)sz_len;
         assert((size_t)len == sz_len);
+        CmdArgs_free(&res);
         exit_with_err_fmt("{Str}: no input files\n", (Str){len, command});
     } else if (res.output_file.data != NULL && res.num_files > 1) {
+        CmdArgs_free(&res);
         exit_with_err("Cannot write output of multiple sources in one file\n");
     }
     return res;
@@ -81,4 +108,5 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
 
 void CmdArgs_free(const CmdArgs* args) {
     mycc_free(args->files);
+    mycc_free(args->include_dirs);
 }
