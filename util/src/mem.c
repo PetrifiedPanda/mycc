@@ -132,7 +132,7 @@ static AllocEntry create_alloc_entry(void* alloc,
                                      size_t bytes,
                                      Str func,
                                      Str file,
-                                     size_t line) {
+                                     uint32_t line) {
     assert(alloc != NULL);
     return (AllocEntry){
         .alloc = alloc,
@@ -206,7 +206,7 @@ static void memdebug_cleanup(void) {
             File_put_str("Leak detected:\n", mycc_stderr());
             File_printf(mycc_stderr(),
                         "\t{ptr} of size {size_t} allocated in {Str} in "
-                        "{Str}:{size_t} was never freed\n",
+                        "{Str}:{u32} was never freed\n",
                         curr->alloc,
                         curr->bytes,
                         curr->alloced_loc.func,
