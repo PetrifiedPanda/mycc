@@ -30,8 +30,8 @@ static noreturn void exit_with_err_fmt_str(Str format, ...) {
 CmdArgs parse_cmd_args(int argc, char** argv) {
     CmdArgs res = {
         .num_files = 0,
-        .files = NULL,
         .num_include_dirs = 0,
+        .files = NULL,
         .include_dirs = NULL,
         .output_file = {0, NULL},
         .action = ARG_ACTION_OUTPUT_TEXT,
@@ -62,17 +62,18 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
                     if (i == argc - 1) {
                         exit_with_err("-I Option without folder argument\n");
                     }
-                    const char* include_dir = argv[i + 1];
-                    const size_t sz_len = strlen(include_dir);
-                    const uint32_t len = (uint32_t)sz_len;
-                    assert((size_t)len == sz_len);
                     ++res.num_include_dirs;
                     res.include_dirs = mycc_realloc(res.include_dirs,
                                                     sizeof *res.include_dirs
                                                         * res.num_include_dirs);
+                    const char* include_dir = argv[i + 1];
+                    const size_t sz_len = strlen(include_dir);
+                    const uint32_t len = (uint32_t)sz_len;
+                    assert((size_t)len == sz_len);
                     res.include_dirs[res.num_include_dirs - 1] = (Str){
                         len,
-                        include_dir};
+                        include_dir,
+                    };
                     ++i;
                     break;
                 }

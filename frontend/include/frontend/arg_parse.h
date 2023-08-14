@@ -12,9 +12,9 @@ typedef enum {
 } ArgAction;
 
 typedef struct {
-    int num_files;
+    uint32_t num_files;
+    uint32_t num_include_dirs;
     CStr* files;
-    int num_include_dirs;
     Str* include_dirs;
     CStr output_file;
     ArgAction action;
