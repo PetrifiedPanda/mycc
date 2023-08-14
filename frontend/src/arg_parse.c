@@ -42,6 +42,7 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
             switch (item[1]) {
                 case 'o': {
                     if (i == argc - 1) {
+                        CmdArgs_free(&res);
                         exit_with_err(
                             "-o Option without output file argument\n");
                     }
@@ -60,6 +61,7 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
                     break;
                 case 'I': {
                     if (i == argc - 1) {
+                        CmdArgs_free(&res);
                         exit_with_err("-I Option without folder argument\n");
                     }
                     ++res.num_include_dirs;
@@ -78,6 +80,7 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
                     break;
                 }
                 default:
+                    CmdArgs_free(&res);
                     exit_with_err_fmt(
                         "Invalid command line option \"-{char}\"\n",
                         item[1]);
