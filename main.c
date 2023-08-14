@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
 #endif
     const ArchTypeInfo type_info = get_arch_type_info(ARCH_X86_64, is_windows);
 
-    for (int i = 0; i < args.num_files; ++i) {
+    for (uint32_t i = 0; i < args.num_files; ++i) {
         const CStr filename = args.files[i];
         if (args.action == ARG_ACTION_CONVERT_BIN_TO_TEXT) {
             if (!convert_bin_to_text(&args, filename)) {
