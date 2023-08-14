@@ -20,7 +20,7 @@ void* mycc_alloc(size_t bytes) {
 
     void* res = malloc(bytes);
     if (!res) {
-        File_printf(mycc_stderr(),
+        File_printf(mycc_stderr,
                     "mycc_alloc():\n\tFailed to allocate {size_t} bytes\n",
                     bytes);
         exit(EXIT_FAILURE);
@@ -35,7 +35,7 @@ void* mycc_alloc_zeroed(size_t len, size_t elem_size) {
     void* res = calloc(len, elem_size);
     if (!res) {
         File_printf(
-            mycc_stderr(),
+            mycc_stderr,
             "mycc_alloc_zeroed():\n\tFailed to allocate {size_t} elements of "
             "size {size_t} "
             "bytes each\n",
@@ -54,7 +54,7 @@ void* mycc_realloc(void* alloc, size_t bytes) {
 
     void* res = realloc(alloc, bytes);
     if (!res) {
-        File_printf(mycc_stderr(),
+        File_printf(mycc_stderr,
                     "mycc_realloc():\n\tFailed to realloc {size_t} bytes\n",
                     bytes);
         exit(EXIT_FAILURE);
@@ -146,7 +146,7 @@ static AllocEntry create_alloc_entry(void* alloc,
 
 static void print_surrounding_lines(size_t num) {
     for (size_t i = 0; i < num; ++i) {
-        File_putc('-', mycc_stderr());
+        File_putc('-', mycc_stderr);
     }
 }
 
@@ -195,16 +195,16 @@ static void memdebug_cleanup(void) {
         LINE_COUNT = 20
     };
     print_surrounding_lines(LINE_COUNT);
-    File_put_str("MEMDEBUG REPORT", mycc_stderr());
+    File_put_str("MEMDEBUG REPORT", mycc_stderr);
     print_surrounding_lines(LINE_COUNT);
-    File_putc('\n', mycc_stderr());
+    File_putc('\n', mycc_stderr);
     bool leak_detected = false;
     for (size_t i = 0; i < g_alloc_stats.len; ++i) {
         AllocEntry* curr = &g_alloc_stats.data[i];
         if (!curr->freed) {
             leak_detected = true;
-            File_put_str("Leak detected:\n", mycc_stderr());
-            File_printf(mycc_stderr(),
+            File_put_str("Leak detected:\n", mycc_stderr);
+            File_printf(mycc_stderr,
                         "\t{ptr} of size {size_t} allocated in {Str} in "
                         "{Str}:{u32} was never freed\n",
                         curr->alloc,
@@ -214,23 +214,23 @@ static void memdebug_cleanup(void) {
                         curr->alloced_loc.line);
         }
     }
-    File_put_str("Of ", mycc_stderr());
-    pretty_print_size_t(mycc_stderr(), g_alloc_stats.num_allocs);
-    File_put_str(" allocations, ", mycc_stderr());
-    pretty_print_size_t(mycc_stderr(), g_alloc_stats.num_frees);
-    File_put_str(" were freed\n", mycc_stderr());
+    File_put_str("Of ", mycc_stderr);
+    pretty_print_size_t(mycc_stderr, g_alloc_stats.num_allocs);
+    File_put_str(" allocations, ", mycc_stderr);
+    pretty_print_size_t(mycc_stderr, g_alloc_stats.num_frees);
+    File_put_str(" were freed\n", mycc_stderr);
 
-    File_put_str("Of ", mycc_stderr());
-    pretty_print_size_t(mycc_stderr(), g_alloc_stats.bytes_alloced);
-    File_put_str(" bytes allocated, ", mycc_stderr());
-    pretty_print_size_t(mycc_stderr(), g_alloc_stats.bytes_freed);
-    File_put_str(" bytes were freed\n", mycc_stderr());
+    File_put_str("Of ", mycc_stderr);
+    pretty_print_size_t(mycc_stderr, g_alloc_stats.bytes_alloced);
+    File_put_str(" bytes allocated, ", mycc_stderr);
+    pretty_print_size_t(mycc_stderr, g_alloc_stats.bytes_freed);
+    File_put_str(" bytes were freed\n", mycc_stderr);
 
-    File_put_str("Of ", mycc_stderr());
-    pretty_print_size_t(mycc_stderr(), g_alloc_stats.num_reallocs);
-    File_put_str(" realloc calls, ", mycc_stderr());
-    pretty_print_size_t(mycc_stderr(), g_alloc_stats.num_reallocs_without_copy);
-    File_put_str(" resized an existing allocation\n", mycc_stderr());
+    File_put_str("Of ", mycc_stderr);
+    pretty_print_size_t(mycc_stderr, g_alloc_stats.num_reallocs);
+    File_put_str(" realloc calls, ", mycc_stderr);
+    pretty_print_size_t(mycc_stderr, g_alloc_stats.num_reallocs_without_copy);
+    File_put_str(" resized an existing allocation\n", mycc_stderr);
     mycc_free(g_alloc_stats.data);
     if (leak_detected) {
         _Exit(EXIT_FAILURE);
@@ -300,12 +300,12 @@ static void set_alloc_bytes(AllocStats* stats,
 static void check_if_freed(const AllocStats* stats, uint32_t alloc_idx) {
     const AllocEntry* entry = &stats->data[alloc_idx];
     if (entry->freed) {
-        File_put_str("Double free detected, exiting...\n", mycc_stderr());
+        File_put_str("Double free detected, exiting...\n", mycc_stderr);
         Str by_realloc = entry->realloced ? STR_LIT(" by realloc")
                                           : STR_LIT("");
-        File_printf(mycc_stderr(), "\t{ptr} with size ", entry->alloc);
-        pretty_print_size_t(mycc_stderr(), entry->bytes);
-        File_printf(mycc_stderr(),
+        File_printf(mycc_stderr, "\t{ptr} with size ", entry->alloc);
+        pretty_print_size_t(mycc_stderr, entry->bytes);
+        File_printf(mycc_stderr,
                     " was already freed{Str} in {Str} in {Str}:{size_t}\n",
                     by_realloc,
                     entry->freed_loc.func,

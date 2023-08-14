@@ -11,7 +11,7 @@
 #include "util/File.h"
 
 static noreturn void exit_with_err_str(Str msg) {
-    File_put_str_val(msg, mycc_stderr());
+    File_put_str_val(msg, mycc_stderr);
     exit(EXIT_FAILURE);
 }
 #define exit_with_err(msg) exit_with_err_str(STR_LIT(msg))
@@ -19,7 +19,7 @@ static noreturn void exit_with_err_str(Str msg) {
 static noreturn void exit_with_err_fmt_str(Str format, ...) {
     va_list list;
     va_start(list, format);
-    File_printf_varargs_impl(mycc_stderr(), format, list);
+    File_printf_varargs_impl(mycc_stderr, format, list);
     va_end(list);
 
     exit(EXIT_FAILURE);

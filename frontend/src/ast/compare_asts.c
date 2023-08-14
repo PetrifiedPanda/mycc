@@ -8,12 +8,12 @@
 
 #define PRINT_ASSERT_ERR(format, ...)                                          \
     do {                                                                       \
-        File_printf(mycc_stdout(),                                             \
+        File_printf(mycc_stdout,                                               \
                     "        {Str}:{u32}: ",                                   \
                     STR_LIT(__func__),                                         \
                     __LINE__);                                                 \
-        File_printf(mycc_stdout(), format, __VA_ARGS__);                       \
-        File_putc('\n', mycc_stdout());                                        \
+        File_printf(mycc_stdout, format, __VA_ARGS__);                         \
+        File_putc('\n', mycc_stdout);                                          \
     } while (0)
 
 // TODO: maybe assert is not the best name (especially because there already is
@@ -1056,14 +1056,16 @@ static bool compare_str_lits(const StrLit* l1, const StrLit* l2) {
 
 static bool compare_tokens(const TokenArr* toks1, const TokenArr* toks2) {
     ASSERT_U32(toks1->len, toks2->len);
-    if (memcmp(toks1->kinds, toks2->kinds, sizeof *toks1->kinds * toks1->len) != 0) {
+    if (memcmp(toks1->kinds, toks2->kinds, sizeof *toks1->kinds * toks1->len)
+        != 0) {
         return false;
     }
-    
+
     for (uint32_t i = 0; i < toks1->len; ++i) {
         switch (toks1->kinds[i]) {
             case TOKEN_IDENTIFIER:
-                ASSERT_STR_BUF(&toks1->vals[i].spelling, &toks2->vals[i].spelling);
+                ASSERT_STR_BUF(&toks1->vals[i].spelling,
+                               &toks2->vals[i].spelling);
                 break;
             case TOKEN_I_CONSTANT:
             case TOKEN_F_CONSTANT:
@@ -1072,7 +1074,8 @@ static bool compare_tokens(const TokenArr* toks1, const TokenArr* toks2) {
                 }
                 break;
             case TOKEN_STRING_LITERAL:
-                if (!compare_str_lits(&toks1->vals[i].str_lit, &toks2->vals[i].str_lit)) {
+                if (!compare_str_lits(&toks1->vals[i].str_lit,
+                                      &toks2->vals[i].str_lit)) {
                     return false;
                 }
                 break;
@@ -1083,7 +1086,8 @@ static bool compare_tokens(const TokenArr* toks1, const TokenArr* toks2) {
         }
     }
 
-    return memcmp(toks1->locs, toks2->locs, sizeof *toks1->locs * toks1->len) == 0;
+    return memcmp(toks1->locs, toks2->locs, sizeof *toks1->locs * toks1->len)
+           == 0;
 }
 
 static bool compare_translation_units(const TranslationUnit* tl1,

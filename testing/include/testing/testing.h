@@ -158,11 +158,11 @@ extern jmp_buf test_jump_buf;
  * Prints an assert error, failing the test. Must not be called outside of tests
  */
 #define PRINT_ASSERT_ERR(format, ...)                                          \
-    mycc_printf("    Assertion failure in {Str}, {size_t}\n        ",              \
+    mycc_printf("    Assertion failure in {Str}, {size_t}\n        ",          \
                 STR_LIT(__FILE__),                                             \
                 __LINE__);                                                     \
     mycc_printf(format, __VA_ARGS__);                                          \
-    File_putc('\n', mycc_stdout());                                            \
+    File_putc('\n', mycc_stdout);                                              \
     MYCC_DEBUG_BREAK();                                                        \
     longjmp(test_jump_buf, 0)
 

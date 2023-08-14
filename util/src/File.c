@@ -233,12 +233,3 @@ Str File_read_line(File file, StrBuf* res) {
     }
     return StrBuf_as_str(res);
 }
-
-File mycc_stdout(void) {
-    return (File){stdout};
-}
-
-File mycc_stderr(void) {
-    return (File){stderr};
-}
-

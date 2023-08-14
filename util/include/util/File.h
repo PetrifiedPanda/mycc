@@ -50,7 +50,7 @@ void File_printf_impl(File f, Str format, ...);
 void File_printf_varargs_impl(File f, Str format, va_list args);
 
 #define mycc_printf(format, ...)                                               \
-    File_printf_impl(mycc_stdout(), STR_LIT(format), __VA_ARGS__)
+    File_printf_impl(mycc_stdout, STR_LIT(format), __VA_ARGS__)
 #define File_printf(f, format, ...)                                            \
     File_printf_impl(f, STR_LIT(format), __VA_ARGS__)
 #define File_printf_varargs(f, format, args)                                   \
@@ -75,8 +75,8 @@ bool File_seek(File f, long offset, FileSeekOrigin origin);
  */
 Str File_read_line(File file, StrBuf* res);
 
-File mycc_stdout(void);
-File mycc_stderr(void);
+#define mycc_stdout (File){stdout}
+#define mycc_stderr (File){stderr}
 
 #endif
 
