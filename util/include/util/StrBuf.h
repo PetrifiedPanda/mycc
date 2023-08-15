@@ -31,6 +31,7 @@ static_assert(sizeof(StrBuf) == sizeof(uint32_t) * 2 + sizeof(char*),
 
 StrBuf StrBuf_null(void);
 StrBuf StrBuf_create_empty(void);
+StrBuf StrBuf_create_with_cap(Str str, uint32_t cap);
 StrBuf StrBuf_create(Str str);
 StrBuf StrBuf_create_empty_with_cap(uint32_t cap);
 

@@ -29,31 +29,29 @@ enum {
                      / sizeof *(StrBuf){{{0}}}._static_buf
 };
 
-static StrBuf StrBuf_create_with_cap(uint32_t len,
-                                     const char* str,
-                                     uint32_t cap) {
-    assert(cap >= len);
-    assert(len == 0 || str);
+StrBuf StrBuf_create_with_cap(Str str, uint32_t cap) {
+    assert(cap >= str.len);
+    assert(str.len == 0 || str.data);
     StrBuf res;
     if (cap < STATIC_BUF_LEN) {
         res._is_static_buf = true;
-        res._small_len = (uint8_t)len;
-        memcpy(res._static_buf, str, sizeof *res._static_buf * len);
-        res._static_buf[len] = '\0';
+        res._small_len = (uint8_t)str.len;
+        memcpy(res._static_buf, str.data, sizeof *res._static_buf * str.len);
+        res._static_buf[str.len] = '\0';
     } else {
         res._is_static_buf = false;
-        res._len = len;
+        res._len = str.len;
         res._cap = cap + 1;
         res._data = mycc_alloc(sizeof *res._data * res._cap);
-        memcpy(res._data, str, sizeof *res._static_buf * len);
-        res._data[len] = '\0';
+        memcpy(res._data, str.data, sizeof *res._static_buf * str.len);
+        res._data[str.len] = '\0';
     }
     return res;
 }
 
 StrBuf StrBuf_create(Str str) {
     assert(str.len == 0 || str.data);
-    return StrBuf_create_with_cap(str.len, str.data, str.len);
+    return StrBuf_create_with_cap(str, str.len);
 }
 
 StrBuf StrBuf_create_empty_with_cap(uint32_t cap) {
@@ -266,7 +264,7 @@ void StrBuf_append(StrBuf* str, Str app) {
 
 StrBuf StrBuf_concat(Str s1, Str s2) {
     const uint32_t len = s1.len + s2.len;
-    StrBuf res = StrBuf_create_with_cap(s1.len, s1.data, len);
+    StrBuf res = StrBuf_create_with_cap(s1, len);
     char* res_data = StrBuf_get_mut_data(&res);
     memcpy(res_data + s1.len, s2.data, s2.len * sizeof *res_data);
     res_data[len] = '\0';
@@ -291,7 +289,7 @@ StrBuf StrBuf_copy(const StrBuf* str) {
         return *str;
     } else {
         if (StrBuf_valid(str)) {
-            return StrBuf_create_with_cap(str->_len, str->_data, str->_cap - 1);
+            return StrBuf_create_with_cap(StrBuf_as_str(str), str->_cap - 1);
         } else {
             return StrBuf_null();
         }

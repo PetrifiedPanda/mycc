@@ -16,6 +16,8 @@ static void test_preproc_macro(const PreprocMacro* macro,
     PreprocErr input_err = PreprocErr_create();
     PreprocRes res = preproc_string(input,
                                     STR_LIT("source_file.c"),
+                                    0,
+                                    NULL,
                                     &info,
                                     &input_err);
     ASSERT(input_err.kind == PREPROC_ERR_NONE);
@@ -23,6 +25,8 @@ static void test_preproc_macro(const PreprocMacro* macro,
     PreprocErr err = PreprocErr_create();
     PreprocState state = PreprocState_create_string(input,
                                                     STR_LIT("source_file.c"),
+                                                    0,
+                                                    NULL,
                                                     &err);
     state.res = res.toks;
     // Do not free stack allocated macros
@@ -36,6 +40,8 @@ static void test_preproc_macro(const PreprocMacro* macro,
     PreprocErr output_err = PreprocErr_create();
     PreprocRes expected = preproc_string(output,
                                          STR_LIT("source_file.c"),
+                                         0,
+                                         NULL,
                                          &info,
                                          &output_err);
     ASSERT(output_err.kind == PREPROC_ERR_NONE);
@@ -217,7 +223,7 @@ TEST(expand_func_like) {
         {.val = {.spelling = StrBuf_null()}},
         {.arg_num = 1},
     };
-    
+
     static_assert(ARR_LEN(kinds1) == ARR_LEN(vals1), "");
 
     const PreprocMacro macro1 = {

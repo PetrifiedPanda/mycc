@@ -19,11 +19,18 @@ static TokenKind keyword_kind(Str spelling);
 
 static bool preproc_impl(PreprocState* state, const ArchTypeInfo* info);
 
-PreprocRes preproc(CStr path, const ArchTypeInfo* info, PreprocErr* err) {
+PreprocRes preproc(CStr path,
+                   uint32_t num_include_dirs,
+                   const Str* include_dirs,
+                   const ArchTypeInfo* info,
+                   PreprocErr* err) {
     assert(info);
     assert(err);
 
-    PreprocState state = PreprocState_create(path, err);
+    PreprocState state = PreprocState_create(path,
+                                             num_include_dirs,
+                                             include_dirs,
+                                             err);
     if (err->kind != PREPROC_ERR_NONE) {
         return (PreprocRes){
             .toks = {0},
@@ -89,11 +96,17 @@ static bool preproc_impl(PreprocState* state, const ArchTypeInfo* info) {
 #ifdef MYCC_TEST_FUNCTIONALITY
 PreprocRes preproc_string(Str str,
                           Str path,
+                          uint32_t num_include_dirs,
+                          const Str* include_dirs,
                           const ArchTypeInfo* info,
                           PreprocErr* err) {
     assert(err);
 
-    PreprocState state = PreprocState_create_string(str, path, err);
+    PreprocState state = PreprocState_create_string(str,
+                                                    path,
+                                                    num_include_dirs,
+                                                    include_dirs,
+                                                    err);
 
     if (!preproc_impl(&state, info)) {
         PreprocState_free(&state);

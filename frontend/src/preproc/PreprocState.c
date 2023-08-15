@@ -66,7 +66,7 @@ static FileData create_file_data(CStr start_file, PreprocErr* err) {
     };
 }
 
-PreprocState PreprocState_create(CStr start_file, PreprocErr* err) {
+PreprocState PreprocState_create(CStr start_file, uint32_t num_include_dirs, const Str* include_dirs, PreprocErr* err) {
     FileData fd = create_file_data(start_file, err);
     if (!fd.is_valid) {
         PreprocState res = {0};
@@ -94,12 +94,16 @@ PreprocState PreprocState_create(CStr start_file, PreprocErr* err) {
                                        100,
                                        true,
                                        (void (*)(void*))PreprocMacro_free),
+        .num_include_dirs = num_include_dirs,
+        .include_dirs = include_dirs,
         .file_info = fd.fi,
     };
 }
 
 PreprocState PreprocState_create_string(Str code,
                                         Str filename,
+                                        uint32_t num_include_dirs,
+                                        const Str* include_dirs,
                                         PreprocErr* err) {
     StrBuf filename_str = StrBuf_create(filename);
     return (PreprocState){
@@ -130,6 +134,8 @@ PreprocState PreprocState_create_string(Str code,
                                        100,
                                        true,
                                        (void (*)(void*))PreprocMacro_free),
+        .num_include_dirs = num_include_dirs,
+        .include_dirs = include_dirs,
         .file_info = FileInfo_create(&filename_str),
     };
 }
@@ -234,9 +240,35 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
     StrBuf full_path = StrBuf_concat(prefix_str, filename_str);
     File file = File_open(StrBuf_c_str(&full_path), FILE_READ);
     if (!File_valid(file)) {
-        // TODO: check include dirs (and system dirs)
-        PreprocErr_set_file_err(s->err, filename, *include_loc);
-        return (FileOpenRes){0};
+        StrBuf_clear(&full_path);
+        for (uint32_t i = 0; i < s->num_include_dirs; ++i) {
+            const Str dir = s->include_dirs[i];
+
+            uint32_t needed_cap = dir.len + StrBuf_len(filename);
+            if (!is_file_sep(Str_at(dir, dir.len - 1))) {
+                needed_cap += 1;
+                StrBuf_reserve(&full_path, needed_cap);
+                StrBuf_append(&full_path, dir);
+                StrBuf_push_back(&full_path, '/');
+            } else {
+                StrBuf_reserve(&full_path, needed_cap);
+                StrBuf_append(&full_path, dir);
+            }
+            StrBuf_append(&full_path, filename_str);
+
+            file = File_open(StrBuf_c_str(&full_path), FILE_READ);
+            if (File_valid(file)) {
+                StrBuf_shrink_to_fit(&full_path);
+                break;
+            }
+            StrBuf_clear(&full_path);
+        }
+
+        if (!File_valid(file)) {
+            // TODO: check include dirs (and system dirs)
+            PreprocErr_set_file_err(s->err, filename, *include_loc);
+            return (FileOpenRes){0};
+        }
     }
 
     uint32_t prefix_idx;

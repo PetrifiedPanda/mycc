@@ -47,13 +47,20 @@ typedef struct {
 
     StringMap _macro_map;
     FileInfo file_info;
+    uint32_t num_include_dirs;
+    const Str* include_dirs;
     PreprocErr* err;
 } PreprocState;
 
-PreprocState PreprocState_create(CStr start_file, PreprocErr* err);
+PreprocState PreprocState_create(CStr start_file,
+                                 uint32_t num_include_dirs,
+                                 const Str* include_dirs,
+                                 PreprocErr* err);
 
 PreprocState PreprocState_create_string(Str code,
                                         Str filename,
+                                        uint32_t num_include_dirs,
+                                        const Str* include_dirs,
                                         PreprocErr* err);
 
 void PreprocState_read_line(PreprocState* state);

@@ -114,7 +114,7 @@ static bool output_ast(const CmdArgs* args,
                        const ArchTypeInfo* type_info,
                        CStr filename) {
     PreprocErr preproc_err = PreprocErr_create();
-    PreprocRes preproc_res = preproc(filename, type_info, &preproc_err);
+    PreprocRes preproc_res = preproc(filename, args->num_include_dirs, args->include_dirs, type_info, &preproc_err);
     if (preproc_err.kind != PREPROC_ERR_NONE) {
         PreprocErr_print(mycc_stderr, &preproc_res.file_info, &preproc_err);
         PreprocErr_free(&preproc_err);
