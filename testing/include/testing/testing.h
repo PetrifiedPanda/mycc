@@ -28,11 +28,11 @@ extern jmp_buf test_jump_buf;
  */
 #define TEST_SUITE_BEGIN(this_suite_name)                                      \
     size_t this_suite_name##_test_suite(void) {                                \
-        const char* suite_name = #this_suite_name;                             \
-        printf("Starting %s tests\n", suite_name);                             \
+        Str suite_name = STR_LIT(#this_suite_name);                            \
+        mycc_printf("Starting {Str} tests\n", suite_name);                     \
         typedef struct {                                                       \
             void (*test)(void);                                                \
-            const char* name;                                                  \
+            Str name;                                                          \
         } TestAndName;                                                         \
         const TestAndName tests[] =
 
@@ -41,7 +41,7 @@ extern jmp_buf test_jump_buf;
  * TEST_SUITE_END
  */
 #define REGISTER_TEST(test_name)                                               \
-    (TestAndName) { test_name##_test, #test_name }
+    (TestAndName) { test_name##_test, STR_LIT(#test_name) }
 
 /**
  * Terminate a test suite
@@ -54,25 +54,25 @@ extern jmp_buf test_jump_buf;
     };                                                                         \
     for (size_t i = 0; i < NUM_TESTS; ++i) {                                   \
         if (setjmp(test_jump_buf)) {                                           \
-            printf("\tTest %s failed", tests[i].name);                         \
+            mycc_printf("\tTest {Str} failed", tests[i].name);                 \
         } else {                                                               \
             const struct timespec start = mycc_current_time();                 \
             tests[i].test();                                                   \
             const struct timespec end = mycc_current_time();                   \
             const struct timespec diff = mycc_time_diff(&end, &start);         \
-            printf("\tTest %s succeeded in %f ms",                             \
-                   tests[i].name,                                              \
-                   mycc_get_msecs_double(&diff));                              \
+            mycc_printf("\tTest {Str} succeeded in {float} ms",                \
+                        tests[i].name,                                         \
+                        mycc_get_msecs_double(&diff));                         \
             ++num_succeeded;                                                   \
         }                                                                      \
         assert(errno == 0);                                                    \
-        printf("\n");                                                          \
+        File_putc('\n', mycc_stdout);                                          \
     }                                                                          \
                                                                                \
-    printf("%zu/%d of %s tests successful\n\n",                                \
-           num_succeeded,                                                      \
-           NUM_TESTS,                                                          \
-           suite_name);                                                        \
+    mycc_printf("{size_t}/{uint} of {Str} tests successful\n\n",               \
+                num_succeeded,                                                 \
+                NUM_TESTS,                                                     \
+                suite_name);                                                   \
                                                                                \
     return NUM_TESTS - num_succeeded; /* return how many tests failed */       \
     }
@@ -146,10 +146,12 @@ extern jmp_buf test_jump_buf;
     const struct timespec diff = mycc_time_diff(&end, &start);                 \
     const double msecs = mycc_get_msecs_double(&diff);                         \
     if (num_failed == 0) {                                                     \
-        printf("All tests successful in %f ms\n", msecs);                      \
+        mycc_printf("All tests successful in {float} ms\n", msecs);            \
         return EXIT_SUCCESS;                                                   \
     } else {                                                                   \
-        printf("%zu tests failed in %f ms\n", num_failed, msecs);              \
+        mycc_printf("{size_t} tests failed in {float} ms\n",                   \
+                    num_failed,                                                \
+                    msecs);                                                    \
         return EXIT_FAILURE;                                                   \
     }                                                                          \
     }
