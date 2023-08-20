@@ -14,8 +14,8 @@ typedef struct {
     const char* data;
 } CStr;
 
-#define STR_LIT(lit) (Str){.len = (sizeof lit) - 1, .data = (lit)}
-#define CSTR_LIT(lit) (CStr){.len = (sizeof lit) - 1, .data = (lit)}
+#define STR_LIT(lit) (const Str){.len = (sizeof lit) - 1, .data = (lit)}
+#define CSTR_LIT(lit) (const CStr){.len = (sizeof lit) - 1, .data = (lit)}
 
 Str Str_null(void);
 CStr Str_c_str(Str s);
