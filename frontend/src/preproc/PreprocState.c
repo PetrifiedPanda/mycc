@@ -265,7 +265,7 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
         }
 
         if (!File_valid(file)) {
-            // TODO: check include dirs (and system dirs)
+            // TODO: check system dirs?
             PreprocErr_set_file_err(s->err, filename, *include_loc);
             return (FileOpenRes){0};
         }
@@ -273,6 +273,7 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
 
     uint32_t prefix_idx;
     if (sep_idx != (uint32_t)-1) {
+        // TODO: prefix_str may not be valid anymore
         StrBuf new_prefix = StrBuf_concat(
             prefix_str,
             Str_substr(filename_str, 0, sep_idx + 1));
