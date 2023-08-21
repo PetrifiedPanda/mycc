@@ -28,7 +28,7 @@ extern jmp_buf test_jump_buf;
  */
 #define TEST_SUITE_BEGIN(this_suite_name)                                      \
     size_t this_suite_name##_test_suite(void) {                                \
-        Str suite_name = STR_LIT(#this_suite_name);                            \
+        const Str suite_name = STR_LIT(#this_suite_name);                            \
         mycc_printf("Starting {Str} tests\n", suite_name);                     \
         typedef struct {                                                       \
             void (*test)(void);                                                \
