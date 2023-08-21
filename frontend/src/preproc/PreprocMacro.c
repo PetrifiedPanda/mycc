@@ -337,7 +337,7 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
         }
 
         *res_kind = kind;
-        res_val->val.spelling = *curr_spell;
+        res_val->val = *curr_spell;
         *curr_spell = StrBuf_null();
     }
 
@@ -363,7 +363,7 @@ static PreprocMacro parse_object_like_macro(TokenArr* arr) {
     for (uint32_t i = 3; i < arr->len; ++i) {
         const uint32_t res_idx = i - 3;
         res.kinds[res_idx] = arr->kinds[i];
-        res.vals[res_idx].val.spelling = arr->vals[i].spelling;
+        res.vals[res_idx].val = arr->vals[i].spelling;
         arr->vals[i].spelling = StrBuf_null();
     }
     return res;
@@ -411,7 +411,7 @@ PreprocMacro parse_preproc_macro(TokenArr* arr,
 void PreprocMacro_free(PreprocMacro* m) {
     for (uint32_t i = 0; i < m->expansion_len; ++i) {
         if (m->kinds[i] != TOKEN_INVALID) {
-            StrBuf_free(&m->vals[i].val.spelling);
+            StrBuf_free(&m->vals[i].val);
         }
     }
     mycc_free(m->kinds);
@@ -689,7 +689,7 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
             copy_into_tokens(res, &token_idx, &args.arrs[curr->arg_num], loc);
         } else {
             res->kinds[token_idx] = kind;
-            res->vals[token_idx].spelling = StrBuf_copy(&curr->val.spelling);
+            res->vals[token_idx].spelling = StrBuf_copy(&curr->val);
             res->locs[token_idx] = loc;
             ++token_idx;
         }
@@ -747,7 +747,7 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
 
         res->kinds[macro_idx + i] = macro->kinds[i];
         res->vals[macro_idx + i].spelling = StrBuf_copy(
-            &macro->vals[i].val.spelling);
+            &macro->vals[i].val);
         res->locs[macro_idx + i] = loc;
     }
 

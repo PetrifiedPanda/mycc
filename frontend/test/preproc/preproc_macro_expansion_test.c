@@ -78,9 +78,9 @@ TEST(expand_obj_like) {
     };
 
     TokenValOrArg vals[] = {
-        {.val = {.spelling = STR_BUF_NON_HEAP("1")}},
-        {.val = {.spelling = StrBuf_null()}},
-        {.val = {.spelling = STR_BUF_NON_HEAP("2")}},
+        {.val = STR_BUF_NON_HEAP("1")},
+        {.val = StrBuf_null()},
+        {.val = STR_BUF_NON_HEAP("2")},
     };
     enum {
         EXP_LEN = ARR_LEN(kinds)
@@ -142,7 +142,7 @@ TEST(expand_recursive) {
         TOKEN_IDENTIFIER,
     };
     TokenValOrArg rec_obj_vals[] = {
-        {.val = {.spelling = STR_BUF_NON_HEAP("REC_MACRO")}},
+        {.val = STR_BUF_NON_HEAP("REC_MACRO")},
     };
 
     const PreprocMacro rec_obj = {
@@ -175,9 +175,9 @@ TEST(expand_recursive) {
         TOKEN_RBRACKET,
     };
     TokenValOrArg rec_func_vals[] = {
-        {.val = {.spelling = STR_BUF_NON_HEAP("REC_FUNC_MACRO")}},
-        {.val = {.spelling = StrBuf_null()}},
-        {.val = {.spelling = StrBuf_null()}},
+        {.val = STR_BUF_NON_HEAP("REC_FUNC_MACRO")},
+        {.val = StrBuf_null()},
+        {.val = StrBuf_null()},
     };
 
     const PreprocMacro rec_func = {
@@ -216,11 +216,11 @@ TEST(expand_func_like) {
     };
     TokenValOrArg vals1[] = {
         {.arg_num = 0},
-        {.val = {.spelling = StrBuf_null()}},
+        {.val = StrBuf_null()},
         {.arg_num = 1},
-        {.val = {.spelling = StrBuf_null()}},
-        {.val = {.spelling = STR_BUF_NON_HEAP("3")}},
-        {.val = {.spelling = StrBuf_null()}},
+        {.val = StrBuf_null()},
+        {.val = STR_BUF_NON_HEAP("3")},
+        {.val = StrBuf_null()},
         {.arg_num = 1},
     };
 
@@ -300,9 +300,9 @@ TEST(expand_func_like) {
         TOKEN_I_CONSTANT,
     };
     TokenValOrArg vals3[] = {
-        {.val = {.spelling = STR_BUF_NON_HEAP("1")}},
-        {.val = {.spelling = StrBuf_null()}},
-        {.val = {.spelling = STR_BUF_NON_HEAP("1")}},
+        {.val = STR_BUF_NON_HEAP("1")},
+        {.val = StrBuf_null()},
+        {.val = STR_BUF_NON_HEAP("1")},
     };
 
     const PreprocMacro macro3 = {
@@ -356,9 +356,9 @@ TEST(expand_func_like_variadic) {
     };
     TokenValOrArg vals1[] = {
         {.arg_num = 0},
-        {.val = {.spelling = StrBuf_null()}},
+        {.val = StrBuf_null()},
         {.arg_num = 1},
-        {.val = {.spelling = StrBuf_null()}},
+        {.val = StrBuf_null()},
     };
 
     const PreprocMacro macro1 = {
@@ -390,10 +390,10 @@ TEST(expand_func_like_variadic) {
         TOKEN_INVALID,
     };
     TokenValOrArg vals2[] = {
-        {.val = {.spelling = STR_BUF_NON_HEAP("1")}},
-        {.val = {.spelling = StrBuf_null()}},
-        {.val = {.spelling = STR_BUF_NON_HEAP("2")}},
-        {.val = {.spelling = StrBuf_null()}},
+        {.val = STR_BUF_NON_HEAP("1")},
+        {.val = StrBuf_null()},
+        {.val = STR_BUF_NON_HEAP("2")},
+        {.val = StrBuf_null()},
         {.arg_num = 0},
     };
 

@@ -10,7 +10,7 @@
 
 typedef union {
     uint32_t arg_num;
-    TokenVal val;
+    StrBuf val;
 } TokenValOrArg;
 
 typedef struct PreprocMacro {

@@ -22,11 +22,11 @@ static void compare_preproc_macros(const PreprocMacro* got,
         if (got->kinds[i] == TOKEN_INVALID) {
             ASSERT_UINT(got_item->arg_num, ex_item->arg_num);
         } else {
-            const TokenVal* got_tok = &got_item->val;
-            const TokenVal* ex_tok = &ex_item->val;
+            const StrBuf* got_spell = &got_item->val;
+            const StrBuf* ex_spell = &ex_item->val;
 
-            ASSERT_STR(StrBuf_as_str(&got_tok->spelling),
-                       StrBuf_as_str(&ex_tok->spelling));    
+            ASSERT_STR(StrBuf_as_str(got_spell),
+                       StrBuf_as_str(ex_spell));    
         }
     }
 }
@@ -145,7 +145,7 @@ TEST(parse_obj_like) {
         uint8_t ex_kinds[EXPANSION_LEN];
         for (uint32_t i = 0; i < EXPANSION_LEN; ++i) {
             ex_kinds[i] = kinds[i + 3];
-            ex_vals[i] = (TokenValOrArg){.val = vals[i + 3]};
+            ex_vals[i] = (TokenValOrArg){.val = vals[i + 3].spelling};
         }
 
         TokenArr arr = {
@@ -273,15 +273,15 @@ TEST(parse_func_like) {
         };
         TokenValOrArg ex_vals[EXPANSION_LEN] = {
             {.arg_num = 0},
-            {.val = vals[11]},
-            {.val = vals[12]},
-            {.val = vals[13]},
+            {.val = vals[11].spelling},
+            {.val = vals[12].spelling},
+            {.val = vals[13].spelling},
             {.arg_num = 1},
-            {.val = vals[15]},
-            {.val = vals[16]},
-            {.val = vals[17]},
+            {.val = vals[15].spelling},
+            {.val = vals[16].spelling},
+            {.val = vals[17].spelling},
             {.arg_num = 2},
-            {.val = vals[19]},
+            {.val = vals[19].spelling},
             {.arg_num = 0},
         };
 
@@ -363,7 +363,7 @@ TEST(parse_func_like) {
         TokenValOrArg ex_vals[EXPANSION_LEN];
         for (uint32_t i = 0; i < EXPANSION_LEN; ++i) {
             ex_kinds[i] = kinds[i + 5];
-            ex_vals[i].val = vals[i + 5];
+            ex_vals[i].val = vals[i + 5].spelling;
         }
 
         PreprocMacro ex = {
@@ -556,15 +556,15 @@ TEST(parse_variadic) {
         };
         TokenValOrArg ex_vals[EXPANSION_LEN] = {
             {.arg_num = 0},
-            {.val = vals[13]},
-            {.val = vals[14]},
-            {.val = vals[15]},
+            {.val = vals[13].spelling},
+            {.val = vals[14].spelling},
+            {.val = vals[15].spelling},
             {.arg_num = 1},
-            {.val = vals[17]},
-            {.val = vals[18]},
-            {.val = vals[19]},
+            {.val = vals[17].spelling},
+            {.val = vals[18].spelling},
+            {.val = vals[19].spelling},
             {.arg_num = 2},
-            {.val = vals[21]},
+            {.val = vals[21].spelling},
             {.arg_num = 0},
         };
 
@@ -711,18 +711,18 @@ TEST(parse_variadic) {
         };
         TokenValOrArg ex_vals[EXPANSION_LEN] = {
             {.arg_num = 0},
-            {.val = vals[13]},
-            {.val = vals[14]},
-            {.val = vals[15]},
+            {.val = vals[13].spelling},
+            {.val = vals[14].spelling},
+            {.val = vals[15].spelling},
             {.arg_num = 1},
-            {.val = vals[17]},
-            {.val = vals[18]},
-            {.val = vals[19]},
+            {.val = vals[17].spelling},
+            {.val = vals[18].spelling},
+            {.val = vals[19].spelling},
             {.arg_num = 3},
-            {.val = vals[21]},
-            {.val = vals[22]},
+            {.val = vals[21].spelling},
+            {.val = vals[22].spelling},
             {.arg_num = 2},
-            {.val = vals[24]},
+            {.val = vals[24].spelling},
             {.arg_num = 0},
         };
 
@@ -959,7 +959,7 @@ TEST(parse_obj_like_starting_with_bracket) {
     TokenValOrArg ex_vals[EXPANSION_LEN];
     for (uint32_t i = 0; i < EXPANSION_LEN; ++i) {
         ex_kinds[i] = kinds[i + 3];
-        ex_vals[i].val = vals[i + 3];
+        ex_vals[i].val = vals[i + 3].spelling;
     }
 
     TokenArr arr = {
