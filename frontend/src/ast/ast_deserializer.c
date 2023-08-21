@@ -152,10 +152,21 @@ static bool deserialize_ast_node_info(AstDeserializer* r, AstNodeInfo* info) {
 }
 
 static bool deserialize_type_quals(AstDeserializer* r, TypeQuals* res) {
-    return (deserialize_bool(r, &res->is_const)
-            && deserialize_bool(r, &res->is_restrict)
-            && deserialize_bool(r, &res->is_volatile)
-            && deserialize_bool(r, &res->is_atomic));
+    bool is_const, is_restrict, is_volatile, is_atomic;
+    if (!(deserialize_bool(r, &is_const)
+            && deserialize_bool(r, &is_restrict)
+            && deserialize_bool(r, &is_volatile)
+            && deserialize_bool(r, &is_atomic))) {
+        return false;
+    }
+
+    *res = (TypeQuals){
+        is_const,
+        is_restrict,
+        is_volatile,
+        is_atomic,  
+    };
+    return true;
 }
 
 static TypeName* deserialize_type_name(AstDeserializer* r);
@@ -627,7 +638,7 @@ static bool deserialize_postfix_expr(AstDeserializer* r, PostfixExpr* res) {
         }
     }
 
-    res->len = 0;
+    res->num_suffixes = 0;
     res->suffixes = NULL;
 
     uint32_t len;
@@ -636,8 +647,8 @@ static bool deserialize_postfix_expr(AstDeserializer* r, PostfixExpr* res) {
     }
 
     res->suffixes = alloc_or_null(sizeof *res->suffixes * len);
-    for (; res->len != len; ++res->len) {
-        if (!deserialize_postfix_suffix(r, &res->suffixes[res->len])) {
+    for (; res->num_suffixes != len; ++res->num_suffixes) {
+        if (!deserialize_postfix_suffix(r, &res->suffixes[res->num_suffixes])) {
             goto fail;
         }
     }
@@ -1179,10 +1190,10 @@ static DirectAbsDeclarator* deserialize_direct_abs_declarator(
     res->info = info;
     res->bracket_decl = bracket_decl;
     res->following_suffixes = mycc_alloc(sizeof *res->following_suffixes * len);
-    for (res->len = 0; res->len != len; ++res->len) {
+    for (res->num_suffixes = 0; res->num_suffixes != len; ++res->num_suffixes) {
         if (!deserialize_abs_arr_or_func_suffix(
                 r,
-                &res->following_suffixes[res->len])) {
+                &res->following_suffixes[res->num_suffixes])) {
             DirectAbsDeclarator_free(res);
             return NULL;
         }
@@ -1623,11 +1634,16 @@ static EnumSpec* deserialize_enum_spec(AstDeserializer* r) {
 }
 
 static bool deserialize_type_modifiers(AstDeserializer* r, TypeModifiers* res) {
-    if (!(deserialize_bool(r, &res->is_unsigned)
-          && deserialize_bool(r, &res->is_signed)
-          && deserialize_bool(r, &res->is_short))) {
+    bool is_unsigned, is_signed, is_short;
+    if (!(deserialize_bool(r, &is_unsigned)
+          && deserialize_bool(r, &is_signed)
+          && deserialize_bool(r, &is_short))) {
         return false;
     }
+
+    res->is_unsigned = is_unsigned;
+    res->is_signed = is_signed;
+    res->is_short = is_short;
 
     uint64_t num_long;
     if (!deserialize_u64(r, &num_long)) {
@@ -1635,8 +1651,14 @@ static bool deserialize_type_modifiers(AstDeserializer* r, TypeModifiers* res) {
     }
     res->num_long = (unsigned int)num_long;
     assert(res->num_long == (unsigned int)num_long);
-    return deserialize_bool(r, &res->is_complex)
-           && deserialize_bool(r, &res->is_imaginary);
+    bool is_complex, is_imaginary;
+    if (!(deserialize_bool(r, &is_complex)
+           && deserialize_bool(r, &is_imaginary))) {
+        return false;
+    }
+    res->is_complex = is_complex;
+    res->is_imaginary = is_imaginary;
+    return true;
 }
 
 static bool deserialize_type_specs(AstDeserializer* r, TypeSpecs* res) {
@@ -1752,17 +1774,37 @@ static bool deserialize_align_spec(AstDeserializer* r, AlignSpec* res) {
 }
 
 static bool deserialize_func_specs(AstDeserializer* r, FuncSpecs* res) {
-    return deserialize_bool(r, &res->is_inline)
-           && deserialize_bool(r, &res->is_noreturn);
+    bool is_inline, is_noreturn;
+    if (!(deserialize_bool(r, &is_inline)
+         && deserialize_bool(r, &is_noreturn))) {
+        return false;
+    }
+    *res =  (FuncSpecs){
+        .is_inline = is_inline,
+        .is_noreturn = is_noreturn,
+    };
+    return true;
 }
 
 static bool deserialize_storage_class(AstDeserializer* r, StorageClass* res) {
-    return deserialize_bool(r, &res->is_typedef)
-           && deserialize_bool(r, &res->is_extern)
-           && deserialize_bool(r, &res->is_static)
-           && deserialize_bool(r, &res->is_thread_local)
-           && deserialize_bool(r, &res->is_auto)
-           && deserialize_bool(r, &res->is_register);
+    bool is_typedef, is_extern, is_static, is_thread_local, is_auto, is_register;
+    if (!(deserialize_bool(r, &is_typedef)
+           && deserialize_bool(r, &is_extern)
+           && deserialize_bool(r, &is_static)
+           && deserialize_bool(r, &is_thread_local)
+           && deserialize_bool(r, &is_auto)
+           && deserialize_bool(r, &is_register))) {
+        return false;
+    }
+    *res = (StorageClass){
+        is_typedef,
+        is_extern,
+        is_static,
+        is_thread_local,
+        is_auto,
+        is_register,  
+    };
+    return true;
 }
 
 static bool deserialize_declaration_specs(AstDeserializer* r, DeclarationSpecs* res) {

@@ -68,7 +68,7 @@ static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
             decl->bracket_decl = bracket_decl.abs_decl;
 
             if (!ParserState_accept(s, TOKEN_RBRACKET)) {
-                decl->len = 0;
+                decl->num_suffixes = 0;
                 decl->following_suffixes = NULL;
                 DirectAbsDeclarator_free(decl);
                 mycc_free(res->abs_decl);

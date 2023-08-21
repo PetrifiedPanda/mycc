@@ -82,6 +82,7 @@ typedef struct {
 
 typedef struct PostfixExpr {
     bool is_primary;
+    uint32_t num_suffixes;
     union {
         PrimaryExpr primary;
         struct {
@@ -90,7 +91,6 @@ typedef struct PostfixExpr {
             InitList init_list;
         };
     };
-    uint32_t len;
     PostfixSuffix* suffixes;
 } PostfixExpr;
 

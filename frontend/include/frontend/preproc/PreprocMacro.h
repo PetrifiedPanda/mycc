@@ -14,9 +14,9 @@ typedef union {
 } TokenValOrArg;
 
 typedef struct PreprocMacro {
-    bool is_func_macro;
-    bool is_variadic;
-    uint32_t num_args;
+    bool is_func_macro: 1;
+    bool is_variadic: 1;
+    uint32_t num_args: sizeof(uint32_t) * CHAR_BIT - 2;
 
     uint32_t expansion_len;
     uint8_t* kinds;

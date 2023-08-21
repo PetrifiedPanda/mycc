@@ -15,17 +15,17 @@
 typedef struct AlignSpec AlignSpec;
 
 typedef struct {
-    bool is_typedef;
-    bool is_extern;
-    bool is_static;
-    bool is_thread_local;
-    bool is_auto;
-    bool is_register;
+    bool is_typedef: 1;
+    bool is_extern: 1;
+    bool is_static: 1;
+    bool is_thread_local: 1;
+    bool is_auto: 1;
+    bool is_register: 1;
 } StorageClass;
 
 typedef struct {
-    bool is_inline;
-    bool is_noreturn;
+    bool is_inline: 1;
+    bool is_noreturn: 1;
 } FuncSpecs;
 
 typedef struct DeclarationSpecs {

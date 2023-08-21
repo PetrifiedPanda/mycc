@@ -710,8 +710,8 @@ static void dump_postfix_expr(AstDumper* d, const PostfixExpr* e) {
         dump_init_list(d, &e->init_list);
     }
 
-    dumper_println(d, "len: {u32}", e->len);
-    for (uint32_t i = 0; i < e->len; ++i) {
+    dumper_println(d, "len: {u32}", e->num_suffixes);
+    for (uint32_t i = 0; i < e->num_suffixes; ++i) {
         dump_postfix_suffix(d, &e->suffixes[i]);
     }
 
@@ -903,7 +903,7 @@ static void dump_direct_abs_declarator(AstDumper* d,
     if (decl->bracket_decl) {
         dump_abs_declarator(d, decl->bracket_decl);
     }
-    for (uint32_t i = 0; i < decl->len; ++i) {
+    for (uint32_t i = 0; i < decl->num_suffixes; ++i) {
         dump_abs_arr_or_func_suffix(d, &decl->following_suffixes[i]);
     }
 

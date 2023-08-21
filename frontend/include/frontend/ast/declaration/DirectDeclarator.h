@@ -43,12 +43,12 @@ typedef struct {
 
 typedef struct DirectDeclarator {
     AstNodeInfo info;
-    bool is_id;
     union {
         Identifier* id;
         Declarator* bracket_decl;
     };
     uint32_t len;
+    bool is_id;
     ArrOrFuncSuffix* suffixes;
 } DirectDeclarator;
 

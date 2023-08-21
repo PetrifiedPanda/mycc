@@ -124,28 +124,28 @@ static bool parse_abs_arr_or_func_suffix(ParserState* s,
 
 bool parse_abs_arr_or_func_suffixes(ParserState* s, DirectAbsDeclarator* res) {
     res->following_suffixes = NULL;
-    res->len = 0;
-    uint32_t alloc_len = res->len;
+    res->num_suffixes = 0;
+    uint32_t alloc_len = res->num_suffixes;
     while (ParserState_curr_kind(s) == TOKEN_LBRACKET
            || ParserState_curr_kind(s) == TOKEN_LINDEX) {
-        if (res->len == alloc_len) {
+        if (res->num_suffixes == alloc_len) {
             mycc_grow_alloc((void**)&res->following_suffixes,
                             &alloc_len,
                             sizeof *res->following_suffixes);
         }
 
         if (!parse_abs_arr_or_func_suffix(s,
-                                          &res->following_suffixes[res->len])) {
+                                          &res->following_suffixes[res->num_suffixes])) {
             DirectAbsDeclarator_free(res);
             return false;
         }
 
-        ++res->len;
+        ++res->num_suffixes;
     }
 
     res->following_suffixes = mycc_realloc(res->following_suffixes,
                                            sizeof *res->following_suffixes
-                                               * res->len);
+                                               * res->num_suffixes);
     return true;
 }
 
@@ -198,7 +198,7 @@ static void DirectAbsDeclarator_free_children(struct DirectAbsDeclarator* d) {
         AbsDeclarator_free(d->bracket_decl);
     }
 
-    for (uint32_t i = 0; i < d->len; ++i) {
+    for (uint32_t i = 0; i < d->num_suffixes; ++i) {
         AbsArrOrFuncSuffix_free(&d->following_suffixes[i]);
     }
     mycc_free(d->following_suffixes);

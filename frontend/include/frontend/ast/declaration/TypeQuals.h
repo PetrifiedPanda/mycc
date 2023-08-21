@@ -6,10 +6,10 @@
 #include "frontend/parser/ParserState.h"
 
 typedef struct TypeQuals {
-    bool is_const;
-    bool is_restrict;
-    bool is_volatile;
-    bool is_atomic;
+    bool is_const: 1;
+    bool is_restrict: 1;
+    bool is_volatile: 1;
+    bool is_atomic: 1;
 } TypeQuals;
 
 TypeQuals TypeQuals_create(void);

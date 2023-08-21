@@ -25,12 +25,12 @@ typedef enum {
 } TypeSpecKind;
 
 typedef struct {
-    bool is_unsigned;
-    bool is_signed;
-    bool is_short;
-    unsigned int num_long;
-    bool is_complex;
-    bool is_imaginary;
+    bool is_unsigned: 1;
+    bool is_signed: 1;
+    bool is_short: 1;
+    unsigned int num_long: 3;
+    bool is_complex: 1;
+    bool is_imaginary: 1;
 } TypeModifiers;
 
 typedef struct {

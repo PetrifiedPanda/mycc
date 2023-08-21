@@ -647,8 +647,8 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
         }
     }
 
-    assert((macro->is_variadic && args.len == macro->num_args + 1)
-           || (!macro->is_variadic && args.len == macro->num_args));
+    assert((macro->is_variadic && args.len == (uint32_t)macro->num_args + 1)
+           || (!macro->is_variadic && args.len == (uint32_t)macro->num_args));
 
     const uint32_t exp_len = get_expansion_len(macro, &args);
     const uint32_t macro_call_len = macro_end - macro_idx + 1;

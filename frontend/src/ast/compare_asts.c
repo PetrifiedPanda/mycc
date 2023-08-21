@@ -346,8 +346,8 @@ static bool compare_postfix_exprs(const PostfixExpr* e1,
         ASSERT(compare_type_names(e1->type_name, e2->type_name));
         ASSERT(compare_init_list(&e1->init_list, &e2->init_list));
     }
-    ASSERT_U32(e1->len, e2->len);
-    for (uint32_t i = 0; i < e1->len; ++i) {
+    ASSERT_U32(e1->num_suffixes, e2->num_suffixes);
+    for (uint32_t i = 0; i < e1->num_suffixes; ++i) {
         ASSERT(compare_postfix_suffixes(&e1->suffixes[i], &e2->suffixes[i]));
     }
     return true;
@@ -570,8 +570,8 @@ static bool compare_direct_abs_declarators(
     COMPARE_NULLABLE(d1->bracket_decl,
                      d2->bracket_decl,
                      compare_abs_declarators);
-    ASSERT_U32(d1->len, d2->len);
-    for (uint32_t i = 0; i < d1->len; ++i) {
+    ASSERT_U32(d1->num_suffixes, d2->num_suffixes);
+    for (uint32_t i = 0; i < d1->num_suffixes; ++i) {
         ASSERT(compare_abs_arr_or_func_suffix(&d1->following_suffixes[i],
                                               &d2->following_suffixes[i]));
     }

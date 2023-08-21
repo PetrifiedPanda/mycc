@@ -225,7 +225,7 @@ PostfixSuffix parse_postfix_inc_dec_suffix(ParserState* s) {
 static bool parse_postfix_suffixes(ParserState* s, PostfixExpr* res) {
     uint32_t alloc_len = 0;
     while (is_posfix_op(ParserState_curr_kind(s))) {
-        if (res->len == alloc_len) {
+        if (res->num_suffixes == alloc_len) {
             mycc_grow_alloc((void**)&res->suffixes,
                             &alloc_len,
                             sizeof *res->suffixes);
@@ -233,39 +233,39 @@ static bool parse_postfix_suffixes(ParserState* s, PostfixExpr* res) {
 
         switch (ParserState_curr_kind(s)) {
             case TOKEN_LINDEX:
-                if (!parse_postfix_arr_suffix(s, &res->suffixes[res->len])) {
+                if (!parse_postfix_arr_suffix(s, &res->suffixes[res->num_suffixes])) {
                     return false;
                 }
                 break;
 
             case TOKEN_LBRACKET:
-                if (!parse_postfix_func_suffix(s, &res->suffixes[res->len])) {
+                if (!parse_postfix_func_suffix(s, &res->suffixes[res->num_suffixes])) {
                     return false;
                 }
                 break;
 
             case TOKEN_DOT:
             case TOKEN_PTR_OP:
-                if (!parse_postfix_access_suffix(s, &res->suffixes[res->len])) {
+                if (!parse_postfix_access_suffix(s, &res->suffixes[res->num_suffixes])) {
                     return false;
                 }
                 break;
 
             case TOKEN_INC:
             case TOKEN_DEC:
-                res->suffixes[res->len] = parse_postfix_inc_dec_suffix(s);
+                res->suffixes[res->num_suffixes] = parse_postfix_inc_dec_suffix(s);
                 break;
 
             default:
                 UNREACHABLE();
         }
 
-        ++res->len;
+        ++res->num_suffixes;
     }
 
-    if (alloc_len != res->len) {
+    if (alloc_len != res->num_suffixes) {
         res->suffixes = mycc_realloc(res->suffixes,
-                                     sizeof *res->suffixes * res->len);
+                                     sizeof *res->suffixes * res->num_suffixes);
     }
 
     return true;
@@ -273,7 +273,7 @@ static bool parse_postfix_suffixes(ParserState* s, PostfixExpr* res) {
 
 static bool parse_postfix_expr_inplace(ParserState* s, PostfixExpr* res) {
     res->suffixes = NULL;
-    res->len = 0;
+    res->num_suffixes = 0;
 
     if (ParserState_curr_kind(s) == TOKEN_LBRACKET
         && next_is_type_name(s)) {
@@ -334,7 +334,7 @@ static bool parse_postfix_expr_type_name(ParserState* s,
     assert(type_name);
     assert(ParserState_curr_kind(s) == TOKEN_LBRACE);
 
-    res->len = 0;
+    res->num_suffixes = 0;
     res->suffixes = NULL;
     res->is_primary = false;
     res->info = AstNodeInfo_create(start_bracket_idx);
@@ -657,7 +657,7 @@ void PostfixExpr_free_children(PostfixExpr* p) {
         TypeName_free(p->type_name);
         InitList_free_children(&p->init_list);
     }
-    for (uint32_t i = 0; i < p->len; ++i) {
+    for (uint32_t i = 0; i < p->num_suffixes; ++i) {
         PostfixSuffix* s = &p->suffixes[i];
         switch (s->kind) {
             case POSTFIX_INDEX:

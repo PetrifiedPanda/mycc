@@ -303,8 +303,8 @@ static void serialize_postfix_expr(AstSerializer* d, const PostfixExpr* expr) {
         serialize_type_name(d, expr->type_name);
         serialize_init_list(d, &expr->init_list);
     }
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
+    serialize_u32(d, expr->num_suffixes);
+    for (uint32_t i = 0; i < expr->num_suffixes; ++i) {
         serialize_postfix_suffix(d, &expr->suffixes[i]);
     }
 }
@@ -508,8 +508,8 @@ static void serialize_direct_abs_declarator(AstSerializer* d, const DirectAbsDec
     if (has_bracket_decl) {
         serialize_abs_declarator(d, decl->bracket_decl);
     }
-    serialize_u32(d, decl->len);
-    for (uint32_t i = 0; i < decl->len; ++i) {
+    serialize_u32(d, decl->num_suffixes);
+    for (uint32_t i = 0; i < decl->num_suffixes; ++i) {
         serialize_abs_arr_or_func_suffix(d, &decl->following_suffixes[i]);
     }
 }
