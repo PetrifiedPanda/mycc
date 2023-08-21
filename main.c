@@ -28,22 +28,22 @@ int main(int argc, char** argv) {
         false;
 #endif
     const ArchTypeInfo type_info = get_arch_type_info(ARCH_X86_64, is_windows);
-
-    for (uint32_t i = 0; i < args.num_files; ++i) {
-        const CStr filename = args.files[i];
-        if (args.action == ARG_ACTION_CONVERT_BIN_TO_TEXT) {
-            if (!convert_bin_to_text(&args, filename)) {
+    
+    if (args.action == ARG_ACTION_CONVERT_BIN_TO_TEXT) {
+        for (uint32_t i = 0; i < args.num_files; ++i) {
+            if (!convert_bin_to_text(&args, args.files[i])) {
                 CmdArgs_free(&args);
                 return EXIT_FAILURE;
             }
-        } else {
-            if (!output_ast(&args, &type_info, filename)) {
+        }
+    } else {
+        for (uint32_t i = 0; i < args.num_files; ++i) {
+            if (!output_ast(&args, &type_info, args.files[i])) {
                 CmdArgs_free(&args);
                 return EXIT_FAILURE;
             }
         }
     }
-    CmdArgs_free(&args);
     return EXIT_SUCCESS;
 }
 
