@@ -44,6 +44,7 @@ int main(int argc, char** argv) {
             }
         }
     }
+    CmdArgs_free(&args);
     return EXIT_SUCCESS;
 }
 
