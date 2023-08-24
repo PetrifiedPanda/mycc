@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+/**
+ * Special node types
+ * subrange ast_node_kind[lhs...rhs] the following nodes will all be of type type and rhs will be the next node after the list
+ * token_range token_kind[token_idx...rhs] rhs is the length of tokens that all have the same type
+ */
 typedef enum {
     // subrange (func_def | declaration)[lhs...rhs]
     AST_TRANSLATION_UNIT = 0,
@@ -128,11 +133,11 @@ typedef enum {
     AST_ABS_ARR_SUFFIX_ASTERISK,
     // param_type_list (might be removeable)
     AST_ABS_FUNC_SUFFIX,
-    // Eiteher assign expr or init_list (might be removeable)
+    // lhs assign_expr | braced_initializer (might be removeable)
     AST_INITIALIZER,    
     // subrange designation_init[lhs...rhs]
     AST_INIT_LIST,
-    // lhs designator_list, rhs initializer
+    // lhs ?designator_list, rhs initializer
     AST_DESIGNATION_INIT,
     // subrange designator[lhs...rhs]
     AST_DESIGNATOR_LIST,
@@ -263,11 +268,13 @@ typedef enum {
     // main token is string literal / __func__
     AST_STRING_LITERAL,
     AST_FUNC,
-    // '(' lhs compound_literal_type ')' '{' rhs init_list '}'
+    // '(' lhs compound_literal_type ')' rhs braced_initializer
     AST_COMPOUND_LITERAL,
+    // '{' rhs ?init_list ?',' '}'
+    AST_BRACED_INITIALIZER,
     // lhs ?storage_class_specs rhs type_name
     AST_COMPOUND_LITERAL_TYPE,
-    // subrange storage_class_spec[lhs...rhs]
+    // token_range storage_class_spec[token_idx...rhs]
     AST_STORAGE_CLASS_SPECS,
     // main token is identifier
     AST_IDENTIFIER,

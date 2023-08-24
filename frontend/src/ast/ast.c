@@ -14,13 +14,19 @@ static void AST_ensure_capacity(AST* ast) {
     }
 }
 
-static uint32_t add_node(AST* ast, ASTNodeKind kind, uint32_t main_token, uint32_t rhs, bool alloc_type_data) {
+static uint32_t add_node(AST* ast,
+                         ASTNodeKind kind,
+                         uint32_t main_token,
+                         uint32_t rhs,
+                         bool alloc_type_data) {
     AST_ensure_capacity(ast);
-    
+
     uint32_t type_data_idx = (uint32_t)-1;
     if (alloc_type_data) {
         if (ast->type_data_len == ast->type_data_cap) {
-            mycc_grow_alloc((void**)&ast->type_data, &ast->type_data_cap, sizeof *ast->type_data);
+            mycc_grow_alloc((void**)&ast->type_data,
+                            &ast->type_data_cap,
+                            sizeof *ast->type_data);
         }
         type_data_idx = ast->type_data_len;
         ++ast->type_data_len;
@@ -32,13 +38,14 @@ static uint32_t add_node(AST* ast, ASTNodeKind kind, uint32_t main_token, uint32
         .rhs = rhs,
         .type_data_idx = type_data_idx,
     };
-    
 
     ++ast->len;
     return idx;
 }
 
-static uint32_t add_node_without_children(AST* ast, ASTNodeKind kind, uint32_t main_token) {    
+static uint32_t add_node_without_children(AST* ast,
+                                          ASTNodeKind kind,
+                                          uint32_t main_token) {
     return add_node(ast, kind, main_token, 0, true);
 }
 
@@ -88,7 +95,7 @@ static uint32_t parse_generic_assoc_2(ParserState* s, AST* ast) {
 static uint32_t parse_generic_assoc_list_2(ParserState* s, AST* ast) {
     // TODO: this probably does not need a node
     const uint32_t res = add_node(ast, AST_GENERIC_ASSOC_LIST, s->_it, 0, true);
-    
+
     if (parse_generic_assoc_2(s, ast) == 0) {
         return 0;
     }
@@ -167,7 +174,12 @@ static uint32_t parse_primary_expr_2(ParserState* s, AST* ast) {
             break;
         default: {
             static const TokenKind ex[] = {
-                TOKEN_IDENTIFIER, TOKEN_I_CONSTANT, TOKEN_F_CONSTANT, TOKEN_STRING_LITERAL, TOKEN_FUNC_NAME, TOKEN_LBRACKET,
+                TOKEN_IDENTIFIER,
+                TOKEN_I_CONSTANT,
+                TOKEN_F_CONSTANT,
+                TOKEN_STRING_LITERAL,
+                TOKEN_FUNC_NAME,
+                TOKEN_LBRACKET,
             };
             expected_tokens_error(s, ex, ARR_LEN(ex));
             return 0;
@@ -177,18 +189,134 @@ static uint32_t parse_primary_expr_2(ParserState* s, AST* ast) {
     return res;
 }
 
+static uint32_t parse_storage_class_specs_2(ParserState* s, AST* ast) {
+    assert(is_storage_class_spec(ParserState_curr_kind(s)));
+    const uint32_t res = add_node(ast,
+                                  AST_STORAGE_CLASS_SPECS,
+                                  s->_it,
+                                  0,
+                                  false);
+    ParserState_accept_it(s);
+    uint32_t len = 1;
+    while (is_storage_class_spec(ParserState_curr_kind(s))) {
+        ++len;
+        ParserState_accept_it(s);
+    }
+    // here rhs is not a node index, but how many tokens from token_idx are
+    // storage_class specs
+    ast->datas[res].rhs = len;
+
+    return res;
+}
+
 static uint32_t parse_compound_literal_type_2(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast,
+                                  AST_COMPOUND_LITERAL_TYPE,
+                                  s->_it,
+                                  0,
+                                  false);
+    if (is_storage_class_spec(ParserState_curr_kind(s))) {
+        if (parse_storage_class_specs_2(s, ast) == 0) {
+            return 0;
+        }
+    }
+
+    const uint32_t rhs = parse_type_name_2(s, ast);
+    ast->datas[res].rhs = rhs;
+    return res;
+}
+
+static uint32_t parse_designation_2(ParserState* s, AST* ast) {
     (void)s;
     (void)ast;
     // TODO:
     return 0;
 }
 
+static uint32_t parse_braced_initializer_2(ParserState* s, AST* ast);
+
+static uint32_t parse_initializer_2(ParserState* s, AST* ast) {
+    // TODO: Might not need a node
+    const uint32_t res = add_node(ast, AST_INITIALIZER, s->_it, 0, false);
+    if (ParserState_curr_kind(s) == TOKEN_RBRACE) {
+        if (parse_braced_initializer_2(s, ast) == 0) {
+            return 0;
+        }
+    } else {
+        if (parse_assign_expr_2(s, ast) == 0) {
+            return 0;
+        }
+    }
+    return res;
+}
+
+static bool is_designation(TokenKind k) {
+    switch (k) {
+        case TOKEN_LINDEX:
+        case TOKEN_DOT:
+            return true;
+        default:
+            return false;
+    }
+}
+
+static uint32_t parse_designation_init_2(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast, AST_DESIGNATION_INIT, s->_it, 0, false);
+    if (is_designation(ParserState_curr_kind(s))) {
+        if (parse_designation_2(s, ast) == 0) {
+            return 0;
+        }
+    }
+
+    const uint32_t rhs = parse_initializer_2(s, ast);
+    if (rhs == 0) {
+        return 0;
+    }
+    ast->datas[res].rhs = rhs;
+    return res;
+}
+
 static uint32_t parse_init_list_2(ParserState* s, AST* ast) {
-    (void)s;
-    (void)ast;
-    // TODO:
-    return 0;
+    const uint32_t res = add_node(ast, AST_INIT_LIST, s->_it, 0, false);
+    if (parse_designation_init_2(s, ast) == 0) {
+        return 0;
+    }
+
+    while (ParserState_curr_kind(s) == TOKEN_COMMA && ParserState_next_token_kind(s) != TOKEN_RBRACE) {
+        ParserState_accept_it(s);
+
+        if (parse_designation_init_2(s, ast) == 0) {
+            return 0;
+        }
+    }
+    ast->datas[res].rhs = ast->len;
+    return res;
+}
+
+static uint32_t parse_braced_initializer_2(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast, AST_BRACED_INITIALIZER, s->_it, 0, false);
+    if (!ParserState_accept(s, TOKEN_LBRACE)) {
+        return 0;
+    }
+
+    if (ParserState_curr_kind(s) != TOKEN_RBRACE) {
+        const uint32_t rhs = parse_init_list_2(s, ast);
+        if (rhs == 0) {
+            return 0;
+        }
+        
+        if (ParserState_curr_kind(s) == TOKEN_COMMA) {
+            ParserState_accept_it(s);
+        }
+        if (!ParserState_accept(s, TOKEN_RBRACE)) {
+            return 0;
+        }
+        ast->datas[res].rhs = rhs;
+        return res;
+    } else {
+        ParserState_accept_it(s);
+        return res;
+    }
 }
 
 static uint32_t parse_compound_literal_2(ParserState* s, AST* ast) {
@@ -202,17 +330,8 @@ static uint32_t parse_compound_literal_2(ParserState* s, AST* ast) {
         return 0;
     }
     
-    if (!ParserState_accept(s, TOKEN_LBRACE)) {
-        return 0;
-    }
-    uint32_t rhs = 0;
-    if (ParserState_curr_kind(s) != TOKEN_RBRACE) {
-        rhs = parse_init_list_2(s, ast);
-        if (rhs == 0) {
-            return 0;
-        }
-    }
-    if (!ParserState_accept(s, TOKEN_RBRACE)) {
+    const uint32_t rhs = parse_braced_initializer_2(s, ast);
+    if (rhs == 0) {
         return 0;
     }
     ast->datas[res].rhs = rhs;
@@ -259,16 +378,20 @@ static uint32_t parse_arg_expr_list_2(ParserState* s, AST* ast) {
 
 uint32_t parse_postfix_expr_2(ParserState* s, AST* ast) {
     const uint32_t res = add_node(ast, AST_POSTFIX_EXPR, s->_it, 0, true);
-    
+
     if (ParserState_curr_kind(s) == TOKEN_LBRACKET && next_is_type_name(s)) {
-        parse_compound_literal_2(s, ast); 
+        parse_compound_literal_2(s, ast);
     } else {
         parse_primary_expr_2(s, ast);
     }
-    
+
     uint32_t curr_node_idx = res;
     while (is_postfix_op(ParserState_curr_kind(s))) {
-        const uint32_t rhs = add_node(ast, AST_TRANSLATION_UNIT, s->_it, 0, true);
+        const uint32_t rhs = add_node(ast,
+                                      AST_TRANSLATION_UNIT,
+                                      s->_it,
+                                      0,
+                                      true);
         switch (ParserState_curr_kind(s)) {
             case TOKEN_LINDEX:
                 ast->kinds[rhs] = AST_POSTFIX_OP_INDEX;
