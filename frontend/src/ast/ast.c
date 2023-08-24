@@ -787,7 +787,7 @@ static uint32_t parse_log_or_expr_2(ParserState* s, AST* ast) {
                                        AST_LOG_OR_EXPR);
 }
 
-uint32_t parse_cond_expr_2(ParserState* s, AST* ast);
+static uint32_t parse_cond_expr_2(ParserState* s, AST* ast);
 
 static uint32_t parse_cond_items_2(ParserState* s, AST* ast) {
     const uint32_t res = add_node(ast, AST_COND_ITEMS, s->_it, true);
@@ -807,7 +807,7 @@ static uint32_t parse_cond_items_2(ParserState* s, AST* ast) {
     return res;
 }
 
-uint32_t parse_cond_expr_2(ParserState* s, AST* ast) {
+static uint32_t parse_cond_expr_2(ParserState* s, AST* ast) {
     const uint32_t res = add_node(ast, AST_COND_EXPR, s->_it, true);
     if (parse_log_or_expr_2(s, ast) == 0) {
         return 0;
@@ -824,11 +824,44 @@ uint32_t parse_cond_expr_2(ParserState* s, AST* ast) {
     return res;
 }
 
+static ASTNodeKind assign_op_to_assign_expr_kind(TokenKind k) {
+    switch (k) {
+        case TOKEN_ASSIGN:
+            return AST_ASSIGN;
+        case TOKEN_MUL_ASSIGN:
+            return AST_ASSIGN_MUL;
+        case TOKEN_DIV_ASSIGN:
+            return AST_ASSIGN_DIV;
+        case TOKEN_MOD_ASSIGN:
+            return AST_ASSIGN_MOD;
+        case TOKEN_ADD_ASSIGN:
+            return AST_ASSIGN_ADD;
+        case TOKEN_SUB_ASSIGN:
+            return AST_ASSIGN_SUB;
+        case TOKEN_LSHIFT_ASSIGN:
+            return AST_ASSIGN_SHL;
+        case TOKEN_RSHIFT_ASSIGN:
+            return AST_ASSIGN_SHR;
+        case TOKEN_AND_ASSIGN:
+            return AST_ASSIGN_AND;
+        case TOKEN_XOR_ASSIGN:
+            return AST_ASSIGN_XOR;
+        case TOKEN_OR_ASSIGN:
+            return AST_ASSIGN_OR;
+        default:
+            return AST_TRANSLATION_UNIT;
+    }
+}
+
+// In the grammar it the first element is actually a unary expression, but
+// because differentiating is actually not that easy, leave that error to
+// contextanalysis
 static uint32_t parse_assign_expr_2(ParserState* s, AST* ast) {
-    (void)s;
-    (void)ast;
-    // TODO:
-    return 0;
+    return parse_binary_expr_multiple_ops(s,
+                                          ast,
+                                          AST_ASSIGN,
+                                          parse_cond_expr_2,
+                                          assign_op_to_assign_expr_kind);
 }
 
 static uint32_t parse_expr_2(ParserState* s, AST* ast) {
