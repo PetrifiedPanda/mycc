@@ -277,12 +277,20 @@ typedef struct {
     uint32_t main_token;
     // lhs is implicit, as it is always the next node
     uint32_t rhs;
+    uint32_t type_data_idx;
 } ASTNodeData;
+
+typedef struct {
+    // TODO:
+    uint32_t dummy;
+} ASTTypeData;
 
 typedef struct {
     uint32_t len, cap;
     uint8_t* kinds;
     ASTNodeData* datas;
+    uint32_t type_data_len, type_data_cap;
+    ASTTypeData* type_data;
 } AST;
 
 #include "TranslationUnit.h"
