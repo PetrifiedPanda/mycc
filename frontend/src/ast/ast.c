@@ -226,11 +226,66 @@ static uint32_t parse_compound_literal_type_2(ParserState* s, AST* ast) {
     return res;
 }
 
-static uint32_t parse_designation_2(ParserState* s, AST* ast) {
+static bool is_designator(TokenKind k) {
+    switch (k) {
+        case TOKEN_LINDEX:
+        case TOKEN_DOT:
+            return true;
+        default:
+            return false;
+    }
+}
+
+static uint32_t parse_const_expr_2(ParserState* s, AST* ast) {
     (void)s;
     (void)ast;
     // TODO:
     return 0;
+}
+
+static uint32_t parse_designator_2(ParserState* s, AST* ast) {
+    assert(is_designator(ParserState_curr_kind(s)));
+    // TODO: might not need node
+    const uint32_t res = add_node(ast, AST_DESIGNATOR, s->_it, 0, true);
+    switch (ParserState_curr_kind(s)) {
+        case TOKEN_LINDEX:
+            ParserState_accept_it(s);
+            if (parse_const_expr_2(s, ast) == 0) {
+                return 0;
+            }
+            if (!ParserState_accept(s, TOKEN_RINDEX)) {
+                return 0;
+            }
+            break;
+        case TOKEN_DOT:
+            ParserState_accept_it(s);
+            const uint32_t id_idx = s->_it;
+            if (!ParserState_accept(s, TOKEN_IDENTIFIER)) {
+                return 0;
+            }
+            add_node_without_children(ast, AST_IDENTIFIER, id_idx);
+            break;
+        default:
+            UNREACHABLE();
+    }
+    return res;
+}
+
+static uint32_t parse_designator_list_2(ParserState* s, AST* ast) {
+    assert(is_designator(ParserState_curr_kind(s)));
+    const uint32_t res = add_node(ast, AST_DESIGNATOR_LIST, s->_it, 0, false);
+    if (parse_designator_2(s, ast) == 0) {
+        return 0;
+    }
+
+    while (is_designator(ParserState_curr_kind(s))) {
+        if (parse_designator_2(s, ast) == 0) {
+            return 0;
+        }
+    }
+
+    ast->datas[res].rhs = ast->len;
+    return res;
 }
 
 static uint32_t parse_braced_initializer_2(ParserState* s, AST* ast);
@@ -250,20 +305,14 @@ static uint32_t parse_initializer_2(ParserState* s, AST* ast) {
     return res;
 }
 
-static bool is_designation(TokenKind k) {
-    switch (k) {
-        case TOKEN_LINDEX:
-        case TOKEN_DOT:
-            return true;
-        default:
-            return false;
-    }
-}
-
 static uint32_t parse_designation_init_2(ParserState* s, AST* ast) {
     const uint32_t res = add_node(ast, AST_DESIGNATION_INIT, s->_it, 0, false);
-    if (is_designation(ParserState_curr_kind(s))) {
-        if (parse_designation_2(s, ast) == 0) {
+    if (is_designator(ParserState_curr_kind(s))) {
+        if (parse_designator_list_2(s, ast) == 0) {
+            return 0;
+        }
+
+        if (!ParserState_accept(s, TOKEN_ASSIGN)) {
             return 0;
         }
     }
@@ -438,3 +487,4 @@ uint32_t parse_postfix_expr_2(ParserState* s, AST* ast) {
 
     return res;
 }
+

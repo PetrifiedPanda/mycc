@@ -141,7 +141,7 @@ typedef enum {
     AST_DESIGNATION_INIT,
     // subrange designator[lhs...rhs]
     AST_DESIGNATOR_LIST,
-    // constexpr or identifier (might be removeable)
+    // lhs (const_expr | identifier) (might be removeable)
     AST_DESIGNATOR,
     // cond_expr (might be removeable)
     AST_CONST_EXPR,
