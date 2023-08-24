@@ -136,7 +136,7 @@ static bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res) {
     return false;
 }
 
-static bool is_posfix_op(TokenKind t) {
+static bool is_postfix_op(TokenKind t) {
     switch (t) {
         case TOKEN_LINDEX:
         case TOKEN_LBRACKET:
@@ -224,7 +224,7 @@ PostfixSuffix parse_postfix_inc_dec_suffix(ParserState* s) {
 
 static bool parse_postfix_suffixes(ParserState* s, PostfixExpr* res) {
     uint32_t alloc_len = 0;
-    while (is_posfix_op(ParserState_curr_kind(s))) {
+    while (is_postfix_op(ParserState_curr_kind(s))) {
         if (res->num_suffixes == alloc_len) {
             mycc_grow_alloc((void**)&res->suffixes,
                             &alloc_len,
