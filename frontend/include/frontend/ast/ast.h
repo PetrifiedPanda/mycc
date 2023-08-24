@@ -216,14 +216,14 @@ typedef enum {
     AST_DIV_EXPR,
     // lhs cast_expr '%' rhs (mul_expr | cast_expr)
     AST_MOD_EXPR,
-    // '('lhs type_name')'rhs unary_expr
+    // '('lhs ?type_name')' (rhs cast_expr | unary_expr) 
     AST_CAST_EXPR,
-    // lhs spec_qual_list rhs abs_declartor
+    // lhs spec_qual_list rhs ?abs_declartor
     AST_TYPE_NAME,
     // unary_expr:
-    // ++ lhs (unary_expr | postfix_expr)
+    // '++' lhs (unary_expr | postfix_expr)
     AST_UNARY_EXPR_INC,
-    // -- lhs (unary_expr | postfix_expr)
+    // '--' lhs (unary_expr | postfix_expr)
     AST_UNARY_EXPR_DEC,
     // 'sizeof' lhs (unary_expr | postfix_expr | type_name)
     AST_UNARY_EXPR_SIZEOF,
@@ -248,10 +248,13 @@ typedef enum {
     AST_POSTFIX_OP_INDEX,
     // '('lhs arg_expr_list')' rhs ?postfix_op
     AST_POSTFIX_OP_CALL,
-    // ('->' | '.') lhs identifier rhs ?postfix_op
+    // '.' lhs identifier rhs ?postfix_op
     AST_POSTFIX_OP_ACCESS,
+    // '->' lhs identifier rhs ?postfix_op
+    AST_POSTFIX_OP_PTR_ACCESS,
     // main_token is either inc or dec
-    AST_POSTFIX_OP_INC_DEC,
+    AST_POSTFIX_OP_INC,
+    AST_POSTFIX_OP_DEC,
     // subrange assign_expr[lhs...rhs]
     AST_ARG_EXPR_LIST,
     // constant | string_constant | identifier | bracket_expr | generic_sel
