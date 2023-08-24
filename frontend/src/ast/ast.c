@@ -406,12 +406,15 @@ static bool is_postfix_op(TokenKind t) {
 }
 
 static uint32_t parse_postfix_expr_2(ParserState* s, AST* ast) {
+    // TODO: might not need node
     const uint32_t res = add_node(ast, AST_POSTFIX_EXPR, s->_it, true);
 
     if (ParserState_curr_kind(s) == TOKEN_LBRACKET && next_is_type_name(s)) {
-        parse_compound_literal_2(s, ast);
-    } else {
-        parse_primary_expr_2(s, ast);
+        if (parse_compound_literal_2(s, ast) == 0) {
+            return 0;
+        }
+    } else if (parse_primary_expr_2(s, ast) == 0) {
+        return 0;
     }
 
     uint32_t curr_node_idx = res;
