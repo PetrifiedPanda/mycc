@@ -52,11 +52,96 @@ static uint32_t parse_expr_2(ParserState* s, AST* ast);
 
 static uint32_t parse_assign_expr_2(ParserState* s, AST* ast);
 
-static uint32_t parse_type_name_2(ParserState* s, AST* ast) {
+static uint32_t parse_type_spec_2(ParserState* s, AST* ast) {
     (void)s;
     (void)ast;
     // TODO:
     return 0;
+}
+
+static uint32_t parse_type_name_2(ParserState* s, AST* ast);
+static uint32_t parse_const_expr_2(ParserState* s, AST* ast);
+
+static uint32_t parse_align_spec_2(ParserState* s, AST* ast) {
+    assert(ParserState_curr_kind(s) == TOKEN_ALIGNAS);
+    const uint32_t res = add_node(ast, AST_TRANSLATION_UNIT, s->_it, false);
+    ParserState_accept_it(s);
+    const bool is_type_name = next_is_type_name(s);
+    if (!ParserState_accept(s, TOKEN_LBRACKET)) {
+        return 0;
+    }
+    uint32_t rhs;
+    if (is_type_name) {
+       rhs = parse_type_name_2(s, ast);
+    } else {
+        rhs = parse_const_expr_2(s, ast);
+    }
+    if (rhs == 0) {
+        return 0;
+    }
+    
+    if (!ParserState_accept(s, TOKEN_RBRACKET)) {
+        return 0;
+    }
+    ast->datas[res].rhs = rhs;
+    return res;
+}
+
+static uint32_t parse_type_spec_qual_2(ParserState* s, AST* ast) {
+    assert(is_type_spec(s) || is_type_qual(ParserState_curr_kind(s))
+           || ParserState_curr_kind(s) == TOKEN_ALIGNAS);
+    if (is_type_spec(s)) {
+        return parse_type_spec_2(s, ast);
+    } else if (is_type_qual(ParserState_curr_kind(s))) {
+        return add_node_without_children(ast, AST_TYPE_QUAL, s->_it);
+    } else if (ParserState_curr_kind(s) == TOKEN_ALIGNAS) {
+        return parse_align_spec_2(s, ast);
+    } else {
+        // TODO: error
+        return 0;
+    }
+}
+
+static uint32_t parse_spec_qual_list_2(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast, AST_SPEC_QUAL_LIST, s->_it, false);
+    if (parse_type_spec_qual_2(s, ast) == 0) {
+        return 0;
+    }
+
+    while (is_type_spec(s) || is_type_qual(ParserState_curr_kind(s))
+           || ParserState_curr_kind(s) == TOKEN_ALIGNAS) {
+        if (parse_type_spec_qual_2(s, ast) == 0) {
+            return 0;
+        }
+    }
+    // TODO: optional attribute-specifier-sequence
+    ast->datas[res].rhs = ast->len;
+    return res;
+}
+
+static uint32_t parse_abs_declarator_2(ParserState* s, AST* ast) {
+    (void)s;
+    (void)ast;
+    // TODO:
+    return 0;
+}
+
+static uint32_t parse_type_name_2(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast, AST_TYPE_NAME, s->_it, false);
+    if (parse_spec_qual_list_2(s, ast) == 0) {
+        return 0;
+    }
+
+    const TokenKind kind = ParserState_curr_kind(s);
+    if (kind == TOKEN_ASTERISK || kind == TOKEN_LBRACKET
+        || kind == TOKEN_LINDEX) {
+        const uint32_t rhs = parse_abs_declarator_2(s, ast);
+        if (rhs == 0) {
+            return 0;
+        }
+        ast->datas[res].rhs = rhs;
+    }
+    return res;
 }
 
 static uint32_t parse_generic_assoc_2(ParserState* s, AST* ast) {
@@ -219,8 +304,6 @@ static bool is_designator(TokenKind k) {
             return false;
     }
 }
-
-static uint32_t parse_const_expr_2(ParserState* s, AST* ast);
 
 static uint32_t parse_designator_2(ParserState* s, AST* ast) {
     assert(is_designator(ParserState_curr_kind(s)));

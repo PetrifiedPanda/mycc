@@ -220,6 +220,10 @@ typedef enum {
     AST_CAST_EXPR,
     // lhs spec_qual_list rhs ?abs_declartor
     AST_TYPE_NAME,
+    // subrange type_spec_qual[lhs...rhs]
+    AST_SPEC_QUAL_LIST,
+    // main_token is type_qual TODO: maybe split
+    AST_TYPE_QUAL,
     // unary_expr:
     // '++' lhs (unary_expr | postfix_expr)
     AST_UNARY_EXPR_INC,
