@@ -165,9 +165,13 @@ static uint32_t parse_primary_expr_2(ParserState* s, AST* ast) {
         case TOKEN_GENERIC:
             parse_generic_sel_2(s, ast);
             break;
-        default:
-            // TODO: error or unreachable
+        default: {
+            static const TokenKind ex[] = {
+                TOKEN_IDENTIFIER, TOKEN_I_CONSTANT, TOKEN_F_CONSTANT, TOKEN_STRING_LITERAL, TOKEN_FUNC_NAME, TOKEN_LBRACKET,
+            };
+            expected_tokens_error(s, ex, ARR_LEN(ex));
             return 0;
+        }
     }
 
     return res;
