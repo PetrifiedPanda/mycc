@@ -236,19 +236,17 @@ typedef enum {
     AST_UNARY_EXPR_BNOT,
     // '!' lhs cast_expr
     AST_UNARY_EXPR_NOT,
-    // postfix_expr:
-    // lhs (postfix_expr | primary_expr | compound_literal)[rhs expr]
-    AST_POSTFIX_EXPR_INDEX,
-    // lhs postfix_expr(rhs arg_expr_list)
-    AST_POSTFIX_EXPR_BRACKET,
-    // lhs postfix_expr '.' rhs identifier
-    AST_POSTFIX_ACCESS,
-    // lhs postfix_expr '->' rhs identifier
-    AST_POSTFIX_PTR_ACCESS,
-    // lhs postfix_expr '++'
-    AST_POSTFIX_INC,
-    // lhs postfix_expr '--'
-    AST_POSTFIX_DEC,
+    // lhs primary_expr | compound_literal rhs ?postfix_op
+    AST_POSTFIX_EXPR,
+    // postfix_op:
+    // '['lhs expr']' rhs ?postfix_op
+    AST_POSTFIX_OP_INDEX,
+    // '('lhs arg_expr_list')' rhs ?postfix_op
+    AST_POSTFIX_OP_CALL,
+    // ('->' | '.') lhs identifier rhs ?postfix_op
+    AST_POSTFIX_OP_ACCESS,
+    // main_token is either inc or dec
+    AST_POSTFIX_OP_INC_DEC,
     // subrange assign_expr[lhs...rhs]
     AST_ARG_EXPR_LIST,
     // constant | string_constant | identifier | bracket_expr | generic_sel
@@ -265,8 +263,12 @@ typedef enum {
     // main token is string literal / __func__
     AST_STRING_LITERAL,
     AST_FUNC,
-    // '(' lhs type_name ')' '{' rhs init_list '}'
+    // '(' lhs compound_literal_type ')' '{' rhs init_list '}'
     AST_COMPOUND_LITERAL,
+    // lhs ?storage_class_specs rhs type_name
+    AST_COMPOUND_LITERAL_TYPE,
+    // subrange storage_class_spec[lhs...rhs]
+    AST_STORAGE_CLASS_SPECS,
     // main token is identifier
     AST_IDENTIFIER,
 } ASTNodeKind;
