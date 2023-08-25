@@ -22,11 +22,6 @@ static uint32_t add_node(AST* ast,
 
     uint32_t type_data_idx = (uint32_t)-1;
     if (alloc_type_data) {
-        if (ast->type_data_len == ast->type_data_cap) {
-            mycc_grow_alloc((void**)&ast->type_data,
-                            &ast->type_data_cap,
-                            sizeof *ast->type_data);
-        }
         type_data_idx = ast->type_data_len;
         ++ast->type_data_len;
     }
