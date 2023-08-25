@@ -137,11 +137,13 @@ typedef enum {
     AST_ATTRIBUTE_ARG_CLAUSE,
     // token_range type_qual[lhs...rhs]
     AST_TYPE_QUAL_LIST,
+    // TODO: identifier also needs attribute_spec_sequence
     // lhs (identifier | declarator) rhs arr_or_func_suffix_list
     AST_DIRECT_DECLARATOR,
-    // TODO: remove
     // subrange (arr_suffix | func_suffix)[lhs...rhs]
     AST_ARR_OR_FUNC_SUFFIX_LIST,
+    // lhe (arr_suffix | func_suffix) rhs ?attribute_spec_sequence
+    AST_ARR_OR_FUNC_SUFFIX,
     // lhs ?type_qual_list rhs ?assign_expr
     AST_ARR_SUFFIX,
     // lhs ?type_qual_list rhs assign_expr
