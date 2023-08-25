@@ -89,13 +89,15 @@ typedef enum {
     // needs either identifier or struct_declaration_list
     // lhs ?identifier rhs ?struct_declaration_list
     AST_STRUCT_UNION_BODY,
-    // subrange (struct_declaration | static_assert_declaration)[lhs...rhs]
+    // subrange (member_declaration | static_assert_declaration)[lhs...rhs]
     AST_MEMBER_DECLARATION_LIST,
-    // lhs declaration_specs rhs struct_declarator_list
+    // lhs ?attribute_spec_sequence rhs member_declaration_body
     AST_MEMBER_DECLARATION,
-    // subrange struct_declarator[lhs...rhs]
+    // lhs spec_qual_list rhs ?member_declarator_list ';'
+    AST_MEMBER_DECLARATION_BODY,
+    // subrange member_declarator[lhs...rhs]
     AST_MEMBER_DECLARATOR_LIST,
-    // lhs declarator ':' rhs const_expr;
+    // lhs ?declarator ':' rhs ?const_expr;
     AST_MEMBER_DECLARATOR,
     // '_Atomic' '(' lhs type_name ')'
     AST_ATOMIC_TYPE_SPEC,
@@ -127,7 +129,7 @@ typedef enum {
     AST_ATTRIBUTE_TOKEN,
     // TODO:
     AST_ATTRIBUTE_ARG_CLAUSE,
-    // lhs ?type_qual_list (const restrict volatile atomic)
+    // token_range type_qual[lhs...rhs]
     AST_TYPE_QUAL_LIST,
     // lhs (identifier | declarator) rhs arr_or_func_suffix_list
     AST_DIRECT_DECLARATOR,
