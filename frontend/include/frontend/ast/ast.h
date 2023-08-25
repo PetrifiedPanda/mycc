@@ -63,24 +63,40 @@ typedef enum {
     AST_STORAGE_CLASS_SPEC,
     // lhs ?(identifier | enum_spec | struct_union_spec | atomic_type_spec) (otherwise main token void char int float double bool atomic struct enum)
     AST_TYPE_SPEC,
+    // main token is type spec 
+    AST_TYPE_SPEC_VOID,
+    AST_TYPE_SPEC_CHAR,
+    AST_TYPE_SPEC_SHORT,
+    AST_TYPE_SPEC_INT,
+    AST_TYPE_SPEC_LONG,
+    AST_TYPE_SPEC_FLOAT,
+    AST_TYPE_SPEC_DOUBLE,
+    AST_TYPE_SPEC_SIGNED,
+    AST_TYPE_SPEC_UNSIGNED,
+    AST_TYPE_SPEC_BOOL,
+    AST_TYPE_SPEC_COMPLEX,
+    // main token is identifier
+    AST_TYPE_SPEC_TYPEDEF_NAME,
     // 'enum' lhs ?identifier rhs enum_list 
     AST_ENUM_SPEC,
     // subrange enumerator[lhs...rhs]
     AST_ENUM_LIST,
     // lhs identifier '=' rhs ?const_expr
     AST_ENUMERATOR,
-    // main token is either 'struct' or 'union'
+    // ('struct' | 'union') lhs ?attribute_spec_sequence rhs struct_union_body
+    AST_STRUCT_SPEC,
+    AST_UNION_SPEC,
     // needs either identifier or struct_declaration_list
-    // ('struct' | 'union') lhs ?identifier rhs ?struct_declaration_list
-    AST_STRUCT_UNION_SPEC,
+    // lhs ?identifier rhs ?struct_declaration_list
+    AST_STRUCT_UNION_BODY,
     // subrange (struct_declaration | static_assert_declaration)[lhs...rhs]
-    AST_STRUCT_DECLARATION_LIST,
+    AST_MEMBER_DECLARATION_LIST,
     // lhs declaration_specs rhs struct_declarator_list
-    AST_STRUCT_DECLARATION,
+    AST_MEMBER_DECLARATION,
     // subrange struct_declarator[lhs...rhs]
-    AST_STRUCT_DECLARATOR_LIST,
+    AST_MEMBER_DECLARATOR_LIST,
     // lhs declarator ':' rhs const_expr;
-    AST_STRUCT_DECLARATOR,
+    AST_MEMBER_DECLARATOR,
     // '_Atomic' '(' lhs type_name ')'
     AST_ATOMIC_TYPE_SPEC,
     // inline noreturn
@@ -234,6 +250,8 @@ typedef enum {
     AST_CAST_EXPR,
     // lhs spec_qual_list rhs ?abs_declartor
     AST_TYPE_NAME,
+    // lhs spec_qual_list rhs ?attribute_spec_sequence
+    AST_SPEC_QUAL_LIST_ATTR,
     // subrange type_spec_qual[lhs...rhs]
     AST_SPEC_QUAL_LIST,
     // main_token is type_qual TODO: maybe split
