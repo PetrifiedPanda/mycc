@@ -95,8 +95,22 @@ typedef enum {
     AST_INIT_DECLARATOR,
     // lhs pointer rhs direct_declarator
     AST_DECLARATOR,
-    // '*' lhs type_qualifier_list
+    // '*' lhs ?pointer_attrs_and_quals rhs ?pointer
     AST_POINTER,
+    // lhs ?attribute_spec_sequence rhs ?type_qual_list
+    AST_POINTER_ATTRS_AND_QUALS,
+    // subrange attribute_spec[lhs...rhs]
+    AST_ATTRIBUTE_SPEC_SEQUENCE,
+    // lhs attribute_list
+    AST_ATTRIBUTE_SPEC,
+    // subrange attribute[lhs...rhs]
+    AST_ATTRIBUTE_LIST,
+    // lhs attribute_token rhs ?attribute_arg_clause
+    AST_ATTRIBUTE,
+    // TODO:
+    AST_ATTRIBUTE_TOKEN,
+    // TODO:
+    AST_ATTRIBUTE_ARG_CLAUSE,
     // lhs ?type_qual_list (const restrict volatile atomic)
     AST_TYPE_QUAL_LIST,
     // lhs (identifier | declarator) rhs arr_or_func_suffix_list
@@ -121,7 +135,7 @@ typedef enum {
     AST_PARAM_TYPE_LIST_VARIADIC,
     // lhs declaration_specs rhs (declarator | ?abs_declarator)
     AST_PARAM_DECLARATION,
-    // lhs pointer rhs direct_abs_declarator
+    // lhs ?pointer rhs ?direct_abs_declarator
     AST_ABS_DECLARATOR,
     // lhs (abs_declarator | ?direct_abs_declarator) rhs (abs_arr_suffix | abs_func_suffix)
     AST_DIRECT_ABS_DECLARATOR,
