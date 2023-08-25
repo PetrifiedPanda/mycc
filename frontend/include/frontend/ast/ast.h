@@ -77,12 +77,18 @@ typedef enum {
     AST_TYPE_SPEC_COMPLEX,
     // main token is identifier
     AST_TYPE_SPEC_TYPEDEF_NAME,
-    // 'enum' lhs ?identifier rhs enum_list 
+    // 'enum' lhs ?attribute_id rhs ?enum_body
     AST_ENUM_SPEC,
+    // lhs ?attribute_spec_sequence rhs ?identifier
+    AST_ATTRIBUTE_ID,
+    // lhs ?specifier_qualifier_list rhs ?enum_list
+    AST_ENUM_BODY,
     // subrange enumerator[lhs...rhs]
     AST_ENUM_LIST,
-    // lhs identifier '=' rhs ?const_expr
+    // lhs enum_constant_and_attribute '=' rhs ?const_expr
     AST_ENUMERATOR,
+    // lhs enum_constant rhs ?attribute_spec_sequence
+    AST_ENUM_CONSTANT_AND_ATTRIBUTE,
     // ('struct' | 'union') lhs ?attribute_spec_sequence rhs struct_union_body
     AST_STRUCT_SPEC,
     AST_UNION_SPEC,

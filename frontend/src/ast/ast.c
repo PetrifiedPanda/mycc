@@ -274,12 +274,137 @@ static uint32_t parse_struct_union_spec_2(ParserState* s, AST* ast) {
     return res;
 }
 
+static uint32_t parse_attribute_id_2(ParserState* s, AST* ast, bool* has_id) {
+    assert(ParserState_curr_kind(s) == TOKEN_LINDEX
+           || ParserState_curr_kind(s) == TOKEN_IDENTIFIER);
+    const uint32_t res = add_node(ast, AST_ATTRIBUTE_ID, s->_it, false);
+    if (ParserState_curr_kind(s) == TOKEN_LINDEX) {
+        if (parse_attribute_spec_sequence_2(s, ast) == 0) {
+            return 0;
+        }
+    }
+
+    if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
+        const uint32_t rhs = add_node(ast, AST_IDENTIFIER, s->_it, false);
+        ParserState_accept_it(s);
+        *has_id = true;
+        ast->datas[res].rhs = rhs;
+    }
+    return res;
+}
+
+static uint32_t parse_enum_constant_and_attribute_2(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast,
+                                  AST_ENUM_CONSTANT_AND_ATTRIBUTE,
+                                  s->_it,
+                                  false);
+    const uint32_t const_idx = s->_it;
+    const StrBuf* spell = ParserState_curr_spell_buf(s);
+    if (!ParserState_accept(s, TOKEN_IDENTIFIER)) {
+        return 0;
+    }
+    add_node(ast, AST_ENUM_CONSTANT, const_idx, true);
+    if (!ParserState_register_enum_constant(s, spell, const_idx)) {
+        return 0;
+    }
+    if (ParserState_curr_kind(s) == TOKEN_LINDEX) {
+        const uint32_t rhs = parse_attribute_spec_sequence_2(s, ast);
+        if (rhs == 0) {
+            return 0;
+        }
+        ast->datas[res].rhs = rhs;
+    }
+    return res;
+}
+
+static uint32_t parse_enumerator_2(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast, AST_ENUMERATOR, s->_it, false);
+    if (parse_enum_constant_and_attribute_2(s, ast) == 0) {
+        return 0;
+    }
+
+    if (ParserState_curr_kind(s) == TOKEN_ASSIGN) {
+        ParserState_accept_it(s);
+        const uint32_t rhs = parse_const_expr_2(s, ast);
+        if (rhs == 0) {
+            return 0;
+        }
+        ast->datas[res].rhs = rhs;
+    }
+    return res;
+}
+
+static uint32_t parse_enum_list_2(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast, AST_ENUM_LIST, s->_it, false);
+    if (parse_enumerator_2(s, ast) == 0) {
+        return 0;
+    }
+
+    while (ParserState_curr_kind(s) == TOKEN_COMMA
+           && ParserState_next_token_kind(s) != TOKEN_RBRACE) {
+        ParserState_accept_it(s);
+        if (parse_enumerator_2(s, ast) == 0) {
+            return 0;
+        }
+    }
+    ast->datas[res].rhs = ast->len;
+    return res;
+}
+
+static uint32_t parse_enum_body_2(ParserState* s, AST* ast, bool has_id) {
+    assert(ParserState_curr_kind(s) == TOKEN_COLON
+           || ParserState_curr_kind(s) == TOKEN_LBRACE);
+    const uint32_t res = add_node(ast, AST_ENUM_BODY, s->_it, false);
+    if (ParserState_curr_kind(s) == TOKEN_COLON) {
+        ParserState_accept_it(s);
+        if (parse_spec_qual_list_2(s, ast) == 0) {
+            return 0;
+        }
+    }
+
+    if (ParserState_curr_kind(s) == TOKEN_LBRACE) {
+        ParserState_accept_it(s);
+        const uint32_t rhs = parse_enum_list_2(s, ast);
+        if (rhs == 0) {
+            return 0;
+        }
+        if (ParserState_curr_kind(s) == TOKEN_COMMA) {
+            ParserState_accept_it(s);
+        }
+        if (!ParserState_accept(s, TOKEN_RBRACE)) {
+            return 0;
+        }
+        ast->datas[res].rhs = rhs;
+    } else if (!has_id) {
+        expected_token_error(s, TOKEN_LBRACE);
+        return 0;
+    }
+
+    return res;
+}
+
 static uint32_t parse_enum_spec_2(ParserState* s, AST* ast) {
     assert(ParserState_curr_kind(s) == TOKEN_ENUM);
-    (void)s;
-    (void)ast;
-    // TODO:
-    return 0;
+    const uint32_t res = add_node(ast, AST_ENUM_SPEC, s->_it, false);
+    ParserState_accept_it(s);
+    bool has_id = false;
+    const TokenKind first_kind = ParserState_curr_kind(s);
+    if (first_kind == TOKEN_LINDEX || first_kind == TOKEN_IDENTIFIER) {
+        if (parse_attribute_id_2(s, ast, &has_id) == 0) {
+            return 0;
+        }
+    }
+
+    const TokenKind next_kind = ParserState_curr_kind(s);
+    if (next_kind == TOKEN_COLON || next_kind == TOKEN_LBRACE) {
+        const uint32_t rhs = parse_enum_body_2(s, ast, has_id);
+        if (rhs == 0) {
+            return 0;
+        }
+        ast->datas[res].rhs = rhs;
+    }
+
+    return res;
 }
 
 static uint32_t parse_assign_expr_2(ParserState* s, AST* ast);
