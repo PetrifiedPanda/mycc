@@ -111,7 +111,7 @@ typedef enum {
     AST_INIT_DECLARATOR_LIST,
     // lhs declarator rhs initializer
     AST_INIT_DECLARATOR,
-    // lhs pointer rhs direct_declarator
+    // lhs ?pointer rhs direct_declarator
     AST_DECLARATOR,
     // '*' lhs ?pointer_attrs_and_quals rhs ?pointer
     AST_POINTER,

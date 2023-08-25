@@ -95,11 +95,30 @@ static uint32_t parse_static_assert_declaration_2(ParserState* s, AST* ast) {
     return res;
 }
 
-static uint32_t parse_declarator_2(ParserState* s, AST* ast) {
+static uint32_t parse_direct_declarator_2(ParserState* s, AST* ast) {
     (void)s;
     (void)ast;
     // TODO:
     return 0;
+}
+
+static uint32_t parse_pointer_2(ParserState* s, AST* ast);
+
+static uint32_t parse_declarator_2(ParserState* s, AST* ast) {
+    // TODO: unsure about whether this needs a type
+    const uint32_t res = add_node(ast, AST_DECLARATOR, s->_it, true);
+    if (ParserState_curr_kind(s) == TOKEN_ASTERISK) {
+        if (parse_pointer_2(s, ast) == 0) {
+            return 0;
+        }
+    }
+
+    const uint32_t rhs = parse_direct_declarator_2(s, ast);
+    if (rhs == 0) {
+        return 0;
+    }
+    ast->datas[res].rhs = rhs;
+    return res;
 }
 
 static uint32_t parse_member_declarator_2(ParserState* s, AST* ast) {
