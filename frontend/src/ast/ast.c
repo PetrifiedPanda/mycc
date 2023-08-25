@@ -1105,7 +1105,7 @@ static uint32_t parse_unary_expr_2(ParserState* s, AST* ast) {
             }
             return res;
         }
-        case TOKEN_ALIGNOF:
+        case TOKEN_ALIGNOF: {
             const uint32_t res = add_node(ast,
                                           AST_UNARY_EXPR_ALIGNOF,
                                           s->_it,
@@ -1121,6 +1121,7 @@ static uint32_t parse_unary_expr_2(ParserState* s, AST* ast) {
                 return 0;
             }
             return res;
+        }
         case TOKEN_AND:
         case TOKEN_ASTERISK:
         case TOKEN_ADD:
