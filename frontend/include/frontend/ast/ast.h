@@ -140,6 +140,8 @@ typedef enum {
     // TODO: identifier also needs attribute_spec_sequence
     // lhs (identifier | declarator) rhs arr_or_func_suffix_list
     AST_DIRECT_DECLARATOR,
+    // lhs identifier rhs ?attribute_spec_sequence
+    AST_ID_ATTRIBUTE,
     // subrange (arr_suffix | func_suffix)[lhs...rhs]
     AST_ARR_OR_FUNC_SUFFIX_LIST,
     // lhe (arr_suffix | func_suffix) rhs ?attribute_spec_sequence

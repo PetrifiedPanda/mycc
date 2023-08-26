@@ -90,11 +90,126 @@ static uint32_t parse_static_assert_declaration_2(ParserState* s, AST* ast) {
     return res;
 }
 
-static uint32_t parse_direct_declarator_2(ParserState* s, AST* ast) {
+static uint32_t parse_attribute_spec_sequence_2(ParserState* s, AST* ast);
+
+static uint32_t parse_id_attribute_2(ParserState* s, AST* ast) {
+    assert(ParserState_curr_kind(s) == TOKEN_IDENTIFIER);
+    const uint32_t res = add_node(ast, AST_ID_ATTRIBUTE, s->it, true);
+    add_node(ast, AST_IDENTIFIER, s->it, true);
+    ParserState_accept_it(s);
+
+    if (ParserState_curr_kind(s) == TOKEN_LINDEX
+        && ParserState_next_token_kind(s) == TOKEN_LINDEX) {
+        const uint32_t rhs = parse_attribute_spec_sequence_2(s, ast);
+        if (rhs == 0) {
+            return 0;
+        }
+        ast->datas[res].rhs = rhs;
+    }
+    return res;
+}
+
+static uint32_t parse_arr_suffix_2(ParserState* s, AST* ast) {
     (void)s;
     (void)ast;
     // TODO:
     return 0;
+}
+
+static uint32_t parse_func_suffix_2(ParserState* s, AST* ast) {
+    (void)s;
+    (void)ast;
+    // TODO:
+    return 0;
+}
+
+static uint32_t parse_arr_or_func_suffix_2(ParserState* s, AST* ast) {
+    assert(ParserState_curr_kind(s) == TOKEN_LBRACE
+           || ParserState_curr_kind(s) == TOKEN_RBRACE);
+    const uint32_t res = add_node(ast, AST_ARR_OR_FUNC_SUFFIX, s->it, false);
+    switch (ParserState_curr_kind(s)) {
+        case TOKEN_LBRACE:
+            if (parse_arr_suffix_2(s, ast) == 0) {
+                return 0;
+            }
+            break;
+        case TOKEN_LBRACKET:
+            if (parse_func_suffix_2(s, ast) == 0) {
+                return 0;
+            }
+            break;
+        default:
+            UNREACHABLE();
+    }
+
+    if (ParserState_curr_kind(s) == TOKEN_LINDEX
+        && ParserState_next_token_kind(s) == TOKEN_LINDEX) {
+        const uint32_t rhs = parse_attribute_spec_sequence_2(s, ast);
+        if (rhs == 0) {
+            return 0;
+        }
+        ast->datas[res].rhs = rhs;
+    }
+    return res;
+}
+
+static uint32_t parse_arr_or_func_suffix_list_2(ParserState* s, AST* ast) {
+    assert(ParserState_curr_kind(s) == TOKEN_LBRACKET
+           || ParserState_curr_kind(s) == TOKEN_LINDEX);
+    const uint32_t res = add_node(ast,
+                                  AST_ARR_OR_FUNC_SUFFIX_LIST,
+                                  s->it,
+                                  false);
+
+    if (parse_arr_or_func_suffix_2(s, ast) == 0) {
+        return 0;
+    }
+
+    while (ParserState_curr_kind(s) == TOKEN_LBRACKET
+           || ParserState_curr_kind(s) == TOKEN_LINDEX) {
+        if (parse_arr_or_func_suffix_2(s, ast) == 0) {
+            return 0;
+        }
+    }
+    ast->datas[res].rhs = ast->len;
+    return res;
+}
+
+static uint32_t parse_declarator_2(ParserState* s, AST* ast);
+
+static uint32_t parse_direct_declarator_2(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast, AST_DIRECT_DECLARATOR, s->it, false);
+    const TokenKind curr_kind = ParserState_curr_kind(s);
+    if (curr_kind == TOKEN_IDENTIFIER) {
+        if (parse_id_attribute_2(s, ast) == 0) {
+            return 0;
+        }
+    } else if (curr_kind == TOKEN_LBRACKET) {
+        ParserState_accept_it(s);
+        if (parse_declarator_2(s, ast) == 0) {
+            return 0;
+        }
+        if (!ParserState_accept(s, TOKEN_RBRACKET)) {
+            return 0;
+        }
+    } else {
+        static const TokenKind ex[] = {
+            TOKEN_IDENTIFIER,
+            TOKEN_LBRACKET,
+        };
+        expected_tokens_error(s, ex, ARR_LEN(ex));
+        return 0;
+    }
+
+    if (ParserState_curr_kind(s) == TOKEN_LBRACKET
+        || ParserState_curr_kind(s) == TOKEN_LINDEX) {
+        const uint32_t rhs = parse_arr_or_func_suffix_list_2(s, ast);
+        if (rhs == 0) {
+            return 0;
+        }
+        ast->datas[res].rhs = rhs;
+    }
+    return res;
 }
 
 static uint32_t parse_pointer_2(ParserState* s, AST* ast);
@@ -180,8 +295,6 @@ static uint32_t parse_member_declaration_body_2(ParserState* s, AST* ast) {
     ast->datas[res].rhs = rhs;
     return res;
 }
-
-static uint32_t parse_attribute_spec_sequence_2(ParserState* s, AST* ast);
 
 static uint32_t parse_member_declaration_2(ParserState* s, AST* ast) {
     if (ParserState_curr_kind(s) == TOKEN_STATIC_ASSERT) {
