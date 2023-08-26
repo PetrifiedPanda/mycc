@@ -109,7 +109,111 @@ static uint32_t parse_id_attribute_2(ParserState* s, AST* ast) {
     return res;
 }
 
+static uint32_t parse_type_qual_list_2(ParserState* s, AST* ast);
+static uint32_t parse_assign_expr_2(ParserState* s, AST* ast);
+
 static uint32_t parse_arr_suffix_2(ParserState* s, AST* ast) {
+    assert(ParserState_curr_kind(s) == TOKEN_LINDEX);
+    const uint32_t idx = s->it;
+    ParserState_accept_it(s);
+    const TokenKind curr_kind = ParserState_curr_kind(s);
+    if (curr_kind == TOKEN_STATIC) {
+        ParserState_accept_it(s);
+        const uint32_t res = add_node(ast, AST_ARR_SUFFIX_STATIC, idx, false);
+        if (is_type_qual(ParserState_curr_kind(s))) {
+            if (parse_type_qual_list_2(s, ast) == 0) {
+                return 0;
+            }
+        }
+
+        const uint32_t rhs = parse_assign_expr_2(s, ast);
+        if (rhs == 0) {
+            return 0;
+        }
+
+        if (!ParserState_accept(s, TOKEN_RINDEX)) {
+            return 0;
+        }
+
+        ast->datas[res].rhs = rhs;
+        return res;
+    } else if (curr_kind == TOKEN_ASTERISK) {
+        ParserState_accept_it(s);
+        if (!ParserState_accept(s, TOKEN_RINDEX)) {
+            return 0;
+        }
+        return add_node(ast, AST_ARR_SUFFIX_ASTERISK, idx, false);
+    } else if (is_type_qual(curr_kind)) {
+        const uint32_t res = add_node(ast, AST_ARR_SUFFIX, idx, false);
+        if (parse_type_qual_list_2(s, ast) == 0) {
+            return 0;
+        }
+
+        switch (ParserState_curr_kind(s)) {
+            case TOKEN_STATIC: {
+                ast->kinds[res] = AST_ARR_SUFFIX_STATIC;
+                ParserState_accept_it(s);
+
+                const uint32_t rhs = parse_assign_expr_2(s, ast);
+                if (rhs == 0) {
+                    return 0;
+                }
+                if (!ParserState_accept(s, TOKEN_RINDEX)) {
+                    return 0;
+                }
+                ast->datas[res].rhs = rhs;
+                return res;
+            }
+            case TOKEN_ASTERISK: {
+                ast->kinds[res] = AST_ARR_SUFFIX_ASTERISK;
+                ParserState_accept_it(s);
+                if (!ParserState_accept(s, TOKEN_RINDEX)) {
+                    return 0;
+                }
+                return res;
+            }
+            case TOKEN_RINDEX: {
+                ParserState_accept_it(s);
+                return res;
+            }
+            default: {
+                const uint32_t rhs = parse_assign_expr_2(s, ast);
+                if (rhs == 0) {
+                    return 0;
+                }
+                if (!ParserState_accept(s, TOKEN_RINDEX)) {
+                    return 0;
+                }
+                ast->datas[res].rhs = rhs;
+                return res;
+            }
+        }
+
+    } else if (curr_kind == TOKEN_RINDEX) {
+        ParserState_accept_it(s);
+        return add_node(ast, AST_ARR_SUFFIX, idx, false);
+    } else {
+        const uint32_t res = add_node(ast, AST_ARR_SUFFIX, idx, false);
+        const uint32_t rhs = parse_assign_expr_2(s, ast);
+        if (rhs == 0) {
+            return 0;
+        }
+        if (!ParserState_accept(s, TOKEN_RINDEX)) {
+            return 0;
+        }
+        ast->datas[res].rhs = rhs;
+        return res;
+    }
+}
+
+static uint32_t parse_identifier_list_2(ParserState* s, AST* ast) {
+    (void)s;
+    (void)ast;
+    // TODO:
+    return 0;
+}
+
+static uint32_t parse_param_type_list_2(ParserState* s, AST* ast) {
     (void)s;
     (void)ast;
     // TODO:
@@ -117,10 +221,33 @@ static uint32_t parse_arr_suffix_2(ParserState* s, AST* ast) {
 }
 
 static uint32_t parse_func_suffix_2(ParserState* s, AST* ast) {
-    (void)s;
-    (void)ast;
-    // TODO:
-    return 0;
+    assert(ParserState_curr_kind(s) == TOKEN_LBRACKET);
+    const uint32_t idx = s->it;
+    ParserState_accept_it(s);
+    const TokenKind curr_kind = ParserState_curr_kind(s);
+    if (curr_kind == TOKEN_RBRACKET) {
+        ParserState_accept_it(s);
+        return add_node(ast, AST_FUNC_SUFFIX, idx, false);
+    } else if (curr_kind == TOKEN_IDENTIFIER
+               && !ParserState_is_typedef(s, ParserState_curr_spell(s))) {
+        const uint32_t res = add_node(ast, AST_FUNC_SUFFIX_OLD, idx, false);
+        if (parse_identifier_list_2(s, ast) == 0) {
+            return 0;
+        }
+        if (!ParserState_accept(s, TOKEN_RBRACKET)) {
+            return 0;
+        }
+        return res;
+    } else {
+        const uint32_t res = add_node(ast, AST_FUNC_SUFFIX, idx, false);
+        if (parse_param_type_list_2(s, ast) == 0) {
+            return 0;
+        }
+        if (!ParserState_accept(s, TOKEN_RBRACKET)) {
+            return 0;
+        }
+        return res;
+    }
 }
 
 static uint32_t parse_arr_or_func_suffix_2(ParserState* s, AST* ast) {
@@ -514,8 +641,6 @@ static uint32_t parse_enum_spec_2(ParserState* s, AST* ast) {
 
     return res;
 }
-
-static uint32_t parse_assign_expr_2(ParserState* s, AST* ast);
 
 static uint32_t parse_type_spec_2(ParserState* s, AST* ast) {
     assert(is_type_spec(s));
