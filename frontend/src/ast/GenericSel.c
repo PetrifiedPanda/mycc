@@ -12,7 +12,7 @@
 static bool parse_generic_assoc_inplace(ParserState* s, GenericAssoc* res) {
     assert(res);
 
-    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
+    res->info = AstNodeInfo_create(s->it);
     if (ParserState_curr_kind(s) == TOKEN_DEFAULT) {
         ParserState_accept_it(s);
         res->type_name = NULL;
@@ -50,7 +50,7 @@ void GenericAssoc_free_children(GenericAssoc* a) {
 static bool parse_generic_assoc_list(ParserState* s, GenericAssocList* res) {
     uint32_t alloc_len = 1;
     *res = (GenericAssocList){
-        .info = AstNodeInfo_create(ParserState_curr_idx(s)),
+        .info = AstNodeInfo_create(s->it),
         .len = 1,
         .assocs = mycc_alloc(sizeof *res->assocs * alloc_len),
     };
@@ -92,7 +92,7 @@ void GenericAssocList_free(GenericAssocList* l) {
 
 bool parse_generic_sel_inplace(ParserState* s, GenericSel* res) {
     assert(ParserState_curr_kind(s) == TOKEN_GENERIC);
-    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
+    res->info = AstNodeInfo_create(s->it);
     ParserState_accept_it(s);
 
     if (!ParserState_accept(s, TOKEN_LBRACKET)) {

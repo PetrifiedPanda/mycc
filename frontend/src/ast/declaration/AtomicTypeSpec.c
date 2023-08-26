@@ -7,7 +7,7 @@
 #include "frontend/ast/TypeName.h"
 
 AtomicTypeSpec* parse_atomic_type_spec(ParserState* s) {
-    const uint32_t idx = ParserState_curr_idx(s);
+    const uint32_t idx = s->it;
     if (!ParserState_accept(s, TOKEN_ATOMIC)) {
         return NULL;
     }

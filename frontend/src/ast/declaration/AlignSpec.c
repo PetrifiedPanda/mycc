@@ -11,7 +11,7 @@
 
 bool parse_align_spec_inplace(ParserState* s, AlignSpec* res) {
     assert(res);
-    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
+    res->info = AstNodeInfo_create(s->it);
     if (!(ParserState_accept(s, TOKEN_ALIGNAS)
           && ParserState_accept(s, TOKEN_LBRACKET))) {
         return false;

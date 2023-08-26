@@ -11,7 +11,7 @@
 
 typedef struct {
     TokenArr _arr;
-    uint32_t _it;
+    uint32_t it;
     uint32_t _len, _cap;
     StringMap* _scope_maps;
     ParserErr* err;
@@ -27,7 +27,6 @@ Value ParserState_curr_val(const ParserState* s);
 Str ParserState_curr_spell(const ParserState* s);
 const StrBuf* ParserState_curr_spell_buf(const ParserState* s);
 TokenKind ParserState_curr_kind(const ParserState* s);
-uint32_t ParserState_curr_idx(const ParserState* s);
 
 TokenKind ParserState_next_token_kind(const ParserState* s);
 Str ParserState_next_token_spell(const ParserState* s);

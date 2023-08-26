@@ -12,7 +12,7 @@ static bool parse_cast_expr_rest(ParserState* s, CastExpr* res) {
     uint32_t last_lbracket_loc = (uint32_t)-1;
     while (ParserState_curr_kind(s) == TOKEN_LBRACKET
            && next_is_type_name(s)) {
-        last_lbracket_loc = ParserState_curr_idx(s);
+        last_lbracket_loc = s->it;
         ParserState_accept_it(s);
 
         if (res->len == alloc_len) {
@@ -72,7 +72,7 @@ fail:
 }
 
 static bool parse_cast_expr_inplace(ParserState* s, CastExpr* res) {
-    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
+    res->info = AstNodeInfo_create(s->it);
     res->type_names = NULL;
     res->len = 0;
 
@@ -887,7 +887,7 @@ static UnaryOrCond parse_unary_or_cond(ParserState* s) {
     };
     if (ParserState_curr_kind(s) == TOKEN_LBRACKET
         && next_is_type_name(s)) {
-        const uint32_t start_bracket_idx = ParserState_curr_idx(s);
+        const uint32_t start_bracket_idx = s->it;
         ParserState_accept_it(s);
 
         TypeName* type_name = parse_type_name(s);

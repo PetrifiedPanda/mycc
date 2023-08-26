@@ -72,7 +72,7 @@ static bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res) {
     switch (ParserState_curr_kind(s)) {
         case TOKEN_IDENTIFIER: {
             const Str spelling = ParserState_curr_spell(s);
-            const uint32_t idx = ParserState_curr_idx(s);
+            const uint32_t idx = s->it;
             ParserState_accept_it(s);
             if (ParserState_is_enum_constant(s, spelling)) {
                 res->kind = PRIMARY_EXPR_CONSTANT;
@@ -85,21 +85,21 @@ static bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res) {
         }
         case TOKEN_F_CONSTANT:
         case TOKEN_I_CONSTANT: {
-            const uint32_t idx = ParserState_curr_idx(s);
+            const uint32_t idx = s->it;
             ParserState_accept_it(s);
             res->kind = PRIMARY_EXPR_CONSTANT;
             res->constant = Constant_create(idx);
             return true;
         }
         case TOKEN_STRING_LITERAL: {
-            const uint32_t idx = ParserState_curr_idx(s);
+            const uint32_t idx = s->it;
             ParserState_accept_it(s);
             res->kind = PRIMARY_EXPR_STRING_LITERAL;
             res->string = StringConstant_create(idx);
             return true;
         }
         case TOKEN_FUNC_NAME: {
-            const uint32_t idx = ParserState_curr_idx(s);
+            const uint32_t idx = s->it;
             ParserState_accept_it(s);
             res->kind = PRIMARY_EXPR_STRING_LITERAL;
             res->string = StringConstant_create_func_name(idx);
@@ -114,7 +114,7 @@ static bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res) {
         }
 
         default: {
-            const uint32_t idx = ParserState_curr_idx(s);
+            const uint32_t idx = s->it;
             if (ParserState_accept(s, TOKEN_LBRACKET)) {
                 Expr bracket_expr;
                 if (!parse_expr_inplace(s, &bracket_expr)) {
@@ -204,7 +204,7 @@ static bool parse_postfix_access_suffix(ParserState* s, PostfixSuffix* res) {
     if (ParserState_curr_kind(s) != TOKEN_IDENTIFIER) {
         return false;
     }
-    const uint32_t idx = ParserState_curr_idx(s);
+    const uint32_t idx = s->it;
     ParserState_accept_it(s);
     Identifier* identifier = Identifier_create(idx);
     res->kind = kind;
@@ -277,7 +277,7 @@ static bool parse_postfix_expr_inplace(ParserState* s, PostfixExpr* res) {
 
     if (ParserState_curr_kind(s) == TOKEN_LBRACKET
         && next_is_type_name(s)) {
-        res->info = AstNodeInfo_create(ParserState_curr_idx(s));
+        res->info = AstNodeInfo_create(s->it);
         ParserState_accept_it(s);
 
         res->is_primary = false;
@@ -501,7 +501,7 @@ bool parse_unary_expr_inplace(ParserState* s, UnaryExpr* res) {
     uint32_t alloc_len = 0;
     UnaryExprOp* ops_before = NULL;
 
-    const uint32_t idx = ParserState_curr_idx(s);
+    const uint32_t idx = s->it;
     uint32_t len = 0;
     while (ParserState_curr_kind(s) == TOKEN_INC
            || ParserState_curr_kind(s) == TOKEN_DEC
@@ -538,8 +538,7 @@ bool parse_unary_expr_inplace(ParserState* s, UnaryExpr* res) {
             case TOKEN_SIZEOF: {
                 ParserState_accept_it(s);
                 assert(ParserState_curr_kind(s) == TOKEN_LBRACKET);
-                const uint32_t start_bracket_idx = ParserState_curr_idx(
-                    s);
+                const uint32_t start_bracket_idx = s->it;
                 if (next_is_type_name(s)) {
                     ParserState_accept_it(s);
 

@@ -35,9 +35,7 @@ static bool parse_struct_declarator_inplace(ParserState* s,
     } else {
         res->bit_field = NULL;
         if (!res->decl) {
-            ParserErr_set(s->err,
-                          PARSER_ERR_EMPTY_STRUCT_DECLARATOR,
-                          ParserState_curr_idx(s));
+            ParserErr_set(s->err, PARSER_ERR_EMPTY_STRUCT_DECLARATOR, s->it);
             return false;
         }
     }
@@ -95,9 +93,7 @@ static bool parse_struct_declaration_inplace(ParserState* s,
         }
 
         if (found_typedef) {
-            ParserErr_set(s->err,
-                          PARSER_ERR_TYPEDEF_STRUCT,
-                          ParserState_curr_idx(s));
+            ParserErr_set(s->err, PARSER_ERR_TYPEDEF_STRUCT, s->it);
         }
 
         if (ParserState_curr_kind(s) != TOKEN_SEMICOLON) {
@@ -172,7 +168,7 @@ static bool parse_struct_declaration_list(ParserState* s,
 StructUnionSpec* parse_struct_union_spec(ParserState* s) {
     assert(ParserState_curr_kind(s) == TOKEN_STRUCT
            || ParserState_curr_kind(s) == TOKEN_UNION);
-    const uint32_t idx = ParserState_curr_idx(s);
+    const uint32_t idx = s->it;
     bool is_struct;
     if (ParserState_curr_kind(s) == TOKEN_STRUCT) {
         is_struct = true;
@@ -183,7 +179,7 @@ StructUnionSpec* parse_struct_union_spec(ParserState* s) {
     }
     Identifier* id = NULL;
     if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
-        const uint32_t id_idx = ParserState_curr_idx(s);
+        const uint32_t id_idx = s->it;
         ParserState_accept_it(s);
         id = Identifier_create(id_idx);
     }

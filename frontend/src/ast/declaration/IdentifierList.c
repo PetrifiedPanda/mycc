@@ -14,7 +14,7 @@ bool parse_identifier_list(ParserState* s, IdentifierList* res) {
         .len = 1,
         .identifiers = mycc_alloc(sizeof *res->identifiers),
     };
-    uint32_t idx = ParserState_curr_idx(s);
+    uint32_t idx = s->it;
     ParserState_accept_it(s);
     Identifier_init(res->identifiers, idx);
 
@@ -32,7 +32,7 @@ bool parse_identifier_list(ParserState* s, IdentifierList* res) {
             IdentifierList_free(res);
             return false;
         }
-        idx = ParserState_curr_idx(s);
+        idx = s->it;
         ParserState_accept_it(s);
         Identifier_init(&res->identifiers[res->len], idx);
 

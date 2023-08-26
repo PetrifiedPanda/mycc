@@ -14,7 +14,7 @@ static LabeledStatement* parse_labeled_statement(ParserState* s) {
            || ParserState_curr_kind(s) == TOKEN_IDENTIFIER
            || ParserState_curr_kind(s) == TOKEN_DEFAULT);
     LabeledStatement* res = mycc_alloc(sizeof *res);
-    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
+    res->info = AstNodeInfo_create(s->it);
     switch (ParserState_curr_kind(s)) {
         case TOKEN_CASE: {
             res->kind = LABELED_STATEMENT_CASE;
@@ -30,7 +30,7 @@ static LabeledStatement* parse_labeled_statement(ParserState* s) {
 
         case TOKEN_IDENTIFIER: {
             res->kind = LABELED_STATEMENT_LABEL;
-            const uint32_t idx = ParserState_curr_idx(s);
+            const uint32_t idx = s->it;
             ParserState_accept_it(s);
             res->label = Identifier_create(idx);
             break;
@@ -80,7 +80,7 @@ static bool parse_block_item_inplace(ParserState* s, BlockItem* res) {
 }
 
 bool parse_compound_statement_inplace(ParserState* s, CompoundStatement* res) {
-    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
+    res->info = AstNodeInfo_create(s->it);
     if (!ParserState_accept(s, TOKEN_LBRACE)) {
         return false;
     }
@@ -126,7 +126,7 @@ static struct CompoundStatement* parse_compound_statement(ParserState* s) {
 
 static ExprStatement* parse_expr_statement(ParserState* s) {
     ExprStatement* res = mycc_alloc(sizeof *res);
-    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
+    res->info = AstNodeInfo_create(s->it);
     if (ParserState_curr_kind(s) == TOKEN_SEMICOLON) {
         ParserState_accept_it(s);
         res->expr.len = 0;
@@ -151,7 +151,7 @@ static SelectionStatement* parse_selection_statement(ParserState* s) {
     assert(ParserState_curr_kind(s) == TOKEN_IF
            || ParserState_curr_kind(s) == TOKEN_SWITCH);
     SelectionStatement* res = mycc_alloc(sizeof *res);
-    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
+    res->info = AstNodeInfo_create(s->it);
     if (ParserState_curr_kind(s) == TOKEN_IF) {
         res->is_if = true;
     } else {
@@ -243,8 +243,7 @@ static IterationStatement* create_for_loop(uint32_t idx,
     return res;
 }
 
-static IterationStatement* parse_while_statement(ParserState* s,
-                                                 uint32_t idx) {
+static IterationStatement* parse_while_statement(ParserState* s, uint32_t idx) {
     assert(ParserState_curr_kind(s) == TOKEN_WHILE);
 
     ParserState_accept_it(s);
@@ -282,7 +281,8 @@ static IterationStatement* parse_do_loop(ParserState* s, uint32_t idx) {
         return NULL;
     }
 
-    if (!ParserState_accept(s, TOKEN_WHILE) || !ParserState_accept(s, TOKEN_LBRACKET)) {
+    if (!ParserState_accept(s, TOKEN_WHILE)
+        || !ParserState_accept(s, TOKEN_LBRACKET)) {
         Statement_free(loop_body);
         return NULL;
     }
@@ -370,7 +370,7 @@ static IterationStatement* parse_iteration_statement(ParserState* s) {
     assert(ParserState_curr_kind(s) == TOKEN_WHILE
            || ParserState_curr_kind(s) == TOKEN_DO
            || ParserState_curr_kind(s) == TOKEN_FOR);
-    const uint32_t idx = ParserState_curr_idx(s);
+    const uint32_t idx = s->it;
     switch (ParserState_curr_kind(s)) {
         case TOKEN_WHILE:
             return parse_while_statement(s, idx);
@@ -415,16 +415,15 @@ static JumpStatement* parse_jump_statement(ParserState* s) {
            || ParserState_curr_kind(s) == TOKEN_CONTINUE
            || ParserState_curr_kind(s) == TOKEN_BREAK
            || ParserState_curr_kind(s) == TOKEN_RETURN);
-    const uint32_t idx = ParserState_curr_idx(s);
+    const uint32_t idx = s->it;
     JumpStatement* res = NULL;
     switch (ParserState_curr_kind(s)) {
         case TOKEN_GOTO: {
             ParserState_accept_it(s);
             if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
-                const uint32_t id_idx = ParserState_curr_idx(s);
+                const uint32_t id_idx = s->it;
                 ParserState_accept_it(s);
-                res = create_goto_statement(idx,
-                                            Identifier_create(id_idx));
+                res = create_goto_statement(idx, Identifier_create(id_idx));
                 break;
             } else {
                 expected_token_error(s, TOKEN_IDENTIFIER);

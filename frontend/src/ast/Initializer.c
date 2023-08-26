@@ -11,7 +11,7 @@
 #include "frontend/ast/Identifier.h"
 
 static bool parse_designator_inplace(ParserState* s, Designator* res) {
-    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
+    res->info = AstNodeInfo_create(s->it);
     switch (ParserState_curr_kind(s)) {
         case TOKEN_LINDEX: {
             ParserState_accept_it(s);
@@ -31,7 +31,7 @@ static bool parse_designator_inplace(ParserState* s, Designator* res) {
         case TOKEN_DOT: {
             ParserState_accept_it(s);
             if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
-                const uint32_t idx = ParserState_curr_idx(s);
+                const uint32_t idx = s->it;
                 ParserState_accept_it(s);
                 res->is_index = false;
                 res->identifier = Identifier_create(idx);
@@ -210,7 +210,7 @@ void InitList_free_children(InitList* l) {
 }
 
 static bool parse_initializer_inplace(ParserState* s, Initializer* res) {
-    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
+    res->info = AstNodeInfo_create(s->it);
     if (ParserState_curr_kind(s) == TOKEN_LBRACE) {
         res->is_assign = false;
         ParserState_accept_it(s);

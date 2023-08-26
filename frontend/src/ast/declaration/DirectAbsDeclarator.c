@@ -73,9 +73,7 @@ static bool parse_abs_arr_suffix(ParserState* s, AbsArrOrFuncSuffix* res) {
 
         if (ParserState_curr_kind(s) == TOKEN_STATIC) {
             if (res->is_static) {
-                ParserErr_set(s->err,
-                              PARSER_ERR_ARR_DOUBLE_STATIC,
-                              ParserState_curr_idx(s));
+                ParserErr_set(s->err, PARSER_ERR_ARR_DOUBLE_STATIC, s->it);
                 AbsArrOrFuncSuffix_free(res);
                 return false;
             } else {
@@ -87,9 +85,7 @@ static bool parse_abs_arr_suffix(ParserState* s, AbsArrOrFuncSuffix* res) {
 
     if (ParserState_curr_kind(s) == TOKEN_RINDEX) {
         if (res->is_static) {
-            ParserErr_set(s->err,
-                          PARSER_ERR_ARR_STATIC_NO_LEN,
-                          ParserState_curr_idx(s));
+            ParserErr_set(s->err, PARSER_ERR_ARR_STATIC_NO_LEN, s->it);
             AbsArrOrFuncSuffix_free(res);
             return false;
         }
@@ -110,7 +106,7 @@ static bool parse_abs_arr_or_func_suffix(ParserState* s,
     assert(res);
     assert(ParserState_curr_kind(s) == TOKEN_LBRACKET
            || ParserState_curr_kind(s) == TOKEN_LINDEX);
-    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
+    res->info = AstNodeInfo_create(s->it);
 
     switch (ParserState_curr_kind(s)) {
         case TOKEN_LBRACKET:
@@ -134,8 +130,9 @@ bool parse_abs_arr_or_func_suffixes(ParserState* s, DirectAbsDeclarator* res) {
                             sizeof *res->following_suffixes);
         }
 
-        if (!parse_abs_arr_or_func_suffix(s,
-                                          &res->following_suffixes[res->num_suffixes])) {
+        if (!parse_abs_arr_or_func_suffix(
+                s,
+                &res->following_suffixes[res->num_suffixes])) {
             DirectAbsDeclarator_free(res);
             return false;
         }
@@ -151,7 +148,7 @@ bool parse_abs_arr_or_func_suffixes(ParserState* s, DirectAbsDeclarator* res) {
 
 struct DirectAbsDeclarator* parse_direct_abs_declarator(ParserState* s) {
     struct DirectAbsDeclarator* res = mycc_alloc(sizeof *res);
-    res->info = AstNodeInfo_create(ParserState_curr_idx(s));
+    res->info = AstNodeInfo_create(s->it);
     const TokenKind next_kind = ParserState_next_token_kind(s);
     if (ParserState_curr_kind(s) == TOKEN_LBRACKET
         && (next_kind == TOKEN_LBRACKET || next_kind == TOKEN_LINDEX

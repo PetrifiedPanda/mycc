@@ -7,7 +7,7 @@
 #include "frontend/ast/declaration/TypeQuals.h"
 
 Pointer* parse_pointer(ParserState* s) {
-    const uint32_t idx = ParserState_curr_idx(s);
+    const uint32_t idx = s->it;
     if (!ParserState_accept(s, TOKEN_ASTERISK)) {
         return NULL;
     }

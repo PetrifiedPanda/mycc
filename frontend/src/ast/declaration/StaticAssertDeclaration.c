@@ -28,7 +28,7 @@ StaticAssertDeclaration* parse_static_assert_declaration(ParserState* s) {
         return NULL;
     }
 
-    const uint32_t idx = ParserState_curr_idx(s);
+    const uint32_t idx = s->it;
     ParserState_accept_it(s);
 
     if (!(ParserState_accept(s, TOKEN_RBRACKET)

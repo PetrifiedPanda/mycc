@@ -34,7 +34,7 @@ ParserState ParserState_create(TokenArr* tokens, ParserErr* err) {
 
     ParserState res = {
         ._arr = *tokens,
-        ._it = 0,
+        .it = 0,
         ._len = 1,
         ._cap = 1,
         ._scope_maps = mycc_alloc(sizeof *res._scope_maps),
@@ -60,55 +60,51 @@ bool ParserState_accept(ParserState* s, TokenKind expected) {
         expected_token_error(s, expected);
         return false;
     } else {
-        ++s->_it;
+        ++s->it;
         return true;
     }
 }
 
 void ParserState_accept_it(ParserState* s) {
-    assert(s->_it != s->_arr.len);
-    ++s->_it;
+    assert(s->it != s->_arr.len);
+    ++s->it;
 }
 
 Value ParserState_curr_val(const ParserState* s) {
-    const TokenVal* curr = &s->_arr.vals[s->_it];
-    assert(s->_arr.kinds[s->_it] == TOKEN_I_CONSTANT
-           || s->_arr.kinds[s->_it] == TOKEN_F_CONSTANT);
+    const TokenVal* curr = &s->_arr.vals[s->it];
+    assert(s->_arr.kinds[s->it] == TOKEN_I_CONSTANT
+           || s->_arr.kinds[s->it] == TOKEN_F_CONSTANT);
     return curr->val;
 }
 
 Str ParserState_curr_spell(const ParserState* s) {
-    const TokenVal* curr = &s->_arr.vals[s->_it];
-    assert(s->_arr.kinds[s->_it] == TOKEN_IDENTIFIER);
+    const TokenVal* curr = &s->_arr.vals[s->it];
+    assert(s->_arr.kinds[s->it] == TOKEN_IDENTIFIER);
     return StrBuf_as_str(&curr->spelling);
 }
 
 const StrBuf* ParserState_curr_spell_buf(const ParserState* s) {
-    const TokenVal* curr = &s->_arr.vals[s->_it];
-    assert(s->_arr.kinds[s->_it] == TOKEN_IDENTIFIER);
+    const TokenVal* curr = &s->_arr.vals[s->it];
+    assert(s->_arr.kinds[s->it] == TOKEN_IDENTIFIER);
     return &curr->spelling;
 }
 
 TokenKind ParserState_curr_kind(const ParserState* s) {
-    if (s->_it == s->_arr.len) {
+    if (s->it == s->_arr.len) {
         return TOKEN_INVALID;
     }
-    return s->_arr.kinds[s->_it];
-}
-
-uint32_t ParserState_curr_idx(const ParserState* s) {
-    return s->_it;
+    return s->_arr.kinds[s->it];
 }
 
 TokenKind ParserState_next_token_kind(const ParserState* s) {
-    assert(s->_it < s->_arr.len - 1);
-    return s->_arr.kinds[s->_it + 1];
+    assert(s->it < s->_arr.len - 1);
+    return s->_arr.kinds[s->it + 1];
 }
 
 Str ParserState_next_token_spell(const ParserState* s) {
-    assert(s->_it < s->_arr.len - 1);
-    assert(s->_arr.kinds[s->_it + 1] == TOKEN_IDENTIFIER);
-    return StrBuf_as_str(&s->_arr.vals[s->_it + 1].spelling);
+    assert(s->it < s->_arr.len - 1);
+    assert(s->_arr.kinds[s->it + 1] == TOKEN_IDENTIFIER);
+    return StrBuf_as_str(&s->_arr.vals[s->it + 1].spelling);
 }
 
 void ParserState_push_scope(ParserState* s) {

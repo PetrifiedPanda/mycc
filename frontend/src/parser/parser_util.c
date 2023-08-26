@@ -9,7 +9,7 @@
 #include "frontend/parser/ParserErr.h"
 
 void expected_token_error(ParserState* s, TokenKind expected) {
-    ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, ParserState_curr_idx(s));
+    ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it);
     s->err->expected_tokens_err = ExpectedTokensErr_create_single_token(
         ParserState_curr_kind(s),
         expected);
@@ -19,7 +19,7 @@ void expected_tokens_error(ParserState* s,
                            const TokenKind* expected,
                            uint32_t num_expected) {
     assert(expected);
-    ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, ParserState_curr_idx(s));
+    ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it);
     s->err->expected_tokens_err = ExpectedTokensErr_create(
         ParserState_curr_kind(s),
         expected,
@@ -83,7 +83,9 @@ bool is_type_spec_token(const ParserState* s, TokenKind kind, Str spell) {
     }
 }
 
-static bool is_type_spec_helper(const ParserState* s, TokenKind(*get_kind)(const ParserState*), Str(*get_spell)(const ParserState*)) {
+static bool is_type_spec_helper(const ParserState* s,
+                                TokenKind (*get_kind)(const ParserState*),
+                                Str (*get_spell)(const ParserState*)) {
     TokenKind kind = get_kind(s);
     switch (kind) {
         case TOKEN_VOID:
@@ -112,8 +114,8 @@ static bool is_type_spec_helper(const ParserState* s, TokenKind(*get_kind)(const
 
 bool next_is_type_spec(const ParserState* s) {
     return is_type_spec_helper(s,
-                              ParserState_next_token_kind,
-                              ParserState_next_token_spell);
+                               ParserState_next_token_kind,
+                               ParserState_next_token_spell);
 }
 
 bool next_is_type_name(const ParserState* s) {

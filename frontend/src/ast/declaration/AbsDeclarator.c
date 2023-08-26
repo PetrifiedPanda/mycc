@@ -32,9 +32,7 @@ AbsDeclarator* parse_abs_declarator(ParserState* s) {
     }
 
     if (res->direct_abs_decl == NULL && res->ptr == NULL) {
-        ParserErr_set(s->err,
-                      PARSER_ERR_EMPTY_DIRECT_ABS_DECL,
-                      ParserState_curr_idx(s));
+        ParserErr_set(s->err, PARSER_ERR_EMPTY_DIRECT_ABS_DECL, s->it);
         mycc_free(res);
         return NULL;
     }

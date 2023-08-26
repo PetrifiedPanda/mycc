@@ -51,7 +51,7 @@ static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
             goto fail;
         }
     } else if (ParserState_curr_kind(s) == TOKEN_LBRACKET) {
-        const uint32_t idx = ParserState_curr_idx(s);
+        const uint32_t idx = s->it;
         ParserState_accept_it(s);
         AbsDeclOrDecl bracket_decl;
         if (!parse_abs_decl_or_decl(s, &bracket_decl)) {
@@ -104,7 +104,7 @@ static bool parse_abs_decl_or_decl(ParserState* s, AbsDeclOrDecl* res) {
     } else {
         res->is_abs = true;
         if (ptr == NULL) {
-            ParserErr_set(s->err, PARSER_ERR_EMPTY_DIRECT_ABS_DECL, ParserState_curr_idx(s));
+            ParserErr_set(s->err, PARSER_ERR_EMPTY_DIRECT_ABS_DECL, s->it);
             return false;
         }
         res->abs_decl = mycc_alloc(sizeof *res->abs_decl);
@@ -130,7 +130,7 @@ static bool parse_param_declaration_inplace(ParserState* s,
     }
 
     if (found_typedef) {
-        ParserErr_set(s->err, PARSER_ERR_TYPEDEF_PARAM_DECL, ParserState_curr_idx(s));
+        ParserErr_set(s->err, PARSER_ERR_TYPEDEF_PARAM_DECL, s->it);
         DeclarationSpecs_free(&res->decl_specs);
         return false;
     }

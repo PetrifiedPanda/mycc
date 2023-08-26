@@ -14,9 +14,7 @@ bool parse_init_declarator_typedef_inplace(ParserState* s,
     }
 
     if (ParserState_curr_kind(s) == TOKEN_ASSIGN) {
-        ParserErr_set(s->err,
-                      PARSER_ERR_TYPEDEF_INIT,
-                      ParserState_curr_idx(s));
+        ParserErr_set(s->err, PARSER_ERR_TYPEDEF_INIT, s->it);
         return false;
     }
 

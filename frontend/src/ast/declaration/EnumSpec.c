@@ -19,7 +19,7 @@ static bool parse_enumerator_inplace(ParserState* s, Enumerator* res) {
     }
 
     const StrBuf* spell = ParserState_curr_spell_buf(s);
-    const uint32_t idx = ParserState_curr_idx(s);
+    const uint32_t idx = s->it;
     ParserState_accept_it(s);
 
     if (!ParserState_register_enum_constant(s, spell, idx)) {
@@ -88,14 +88,14 @@ static EnumSpec* EnumSpec_create(uint32_t idx,
 }
 
 EnumSpec* parse_enum_spec(ParserState* s) {
-    const uint32_t idx = ParserState_curr_idx(s);
+    const uint32_t idx = s->it;
     if (!ParserState_accept(s, TOKEN_ENUM)) {
         return NULL;
     }
 
     Identifier* id = NULL;
     if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
-        const uint32_t id_idx = ParserState_curr_idx(s);
+        const uint32_t id_idx = s->it;
         ParserState_accept_it(s);
         id = Identifier_create(id_idx);
     }
