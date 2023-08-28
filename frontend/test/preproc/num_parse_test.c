@@ -10,7 +10,7 @@
                                                      &info);                   \
         ASSERT(res.err.kind == INT_CONST_ERR_NONE);                            \
         ASSERT(res.res.kind == expected_val_type);                             \
-        ASSERT_UINT(num, res.res.uint_val);                                \
+        ASSERT_UINT(num, res.res.uint_val);                                    \
     } while (0)
 
 #define TEST_INT_LITERAL(constant, expected_val_type)                          \
@@ -21,7 +21,7 @@
                                                      &info);                   \
         ASSERT(res.err.kind == INT_CONST_ERR_NONE);                            \
         ASSERT(res.res.kind == expected_val_type);                             \
-        ASSERT_UINT(num, res.res.sint_val);                                \
+        ASSERT_UINT(num, res.res.sint_val);                                    \
     } while (0)
 
 TEST(integer) {
@@ -100,6 +100,57 @@ TEST(int_min_fitting_type_oct) {
     TEST_UINT_LITERAL(037777777777u, VALUE_UINT);
     TEST_UINT_LITERAL(040000000000u, VALUE_ULINT);
     TEST_UINT_LITERAL(01777777777777777777777u, VALUE_ULINT);
+}
+
+#define TEST_UCHAR_LIT(constant, expected_val_type)                            \
+    do {                                                                       \
+        const uint64_t num = constant;                                         \
+        const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);      \
+        const ParseCharConstRes res = parse_char_const(STR_LIT(#constant),     \
+                                                       &info);                 \
+                                                                               \
+        ASSERT(res.err.kind == CHAR_CONST_ERR_NONE);                           \
+        ASSERT(res.res.kind == expected_val_type);                             \
+        ASSERT_UINT(num, res.res.uint_val);                                    \
+    } while (0)
+
+#define TEST_SCHAR_LIT(constant, expected_val_type)                            \
+    do {                                                                       \
+        const int64_t num = constant;                                          \
+        const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);      \
+        const ParseCharConstRes res = parse_char_const(STR_LIT(#constant),     \
+                                                       &info);                 \
+                                                                               \
+        ASSERT(res.err.kind == CHAR_CONST_ERR_NONE);                           \
+        ASSERT(res.res.kind == expected_val_type);                             \
+        ASSERT_UINT(num, res.res.sint_val);                                    \
+    } while (0)
+
+#define TEST_CHAR_KINDS(lit)                                                   \
+    do {                                                                       \
+        TEST_SCHAR_LIT(lit, VALUE_INT);                                        \
+        TEST_UCHAR_LIT(u##lit, VALUE_USHORT);                                  \
+        TEST_UCHAR_LIT(U##lit, VALUE_UINT);                                    \
+        TEST_UCHAR_LIT(L##lit, VALUE_UINT);                                    \
+    } while (0)
+
+// TODO: test u8 when possible and change L'' when fixed
+TEST(char_lit) {
+    TEST_CHAR_KINDS('c');
+    TEST_CHAR_KINDS('a');
+    TEST_CHAR_KINDS('-');
+    TEST_CHAR_KINDS('\0');
+    TEST_CHAR_KINDS('\a');
+    TEST_CHAR_KINDS('\b');
+    TEST_CHAR_KINDS('\f');
+    TEST_CHAR_KINDS('\n');
+    TEST_CHAR_KINDS('\r');
+    TEST_CHAR_KINDS('\t');
+    TEST_CHAR_KINDS('\v');
+    TEST_CHAR_KINDS('\\');
+    TEST_CHAR_KINDS('\'');
+    TEST_CHAR_KINDS('\"');
+    TEST_CHAR_KINDS('\?');
 }
 
 static void test_parse_int_err(Str spell, IntConstErrKind err) {
@@ -184,5 +235,6 @@ TEST_SUITE_BEGIN(num_parse){
     REGISTER_TEST(int_too_large),
     REGISTER_TEST(int_suffix_error),
     REGISTER_TEST(float_suffix_error),
+    REGISTER_TEST(char_lit),
 } TEST_SUITE_END()
 
