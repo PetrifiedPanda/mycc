@@ -191,11 +191,46 @@ static uint32_t parse_identifier_list_2(ParserState* s, AST* ast) {
     return res;
 }
 
-static uint32_t parse_declaration_specs_2(ParserState* s, AST* ast) {
+static bool current_is_type_qual(ParserState* s) {
+    if (is_type_qual(ParserState_curr_kind(s))) {
+        if (ParserState_curr_kind(s) == TOKEN_ATOMIC) {
+            return ParserState_next_token_kind(s) != TOKEN_LBRACKET;
+        } else {
+            return true;
+        }
+    } else {
+        return false;
+    }
+}
+
+static bool is_declaration_spec(ParserState* s) {
+    const TokenKind curr_kind = ParserState_curr_kind(s);
+    return is_storage_class_spec(curr_kind) || current_is_type_qual(s)
+           || is_type_spec(s) || is_func_spec(curr_kind)
+           || curr_kind == TOKEN_ALIGNAS;
+}
+
+static uint32_t parse_declaration_spec_2(ParserState* s, AST* ast) {
     (void)s;
     (void)ast;
     // TODO:
     return 0;
+}
+
+static uint32_t parse_declaration_specs_2(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast, AST_DECLARATION_SPECS, s->it, false);
+    CHECK_ERR(parse_declaration_spec_2(s, ast));
+
+    while (is_declaration_spec(s)) {
+        CHECK_ERR(parse_declaration_spec_2(s, ast));
+    }
+    ast->datas[res].rhs = ast->len;
+    if (ParserState_curr_kind(s) == TOKEN_LINDEX) {
+        const uint32_t rhs = parse_attribute_spec_sequence_2(s, ast);
+        assert(rhs == ast->datas[res].rhs);
+        UNUSED(rhs);
+    }
+    return res;
 }
 
 static uint32_t parse_attrs_and_declaration_specs_2(ParserState* s, AST* ast) {

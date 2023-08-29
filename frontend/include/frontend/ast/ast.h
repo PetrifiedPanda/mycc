@@ -57,7 +57,7 @@ typedef enum {
     AST_BREAK_STATEMENT,
     // 'return' lhs ?expr ';'
     AST_RETURN_STATEMENT,
-    // subrange (storage_class_spec | type_spec | func_spec | align_spec)[lhs...rhs]
+    // subrange (storage_class_spec | type_spec | func_spec | align_spec)[lhs...rhs] rhs ?attribute_spec_sequence
     AST_DECLARATION_SPECS,
     // main token is (typedef extern static thread_local auto register)
     AST_STORAGE_CLASS_SPEC,

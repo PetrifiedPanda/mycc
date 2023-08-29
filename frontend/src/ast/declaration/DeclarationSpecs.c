@@ -24,7 +24,7 @@ static bool current_is_type_qual(const ParserState* s) {
 typedef enum {
     DECL_SPEC_ERROR,
     DECL_SPEC_SUCCESS,
-    DECL_SPEC_LAST, // if this is the last declaration spec
+    DECL_SPEC_LAST,
 } ParseDeclarationSpecRes;
 
 /**
