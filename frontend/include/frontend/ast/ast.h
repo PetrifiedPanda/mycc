@@ -161,8 +161,10 @@ typedef enum {
     // subrange param_declaration[lhs...rhs]
     AST_PARAM_TYPE_LIST,
     AST_PARAM_TYPE_LIST_VARIADIC,
-    // lhs declaration_specs rhs (declarator | ?abs_declarator)
+    // lhs attrs_and_declaration_specs rhs (declarator | ?abs_declarator)
     AST_PARAM_DECLARATION,
+    // lhs ?attribute_spec_sequence rhs declaration_specs
+    AST_ATTRS_AND_DECLARATION_SPECS,
     // lhs ?pointer rhs ?direct_abs_declarator
     AST_ABS_DECLARATOR,
     // lhs (abs_declarator | ?direct_abs_declarator) rhs (abs_arr_suffix | abs_func_suffix)

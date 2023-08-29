@@ -173,17 +173,156 @@ static uint32_t parse_arr_suffix_2(ParserState* s, AST* ast) {
 }
 
 static uint32_t parse_identifier_list_2(ParserState* s, AST* ast) {
+    assert(ParserState_curr_kind(s) == TOKEN_IDENTIFIER);
+    const uint32_t res = add_node(ast, AST_IDENTIFIER_LIST, s->it, false);
+
+    // TODO: does this need a type?
+    add_node(ast, AST_IDENTIFIER, s->it, true);
+    ParserState_accept_it(s);
+
+    while (ParserState_curr_kind(s) == TOKEN_COMMA) {
+        ParserState_accept_it(s);
+        const uint32_t curr = s->it;
+        CHECK_ERR(ParserState_accept(s, TOKEN_IDENTIFIER));
+        // TODO: does this need a type?
+        add_node(ast, AST_IDENTIFIER, curr, true);
+    }
+    ast->datas[res].rhs = ast->len;
+    return res;
+}
+
+static uint32_t parse_declaration_specs_2(ParserState* s, AST* ast) {
     (void)s;
     (void)ast;
     // TODO:
     return 0;
 }
 
+static uint32_t parse_attrs_and_declaration_specs_2(ParserState* s, AST* ast) {
+    if (ParserState_curr_kind(s) == TOKEN_LINDEX) {
+        const uint32_t res = add_node(ast,
+                                      AST_ATTRS_AND_DECLARATION_SPECS,
+                                      s->it,
+                                      false);
+        // TODO: cond may not be sufficient
+        if (ParserState_curr_kind(s) == TOKEN_LINDEX) {
+            CHECK_ERR(parse_attribute_spec_sequence_2(s, ast));
+        }
+
+        const uint32_t rhs = parse_declaration_specs_2(s, ast);
+        CHECK_ERR(rhs);
+        ast->datas[res].rhs = rhs;
+        return res;
+    } else {
+        return parse_declaration_specs_2(s, ast);
+    }
+}
+
+static uint32_t parse_pointer_2(ParserState* s, AST* ast);
+static uint32_t parse_direct_declarator_2(ParserState* s, AST* ast);
+static uint32_t parse_direct_abs_declarator_2(ParserState* s, AST* ast);
+static uint32_t parse_abs_arr_or_func_suffix_list_2(ParserState* s, AST* ast);
+static uint32_t parse_arr_or_func_suffix_list_2(ParserState* s, AST* ast);
+
+static uint32_t parse_abs_decl_or_decl_2(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast, AST_TRANSLATION_UNIT, s->it, false);
+
+    if (ParserState_curr_kind(s) == TOKEN_ASTERISK) {
+        CHECK_ERR(parse_pointer_2(s, ast));
+    }
+
+    uint32_t rhs;
+    switch (ParserState_curr_kind(s)) {
+        case TOKEN_IDENTIFIER:
+            ast->kinds[res] = AST_DECLARATOR;
+            rhs = parse_direct_declarator_2(s, ast);
+            CHECK_ERR(rhs);
+            break;
+        case TOKEN_LINDEX:
+            ast->kinds[res] = AST_ABS_DECLARATOR;
+            rhs = parse_direct_abs_declarator_2(s, ast);
+            CHECK_ERR(rhs);
+            break;
+        case TOKEN_LBRACKET: {
+            // direct_abs_declarator or direct_declarator
+            rhs = add_node(ast, AST_TRANSLATION_UNIT, s->it, false);
+            ParserState_accept_it(s);
+            // lhs of rhs
+            const uint32_t bracket_decl = parse_abs_decl_or_decl_2(s, ast);
+            CHECK_ERR(bracket_decl);
+            uint32_t internal_rhs;
+            if (ast->kinds[bracket_decl] == AST_ABS_DECLARATOR) {
+                ast->kinds[res] = AST_ABS_DECLARATOR;
+                ast->kinds[rhs] = AST_DIRECT_ABS_DECLARATOR;
+                CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
+                internal_rhs = parse_abs_arr_or_func_suffix_list_2(s, ast);
+            } else {
+                ast->kinds[res] = AST_DECLARATOR;
+                ast->kinds[rhs] = AST_DIRECT_DECLARATOR;
+                CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
+                internal_rhs = parse_arr_or_func_suffix_list_2(s, ast);
+            }
+            CHECK_ERR(internal_rhs);
+            ast->datas[rhs].rhs = internal_rhs;
+            assert(ast->kinds[rhs] != AST_TRANSLATION_UNIT);
+            break;
+        }
+        default:
+            ast->kinds[res] = AST_ABS_DECLARATOR;
+            // no pointer
+            if (ast->len == res + 1) {
+                ParserErr_set(s->err, PARSER_ERR_EMPTY_DIRECT_ABS_DECL, s->it);
+                return 0;
+            }
+            rhs = 0;
+            break;
+    }
+
+    ast->datas[res].rhs = rhs;
+    assert(ast->kinds[res] != AST_TRANSLATION_UNIT);
+    return res;
+}
+
+static uint32_t parse_param_declaration_2(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast, AST_PARAM_DECLARATION, s->it, false);
+    CHECK_ERR(parse_attrs_and_declaration_specs_2(s, ast));
+    const TokenKind curr = ParserState_curr_kind(s);
+    // no declarator
+    if (curr == TOKEN_COMMA || curr == TOKEN_RBRACKET) {
+        return res;
+    }
+    const uint32_t rhs = parse_abs_decl_or_decl_2(s, ast);
+    CHECK_ERR(rhs);
+    ast->datas[res].rhs = rhs;
+    return res;
+}
+
 static uint32_t parse_param_type_list_2(ParserState* s, AST* ast) {
-    (void)s;
-    (void)ast;
-    // TODO:
-    return 0;
+    if (ParserState_curr_kind(s) == TOKEN_ELLIPSIS) {
+        ParserState_accept_it(s);
+        const uint32_t res = add_node(ast,
+                                      AST_PARAM_TYPE_LIST_VARIADIC,
+                                      s->it,
+                                      false);
+        ast->datas[res].rhs = ast->len;
+        return res;
+    }
+
+    const uint32_t res = add_node(ast, AST_PARAM_TYPE_LIST, s->it, false);
+    CHECK_ERR(parse_param_declaration_2(s, ast));
+
+    while (ParserState_curr_kind(s) == TOKEN_COMMA) {
+        ParserState_accept_it(s);
+        if (ParserState_curr_kind(s) == TOKEN_ELLIPSIS) {
+            ParserState_accept_it(s);
+            ast->kinds[res] = AST_PARAM_TYPE_LIST_VARIADIC;
+            break;
+        }
+
+        CHECK_ERR(parse_param_declaration_2(s, ast));
+    }
+    ast->datas[res].rhs = ast->len;
+    return res;
 }
 
 static uint32_t parse_func_suffix_2(ParserState* s, AST* ast) {
@@ -278,8 +417,6 @@ static uint32_t parse_direct_declarator_2(ParserState* s, AST* ast) {
     }
     return res;
 }
-
-static uint32_t parse_pointer_2(ParserState* s, AST* ast);
 
 static uint32_t parse_declarator_2(ParserState* s, AST* ast) {
     // TODO: unsure about whether this needs a type
@@ -785,6 +922,13 @@ static uint32_t parse_pointer_2(ParserState* s, AST* ast) {
     }
 
     return res;
+}
+
+static uint32_t parse_abs_arr_or_func_suffix_list_2(ParserState* s, AST* ast) {
+    (void)s;
+    (void)ast;
+    // TODO:
+    return 0;
 }
 
 static uint32_t parse_direct_abs_declarator_2(ParserState* s, AST* ast) {
