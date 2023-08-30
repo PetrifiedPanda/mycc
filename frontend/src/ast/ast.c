@@ -1045,6 +1045,19 @@ static uint32_t parse_abs_arr_suffix_2(ParserState* s, AST* ast) {
     }
 }
 
+static uint32_t parse_abs_func_suffix_2(ParserState* s, AST* ast) {
+    assert(ParserState_curr_kind(s) == TOKEN_LBRACKET);
+    const uint32_t res = add_node(ast, AST_ABS_FUNC_SUFFIX, s->it, false);
+    const TokenKind curr_kind = ParserState_curr_kind(s);
+    if (curr_kind == TOKEN_RBRACKET) {
+        ParserState_accept_it(s);
+    } else {
+        CHECK_ERR(parse_param_type_list_2(s, ast));
+        CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
+    }
+    return res;
+}
+
 static uint32_t parse_abs_arr_or_func_suffix_2(ParserState* s, AST* ast) {
     assert(ParserState_curr_kind(s) == TOKEN_LBRACKET || ParserState_curr_kind(s) == TOKEN_LINDEX);
     const uint32_t res = add_node(ast, AST_ABS_ARR_OR_FUNC_SUFFIX, s->it, false);
@@ -1053,7 +1066,7 @@ static uint32_t parse_abs_arr_or_func_suffix_2(ParserState* s, AST* ast) {
             CHECK_ERR(parse_abs_arr_suffix_2(s, ast));
             break;
         case TOKEN_LBRACKET:
-            CHECK_ERR(parse_func_suffix_2(s, ast));
+            CHECK_ERR(parse_abs_func_suffix_2(s, ast));
             break;
         default:
             UNREACHABLE();

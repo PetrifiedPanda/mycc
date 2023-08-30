@@ -178,7 +178,7 @@ typedef enum {
     AST_ABS_ARR_SUFFIX_STATIC,
     // none
     AST_ABS_ARR_SUFFIX_ASTERISK,
-    // param_type_list (might be removeable)
+    // param_type_list (TODO: might be removeable)
     AST_ABS_FUNC_SUFFIX,
     // lhs assign_expr | braced_initializer (might be removeable)
     AST_INITIALIZER,    
