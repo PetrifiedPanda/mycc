@@ -25,7 +25,7 @@ typedef enum {
     AST_FUNC_DECLARATOR_AND_DECL_LIST,
     // lhs ?attribute_spec_sequence rhs declaration_specs_and_init_declarator_list 
     AST_DECLARATION,
-    // subrange (declaration | static_assert_declaration)[lhs...rhs]
+    // subrange (declaration | static_assert_declaration | attribute_declaration)[lhs...rhs]
     AST_DECLARATION_LIST,
     // lhs declaration_specs rhs ?init_declarator_list
     AST_DECLARATION_SPECS_AND_INIT_DECLARATOR_LIST,
