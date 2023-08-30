@@ -191,6 +191,28 @@ static uint32_t parse_identifier_list_2(ParserState* s, AST* ast) {
     return res;
 }
 
+static uint32_t parse_storage_class_spec_2(ParserState* s, AST* ast) {
+    // TODO: special handling for typedef
+    assert(is_storage_class_spec(ParserState_curr_kind(s)));
+    const uint32_t res = add_node(ast, AST_STORAGE_CLASS_SPEC, s->it, false);
+    ParserState_accept_it(s);
+    return res;
+}
+
+static uint32_t parse_func_spec_2(ParserState* s, AST* ast) {
+    assert(is_func_spec(ParserState_curr_kind(s)));
+    const uint32_t res = add_node(ast, AST_FUNC_SPEC, s->it, false);
+    ParserState_accept_it(s);
+    return res;
+}
+
+static uint32_t parse_type_qual_2(ParserState* s, AST* ast) {
+    assert(is_type_qual(ParserState_curr_kind(s)));
+    const uint32_t res = add_node(ast, AST_TYPE_QUAL, s->it, false);
+    ParserState_accept_it(s);
+    return res;
+}
+
 static bool current_is_type_qual(ParserState* s) {
     if (is_type_qual(ParserState_curr_kind(s))) {
         if (ParserState_curr_kind(s) == TOKEN_ATOMIC) {
@@ -210,11 +232,26 @@ static bool is_declaration_spec(ParserState* s) {
            || curr_kind == TOKEN_ALIGNAS;
 }
 
+static uint32_t parse_type_spec_2(ParserState* s, AST* ast);
+static uint32_t parse_align_spec_2(ParserState* s, AST* ast);
+
 static uint32_t parse_declaration_spec_2(ParserState* s, AST* ast) {
-    (void)s;
-    (void)ast;
-    // TODO:
-    return 0;
+    // TODO: maybe use parse_type_spec_qual_2() here
+    assert(is_declaration_spec(s));
+    const TokenKind curr_kind = ParserState_curr_kind(s);
+    if (is_storage_class_spec(curr_kind)) {
+        return parse_storage_class_spec_2(s, ast);
+    } else if (is_type_spec(s)) {
+        return parse_type_spec_2(s, ast);
+    } else if (is_type_qual(curr_kind)) {
+        return parse_type_qual_2(s, ast);
+    } else if (curr_kind == TOKEN_ALIGNAS) {
+        return parse_align_spec_2(s, ast);
+    } else if (is_func_spec(curr_kind)) {
+        return parse_func_spec_2(s, ast);
+    } else {
+        UNREACHABLE();
+    }
 }
 
 static uint32_t parse_declaration_specs_2(ParserState* s, AST* ast) {
