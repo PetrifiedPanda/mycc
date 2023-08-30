@@ -4,24 +4,36 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "frontend/Token.h"
+#include "frontend/parser/ParserErr.h"
+
 /**
  * Special node types
  * subrange ast_node_kind[lhs...rhs] the following nodes will all be of type type and rhs will be the next node after the list
  * token_range token_kind[token_idx...rhs] rhs is the length of tokens that all have the same type
  */
 typedef enum {
-    // subrange (func_def | declaration)[lhs...rhs]
+    // subrange (func_def | declaration | attribute_declaration | static_assert_declaration)[lhs...rhs]
     AST_TRANSLATION_UNIT = 0,
-    // lhs func_signature rhs compound_statement
+    // lhs ?attribute_spec_sequence rhs func_def_impl TODO: rename func_def_impl 
     AST_FUNC_DEF,
-    // lhs declaration_specs rhs init_declarator_list 
+    // lhs declaration_specs rhs func_def_sub_impl TODO: rename func_def_sub_impl
+    AST_FUNC_DEF_IMPL,
+    // lhs func_declarator_and_decl_list rhs compound_statement 
+    AST_FUNC_DEF_SUB_IMPL,
+    // lhs declarator rhs ?declaration_list
+    AST_FUNC_DECLARATOR_AND_DECL_LIST,
+    // lhs ?attribute_spec_sequence rhs declaration_specs_and_init_declarator_list 
     AST_DECLARATION,
+    // subrange (declaration | static_assert_declaration)[lhs...rhs]
+    AST_DECLARATION_LIST,
+    // lhs declaration_specs rhs ?init_declarator_list
+    AST_DECLARATION_SPECS_AND_INIT_DECLARATOR_LIST,
+    // TODO: might not be needed
+    // lhs attribute_spec_sequence ';'
+    AST_ATTRIBUTE_DECLARATION,
     // lhs expr rhs string_literal 
     AST_STATIC_ASSERT_DECLARATION,
-    // lhs func_declaration rhs declaration_list 
-    AST_FUNC_SIGNATURE,
-    // lhs declaration_specs rhs declarator
-    AST_FUNC_DECLARATION,
     // subrange (declaration | statement)[lhs...rhs] 
     AST_COMPOUND_STATEMENT,
     // statement:
@@ -357,6 +369,10 @@ typedef struct {
     uint32_t type_data_len, type_data_cap;
     ASTTypeData* type_data;
 } AST;
+
+AST parse_ast(TokenArr* tokens, ParserErr* err);
+
+void AST_free(AST* ast);
 
 #include "TranslationUnit.h"
 #include "declaration/ExternalDeclaration.h"
