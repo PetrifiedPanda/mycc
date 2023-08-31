@@ -62,7 +62,7 @@ typedef enum {
     AST_FOR,
     // lhs (expr_statement | declaration) rhs for_loop_actions 
     AST_FOR_CLAUSE,
-    // lhs expr_statement rhs expr
+    // lhs expr ';' rhs expr
     AST_FOR_LOOP_ACTIONS,
     // 'goto' lhs identifier ';'
     AST_GOTO_STATEMENT,

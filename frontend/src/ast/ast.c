@@ -94,22 +94,189 @@ static bool parse_translation_unit_2(ParserState* s, AST* ast) {
     return true;
 }
 
-static uint32_t parse_iteration_statement_2(ParserState* s, AST* ast) {
+static uint32_t parse_statement_2(ParserState* s, AST* ast) {
     (void)s, (void)ast;
     // TODO:
     return 0;
+}
+
+static uint32_t parse_expr_2(ParserState* s, AST* ast);
+
+static uint32_t parse_for_loop_actions_2(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast, AST_FOR_LOOP_ACTIONS, s->it, false);
+    if (ParserState_curr_kind(s) == TOKEN_SEMICOLON) {
+        ParserState_accept_it(s);
+    } else {
+        CHECK_ERR(parse_expr_2(s, ast));
+        CHECK_ERR(ParserState_accept(s, TOKEN_SEMICOLON));
+    }
+
+    if (ParserState_curr_kind(s) != TOKEN_RBRACKET) {
+        const uint32_t rhs = parse_expr_2(s, ast);
+        CHECK_ERR(rhs);
+        ast->datas[res].rhs = rhs;
+    }
+    return res;
+}
+
+static uint32_t parse_declaration_2(ParserState* s, AST* ast);
+
+static uint32_t parse_for_clause_2(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast, AST_FOR_CLAUSE, s->it, false);
+    if (is_declaration(s)) {
+        CHECK_ERR(parse_declaration_2(s, ast));
+    } else if (ParserState_curr_kind(s) == TOKEN_SEMICOLON) {
+        ParserState_accept_it(s);
+    } else {
+        CHECK_ERR(parse_expr_2(s, ast));
+        CHECK_ERR(ParserState_accept(s, TOKEN_SEMICOLON));
+    }
+
+    const uint32_t rhs = parse_for_loop_actions_2(s, ast);
+    CHECK_ERR(rhs);
+    ast->datas[res].rhs = rhs;
+    return res;
+}
+
+// TODO: parsing for simple_if, switch and while is identical
+static uint32_t parse_iteration_statement_2(ParserState* s, AST* ast) {
+    assert(ParserState_curr_kind(s) == TOKEN_WHILE
+           || ParserState_curr_kind(s) == TOKEN_DO
+           || ParserState_curr_kind(s) == TOKEN_FOR);
+    switch (ParserState_curr_kind(s)) {
+        case TOKEN_WHILE: {
+            const uint32_t res = add_node(ast, AST_WHILE, s->it, false);
+            ParserState_accept_it(s);
+            CHECK_ERR(ParserState_accept(s, TOKEN_LBRACKET));
+            CHECK_ERR(parse_expr_2(s, ast));
+            CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
+            const uint32_t rhs = parse_statement_2(s, ast);
+            CHECK_ERR(rhs);
+            ast->datas[res].rhs = rhs;
+            return res;
+        }
+        case TOKEN_DO: {
+            const uint32_t res = add_node(ast, AST_DO_WHILE, s->it, false);
+            CHECK_ERR(parse_statement_2(s, ast));
+            CHECK_ERR(ParserState_accept(s, TOKEN_WHILE));
+            CHECK_ERR(ParserState_accept(s, TOKEN_LBRACKET));
+            const uint32_t rhs = parse_expr_2(s, ast);
+            CHECK_ERR(rhs);
+            CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
+            CHECK_ERR(ParserState_accept(s, TOKEN_SEMICOLON));
+            return res;
+        }
+        case TOKEN_FOR: {
+            const uint32_t res = add_node(ast, AST_FOR, s->it, false);
+            ParserState_accept_it(s);
+            CHECK_ERR(ParserState_accept(s, TOKEN_LBRACKET));
+            CHECK_ERR(parse_for_clause_2(s, ast));
+            CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
+            const uint32_t rhs = parse_statement_2(s, ast);
+            CHECK_ERR(rhs);
+            return res;
+        }
+        default:
+            UNREACHABLE();
+    }
+}
+
+static uint32_t parse_simple_if_2(ParserState* s, AST* ast) {
+    assert(ParserState_curr_kind(s) == TOKEN_IF);
+    const uint32_t res = add_node(ast, AST_SIMPLE_IF, s->it, false);
+    ParserState_accept_it(s);
+    CHECK_ERR(ParserState_accept(s, TOKEN_LBRACKET));
+    CHECK_ERR(parse_expr_2(s, ast));
+    CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
+    const uint32_t rhs = parse_statement_2(s, ast);
+    CHECK_ERR(rhs);
+    ast->datas[res].rhs = rhs;
+    return res;
 }
 
 static uint32_t parse_sel_statement_2(ParserState* s, AST* ast) {
-    (void)s, (void)ast;
-    // TODO:
-    return 0;
+    assert(ParserState_curr_kind(s) == TOKEN_IF
+           || ParserState_curr_kind(s) == TOKEN_SWITCH);
+
+    switch (ParserState_curr_kind(s)) {
+        case TOKEN_IF: {
+            const uint32_t res = add_node(ast, AST_IF_ELSE, s->it, false);
+            CHECK_ERR(parse_simple_if_2(s, ast));
+            if (ParserState_curr_kind(s) == TOKEN_ELSE) {
+                ParserState_accept_it(s);
+                const uint32_t rhs = parse_statement_2(s, ast);
+                CHECK_ERR(rhs);
+                ast->datas[res].rhs = rhs;
+            }
+            return res;
+        }
+        case TOKEN_SWITCH: {
+            const uint32_t res = add_node(ast,
+                                          AST_SWITCH_STATEMENT,
+                                          s->it,
+                                          false);
+            ParserState_accept_it(s);
+            CHECK_ERR(ParserState_accept(s, TOKEN_LBRACKET));
+            CHECK_ERR(parse_expr_2(s, ast));
+            CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
+            const uint32_t rhs = parse_statement_2(s, ast);
+            CHECK_ERR(rhs);
+            ast->datas[res].rhs = rhs;
+            return res;
+        }
+        default:
+            UNREACHABLE();
+    }
 }
 
 static uint32_t parse_jump_statement_2(ParserState* s, AST* ast) {
-    (void)s, (void)ast;
-    // TODO:
-    return 0;
+    assert(ParserState_curr_kind(s) == TOKEN_GOTO
+           || ParserState_curr_kind(s) == TOKEN_CONTINUE
+           || ParserState_curr_kind(s) == TOKEN_BREAK
+           || ParserState_curr_kind(s) == TOKEN_RETURN);
+
+    const uint32_t start_idx = s->it;
+    switch (ParserState_curr_kind(s)) {
+        case TOKEN_GOTO: {
+            ParserState_accept_it(s);
+            const uint32_t id_idx = s->it;
+            CHECK_ERR(ParserState_accept(s, TOKEN_IDENTIFIER));
+            CHECK_ERR(ParserState_accept(s, TOKEN_SEMICOLON));
+            const uint32_t res = add_node(ast,
+                                          AST_GOTO_STATEMENT,
+                                          start_idx,
+                                          false);
+            add_node(ast, AST_IDENTIFIER, id_idx, true);
+            return res;
+        }
+        case TOKEN_CONTINUE: {
+            ParserState_accept_it(s);
+            CHECK_ERR(ParserState_accept(s, TOKEN_SEMICOLON));
+            return add_node(ast, AST_CONTINUE_STATEMENT, start_idx, false);
+        }
+        case TOKEN_BREAK: {
+            ParserState_accept_it(s);
+            CHECK_ERR(ParserState_accept(s, TOKEN_SEMICOLON));
+            return add_node(ast, AST_BREAK_STATEMENT, start_idx, false);
+        }
+        case TOKEN_RETURN: {
+            ParserState_accept_it(s);
+            const uint32_t res = add_node(ast,
+                                          AST_RETURN_STATEMENT,
+                                          start_idx,
+                                          false);
+            if (ParserState_curr_kind(s) == TOKEN_SEMICOLON) {
+                ParserState_accept_it(s);
+                return res;
+            } else {
+                CHECK_ERR(parse_expr_2(s, ast));
+                CHECK_ERR(ParserState_accept(s, TOKEN_SEMICOLON));
+            }
+            return res;
+        }
+        default:
+            UNREACHABLE();
+    }
 }
 
 static uint32_t parse_const_expr_2(ParserState* s, AST* ast);
@@ -146,8 +313,6 @@ static uint32_t parse_label_after_attr_2(ParserState* s,
     }
     return res;
 }
-
-static uint32_t parse_expr_2(ParserState* s, AST* ast);
 
 static uint32_t parse_expr_statement_after_attr_2(ParserState* s,
                                                   AST* ast,
