@@ -37,10 +37,9 @@ typedef enum {
     // subrange (declaration | static_assert_declaration | attribute_statement | expr_statement | unlabeled_statement | label)[lhs...rhs] 
     AST_COMPOUND_STATEMENT,
     // lhs ?attribute_spec_sequence rhs identifier ':'
-    AST_LABEL,
     // lhs ?attribute_spec_sequence 'case' rhs ?const_expr ':'
     // lhs ?attribute_spec_sequence 'default' ':'
-    AST_CASE_LABEL,
+    AST_LABEL,
     // statement:
     // lhs ?attribute_spec_sequence rhs ((?expr ';') | compound_statement | selection_statement | iteration_statement | jump_statement)
     AST_UNLABELED_STATEMENT,
@@ -351,7 +350,7 @@ typedef enum {
     AST_IDENTIFIER,
 } ASTNodeKind;
 
-_Static_assert(AST_IDENTIFIER < 255, "ASTNodeKind does not fit into a byte");
+_Static_assert(AST_IDENTIFIER < 256, "ASTNodeKind does not fit into a byte");
 
 typedef struct {
     uint32_t main_token;

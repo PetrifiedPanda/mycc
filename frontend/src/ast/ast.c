@@ -94,10 +94,84 @@ static bool parse_translation_unit_2(ParserState* s, AST* ast) {
     return true;
 }
 
+static uint32_t parse_expr_statement_after_attr_2(ParserState* s,
+                                                  AST* ast,
+                                                  uint32_t res);
+static uint32_t parse_attribute_spec_sequence_2(ParserState* s, AST* ast);
+static uint32_t parse_compound_statement_2(ParserState* s, AST* ast);
+static uint32_t parse_jump_statement_2(ParserState* s, AST* ast);
+static uint32_t parse_sel_statement_2(ParserState* s, AST* ast);
+static uint32_t parse_iteration_statement_2(ParserState* s, AST* ast);
+
+// TODO: If there is no attribute here, we don't need a AST_UNLABELED_STATEMENT node
 static uint32_t parse_statement_2(ParserState* s, AST* ast) {
-    (void)s, (void)ast;
-    // TODO:
-    return 0;
+    // labeled_statement or unlabeled_statement
+    const uint32_t res = add_node(ast, AST_TRANSLATION_UNIT, s->it, false);
+   
+    // TODO: lableled_statement does not work with this
+    // TODO: might have to check next token as well
+    if (ParserState_curr_kind(s) == TOKEN_LINDEX) {
+        CHECK_ERR(parse_attribute_spec_sequence_2(s, ast));
+    }
+
+    switch (ParserState_curr_kind(s)) {
+        case TOKEN_IDENTIFIER:
+            if (ParserState_next_token_kind(s) == TOKEN_COLON) {
+                // TODO: lableled statement
+            } else {
+                ast->kinds[res] = AST_UNLABELED_STATEMENT;
+                CHECK_ERR(parse_expr_statement_after_attr_2(s, ast, res));
+            }
+            break;
+        case TOKEN_CASE:
+        case TOKEN_DEFAULT:
+            // labeled_statement
+            break;
+        case TOKEN_LBRACE:
+            ast->kinds[res] = AST_UNLABELED_STATEMENT;
+            const uint32_t rhs = parse_compound_statement_2(s, ast);
+            CHECK_ERR(rhs);
+            ast->datas[res].rhs = rhs;
+            break;
+        case TOKEN_SEMICOLON:
+            ast->kinds[res] = AST_UNLABELED_STATEMENT;
+            ParserState_accept_it(s);
+            break;
+        case TOKEN_FOR:
+        case TOKEN_WHILE:
+        case TOKEN_DO: {
+            ast->kinds[res] = AST_UNLABELED_STATEMENT;
+            const uint32_t rhs = parse_iteration_statement_2(s, ast);
+            CHECK_ERR(rhs);
+            ast->datas[res].rhs = rhs;
+            break;
+        }
+        case TOKEN_GOTO:
+        case TOKEN_CONTINUE:
+        case TOKEN_BREAK:
+        case TOKEN_RETURN: {
+            ast->kinds[res] = AST_UNLABELED_STATEMENT;
+            const uint32_t rhs = parse_jump_statement_2(s, ast);
+            CHECK_ERR(rhs);
+            ast->datas[res].rhs = rhs;
+            break;
+        }
+        case TOKEN_IF:
+        case TOKEN_SWITCH: {
+            ast->kinds[res] = AST_UNLABELED_STATEMENT;
+            const uint32_t rhs = parse_sel_statement_2(s, ast);
+            CHECK_ERR(rhs);
+            ast->datas[res].rhs = rhs;
+            break;
+        } 
+        default:
+            ast->kinds[res] = AST_UNLABELED_STATEMENT;
+            CHECK_ERR(parse_expr_statement_after_attr_2(s, ast, res));
+            break;
+    }
+
+    assert(ast->kinds[res] != AST_TRANSLATION_UNIT);
+    return res;
 }
 
 static uint32_t parse_expr_2(ParserState* s, AST* ast);
@@ -325,13 +399,12 @@ static uint32_t parse_expr_statement_after_attr_2(ParserState* s,
     return res;
 }
 
-static uint32_t parse_attribute_spec_sequence_2(ParserState* s, AST* ast);
-static uint32_t parse_compound_statement_2(ParserState* s, AST* ast);
 static uint32_t parse_static_assert_declaration_2(ParserState* s, AST* ast);
 static uint32_t parse_declaration_after_attr_2(ParserState* s,
                                                AST* ast,
                                                uint32_t res);
 
+// TODO: If there is no attribute here, we don't need a AST_UNLABELED_STATEMENT node
 static uint32_t parse_block_item(ParserState* s, AST* ast) {
     if (ParserState_curr_kind(s) == TOKEN_STATIC_ASSERT) {
         return parse_static_assert_declaration_2(s, ast);
