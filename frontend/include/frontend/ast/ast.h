@@ -34,23 +34,26 @@ typedef enum {
     AST_ATTRIBUTE_DECLARATION,
     // lhs expr rhs string_literal 
     AST_STATIC_ASSERT_DECLARATION,
-    // subrange (declaration | statement)[lhs...rhs] 
+    // subrange (declaration | static_assert_declaration | attribute_statement | expr_statement | unlabeled_statement | label)[lhs...rhs] 
     AST_COMPOUND_STATEMENT,
+    // lhs ?attribute_spec_sequence rhs identifier ':'
+    AST_LABEL,
+    // lhs ?attribute_spec_sequence 'case' rhs ?const_expr ':'
+    // lhs ?attribute_spec_sequence 'default' ':'
+    AST_CASE_LABEL,
     // statement:
-    // lhs identifier ':' rhs statement
+    // lhs ?attribute_spec_sequence rhs ((?expr ';') | compound_statement | selection_statement | iteration_statement | jump_statement)
+    AST_UNLABELED_STATEMENT,
+    // lhs label rhs statement
     AST_LABELED_STATEMENT,
-    // 'case' lhs const_expr ':' rhs statement
-    AST_CASE_STATEMENT,
-    // 'default' ':' rhs statement (merge with case statement?)
-    AST_DEFAULT_STATEMENT,
-    // expr ';' (might be removeable)
-    AST_EXPR_STATEMENT,
+    // sel_statement:
     // 'switch' '(' lhs expr ')' rhs statement
     AST_SWITCH_STATEMENT,
     // 'if' '(' lhs expr ')' rhs statement
     AST_SIMPLE_IF,
     // lhs simple_if else rhs statement
     AST_IF_ELSE,
+    // iteration_statement:
     // 'while' '(' lhs expr ')' rhs statement
     AST_WHILE,
     // 'do' lhs statement while '(' rhs expr ')' ';'
