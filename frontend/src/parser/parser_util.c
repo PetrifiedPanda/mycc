@@ -130,7 +130,7 @@ bool is_type_spec(const ParserState* s) {
                                ParserState_curr_spell);
 }
 
-static bool is_declaration_spec(const ParserState* s) {
+bool is_declaration_spec(const ParserState* s) {
     const TokenKind kind = ParserState_curr_kind(s);
     return is_storage_class_spec(kind) || is_type_spec(s) || is_type_qual(kind)
            || is_func_spec(kind) || kind == TOKEN_ALIGNAS;

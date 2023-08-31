@@ -39,12 +39,10 @@ bool next_is_type_spec(const ParserState* s);
 bool is_type_spec_token(const ParserState* s,
                         TokenKind kind,
                         Str spelling);
-/**
- *
- * @param s The current parser_state
- * @return Whether the current token is a type specifier
- */
+
 bool is_type_spec(const ParserState* s);
+
+bool is_declaration_spec(const ParserState* s);
 
 /**
  *

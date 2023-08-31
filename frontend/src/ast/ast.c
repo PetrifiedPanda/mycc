@@ -112,10 +112,56 @@ static uint32_t parse_jump_statement_2(ParserState* s, AST* ast) {
     return 0;
 }
 
+static uint32_t parse_const_expr_2(ParserState* s, AST* ast);
+
+static uint32_t parse_label_after_attr_2(ParserState* s,
+                                         AST* ast,
+                                         uint32_t res) {
+    assert(ast->kinds[res] == AST_LABEL);
+    assert(ParserState_curr_kind(s) == TOKEN_CASE
+           || ParserState_curr_kind(s) == TOKEN_DEFAULT
+           || ParserState_curr_kind(s) == TOKEN_IDENTIFIER);
+
+    switch (ParserState_curr_kind(s)) {
+        case TOKEN_IDENTIFIER:
+            assert(ParserState_next_token_kind(s) == TOKEN_COLON);
+            ast->datas[res].rhs = add_node(ast, AST_IDENTIFIER, s->it, true);
+            ParserState_accept_it(s);
+            ParserState_accept_it(s);
+            break;
+        case TOKEN_CASE: {
+            ParserState_accept_it(s);
+            const uint32_t rhs = parse_const_expr_2(s, ast);
+            CHECK_ERR(rhs);
+            CHECK_ERR(ParserState_accept(s, TOKEN_COLON));
+            ast->datas[res].rhs = rhs;
+            break;
+        }
+        case TOKEN_DEFAULT:
+            ParserState_accept_it(s);
+            CHECK_ERR(ParserState_accept(s, TOKEN_COLON));
+            break;
+        default:
+            UNREACHABLE();
+    }
+    return res;
+}
+
+static uint32_t parse_expr_2(ParserState* s, AST* ast);
+
+static uint32_t parse_expr_statement_after_attr_2(ParserState* s,
+                                                  AST* ast,
+                                                  uint32_t res) {
+    assert(ast->kinds[res] == AST_UNLABELED_STATEMENT);
+    const uint32_t rhs = parse_expr_2(s, ast);
+    CHECK_ERR(rhs);
+    CHECK_ERR(ParserState_accept(s, TOKEN_SEMICOLON));
+    ast->datas[res].rhs = rhs;
+    return res;
+}
+
 static uint32_t parse_attribute_spec_sequence_2(ParserState* s, AST* ast);
 static uint32_t parse_compound_statement_2(ParserState* s, AST* ast);
-static uint32_t parse_const_expr_2(ParserState* s, AST* ast);
-static uint32_t parse_expr_2(ParserState* s, AST* ast);
 static uint32_t parse_static_assert_declaration_2(ParserState* s, AST* ast);
 static uint32_t parse_declaration_after_attr_2(ParserState* s,
                                                AST* ast,
@@ -125,13 +171,11 @@ static uint32_t parse_block_item(ParserState* s, AST* ast) {
     if (ParserState_curr_kind(s) == TOKEN_STATIC_ASSERT) {
         return parse_static_assert_declaration_2(s, ast);
     }
-    // declaration, unlabeled_statement or label
+    // declaration, attribute_declaration, unlabeled_statement or label
     const uint32_t res = add_node(ast, AST_TRANSLATION_UNIT, s->it, false);
     // TODO: might have to check next token as well
-    bool has_attr = false;
     if (ParserState_curr_kind(s) == TOKEN_LINDEX) {
         CHECK_ERR(parse_attribute_spec_sequence_2(s, ast));
-        has_attr = true;
     }
 
     switch (ParserState_curr_kind(s)) {
@@ -141,33 +185,16 @@ static uint32_t parse_block_item(ParserState* s, AST* ast) {
                 CHECK_ERR(parse_declaration_after_attr_2(s, ast, res));
             } else if (ParserState_next_token_kind(s) == TOKEN_COLON) {
                 ast->kinds[res] = AST_LABEL;
-                ast->datas[res].rhs = add_node(ast,
-                                               AST_IDENTIFIER,
-                                               s->it,
-                                               true);
-                ParserState_accept_it(s);
-                ParserState_accept_it(s);
+                CHECK_ERR(parse_label_after_attr_2(s, ast, res));
             } else {
                 ast->kinds[res] = AST_UNLABELED_STATEMENT;
-                const uint32_t rhs = parse_expr_2(s, ast);
-                CHECK_ERR(rhs);
-                CHECK_ERR(ParserState_accept(s, TOKEN_SEMICOLON));
-                ast->datas[res].rhs = rhs;
+                CHECK_ERR(parse_expr_statement_after_attr_2(s, ast, res));
             }
             break;
-        case TOKEN_CASE: {
-            ast->kinds[res] = AST_LABEL;
-            ParserState_accept_it(s);
-            const uint32_t rhs = parse_const_expr_2(s, ast);
-            CHECK_ERR(rhs);
-            CHECK_ERR(ParserState_accept(s, TOKEN_COLON));
-            ast->datas[res].rhs = rhs;
-            break;
-        }
+        case TOKEN_CASE:
         case TOKEN_DEFAULT:
             ast->kinds[res] = AST_LABEL;
-            ParserState_accept_it(s);
-            CHECK_ERR(ParserState_accept(s, TOKEN_COLON));
+            CHECK_ERR(parse_label_after_attr_2(s, ast, res));
             break;
         case TOKEN_LBRACE: {
             ast->kinds[res] = AST_UNLABELED_STATEMENT;
@@ -177,7 +204,8 @@ static uint32_t parse_block_item(ParserState* s, AST* ast) {
             break;
         }
         case TOKEN_SEMICOLON:
-            if (has_attr) {
+            // already parsed attribute
+            if (ast->len != res + 1) {
                 ast->kinds[res] = AST_ATTRIBUTE_DECLARATION;
             } else {
                 ast->kinds[res] = AST_UNLABELED_STATEMENT;
@@ -212,15 +240,12 @@ static uint32_t parse_block_item(ParserState* s, AST* ast) {
             break;
         }
         default:
-            if (is_declaration(s)) {
+            if (is_declaration_spec(s)) {
                 ast->kinds[res] = AST_DECLARATION;
                 CHECK_ERR(parse_declaration_after_attr_2(s, ast, res));
             } else {
                 ast->kinds[res] = AST_UNLABELED_STATEMENT;
-                const uint32_t rhs = parse_expr_2(s, ast);
-                CHECK_ERR(rhs);
-                CHECK_ERR(ParserState_accept(s, TOKEN_SEMICOLON));
-                ast->datas[res].rhs = rhs;
+                CHECK_ERR(parse_expr_statement_after_attr_2(s, ast, res));
             }
             break;
     }
@@ -584,28 +609,10 @@ static uint32_t parse_type_qual_2(ParserState* s, AST* ast) {
     return res;
 }
 
-static bool current_is_type_qual(ParserState* s) {
-    if (is_type_qual(ParserState_curr_kind(s))) {
-        if (ParserState_curr_kind(s) == TOKEN_ATOMIC) {
-            return ParserState_next_token_kind(s) != TOKEN_LBRACKET;
-        } else {
-            return true;
-        }
-    } else {
-        return false;
-    }
-}
-
-static bool is_declaration_spec(ParserState* s) {
-    const TokenKind curr_kind = ParserState_curr_kind(s);
-    return is_storage_class_spec(curr_kind) || current_is_type_qual(s)
-           || is_type_spec(s) || is_func_spec(curr_kind)
-           || curr_kind == TOKEN_ALIGNAS;
-}
-
 static uint32_t parse_type_spec_2(ParserState* s, AST* ast);
 static uint32_t parse_align_spec_2(ParserState* s, AST* ast);
 
+// TODO: might have problems with atomic
 static uint32_t parse_declaration_spec_2(ParserState* s, AST* ast) {
     // TODO: maybe use parse_type_spec_qual_2() here
     assert(is_declaration_spec(s));
