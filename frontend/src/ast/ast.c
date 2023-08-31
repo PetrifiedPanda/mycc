@@ -103,11 +103,12 @@ static uint32_t parse_jump_statement_2(ParserState* s, AST* ast);
 static uint32_t parse_sel_statement_2(ParserState* s, AST* ast);
 static uint32_t parse_iteration_statement_2(ParserState* s, AST* ast);
 
-// TODO: If there is no attribute here, we don't need a AST_UNLABELED_STATEMENT node
+// TODO: If there is no attribute here, we don't need a AST_UNLABELED_STATEMENT
+// node
 static uint32_t parse_statement_2(ParserState* s, AST* ast) {
     // labeled_statement or unlabeled_statement
     const uint32_t res = add_node(ast, AST_TRANSLATION_UNIT, s->it, false);
-   
+
     // TODO: lableled_statement does not work with this
     // TODO: might have to check next token as well
     if (ParserState_curr_kind(s) == TOKEN_LINDEX) {
@@ -163,7 +164,7 @@ static uint32_t parse_statement_2(ParserState* s, AST* ast) {
             CHECK_ERR(rhs);
             ast->datas[res].rhs = rhs;
             break;
-        } 
+        }
         default:
             ast->kinds[res] = AST_UNLABELED_STATEMENT;
             CHECK_ERR(parse_expr_statement_after_attr_2(s, ast, res));
@@ -404,7 +405,8 @@ static uint32_t parse_declaration_after_attr_2(ParserState* s,
                                                AST* ast,
                                                uint32_t res);
 
-// TODO: If there is no attribute here, we don't need a AST_UNLABELED_STATEMENT node
+// TODO: If there is no attribute here, we don't need a AST_UNLABELED_STATEMENT
+// node
 static uint32_t parse_block_item(ParserState* s, AST* ast) {
     if (ParserState_curr_kind(s) == TOKEN_STATIC_ASSERT) {
         return parse_static_assert_declaration_2(s, ast);
@@ -506,13 +508,15 @@ static uint32_t parse_compound_statement_2(ParserState* s, AST* ast) {
     return res;
 }
 
-static uint32_t parse_declarator_2(ParserState* s, AST* ast);
+static uint32_t parse_declarator_2(ParserState* s, AST* ast, bool is_typedef);
 static uint32_t parse_initializer_2(ParserState* s, AST* ast);
 
-static uint32_t parse_init_declarator_2(ParserState* s, AST* ast) {
+static uint32_t parse_init_declarator_2(ParserState* s,
+                                        AST* ast,
+                                        bool is_typedef) {
     // TODO: not sure if this needs a type
     const uint32_t res = add_node(ast, AST_INIT_DECLARATOR, s->it, true);
-    CHECK_ERR(parse_declarator_2(s, ast));
+    CHECK_ERR(parse_declarator_2(s, ast, is_typedef));
     if (ParserState_curr_kind(s) == TOKEN_ASSIGN) {
         ParserState_accept_it(s);
         const uint32_t rhs = parse_initializer_2(s, ast);
@@ -524,24 +528,29 @@ static uint32_t parse_init_declarator_2(ParserState* s, AST* ast) {
 
 static uint32_t parse_init_declarator_list_first_2(ParserState* s,
                                                    AST* ast,
-                                                   uint32_t res) {
+                                                   uint32_t res,
+                                                   bool is_typedef) {
     assert(ast->kinds[res] == AST_INIT_DECLARATOR_LIST);
 
     while (ParserState_curr_kind(s) == TOKEN_COMMA) {
         ParserState_accept_it(s);
-        CHECK_ERR(parse_init_declarator_2(s, ast));
+        CHECK_ERR(parse_init_declarator_2(s, ast, is_typedef));
     }
     ast->datas[res].rhs = ast->len;
     return res;
 }
 
-static uint32_t parse_init_declarator_list_2(ParserState* s, AST* ast) {
+static uint32_t parse_init_declarator_list_2(ParserState* s,
+                                             AST* ast,
+                                             bool is_typedef) {
     const uint32_t res = add_node(ast, AST_INIT_DECLARATOR_LIST, s->it, false);
-    CHECK_ERR(parse_init_declarator_2(s, ast));
-    return parse_init_declarator_list_first_2(s, ast, res);
+    CHECK_ERR(parse_init_declarator_2(s, ast, is_typedef));
+    return parse_init_declarator_list_first_2(s, ast, res, is_typedef);
 }
 
-static uint32_t parse_declaration_specs_2(ParserState* s, AST* ast);
+static uint32_t parse_declaration_specs_2(ParserState* s,
+                                          AST* ast,
+                                          bool* is_typedef);
 
 static uint32_t parse_declaration_specs_and_init_declarator_list(ParserState* s,
                                                                  AST* ast) {
@@ -550,9 +559,10 @@ static uint32_t parse_declaration_specs_and_init_declarator_list(ParserState* s,
         AST_DECLARATION_SPECS_AND_INIT_DECLARATOR_LIST,
         s->it,
         false);
-    CHECK_ERR(parse_declaration_specs_2(s, ast));
+    bool is_typedef = false;
+    CHECK_ERR(parse_declaration_specs_2(s, ast, &is_typedef));
     if (ParserState_curr_kind(s) != TOKEN_SEMICOLON) {
-        const uint32_t rhs = parse_init_declarator_list_2(s, ast);
+        const uint32_t rhs = parse_init_declarator_list_2(s, ast, is_typedef);
         CHECK_ERR(rhs);
         CHECK_ERR(ParserState_accept(s, TOKEN_SEMICOLON));
         ast->datas[res].rhs = rhs;
@@ -633,8 +643,9 @@ static uint32_t parse_external_declaration_2(ParserState* s, AST* ast) {
     // declaration_specs_and_init_declarator_list
     const uint32_t rhs = add_node(ast, AST_TRANSLATION_UNIT, s->it, false);
     ast->datas[res].rhs = rhs;
+    bool is_typedef = false;
     // lhs of rhs
-    CHECK_ERR(parse_declaration_specs_2(s, ast));
+    CHECK_ERR(parse_declaration_specs_2(s, ast, &is_typedef));
     // declaration without declarators
     if (ParserState_curr_kind(s) == TOKEN_SEMICOLON) {
         ParserState_accept_it(s);
@@ -651,7 +662,7 @@ static uint32_t parse_external_declaration_2(ParserState* s, AST* ast) {
                                           AST_TRANSLATION_UNIT,
                                           s->it,
                                           false);
-    CHECK_ERR(parse_declarator_2(s, ast));
+    CHECK_ERR(parse_declarator_2(s, ast, is_typedef));
     const TokenKind curr_kind = ParserState_curr_kind(s);
     if (curr_kind == TOKEN_ASSIGN || curr_kind == TOKEN_COMMA) {
         ast->kinds[res] = AST_DECLARATION;
@@ -664,13 +675,15 @@ static uint32_t parse_external_declaration_2(ParserState* s, AST* ast) {
             CHECK_ERR(rhs_rhs_lhs_rhs);
             ast->datas[rhs_rhs_lhs].rhs = rhs_rhs_lhs_rhs;
         }
-        CHECK_ERR(parse_init_declarator_list_first_2(s, ast, rhs_rhs));
+        CHECK_ERR(
+            parse_init_declarator_list_first_2(s, ast, rhs_rhs, is_typedef));
         CHECK_ERR(ParserState_accept(s, TOKEN_SEMICOLON));
     } else {
         ast->kinds[res] = AST_FUNC_DEF;
         ast->kinds[rhs] = AST_FUNC_DEF_IMPL;
         ast->kinds[rhs_rhs] = AST_FUNC_DEF_SUB_IMPL;
         ast->kinds[rhs_rhs_lhs] = AST_FUNC_DECLARATOR_AND_DECL_LIST;
+        // TODO: error typedef in function
         if (ParserState_curr_kind(s) != TOKEN_LBRACE) {
             const uint32_t rhs_rhs_lhs_rhs = parse_declaration_list_2(s, ast);
             CHECK_ERR(rhs_rhs_lhs_rhs);
@@ -825,9 +838,14 @@ static uint32_t parse_identifier_list_2(ParserState* s, AST* ast) {
     return res;
 }
 
-static uint32_t parse_storage_class_spec_2(ParserState* s, AST* ast) {
+static uint32_t parse_storage_class_spec_2(ParserState* s,
+                                           AST* ast,
+                                           bool* is_typedef) {
     // TODO: special handling for typedef
     assert(is_storage_class_spec(ParserState_curr_kind(s)));
+    if (ParserState_curr_kind(s) == TOKEN_TYPEDEF) {
+        *is_typedef = true;
+    }
     const uint32_t res = add_node(ast, AST_STORAGE_CLASS_SPEC, s->it, false);
     ParserState_accept_it(s);
     return res;
@@ -851,12 +869,14 @@ static uint32_t parse_type_spec_2(ParserState* s, AST* ast);
 static uint32_t parse_align_spec_2(ParserState* s, AST* ast);
 
 // TODO: might have problems with atomic
-static uint32_t parse_declaration_spec_2(ParserState* s, AST* ast) {
+static uint32_t parse_declaration_spec_2(ParserState* s,
+                                         AST* ast,
+                                         bool* is_typedef) {
     // TODO: maybe use parse_type_spec_qual_2() here
     assert(is_declaration_spec(s));
     const TokenKind curr_kind = ParserState_curr_kind(s);
     if (is_storage_class_spec(curr_kind)) {
-        return parse_storage_class_spec_2(s, ast);
+        return parse_storage_class_spec_2(s, ast, is_typedef);
     } else if (is_type_spec(s)) {
         return parse_type_spec_2(s, ast);
     } else if (is_type_qual(curr_kind)) {
@@ -870,12 +890,14 @@ static uint32_t parse_declaration_spec_2(ParserState* s, AST* ast) {
     }
 }
 
-static uint32_t parse_declaration_specs_2(ParserState* s, AST* ast) {
+static uint32_t parse_declaration_specs_2(ParserState* s,
+                                          AST* ast,
+                                          bool* is_typedef) {
     const uint32_t res = add_node(ast, AST_DECLARATION_SPECS, s->it, false);
-    CHECK_ERR(parse_declaration_spec_2(s, ast));
+    CHECK_ERR(parse_declaration_spec_2(s, ast, is_typedef));
 
     while (is_declaration_spec(s)) {
-        CHECK_ERR(parse_declaration_spec_2(s, ast));
+        CHECK_ERR(parse_declaration_spec_2(s, ast, is_typedef));
     }
     ast->datas[res].rhs = ast->len;
     if (ParserState_curr_kind(s) == TOKEN_LINDEX) {
@@ -897,17 +919,30 @@ static uint32_t parse_attrs_and_declaration_specs_2(ParserState* s, AST* ast) {
             CHECK_ERR(parse_attribute_spec_sequence_2(s, ast));
         }
 
-        const uint32_t rhs = parse_declaration_specs_2(s, ast);
+        bool is_typedef = false;
+        const uint32_t rhs = parse_declaration_specs_2(s, ast, &is_typedef);
         CHECK_ERR(rhs);
+        if (is_typedef) {
+            // TODO: err
+            return 0;
+        }
         ast->datas[res].rhs = rhs;
         return res;
     } else {
-        return parse_declaration_specs_2(s, ast);
+        bool is_typedef = false;
+        const uint32_t res = parse_declaration_specs_2(s, ast, &is_typedef);
+        if (is_typedef) {
+            // TODO: err
+            return 0;
+        }
+        return res;
     }
 }
 
 static uint32_t parse_pointer_2(ParserState* s, AST* ast);
-static uint32_t parse_direct_declarator_2(ParserState* s, AST* ast);
+static uint32_t parse_direct_declarator_2(ParserState* s,
+                                          AST* ast,
+                                          bool is_typedef);
 static uint32_t parse_direct_abs_declarator_2(ParserState* s, AST* ast);
 static uint32_t parse_abs_arr_or_func_suffix_list_2(ParserState* s, AST* ast);
 static uint32_t parse_arr_or_func_suffix_list_2(ParserState* s, AST* ast);
@@ -923,7 +958,7 @@ static uint32_t parse_abs_decl_or_decl_2(ParserState* s, AST* ast) {
     switch (ParserState_curr_kind(s)) {
         case TOKEN_IDENTIFIER:
             ast->kinds[res] = AST_DECLARATOR;
-            rhs = parse_direct_declarator_2(s, ast);
+            rhs = parse_direct_declarator_2(s, ast, false);
             CHECK_ERR(rhs);
             break;
         case TOKEN_LINDEX:
@@ -1077,14 +1112,22 @@ static uint32_t parse_arr_or_func_suffix_list_2(ParserState* s, AST* ast) {
     return res;
 }
 
-static uint32_t parse_direct_declarator_2(ParserState* s, AST* ast) {
+static uint32_t parse_direct_declarator_2(ParserState* s,
+                                          AST* ast,
+                                          bool is_typedef) {
     const uint32_t res = add_node(ast, AST_DIRECT_DECLARATOR, s->it, false);
     const TokenKind curr_kind = ParserState_curr_kind(s);
     if (curr_kind == TOKEN_IDENTIFIER) {
+        if (is_typedef) {
+            CHECK_ERR(
+                ParserState_register_typedef(s,
+                                             ParserState_curr_spell_buf(s),
+                                             s->it));
+        }
         CHECK_ERR(parse_id_attribute_2(s, ast));
     } else if (curr_kind == TOKEN_LBRACKET) {
         ParserState_accept_it(s);
-        CHECK_ERR(parse_declarator_2(s, ast));
+        CHECK_ERR(parse_declarator_2(s, ast, is_typedef));
         CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
     } else {
         static const TokenKind ex[] = {
@@ -1104,14 +1147,14 @@ static uint32_t parse_direct_declarator_2(ParserState* s, AST* ast) {
     return res;
 }
 
-static uint32_t parse_declarator_2(ParserState* s, AST* ast) {
+static uint32_t parse_declarator_2(ParserState* s, AST* ast, bool is_typedef) {
     // TODO: unsure about whether this needs a type
     const uint32_t res = add_node(ast, AST_DECLARATOR, s->it, true);
     if (ParserState_curr_kind(s) == TOKEN_ASTERISK) {
         CHECK_ERR(parse_pointer_2(s, ast));
     }
 
-    const uint32_t rhs = parse_direct_declarator_2(s, ast);
+    const uint32_t rhs = parse_direct_declarator_2(s, ast, is_typedef);
     CHECK_ERR(rhs);
     ast->datas[res].rhs = rhs;
     return res;
@@ -1121,7 +1164,7 @@ static uint32_t parse_member_declarator_2(ParserState* s, AST* ast) {
     const uint32_t res = add_node(ast, AST_MEMBER_DECLARATOR, s->it, false);
 
     if (ParserState_curr_kind(s) != TOKEN_COLON) {
-        CHECK_ERR(parse_declarator_2(s, ast));
+        CHECK_ERR(parse_declarator_2(s, ast, false));
     }
 
     if (ParserState_curr_kind(s) == TOKEN_COLON) {
