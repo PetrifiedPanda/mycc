@@ -115,10 +115,10 @@ static AllocStats g_alloc_stats = {
 
 static uint32_t find_alloc_idx(const AllocStats* stats, void* alloc) {
     assert(alloc != NULL);
-    size_t left = 0;
-    size_t right = stats->len;
+    uint32_t left = 0;
+    uint32_t right = stats->len;
     while (left < right) {
-        const size_t middle = (left + right) / 2;
+        const uint32_t middle = (left + right) / 2;
         if (stats->data[middle].alloc < alloc) {
             left = middle + 1;
         } else {
@@ -347,7 +347,7 @@ void* mycc_memdebug_realloc_wrapper(void* alloc,
         }
         return new_alloc;
     } else {
-        const size_t alloc_idx = find_alloc_idx(&g_alloc_stats, alloc);
+        const uint32_t alloc_idx = find_alloc_idx(&g_alloc_stats, alloc);
         assert(g_alloc_stats.data[alloc_idx].alloc == alloc);
         check_if_freed(&g_alloc_stats, alloc_idx);
         void* new_alloc = mycc_realloc(alloc, bytes);
