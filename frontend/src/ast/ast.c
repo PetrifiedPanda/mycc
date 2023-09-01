@@ -94,6 +94,48 @@ static bool parse_translation_unit_2(ParserState* s, AST* ast) {
     return true;
 }
 
+static uint32_t parse_statement_2(ParserState* s, AST* ast);
+
+static uint32_t parse_labeled_statement_label(ParserState* s, AST* ast) {
+    assert(ParserState_curr_kind(s) == TOKEN_IDENTIFIER);
+    assert(ParserState_next_token_kind(s) == TOKEN_COLON);
+    const uint32_t res = add_node(ast,
+                                  AST_LABELED_STATEMENT_LABEL,
+                                  s->it,
+                                  false);
+    add_node(ast, AST_IDENTIFIER, s->it, false);
+    ParserState_accept_it(s);
+    ParserState_accept_it(s);
+    const uint32_t rhs = parse_statement_2(s, ast);
+    CHECK_ERR(rhs);
+    ast->datas[res].rhs = rhs;
+    return res;
+}
+
+static uint32_t parse_const_expr_2(ParserState* s, AST* ast);
+
+static uint32_t parse_labeled_statement_case(ParserState* s, AST* ast) {
+    assert(ParserState_curr_kind(s) == TOKEN_CASE || ParserState_curr_kind(s) == TOKEN_DEFAULT);
+    const uint32_t res = add_node(ast, AST_LABELED_STATEMENT_CASE, s->it, false);
+    
+    const TokenKind begin_kind = ParserState_curr_kind(s);
+    ParserState_accept_it(s);
+    switch (begin_kind) {
+        case TOKEN_CASE:
+            CHECK_ERR(parse_const_expr_2(s, ast));
+            break;
+        case TOKEN_DEFAULT:
+            break;
+        default:
+            UNREACHABLE();
+    }
+    CHECK_ERR(ParserState_accept(s, TOKEN_COLON));
+    const uint32_t rhs = parse_statement_2(s, ast);
+    CHECK_ERR(rhs);
+    ast->datas[res].rhs = rhs;
+    return res;
+}
+
 static uint32_t parse_expr_statement_after_attr_2(ParserState* s,
                                                   AST* ast,
                                                   uint32_t res);
@@ -109,7 +151,6 @@ static uint32_t parse_statement_2(ParserState* s, AST* ast) {
     // labeled_statement or unlabeled_statement
     const uint32_t res = add_node(ast, AST_TRANSLATION_UNIT, s->it, false);
 
-    // TODO: lableled_statement does not work with this
     // TODO: might have to check next token as well
     if (ParserState_curr_kind(s) == TOKEN_LINDEX) {
         CHECK_ERR(parse_attribute_spec_sequence_2(s, ast));
@@ -118,22 +159,30 @@ static uint32_t parse_statement_2(ParserState* s, AST* ast) {
     switch (ParserState_curr_kind(s)) {
         case TOKEN_IDENTIFIER:
             if (ParserState_next_token_kind(s) == TOKEN_COLON) {
-                // TODO: lableled statement
+                ast->kinds[res] = AST_LABELED_STATEMENT;
+                const uint32_t rhs = parse_labeled_statement_label(s, ast);
+                CHECK_ERR(rhs);
+                ast->datas[res].rhs = rhs;
             } else {
                 ast->kinds[res] = AST_UNLABELED_STATEMENT;
                 CHECK_ERR(parse_expr_statement_after_attr_2(s, ast, res));
             }
             break;
         case TOKEN_CASE:
-        case TOKEN_DEFAULT:
-            // labeled_statement
+        case TOKEN_DEFAULT: {
+            ast->kinds[res] = AST_LABELED_STATEMENT;
+            const uint32_t rhs = parse_labeled_statement_case(s, ast);
+            CHECK_ERR(rhs);
+            ast->datas[res].rhs = rhs;
             break;
-        case TOKEN_LBRACE:
+        }
+        case TOKEN_LBRACE: {
             ast->kinds[res] = AST_UNLABELED_STATEMENT;
             const uint32_t rhs = parse_compound_statement_2(s, ast);
             CHECK_ERR(rhs);
             ast->datas[res].rhs = rhs;
             break;
+        }
         case TOKEN_SEMICOLON:
             ast->kinds[res] = AST_UNLABELED_STATEMENT;
             ParserState_accept_it(s);
@@ -353,8 +402,6 @@ static uint32_t parse_jump_statement_2(ParserState* s, AST* ast) {
             UNREACHABLE();
     }
 }
-
-static uint32_t parse_const_expr_2(ParserState* s, AST* ast);
 
 static uint32_t parse_label_after_attr_2(ParserState* s,
                                          AST* ast,
@@ -1602,6 +1649,7 @@ static uint32_t parse_balanced_token(ParserState* s, AST* ast) {
     }
 }
 
+// TODO: I don't think this can fail
 static uint32_t parse_balanced_token_sequence(ParserState* s, AST* ast) {
     const uint32_t res = add_node(ast,
                                   AST_BALANCED_TOKEN_SEQUENCE,

@@ -43,8 +43,13 @@ typedef enum {
     // statement:
     // lhs ?attribute_spec_sequence rhs ((?expr ';') | compound_statement | selection_statement | iteration_statement | jump_statement)
     AST_UNLABELED_STATEMENT,
-    // lhs label rhs statement
+    // lhs ?attribute_spec_sequence rhs (labeled_statement_label | labeled_statement_case)
     AST_LABELED_STATEMENT,
+    // lhs (identifier ':') rhs statement
+    AST_LABELED_STATEMENT_LABEL,
+    // 'case' lhs const_expr ':' rhs statement
+    // 'default' lhs empty ':' rhs statement
+    AST_LABELED_STATEMENT_CASE,
     // sel_statement:
     // 'switch' '(' lhs expr ')' rhs statement
     AST_SWITCH_STATEMENT,
