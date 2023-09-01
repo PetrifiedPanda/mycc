@@ -383,6 +383,7 @@ typedef struct {
     ASTNodeData* datas;
     uint32_t type_data_len, type_data_cap;
     ASTTypeData* type_data;
+    TokenArr toks;
 } AST;
 
 AST parse_ast(TokenArr* tokens, ParserErr* err);
