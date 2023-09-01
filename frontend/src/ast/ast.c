@@ -46,6 +46,18 @@ static uint32_t add_node(AST* ast,
 
 static bool parse_translation_unit_2(ParserState* s, AST* ast);
 
+static void AST_free_error(AST* ast) {
+    mycc_free(ast->kinds);
+    mycc_free(ast->datas);
+    mycc_free(ast->type_data);
+
+    ast->len = 0;
+    ast->cap = 0;
+    ast->kinds = NULL;
+    ast->datas = NULL;
+    ast->type_data = NULL;
+}
+
 AST parse_ast(TokenArr* tokens, ParserErr* err) {
     assert(tokens);
     assert(err);
@@ -64,16 +76,15 @@ AST parse_ast(TokenArr* tokens, ParserErr* err) {
     };
 
     if (!parse_translation_unit_2(&s, &res)) {
-        AST_free(&res);
+        ParserState_free(&s);
+        AST_free_error(&res);
         assert(err->kind != PARSER_ERR_NONE);
         res.toks = s._arr;
-        s._arr = TokenArr_create_empty();
         res.len = 0;
         res.cap = 0;
         return res;
     }
     res.toks = s._arr;
-    s._arr = TokenArr_create_empty();
 
     ParserState_free(&s);
     return res;
@@ -83,6 +94,7 @@ void AST_free(AST* ast) {
     mycc_free(ast->kinds);
     mycc_free(ast->datas);
     mycc_free(ast->type_data);
+    TokenArr_free(&ast->toks);
 }
 
 static uint32_t parse_external_declaration_2(ParserState* s, AST* ast);

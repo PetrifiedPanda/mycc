@@ -49,6 +49,7 @@ int main(int argc, char** argv) {
             if (!convert_preproc_tokens(&preproc_res.toks, &type_info, &preproc_err)) {
                 PreprocErr_print(mycc_stderr, &preproc_res.file_info, &preproc_err);
                 PreprocErr_free(&preproc_err);
+                CmdArgs_free(&args);
                 return EXIT_FAILURE; 
             }
 
@@ -56,11 +57,17 @@ int main(int argc, char** argv) {
             AST ast = parse_ast(&preproc_res.toks, &parser_err);
             if (parser_err.kind != PARSER_ERR_NONE) {
                 ParserErr_print(mycc_stderr, &preproc_res.file_info, &ast.toks, &parser_err);
+                AST_free(&ast);
+                PreprocRes_free(&preproc_res);
+                CmdArgs_free(&args);
                 return EXIT_FAILURE;
             }
 
             len += ast.len;
+            AST_free(&ast);
+            PreprocRes_free(&preproc_res);
         }
+        CmdArgs_free(&args);
         return len;
     } else {
         for (uint32_t i = 0; i < args.num_files; ++i) {
