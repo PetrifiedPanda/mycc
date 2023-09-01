@@ -66,8 +66,14 @@ AST parse_ast(TokenArr* tokens, ParserErr* err) {
     if (!parse_translation_unit_2(&s, &res)) {
         AST_free(&res);
         assert(err->kind != PARSER_ERR_NONE);
-        return (AST){0};
+        res.toks = s._arr;
+        s._arr = TokenArr_create_empty();
+        res.len = 0;
+        res.cap = 0;
+        return res;
     }
+    res.toks = s._arr;
+    s._arr = TokenArr_create_empty();
 
     ParserState_free(&s);
     return res;
@@ -699,6 +705,7 @@ static uint32_t parse_external_declaration_2(ParserState* s, AST* ast) {
         ast->kinds[res] = AST_DECLARATION;
         ast->kinds[rhs] = AST_DECLARATION_SPECS_AND_INIT_DECLARATOR_LIST;
         // TODO: error if this has attributes
+        // TODO: error typedef without declarator
         return res;
     }
     // func_def_sub_impl or init_declarator_list
@@ -711,7 +718,7 @@ static uint32_t parse_external_declaration_2(ParserState* s, AST* ast) {
                                           false);
     CHECK_ERR(parse_declarator_2(s, ast, is_typedef));
     const TokenKind curr_kind = ParserState_curr_kind(s);
-    if (curr_kind == TOKEN_ASSIGN || curr_kind == TOKEN_COMMA) {
+    if (curr_kind == TOKEN_ASSIGN || curr_kind == TOKEN_COMMA || curr_kind == TOKEN_SEMICOLON) {
         ast->kinds[res] = AST_DECLARATION;
         ast->kinds[rhs] = AST_DECLARATION_SPECS_AND_INIT_DECLARATOR_LIST;
         ast->kinds[rhs_rhs] = AST_INIT_DECLARATOR_LIST;
@@ -940,6 +947,10 @@ static uint32_t parse_declaration_spec_2(ParserState* s,
 static uint32_t parse_declaration_specs_2(ParserState* s,
                                           AST* ast,
                                           bool* is_typedef) {
+    if (!is_declaration_spec(s)) {
+        // TODO: error
+        return 0;
+    }
     const uint32_t res = add_node(ast, AST_DECLARATION_SPECS, s->it, false);
     CHECK_ERR(parse_declaration_spec_2(s, ast, is_typedef));
 
@@ -1118,11 +1129,11 @@ static uint32_t parse_func_suffix_2(ParserState* s, AST* ast) {
 }
 
 static uint32_t parse_arr_or_func_suffix_2(ParserState* s, AST* ast) {
-    assert(ParserState_curr_kind(s) == TOKEN_LBRACE
-           || ParserState_curr_kind(s) == TOKEN_RBRACE);
+    assert(ParserState_curr_kind(s) == TOKEN_LBRACKET
+           || ParserState_curr_kind(s) == TOKEN_LINDEX);
     const uint32_t res = add_node(ast, AST_ARR_OR_FUNC_SUFFIX, s->it, false);
     switch (ParserState_curr_kind(s)) {
-        case TOKEN_LBRACE:
+        case TOKEN_LINDEX:
             CHECK_ERR(parse_arr_suffix_2(s, ast));
             break;
         case TOKEN_LBRACKET:
@@ -1231,6 +1242,7 @@ static uint32_t parse_member_declarator_list_2(ParserState* s, AST* ast) {
     CHECK_ERR(parse_member_declarator_2(s, ast));
 
     while (ParserState_curr_kind(s) == TOKEN_COMMA) {
+        ParserState_accept_it(s);
         CHECK_ERR(parse_member_declarator_2(s, ast));
     }
     ast->datas[res].rhs = ast->len;
@@ -1292,7 +1304,8 @@ static uint32_t parse_member_declaration_list_2(ParserState* s, AST* ast) {
 static uint32_t parse_struct_union_body_2(ParserState* s, AST* ast) {
     const uint32_t res = add_node(ast, AST_STRUCT_UNION_BODY, s->it, false);
     if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
-        add_node(ast, AST_IDENTIFIER, s->it, false);
+        add_node(ast, AST_IDENTIFIER, s->it, true);
+        ParserState_accept_it(s);
     }
 
     if (ParserState_curr_kind(s) == TOKEN_LBRACE) {
@@ -1522,7 +1535,9 @@ static uint32_t parse_type_spec_qual_2(ParserState* s, AST* ast) {
     if (is_type_spec(s)) {
         return parse_type_spec_2(s, ast);
     } else if (is_type_qual(ParserState_curr_kind(s))) {
-        return add_node(ast, AST_TYPE_QUAL, s->it, false);
+        const uint32_t res = add_node(ast, AST_TYPE_QUAL, s->it, false);
+        ParserState_accept_it(s);
+        return res;
     } else if (ParserState_curr_kind(s) == TOKEN_ALIGNAS) {
         return parse_align_spec_2(s, ast);
     } else {
@@ -2146,7 +2161,7 @@ static uint32_t parse_braced_initializer_2(ParserState* s, AST* ast);
 static uint32_t parse_initializer_2(ParserState* s, AST* ast) {
     // TODO: Might not need a node
     const uint32_t res = add_node(ast, AST_INITIALIZER, s->it, false);
-    if (ParserState_curr_kind(s) == TOKEN_RBRACE) {
+    if (ParserState_curr_kind(s) == TOKEN_LBRACE) {
         CHECK_ERR(parse_braced_initializer_2(s, ast));
     } else {
         CHECK_ERR(parse_assign_expr_2(s, ast));
@@ -2305,6 +2320,7 @@ static uint32_t parse_postfix_expr_2(ParserState* s, AST* ast) {
 
 static uint32_t parse_unary_expr_2(ParserState* s, AST* ast);
 
+// TODO: does not work with compound literals
 static uint32_t parse_cast_expr_2(ParserState* s, AST* ast) {
     // TODO: might not need a node
     const uint32_t res = add_node(ast, AST_CAST_EXPR, s->it, true);
