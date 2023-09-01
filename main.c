@@ -36,6 +36,32 @@ int main(int argc, char** argv) {
                 return EXIT_FAILURE;
             }
         }
+    } else if (args.action == ARG_ACTION_NEW_PARSER) {
+        uint32_t len = 0;
+        for (uint32_t i = 0; i < args.num_files; ++i) {
+            PreprocErr preproc_err = PreprocErr_create();
+            PreprocRes preproc_res = preproc(args.files[i], args.num_include_dirs, args.include_dirs, &type_info, &preproc_err);
+            if (preproc_err.kind != PREPROC_ERR_NONE) {
+                PreprocErr_print(mycc_stderr, &preproc_res.file_info, &preproc_err);
+                PreprocErr_free(&preproc_err);
+                return EXIT_FAILURE;
+            }
+            if (!convert_preproc_tokens(&preproc_res.toks, &type_info, &preproc_err)) {
+                PreprocErr_print(mycc_stderr, &preproc_res.file_info, &preproc_err);
+                PreprocErr_free(&preproc_err);
+                return EXIT_FAILURE; 
+            }
+
+            ParserErr parser_err = ParserErr_create();
+            AST ast = parse_ast(&preproc_res.toks, &parser_err);
+            if (parser_err.kind != PARSER_ERR_NONE) {
+                ParserErr_print(mycc_stderr, &preproc_res.file_info, &ast.toks, &parser_err);
+                return EXIT_FAILURE;
+            }
+
+            len += ast.len;
+        }
+        return len;
     } else {
         for (uint32_t i = 0; i < args.num_files; ++i) {
             if (!output_ast(&args, &type_info, args.files[i])) {

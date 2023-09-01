@@ -59,6 +59,9 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
                 case 'c':
                     res.action = ARG_ACTION_CONVERT_BIN_TO_TEXT;
                     break;
+                case 'n':
+                    res.action = ARG_ACTION_NEW_PARSER;
+                    break;
                 case 'I': {
                     if (i == argc - 1) {
                         CmdArgs_free(&res);

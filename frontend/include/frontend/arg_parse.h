@@ -9,6 +9,7 @@ typedef enum {
     ARG_ACTION_OUTPUT_TEXT,
     ARG_ACTION_OUTPUT_BIN,
     ARG_ACTION_CONVERT_BIN_TO_TEXT,
+    ARG_ACTION_NEW_PARSER,
 } ArgAction;
 
 typedef struct {
