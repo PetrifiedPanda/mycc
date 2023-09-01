@@ -143,12 +143,20 @@ typedef enum {
     AST_ATTRIBUTE_SPEC,
     // subrange attribute[lhs...rhs]
     AST_ATTRIBUTE_LIST,
-    // lhs attribute_token rhs ?attribute_arg_clause
+    // lhs (attribute_prefixed_token | identifier) rhs ?attribute_arg_clause
     AST_ATTRIBUTE,
-    // TODO:
-    AST_ATTRIBUTE_TOKEN,
-    // TODO:
-    AST_ATTRIBUTE_ARG_CLAUSE,
+    // lhs identifier rhs identifier
+    AST_ATTRIBUTE_PREFIXED_TOKEN,
+    // '(' lhs ?balanced_token_sequence ')'
+    AST_ATTRIBUTE_ARGUMENT_CLAUSE,
+    // subrange balanced_token[lhs...rhs]
+    AST_BALANCED_TOKEN_SEQUENCE,
+    // '(' lhs ?balanced_token_sequence ')'
+    // '[' lhs ?balanced_token_sequence ']'
+    // '{' lhs ?balanced_token_sequence '}'
+    AST_BALANCED_TOKEN_BRACKET,
+    // just a token
+    AST_BALANCED_TOKEN,
     // token_range type_qual[lhs...rhs]
     AST_TYPE_QUAL_LIST,
     // lhs id_attribute rhs arr_or_func_suffix_list

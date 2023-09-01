@@ -1540,10 +1540,111 @@ static uint32_t parse_spec_qual_list_2(ParserState* s, AST* ast) {
     return res;
 }
 
+static bool is_balanced_token(TokenKind k) {
+    switch (k) {
+        case TOKEN_RBRACKET:
+        case TOKEN_RINDEX:
+        case TOKEN_RBRACE:
+            return false;
+        default:
+            return true;
+    }
+}
+
+static TokenKind get_rbracket(TokenKind bracket) {
+    assert(bracket == TOKEN_LBRACKET || bracket == TOKEN_LINDEX
+           || bracket == TOKEN_LBRACE);
+    switch (bracket) {
+        case TOKEN_LBRACKET:
+            return TOKEN_RBRACKET;
+        case TOKEN_LINDEX:
+            return TOKEN_RINDEX;
+        case TOKEN_LBRACE:
+            return TOKEN_RBRACE;
+        default:
+            UNREACHABLE();
+    }
+}
+
+static uint32_t parse_balanced_token_sequence(ParserState* s, AST* ast);
+
+static uint32_t balanced_token_bracket(ParserState* s, AST* ast) {
+    assert(ParserState_curr_kind(s) == TOKEN_LBRACKET
+           || ParserState_curr_kind(s) == TOKEN_LINDEX
+           || ParserState_curr_kind(s) == TOKEN_LBRACE);
+
+    const uint32_t res = add_node(ast,
+                                  AST_BALANCED_TOKEN_BRACKET,
+                                  s->it,
+                                  false);
+    const TokenKind rbracket = get_rbracket(ParserState_curr_kind(s));
+    ParserState_accept_it(s);
+    if (ParserState_curr_kind(s) == rbracket) {
+        ParserState_accept_it(s);
+        return res;
+    }
+    CHECK_ERR(parse_balanced_token_sequence(s, ast));
+    CHECK_ERR(ParserState_accept(s, rbracket));
+    return res;
+}
+
+static uint32_t parse_balanced_token(ParserState* s, AST* ast) {
+    assert(is_balanced_token(ParserState_curr_kind(s)));
+    const uint32_t start_idx = s->it;
+    switch (ParserState_curr_kind(s)) {
+        case TOKEN_LBRACKET:
+        case TOKEN_LINDEX:
+        case TOKEN_LBRACE:
+            return balanced_token_bracket(s, ast);
+        default:
+            ParserState_accept_it(s);
+            return add_node(ast, AST_BALANCED_TOKEN, start_idx, false);
+    }
+}
+
+static uint32_t parse_balanced_token_sequence(ParserState* s, AST* ast) {
+    const uint32_t res = add_node(ast,
+                                  AST_BALANCED_TOKEN_SEQUENCE,
+                                  s->it,
+                                  false);
+
+    // TODO: buffer overflow
+    while (is_balanced_token(ParserState_curr_kind(s))) {
+        CHECK_ERR(parse_balanced_token(s, ast));
+    }
+    ast->datas[res].rhs = ast->len;
+    return res;
+}
+
+static uint32_t parse_attribute_argument_clause_2(ParserState* s, AST* ast) {
+    assert(ParserState_curr_kind(s) == TOKEN_LBRACKET);
+    const uint32_t res = add_node(ast,
+                                  AST_ATTRIBUTE_ARGUMENT_CLAUSE,
+                                  s->it,
+                                  false);
+    ParserState_accept_it(s);
+    if (ParserState_curr_kind(s) == TOKEN_RBRACKET) {
+        ParserState_accept_it(s);
+        return res;
+    }
+    CHECK_ERR(parse_balanced_token_sequence(s, ast));
+    CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
+    return res;
+}
+
 static uint32_t parse_attribute_2(ParserState* s, AST* ast) {
-    (void)s, (void)ast;
-    // TODO:
-    return 0;
+    // TODO: if next token is '::' lhs is attribute_prefixed_token
+    const uint32_t start_idx = s->it;
+    CHECK_ERR(ParserState_accept(s, TOKEN_IDENTIFIER));
+    const uint32_t res = add_node(ast, AST_ATTRIBUTE, start_idx, false);
+    add_node(ast, AST_IDENTIFIER, start_idx, false);
+
+    if (ParserState_curr_kind(s) == TOKEN_LBRACKET) {
+        const uint32_t rhs = parse_attribute_argument_clause_2(s, ast);
+        CHECK_ERR(rhs);
+        ast->datas[rhs].rhs = rhs;
+    }
+    return res;
 }
 
 static uint32_t parse_attribute_list_2(ParserState* s, AST* ast) {
@@ -1553,7 +1654,11 @@ static uint32_t parse_attribute_list_2(ParserState* s, AST* ast) {
         return res;
     }
 
-    while (ParserState_curr_kind(s) != TOKEN_RINDEX) {
+    CHECK_ERR(parse_attribute_2(s, ast));
+
+    while (ParserState_curr_kind(s) == TOKEN_COMMA
+           && ParserState_next_token_kind(s) != TOKEN_RINDEX) {
+        ParserState_accept_it(s);
         CHECK_ERR(parse_attribute_2(s, ast));
     }
 
