@@ -931,6 +931,15 @@ static uint32_t parse_type_qual_2(ParserState* s, AST* ast) {
     return res;
 }
 
+static bool curr_is_type_qual(const ParserState* s) {
+    const TokenKind curr_kind = ParserState_curr_kind(s);
+    if (curr_kind == TOKEN_ATOMIC) {
+        return ParserState_next_token_kind(s) != TOKEN_LBRACKET;
+    } else {
+        return is_type_qual(curr_kind);
+    }
+}
+
 static uint32_t parse_type_spec_2(ParserState* s, AST* ast);
 static uint32_t parse_align_spec_2(ParserState* s, AST* ast);
 
@@ -943,10 +952,10 @@ static uint32_t parse_declaration_spec_2(ParserState* s,
     const TokenKind curr_kind = ParserState_curr_kind(s);
     if (is_storage_class_spec(curr_kind)) {
         return parse_storage_class_spec_2(s, ast, is_typedef);
+    } else if (curr_is_type_qual(s)) {
+        return parse_type_qual_2(s, ast);
     } else if (is_type_spec(s)) {
         return parse_type_spec_2(s, ast);
-    } else if (is_type_qual(curr_kind)) {
-        return parse_type_qual_2(s, ast);
     } else if (curr_kind == TOKEN_ALIGNAS) {
         return parse_align_spec_2(s, ast);
     } else if (is_func_spec(curr_kind)) {
@@ -1544,12 +1553,10 @@ static uint32_t parse_align_spec_2(ParserState* s, AST* ast) {
 static uint32_t parse_type_spec_qual_2(ParserState* s, AST* ast) {
     assert(is_type_spec(s) || is_type_qual(ParserState_curr_kind(s))
            || ParserState_curr_kind(s) == TOKEN_ALIGNAS);
-    if (is_type_spec(s)) {
+    if (curr_is_type_qual(s)) {
+        return parse_type_qual_2(s, ast);
+    } else if (is_type_spec(s)) {
         return parse_type_spec_2(s, ast);
-    } else if (is_type_qual(ParserState_curr_kind(s))) {
-        const uint32_t res = add_node(ast, AST_TYPE_QUAL, s->it, false);
-        ParserState_accept_it(s);
-        return res;
     } else if (ParserState_curr_kind(s) == TOKEN_ALIGNAS) {
         return parse_align_spec_2(s, ast);
     } else {
@@ -2341,6 +2348,10 @@ static uint32_t parse_cast_expr_2(ParserState* s, AST* ast) {
         ParserState_accept_it(s);
         CHECK_ERR(parse_type_name_2(s, ast));
         CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
+        if (ParserState_curr_kind(s) == TOKEN_LBRACE) {
+            ast->kinds[res] = AST_POSTFIX_EXPR;
+            // TODO:
+        }
 
         const uint32_t rhs = parse_cast_expr_2(s, ast);
         CHECK_ERR(rhs);
