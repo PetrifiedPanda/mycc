@@ -94,6 +94,7 @@ typedef enum {
     AST_TYPE_SPEC_UNSIGNED,
     AST_TYPE_SPEC_BOOL,
     AST_TYPE_SPEC_COMPLEX,
+    AST_TYPE_SPEC_IMAGINARY,
     // main token is identifier
     AST_TYPE_SPEC_TYPEDEF_NAME,
     // 'enum' lhs ?attribute_id rhs ?enum_body
