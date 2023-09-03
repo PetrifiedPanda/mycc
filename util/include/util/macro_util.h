@@ -9,6 +9,7 @@
  */
 #define UNUSED(var) (void)var
 
+#ifdef NDEBUG
 #if defined(_MSC_VER) && !defined(__clang__)
 
 #define UNREACHABLE() __assume(0)
@@ -16,6 +17,12 @@
 #else
 
 #define UNREACHABLE() __builtin_unreachable()
+
+#endif
+
+#else
+
+#define UNREACHABLE() assert(false && "Reached unreachable block")
 
 #endif
 
