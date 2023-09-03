@@ -130,9 +130,8 @@ typedef enum {
     // inline noreturn
     AST_FUNC_SPEC,
     // lhs type_name
-    AST_ALIGN_SPEC_TYPE,
     // lhs const_expr
-    AST_ALIGN_SPEC_BYTES,
+    AST_ALIGN_SPEC,
     // subrange init_declarator[lhs...rhs]
     AST_INIT_DECLARATOR_LIST,
     // lhs declarator rhs initializer
