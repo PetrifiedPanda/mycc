@@ -19,8 +19,8 @@ static uint32_t add_node(AST* ast, ASTNodeKind kind, uint32_t main_token) {
     AST_ensure_capacity(ast);
 
     const uint32_t idx = ast->len;
-    ast->kinds[ast->len] = kind;
-    ast->datas[ast->len] = (ASTNodeData){
+    ast->kinds[idx] = kind;
+    ast->datas[idx] = (ASTNodeData){
         .main_token = main_token,
         .rhs = 0, // has to be initialized after (because we don't have rhs yet)
         .type_data_idx = (uint32_t)-1,
@@ -35,11 +35,11 @@ static uint32_t add_node_with_type_data(AST* ast,
                                         uint32_t main_token) {
     AST_ensure_capacity(ast);
 
-    uint32_t type_data_idx = ast->type_data_len;
+    const uint32_t type_data_idx = ast->type_data_len;
     ++ast->type_data_len;
     const uint32_t idx = ast->len;
     ast->kinds[idx] = kind;
-    ast->datas[ast->len] = (ASTNodeData){
+    ast->datas[idx] = (ASTNodeData){
         .main_token = main_token,
         .rhs = 0,
         .type_data_idx = type_data_idx,
