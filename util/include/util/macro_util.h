@@ -73,8 +73,8 @@ bool mycc_debugger_present(void);
 
 #if defined(_MSC_VER) && !defined(__clang__)
 
-#define LIKELY(cond)
-#define UNLIKELY(cond)
+#define LIKELY(cond) cond
+#define UNLIKELY(cond) cond
 
 #else
 
