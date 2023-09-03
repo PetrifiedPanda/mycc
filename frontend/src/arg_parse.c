@@ -35,6 +35,7 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
         .include_dirs = NULL,
         .output_file = {0, NULL},
         .action = ARG_ACTION_OUTPUT_TEXT,
+        .enable_new_parser = false,
     };
     for (int i = 1; i < argc; ++i) {
         const char* item = argv[i];
@@ -60,7 +61,7 @@ CmdArgs parse_cmd_args(int argc, char** argv) {
                     res.action = ARG_ACTION_CONVERT_BIN_TO_TEXT;
                     break;
                 case 'n':
-                    res.action = ARG_ACTION_NEW_PARSER;
+                    res.enable_new_parser = true;
                     break;
                 case 'I': {
                     if (i == argc - 1) {

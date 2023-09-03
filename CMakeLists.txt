@@ -12,6 +12,7 @@ include(CTest)
 
 option(MYCC_ENABLE_TESTS "" ON)
 option(MYCC_MEMDEBUG "Enable memory debugger" OFF)
+option(MYCC_PRINT_TIMINGS "Print timings" OFF)
 
 if (WIN32)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
@@ -32,6 +33,10 @@ set(Backend mycc-backend)
 
 if (${MYCC_MEMDEBUG})
     add_compile_definitions(MYCC_MEMDEBUG)
+endif()
+
+if (${MYCC_PRINT_TIMINGS})
+    add_compile_definitions(MYCC_PRINT_TIMINGS)
 endif()
 
 if (${MYCC_ENABLE_TESTS})

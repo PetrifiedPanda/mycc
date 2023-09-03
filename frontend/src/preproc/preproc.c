@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <assert.h>
 
+#include "util/timing.h"
 #include "util/macro_util.h"
 #include "util/mem.h"
 
@@ -26,6 +27,8 @@ PreprocRes preproc(CStr path,
                    PreprocErr* err) {
     assert(info);
     assert(err);
+    
+    MYCC_TIMER_BEGIN();
 
     PreprocState state = PreprocState_create(path,
                                              num_include_dirs,
@@ -60,6 +63,7 @@ PreprocRes preproc(CStr path,
         .paths = NULL,
     };
     PreprocState_free(&state);
+    MYCC_TIMER_END("preprocessor");
     return res;
 }
 
@@ -247,6 +251,7 @@ bool convert_preproc_tokens(TokenArr* tokens,
                             PreprocErr* err) {
     assert(tokens);
     assert(info);
+    MYCC_TIMER_BEGIN();
     for (uint32_t i = 0; i < tokens->len; ++i) {
         if (!convert_preproc_token(&tokens->kinds[i],
                                    &tokens->vals[i],
@@ -258,6 +263,8 @@ bool convert_preproc_tokens(TokenArr* tokens,
             return false;
         }
     }
+
+    MYCC_TIMER_END("converting preproc tokens");
     return true;
 }
 

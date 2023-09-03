@@ -6,6 +6,7 @@
 #include <assert.h>
 
 #include "util/macro_util.h"
+#include "util/timing.h"
 
 #include "frontend/ast/ast.h"
 
@@ -79,6 +80,7 @@ static void dumper_print_node_head_impl(AstDumper* d,
 static void dump_translation_unit(AstDumper* d, const TranslationUnit* tl);
 
 bool dump_ast(const TranslationUnit* tl, const FileInfo* file_info, File f) {
+    MYCC_TIMER_BEGIN();
     AstDumper d = {
         .file = f,
         .file_info = file_info,
@@ -93,6 +95,7 @@ bool dump_ast(const TranslationUnit* tl, const FileInfo* file_info, File f) {
         res = false;
     }
     StrBuf_free(&d.indent_buf);
+    MYCC_TIMER_END("ast dumper");
     return res;
 }
 

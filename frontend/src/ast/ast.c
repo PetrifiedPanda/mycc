@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "util/mem.h"
+#include "util/timing.h"
 #include "util/macro_util.h"
 
 #include "frontend/parser/parser_util.h"
@@ -61,6 +62,8 @@ static void AST_free_error(AST* ast) {
 AST parse_ast(TokenArr* tokens, ParserErr* err) {
     assert(tokens);
     assert(err);
+    
+    MYCC_TIMER_BEGIN();
 
     ParserState s = ParserState_create(tokens, err);
 
@@ -87,6 +90,7 @@ AST parse_ast(TokenArr* tokens, ParserErr* err) {
     res.toks = s._arr;
 
     ParserState_free(&s);
+    MYCC_TIMER_END("parser");
     return res;
 }
 

@@ -2,6 +2,7 @@
 
 #include "util/mem.h"
 #include "util/macro_util.h"
+#include "util/timing.h"
 
 #include "frontend/ast/ast.h"
 
@@ -14,6 +15,7 @@ static FileInfo deserialize_file_info(AstDeserializer* r);
 static TranslationUnit deserialize_translation_unit(AstDeserializer* r);
 
 DeserializeAstRes deserialize_ast(File f) {
+    MYCC_TIMER_BEGIN();
     AstDeserializer r = {
         .file = f,
     };
@@ -51,7 +53,8 @@ DeserializeAstRes deserialize_ast(File f) {
                 },
         };
     }
-
+    
+    MYCC_TIMER_END("ast deserializer");
     return (DeserializeAstRes){
         .is_valid = true,
         .file_info = file_info,

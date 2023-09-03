@@ -3,6 +3,8 @@
 #include <setjmp.h>
 #include <string.h>
 
+#include "util/timing.h"
+
 #include "frontend/ast/ast.h"
 
 typedef struct {
@@ -25,6 +27,7 @@ static void serialize_file_info(AstSerializer* d,
 static void serialize_translation_unit(AstSerializer* d, const TranslationUnit* tl);
 
 bool serialize_ast(const TranslationUnit* tl, const FileInfo* file_info, File f) {
+    MYCC_TIMER_BEGIN();
     AstSerializer d = {
         .file = f,
     };
@@ -35,6 +38,7 @@ bool serialize_ast(const TranslationUnit* tl, const FileInfo* file_info, File f)
     } else {
         return false;
     }
+    MYCC_TIMER_END("ast serializer");
     return true;
 }
 

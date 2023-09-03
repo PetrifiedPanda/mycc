@@ -9,7 +9,6 @@ typedef enum {
     ARG_ACTION_OUTPUT_TEXT,
     ARG_ACTION_OUTPUT_BIN,
     ARG_ACTION_CONVERT_BIN_TO_TEXT,
-    ARG_ACTION_NEW_PARSER,
 } ArgAction;
 
 typedef struct {
@@ -19,6 +18,7 @@ typedef struct {
     Str* include_dirs;
     CStr output_file;
     ArgAction action;
+    bool enable_new_parser;
 } CmdArgs;
 
 CmdArgs parse_cmd_args(int argc, char** argv);
