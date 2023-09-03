@@ -71,5 +71,17 @@ bool mycc_debugger_present(void);
 
 #define ARR_LEN(arr) sizeof arr / sizeof *arr
 
+#if defined(_MSC_VER) && !defined(__clang__)
+
+#define LIKELY(cond)
+#define UNLIKELY(cond)
+
+#else
+
+#define LIKELY(cond) __builtin_expect(!!(cond), true)
+#define UNLIKELY(cond) __builtin_expect(!!(cond), false)
+
+#endif
+
 #endif
 

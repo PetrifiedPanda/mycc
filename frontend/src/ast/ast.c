@@ -51,7 +51,7 @@ static uint32_t add_node_with_type(AST* ast,
 
 #define CHECK_ERR(expr)                                                        \
     do {                                                                       \
-        if (!(expr)) {                                                         \
+        if (UNLIKELY(!(expr))) {                                               \
             return 0;                                                          \
         }                                                                      \
     } while (0)
