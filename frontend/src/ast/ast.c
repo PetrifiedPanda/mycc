@@ -974,7 +974,7 @@ static uint32_t parse_declaration_spec_2(ParserState* s,
 static uint32_t parse_declaration_specs_2(ParserState* s,
                                           AST* ast,
                                           bool* is_typedef) {
-    if (!is_declaration_spec(s)) {
+    if (UNLIKELY(!is_declaration_spec(s))) {
         // TODO: error
         return 0;
     }
@@ -1007,7 +1007,7 @@ static uint32_t parse_attrs_and_declaration_specs_2(ParserState* s, AST* ast) {
         bool is_typedef = false;
         const uint32_t rhs = parse_declaration_specs_2(s, ast, &is_typedef);
         CHECK_ERR(rhs);
-        if (is_typedef) {
+        if (UNLIKELY(is_typedef)) {
             // TODO: err
             return 0;
         }
@@ -1016,7 +1016,7 @@ static uint32_t parse_attrs_and_declaration_specs_2(ParserState* s, AST* ast) {
     } else {
         bool is_typedef = false;
         const uint32_t res = parse_declaration_specs_2(s, ast, &is_typedef);
-        if (is_typedef) {
+        if (UNLIKELY(is_typedef)) {
             // TODO: err
             return 0;
         }
@@ -1078,7 +1078,7 @@ static uint32_t parse_abs_decl_or_decl_2(ParserState* s, AST* ast) {
         default:
             ast->kinds[res] = AST_ABS_DECLARATOR;
             // no pointer
-            if (ast->len == res + 1) {
+            if (UNLIKELY(ast->len == res + 1)) {
                 ParserErr_set(s->err, PARSER_ERR_EMPTY_DIRECT_ABS_DECL, s->it);
                 return 0;
             }
@@ -1328,7 +1328,7 @@ static uint32_t parse_struct_union_body_2(ParserState* s, AST* ast) {
     }
 
     // neither lhs or rhs exists
-    if (ast->len == res + 1) {
+    if (UNLIKELY(ast->len == res + 1)) {
         // TODO: error
         return 0;
     }
@@ -1431,7 +1431,7 @@ static uint32_t parse_enum_body_2(ParserState* s, AST* ast, bool has_id) {
         }
         CHECK_ERR(ParserState_accept(s, TOKEN_RBRACE));
         ast->datas[res].rhs = rhs;
-    } else if (!has_id) {
+    } else if (UNLIKELY(!has_id)) {
         expected_token_error(s, TOKEN_LBRACE);
         return 0;
     }
@@ -1510,7 +1510,7 @@ static uint32_t parse_type_spec_2(ParserState* s, AST* ast) {
             return parse_enum_spec_2(s, ast);
         case TOKEN_IDENTIFIER:
             // TODO: this error might not be necessary
-            if (!ParserState_is_typedef(s, ParserState_curr_spell(s))) {
+            if (UNLIKELY(!ParserState_is_typedef(s, ParserState_curr_spell(s)))) {
                 ParserErr_set(s->err,
                               PARSER_ERR_EXPECTED_TYPEDEF_NAME,
                               start_idx);
@@ -1734,12 +1734,7 @@ static uint32_t parse_attribute_list_2(ParserState* s, AST* ast) {
 static uint32_t parse_attribute_spec_2(ParserState* s, AST* ast) {
     assert(ParserState_curr_kind(s) == TOKEN_LINDEX);
     ParserState_accept_it(s);
-    do {
-        if (!(ParserState_accept(s, TOKEN_LINDEX))) {
-            mycc_printf("Goot\n", 0);
-            return 0;
-        }
-    } while (0);
+    CHECK_ERR(ParserState_accept(s, TOKEN_LINDEX));
 
     const uint32_t res = parse_attribute_list_2(s, ast);
     CHECK_ERR(res);
@@ -1968,7 +1963,7 @@ static uint32_t parse_abs_declarator_2(ParserState* s, AST* ast) {
     }
 
     // If the ast len has not changed, lhs and rhs are empty
-    if (ast->len == res + 1) {
+    if (UNLIKELY(ast->len == res + 1)) {
         ParserErr_set(s->err, PARSER_ERR_EMPTY_DIRECT_ABS_DECL, s->it);
         return 0;
     }
