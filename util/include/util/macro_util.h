@@ -22,7 +22,19 @@
 
 #else
 
+#if defined(_MSC_VER) && !defined(__clang__)
+
 #define UNREACHABLE() assert(false && "Reached unreachable block")
+
+#else
+
+#define UNREACHABLE()                                                          \
+    do {                                                                       \
+        assert(false && "Reached unreachable block");                          \
+        __builtin_unreachable();                                               \
+    } while (0)
+
+#endif
 
 #endif
 
