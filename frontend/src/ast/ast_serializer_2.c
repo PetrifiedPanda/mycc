@@ -19,6 +19,8 @@ static bool deserializer_read(ASTDeserializer* r,
 static bool deserialize_u32(ASTDeserializer* r, uint32_t* res);
 static bool deserialize_token_arr(ASTDeserializer* r, TokenArr* res);
 
+static bool deserialize_bool(ASTDeserializer* r, bool* res);
+
 DeserializeASTRes_2 deserialize_ast_2(File f) {
     MYCC_TIMER_BEGIN();
     ASTDeserializer r = {
@@ -39,26 +41,37 @@ DeserializeASTRes_2 deserialize_ast_2(File f) {
                            res.ast.kinds,
                            sizeof *res.ast.kinds,
                            res.ast.len)) {
-        goto fail_after_alloc;
+        goto fail_after_node_data;
     }
     if (!deserializer_read(&r,
                            res.ast.datas,
                            sizeof *res.ast.datas,
                            res.ast.len)) {
-        goto fail_after_alloc;
+        goto fail_after_node_data;
     }
 
     if (!deserialize_u32(&r, &res.ast.type_data_len)) {
-        goto fail_after_alloc;
+        goto fail_after_node_data;
+    }
+
+    bool has_type_data;
+    if (!deserialize_bool(&r, &has_type_data)) {
+        goto fail_after_node_data;
+    }
+
+    if (has_type_data) {
+        // TODO: deserialize type data 
     }
 
     if (!deserialize_token_arr(&r, &res.ast.toks)) {
-        goto fail_after_alloc;
+        goto fail_after_type_data;
     }
 
     MYCC_TIMER_END("ast deserializer");
     return res;
-fail_after_alloc:
+fail_after_type_data:
+    mycc_free(res.ast.type_data);
+fail_after_node_data:
     mycc_free(res.ast.kinds);
     mycc_free(res.ast.datas);
 fail_after_file_info:
@@ -72,6 +85,10 @@ static bool deserializer_read(ASTDeserializer* r,
                               size_t size,
                               size_t count) {
     return File_read(res, size, count, r->file) == count;
+}
+
+static bool deserialize_bool(ASTDeserializer* r, bool* res) {
+    return deserializer_read(r, res, sizeof *res, 1);
 }
 
 static bool deserialize_u64(ASTDeserializer* r, uint64_t* res) {
@@ -273,6 +290,10 @@ static void serialize_u32(ASTSerializer* d, uint32_t i) {
 static void serialize_float(ASTSerializer* d, double f) {
     serializer_write(d, &f, sizeof f, 1);
 }
+
+static void serialize_bool(ASTSerializer* d, bool b) {
+    serializer_write(d, &b, sizeof b, 1);
+}
 static void serialize_tokens(ASTSerializer* d, const TokenArr* tokens);
 
 bool serialize_ast_2(const AST* ast, const FileInfo* file_info, File f) {
@@ -287,7 +308,11 @@ bool serialize_ast_2(const AST* ast, const FileInfo* file_info, File f) {
         serializer_write(&d, ast->kinds, sizeof *ast->kinds, ast->len);
         serializer_write(&d, ast->datas, sizeof *ast->datas, ast->len);
         serialize_u32(&d, ast->type_data_len);
-        // TODO: type data
+        const bool has_type_data = ast->type_data != NULL;
+        serialize_bool(&d, has_type_data);
+        if (has_type_data) {
+            // TODO: serialize_type_data
+        }
         serialize_tokens(&d, &ast->toks);
     } else {
         return false;
