@@ -2,8 +2,8 @@
 
 #include <setjmp.h>
 
-#include "util/timing.h"
 #include "util/mem.h"
+#include "util/log.h"
 
 typedef struct {
     File file;

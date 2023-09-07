@@ -2,7 +2,7 @@
 
 #include "util/mem.h"
 #include "util/macro_util.h"
-#include "util/timing.h"
+#include "util/log.h"
 
 #include "frontend/ast/ast.h"
 

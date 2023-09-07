@@ -4,7 +4,7 @@
 
 #include "frontend/parser/ParserState.h"
 
-#include "util/timing.h"
+#include "util/log.h"
 
 TranslationUnit parse_tokens(TokenArr* tokens, ParserErr* err) {
     assert(tokens);

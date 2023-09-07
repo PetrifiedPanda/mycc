@@ -5,9 +5,9 @@
 #include <ctype.h>
 #include <assert.h>
 
-#include "util/timing.h"
 #include "util/macro_util.h"
 #include "util/mem.h"
+#include "util/log.h"
 
 #include "frontend/preproc/PreprocMacro.h"
 #include "frontend/preproc/PreprocState.h"

@@ -3,7 +3,7 @@
 #include <setjmp.h>
 #include <string.h>
 
-#include "util/timing.h"
+#include "util/log.h"
 
 #include "frontend/ast/ast.h"
 
