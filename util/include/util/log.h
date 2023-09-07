@@ -19,7 +19,8 @@
                     mycc_get_msecs_double(&mycc_timer_duration));              \
     } while (0)
 
-#define LOG(format, ...) mycc_printf(lit, __VA_ARGS__) 
+#define MYCC_LOG(format, ...) mycc_printf(format, __VA_ARGS__)
+#define MYCC_LOG_STR(str) mycc_put_str(str)
 
 #else
 
@@ -27,6 +28,7 @@
 #define MYCC_TIMER_END(str_lit)
 
 #define MYCC_LOG(...)
+#define MYCC_LOG_STR(str)
 
 #endif
 

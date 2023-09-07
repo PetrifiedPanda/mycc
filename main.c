@@ -14,6 +14,7 @@
 
 #include "util/StrBuf.h"
 #include "util/paths.h"
+#include "util/log.h"
 
 static bool convert_bin_to_text(const CmdArgs* args, CStr filename);
 static bool convert_bin_to_text_2(const CmdArgs* args, CStr filename);
@@ -79,6 +80,7 @@ static StrBuf get_out_filename(Str origin_file, Str suffix) {
 }
 
 static bool convert_bin_to_text(const CmdArgs* args, CStr filename) {
+    MYCC_LOG("Converting {Str} to human readable file:\n", filename);
     File in_file = File_open(filename, FILE_READ | FILE_BINARY);
     if (!File_valid(in_file)) {
         File_printf(mycc_stderr, "Failed to open file {Str}\n", filename);
@@ -125,6 +127,7 @@ static bool convert_bin_to_text(const CmdArgs* args, CStr filename) {
     StrBuf_free(&out_filename_str);
     TranslationUnit_free(&res.tl);
     FileInfo_free(&res.file_info);
+    MYCC_LOG_STR("\n");
     return true;
 
 fail_with_out_file_open:
@@ -133,10 +136,12 @@ fail_with_out_file_closed:
     StrBuf_free(&out_filename_str);
     TranslationUnit_free(&res.tl);
     FileInfo_free(&res.file_info);
+    MYCC_LOG_STR("\n");
     return false;
 }
 
 static bool convert_bin_to_text_2(const CmdArgs* args, CStr filename) {
+    MYCC_LOG("Converting {Str} to human readable file:\n", filename);
     File in_file = File_open(filename, FILE_READ | FILE_BINARY);
     if (!File_valid(in_file)) {
         File_printf(mycc_stderr, "Failed to open file {Str}\n", filename);
@@ -183,20 +188,22 @@ static bool convert_bin_to_text_2(const CmdArgs* args, CStr filename) {
     StrBuf_free(&out_filename_str);
     AST_free(&res.ast);
     FileInfo_free(&res.file_info);
+    MYCC_LOG_STR("\n");
     return true;
-
 fail_with_out_file_open:
     File_close(out_file);
 fail_with_out_file_closed:
     StrBuf_free(&out_filename_str);
     AST_free(&res.ast);
     FileInfo_free(&res.file_info);
+    MYCC_LOG_STR("\n");
     return false;
 }
 
 static bool output_ast(const CmdArgs* args,
                        const ArchTypeInfo* type_info,
                        CStr filename) {
+    MYCC_LOG("Generating AST for {Str}:\n", filename);
     PreprocErr preproc_err = PreprocErr_create();
     PreprocRes preproc_res = preproc(filename,
                                      args->num_include_dirs,
@@ -271,6 +278,7 @@ static bool output_ast(const CmdArgs* args,
     StrBuf_free(&out_filename_str);
     TranslationUnit_free(&tl);
     PreprocRes_free(&preproc_res);
+    MYCC_LOG_STR("\n");
     return true;
 fail_out_file_open:
     File_close(out_file);
@@ -280,12 +288,14 @@ fail_parse:
     TranslationUnit_free(&tl);
 fail_preproc:
     PreprocRes_free(&preproc_res);
+    MYCC_LOG_STR("\n");
     return false;
 }
 
 static bool output_ast_2(const CmdArgs* args,
                          const ArchTypeInfo* type_info,
                          CStr filename) {
+    MYCC_LOG("Generating AST for {Str}:\n", filename);
     PreprocErr preproc_err = PreprocErr_create();
     PreprocRes preproc_res = preproc(filename,
                                      args->num_include_dirs,
@@ -362,6 +372,7 @@ static bool output_ast_2(const CmdArgs* args,
     StrBuf_free(&out_filename_str);
     AST_free(&ast);
     PreprocRes_free(&preproc_res);
+    MYCC_LOG_STR("\n");
     return true;
 fail_out_file_open:
     File_close(out_file);
@@ -371,6 +382,7 @@ fail_parse:
     AST_free(&ast);
 fail_preproc:
     PreprocRes_free(&preproc_res);
+    MYCC_LOG_STR("\n");
     return false;
 }
 

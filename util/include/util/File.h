@@ -11,6 +11,9 @@ typedef struct {
     FILE* _file;
 } File;
 
+#define mycc_stdout (File){stdout}
+#define mycc_stderr (File){stderr}
+
 typedef enum {
     FILE_WRITE = 1 << 0,
     FILE_READ = 1 << 1,
@@ -42,6 +45,7 @@ bool File_putc(char c, File f);
 bool File_put_str_val(Str str, File f);
 
 #define File_put_str(str, f) File_put_str_val(STR_LIT(str), f)
+#define mycc_put_str(str) File_put_str_val(STR_LIT(str), mycc_stdout)
 
 bool File_ungetc(char c, File f);
 
@@ -74,9 +78,6 @@ bool File_seek(File f, long offset, FileSeekOrigin origin);
  * @param res buffer the line will be appended to
  */
 Str File_read_line(File file, StrBuf* res);
-
-#define mycc_stdout (File){stdout}
-#define mycc_stderr (File){stderr}
 
 #endif
 
