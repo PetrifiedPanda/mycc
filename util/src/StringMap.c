@@ -15,14 +15,16 @@ StringMap StringMap_create(uint32_t elem_size,
                            uint32_t init_cap,
                            bool free_keys,
                            void (*item_free)(void*)) {
+    void* keys = mycc_alloc_zeroed(init_cap, sizeof(StringMapKey) + elem_size);
+    void* items = (char*)keys + sizeof(StringMapKey) * init_cap;
     return (StringMap){
         ._len = 0,
         ._cap = init_cap,
         ._item_size = elem_size,
         ._free_keys = free_keys,
         ._item_free = item_free,
-        ._keys = mycc_alloc_zeroed(init_cap, sizeof(StringMapKey)),
-        ._items = mycc_alloc_zeroed(init_cap, elem_size),
+        ._keys = keys,
+        ._items = items,
     };
 }
 
@@ -36,8 +38,6 @@ void StringMap_free(StringMap* map) {
             }
         }
     }
-
-    mycc_free(map->_items);
 
     if (map->_free_keys) {
         for (uint32_t i = 0; i < map->_cap; ++i) {
@@ -192,8 +192,8 @@ static void resize_map(StringMap* map) {
 
     map->_len = 0;
     map->_cap += map->_cap / 2 + 1;
-    map->_keys = mycc_alloc_zeroed(map->_cap, sizeof *map->_keys);
-    map->_items = mycc_alloc_zeroed(map->_cap, map->_item_size);
+    map->_keys = mycc_alloc_zeroed(map->_cap, sizeof *map->_keys + map->_item_size);
+    map->_items = (char*)map->_keys + sizeof *map->_keys * map->_cap;
 
     for (uint32_t i = 0; i < prev_cap; ++i) {
         if (StrBuf_valid(&old_keys[i].str)) {
@@ -208,8 +208,7 @@ static void resize_map(StringMap* map) {
 
     UNUSED(prev_len);
     assert(map->_len == prev_len);
-    mycc_free(old_items);
-    mycc_free((void*)old_keys);
+    mycc_free(old_keys);
 }
 
 // Hash function taken from K&R version 2 (page 144)
