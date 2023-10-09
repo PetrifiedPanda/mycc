@@ -6,6 +6,25 @@
 
 #include "../test_helpers.h"
 
+TEST(redefine_typedef_error_2) {
+    PreprocRes preproc_res = tokenize_string(STR_LIT("typedef int MyInt;\n"
+                                                     "typedef char MyInt;\n"),
+                                             STR_LIT("a file"));
+
+    ParserErr err = ParserErr_create();
+
+    AST ast = parse_ast(&preproc_res.toks, &err);
+    ASSERT_UINT(ast.len, 0);
+    ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
+    ASSERT(err.was_typedef_name);
+    const Str got_spell = StrBuf_as_str(
+        &ast.toks.vals[err.err_token_idx].spelling);
+    ASSERT_STR(got_spell, STR_LIT("MyInt"));
+
+    AST_free(&ast);
+    PreprocRes_free(&preproc_res);
+}
+
 TEST(redefine_typedef_error) {
     PreprocRes preproc_res = tokenize_string(STR_LIT("typedef int MyInt;"),
                                              STR_LIT("a file"));
@@ -17,11 +36,12 @@ TEST(redefine_typedef_error) {
     ParserState_register_typedef(&s, &spell, (uint32_t)-1);
 
     bool found_typedef = false;
-    DeclarationSpecs res; 
+    DeclarationSpecs res;
     ASSERT(!parse_declaration_specs(&s, &res, &found_typedef));
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT(err.was_typedef_name);
-    const Str got_spell = StrBuf_as_str(&s._arr.vals[err.err_token_idx].spelling);
+    const Str got_spell = StrBuf_as_str(
+        &s._arr.vals[err.err_token_idx].spelling);
     ASSERT_STR(got_spell, STR_LIT("MyInt"));
 
     ParserState_free(&s);
@@ -129,8 +149,57 @@ TEST(jump_statement_error) {
     check_expected_semicolon_jump_statement(STR_LIT("return *id += (int)100"));
 }
 
+static void check_expected_semicolon(Str spell,
+                                     TokenKind got,
+                                     FileLoc err_loc) {
+    PreprocRes preproc_res = tokenize_string(spell, STR_LIT("file.c"));
+
+    ParserErr err = ParserErr_create();
+    AST ast = parse_ast(&preproc_res.toks, &err);
+
+    ASSERT(err.kind == PARSER_ERR_EXPECTED_TOKENS);
+    const SourceLoc loc = ast.toks.locs[err.err_token_idx];
+    ASSERT_UINT(loc.file_idx, 0);
+    ASSERT_UINT(loc.file_loc.line, err_loc.line);
+    ASSERT_UINT(loc.file_loc.index, err_loc.index);
+    const ExpectedTokensErr* ex_tokens = &err.expected_tokens_err;
+    ASSERT_UINT(ex_tokens->num_expected, 1);
+    ASSERT_TOKEN_KIND(ex_tokens->expected[0], TOKEN_SEMICOLON);
+    ASSERT_TOKEN_KIND(ex_tokens->got, got);
+
+    PreprocRes_free(&preproc_res);
+    AST_free(&ast);
+}
+
+TEST(expected_semicolon) {
+    check_expected_semicolon(STR_LIT("int main() {\n"
+                                     "  return 0\n"
+                                     "}"), TOKEN_RBRACE, (FileLoc){3, 1});
+    check_expected_semicolon(STR_LIT("int main() {\n"
+                                     "  for (int i = 0; i < 10; ++i) {\n"
+                                     "      break\n"
+                                     "  }\n"
+                                     "}"), TOKEN_RBRACE, (FileLoc){4, 3});
+    check_expected_semicolon(STR_LIT("int main() {\n"
+                                     "  for (int i = 0; i < 10; ++i) {\n"
+                                     "      continue\n"
+                                     "  }\n"
+                                     "}"), TOKEN_RBRACE, (FileLoc){4, 3});
+    /* TODO: fix this (Error token is wrong for some reason)
+    check_expected_semicolon(STR_LIT("typedef struct {\n"
+                                     "  int n, m;\n"
+                                     "} Test\n"
+                                     "int main(void) {\n"
+                                     "}"),
+                             TOKEN_INT,
+                             (FileLoc){4, 1});
+    */
+}
+
 TEST_SUITE_BEGIN(parser_error){
+    REGISTER_TEST(redefine_typedef_error_2),
     REGISTER_TEST(redefine_typedef_error),
     REGISTER_TEST(type_spec_error),
     REGISTER_TEST(jump_statement_error),
+    REGISTER_TEST(expected_semicolon),
 } TEST_SUITE_END()
