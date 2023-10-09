@@ -100,6 +100,9 @@ void ParserErr_print(File out,
         case PARSER_ERR_EMPTY_DIRECT_ABS_DECL:
             File_put_str("Empty abstract declarator", out);
             break;
+        case PARSER_ERR_TYPEDEF_WITHOUT_DECLARATOR:
+            File_put_str("Typedef without declarator", out);
+            break;
     }
     File_putc('\n', out);
 }
