@@ -725,7 +725,19 @@ static uint32_t parse_external_declaration_2(ParserState* s, AST* ast) {
         ast->kinds[res] = AST_DECLARATION;
         ast->kinds[rhs] = AST_DECLARATION_SPECS_AND_INIT_DECLARATOR_LIST;
         // TODO: error if this has attributes
-        // TODO: error typedef without declarator
+        if (is_typedef) {
+            const uint32_t last_idx = s->it - 2;
+            if (s->_arr.kinds[last_idx] == TOKEN_IDENTIFIER) {
+                const Str spell = StrBuf_as_str(&s->_arr.vals[last_idx].spelling);
+                assert(ParserState_is_typedef(s, spell));
+                ParserState_set_redefinition_err(s, ParserState_get_prev_definition(s, spell), last_idx);
+            } else {
+                ParserErr_set(s->err,
+                              PARSER_ERR_TYPEDEF_WITHOUT_DECLARATOR,
+                              s->it);
+            }
+            return 0;
+        }
         return res;
     }
     // func_def_sub_impl or init_declarator_list
@@ -1510,7 +1522,8 @@ static uint32_t parse_type_spec_2(ParserState* s, AST* ast) {
             return parse_enum_spec_2(s, ast);
         case TOKEN_IDENTIFIER:
             // TODO: this error might not be necessary
-            if (UNLIKELY(!ParserState_is_typedef(s, ParserState_curr_spell(s)))) {
+            if (UNLIKELY(
+                    !ParserState_is_typedef(s, ParserState_curr_spell(s)))) {
                 ParserErr_set(s->err,
                               PARSER_ERR_EXPECTED_TYPEDEF_NAME,
                               start_idx);
