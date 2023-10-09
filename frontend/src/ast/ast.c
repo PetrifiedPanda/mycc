@@ -726,11 +726,18 @@ static uint32_t parse_external_declaration_2(ParserState* s, AST* ast) {
         ast->kinds[rhs] = AST_DECLARATION_SPECS_AND_INIT_DECLARATOR_LIST;
         // TODO: error if this has attributes
         if (is_typedef) {
+            // If a typedef is redefined, the typedef will be parsed as the last
+            // item of the declaration specs, so we need to check the last token
+            // to see if it was an identifier
             const uint32_t last_idx = s->it - 2;
             if (s->_arr.kinds[last_idx] == TOKEN_IDENTIFIER) {
-                const Str spell = StrBuf_as_str(&s->_arr.vals[last_idx].spelling);
+                const Str spell = StrBuf_as_str(
+                    &s->_arr.vals[last_idx].spelling);
                 assert(ParserState_is_typedef(s, spell));
-                ParserState_set_redefinition_err(s, ParserState_get_prev_definition(s, spell), last_idx);
+                ParserState_set_redefinition_err(
+                    s,
+                    ParserState_get_prev_definition(s, spell),
+                    last_idx);
             } else {
                 ParserErr_set(s->err,
                               PARSER_ERR_TYPEDEF_WITHOUT_DECLARATOR,
