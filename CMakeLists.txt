@@ -7,7 +7,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 project(mycc LANGUAGES C)
 
 option(MYCC_ENABLE_TESTS "Enable unit tests" OFF)
-option(MYCC_MEMDEBUG "Enable memory debugger" OFF)
+option(MYCC_ENABLE_MEMDEBUG "Enable memory debugger" OFF)
 option(MYCC_ENABLE_LOG "Enable logger" OFF)
 
 if (WIN32)
