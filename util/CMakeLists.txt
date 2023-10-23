@@ -1,18 +1,14 @@
-set(This mycc-util)
+add_library(mycc-util)
+target_include_directories(mycc-util PUBLIC ./include)
 
-file(GLOB Sources src/*.c)
-
-add_library(${This} OBJECT ${Sources})
-target_include_directories(${This} PUBLIC ./include)
+add_subdirectory(src)
 
 if (${MYCC_ENABLE_TESTS})
-    file(GLOB TestSources test/*.c)
+    add_executable(mycc-util-test)
+    target_link_libraries(mycc-util-test mycc-util)
+    target_link_libraries(mycc-util-test mycc-testing)
 
-    set(Test mycc-util-test)
+    add_test(NAME util COMMAND mycc-util-test WORKING_DIRECTORY ${TestWorkingDir})
 
-    add_executable(${Test} ${TestSources})
-    target_link_libraries(${Test} ${This})
-    target_link_libraries(${Test} ${Testing})
-
-    add_test(NAME util COMMAND ${Test} WORKING_DIRECTORY ${TestWorkingDir})
+    add_subdirectory(test)
 endif()

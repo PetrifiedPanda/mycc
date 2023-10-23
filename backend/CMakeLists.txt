@@ -1,7 +1,5 @@
-set(This mycc-backend)
+add_library(mycc-backend)
+target_include_directories(mycc-backend PUBLIC ./include)
+target_link_libraries(mycc-backend mycc-util)
 
-file(GLOB Sources src/*.c)
-
-add_library(${This} OBJECT ${Sources})
-target_include_directories(${This} PUBLIC ./include)
-target_link_libraries(${This} ${Util})
+add_subdirectory(src)
