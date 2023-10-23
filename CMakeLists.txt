@@ -8,7 +8,7 @@ project(mycc LANGUAGES C)
 
 include(CTest)
 
-option(MYCC_ENABLE_TESTS "" ON)
+option(MYCC_ENABLE_TESTS "Enable unit tests" OFF)
 option(MYCC_MEMDEBUG "Enable memory debugger" OFF)
 option(MYCC_ENABLE_LOG "Enable logger" OFF)
 
@@ -24,15 +24,15 @@ endif()
 
 set(TestWorkingDir ${CMAKE_CURRENT_BINARY_DIR})
 
-if (${MYCC_MEMDEBUG})
+if (MYCC_MEMDEBUG)
     add_compile_definitions(MYCC_MEMDEBUG)
 endif()
 
-if (${MYCC_ENABLE_LOG})
+if (MYCC_ENABLE_LOG)
     add_compile_definitions(MYCC_ENABLE_LOG)
 endif()
 
-if (${MYCC_ENABLE_TESTS})
+if (MYCC_ENABLE_TESTS)
     add_compile_definitions(MYCC_TEST_FUNCTIONALITY)
     add_subdirectory(testing)
 endif()
