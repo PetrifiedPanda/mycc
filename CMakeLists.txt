@@ -20,8 +20,8 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 endif()
 
-if (MYCC_MEMDEBUG)
-    add_compile_definitions(MYCC_MEMDEBUG)
+if (MYCC_ENABLE_MEMDEBUG)
+    add_compile_definitions(MYCC_ENABLE_MEMDEBUG)
 endif()
 
 if (MYCC_ENABLE_LOG)

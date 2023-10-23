@@ -48,7 +48,7 @@ void mycc_free(void* alloc);
  */
 void mycc_grow_alloc(void** alloc, uint32_t* alloc_len, size_t elem_size);
 
-#ifdef MYCC_MEMDEBUG
+#ifdef MYCC_ENABLE_MEMDEBUG
 
 #include "util/Str.h"
 

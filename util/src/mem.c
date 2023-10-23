@@ -7,7 +7,7 @@
 
 #include "util/File.h"
 
-#ifdef MYCC_MEMDEBUG
+#ifdef MYCC_ENABLE_MEMDEBUG
 #undef mycc_alloc
 #undef mycc_alloc_zeroed
 #undef mycc_realloc
@@ -72,7 +72,7 @@ void mycc_free(void* alloc) {
     free(alloc);
 }
 
-#ifdef MYCC_MEMDEBUG
+#ifdef MYCC_ENABLE_MEMDEBUG
 
 typedef struct {
     Str func;
