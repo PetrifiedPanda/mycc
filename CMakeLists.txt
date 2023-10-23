@@ -4,9 +4,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-set(This mycc)
-
-project(${This} LANGUAGES C)
+project(mycc LANGUAGES C)
 
 include(CTest)
 
@@ -26,11 +24,6 @@ endif()
 
 set(TestWorkingDir ${CMAKE_CURRENT_BINARY_DIR})
 
-set(Testing mycc-testing)
-set(Util mycc-util)
-set(Frontend mycc-frontend)
-set(Backend mycc-backend)
-
 if (${MYCC_MEMDEBUG})
     add_compile_definitions(MYCC_MEMDEBUG)
 endif()
@@ -47,7 +40,5 @@ add_subdirectory(util)
 add_subdirectory(frontend)
 add_subdirectory(backend)
 
-add_executable(${This} main.c)
-target_link_libraries(${This} ${Frontend})
-target_link_libraries(${This} ${Util})
-
+add_executable(mycc main.c)
+target_link_libraries(mycc mycc-frontend)

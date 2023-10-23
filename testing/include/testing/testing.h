@@ -27,8 +27,9 @@ extern jmp_buf test_jump_buf;
  *                      must be a compile-time constant
  */
 #define TEST_SUITE_BEGIN(this_suite_name)                                      \
-    size_t this_suite_name##_test_suite(void) {                                \
-        const Str suite_name = STR_LIT(#this_suite_name);                            \
+    jmp_buf test_jump_buf;                                                     \
+    int main(void) {                                                           \
+        const Str suite_name = STR_LIT(#this_suite_name);                      \
         mycc_printf("Starting {Str} tests\n", suite_name);                     \
         typedef struct {                                                       \
             void (*test)(void);                                                \
@@ -41,7 +42,9 @@ extern jmp_buf test_jump_buf;
  * TEST_SUITE_END
  */
 #define REGISTER_TEST(test_name)                                               \
-    (TestAndName) { test_name##_test, STR_LIT(#test_name) }
+    (TestAndName) {                                                            \
+        test_name##_test, STR_LIT(#test_name)                                  \
+    }
 
 /**
  * Terminate a test suite

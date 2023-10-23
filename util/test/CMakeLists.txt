@@ -1,1 +1,2 @@
-target_sources(mycc-util-test PRIVATE StrBuf_test.c StringMap_test.c util_test.c)
+mycc_add_test(mycc-util-test-str-buf StrBuf_test.c mycc-util)
+mycc_add_test(mycc-util-test-string-map StringMap_test.c mycc-util)

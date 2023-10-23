@@ -1,5 +1,5 @@
-target_sources(mycc-frontend-test PRIVATE num_parse_test.c
-                                          preproc_macro_expansion_test.c
-                                          preproc_macro_parser_test.c
-                                          tokenizer_error_test.c
-                                          tokenizer_test.c)
+mycc_add_test(mycc-fronend-test-preproc-num-parser num_parse_test.c mycc-frontend)
+mycc_add_test(mycc-frontend-test-preproc-macro-expansion preproc_macro_expansion_test.c mycc-frontend mycc-frontend-test-helper)
+mycc_add_test(mycc-frontend-test-preproc-macro-parser preproc_macro_parser_test.c mycc-frontend mycc-frontend-test-helper)
+mycc_add_test(mycc-frontend-test-preproc-tokenizer-error tokenizer_error_test.c mycc-frontend)
+mycc_add_test(mycc-frontend-test-preproc-tokenizer tokenizer_test.c mycc-frontend mycc-frontend-test-helper)
