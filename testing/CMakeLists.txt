@@ -1,12 +1,13 @@
 add_library(mycc-testing INTERFACE)
 target_include_directories(mycc-testing INTERFACE ./include)
 
-function(mycc_add_test name main_file)
-    add_executable(${name} ${main_file})
-    target_link_libraries(${name} PRIVATE mycc-testing)
+# All arguments after the fixed ones are additional libraries to link
+function(mycc_add_test Name MainFile)
+    add_executable(${Name} ${MainFile})
+    target_link_libraries(${Name} PRIVATE mycc-testing)
     if (${ARGC} GREATER 2)
-        target_link_libraries(${name} PRIVATE ${ARGN})
+        target_link_libraries(${Name} PRIVATE ${ARGN})
     endif()
 
-    add_test(NAME ${name} COMMAND ${name} WORKING_DIRECTORY ${TestWorkingDir})
+    add_test(NAME ${Name} COMMAND ${Name} WORKING_DIRECTORY ${TestWorkingDir})
 endfunction()
