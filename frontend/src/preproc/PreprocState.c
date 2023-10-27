@@ -66,7 +66,10 @@ static FileData create_file_data(CStr start_file, PreprocErr* err) {
     };
 }
 
-PreprocState PreprocState_create(CStr start_file, uint32_t num_include_dirs, const Str* include_dirs, PreprocErr* err) {
+PreprocState PreprocState_create(CStr start_file,
+                                 uint32_t num_include_dirs,
+                                 const Str* include_dirs,
+                                 PreprocErr* err) {
     FileData fd = create_file_data(start_file, err);
     if (!fd.is_valid) {
         PreprocState res = {0};
