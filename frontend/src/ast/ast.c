@@ -58,6 +58,7 @@ static uint32_t add_node_with_type(AST* ast,
 
 static bool parse_translation_unit_2(ParserState* s, AST* ast);
 
+// frees whole AST but leaves tokens, as they are needed for errors
 static void AST_free_error(AST* ast) {
     mycc_free(ast->kinds);
     mycc_free(ast->datas);
