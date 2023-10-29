@@ -6,7 +6,7 @@
 
 #include "util/arch.h"
 
-typedef struct {
+typedef struct ArchIntInfo {
     uint8_t wchar_t_size;
     uint8_t sint_size;
     uint8_t int_size;
@@ -14,13 +14,13 @@ typedef struct {
     uint8_t llint_size;
 } ArchIntInfo;
 
-typedef struct {
+typedef struct ArchFloatInfo {
     uint8_t float_size;
     uint8_t double_size;
     uint8_t ldouble_size;
 } ArchFloatInfo;
 
-typedef struct {
+typedef struct ArchTypeInfo {
     uint8_t bits_in_char;
     ArchIntInfo int_info;
     ArchFloatInfo float_info;

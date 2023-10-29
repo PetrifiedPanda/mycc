@@ -4,12 +4,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct {
+typedef struct Str {
     uint32_t len;
     const char* data;
 } Str;
 
-typedef struct {
+typedef struct CStr {
     uint32_t len;
     const char* data;
 } CStr;

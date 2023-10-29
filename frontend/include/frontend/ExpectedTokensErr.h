@@ -8,7 +8,7 @@
 #include "Token.h"
 #include "FileInfo.h"
 
-typedef struct {
+typedef struct ExpectedTokensErr {
     TokenKind got;
     uint32_t num_expected;
     // size must be increased when throwing error with more expected tokens

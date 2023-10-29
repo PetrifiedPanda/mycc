@@ -9,7 +9,7 @@
 
 #include "ParserErr.h"
 
-typedef struct {
+typedef struct ParserState {
     TokenArr _arr;
     uint32_t it;
     uint32_t _len, _cap;

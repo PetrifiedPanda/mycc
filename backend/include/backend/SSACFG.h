@@ -3,13 +3,13 @@
 
 #include "SSABasicBlock.h"
 
-typedef struct {
+typedef struct SSARegInfo {
     uint32_t name_idx;
     uint32_t val_inst_num;
     IRTypeRef type;
 } SSARegInfo;
 
-typedef struct {
+typedef struct SSACFG {
     StrBuf name;
     uint32_t len;
     SSABasicBlock* blocks;

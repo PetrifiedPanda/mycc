@@ -8,7 +8,7 @@
 
 typedef struct StringMapKey StringMapKey;
 
-typedef struct {
+typedef struct StringMap {
     uint32_t _len;
     uint32_t _cap;
     uint32_t _item_size;

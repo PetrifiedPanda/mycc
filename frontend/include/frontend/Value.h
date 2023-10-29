@@ -24,7 +24,7 @@ typedef enum {
     VALUE_LDOUBLE,
 } ValueKind;
 
-typedef struct {
+typedef struct Value {
     ValueKind kind;
     union {
         int64_t sint_val;

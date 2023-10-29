@@ -6,7 +6,7 @@
 #include "FileInfo.h"
 #include "Token.h"
 
-typedef struct {
+typedef struct ErrBase {
     SourceLoc loc;
 } ErrBase;
 

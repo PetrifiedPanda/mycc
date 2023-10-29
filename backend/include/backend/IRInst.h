@@ -31,20 +31,20 @@ typedef struct IRLiteral {
     };
 } IRLiteral;
 
-typedef struct {
+typedef struct IRRegRef {
     uint32_t id;
 } IRRegRef;
 
-typedef struct {
+typedef struct IRGlobalRef {
     uint32_t id;
 } IRGlobalRef;
 
-typedef struct {
+typedef struct IRReg {
     StrBuf name;
     IRTypeRef type;
 } IRReg;
 
-typedef struct {
+typedef struct IRGlobal {
     StrBuf name;
     IRTypeRef type;
     // TODO: value (if known at compile time)
@@ -57,7 +57,7 @@ typedef enum IRInstArgType {
     IR_INST_ARG_GLOBAL,
 } IRInstArgType;
 
-typedef struct {
+typedef struct IRInstArg {
     enum IRInstArgType type;
     union {
         IRLiteral lit;
@@ -102,7 +102,7 @@ typedef enum {
     IR_INST_REPLACEELEM,
 } IRInstOp;
 
-typedef struct {
+typedef struct IRInst {
     IRInstOp op;
     IRTypeRef type;
     IRRegRef dest;

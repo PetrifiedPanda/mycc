@@ -5,7 +5,7 @@
 
 #include <stddef.h>
 
-typedef struct {
+typedef struct FileInfo {
     uint32_t len;
     StrBuf* paths;
 } FileInfo;

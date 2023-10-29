@@ -5,7 +5,7 @@
 
 #include "frontend/preproc/PreprocState.h"
 
-typedef struct {
+typedef struct PreprocConstExprRes {
     bool valid;
     bool res;
 } PreprocConstExprRes;

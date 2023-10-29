@@ -7,7 +7,7 @@
 #include "Str.h"
 #include "StrBuf.h"
 
-typedef struct {
+typedef struct File {
     FILE* _file;
 } File;
 
@@ -32,7 +32,7 @@ bool File_flush(File f);
 size_t File_read(void* res, size_t elem_bytes, size_t len, File f);
 size_t File_write(const void* to_write, size_t elem_bytes, size_t len, File f);
 
-typedef struct {
+typedef struct FileGetcRes {
     bool valid;
     char res;
 } FileGetcRes;

@@ -19,22 +19,22 @@ typedef enum {
 
 _Static_assert(TOKEN_INVALID < 255, "TokenKind does not fit into 8-bit integer");
 
-typedef struct {
+typedef struct FileLoc {
     uint32_t line, index;
 } FileLoc;
 
-typedef struct {
+typedef struct SourceLoc {
     uint32_t file_idx;
     FileLoc file_loc;
 } SourceLoc;
 
-typedef union {
+typedef union TokenVal {
     StrBuf spelling;
     Value val;
     StrLit str_lit;
 } TokenVal;
 
-typedef struct {
+typedef struct TokenArr {
     uint32_t len, cap;
     uint8_t* kinds;
     TokenVal* vals;

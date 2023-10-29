@@ -49,7 +49,7 @@ typedef enum {
     SINGLE_MACRO_OP_UNDEF,
 } SingleMacroOpKind;
 
-typedef struct {
+typedef struct PreprocErr {
     PreprocErrKind kind;
     ErrBase base;
     union {

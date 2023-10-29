@@ -10,14 +10,14 @@
 
 #include "PreprocErr.h"
 
-typedef struct {
+typedef struct LineInfo {
     StrBuf line;
     Str next;
     SourceLoc curr_loc;
     bool is_in_comment;
 } LineInfo;
 
-typedef struct {
+typedef struct PreprocCond {
     bool had_true_branch;
     bool had_else;
     SourceLoc loc;
@@ -25,7 +25,7 @@ typedef struct {
 
 typedef struct OpenedFileInfo OpenedFileInfo;
 
-typedef struct {
+typedef struct FileManager {
     File files[FOPEN_MAX];
     uint32_t opened_info_indices[FOPEN_MAX];
     uint32_t current_file_idx;
@@ -35,7 +35,7 @@ typedef struct {
     StrBuf* prefixes;
 } FileManager;
 
-typedef struct {
+typedef struct PreprocState {
     TokenArr res;
 
     LineInfo line_info;

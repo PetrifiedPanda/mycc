@@ -6,7 +6,7 @@
 
 // TODO: pointer modifiers like restrict, volatile
 
-typedef struct {
+typedef struct IRTypeRef {
     uint32_t id; // ID in LUT for types
     uint32_t num_indirs;
 } IRTypeRef;
@@ -19,7 +19,7 @@ typedef enum {
 } IRTypeKind;
 
 // TODO: builtins (could just be in enum)
-typedef struct {
+typedef struct IRType {
     IRTypeKind type;
     union {
         struct {

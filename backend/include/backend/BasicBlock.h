@@ -12,12 +12,12 @@ typedef enum {
     BRANCH_OP_RETURN,
 } BranchInstKind;
 
-typedef struct {
+typedef struct InstSwitchTarget {
     IRLiteral val;
     uint32_t target;
 } InstSwitchTarget;
 
-typedef struct {
+typedef struct BranchInst {
     BranchInstKind type;
     union {
         struct {
@@ -36,7 +36,7 @@ typedef struct {
     };
 } BranchInst;
 
-typedef struct {
+typedef struct BasicBlock {
     StrBuf name;
     uint32_t len;
     IRInst* ops;

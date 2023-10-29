@@ -11,7 +11,7 @@ typedef enum {
     ARG_ACTION_CONVERT_BIN_TO_TEXT,
 } ArgAction;
 
-typedef struct {
+typedef struct CmdArgs {
     uint32_t num_files;
     uint32_t num_include_dirs;
     CStr* files;

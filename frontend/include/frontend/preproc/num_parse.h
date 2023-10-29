@@ -16,12 +16,12 @@ typedef enum {
     FLOAT_CONST_ERR_INVALID_CHAR,
 } FloatConstErrKind;
 
-typedef struct {
+typedef struct FloatConstErr {
     FloatConstErrKind kind;
     char invalid_char;
 } FloatConstErr;
 
-typedef struct {
+typedef struct ParseFloatConstRes{
     FloatConstErr err;
     Value res;
 } ParseFloatConstRes;
@@ -41,12 +41,12 @@ typedef enum {
     INT_CONST_ERR_INVALID_CHAR,
 } IntConstErrKind;
 
-typedef struct {
+typedef struct IntConstErr {
     IntConstErrKind kind;
     char invalid_char;
 } IntConstErr;
 
-typedef struct {
+typedef struct ParseIntConstRes {
     IntConstErr err;
     Value res;
 } ParseIntConstRes;
@@ -61,7 +61,7 @@ typedef enum {
     CHAR_CONST_ERR_INVALID_ESCAPE,
 } CharConstErrKind;
 
-typedef struct {
+typedef struct CharConstErr {
     CharConstErrKind kind;
     union {
         struct {
@@ -73,7 +73,7 @@ typedef struct {
     };
 } CharConstErr;
 
-typedef struct {
+typedef struct ParseCharConstRes {
     CharConstErr err;
     Value res;
 } ParseCharConstRes;

@@ -13,7 +13,7 @@ typedef enum {
 } StrLitKind;
 
 // TODO: handling of non-default string literals
-typedef struct {
+typedef struct StrLit {
     StrLitKind kind;
     StrBuf contents;
 } StrLit;

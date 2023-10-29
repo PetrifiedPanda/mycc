@@ -5,7 +5,7 @@
 
 #include "BasicBlock.h"
 
-typedef struct {
+typedef struct CFG {
     StrBuf name;
     uint32_t len;
     BasicBlock* blocks;

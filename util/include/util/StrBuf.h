@@ -9,7 +9,7 @@
 
 #include "Str.h"
 
-typedef struct {
+typedef struct StrBuf {
     union {
         struct {
             uint32_t _is_static_buf : 1;

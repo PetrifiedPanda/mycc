@@ -6,7 +6,7 @@
 
 #include "PreprocErr.h"
 
-typedef struct {
+typedef struct PreprocRes {
     TokenArr toks;
     FileInfo file_info;
 } PreprocRes;

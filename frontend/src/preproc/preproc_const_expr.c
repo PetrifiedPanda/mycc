@@ -10,7 +10,7 @@
 #include "frontend/preproc/PreprocMacro.h"
 
 // TODO: Target (u)intmax_t semantics
-typedef struct {
+typedef struct PreprocConstExprVal {
     bool valid;
     bool is_signed;
     union {

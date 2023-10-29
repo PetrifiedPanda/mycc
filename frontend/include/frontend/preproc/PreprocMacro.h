@@ -8,7 +8,7 @@
 
 #include "PreprocState.h"
 
-typedef union {
+typedef union TokenValOrArg {
     uint32_t arg_num;
     StrBuf val;
 } TokenValOrArg;

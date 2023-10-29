@@ -7,7 +7,7 @@
 
 // TODO: how to incorporate ssa_cfgs?
 
-typedef struct {
+typedef struct IRModule {
     StrBuf name;
     uint32_t num_funcs;
     CFG* funcs;

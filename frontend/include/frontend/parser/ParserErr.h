@@ -27,7 +27,7 @@ typedef enum {
     PARSER_ERR_TYPEDEF_WITHOUT_DECLARATOR,
 } ParserErrKind;
 
-typedef struct {
+typedef struct ParserErr {
     ParserErrKind kind;
     uint32_t err_token_idx;
     union {
