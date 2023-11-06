@@ -49,7 +49,7 @@ ParserState ParserState_create(TokenArr* tokens, ParserErr* err) {
 }
 
 void ParserState_free(ParserState* s) {
-    for (uint32_t i = 0; i < s->_len; ++i) {
+    for (uint32_t i = 0; i < s->_cap; ++i) {
         StringMap_free(&s->_scope_maps[i]);
     }
     mycc_free(s->_scope_maps);
@@ -112,18 +112,21 @@ void ParserState_push_scope(ParserState* s) {
         ++s->_cap;
         s->_scope_maps = mycc_realloc(s->_scope_maps,
                                       sizeof *s->_scope_maps * s->_cap);
+        s->_scope_maps[s->_len] = StringMap_create(sizeof(ParserIDData), SCOPE_MAP_INIT_CAP, false, NULL);
     }
     ++s->_len;
+    /*
     s->_scope_maps[s->_len - 1] = StringMap_create(sizeof(ParserIDData),
                                                    SCOPE_MAP_INIT_CAP,
                                                    false,
                                                    NULL);
+    */
 }
 
 void ParserState_pop_scope(ParserState* s) {
     assert(s->_len > 1);
     --s->_len;
-    StringMap_free(&s->_scope_maps[s->_len]);
+    StringMap_clear(&s->_scope_maps[s->_len]);
 }
 
 bool ParserState_register_enum_constant(ParserState* s,

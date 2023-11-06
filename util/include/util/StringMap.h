@@ -24,6 +24,8 @@ StringMap StringMap_create(uint32_t elem_size,
                            void (*item_free)(void*));
 void StringMap_free(StringMap* map);
 
+void StringMap_clear(StringMap* map);
+
 /**
  * @brief Inserts item and key into this map, if key is not already
  *        present

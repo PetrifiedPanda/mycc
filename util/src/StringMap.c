@@ -28,7 +28,7 @@ StringMap StringMap_create(uint32_t elem_size,
     };
 }
 
-void StringMap_free(StringMap* map) {
+static void StringMap_free_elements(StringMap* map) {
     if (map->_item_free) {
         char* items_char = map->_items;
         for (uint32_t i = 0; i < map->_cap; ++i) {
@@ -44,7 +44,18 @@ void StringMap_free(StringMap* map) {
             StrBuf_free(&map->_keys[i].str);
         }
     }
+}
+
+void StringMap_free(StringMap* map) {
+    StringMap_free_elements(map);
     mycc_free(map->_keys);
+}
+
+void StringMap_clear(StringMap* map) {
+    StringMap_free_elements(map);
+    memset(map->_items, 0, map->_item_size * map->_cap);
+    memset(map->_keys, 0, sizeof *map->_keys * map->_cap);
+    map->_len = 0;
 }
 
 static uint32_t hash_string(Str str);
