@@ -5,6 +5,7 @@
 void IRType_free(IRType* t) {
     switch (t->type) {
         case INST_TYPE_BUILTIN:
+        case INST_TYPE_PTR:
         case INST_TYPE_ARR:
             break;
         case INST_TYPE_STRUCT:
