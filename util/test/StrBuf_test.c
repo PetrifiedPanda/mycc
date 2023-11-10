@@ -349,6 +349,33 @@ TEST(remove_back) {
 #undef SUFFIX
 }
 
+TEST(clear) {
+    const Str empty = STR_LIT("");
+    {
+        const Str test = STR_LIT("tesT");
+        StrBuf buf = StrBuf_create(test);
+        const uint32_t cap = StrBuf_cap(&buf);
+        ASSERT_STR(StrBuf_as_str(&buf), test);
+        StrBuf_clear(&buf);
+        ASSERT_UINT(StrBuf_cap(&buf), cap);
+        ASSERT_STR(StrBuf_as_str(&buf), empty);
+        StrBuf_free(&buf);
+    }
+
+    {
+        const Str long_str = STR_LIT("a long string literal that should exceed "
+                                     "the static buffer size by a lot");
+        StrBuf buf = StrBuf_create(long_str);
+        assert(long_str.len >= sizeof buf._static_buf);
+        const uint32_t cap = StrBuf_cap(&buf);
+        ASSERT_STR(StrBuf_as_str(&buf), long_str);
+        StrBuf_clear(&buf);
+        ASSERT_UINT(StrBuf_cap(&buf), cap);
+        ASSERT_STR(StrBuf_as_str(&buf), empty);
+        StrBuf_free(&buf);
+    }
+}
+
 TEST_SUITE_BEGIN(StrBuf){
     REGISTER_TEST(push_back_to_empty),
     REGISTER_TEST(push_back_to_empty_with_cap),
@@ -361,5 +388,6 @@ TEST_SUITE_BEGIN(StrBuf){
     REGISTER_TEST(remove_front),
     REGISTER_TEST(pop_back),
     REGISTER_TEST(remove_back),
+    REGISTER_TEST(clear),
 } TEST_SUITE_END()
 
