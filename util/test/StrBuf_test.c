@@ -125,7 +125,7 @@ TEST(copy_take) {
     ASSERT(!StrBuf_valid(&copy));
 }
 
-TEST(append_c_str) {
+TEST(append) {
     StrBuf str = StrBuf_create_empty();
 #define SHORT_STR "test"
     Str short_str = STR_LIT(SHORT_STR);
@@ -320,16 +320,46 @@ TEST(pop_back) {
     StrBuf_free(&str);
 }
 
+TEST(remove_back) {
+#define PREFIX "string beginning"
+#define SUFFIX " string ending"
+    static const char full[] = PREFIX SUFFIX;
+    static const char prefix[] = PREFIX;
+    static const char suffix[] = SUFFIX;
+
+    enum {
+        SUFFIX_LEN = ARR_LEN(suffix) - 1,
+        PREFIX_LEN = ARR_LEN(prefix) - 1,
+    };
+
+    const Str full_str = STR_LIT(full);
+    StrBuf buf = StrBuf_create(full_str);
+    ASSERT_STR(StrBuf_as_str(&buf), full_str);
+    StrBuf_remove_back(&buf, 0);
+    ASSERT_STR(StrBuf_as_str(&buf), full_str);
+
+    StrBuf_remove_back(&buf, SUFFIX_LEN);
+    ASSERT_STR(StrBuf_as_str(&buf), STR_LIT(prefix));
+    ASSERT_UINT(StrBuf_len(&buf), PREFIX_LEN);
+    StrBuf_remove_back(&buf, PREFIX_LEN);
+    ASSERT_STR(StrBuf_as_str(&buf), STR_LIT(""));
+
+    StrBuf_free(&buf);
+#undef PREFIX
+#undef SUFFIX
+}
+
 TEST_SUITE_BEGIN(StrBuf){
     REGISTER_TEST(push_back_to_empty),
     REGISTER_TEST(push_back_to_empty_with_cap),
     REGISTER_TEST(push_back_to_nonempty),
     REGISTER_TEST(copy_take),
-    REGISTER_TEST(append_c_str),
+    REGISTER_TEST(append),
     REGISTER_TEST(reserve),
     REGISTER_TEST(concat),
     REGISTER_TEST(shrink_to_fit),
     REGISTER_TEST(remove_front),
     REGISTER_TEST(pop_back),
+    REGISTER_TEST(remove_back),
 } TEST_SUITE_END()
 
