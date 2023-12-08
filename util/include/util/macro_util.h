@@ -24,7 +24,11 @@
 
 #if defined(_MSC_VER) && !defined(__clang__)
 
-#define UNREACHABLE() assert(false && "Reached unreachable block")
+#define UNREACHABLE()                                                          \
+    do {                                                                       \
+        assert(false && "Reached unreachable block");                          \
+        __assume(0);                                                           \
+    } while (0)
 
 #else
 
