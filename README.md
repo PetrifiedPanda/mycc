@@ -1,6 +1,7 @@
 # mycc: A (90% unfinished) C compiler
 ## Status
 - Preprocessor
+    - Macro expansion is not completely correct
     - '<' '>' includes not supported
     - Macro stringification and concatenation not supported
     - No digraphs and trigraphs
