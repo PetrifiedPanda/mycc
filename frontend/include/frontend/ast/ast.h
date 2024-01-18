@@ -127,7 +127,7 @@ typedef enum {
     AST_MEMBER_DECLARATOR,
     // '_Atomic' '(' lhs type_name ')'
     AST_ATOMIC_TYPE_SPEC,
-    // inline noreturn
+    // main_token is inline / noreturn
     AST_FUNC_SPEC_INLINE,
     AST_FUNC_SPEC_NORETURN,
     // lhs type_name

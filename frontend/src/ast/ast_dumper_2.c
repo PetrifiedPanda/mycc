@@ -113,7 +113,7 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
 }
 
 static ASTNodeCategory get_ast_node_kind_type(ASTNodeKind k) {
-    // TODO: balanced token, func_spec, storage_class_spec
+    // TODO: balanced token, storage_class_spec
     switch (k) {
         case AST_TRANSLATION_UNIT:
         case AST_DECLARATION_LIST:
@@ -155,6 +155,8 @@ static ASTNodeCategory get_ast_node_kind_type(ASTNodeKind k) {
         case AST_TYPE_SPEC_IMAGINARY:
         case AST_BREAK_STATEMENT:
         case AST_CONTINUE_STATEMENT:
+        case AST_FUNC_SPEC_INLINE:
+        case AST_FUNC_SPEC_NORETURN:
         case AST_FUNC:
             return AST_NODE_CATEGORY_NO_CHILDREN;
         case AST_TYPE_QUAL_LIST:
