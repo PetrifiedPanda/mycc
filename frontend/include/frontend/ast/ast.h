@@ -36,6 +36,7 @@ typedef enum {
     AST_STATIC_ASSERT_DECLARATION,
     // subrange (declaration | static_assert_declaration | attribute_statement | expr_statement | unlabeled_statement | label)[lhs...rhs] 
     AST_COMPOUND_STATEMENT,
+    // TODO: comment out of date
     // lhs ?attribute_spec_sequence rhs identifier ':'
     // lhs ?attribute_spec_sequence 'case' rhs ?const_expr ':'
     // lhs ?attribute_spec_sequence 'default' ':'
