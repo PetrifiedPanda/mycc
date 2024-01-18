@@ -11,17 +11,17 @@ bool dump_ast_2(const AST* ast, const FileInfo* file_info, File f) {
 
 typedef enum {
     // Has lhs and optional rhs
-    AST_NODE_KIND_TYPE_DEFAULT,
-    AST_NODE_KIND_TYPE_SUBRANGE,
-    AST_NODE_KIND_TYPE_NO_CHILDREN,
-    AST_NODE_KIND_TYPE_TOKEN_RANGE,
+    AST_NODE_CATEGORY_DEFAULT,
+    AST_NODE_CATEGORY_SUBRANGE,
+    AST_NODE_CATEGORY_NO_CHILDREN,
+    AST_NODE_CATEGORY_TOKEN_RANGE,
     // All tokens where the relevant data is the spelling of an identifier
-    AST_NODE_KIND_TYPE_IDENTIFIER,
-    AST_NODE_KIND_TYPE_STRING_LITERAL,
-    AST_NODE_KIND_TYPE_CONSTANT,
-} ASTNodeKindType;
+    AST_NODE_CATEGORY_IDENTIFIER,
+    AST_NODE_CATEGORY_STRING_LITERAL,
+    AST_NODE_CATEGORY_CONSTANT,
+} ASTNodeCategory;
 
-static ASTNodeKindType get_ast_node_kind_type(ASTNodeKind k);
+static ASTNodeCategory get_ast_node_kind_type(ASTNodeKind k);
 
 static Str get_node_kind_str(ASTNodeKind k);
 
@@ -46,11 +46,11 @@ static bool dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
     const Str node_kind_str = get_node_kind_str(kind);
 
     File_printf(f, "{Str}:\n", node_kind_str);
-    const ASTNodeKindType type = get_ast_node_kind_type(kind);
+    const ASTNodeCategory category = get_ast_node_kind_type(kind);
 
     const ASTNodeData data = ast->datas[node_idx];
-    switch (type) {
-        case AST_NODE_KIND_TYPE_DEFAULT:
+    switch (category) {
+        case AST_NODE_CATEGORY_DEFAULT:
             File_put_str("lhs: ", f);
             if (!dump_ast_rec(ast, node_idx + 1, f)) {
                 return false;
@@ -61,27 +61,27 @@ static bool dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
                 return dump_ast_rec(ast, rhs, f);
             }
             return true;
-        case AST_NODE_KIND_TYPE_NO_CHILDREN:
+        case AST_NODE_CATEGORY_NO_CHILDREN:
             return true;
-        case AST_NODE_KIND_TYPE_SUBRANGE:
+        case AST_NODE_CATEGORY_SUBRANGE:
             // TODO:
             return false;
-        case AST_NODE_KIND_TYPE_TOKEN_RANGE:
+        case AST_NODE_CATEGORY_TOKEN_RANGE:
             // TODO:
             return false;
-        case AST_NODE_KIND_TYPE_IDENTIFIER: {
+        case AST_NODE_CATEGORY_IDENTIFIER: {
             const uint32_t token_idx = data.main_token;
             const Str spell = StrBuf_as_str(&ast->toks.vals[token_idx].spelling);
             File_printf(f, "spelling: {Str}\n", spell);
             return true;
         }
-        case AST_NODE_KIND_TYPE_STRING_LITERAL: {
+        case AST_NODE_CATEGORY_STRING_LITERAL: {
             const uint32_t token_idx = data.main_token;
             const StrLit* lit = &ast->toks.vals[token_idx].str_lit;
             File_printf(f, "str_lit: {Str}\n", StrBuf_as_str(&lit->contents));
             return true;
         }
-        case AST_NODE_KIND_TYPE_CONSTANT: {
+        case AST_NODE_CATEGORY_CONSTANT: {
             const uint32_t token_idx = data.main_token;
             const Value val = ast->toks.vals[token_idx].val;
             dump_value(f, &val);
@@ -91,7 +91,7 @@ static bool dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
     UNREACHABLE();
 }
 
-static ASTNodeKindType get_ast_node_kind_type(ASTNodeKind k) {
+static ASTNodeCategory get_ast_node_kind_type(ASTNodeKind k) {
     // TODO: balanced token, func_spec, storage_class_spec
     switch (k) {
         case AST_TRANSLATION_UNIT:
@@ -115,7 +115,7 @@ static ASTNodeKindType get_ast_node_kind_type(ASTNodeKind k) {
         case AST_SPEC_QUAL_LIST:
         case AST_ARG_EXPR_LIST:
         case AST_GENERIC_ASSOC_LIST:
-            return AST_NODE_KIND_TYPE_SUBRANGE;
+            return AST_NODE_CATEGORY_SUBRANGE;
         case AST_POSTFIX_OP_INC:
         case AST_POSTFIX_OP_DEC:
         case AST_TYPE_QUAL:
@@ -135,20 +135,20 @@ static ASTNodeKindType get_ast_node_kind_type(ASTNodeKind k) {
         case AST_BREAK_STATEMENT:
         case AST_CONTINUE_STATEMENT:
         case AST_FUNC:
-            return AST_NODE_KIND_TYPE_NO_CHILDREN;
+            return AST_NODE_CATEGORY_NO_CHILDREN;
         case AST_TYPE_QUAL_LIST:
         case AST_STORAGE_CLASS_SPECS:
-            return AST_NODE_KIND_TYPE_TOKEN_RANGE;
+            return AST_NODE_CATEGORY_TOKEN_RANGE;
         case AST_IDENTIFIER:
         case AST_TYPE_SPEC_TYPEDEF_NAME:
         case AST_ENUM_CONSTANT:
-            return AST_NODE_KIND_TYPE_IDENTIFIER;
+            return AST_NODE_CATEGORY_IDENTIFIER;
         case AST_STRING_LITERAL:
-            return AST_NODE_KIND_TYPE_STRING_LITERAL;
+            return AST_NODE_CATEGORY_STRING_LITERAL;
         case AST_CONSTANT:
-            return AST_NODE_KIND_TYPE_CONSTANT;
+            return AST_NODE_CATEGORY_CONSTANT;
         default:
-            return AST_NODE_KIND_TYPE_DEFAULT;
+            return AST_NODE_CATEGORY_DEFAULT;
     }
 }
 
