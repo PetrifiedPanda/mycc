@@ -1,5 +1,6 @@
 #include "frontend/ast/ast_dumper_2.h"
 
+#include "frontend/Token.h"
 #include "util/macro_util.h"
 
 static bool dump_ast_rec(const AST* ast, uint32_t node_idx, File f);
@@ -66,9 +67,20 @@ static bool dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
         case AST_NODE_CATEGORY_SUBRANGE:
             // TODO:
             return false;
-        case AST_NODE_CATEGORY_TOKEN_RANGE:
-            // TODO:
-            return false;
+        case AST_NODE_CATEGORY_TOKEN_RANGE: {
+            const uint32_t token_idx = data.main_token;
+            const uint32_t end = token_idx + data.rhs;
+            for (uint32_t i = token_idx; i < end; ++i) {
+                const TokenKind kind = ast->toks.kinds[i];
+                Str str = TokenKind_get_spelling(kind);
+                if (str.data == NULL) {
+                    assert(kind == TOKEN_IDENTIFIER);
+                    str = StrBuf_as_str(&ast->toks.vals[i].spelling);
+                }
+                File_printf(f, "token: {Str}\n", str);
+            }
+            return true;
+        }
         case AST_NODE_CATEGORY_IDENTIFIER: {
             const uint32_t token_idx = data.main_token;
             const Str spell = StrBuf_as_str(&ast->toks.vals[token_idx].spelling);
