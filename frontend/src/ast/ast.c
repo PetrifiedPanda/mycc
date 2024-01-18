@@ -945,7 +945,18 @@ static uint32_t parse_storage_class_spec_2(ParserState* s,
 
 static uint32_t parse_func_spec_2(ParserState* s, AST* ast) {
     assert(is_func_spec(ParserState_curr_kind(s)));
-    const uint32_t res = add_node(ast, AST_FUNC_SPEC, s->it);
+    ASTNodeKind kind;
+    switch (ParserState_curr_kind(s)) {
+        case TOKEN_INLINE:
+            kind = AST_FUNC_SPEC_INLINE;
+            break;
+        case TOKEN_NORETURN:
+            kind = AST_FUNC_SPEC_NORETURN;
+            break;
+        default:
+            UNREACHABLE();
+    }
+    const uint32_t res = add_node(ast, kind, s->it);
     ParserState_accept_it(s);
     return res;
 }

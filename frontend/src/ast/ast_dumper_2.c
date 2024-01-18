@@ -293,8 +293,10 @@ static Str get_node_kind_str(ASTNodeKind k) {
             return STR_LIT("member declarator");
         case AST_ATOMIC_TYPE_SPEC:
             return STR_LIT("atomic type specifier");
-        case AST_FUNC_SPEC:
-            return STR_LIT("function specifier");
+        case AST_FUNC_SPEC_INLINE:
+            return STR_LIT("inline function specifier");
+        case AST_FUNC_SPEC_NORETURN:
+            return STR_LIT("noreturn function specifier");
         case AST_ALIGN_SPEC:
             return STR_LIT("alignment specifier");
         case AST_INIT_DECLARATOR_LIST:

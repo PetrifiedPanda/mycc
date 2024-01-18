@@ -128,7 +128,8 @@ typedef enum {
     // '_Atomic' '(' lhs type_name ')'
     AST_ATOMIC_TYPE_SPEC,
     // inline noreturn
-    AST_FUNC_SPEC,
+    AST_FUNC_SPEC_INLINE,
+    AST_FUNC_SPEC_NORETURN,
     // lhs type_name
     // lhs const_expr
     AST_ALIGN_SPEC,
