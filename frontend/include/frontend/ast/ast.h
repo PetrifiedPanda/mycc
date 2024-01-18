@@ -163,6 +163,7 @@ typedef enum {
     AST_ATTRIBUTE_ARGUMENT_CLAUSE,
     // subrange balanced_token[lhs...rhs]
     AST_BALANCED_TOKEN_SEQUENCE,
+    // TODO: use rhs here
     // '(' lhs ?balanced_token_sequence ')'
     // '[' lhs ?balanced_token_sequence ']'
     // '{' lhs ?balanced_token_sequence '}'

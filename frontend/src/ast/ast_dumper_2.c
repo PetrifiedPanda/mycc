@@ -10,44 +10,13 @@ bool dump_ast_2(const AST* ast, const FileInfo* file_info, File f) {
     return dump_ast_rec(ast, 0, f) == ast->len;
 }
 
-static const ASTNodeKind g_rhs_lhs_optional[] = {
-    AST_UNLABELED_STATEMENT,
-    AST_ENUM_SPEC,
-    AST_ATTRIBUTE_ID,
-    AST_ENUM_BODY,
-    AST_STRUCT_UNION_BODY, // TODO: needs either or
-    AST_MEMBER_DECLARATOR,
-    AST_POINTER,
-    AST_POINTER_ATTRS_AND_QUALS,
-    AST_BALANCED_TOKEN_BRACKET,
-    AST_ABS_DECLARATOR,
-    AST_ABS_ARR_SUFFIX,
-    AST_BRACED_INITIALIZER,
-};
-
-static const ASTNodeKind g_lhs_kind[] = {
-    AST_ATTRIBUTE_SPEC_SEQUENCE,
-    AST_ATTRIBUTE_ID,
-    AST_ATTRIBUTE_SPEC_SEQUENCE,
-    AST_SPEC_QUAL_LIST,
-    AST_IDENTIFIER,
-    AST_DECLARATOR,
-    AST_POINTER_ATTRS_AND_QUALS,
-    AST_ATTRIBUTE_SPEC_SEQUENCE,
-    AST_BALANCED_TOKEN_SEQUENCE,
-    AST_POINTER,
-    AST_TYPE_QUAL_LIST,
-    AST_INIT_LIST,
-};
-
-static_assert(ARR_LEN(g_rhs_lhs_optional) == ARR_LEN(g_lhs_kind), "");
-
 // TODO: does not work if lhs and rhs are optional
 typedef enum {
     // Has lhs and optional rhs
     AST_NODE_CATEGORY_DEFAULT,
     AST_NODE_CATEGORY_SUBRANGE,
     AST_NODE_CATEGORY_NO_CHILDREN,
+    AST_NODE_CATEGORY_OPTIONAL_LHS_RHS,
     AST_NODE_CATEGORY_TOKEN_RANGE,
     // All tokens where the relevant data is the spelling of an identifier
     AST_NODE_CATEGORY_IDENTIFIER,
@@ -56,7 +25,7 @@ typedef enum {
     AST_NODE_CATEGORY_BALANCED_TOKEN,
 } ASTNodeCategory;
 
-static ASTNodeCategory get_ast_node_kind_type(ASTNodeKind k);
+static ASTNodeCategory get_ast_node_category(ASTNodeKind k);
 
 static Str get_node_kind_str(ASTNodeKind k);
 
@@ -107,10 +76,12 @@ static void dump_balanced_token(File f, const AST* ast, uint32_t main_token) {
     }
 }
 
+static ASTNodeKind get_lhs_kind(ASTNodeKind kind);
+
 // TODO: that one special case
 // TODO: type spec
 static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
-    (void)g_rhs_lhs_optional, (void)g_lhs_kind;
+    mycc_printf("idx: {u32}, len: {u32}\n", node_idx, ast->len);
     if (node_idx == ast->len) {
         return node_idx;
     }
@@ -118,7 +89,7 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
     const Str node_kind_str = get_node_kind_str(kind);
 
     File_printf(f, "{Str}:\n", node_kind_str);
-    const ASTNodeCategory category = get_ast_node_kind_type(kind);
+    const ASTNodeCategory category = get_ast_node_category(kind);
 
     const ASTNodeData data = ast->datas[node_idx];
     switch (category) {
@@ -141,8 +112,6 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
                 return lhs_next;
             }
         }
-        case AST_NODE_CATEGORY_NO_CHILDREN:
-            return node_idx + 1;
         case AST_NODE_CATEGORY_SUBRANGE: {
             uint32_t node_it = node_idx + 1;
             while (node_it != data.rhs) {
@@ -152,6 +121,32 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
                 }
             }
             return data.rhs;
+        }
+        case AST_NODE_CATEGORY_NO_CHILDREN:
+            return node_idx + 1;
+        case AST_NODE_CATEGORY_OPTIONAL_LHS_RHS: {
+            const uint32_t lhs_idx = node_idx + 1;
+            if (data.rhs == 0) {
+                if (ast->kinds[lhs_idx] == get_lhs_kind(kind)) {
+                    File_put_str("lhs: ", f);
+                    return dump_ast_rec(ast, lhs_idx, f);
+                } else {
+                    // No lhs and rhs
+                    return lhs_idx;
+                }
+            } else if (data.rhs == lhs_idx) {
+                File_put_str("rhs: ", f);
+                return dump_ast_rec(ast, data.rhs, f);
+            } else {
+                // both lhs and rhs present
+                File_put_str("lhs: ", f);
+                const uint32_t lhs_next = dump_ast_rec(ast, lhs_idx, f);
+                if (lhs_next == 0) {
+                    return 0;
+                }
+                assert(lhs_next == data.rhs);
+                return dump_ast_rec(ast, data.rhs, f);
+            }
         }
         case AST_NODE_CATEGORY_TOKEN_RANGE: {
             const uint32_t token_idx = data.main_token;
@@ -193,7 +188,37 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
     UNREACHABLE();
 }
 
-static ASTNodeCategory get_ast_node_kind_type(ASTNodeKind k) {
+static ASTNodeKind get_lhs_kind(ASTNodeKind kind) {
+    assert(get_ast_node_category(kind) == AST_NODE_CATEGORY_OPTIONAL_LHS_RHS);
+    switch (kind) {
+        case AST_UNLABELED_STATEMENT:
+            return AST_ATTRIBUTE_SPEC_SEQUENCE;
+        case AST_ENUM_SPEC:
+            return AST_ATTRIBUTE_ID;
+        case AST_ATTRIBUTE_ID:
+            return AST_ATTRIBUTE_SPEC_SEQUENCE;
+        case AST_ENUM_BODY:
+            return AST_SPEC_QUAL_LIST;
+        case AST_STRUCT_UNION_BODY: // TODO: needs either or
+            return AST_IDENTIFIER;
+        case AST_MEMBER_DECLARATOR:
+            return AST_DECLARATOR;
+        case AST_POINTER:
+            return AST_POINTER_ATTRS_AND_QUALS;
+        case AST_POINTER_ATTRS_AND_QUALS:
+            return AST_ATTRIBUTE_SPEC_SEQUENCE;
+        case AST_BALANCED_TOKEN_BRACKET:
+            return AST_BALANCED_TOKEN_SEQUENCE;
+        case AST_ABS_DECLARATOR:
+            return AST_POINTER;
+        case AST_ABS_ARR_SUFFIX:
+            return AST_TYPE_QUAL_LIST;
+        default:
+            UNREACHABLE();
+    }
+}
+
+static ASTNodeCategory get_ast_node_category(ASTNodeKind k) {
     // TODO: balanced token
     switch (k) {
         case AST_TRANSLATION_UNIT:
@@ -246,6 +271,18 @@ static ASTNodeCategory get_ast_node_kind_type(ASTNodeKind k) {
         case AST_STORAGE_CLASS_SPEC_AUTO:
         case AST_STORAGE_CLASS_SPEC_REGISTER:
             return AST_NODE_CATEGORY_NO_CHILDREN;
+        case AST_UNLABELED_STATEMENT:
+        case AST_ENUM_SPEC:
+        case AST_ATTRIBUTE_ID:
+        case AST_ENUM_BODY:
+        case AST_STRUCT_UNION_BODY: // TODO: needs either or
+        case AST_MEMBER_DECLARATOR:
+        case AST_POINTER:
+        case AST_POINTER_ATTRS_AND_QUALS:
+        case AST_BALANCED_TOKEN_BRACKET:
+        case AST_ABS_DECLARATOR:
+        case AST_ABS_ARR_SUFFIX:
+            return AST_NODE_CATEGORY_OPTIONAL_LHS_RHS;
         case AST_TYPE_QUAL_LIST:
         case AST_STORAGE_CLASS_SPECS:
             return AST_NODE_CATEGORY_TOKEN_RANGE;
