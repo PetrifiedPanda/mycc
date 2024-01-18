@@ -2,11 +2,12 @@
 
 #include "util/macro_util.h"
 
-static bool dump_ast_rec(const AST* ast, uint32_t node_idx, File f);
+// returns the next node index
+static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f);
 
 bool dump_ast_2(const AST* ast, const FileInfo* file_info, File f) {
     (void)file_info;
-    return dump_ast_rec(ast, 0, f);
+    return dump_ast_rec(ast, 0, f) == ast->len;
 }
 
 typedef enum {
@@ -38,9 +39,9 @@ static void dump_value(File f, const Value* val) {
     }
 }
 
-static bool dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
+static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
     if (node_idx == ast->len) {
-        return true;
+        return node_idx;
     }
     const ASTNodeKind kind = ast->kinds[node_idx];
     const Str node_kind_str = get_node_kind_str(kind);
@@ -52,20 +53,29 @@ static bool dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
     switch (category) {
         case AST_NODE_CATEGORY_DEFAULT:
             File_put_str("lhs: ", f);
-            if (!dump_ast_rec(ast, node_idx + 1, f)) {
-                return false;
+            const uint32_t lhs_next = dump_ast_rec(ast, node_idx + 1, f);
+            if (lhs_next == 0) {
+                return 0;
             }
-            const uint32_t rhs = data.rhs;
-            if (rhs != 0) {
+            assert(data.rhs == lhs_next);
+            if (data.rhs != 0) {
                 File_put_str("rhs: ", f);
-                return dump_ast_rec(ast, rhs, f);
+                return dump_ast_rec(ast, data.rhs, f);
+            } else {
+                return lhs_next;
             }
-            return true;
         case AST_NODE_CATEGORY_NO_CHILDREN:
-            return true;
-        case AST_NODE_CATEGORY_SUBRANGE:
-            // TODO:
-            return false;
+            return node_idx + 1;
+        case AST_NODE_CATEGORY_SUBRANGE: {
+            uint32_t node_it = node_idx + 1;
+            while (node_it != data.rhs) {
+                node_it = dump_ast_rec(ast, node_it, f);
+                if (node_it == 0) {
+                    return 0;
+                }
+            }
+            return data.rhs;
+        }
         case AST_NODE_CATEGORY_TOKEN_RANGE: {
             const uint32_t token_idx = data.main_token;
             const uint32_t end = token_idx + data.rhs;
@@ -78,25 +88,25 @@ static bool dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
                 }
                 File_printf(f, "token: {Str}\n", str);
             }
-            return true;
+            return node_idx + 1;
         }
         case AST_NODE_CATEGORY_IDENTIFIER: {
             const uint32_t token_idx = data.main_token;
             const Str spell = StrBuf_as_str(&ast->toks.vals[token_idx].spelling);
             File_printf(f, "spelling: {Str}\n", spell);
-            return true;
+            return node_idx + 1;
         }
         case AST_NODE_CATEGORY_STRING_LITERAL: {
             const uint32_t token_idx = data.main_token;
             const StrLit* lit = &ast->toks.vals[token_idx].str_lit;
             File_printf(f, "str_lit: {Str}\n", StrBuf_as_str(&lit->contents));
-            return true;
+            return node_idx + 1;
         }
         case AST_NODE_CATEGORY_CONSTANT: {
             const uint32_t token_idx = data.main_token;
             const Value val = ast->toks.vals[token_idx].val;
             dump_value(f, &val);
-            return true;
+            return node_idx + 1;
         }
     }
     UNREACHABLE();
