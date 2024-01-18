@@ -10,6 +10,7 @@ bool dump_ast_2(const AST* ast, const FileInfo* file_info, File f) {
     return dump_ast_rec(ast, 0, f) == ast->len;
 }
 
+// TODO: optional lhs
 typedef enum {
     // Has lhs and optional rhs
     AST_NODE_CATEGORY_DEFAULT,
@@ -20,6 +21,7 @@ typedef enum {
     AST_NODE_CATEGORY_IDENTIFIER,
     AST_NODE_CATEGORY_STRING_LITERAL,
     AST_NODE_CATEGORY_CONSTANT,
+    AST_NODE_CATEGORY_BALANCED_TOKEN,
 } ASTNodeCategory;
 
 static ASTNodeCategory get_ast_node_kind_type(ASTNodeKind k);
@@ -27,7 +29,7 @@ static ASTNodeCategory get_ast_node_kind_type(ASTNodeKind k);
 static Str get_node_kind_str(ASTNodeKind k);
 
 static void dump_value(File f, const Value* val) {
-    File_put_str("value:", f);
+    File_put_str("value:\n", f);
 
     File_printf(f, "type: {Str}\n", ValueKind_str(val->kind));
     if (ValueKind_is_sint(val->kind)) {
@@ -39,6 +41,41 @@ static void dump_value(File f, const Value* val) {
     }
 }
 
+static void dump_str_lit(File f, const StrLit* lit) {
+    File_printf(f, "str_lit: {Str}\n", StrBuf_as_str(&lit->contents));
+}
+
+static void dump_balanced_token(File f, const AST* ast, uint32_t main_token) {
+    File_put_str("token:\n", f);
+    const TokenKind kind = ast->toks.kinds[main_token];
+    const Str spelling = TokenKind_get_spelling(kind);
+    if (spelling.data != NULL) {
+        File_printf(f, "spelling: {Str}\n", spelling);
+        return;
+    }
+    switch (kind) {
+        case TOKEN_IDENTIFIER: {
+            const StrBuf* buf = &ast->toks.vals[main_token].spelling;
+            File_printf(f, "spelling: {Str}\n", StrBuf_as_str(buf));
+            break;
+        }
+        case TOKEN_F_CONSTANT:
+        case TOKEN_I_CONSTANT: {
+            const Value* val = &ast->toks.vals[main_token].val;
+            dump_value(f, val);
+            break;
+        }
+        case TOKEN_STRING_LITERAL: {
+            const StrLit* lit = &ast->toks.vals[main_token].str_lit;
+            dump_str_lit(f, lit);
+            break;
+        }
+        default:
+            UNREACHABLE();
+    }
+}
+
+// TODO: that one special case
 static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
     if (node_idx == ast->len) {
         return node_idx;
@@ -57,8 +94,8 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
             if (lhs_next == 0) {
                 return 0;
             }
-            assert(data.rhs == lhs_next);
             if (data.rhs != 0) {
+                assert(data.rhs == lhs_next);
                 File_put_str("rhs: ", f);
                 return dump_ast_rec(ast, data.rhs, f);
             } else {
@@ -99,13 +136,17 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
         case AST_NODE_CATEGORY_STRING_LITERAL: {
             const uint32_t token_idx = data.main_token;
             const StrLit* lit = &ast->toks.vals[token_idx].str_lit;
-            File_printf(f, "str_lit: {Str}\n", StrBuf_as_str(&lit->contents));
+            dump_str_lit(f, lit);
             return node_idx + 1;
         }
         case AST_NODE_CATEGORY_CONSTANT: {
             const uint32_t token_idx = data.main_token;
             const Value val = ast->toks.vals[token_idx].val;
             dump_value(f, &val);
+            return node_idx + 1;
+        }
+        case AST_NODE_CATEGORY_BALANCED_TOKEN: {
+            dump_balanced_token(f, ast, data.main_token);
             return node_idx + 1;
         }
     }
@@ -176,6 +217,8 @@ static ASTNodeCategory get_ast_node_kind_type(ASTNodeKind k) {
             return AST_NODE_CATEGORY_STRING_LITERAL;
         case AST_CONSTANT:
             return AST_NODE_CATEGORY_CONSTANT;
+        case AST_BALANCED_TOKEN:
+            return AST_NODE_CATEGORY_BALANCED_TOKEN;
         default:
             return AST_NODE_CATEGORY_DEFAULT;
     }
