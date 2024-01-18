@@ -1,6 +1,5 @@
 #include "frontend/ast/ast_dumper_2.h"
 
-#include "frontend/Token.h"
 #include "util/macro_util.h"
 
 static bool dump_ast_rec(const AST* ast, uint32_t node_idx, File f);
