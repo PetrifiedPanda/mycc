@@ -14,15 +14,33 @@ static const ASTNodeKind g_rhs_lhs_optional[] = {
     AST_UNLABELED_STATEMENT,
     AST_ENUM_SPEC,
     AST_ATTRIBUTE_ID,
-    // TODO: needs either or
-    AST_STRUCT_UNION_BODY,
+    AST_ENUM_BODY,
+    AST_STRUCT_UNION_BODY, // TODO: needs either or
     AST_MEMBER_DECLARATOR,
     AST_POINTER,
     AST_POINTER_ATTRS_AND_QUALS,
     AST_BALANCED_TOKEN_BRACKET,
     AST_ABS_DECLARATOR,
     AST_ABS_ARR_SUFFIX,
+    AST_BRACED_INITIALIZER,
 };
+
+static const ASTNodeKind g_lhs_kind[] = {
+    AST_ATTRIBUTE_SPEC_SEQUENCE,
+    AST_ATTRIBUTE_ID,
+    AST_ATTRIBUTE_SPEC_SEQUENCE,
+    AST_SPEC_QUAL_LIST,
+    AST_IDENTIFIER,
+    AST_DECLARATOR,
+    AST_POINTER_ATTRS_AND_QUALS,
+    AST_ATTRIBUTE_SPEC_SEQUENCE,
+    AST_BALANCED_TOKEN_SEQUENCE,
+    AST_POINTER,
+    AST_TYPE_QUAL_LIST,
+    AST_INIT_LIST,
+};
+
+static_assert(ARR_LEN(g_rhs_lhs_optional) == ARR_LEN(g_lhs_kind), "");
 
 // TODO: does not work if lhs and rhs are optional
 typedef enum {
@@ -92,7 +110,7 @@ static void dump_balanced_token(File f, const AST* ast, uint32_t main_token) {
 // TODO: that one special case
 // TODO: type spec
 static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
-    (void)g_rhs_lhs_optional;
+    (void)g_rhs_lhs_optional, (void)g_lhs_kind;
     if (node_idx == ast->len) {
         return node_idx;
     }
