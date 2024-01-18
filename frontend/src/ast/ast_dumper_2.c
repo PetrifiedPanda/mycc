@@ -10,7 +10,7 @@ bool dump_ast_2(const AST* ast, const FileInfo* file_info, File f) {
     return dump_ast_rec(ast, 0, f) == ast->len;
 }
 
-// TODO: optional lhs
+// TODO: does not work if lhs and rhs are optional
 typedef enum {
     // Has lhs and optional rhs
     AST_NODE_CATEGORY_DEFAULT,
@@ -88,19 +88,25 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
 
     const ASTNodeData data = ast->datas[node_idx];
     switch (category) {
-        case AST_NODE_CATEGORY_DEFAULT:
-            File_put_str("lhs: ", f);
-            const uint32_t lhs_next = dump_ast_rec(ast, node_idx + 1, f);
-            if (lhs_next == 0) {
-                return 0;
+        case AST_NODE_CATEGORY_DEFAULT: {
+            const uint32_t lhs_idx = node_idx + 1;
+            uint32_t lhs_next = 0;
+            if (lhs_idx != data.rhs) {
+                File_put_str("lhs: ", f);
+                lhs_next = dump_ast_rec(ast, lhs_idx, f);
+                if (lhs_next == 0) {
+                    return 0;
+                }
+                assert(data.rhs == 0 || data.rhs == lhs_next);
             }
+
             if (data.rhs != 0) {
-                assert(data.rhs == lhs_next);
                 File_put_str("rhs: ", f);
                 return dump_ast_rec(ast, data.rhs, f);
             } else {
                 return lhs_next;
             }
+        }
         case AST_NODE_CATEGORY_NO_CHILDREN:
             return node_idx + 1;
         case AST_NODE_CATEGORY_SUBRANGE: {
