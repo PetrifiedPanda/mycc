@@ -79,7 +79,12 @@ typedef enum {
     // subrange (storage_class_spec | type_spec | func_spec | align_spec)[lhs...rhs] rhs ?attribute_spec_sequence
     AST_DECLARATION_SPECS,
     // main token is (typedef extern static thread_local auto register)
-    AST_STORAGE_CLASS_SPEC,
+    AST_STORAGE_CLASS_SPEC_TYPEDEF,
+    AST_STORAGE_CLASS_SPEC_EXTERN,
+    AST_STORAGE_CLASS_SPEC_STATIC,
+    AST_STORAGE_CLASS_SPEC_THREAD_LOCAL,
+    AST_STORAGE_CLASS_SPEC_AUTO,
+    AST_STORAGE_CLASS_SPEC_REGISTER,
     // lhs ?(identifier | enum_spec | struct_union_spec | atomic_type_spec) (otherwise main token void char int float double bool atomic struct enum)
     AST_TYPE_SPEC,
     // main token is type spec 
@@ -358,6 +363,7 @@ typedef enum {
     AST_BRACED_INITIALIZER,
     // lhs ?storage_class_specs rhs type_name
     AST_COMPOUND_LITERAL_TYPE,
+    // TODO: combine this with STORAGE_CLASS_SPEC?
     // token_range storage_class_spec[token_idx...rhs]
     AST_STORAGE_CLASS_SPECS,
     // main token is identifier

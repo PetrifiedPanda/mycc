@@ -113,7 +113,7 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
 }
 
 static ASTNodeCategory get_ast_node_kind_type(ASTNodeKind k) {
-    // TODO: balanced token, storage_class_spec
+    // TODO: balanced token
     switch (k) {
         case AST_TRANSLATION_UNIT:
         case AST_DECLARATION_LIST:
@@ -158,6 +158,12 @@ static ASTNodeCategory get_ast_node_kind_type(ASTNodeKind k) {
         case AST_FUNC_SPEC_INLINE:
         case AST_FUNC_SPEC_NORETURN:
         case AST_FUNC:
+        case AST_STORAGE_CLASS_SPEC_TYPEDEF:
+        case AST_STORAGE_CLASS_SPEC_EXTERN:
+        case AST_STORAGE_CLASS_SPEC_STATIC:
+        case AST_STORAGE_CLASS_SPEC_THREAD_LOCAL:
+        case AST_STORAGE_CLASS_SPEC_AUTO:
+        case AST_STORAGE_CLASS_SPEC_REGISTER:
             return AST_NODE_CATEGORY_NO_CHILDREN;
         case AST_TYPE_QUAL_LIST:
         case AST_STORAGE_CLASS_SPECS:
@@ -235,8 +241,18 @@ static Str get_node_kind_str(ASTNodeKind k) {
             return STR_LIT("return statement");
         case AST_DECLARATION_SPECS:
             return STR_LIT("declaration specifiers");
-        case AST_STORAGE_CLASS_SPEC:
-            return STR_LIT("storage class specifiers");
+        case AST_STORAGE_CLASS_SPEC_TYPEDEF:
+            return STR_LIT("typedef storage class specifier");
+        case AST_STORAGE_CLASS_SPEC_EXTERN:
+            return STR_LIT("extern storage class specifier");
+        case AST_STORAGE_CLASS_SPEC_STATIC:
+            return STR_LIT("static storage class specifier");
+        case AST_STORAGE_CLASS_SPEC_THREAD_LOCAL:
+            return STR_LIT("_Thread_local storage class specifier");
+        case AST_STORAGE_CLASS_SPEC_AUTO:
+            return STR_LIT("auto storage class specifier");
+        case AST_STORAGE_CLASS_SPEC_REGISTER:
+            return STR_LIT("register storage class specifier");
         case AST_TYPE_SPEC:
             return STR_LIT("type specifiers");
         case AST_TYPE_SPEC_VOID:

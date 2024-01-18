@@ -935,10 +935,31 @@ static uint32_t parse_storage_class_spec_2(ParserState* s,
                                            bool* is_typedef) {
     // TODO: special handling for typedef
     assert(is_storage_class_spec(ParserState_curr_kind(s)));
-    if (ParserState_curr_kind(s) == TOKEN_TYPEDEF) {
-        *is_typedef = true;
+    ASTNodeKind kind;
+    switch (ParserState_curr_kind(s)) {
+        case TOKEN_TYPEDEF:
+            kind = AST_STORAGE_CLASS_SPEC_TYPEDEF;
+            *is_typedef = true;
+            break;
+        case TOKEN_EXTERN:
+            kind = AST_STORAGE_CLASS_SPEC_EXTERN;
+            break;
+        case TOKEN_STATIC:
+            kind = AST_STORAGE_CLASS_SPEC_STATIC;
+            break;
+        case TOKEN_THREAD_LOCAL:
+            kind = AST_STORAGE_CLASS_SPEC_THREAD_LOCAL;
+            break;
+        case TOKEN_AUTO:
+            kind = AST_STORAGE_CLASS_SPEC_AUTO;
+            break;
+        case TOKEN_REGISTER:
+            kind = AST_STORAGE_CLASS_SPEC_REGISTER;
+            break;
+        default:
+            UNREACHABLE();
     }
-    const uint32_t res = add_node(ast, AST_STORAGE_CLASS_SPEC, s->it);
+    const uint32_t res = add_node(ast, kind, s->it);
     ParserState_accept_it(s);
     return res;
 }
