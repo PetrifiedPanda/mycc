@@ -10,6 +10,20 @@ bool dump_ast_2(const AST* ast, const FileInfo* file_info, File f) {
     return dump_ast_rec(ast, 0, f) == ast->len;
 }
 
+static const ASTNodeKind g_rhs_lhs_optional[] = {
+    AST_UNLABELED_STATEMENT,
+    AST_ENUM_SPEC,
+    AST_ATTRIBUTE_ID,
+    // TODO: needs either or
+    AST_STRUCT_UNION_BODY,
+    AST_MEMBER_DECLARATOR,
+    AST_POINTER,
+    AST_POINTER_ATTRS_AND_QUALS,
+    AST_BALANCED_TOKEN_BRACKET,
+    AST_ABS_DECLARATOR,
+    AST_ABS_ARR_SUFFIX,
+};
+
 // TODO: does not work if lhs and rhs are optional
 typedef enum {
     // Has lhs and optional rhs
@@ -76,7 +90,9 @@ static void dump_balanced_token(File f, const AST* ast, uint32_t main_token) {
 }
 
 // TODO: that one special case
+// TODO: type spec
 static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, File f) {
+    (void)g_rhs_lhs_optional;
     if (node_idx == ast->len) {
         return node_idx;
     }
