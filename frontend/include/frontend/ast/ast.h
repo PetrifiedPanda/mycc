@@ -118,8 +118,8 @@ typedef enum {
     // ('struct' | 'union') lhs ?attribute_spec_sequence rhs struct_union_body
     AST_STRUCT_SPEC,
     AST_UNION_SPEC,
-    // needs either identifier or struct_declaration_list
-    // lhs ?identifier rhs ?struct_declaration_list
+    // needs either identifier or member_declaration_list
+    // lhs ?identifier rhs ?member_declaration_list
     AST_STRUCT_UNION_BODY,
     // subrange (member_declaration | static_assert_declaration)[lhs...rhs]
     AST_MEMBER_DECLARATION_LIST,
