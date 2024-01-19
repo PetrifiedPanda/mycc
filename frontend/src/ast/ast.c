@@ -1377,6 +1377,7 @@ static uint32_t parse_struct_union_body_2(ParserState* s, AST* ast) {
         const uint32_t rhs = parse_member_declaration_list_2(s, ast);
         CHECK_ERR(rhs);
         CHECK_ERR(ParserState_accept(s, TOKEN_RBRACE));
+        ast->datas[res].rhs = rhs;
     }
 
     // neither lhs or rhs exists
