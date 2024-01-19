@@ -306,7 +306,7 @@ typedef enum {
     AST_SPEC_QUAL_LIST_ATTR,
     // subrange type_spec_qual[lhs...rhs]
     AST_SPEC_QUAL_LIST,
-    // main_token is type_qual TODO: maybe split
+    // main_token is type qualifier
     AST_TYPE_QUAL_CONST,
     AST_TYPE_QUAL_RESTRICT,
     AST_TYPE_QUAL_VOLATILE,
