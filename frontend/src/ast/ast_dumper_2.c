@@ -123,7 +123,6 @@ static ASTNodeKind get_lhs_kind(ASTNodeKind kind);
 // TODO: that one special case
 // TODO: type spec
 static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, Str prefix, ASTDumper* d) {
-    mycc_printf("idx: {u32}, len: {u32}\n", node_idx, ast->len);
     if (node_idx == ast->len) {
         return node_idx;
     }
