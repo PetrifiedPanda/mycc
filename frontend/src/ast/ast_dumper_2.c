@@ -294,7 +294,10 @@ static ASTNodeCategory get_ast_node_category(ASTNodeKind k) {
             return AST_NODE_CATEGORY_SUBRANGE;
         case AST_POSTFIX_OP_INC:
         case AST_POSTFIX_OP_DEC:
-        case AST_TYPE_QUAL:
+        case AST_TYPE_QUAL_CONST:
+        case AST_TYPE_QUAL_RESTRICT:
+        case AST_TYPE_QUAL_VOLATILE:
+        case AST_TYPE_QUAL_ATOMIC:
         case AST_ABS_ARR_SUFFIX_ASTERISK:
         case AST_TYPE_SPEC_VOID:
         case AST_TYPE_SPEC_CHAR:
@@ -644,8 +647,14 @@ static Str get_node_kind_str(ASTNodeKind k) {
             return STR_LIT("specifier qualifier list attribute");
         case AST_SPEC_QUAL_LIST:
             return STR_LIT("specifier qualifier list");
-        case AST_TYPE_QUAL:
-            return STR_LIT("type qualifier");
+        case AST_TYPE_QUAL_CONST:
+            return STR_LIT("const type qualifier");
+        case AST_TYPE_QUAL_RESTRICT:
+            return STR_LIT("restrict type qualifier");
+        case AST_TYPE_QUAL_VOLATILE:
+            return STR_LIT("volatile type qualifier");
+        case AST_TYPE_QUAL_ATOMIC:
+            return STR_LIT("atomic type qualifier");
         case AST_UNARY_EXPR_INC:
             return STR_LIT("increment unary expression");
         case AST_UNARY_EXPR_DEC:

@@ -307,7 +307,10 @@ typedef enum {
     // subrange type_spec_qual[lhs...rhs]
     AST_SPEC_QUAL_LIST,
     // main_token is type_qual TODO: maybe split
-    AST_TYPE_QUAL,
+    AST_TYPE_QUAL_CONST,
+    AST_TYPE_QUAL_RESTRICT,
+    AST_TYPE_QUAL_VOLATILE,
+    AST_TYPE_QUAL_ATOMIC,
     // unary_expr:
     // '++' lhs (unary_expr | postfix_expr)
     AST_UNARY_EXPR_INC,

@@ -2,6 +2,7 @@
 
 #include <string.h>
 
+#include "frontend/parser/ParserState.h"
 #include "util/mem.h"
 #include "util/macro_util.h"
 #include "util/log.h"
@@ -984,7 +985,24 @@ static uint32_t parse_func_spec_2(ParserState* s, AST* ast) {
 
 static uint32_t parse_type_qual_2(ParserState* s, AST* ast) {
     assert(is_type_qual(ParserState_curr_kind(s)));
-    const uint32_t res = add_node(ast, AST_TYPE_QUAL, s->it);
+    ASTNodeKind kind;
+    switch (ParserState_curr_kind(s)) {
+        case TOKEN_CONST:
+            kind = AST_TYPE_QUAL_CONST;
+            break;
+        case TOKEN_RESTRICT:
+            kind = AST_TYPE_QUAL_RESTRICT;
+            break;
+        case TOKEN_VOLATILE:
+            kind = AST_TYPE_QUAL_VOLATILE;
+            break;
+        case TOKEN_ATOMIC:
+            kind = AST_TYPE_QUAL_ATOMIC;
+            break;
+        default:
+            UNREACHABLE();
+    }
+    const uint32_t res = add_node(ast, kind, s->it);
     ParserState_accept_it(s);
     return res;
 }
