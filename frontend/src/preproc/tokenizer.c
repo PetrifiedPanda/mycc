@@ -59,7 +59,7 @@ static bool tokenize_next_token(uint8_t* res_kind,
     assert(res_loc);
     assert(info);
     assert(info->next.data);
-    assert(info->curr_loc.file_idx != (uint32_t)-1);
+    assert(info->curr_loc.file_idx != UINT32_MAX);
 
     TokenizerState s = {
         .it = info->next,
@@ -78,8 +78,8 @@ static bool tokenize_next_token(uint8_t* res_kind,
             .spelling = StrBuf_null(),
         };
         *res_loc = (SourceLoc){
-            .file_idx = (uint32_t)-1,
-            .file_loc = (FileLoc){(uint32_t)-1, (uint32_t)-1},
+            .file_idx = UINT32_MAX,
+            .file_loc = (FileLoc){UINT32_MAX, UINT32_MAX},
         };
         write_line_info(&s, info);
         return true;
@@ -144,7 +144,7 @@ static bool tokenize_next_token(uint8_t* res_kind,
 bool tokenize_line(TokenArr* res, PreprocErr* err, LineInfo* info) {
     assert(res);
     assert(info->next.data);
-    assert(info->curr_loc.file_idx != (uint32_t)-1);
+    assert(info->curr_loc.file_idx != UINT32_MAX);
 
     while (*info->next.data != '\0') {
         if (res->len == res->cap) {

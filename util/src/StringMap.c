@@ -65,7 +65,7 @@ static uint32_t find_item_index_insert(const StringMap* map, Str key) {
     const uint32_t hash = hash_string(key);
     uint32_t i = hash % map->_cap;
     bool found_deleted = false;
-    uint32_t deleted_idx = (uint32_t)-1;
+    uint32_t deleted_idx = UINT32_MAX;
     uint32_t it_count = 0;
     while (it_count != map->_cap
            && (map->_keys[i].was_deleted

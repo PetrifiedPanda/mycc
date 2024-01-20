@@ -14,7 +14,7 @@ bool is_file_sep(char c) {
 
 uint32_t get_last_file_sep(Str path) {
     uint32_t i = path.len - 1;
-    while (i != (uint32_t)-1 && !is_file_sep(Str_at(path, i))) {
+    while (i != UINT32_MAX && !is_file_sep(Str_at(path, i))) {
         --i;
     }
     return i;

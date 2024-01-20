@@ -35,7 +35,7 @@ void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
             UNREACHABLE();
             break;
         case PREPROC_ERR_OPEN_FILE:
-            if (err->base.loc.file_idx != (uint32_t)-1) {
+            if (err->base.loc.file_idx != UINT32_MAX) {
                 ErrBase_print(out, file_info, &err->base);
             }
 

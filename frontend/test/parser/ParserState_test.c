@@ -47,9 +47,9 @@ TEST(ParserState) {
         StrBuf* item = &dummy_strings[i];
         *item = to_insert;
         if (i % 2 == 0) {
-            ASSERT(ParserState_register_enum_constant(&s, &to_insert, (uint32_t)-1));
+            ASSERT(ParserState_register_enum_constant(&s, &to_insert, UINT32_MAX));
         } else {
-            ASSERT(ParserState_register_typedef(&s, &to_insert, (uint32_t)-1));
+            ASSERT(ParserState_register_typedef(&s, &to_insert, UINT32_MAX));
         }
         ASSERT(err.kind == PARSER_ERR_NONE);
     }

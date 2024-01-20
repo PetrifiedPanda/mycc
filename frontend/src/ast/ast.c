@@ -24,7 +24,7 @@ static uint32_t add_node(AST* ast, ASTNodeKind kind, uint32_t main_token) {
     ast->datas[idx] = (ASTNodeData){
         .main_token = main_token,
         .rhs = 0, // has to be initialized after (because we don't have rhs yet)
-        .type_data_idx = (uint32_t)-1,
+        .type_data_idx = UINT32_MAX,
     };
 
     ++ast->len;

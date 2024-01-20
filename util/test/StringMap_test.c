@@ -96,7 +96,7 @@ TEST(insert) {
 
     insert_items(&map, keys, NUM_INSERTS);
 
-    const uint32_t to_insert = (uint32_t)-1;
+    const uint32_t to_insert = UINT32_MAX;
     for (uint32_t i = 0; i < NUM_INSERTS; ++i) {
         // try to insert already existing item
         const StrBuf insert_key = str_from_generated(keys[i]);

@@ -25,7 +25,7 @@ static uint32_t find_macro_end(PreprocState* state,
         if (can_read_new_toks) {
             while (i == res->len && !PreprocState_over(state)) {
                 if (!read_and_tokenize_line(state, info)) {
-                    return (uint32_t)-1;
+                    return UINT32_MAX;
                 }
             }
 
@@ -50,7 +50,7 @@ static uint32_t find_macro_end(PreprocState* state,
         PreprocErr_set(state->err,
                        PREPROC_ERR_UNTERMINATED_MACRO,
                        res->locs[macro_start]);
-        return (uint32_t)-1;
+        return UINT32_MAX;
     }
     return i;
 }
@@ -135,9 +135,9 @@ static ExpansionInfo find_and_expand_macro(PreprocState* state,
         if (next_idx < res->len && res->kinds[next_idx] == TOKEN_LBRACKET) {
             macro_end = find_macro_end(state, res, i, info);
             if (state->err->kind != PREPROC_ERR_NONE) {
-                return (ExpansionInfo){0, (uint32_t)-1};
+                return (ExpansionInfo){0, UINT32_MAX};
             }
-            assert(macro_end != (uint32_t)-1);
+            assert(macro_end != UINT32_MAX);
             return expand_func_macro(state,
                                      res,
                                      macro,
@@ -169,8 +169,8 @@ static ExpansionInfo expand_all_macros_in_range(PreprocState* state,
                                                             i,
                                                             expanded,
                                                             info);
-        if (ex_info.next == (uint32_t)-1) {
-            return (ExpansionInfo){0, (uint32_t)-1};
+        if (ex_info.next == UINT32_MAX) {
+            return (ExpansionInfo){0, UINT32_MAX};
         }
         end += ex_info.alloc_change;
         alloc_change += ex_info.alloc_change;
@@ -193,7 +193,7 @@ bool expand_all_macros(PreprocState* state,
                                                              &expanded,
                                                              info);
     ExpandedMacroStack_free(&expanded);
-    return success.next != (uint32_t)-1;
+    return success.next != UINT32_MAX;
 }
 
 static uint32_t get_str_idx(Str* strs, uint32_t len, Str to_find) {
@@ -202,7 +202,7 @@ static uint32_t get_str_idx(Str* strs, uint32_t len, Str to_find) {
             return i;
         }
     }
-    return (uint32_t)-1;
+    return UINT32_MAX;
 }
 
 static bool is_duplicate_arg(StrBuf* spell,
@@ -329,7 +329,7 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
                                              res.num_args,
                                              StrBuf_as_str(curr_spell));
 
-            if (idx != (uint32_t)-1) {
+            if (idx != UINT32_MAX) {
                 *res_kind = TOKEN_INVALID;
                 res_val->arg_num = idx;
                 continue;
@@ -630,7 +630,7 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
                                         state->err);
     if (args.len == 0 && macro->num_args != 0) {
         assert(state->err->kind != PREPROC_ERR_NONE);
-        return (ExpansionInfo){0, (uint32_t)-1};
+        return (ExpansionInfo){0, UINT32_MAX};
     }
 
     for (uint32_t i = 0; i < args.len; ++i) {
@@ -641,7 +641,7 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
             args.arrs[i].len,
             expanded,
             info);
-        if (success.next == (uint32_t)-1) {
+        if (success.next == UINT32_MAX) {
             MacroArgs_free(&args);
             return success;
         }

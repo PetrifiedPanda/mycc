@@ -33,7 +33,7 @@ TEST(redefine_typedef_error) {
     ParserState s = ParserState_create(&preproc_res.toks, &err);
 
     const StrBuf spell = STR_BUF_NON_HEAP("MyInt");
-    ParserState_register_typedef(&s, &spell, (uint32_t)-1);
+    ParserState_register_typedef(&s, &spell, UINT32_MAX);
 
     bool found_typedef = false;
     DeclarationSpecs res;

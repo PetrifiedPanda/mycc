@@ -9,7 +9,7 @@
 
 static bool parse_cast_expr_rest(ParserState* s, CastExpr* res) {
     uint32_t alloc_len = res->len;
-    uint32_t last_lbracket_loc = (uint32_t)-1;
+    uint32_t last_lbracket_loc = UINT32_MAX;
     while (ParserState_curr_kind(s) == TOKEN_LBRACKET
            && next_is_type_name(s)) {
         last_lbracket_loc = s->it;

@@ -23,7 +23,7 @@ typedef struct {
 
 static StrBuf get_path_prefix(Str path) {
     uint32_t sep_idx = get_last_file_sep(path);
-    if (sep_idx == (uint32_t)-1) {
+    if (sep_idx == UINT32_MAX) {
         return StrBuf_create_empty();
     } else {
         return StrBuf_create(Str_substr(path, 0, sep_idx + 1));
@@ -37,7 +37,7 @@ static FileData create_file_data(CStr start_file, PreprocErr* err) {
     if (!File_valid(file)) {
         PreprocErr_set_file_err(err,
                                 &file_name,
-                                (SourceLoc){(uint32_t)-1, {0, 0}});
+                                (SourceLoc){UINT32_MAX, {0, 0}});
         return (FileData){0};
     }
     FileManager fm = {
@@ -275,7 +275,7 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
     }
 
     uint32_t prefix_idx;
-    if (sep_idx != (uint32_t)-1) {
+    if (sep_idx != UINT32_MAX) {
         // TODO: prefix_str may not be valid anymore
         StrBuf new_prefix = StrBuf_concat(
             prefix_str,

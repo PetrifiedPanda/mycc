@@ -140,7 +140,7 @@ static AllocEntry create_alloc_entry(void* alloc,
         .freed = false,
         .realloced = false,
         .alloced_loc = {func, file, line},
-        .freed_loc = {{0, NULL}, {0, NULL}, (uint32_t)-1},
+        .freed_loc = {{0, NULL}, {0, NULL}, UINT32_MAX},
     };
 }
 
