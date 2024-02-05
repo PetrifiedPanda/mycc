@@ -195,10 +195,10 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, Str prefix, ASTD
             const uint32_t token_idx = data.main_token;
             const uint32_t end = token_idx + data.rhs;
             for (uint32_t i = token_idx; i < end; ++i) {
-                const TokenKind kind = ast->toks.kinds[i];
-                Str str = TokenKind_get_spelling(kind);
+                const TokenKind token_kind = ast->toks.kinds[i];
+                Str str = TokenKind_get_spelling(token_kind);
                 if (str.data == NULL) {
-                    assert(kind == TOKEN_IDENTIFIER);
+                    assert(token_kind == TOKEN_IDENTIFIER);
                     str = StrBuf_as_str(&ast->toks.vals[i].spelling);
                 }
                 ASTDumper_println(d, "token: {Str}", str);
@@ -232,6 +232,8 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, Str prefix, ASTD
             res = node_idx + 1;
             break;
         }
+        default:
+            UNREACHABLE();
     }
     remove_indent(d);
     return res;
