@@ -86,6 +86,7 @@ typedef enum {
     AST_STORAGE_CLASS_SPEC_THREAD_LOCAL,
     AST_STORAGE_CLASS_SPEC_AUTO,
     AST_STORAGE_CLASS_SPEC_REGISTER,
+    // TODO: use rhs here?
     // lhs ?(identifier | enum_spec | struct_union_spec | atomic_type_spec) (otherwise main token void char int float double bool atomic struct enum)
     AST_TYPE_SPEC,
     // main token is type spec 
@@ -159,6 +160,7 @@ typedef enum {
     AST_ATTRIBUTE,
     // lhs identifier rhs identifier
     AST_ATTRIBUTE_PREFIXED_TOKEN,
+    // TODO: use rhs here
     // '(' lhs ?balanced_token_sequence ')'
     AST_ATTRIBUTE_ARGUMENT_CLAUSE,
     // subrange balanced_token[lhs...rhs]
@@ -184,9 +186,11 @@ typedef enum {
     AST_ARR_SUFFIX,
     // lhs ?type_qual_list rhs assign_expr
     AST_ARR_SUFFIX_STATIC,
+    // TODO: use rhs here
     // lhs ?type_qual_list
     AST_ARR_SUFFIX_ASTERISK,
-    // lhs param_type_list
+    // TODO: use rhs here
+    // lhs ?param_type_list
     AST_FUNC_SUFFIX,
     // lhs identifier_list
     AST_FUNC_SUFFIX_OLD,
