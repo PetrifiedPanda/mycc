@@ -2,7 +2,6 @@
 
 #include <assert.h>
 
-#include "util/mem.h"
 #include "util/macro_util.h"
 
 ParserErr ParserErr_create(void) {
@@ -25,7 +24,7 @@ void ParserErr_print(File out,
                      const TokenArr* tokens,
                      const ParserErr* err) {
     assert(err->kind != PARSER_ERR_NONE);
-    
+
     ErrBase base = ErrBase_create(tokens->locs[err->err_token_idx]);
     ErrBase_print(out, file_info, &base);
     switch (err->kind) {
@@ -38,7 +37,7 @@ void ParserErr_print(File out,
         case PARSER_ERR_REDEFINED_SYMBOL: {
             assert(err->prev_def_idx < tokens->len);
             const SourceLoc loc = tokens->locs[err->prev_def_idx];
-            Str path = StrBuf_as_str(&file_info->paths[loc.file_idx]);
+            const Str path = FileInfo_get(file_info, loc.file_idx);
             Str type_str = err->was_typedef_name ? STR_LIT("typedef name")
                                                  : STR_LIT("enum constant");
             File_printf(
@@ -92,10 +91,11 @@ void ParserErr_print(File out,
                         TokenKind_str(err->incompatible_type));
             break;
         case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
-            File_printf(out,
-                        "Expected a typedef name but got identifier with "
-                        "spelling {Str}",
-                        StrBuf_as_str(&tokens->vals[err->err_token_idx].spelling));
+            File_printf(
+                out,
+                "Expected a typedef name but got identifier with "
+                "spelling {Str}",
+                StrBuf_as_str(&tokens->vals[err->err_token_idx].spelling));
             break;
         case PARSER_ERR_EMPTY_DIRECT_ABS_DECL:
             File_put_str("Empty abstract declarator", out);
@@ -106,4 +106,3 @@ void ParserErr_print(File out,
     }
     File_putc('\n', out);
 }
-

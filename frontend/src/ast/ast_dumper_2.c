@@ -152,17 +152,17 @@ static uint32_t dump_ast_rec(const AST* ast,
     const Str node_kind_str = get_node_kind_str(kind);
     const uint32_t main_token = ast->datas[node_idx].main_token;
     const SourceLoc loc = ast->toks.locs[main_token];
-    const Str file_name = StrBuf_as_str(&d->file_info->paths[loc.file_idx]);
     // Only print source location if it is different from parent in order to not
     // clutter the output
     if (SourceLoc_eq(loc, last_loc)) {
         ASTDumper_println(d, "{Str}{Str}:", prefix, node_kind_str);
     } else {
+        const Str path = FileInfo_get(d->file_info, loc.file_idx);
         ASTDumper_println(d,
                           "{Str}{Str}: {Str}:{u32},{u32}",
                           prefix,
                           node_kind_str,
-                          file_name,
+                          path,
                           loc.file_loc.line,
                           loc.file_loc.index);
     }
