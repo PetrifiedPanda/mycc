@@ -299,8 +299,6 @@ static ASTNodeKind get_lhs_kind(ASTNodeKind kind) {
             return AST_POINTER_ATTRS_AND_QUALS;
         case AST_POINTER_ATTRS_AND_QUALS:
             return AST_ATTRIBUTE_SPEC_SEQUENCE;
-        case AST_BALANCED_TOKEN_BRACKET:
-            return AST_BALANCED_TOKEN_SEQUENCE;
         case AST_ABS_DECLARATOR:
             return AST_POINTER;
         case AST_ABS_ARR_SUFFIX:
@@ -374,7 +372,6 @@ static ASTNodeCategory get_ast_node_category(ASTNodeKind k) {
         case AST_MEMBER_DECLARATOR:
         case AST_POINTER:
         case AST_POINTER_ATTRS_AND_QUALS:
-        case AST_BALANCED_TOKEN_BRACKET:
         case AST_ABS_DECLARATOR:
         case AST_ABS_ARR_SUFFIX:
             return AST_NODE_CATEGORY_OPTIONAL_LHS_RHS;
