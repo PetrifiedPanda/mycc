@@ -160,8 +160,7 @@ typedef enum {
     AST_ATTRIBUTE,
     // lhs identifier rhs identifier
     AST_ATTRIBUTE_PREFIXED_TOKEN,
-    // TODO: use rhs here
-    // '(' lhs ?balanced_token_sequence ')'
+    // '(' rhs ?balanced_token_sequence ')'
     AST_ATTRIBUTE_ARGUMENT_CLAUSE,
     // subrange balanced_token[lhs...rhs]
     AST_BALANCED_TOKEN_SEQUENCE,

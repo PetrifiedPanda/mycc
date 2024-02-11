@@ -1764,7 +1764,8 @@ static uint32_t parse_attribute_argument_clause_2(ParserState* s, AST* ast) {
         ParserState_accept_it(s);
         return res;
     }
-    CHECK_ERR(parse_balanced_token_sequence(s, ast));
+    const uint32_t rhs = parse_balanced_token_sequence(s, ast);
+    CHECK_ERR(rhs);
     CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
     return res;
 }
