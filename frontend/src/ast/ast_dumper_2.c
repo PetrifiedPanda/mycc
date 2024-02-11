@@ -295,6 +295,8 @@ static ASTNodeKind get_lhs_kind(ASTNodeKind kind) {
             return AST_IDENTIFIER;
         case AST_MEMBER_DECLARATOR:
             return AST_DECLARATOR;
+        case AST_ARR_SUFFIX:
+            return AST_TYPE_QUAL_LIST;
         case AST_POINTER:
             return AST_POINTER_ATTRS_AND_QUALS;
         case AST_POINTER_ATTRS_AND_QUALS:
@@ -374,6 +376,7 @@ static ASTNodeCategory get_ast_node_category(ASTNodeKind k) {
         case AST_POINTER_ATTRS_AND_QUALS:
         case AST_ABS_DECLARATOR:
         case AST_ABS_ARR_SUFFIX:
+        case AST_ARR_SUFFIX:
             return AST_NODE_CATEGORY_OPTIONAL_LHS_RHS;
         case AST_TYPE_QUAL_LIST:
         case AST_STORAGE_CLASS_SPECS:

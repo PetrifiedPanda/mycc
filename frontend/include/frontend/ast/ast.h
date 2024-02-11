@@ -178,7 +178,7 @@ typedef enum {
     AST_ID_ATTRIBUTE,
     // subrange (arr_suffix | func_suffix)[lhs...rhs]
     AST_ARR_OR_FUNC_SUFFIX_LIST,
-    // lhe (arr_suffix | func_suffix) rhs ?attribute_spec_sequence
+    // lhs (arr_suffix | func_suffix) rhs ?attribute_spec_sequence
     AST_ARR_OR_FUNC_SUFFIX,
     // lhs ?type_qual_list rhs ?assign_expr
     AST_ARR_SUFFIX,
