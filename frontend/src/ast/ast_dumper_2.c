@@ -70,6 +70,7 @@ typedef enum {
     // Has lhs and optional rhs
     AST_NODE_CATEGORY_DEFAULT,
     AST_NODE_CATEGORY_SUBRANGE,
+    AST_NODE_CATEGORY_RHS_ONLY,
     AST_NODE_CATEGORY_NO_CHILDREN,
     AST_NODE_CATEGORY_OPTIONAL_LHS_RHS,
     AST_NODE_CATEGORY_TOKEN_RANGE,
@@ -208,6 +209,18 @@ static uint32_t dump_ast_rec(const AST* ast,
             res = dump_subrange(ast, d, data, loc, node_idx);
             if (res == 0) {
                 return 0;
+            }
+            break;
+        }
+        case AST_NODE_CATEGORY_RHS_ONLY: {
+            const uint32_t rhs = ast->datas[node_idx].rhs;
+            if (rhs != 0) {
+                res = dump_ast_rec(ast, rhs, STR_LIT("rhs "), d, loc);
+                if (res == 0) {
+                    return 0;
+                }
+            } else {
+                res = node_idx + 1;
             }
             break;
         }
@@ -353,6 +366,10 @@ static ASTNodeCategory get_ast_node_category(ASTNodeKind k) {
         case AST_ARG_EXPR_LIST:
         case AST_GENERIC_ASSOC_LIST:
             return AST_NODE_CATEGORY_SUBRANGE;
+        case AST_FUNC_SUFFIX:
+        case AST_ARR_SUFFIX_ASTERISK:
+        case AST_RETURN_STATEMENT:
+            return AST_NODE_CATEGORY_RHS_ONLY;
         case AST_DECLARATION_SPECS:
              return AST_NODE_CATEGORY_DECLARATION_SPECS;
         case AST_POSTFIX_OP_INC:

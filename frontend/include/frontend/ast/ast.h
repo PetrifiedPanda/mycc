@@ -75,7 +75,7 @@ typedef enum {
     AST_CONTINUE_STATEMENT,
     // 'break' ';'
     AST_BREAK_STATEMENT,
-    // 'return' lhs ?expr ';'
+    // 'return' rhs ?expr ';'
     AST_RETURN_STATEMENT,
     // subrange (storage_class_spec | type_spec | func_spec | align_spec)[lhs...rhs] rhs ?attribute_spec_sequence
     AST_DECLARATION_SPECS,
@@ -181,11 +181,9 @@ typedef enum {
     AST_ARR_SUFFIX,
     // lhs ?type_qual_list rhs assign_expr
     AST_ARR_SUFFIX_STATIC,
-    // TODO: use rhs here
-    // lhs ?type_qual_list
+    // rhs ?type_qual_list
     AST_ARR_SUFFIX_ASTERISK,
-    // TODO: use rhs here
-    // lhs ?param_type_list
+    // rhs ?param_type_list
     AST_FUNC_SUFFIX,
     // lhs identifier_list
     AST_FUNC_SUFFIX_OLD,
