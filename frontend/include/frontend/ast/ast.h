@@ -86,9 +86,6 @@ typedef enum {
     AST_STORAGE_CLASS_SPEC_THREAD_LOCAL,
     AST_STORAGE_CLASS_SPEC_AUTO,
     AST_STORAGE_CLASS_SPEC_REGISTER,
-    // TODO: use rhs here?
-    // lhs ?(identifier | enum_spec | struct_union_spec | atomic_type_spec) (otherwise main token void char int float double bool atomic struct enum)
-    AST_TYPE_SPEC,
     // main token is type spec 
     AST_TYPE_SPEC_VOID,
     AST_TYPE_SPEC_CHAR,

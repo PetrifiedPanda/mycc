@@ -66,7 +66,6 @@ bool dump_ast_2(const AST* ast, const FileInfo* file_info, File f) {
     return res;
 }
 
-// TODO: does not work if lhs and rhs are optional
 typedef enum {
     // Has lhs and optional rhs
     AST_NODE_CATEGORY_DEFAULT,
@@ -79,6 +78,7 @@ typedef enum {
     AST_NODE_CATEGORY_STRING_LITERAL,
     AST_NODE_CATEGORY_CONSTANT,
     AST_NODE_CATEGORY_BALANCED_TOKEN,
+    AST_NODE_CATEGORY_DECLARATION_SPECS,
 } ASTNodeCategory;
 
 static ASTNodeCategory get_ast_node_category(ASTNodeKind k);
@@ -138,8 +138,22 @@ static bool SourceLoc_eq(SourceLoc l1, SourceLoc l2) {
            && l1.file_loc.index == l2.file_loc.index;
 }
 
-// TODO: that one special case
-// TODO: type spec
+static uint32_t dump_subrange(const AST* ast,
+                              ASTDumper* d,
+                              ASTNodeData data,
+                              SourceLoc loc,
+                              uint32_t node_idx) {
+    uint32_t node_it = node_idx + 1;
+    // TODO: should not be less than
+    while (node_it < data.rhs) {
+        node_it = dump_ast_rec(ast, node_it, STR_LIT(""), d, loc);
+        if (node_it == 0) {
+            return 0;
+        }
+    }
+    return data.rhs;
+}
+
 static uint32_t dump_ast_rec(const AST* ast,
                              uint32_t node_idx,
                              Str prefix,
@@ -191,15 +205,10 @@ static uint32_t dump_ast_rec(const AST* ast,
             break;
         }
         case AST_NODE_CATEGORY_SUBRANGE: {
-            uint32_t node_it = node_idx + 1;
-            // TODO: should not be less than
-            while (node_it < data.rhs) {
-                node_it = dump_ast_rec(ast, node_it, STR_LIT(""), d, loc);
-                if (node_it == 0) {
-                    return 0;
-                }
+            res = dump_subrange(ast, d, data, loc, node_idx);
+            if (res == 0) {
+                return 0;
             }
-            res = data.rhs;
             break;
         }
         case AST_NODE_CATEGORY_NO_CHILDREN:
@@ -273,8 +282,18 @@ static uint32_t dump_ast_rec(const AST* ast,
             res = node_idx + 1;
             break;
         }
-        default:
-            UNREACHABLE();
+        case AST_NODE_CATEGORY_DECLARATION_SPECS: {
+            res = dump_subrange(ast, d, data, loc, node_idx);
+            if (res == 0) {
+                return 0;
+            }
+            if (ast->kinds[res] == AST_ATTRIBUTE_SPEC_SEQUENCE) {
+                res = dump_ast_rec(ast, node_idx, STR_LIT("rhs "), d, loc);
+                if (res == 0) {
+                    return 0;
+                }
+            }
+        }
     }
     remove_indent(d);
     return res;
@@ -316,7 +335,6 @@ static ASTNodeCategory get_ast_node_category(ASTNodeKind k) {
         case AST_TRANSLATION_UNIT:
         case AST_DECLARATION_LIST:
         case AST_COMPOUND_STATEMENT:
-        case AST_DECLARATION_SPECS:
         case AST_ENUM_LIST:
         case AST_MEMBER_DECLARATION_LIST:
         case AST_MEMBER_DECLARATOR_LIST:
@@ -335,6 +353,8 @@ static ASTNodeCategory get_ast_node_category(ASTNodeKind k) {
         case AST_ARG_EXPR_LIST:
         case AST_GENERIC_ASSOC_LIST:
             return AST_NODE_CATEGORY_SUBRANGE;
+        case AST_DECLARATION_SPECS:
+             return AST_NODE_CATEGORY_DECLARATION_SPECS;
         case AST_POSTFIX_OP_INC:
         case AST_POSTFIX_OP_DEC:
         case AST_TYPE_QUAL_CONST:
@@ -468,8 +488,6 @@ static Str get_node_kind_str(ASTNodeKind k) {
             return STR_LIT("auto storage class specifier");
         case AST_STORAGE_CLASS_SPEC_REGISTER:
             return STR_LIT("register storage class specifier");
-        case AST_TYPE_SPEC:
-            return STR_LIT("type specifiers");
         case AST_TYPE_SPEC_VOID:
             return STR_LIT("void type specifier");
         case AST_TYPE_SPEC_CHAR:
