@@ -2109,6 +2109,7 @@ static uint32_t parse_primary_expr_2(ParserState* s, AST* ast) {
     const uint32_t res = add_node_with_type(ast, AST_PRIMARY_EXPR, s->it);
     switch (ParserState_curr_kind(s)) {
         case TOKEN_IDENTIFIER:
+            // TODO: it should be fine to consider enum constants identifiers
             if (ParserState_is_enum_constant(s, ParserState_curr_spell(s))) {
                 add_node_with_type(ast, AST_ENUM_CONSTANT, s->it);
             } else {
