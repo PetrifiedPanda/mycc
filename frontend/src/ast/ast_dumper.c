@@ -1,7 +1,6 @@
 #include "frontend/ast/ast_dumper.h"
 
 #include <stdarg.h>
-#include <inttypes.h>
 #include <setjmp.h>
 #include <assert.h>
 
@@ -64,8 +63,7 @@ static void dumper_print_node_head_impl(AstDumper* d,
                                         Str name,
                                         const AstNodeInfo* node) {
     const SourceLoc loc = d->tokens.locs[node->token_idx];
-    assert(loc.file_idx < d->file_info->len);
-    Str file_path = StrBuf_as_str(&d->file_info->paths[loc.file_idx]);
+    Str file_path = FileInfo_get(d->file_info, loc.file_idx);
     dumper_println(d,
                    "{Str}: {Str}:{u32},{u32}",
                    name,

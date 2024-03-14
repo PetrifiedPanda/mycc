@@ -3,7 +3,7 @@
 
 #include "util/StrBuf.h"
 
-#include <stddef.h>
+#include <stdint.h>
 
 typedef struct FileInfo {
     uint32_t len;
@@ -13,6 +13,8 @@ typedef struct FileInfo {
 FileInfo FileInfo_create(const StrBuf* start_file);
 
 void FileInfo_add(FileInfo* i, const StrBuf* path);
+
+Str FileInfo_get(const FileInfo* i, uint32_t file_idx);
 
 void FileInfo_free(FileInfo* i);
 

@@ -418,8 +418,10 @@ static uint32_t parse_jump_statement_2(ParserState* s, AST* ast) {
                 ParserState_accept_it(s);
                 return res;
             } else {
-                CHECK_ERR(parse_expr_2(s, ast));
+                const uint32_t rhs = parse_expr_2(s, ast);
+                CHECK_ERR(rhs);
                 CHECK_ERR(ParserState_accept(s, TOKEN_SEMICOLON));
+                ast->datas[res].rhs = rhs;
             }
             return res;
         }
@@ -873,13 +875,15 @@ static uint32_t parse_arr_suffix_2(ParserState* s, AST* ast) {
         return add_node(ast, AST_ARR_SUFFIX_ASTERISK, idx);
     } else if (is_type_qual(curr_kind)) {
         const uint32_t res = add_node(ast, AST_ARR_SUFFIX, idx);
-        CHECK_ERR(parse_type_qual_list_2(s, ast));
+        const uint32_t type_qual_list = parse_type_qual_list_2(s, ast);
+        CHECK_ERR(type_qual_list);
 
         switch (ParserState_curr_kind(s)) {
             case TOKEN_ASTERISK: {
                 ast->kinds[res] = AST_ARR_SUFFIX_ASTERISK;
                 ParserState_accept_it(s);
                 CHECK_ERR(ParserState_accept(s, TOKEN_RINDEX));
+                ast->datas[res].rhs = type_qual_list;
                 return res;
             }
             case TOKEN_RINDEX: {
@@ -1216,8 +1220,10 @@ static uint32_t parse_func_suffix_2(ParserState* s, AST* ast) {
         return res;
     } else {
         const uint32_t res = add_node(ast, AST_FUNC_SUFFIX, idx);
-        CHECK_ERR(parse_param_type_list_2(s, ast));
+        const uint32_t rhs = parse_param_type_list_2(s, ast);
+        CHECK_ERR(rhs);
         CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
+        ast->datas[res].rhs = rhs;
         return res;
     }
 }
@@ -1725,7 +1731,9 @@ static uint32_t balanced_token_bracket(ParserState* s, AST* ast) {
         ParserState_accept_it(s);
         return res;
     }
-    CHECK_ERR(parse_balanced_token_sequence(s, ast));
+    const uint32_t rhs = parse_balanced_token_sequence(s, ast);
+    CHECK_ERR(rhs);
+    ast->datas[res].rhs = rhs;
     CHECK_ERR(ParserState_accept(s, rbracket));
     return res;
 }
@@ -1764,7 +1772,9 @@ static uint32_t parse_attribute_argument_clause_2(ParserState* s, AST* ast) {
         ParserState_accept_it(s);
         return res;
     }
-    CHECK_ERR(parse_balanced_token_sequence(s, ast));
+    const uint32_t rhs = parse_balanced_token_sequence(s, ast);
+    CHECK_ERR(rhs);
+    ast->datas[res].rhs = rhs;
     CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
     return res;
 }

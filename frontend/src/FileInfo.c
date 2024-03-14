@@ -1,6 +1,5 @@
 #include "frontend/FileInfo.h"
 
-#include <stdlib.h>
 #include <assert.h>
 
 #include "util/mem.h"
@@ -22,10 +21,14 @@ void FileInfo_add(FileInfo* info, const StrBuf* path) {
     info->paths[info->len - 1] = *path;
 }
 
+Str FileInfo_get(const FileInfo* i, uint32_t file_idx) {
+    assert(file_idx < i->len);
+    return StrBuf_as_str(&i->paths[file_idx]);
+}
+
 void FileInfo_free(FileInfo* info) {
-    for (uint32_t i = 0;  i < info->len; ++i) {
-        StrBuf_free(&info->paths[i]); 
+    for (uint32_t i = 0; i < info->len; ++i) {
+        StrBuf_free(&info->paths[i]);
     }
     mycc_free(info->paths);
 }
-

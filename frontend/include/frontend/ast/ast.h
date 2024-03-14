@@ -75,7 +75,7 @@ typedef enum {
     AST_CONTINUE_STATEMENT,
     // 'break' ';'
     AST_BREAK_STATEMENT,
-    // 'return' lhs ?expr ';'
+    // 'return' rhs ?expr ';'
     AST_RETURN_STATEMENT,
     // subrange (storage_class_spec | type_spec | func_spec | align_spec)[lhs...rhs] rhs ?attribute_spec_sequence
     AST_DECLARATION_SPECS,
@@ -86,8 +86,6 @@ typedef enum {
     AST_STORAGE_CLASS_SPEC_THREAD_LOCAL,
     AST_STORAGE_CLASS_SPEC_AUTO,
     AST_STORAGE_CLASS_SPEC_REGISTER,
-    // lhs ?(identifier | enum_spec | struct_union_spec | atomic_type_spec) (otherwise main token void char int float double bool atomic struct enum)
-    AST_TYPE_SPEC,
     // main token is type spec 
     AST_TYPE_SPEC_VOID,
     AST_TYPE_SPEC_CHAR,
@@ -159,14 +157,13 @@ typedef enum {
     AST_ATTRIBUTE,
     // lhs identifier rhs identifier
     AST_ATTRIBUTE_PREFIXED_TOKEN,
-    // '(' lhs ?balanced_token_sequence ')'
+    // '(' rhs ?balanced_token_sequence ')'
     AST_ATTRIBUTE_ARGUMENT_CLAUSE,
     // subrange balanced_token[lhs...rhs]
     AST_BALANCED_TOKEN_SEQUENCE,
-    // TODO: use rhs here
-    // '(' lhs ?balanced_token_sequence ')'
-    // '[' lhs ?balanced_token_sequence ']'
-    // '{' lhs ?balanced_token_sequence '}'
+    // '(' rhs ?balanced_token_sequence ')'
+    // '[' rhs ?balanced_token_sequence ']'
+    // '{' rhs ?balanced_token_sequence '}'
     AST_BALANCED_TOKEN_BRACKET,
     // just a token
     AST_BALANCED_TOKEN,
@@ -178,15 +175,15 @@ typedef enum {
     AST_ID_ATTRIBUTE,
     // subrange (arr_suffix | func_suffix)[lhs...rhs]
     AST_ARR_OR_FUNC_SUFFIX_LIST,
-    // lhe (arr_suffix | func_suffix) rhs ?attribute_spec_sequence
+    // lhs (arr_suffix | func_suffix) rhs ?attribute_spec_sequence
     AST_ARR_OR_FUNC_SUFFIX,
     // lhs ?type_qual_list rhs ?assign_expr
     AST_ARR_SUFFIX,
     // lhs ?type_qual_list rhs assign_expr
     AST_ARR_SUFFIX_STATIC,
-    // lhs ?type_qual_list
+    // rhs ?type_qual_list
     AST_ARR_SUFFIX_ASTERISK,
-    // lhs param_type_list
+    // rhs ?param_type_list
     AST_FUNC_SUFFIX,
     // lhs identifier_list
     AST_FUNC_SUFFIX_OLD,

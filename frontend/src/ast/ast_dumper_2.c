@@ -5,6 +5,7 @@
 typedef struct {
     File f;
     StrBuf indents;
+    const FileInfo* file_info;
 } ASTDumper;
 
 static void ASTDumper_free(ASTDumper* d) {
@@ -30,7 +31,7 @@ void ASTDumper_println_val(ASTDumper* d, Str format, ...) {
     File_putc('\n', d->f);
 }
 
-#define ASTDumper_println(dumper, str_lit, ...) \
+#define ASTDumper_println(dumper, str_lit, ...)                                \
     ASTDumper_println_val(dumper, STR_LIT(str_lit), __VA_ARGS__)
 
 void ASTDumper_put_strln_val(Str str, ASTDumper* d) {
@@ -38,28 +39,38 @@ void ASTDumper_put_strln_val(Str str, ASTDumper* d) {
     File_put_str_val(str, d->f);
 }
 
-#define ASTDumper_put_strln(str_lit, f) \
+#define ASTDumper_put_strln(str_lit, f)                                        \
     ASTDumper_put_strln_val(STR_LIT(str_lit), f)
 
 // returns the next node index
-static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, Str prefix, ASTDumper* d);
+static uint32_t dump_ast_rec(const AST* ast,
+                             uint32_t node_idx,
+                             Str prefix,
+                             ASTDumper* d,
+                             SourceLoc last_loc);
 
 bool dump_ast_2(const AST* ast, const FileInfo* file_info, File f) {
     (void)file_info;
     ASTDumper d = {
         .f = f,
         .indents = StrBuf_create_empty(),
+        .file_info = file_info,
     };
-    const bool res = dump_ast_rec(ast, 0, STR_LIT(""), &d) == ast->len;
+    const bool res = dump_ast_rec(ast,
+                                  0,
+                                  STR_LIT(""),
+                                  &d,
+                                  (SourceLoc){UINT32_MAX, {0, 0}})
+                     == ast->len;
     ASTDumper_free(&d);
     return res;
 }
 
-// TODO: does not work if lhs and rhs are optional
 typedef enum {
     // Has lhs and optional rhs
     AST_NODE_CATEGORY_DEFAULT,
     AST_NODE_CATEGORY_SUBRANGE,
+    AST_NODE_CATEGORY_RHS_ONLY,
     AST_NODE_CATEGORY_NO_CHILDREN,
     AST_NODE_CATEGORY_OPTIONAL_LHS_RHS,
     AST_NODE_CATEGORY_TOKEN_RANGE,
@@ -68,6 +79,7 @@ typedef enum {
     AST_NODE_CATEGORY_STRING_LITERAL,
     AST_NODE_CATEGORY_CONSTANT,
     AST_NODE_CATEGORY_BALANCED_TOKEN,
+    AST_NODE_CATEGORY_DECLARATION_SPECS,
 } ASTNodeCategory;
 
 static ASTNodeCategory get_ast_node_category(ASTNodeKind k);
@@ -89,7 +101,9 @@ static void dump_str_lit(ASTDumper* d, const StrLit* lit) {
     ASTDumper_println(d, "str_lit: {Str}", StrBuf_as_str(&lit->contents));
 }
 
-static void dump_balanced_token(ASTDumper* d, const AST* ast, uint32_t main_token) {
+static void dump_balanced_token(ASTDumper* d,
+                                const AST* ast,
+                                uint32_t main_token) {
     const TokenKind kind = ast->toks.kinds[main_token];
     const Str spelling = TokenKind_get_spelling(kind);
     if (spelling.data != NULL) {
@@ -120,16 +134,53 @@ static void dump_balanced_token(ASTDumper* d, const AST* ast, uint32_t main_toke
 
 static ASTNodeKind get_lhs_kind(ASTNodeKind kind);
 
-// TODO: that one special case
-// TODO: type spec
-static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, Str prefix, ASTDumper* d) {
+static bool SourceLoc_eq(SourceLoc l1, SourceLoc l2) {
+    return l1.file_idx == l2.file_idx && l1.file_loc.line == l2.file_loc.line
+           && l1.file_loc.index == l2.file_loc.index;
+}
+
+static uint32_t dump_subrange(const AST* ast,
+                              ASTDumper* d,
+                              ASTNodeData data,
+                              SourceLoc loc,
+                              uint32_t node_idx) {
+    uint32_t node_it = node_idx + 1;
+    // TODO: should not be less than
+    while (node_it < data.rhs) {
+        node_it = dump_ast_rec(ast, node_it, STR_LIT(""), d, loc);
+        if (node_it == 0) {
+            return 0;
+        }
+    }
+    return data.rhs;
+}
+
+static uint32_t dump_ast_rec(const AST* ast,
+                             uint32_t node_idx,
+                             Str prefix,
+                             ASTDumper* d,
+                             SourceLoc last_loc) {
     if (node_idx == ast->len) {
         return node_idx;
     }
     const ASTNodeKind kind = ast->kinds[node_idx];
     const Str node_kind_str = get_node_kind_str(kind);
-
-    ASTDumper_println(d, "{Str}{Str}:", prefix, node_kind_str);
+    const uint32_t main_token = ast->datas[node_idx].main_token;
+    const SourceLoc loc = ast->toks.locs[main_token];
+    // Only print source location if it is different from parent in order to not
+    // clutter the output
+    if (SourceLoc_eq(loc, last_loc)) {
+        ASTDumper_println(d, "{Str}{Str}:", prefix, node_kind_str);
+    } else {
+        const Str path = FileInfo_get(d->file_info, loc.file_idx);
+        ASTDumper_println(d,
+                          "{Str}{Str}: {Str}:{u32},{u32}",
+                          prefix,
+                          node_kind_str,
+                          path,
+                          loc.file_loc.line,
+                          loc.file_loc.index);
+    }
     add_indent(d);
     const ASTNodeCategory category = get_ast_node_category(kind);
 
@@ -140,7 +191,7 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, Str prefix, ASTD
             const uint32_t lhs_idx = node_idx + 1;
             uint32_t lhs_next = 0;
             if (lhs_idx != data.rhs) {
-                lhs_next = dump_ast_rec(ast, lhs_idx, STR_LIT("lhs: "), d);
+                lhs_next = dump_ast_rec(ast, lhs_idx, STR_LIT("lhs "), d, loc);
                 if (lhs_next == 0) {
                     return 0;
                 }
@@ -148,22 +199,29 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, Str prefix, ASTD
             }
 
             if (data.rhs != 0) {
-                res = dump_ast_rec(ast, data.rhs, STR_LIT("rhs: "), d);
+                res = dump_ast_rec(ast, data.rhs, STR_LIT("rhs "), d, loc);
             } else {
                 res = lhs_next;
             }
             break;
         }
         case AST_NODE_CATEGORY_SUBRANGE: {
-            uint32_t node_it = node_idx + 1;
-            // TODO: should not be less than
-            while (node_it < data.rhs) {
-                node_it = dump_ast_rec(ast, node_it, STR_LIT(""), d);
-                if (node_it == 0) {
+            res = dump_subrange(ast, d, data, loc, node_idx);
+            if (res == 0) {
+                return 0;
+            }
+            break;
+        }
+        case AST_NODE_CATEGORY_RHS_ONLY: {
+            const uint32_t rhs = ast->datas[node_idx].rhs;
+            if (rhs != 0) {
+                res = dump_ast_rec(ast, rhs, STR_LIT("rhs "), d, loc);
+                if (res == 0) {
                     return 0;
                 }
+            } else {
+                res = node_idx + 1;
             }
-            res = data.rhs;
             break;
         }
         case AST_NODE_CATEGORY_NO_CHILDREN:
@@ -173,21 +231,25 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, Str prefix, ASTD
             const uint32_t lhs_idx = node_idx + 1;
             if (data.rhs == 0) {
                 if (ast->kinds[lhs_idx] == get_lhs_kind(kind)) {
-                    res = dump_ast_rec(ast, lhs_idx, STR_LIT("lhs: "), d);
+                    res = dump_ast_rec(ast, lhs_idx, STR_LIT("lhs "), d, loc);
                 } else {
                     // No lhs and rhs
                     res = lhs_idx;
                 }
             } else if (data.rhs == lhs_idx) {
-                res = dump_ast_rec(ast, data.rhs, STR_LIT("rhs: "), d);
+                res = dump_ast_rec(ast, data.rhs, STR_LIT("rhs "), d, loc);
             } else {
                 // both lhs and rhs present
-                const uint32_t lhs_next = dump_ast_rec(ast, lhs_idx, STR_LIT("lhs: "), d);
+                const uint32_t lhs_next = dump_ast_rec(ast,
+                                                       lhs_idx,
+                                                       STR_LIT("lhs "),
+                                                       d,
+                                                       loc);
                 if (lhs_next == 0) {
                     return 0;
                 }
                 assert(lhs_next == data.rhs);
-                res = dump_ast_rec(ast, data.rhs, STR_LIT("rhs: "), d);
+                res = dump_ast_rec(ast, data.rhs, STR_LIT("rhs "), d, loc);
             }
             break;
         }
@@ -208,7 +270,8 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, Str prefix, ASTD
         }
         case AST_NODE_CATEGORY_IDENTIFIER: {
             const uint32_t token_idx = data.main_token;
-            const Str spell = StrBuf_as_str(&ast->toks.vals[token_idx].spelling);
+            const Str spell = StrBuf_as_str(
+                &ast->toks.vals[token_idx].spelling);
             ASTDumper_println(d, "spelling: {Str}", spell);
             res = node_idx + 1;
             break;
@@ -232,8 +295,18 @@ static uint32_t dump_ast_rec(const AST* ast, uint32_t node_idx, Str prefix, ASTD
             res = node_idx + 1;
             break;
         }
-        default:
-            UNREACHABLE();
+        case AST_NODE_CATEGORY_DECLARATION_SPECS: {
+            res = dump_subrange(ast, d, data, loc, node_idx);
+            if (res == 0) {
+                return 0;
+            }
+            if (ast->kinds[res] == AST_ATTRIBUTE_SPEC_SEQUENCE) {
+                res = dump_ast_rec(ast, node_idx, STR_LIT("rhs "), d, loc);
+                if (res == 0) {
+                    return 0;
+                }
+            }
+        }
     }
     remove_indent(d);
     return res;
@@ -254,12 +327,12 @@ static ASTNodeKind get_lhs_kind(ASTNodeKind kind) {
             return AST_IDENTIFIER;
         case AST_MEMBER_DECLARATOR:
             return AST_DECLARATOR;
+        case AST_ARR_SUFFIX:
+            return AST_TYPE_QUAL_LIST;
         case AST_POINTER:
             return AST_POINTER_ATTRS_AND_QUALS;
         case AST_POINTER_ATTRS_AND_QUALS:
             return AST_ATTRIBUTE_SPEC_SEQUENCE;
-        case AST_BALANCED_TOKEN_BRACKET:
-            return AST_BALANCED_TOKEN_SEQUENCE;
         case AST_ABS_DECLARATOR:
             return AST_POINTER;
         case AST_ABS_ARR_SUFFIX:
@@ -275,7 +348,6 @@ static ASTNodeCategory get_ast_node_category(ASTNodeKind k) {
         case AST_TRANSLATION_UNIT:
         case AST_DECLARATION_LIST:
         case AST_COMPOUND_STATEMENT:
-        case AST_DECLARATION_SPECS:
         case AST_ENUM_LIST:
         case AST_MEMBER_DECLARATION_LIST:
         case AST_MEMBER_DECLARATOR_LIST:
@@ -294,6 +366,12 @@ static ASTNodeCategory get_ast_node_category(ASTNodeKind k) {
         case AST_ARG_EXPR_LIST:
         case AST_GENERIC_ASSOC_LIST:
             return AST_NODE_CATEGORY_SUBRANGE;
+        case AST_FUNC_SUFFIX:
+        case AST_ARR_SUFFIX_ASTERISK:
+        case AST_RETURN_STATEMENT:
+            return AST_NODE_CATEGORY_RHS_ONLY;
+        case AST_DECLARATION_SPECS:
+             return AST_NODE_CATEGORY_DECLARATION_SPECS;
         case AST_POSTFIX_OP_INC:
         case AST_POSTFIX_OP_DEC:
         case AST_TYPE_QUAL_CONST:
@@ -333,9 +411,9 @@ static ASTNodeCategory get_ast_node_category(ASTNodeKind k) {
         case AST_MEMBER_DECLARATOR:
         case AST_POINTER:
         case AST_POINTER_ATTRS_AND_QUALS:
-        case AST_BALANCED_TOKEN_BRACKET:
         case AST_ABS_DECLARATOR:
         case AST_ABS_ARR_SUFFIX:
+        case AST_ARR_SUFFIX:
             return AST_NODE_CATEGORY_OPTIONAL_LHS_RHS;
         case AST_TYPE_QUAL_LIST:
         case AST_STORAGE_CLASS_SPECS:
@@ -427,8 +505,6 @@ static Str get_node_kind_str(ASTNodeKind k) {
             return STR_LIT("auto storage class specifier");
         case AST_STORAGE_CLASS_SPEC_REGISTER:
             return STR_LIT("register storage class specifier");
-        case AST_TYPE_SPEC:
-            return STR_LIT("type specifiers");
         case AST_TYPE_SPEC_VOID:
             return STR_LIT("void type specifier");
         case AST_TYPE_SPEC_CHAR:

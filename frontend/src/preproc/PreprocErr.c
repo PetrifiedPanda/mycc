@@ -6,7 +6,6 @@
 
 #include "frontend/ErrBase.h"
 
-#include "util/mem.h"
 #include "util/macro_util.h"
 
 PreprocErr PreprocErr_create(void) {
@@ -88,8 +87,7 @@ void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
         case PREPROC_ERR_UNTERMINATED_COND: {
             ErrBase_print(out, file_info, &err->base);
             const SourceLoc* loc = &err->unterminated_cond_loc;
-            const Str cond_file = StrBuf_as_str(
-                &file_info->paths[loc->file_idx]);
+            const Str cond_file = FileInfo_get(file_info, loc->file_idx);
             File_printf(
                 out,
                 "Conditional started at {Str}:{u32},{u32} not terminated",
@@ -135,8 +133,8 @@ void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
         case PREPROC_ERR_ELIF_ELSE_AFTER_ELSE: {
             assert(err->elif_after_else_op != ELSE_OP_ENDIF);
             ErrBase_print(out, file_info, &err->base);
-            Str prev_else_file = StrBuf_as_str(
-                &file_info->paths[err->prev_else_loc.file_idx]);
+            Str prev_else_file = FileInfo_get(file_info,
+                                              err->prev_else_loc.file_idx);
             const FileLoc loc = err->prev_else_loc.file_loc;
             switch (err->elif_after_else_op) {
                 case ELSE_OP_ELIF:
@@ -149,10 +147,11 @@ void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
                     break;
                 case ELSE_OP_ELSE:
                     File_printf(out,
-                            "Second else directive after else in {Str}:({u32},{u32})",
-                            prev_else_file,
-                            loc.line,
-                            loc.index);
+                                "Second else directive after else in "
+                                "{Str}:({u32},{u32})",
+                                prev_else_file,
+                                loc.line,
+                                loc.index);
                     break;
                 default:
                     UNREACHABLE();
@@ -162,33 +161,36 @@ void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
         case PREPROC_ERR_MISPLACED_PREPROC_TOKEN:
             assert(err->misplaced_preproc_tok == TOKEN_PP_STRINGIFY
                    || err->misplaced_preproc_tok == TOKEN_PP_CONCAT);
-            File_printf(
-                out,
-                "preprocessor token \"{Str}\" outside of preprocessor directive",
-                TokenKind_get_spelling(err->misplaced_preproc_tok));
+            File_printf(out,
+                        "preprocessor token \"{Str}\" outside of preprocessor "
+                        "directive",
+                        TokenKind_get_spelling(err->misplaced_preproc_tok));
             break;
         case PREPROC_ERR_INT_CONST:
             assert(StrBuf_valid(&err->constant_spell));
             ErrBase_print(out, file_info, &err->base);
-            File_printf(out,
-                    "Integer constant {Str} is not a valid integer constant",
-                    StrBuf_as_str(&err->constant_spell));
+            File_printf(
+                out,
+                "Integer constant {Str} is not a valid integer constant",
+                StrBuf_as_str(&err->constant_spell));
             IntConstErr_print(out, &err->int_const_err);
             break;
         case PREPROC_ERR_FLOAT_CONST:
             assert(StrBuf_valid(&err->constant_spell));
             ErrBase_print(out, file_info, &err->base);
-            File_printf(out,
-                    "Floating constant {Str} is not a valid integer constant",
-                    StrBuf_as_str(&err->constant_spell));
+            File_printf(
+                out,
+                "Floating constant {Str} is not a valid integer constant",
+                StrBuf_as_str(&err->constant_spell));
             FloatConstErr_print(out, &err->float_const_err);
             break;
         case PREPROC_ERR_CHAR_CONST:
             assert(StrBuf_valid(&err->constant_spell));
             ErrBase_print(out, file_info, &err->base);
-            File_printf(out,
-                    "Character constant {Str} is not a valid character constant",
-                    StrBuf_as_str(&err->constant_spell));
+            File_printf(
+                out,
+                "Character constant {Str} is not a valid character constant",
+                StrBuf_as_str(&err->constant_spell));
             CharConstErr_print(out, &err->char_const_err);
             break;
         case PREPROC_ERR_EMPTY_DEFINE:
@@ -206,20 +208,24 @@ void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
         case PREPROC_ERR_DUPLICATE_MACRO_PARAM:
             ErrBase_print(out, file_info, &err->base);
             File_printf(out,
-                    "Duplicate macro argument name \"{Str}\"",
-                    StrBuf_as_str(&err->duplicate_arg_name));
+                        "Duplicate macro argument name \"{Str}\"",
+                        StrBuf_as_str(&err->duplicate_arg_name));
             break;
         case PREPROC_ERR_INVALID_BACKSLASH:
             ErrBase_print(out, file_info, &err->base);
-            File_put_str("Backslash \'\\\' only allowed at the end of a line", out);
+            File_put_str("Backslash \'\\\' only allowed at the end of a line",
+                         out);
             break;
         case PREPROC_ERR_INCLUDE_NUM_ARGS:
             ErrBase_print(out, file_info, &err->base);
-            File_put_str("Include directive must have exactly one argument", out);
+            File_put_str("Include directive must have exactly one argument",
+                         out);
             break;
         case PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL:
             ErrBase_print(out, file_info, &err->base);
-            File_put_str("Include directive only takes '\"' or '<' '>' literals", out);
+            File_put_str(
+                "Include directive only takes '\"' or '<' '>' literals",
+                out);
             break;
         case PREPROC_ERR_INCOMPLETE_EXPR:
             ErrBase_print(out, file_info, &err->base);
@@ -309,4 +315,3 @@ void PreprocErr_free(PreprocErr* err) {
             break;
     }
 }
-
