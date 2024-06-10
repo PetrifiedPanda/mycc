@@ -6,6 +6,8 @@
 #include "util/macro_util.h"
 #include "util/mem.h"
 
+#include "hash_string.h"
+
 IndexedStringSet IndexedStringSet_create(uint32_t init_cap) {
     IndexedStringSet res = {
         ._len = 0,
@@ -34,8 +36,6 @@ static uint32_t insert(IndexedStringSet* s, const StrBuf* buf, uint32_t idx_idx)
     ++s->_len;
     return res_idx;
 }
-
-static uint32_t hash_string(Str str);
 
 // Assumes key is not already in set
 static uint32_t insert_str_buf(IndexedStringSet* s, const StrBuf* buf) {
@@ -96,14 +96,3 @@ Str IndexedStringSet_get(const IndexedStringSet* s, uint32_t idx) {
     return StrBuf_as_str(&s->_data[idx]);
 }
 
-// Hash function taken from K&R version 2 (page 144)
-static uint32_t hash_string(Str str) {
-    uint32_t hash = 0;
-
-    uint32_t i = 0;
-    while (i != str.len) {
-        hash = Str_at(str, i) + 32 * hash;
-        ++i;
-    }
-    return hash;
-}

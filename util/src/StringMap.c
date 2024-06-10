@@ -6,6 +6,8 @@
 #include "util/mem.h"
 #include "util/macro_util.h"
 
+#include "hash_string.h"
+
 typedef struct StringMapKey {
     bool was_deleted;
     StrBuf str;
@@ -58,7 +60,6 @@ void StringMap_clear(StringMap* map) {
     map->_len = 0;
 }
 
-static uint32_t hash_string(Str str);
 static void resize_map(StringMap* map);
 
 static uint32_t find_item_index_insert(const StringMap* map, Str key) {
@@ -220,17 +221,5 @@ static void resize_map(StringMap* map) {
     UNUSED(prev_len);
     assert(map->_len == prev_len);
     mycc_free(old_keys);
-}
-
-// Hash function taken from K&R version 2 (page 144)
-static uint32_t hash_string(Str str) {
-    uint32_t hash = 0;
-
-    uint32_t i = 0;
-    while (i != str.len) {
-        hash = Str_at(str, i) + 32 * hash;
-        ++i;
-    }
-    return hash;
 }
 
