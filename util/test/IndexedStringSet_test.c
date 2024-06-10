@@ -10,6 +10,7 @@ TEST(insert) {
     // same index returned when we attempt to insert again
     ASSERT_UINT(idx, IndexedStringSet_find_or_insert(&set, to_insert));
     ASSERT_STR(IndexedStringSet_get(&set, idx), to_insert);
+    IndexedStringSet_free(&set);
 }
 
 TEST(correct_rehashing) {
@@ -50,6 +51,7 @@ TEST(correct_rehashing) {
         // check if we didn't just insert the same thing again
         ASSERT_UINT(set._len, pre_search_len);
     }
+    IndexedStringSet_free(&set);
 }
 
 TEST_SUITE_BEGIN(IndexedStringsSet) {

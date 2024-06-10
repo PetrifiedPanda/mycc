@@ -64,6 +64,7 @@ static void rehash(IndexedStringSet* s) {
         insert_str_buf(s, &old_data[i]);
     }
     assert(s->_len == prev_len);
+    mycc_free(old_data);
 }
 
 static void rehash_if_necessary(IndexedStringSet* s) {
