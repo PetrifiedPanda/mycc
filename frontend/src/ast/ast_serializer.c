@@ -98,15 +98,18 @@ static void serialize_identifier(AstSerializer* d, const Identifier* id) {
     serialize_ast_node_info(d, &id->info);
 }
 
-static void serialize_value(AstSerializer* d, const Value* val) {
+static void serialize_int_val(AstSerializer* d, const IntVal* val) {
     serialize_u64(d, val->kind);
-    if (ValueKind_is_sint(val->kind)) {
+    if (IntValKind_is_sint(val->kind)) {
         serialize_i64(d, val->sint_val);
-    } else if (ValueKind_is_uint(val->kind)) {
-        serialize_u64(d, val->uint_val);
     } else {
-        serialize_float(d, val->float_val);
+        serialize_u64(d, val->uint_val);
     }
+}
+
+static void serialize_float_val(AstSerializer* d, const FloatVal* val) {
+    serialize_u64(d, val->kind);
+    serialize_float(d, val->val);
 }
 
 static void serialize_constant(AstSerializer* d, const Constant* constant) {
@@ -976,21 +979,25 @@ static void serialize_external_declaration(AstSerializer* d, const ExternalDecla
 static void serialize_tokens(AstSerializer* d, const TokenArr* tokens) {
     serialize_u32(d, tokens->len);
     serializer_write(d, tokens->kinds, sizeof *tokens->kinds, tokens->len);
-    for (uint32_t i = 0; i < tokens->len; ++i) {
-        switch (tokens->kinds[i]) {
-            case TOKEN_IDENTIFIER:
-                serialize_str_buf(d, &tokens->vals[i].spelling);
-                break;
-            case TOKEN_I_CONSTANT:
-            case TOKEN_F_CONSTANT:
-                serialize_value(d, &tokens->vals[i].val);
-                break;
-            case TOKEN_STRING_LITERAL:
-                serialize_str_lit(d, &tokens->vals[i].str_lit);
-                break;
-        }
-    }
+    serializer_write(d, tokens->val_indices, sizeof *tokens->val_indices, tokens->len);
     serializer_write(d, tokens->locs, sizeof *tokens->locs, tokens->len);
+
+    serialize_u32(d, tokens->identifiers_len);
+    for (uint32_t i = 0; i < tokens->identifiers_len; ++i) {
+        serialize_str_buf(d, &tokens->identifiers[i]);
+    }
+    serialize_u32(d, tokens->int_consts_len);
+    for (uint32_t i = 0; i < tokens->int_consts_len; ++i) {
+        serialize_int_val(d, &tokens->int_consts[i]);
+    }
+    serialize_u32(d, tokens->float_consts_len);
+    for (uint32_t i = 0; i < tokens->float_consts_len; ++i) {
+        serialize_float_val(d, &tokens->float_consts[i]);
+    }
+    serialize_u32(d, tokens->str_lits_len);
+    for (uint32_t i = 0; i < tokens->str_lits_len; ++i) {
+        serialize_str_lit(d, &tokens->str_lits[i]);
+    }
 }
 
 static void serialize_translation_unit(AstSerializer* d, const TranslationUnit* tl) {

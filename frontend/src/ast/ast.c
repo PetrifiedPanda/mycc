@@ -735,8 +735,8 @@ static uint32_t parse_external_declaration_2(ParserState* s, AST* ast) {
             // to see if it was an identifier
             const uint32_t last_idx = s->it - 2;
             if (s->_arr.kinds[last_idx] == TOKEN_IDENTIFIER) {
-                const Str spell = StrBuf_as_str(
-                    &s->_arr.vals[last_idx].spelling);
+                const StrBuf* buf = &s->_arr.identifiers[s->_arr.val_indices[last_idx]];
+                const Str spell = StrBuf_as_str(buf);
                 assert(ParserState_is_typedef(s, spell));
                 ParserState_set_redefinition_err(
                     s,

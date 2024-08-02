@@ -215,14 +215,15 @@ static bool output_ast(const CmdArgs* args,
         PreprocErr_free(&preproc_err);
         goto fail_preproc;
     }
-    if (!convert_preproc_tokens(&preproc_res.toks, type_info, &preproc_err)) {
+    TokenArr tokens = convert_preproc_tokens(&preproc_res.toks, type_info, &preproc_err);
+    if (tokens.len == 0) {
         PreprocErr_print(mycc_stderr, &preproc_res.file_info, &preproc_err);
         PreprocErr_free(&preproc_err);
         goto fail_preproc;
     }
 
     ParserErr parser_err = ParserErr_create();
-    TranslationUnit tl = parse_tokens(&preproc_res.toks, &parser_err);
+    TranslationUnit tl = parse_tokens(&tokens, &parser_err);
     if (parser_err.kind != PARSER_ERR_NONE) {
         // TODO: tokens are now in tl and need to be freed
         ParserErr_print(mycc_stderr,
@@ -307,14 +308,15 @@ static bool output_ast_2(const CmdArgs* args,
         PreprocErr_free(&preproc_err);
         goto fail_preproc;
     }
-    if (!convert_preproc_tokens(&preproc_res.toks, type_info, &preproc_err)) {
+    TokenArr tokens = convert_preproc_tokens(&preproc_res.toks, type_info, &preproc_err);
+    if (tokens.len == 0) {
         PreprocErr_print(mycc_stderr, &preproc_res.file_info, &preproc_err);
         PreprocErr_free(&preproc_err);
         goto fail_preproc;
     }
 
     ParserErr parser_err = ParserErr_create();
-    AST ast = parse_ast(&preproc_res.toks, &parser_err);
+    AST ast = parse_ast(&tokens, &parser_err);
     if (parser_err.kind != PARSER_ERR_NONE) {
         // TODO: tokens are now in tl and need to be freed
         ParserErr_print(mycc_stderr,

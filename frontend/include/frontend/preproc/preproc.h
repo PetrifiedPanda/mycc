@@ -5,9 +5,10 @@
 #include "frontend/Token.h"
 
 #include "PreprocErr.h"
+#include "PreprocTokenArr.h"
 
 typedef struct PreprocRes {
-    TokenArr toks;
+    PreprocTokenArr toks;
     FileInfo file_info;
 } PreprocRes;
 
@@ -24,6 +25,7 @@ PreprocRes preproc(CStr path,
                    PreprocErr* err);
 
 #ifdef MYCC_TEST_FUNCTIONALITY
+
 /**
  * @param str a string containing source code
  * @param path path to be entered into the resulting tokens
@@ -33,6 +35,7 @@ PreprocRes preproc(CStr path,
  */
 PreprocRes preproc_string(Str str,
                           Str path,
+                          const PreprocInitialStrings* initial_strings,
                           uint32_t num_include_dirs,
                           const Str* include_dirs,
                           const ArchTypeInfo* info,
@@ -43,9 +46,9 @@ PreprocRes preproc_string(Str str,
 /**
  * Converts the given preprocessor tokens to parser tokens
  */
-bool convert_preproc_tokens(TokenArr* tokens,
-                            const ArchTypeInfo* info,
-                            PreprocErr* err);
+TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
+                                const ArchTypeInfo* info,
+                                PreprocErr* err);
 
 /**
  * Frees tokens before calling convert_preproc_tokens

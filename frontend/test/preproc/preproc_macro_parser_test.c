@@ -7,8 +7,50 @@
 
 #include "../test_helpers.h"
 
+static void compare_macro_item(const PreprocMacro* got, const PreprocMacro* ex,
+                               const PreprocTokenArr* arr, uint32_t i) {
+    const TokenValOrArg* got_item = &got->vals[i];
+    const TokenValOrArg* ex_item = &ex->vals[i];
+    ASSERT_TOKEN_KIND(got->kinds[i], ex->kinds[i]);
+    if (got->kinds[i] == TOKEN_INVALID) {
+        ASSERT_UINT(got_item->arg_num, ex_item->arg_num);
+    } else {
+        const uint32_t got_val_idx = got_item->val_idx;
+        const uint32_t ex_val_idx = ex_item->val_idx;
+        switch (got->kinds[i]) {
+            case TOKEN_IDENTIFIER: {
+                const Str got_str = StrBuf_as_str(&arr->identifiers[got_val_idx]);
+                const Str ex_str = StrBuf_as_str(&arr->identifiers[ex_val_idx]);
+                ASSERT_STR(got_str, ex_str);
+                break;
+            }
+            case TOKEN_I_CONSTANT: {
+                const Str got_str = StrBuf_as_str(&arr->int_consts[got_val_idx]);
+                const Str ex_str = StrBuf_as_str(&arr->int_consts[ex_val_idx]);
+                ASSERT_STR(got_str, ex_str);
+                break;
+            }
+            case TOKEN_F_CONSTANT: {
+                const Str got_str = StrBuf_as_str(&arr->float_consts[got_val_idx]);
+                const Str ex_str = StrBuf_as_str(&arr->float_consts[ex_val_idx]);
+                ASSERT_STR(got_str, ex_str);
+                break;
+            }
+            case TOKEN_STRING_LITERAL: {
+                const Str got_str = StrBuf_as_str(&arr->str_lits[got_val_idx]);
+                const Str ex_str = StrBuf_as_str(&arr->str_lits[ex_val_idx]);
+                ASSERT_STR(got_str, ex_str);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+}
+
 static void compare_preproc_macros(const PreprocMacro* got,
-                                   const PreprocMacro* ex) {
+                                   const PreprocMacro* ex,
+                                   const PreprocTokenArr* arr) {
     ASSERT_BOOL(got->is_func_macro, ex->is_func_macro);
     ASSERT_UINT(got->num_args, ex->num_args);
     ASSERT_BOOL(got->is_variadic, ex->is_variadic);
@@ -16,18 +58,7 @@ static void compare_preproc_macros(const PreprocMacro* got,
     ASSERT_UINT(got->expansion_len, ex->expansion_len);
 
     for (uint32_t i = 0; i < got->expansion_len; ++i) {
-        const TokenValOrArg* got_item = &got->vals[i];
-        const TokenValOrArg* ex_item = &ex->vals[i];
-        ASSERT_TOKEN_KIND(got->kinds[i], ex->kinds[i]); 
-        if (got->kinds[i] == TOKEN_INVALID) {
-            ASSERT_UINT(got_item->arg_num, ex_item->arg_num);
-        } else {
-            const StrBuf* got_spell = &got_item->val;
-            const StrBuf* ex_spell = &ex_item->val;
-
-            ASSERT_STR(StrBuf_as_str(got_spell),
-                       StrBuf_as_str(ex_spell));    
-        }
+        compare_macro_item(got, ex, arr, i);
     }
 }
 
@@ -39,27 +70,40 @@ TEST(parse_obj_like) {
             TOKEN_IDENTIFIER,
             TOKEN_IDENTIFIER,
         };
-        TokenVal vals[] = {
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("define")},
-            {.spelling = STR_BUF_NON_HEAP("TEST_MACRO")},
+
+        const Str identifiers[] = {
+            STR_LIT("define"),
+            STR_LIT("TEST_MACRO"),
         };
+
+        const PreprocInitialStrings initial_strs = {
+            .identifiers = identifiers,
+            .identifiers_len = ARR_LEN(identifiers),
+        };
+
+        uint32_t val_indices[] = {
+            UINT32_MAX,
+            0,
+            1,
+        };
+
         SourceLoc locs[] = {
             {0, {1, 1}},
             {0, {1, 2}},
             {0, {1, 9}},
         };
 
-        static_assert(ARR_LEN(kinds) == ARR_LEN(vals), "array lengths don't match");
+        static_assert(ARR_LEN(kinds) == ARR_LEN(val_indices), "array lengths don't match");
         static_assert(ARR_LEN(kinds) == ARR_LEN(locs), "array lengths don't match");
 
-        TokenArr arr = {
+        PreprocTokenArr arr = {
             .len = ARR_LEN(kinds),
             .cap = arr.len,
             .kinds = kinds,
-            .vals = vals,
+            .val_indices = val_indices,
             .locs = locs,
         };
+        PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, 10, &err);
@@ -75,7 +119,7 @@ TEST(parse_obj_like) {
             .vals = NULL,
         };
 
-        compare_preproc_macros(&got, &ex);
+        compare_preproc_macros(&got, &ex, &arr);
         mycc_free(got.kinds);
         mycc_free(got.vals);
     }
@@ -99,22 +143,43 @@ TEST(parse_obj_like) {
             TOKEN_RBRACKET,
         };
 
-        TokenVal vals[] = {
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("define")},
-            {.spelling = STR_BUF_NON_HEAP("ANOTHER_MACRO")},
-            {.spelling = STR_BUF_NON_HEAP("1")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("2")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("3")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("func")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("a")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("b")},
-            {.spelling = StrBuf_null()},
+        const Str identifiers[] = {
+            STR_LIT("define"),
+            STR_LIT("ANOTHER_MACRO"),
+            STR_LIT("func"),
+            STR_LIT("a"),
+            STR_LIT("b"),
+        };
+
+        const Str int_consts[] = {
+            STR_LIT("1"),
+            STR_LIT("2"),
+            STR_LIT("3"),
+        };
+
+        const PreprocInitialStrings initial_strs = {
+            .identifiers = identifiers,
+            .identifiers_len = ARR_LEN(identifiers),
+            .int_consts = int_consts,
+            .int_consts_len = ARR_LEN(int_consts),
+        };
+
+        uint32_t val_indices[] = {
+            UINT32_MAX, // #
+            0, // define
+            1, // ANOTHER_MACRO
+            0, // 1
+            UINT32_MAX,
+            1, // 2
+            UINT32_MAX,
+            2, // 3
+            UINT32_MAX,
+            2, // func
+            UINT32_MAX,
+            3, // a
+            UINT32_MAX,
+            4, // b
+            UINT32_MAX,
         };
 
         SourceLoc locs[] = {
@@ -139,22 +204,23 @@ TEST(parse_obj_like) {
             TOKENS_LEN = ARR_LEN(kinds),
             EXPANSION_LEN = TOKENS_LEN - 3
         };
-        static_assert(TOKENS_LEN == ARR_LEN(vals), "array lengths don't match");
+        static_assert(TOKENS_LEN == ARR_LEN(val_indices), "array lengths don't match");
         static_assert(TOKENS_LEN == ARR_LEN(locs), "array lengths don't match");
         TokenValOrArg ex_vals[EXPANSION_LEN];
         uint8_t ex_kinds[EXPANSION_LEN];
         for (uint32_t i = 0; i < EXPANSION_LEN; ++i) {
             ex_kinds[i] = kinds[i + 3];
-            ex_vals[i] = (TokenValOrArg){.val = vals[i + 3].spelling};
+            ex_vals[i] = (TokenValOrArg){.val_idx = val_indices[i + 3]};
         }
 
-        TokenArr arr = {
+        PreprocTokenArr arr = {
             .len = TOKENS_LEN,
             .cap = arr.len,
             .kinds = kinds,
-            .vals = vals,
+            .val_indices = val_indices,
             .locs = locs,
         };
+        PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, 13, &err);
@@ -169,7 +235,7 @@ TEST(parse_obj_like) {
             .vals = ex_vals,
         };
 
-        compare_preproc_macros(&got, &ex);
+        compare_preproc_macros(&got, &ex, &arr);
         mycc_free(got.kinds);
         mycc_free(got.vals);
     }
@@ -202,28 +268,48 @@ TEST(parse_func_like) {
             TOKEN_IDENTIFIER,
         };
 
-        TokenVal vals[] = {
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("define")},
-            {.spelling = STR_BUF_NON_HEAP("FUNC_LIKE")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("a")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("b")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("c")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("a")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("38")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("b")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("other_name")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("c")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("a")},
+        const Str identifiers[] = {
+            STR_LIT("define"),
+            STR_LIT("FUNC_LIKE"),
+            STR_LIT("a"),
+            STR_LIT("b"),
+            STR_LIT("c"),
+            STR_LIT("other_name"),
+        };
+
+        const Str int_consts[] = {
+            STR_LIT("38"),
+        };
+
+        const PreprocInitialStrings initial_strs = {
+            .identifiers = identifiers,
+            .identifiers_len = ARR_LEN(identifiers),
+            .int_consts = int_consts,
+            .int_consts_len = ARR_LEN(int_consts),
+        };
+
+        uint32_t val_indices[] = {
+            UINT32_MAX,
+            0, // define
+            1, // FUNC_LIKE
+            UINT32_MAX,
+            2, // a
+            UINT32_MAX,
+            3, // b
+            UINT32_MAX,
+            4, // c
+            UINT32_MAX,
+            2, // a
+            UINT32_MAX,
+            0, // 38
+            UINT32_MAX,
+            3, // b
+            UINT32_MAX,
+            5, // other_name
+            UINT32_MAX,
+            4, // c
+            UINT32_MAX,
+            2,
         };
 
         SourceLoc locs[] = {
@@ -255,7 +341,7 @@ TEST(parse_func_like) {
             EXPANSION_LEN = TOKENS_LEN - 10
         };
 
-        static_assert(TOKENS_LEN == ARR_LEN(vals), "");
+        static_assert(TOKENS_LEN == ARR_LEN(val_indices), "");
         static_assert(TOKENS_LEN == ARR_LEN(locs), "");
         
         uint8_t ex_kinds[EXPANSION_LEN] = {
@@ -273,15 +359,15 @@ TEST(parse_func_like) {
         };
         TokenValOrArg ex_vals[EXPANSION_LEN] = {
             {.arg_num = 0},
-            {.val = vals[11].spelling},
-            {.val = vals[12].spelling},
-            {.val = vals[13].spelling},
+            {.val_idx = val_indices[11]},
+            {.val_idx = val_indices[12]},
+            {.val_idx = val_indices[13]},
             {.arg_num = 1},
-            {.val = vals[15].spelling},
-            {.val = vals[16].spelling},
-            {.val = vals[17].spelling},
+            {.val_idx = val_indices[15]},
+            {.val_idx = val_indices[16]},
+            {.val_idx = val_indices[17]},
             {.arg_num = 2},
-            {.val = vals[19].spelling},
+            {.val_idx = val_indices[19]},
             {.arg_num = 0},
         };
 
@@ -295,19 +381,20 @@ TEST(parse_func_like) {
             .vals = ex_vals,
         };
 
-        TokenArr arr = {
+        PreprocTokenArr arr = {
             .len = TOKENS_LEN,
             .cap = TOKENS_LEN,
             .kinds = kinds,
-            .vals = vals,
+            .val_indices = val_indices,
             .locs = locs,
         };
+        PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
-        compare_preproc_macros(&got, &ex);
+        compare_preproc_macros(&got, &ex, &arr);
         mycc_free(got.kinds);
         mycc_free(got.vals);
     }
@@ -325,17 +412,36 @@ TEST(parse_func_like) {
             TOKEN_ADD,
             TOKEN_I_CONSTANT,
         };
-        TokenVal vals[] = {
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("define")},
-            {.spelling = STR_BUF_NON_HEAP("NO_PARAMS")},
-            {.spelling = StrBuf_null()},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("1")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("2")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("3")},
+
+        const Str identifiers[] = {
+            STR_LIT("define"),
+            STR_LIT("NO_PARAMS"),
+        };
+
+        const Str int_consts[] = {
+            STR_LIT("1"),
+            STR_LIT("2"),
+            STR_LIT("3"),
+        };
+
+        const PreprocInitialStrings initial_strs = {
+            .identifiers = identifiers,
+            .identifiers_len = ARR_LEN(identifiers),
+            .int_consts = int_consts,
+            .int_consts_len = ARR_LEN(int_consts),
+        };
+
+        uint32_t val_indices[] = {
+            UINT32_MAX,
+            0, // define
+            1, // NO_PARAMS
+            UINT32_MAX,
+            UINT32_MAX,
+            0, // 1
+            UINT32_MAX,
+            1, // 2
+            UINT32_MAX,
+            2, // 3
         };
 
         SourceLoc locs[] = {
@@ -356,14 +462,14 @@ TEST(parse_func_like) {
             EXPANSION_LEN = TOKENS_LEN - 5
         };
 
-        static_assert(TOKENS_LEN == ARR_LEN(vals), "");
+        static_assert(TOKENS_LEN == ARR_LEN(val_indices), "");
         static_assert(TOKENS_LEN == ARR_LEN(locs), "");
         
         uint8_t ex_kinds[EXPANSION_LEN];
         TokenValOrArg ex_vals[EXPANSION_LEN];
         for (uint32_t i = 0; i < EXPANSION_LEN; ++i) {
             ex_kinds[i] = kinds[i + 5];
-            ex_vals[i].val = vals[i + 5].spelling;
+            ex_vals[i].val_idx = val_indices[i + 5];
         }
 
         PreprocMacro ex = {
@@ -376,19 +482,20 @@ TEST(parse_func_like) {
             .vals = ex_vals,
         };
 
-        TokenArr arr = {
+        PreprocTokenArr arr = {
             .len = TOKENS_LEN,
             .cap = TOKENS_LEN,
             .kinds = kinds,
-            .vals = vals,
+            .val_indices = val_indices,
             .locs = locs,
         };
+        PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
-        compare_preproc_macros(&got, &ex);
+        compare_preproc_macros(&got, &ex, &arr);
         mycc_free(got.kinds);
         mycc_free(got.vals);
     }
@@ -402,12 +509,22 @@ TEST(parse_func_like) {
             TOKEN_RBRACKET,
         };
 
-        TokenVal vals[] = {
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("define")},
-            {.spelling = STR_BUF_NON_HEAP("NO_PARAMS_EMPTY")},
-            {.spelling = StrBuf_null()},
-            {.spelling = StrBuf_null()},
+        const Str identifiers[] = {
+            STR_LIT("define"),
+            STR_LIT("NO_PARAMS_EMPTY"),
+        };
+
+        const PreprocInitialStrings initial_strs = {
+            .identifiers = identifiers,
+            .identifiers_len = ARR_LEN(identifiers),
+        };
+
+        uint32_t val_indices[] = {
+            UINT32_MAX,
+            0, // define
+            1, // NO_PARAMS_EMPTY
+            UINT32_MAX,
+            UINT32_MAX,
         };
 
         SourceLoc locs[] = {
@@ -421,7 +538,7 @@ TEST(parse_func_like) {
         enum {
             TOKENS_LEN = ARR_LEN(kinds),
         };
-        static_assert(TOKENS_LEN == ARR_LEN(vals), "");
+        static_assert(TOKENS_LEN == ARR_LEN(val_indices), "");
         static_assert(TOKENS_LEN == ARR_LEN(locs), "");
 
         PreprocMacro ex = {
@@ -434,19 +551,20 @@ TEST(parse_func_like) {
             .vals = NULL,
         };
 
-        TokenArr arr = {
+        PreprocTokenArr arr = {
             .len = TOKENS_LEN,
             .cap = TOKENS_LEN,
             .kinds = kinds,
-            .vals = vals,
+            .val_indices = val_indices,
             .locs = locs,
         };
+        PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, 15, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
-        compare_preproc_macros(&got, &ex);
+        compare_preproc_macros(&got, &ex, &arr);
         mycc_free(got.kinds);
         mycc_free(got.vals);
     }
@@ -481,31 +599,52 @@ TEST(parse_variadic) {
             TOKEN_IDENTIFIER,
         };
 
-        TokenVal vals[] = {
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("define")},
-            {.spelling = STR_BUF_NON_HEAP("FUNC_LIKE")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("a")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("b")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("c")},
-            {.spelling = StrBuf_null()},
-            {.spelling = StrBuf_null()},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("a")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("38")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("b")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("other_name")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("c")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("a")},
+        const Str identifiers[] = {
+            STR_LIT("define"),
+            STR_LIT("FUNC_LIKE"),
+            STR_LIT("a"),
+            STR_LIT("b"),
+            STR_LIT("c"),
+            STR_LIT("other_name"),
         };
+
+        const Str int_consts[] = {
+            STR_LIT("38"),
+        };
+
+        const PreprocInitialStrings initial_strs = {
+            .identifiers = identifiers,
+            .identifiers_len = ARR_LEN(identifiers),
+            .int_consts = int_consts,
+            .int_consts_len = ARR_LEN(int_consts),
+        };
+
+        uint32_t val_indices[] = {
+            UINT32_MAX,
+            0, // define
+            1, // FUNC_LIKE
+            UINT32_MAX,
+            2, // a,
+            UINT32_MAX,
+            3, // b
+            UINT32_MAX,
+            4, // c
+            UINT32_MAX,
+            UINT32_MAX,
+            UINT32_MAX,
+            2, // a
+            UINT32_MAX,
+            0, // 38
+            UINT32_MAX,
+            3, // b
+            UINT32_MAX,
+            5, // other_name
+            UINT32_MAX,
+            4, // c
+            UINT32_MAX,
+            2, // a
+        };
+
 
         SourceLoc locs[] = {
             {0, {1, 1}},
@@ -538,7 +677,7 @@ TEST(parse_variadic) {
             EXPANSION_LEN = TOKENS_LEN - 12,
         };
 
-        static_assert(TOKENS_LEN == ARR_LEN(vals), "");
+        static_assert(TOKENS_LEN == ARR_LEN(val_indices), "");
         static_assert(TOKENS_LEN == ARR_LEN(locs), "");
         
         uint8_t ex_kinds[EXPANSION_LEN] = {
@@ -556,15 +695,15 @@ TEST(parse_variadic) {
         };
         TokenValOrArg ex_vals[EXPANSION_LEN] = {
             {.arg_num = 0},
-            {.val = vals[13].spelling},
-            {.val = vals[14].spelling},
-            {.val = vals[15].spelling},
+            {.val_idx = val_indices[13]},
+            {.val_idx = val_indices[14]},
+            {.val_idx = val_indices[15]},
             {.arg_num = 1},
-            {.val = vals[17].spelling},
-            {.val = vals[18].spelling},
-            {.val = vals[19].spelling},
+            {.val_idx = val_indices[17]},
+            {.val_idx = val_indices[18]},
+            {.val_idx = val_indices[19]},
             {.arg_num = 2},
-            {.val = vals[21].spelling},
+            {.val_idx = val_indices[21]},
             {.arg_num = 0},
         };
 
@@ -578,19 +717,20 @@ TEST(parse_variadic) {
             .vals = ex_vals,
         };
 
-        TokenArr arr = {
+        PreprocTokenArr arr = {
             .len = TOKENS_LEN,
             .cap = TOKENS_LEN,
             .kinds = kinds,
-            .vals = vals,
+            .val_indices = val_indices,
             .locs = locs,
         };
+        PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
-        compare_preproc_macros(&got, &ex);
+        compare_preproc_macros(&got, &ex, &arr);
         mycc_free(got.kinds);
         mycc_free(got.vals);
     }
@@ -627,33 +767,54 @@ TEST(parse_variadic) {
 
         };
 
-        TokenVal vals[] = {
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("define")},
-            {.spelling = STR_BUF_NON_HEAP("FUNC_LIKE")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("a")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("b")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("c")},
-            {.spelling = StrBuf_null()},
-            {.spelling = StrBuf_null()},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("a")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("38")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("b")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("other_name")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("__VA_ARGS__")},
-            {.spelling = StrBuf_null()},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("c")},
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("a")},
+        const Str identifiers[] = {
+            STR_LIT("define"),
+            STR_LIT("FUNC_LIKE"),
+            STR_LIT("a"),
+            STR_LIT("b"),
+            STR_LIT("c"),
+            STR_LIT("other_name"),
+            STR_LIT("__VA_ARGS__"),
+        };
+
+        const Str int_consts[] = {
+            STR_LIT("38"),
+        };
+
+        const PreprocInitialStrings initial_strs = {
+            .identifiers = identifiers,
+            .identifiers_len = ARR_LEN(identifiers),
+            .int_consts = int_consts,
+            .int_consts_len = ARR_LEN(int_consts),
+        };
+
+        uint32_t val_indices[] = {
+            UINT32_MAX,
+            0, // define
+            1, // FUNC_LIKE
+            UINT32_MAX,
+            2, // a
+            UINT32_MAX,
+            3, // b
+            UINT32_MAX,
+            4, // c
+            UINT32_MAX,
+            UINT32_MAX,
+            UINT32_MAX,
+            2, // a
+            UINT32_MAX,
+            0, // 38
+            UINT32_MAX,
+            3, // b
+            UINT32_MAX,
+            5, // other_name
+            UINT32_MAX,
+            6, // __VA_ARGS__
+            UINT32_MAX,
+            UINT32_MAX,
+            4, // c
+            UINT32_MAX,
+            2, // a
         };
 
         SourceLoc locs[] = {
@@ -690,7 +851,7 @@ TEST(parse_variadic) {
             EXPANSION_LEN = TOKENS_LEN - 12,
         };
 
-        static_assert(TOKENS_LEN == ARR_LEN(vals), "");
+        static_assert(TOKENS_LEN == ARR_LEN(val_indices), "");
         static_assert(TOKENS_LEN == ARR_LEN(locs), "");
         
         uint8_t ex_kinds[EXPANSION_LEN] = {
@@ -711,18 +872,18 @@ TEST(parse_variadic) {
         };
         TokenValOrArg ex_vals[EXPANSION_LEN] = {
             {.arg_num = 0},
-            {.val = vals[13].spelling},
-            {.val = vals[14].spelling},
-            {.val = vals[15].spelling},
+            {.val_idx = val_indices[13]},
+            {.val_idx = val_indices[14]},
+            {.val_idx = val_indices[15]},
             {.arg_num = 1},
-            {.val = vals[17].spelling},
-            {.val = vals[18].spelling},
-            {.val = vals[19].spelling},
+            {.val_idx = val_indices[17]},
+            {.val_idx = val_indices[18]},
+            {.val_idx = val_indices[19]},
             {.arg_num = 3},
-            {.val = vals[21].spelling},
-            {.val = vals[22].spelling},
+            {.val_idx = val_indices[21]},
+            {.val_idx = val_indices[22]},
             {.arg_num = 2},
-            {.val = vals[24].spelling},
+            {.val_idx = val_indices[24]},
             {.arg_num = 0},
         };
 
@@ -736,19 +897,20 @@ TEST(parse_variadic) {
             .vals = ex_vals,
         };
 
-        TokenArr arr = {
+        PreprocTokenArr arr = {
             .len = TOKENS_LEN,
             .cap = TOKENS_LEN,
             .kinds = kinds,
-            .vals = vals,
+            .val_indices = val_indices,
             .locs = locs,
         };
+        PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
-        compare_preproc_macros(&got, &ex);
+        compare_preproc_macros(&got, &ex, &arr);
         mycc_free(got.kinds);
         mycc_free(got.vals);
     }
@@ -795,33 +957,54 @@ TEST(parse_duplicate_arg_name) {
         TOKEN_IDENTIFIER,
     };
 
-    TokenVal vals[] = {
-        {.spelling = StrBuf_null()},
-        {.spelling = STR_BUF_NON_HEAP("define")},
-        {.spelling = STR_BUF_NON_HEAP("FUNC_LIKE")},
-        {.spelling = StrBuf_null()},
-        {.spelling = STR_BUF_NON_HEAP("a")},
-        {.spelling = StrBuf_null()},
-        {.spelling = STR_BUF_NON_HEAP("b")},
-        {.spelling = StrBuf_null()},
-        {.spelling = STR_BUF_NON_HEAP("c")},
-        {.spelling = StrBuf_null()},
-        {.spelling = StrBuf_null()},
-        {.spelling = StrBuf_null()},
-        {.spelling = STR_BUF_NON_HEAP("a")},
-        {.spelling = StrBuf_null()},
-        {.spelling = STR_BUF_NON_HEAP("38")},
-        {.spelling = StrBuf_null()},
-        {.spelling = STR_BUF_NON_HEAP("b")},
-        {.spelling = StrBuf_null()},
-        {.spelling = STR_BUF_NON_HEAP("other_name")},
-        {.spelling = StrBuf_null()},
-        {.spelling = STR_BUF_NON_HEAP("__VA_ARGS__")},
-        {.spelling = StrBuf_null()},
-        {.spelling = StrBuf_null()},
-        {.spelling = STR_BUF_NON_HEAP("c")},
-        {.spelling = StrBuf_null()},
-        {.spelling = STR_BUF_NON_HEAP("a")},
+    const Str identifiers[] = {
+        STR_LIT("define"),
+        STR_LIT("FUNC_LIKE"),
+        STR_LIT("a"),
+        STR_LIT("b"),
+        STR_LIT("c"),
+        STR_LIT("other_name"),
+        STR_LIT("__VA_ARGS__"),
+    };
+
+    const Str int_consts[] = {
+        STR_LIT("38"),
+    };
+
+    const PreprocInitialStrings initial_strs = {
+        .identifiers = identifiers,
+        .identifiers_len = ARR_LEN(identifiers),
+        .int_consts = int_consts,
+        .int_consts_len = ARR_LEN(int_consts),
+    };
+
+    uint32_t val_indices[] = {
+        UINT32_MAX,
+        0, // define
+        1, // FUNC_LIKE
+        UINT32_MAX,
+        2, // a
+        UINT32_MAX,
+        3, // b
+        UINT32_MAX,
+        4, // c
+        UINT32_MAX,
+        UINT32_MAX,
+        UINT32_MAX,
+        2, // a
+        UINT32_MAX,
+        0, // 38
+        UINT32_MAX,
+        3, // b
+        UINT32_MAX,
+        5, // other_name
+        UINT32_MAX,
+        6, // __VA_ARGS__
+        UINT32_MAX,
+        UINT32_MAX,
+        4, // c
+        UINT32_MAX,
+        2, // a
     };
 
     SourceLoc locs[] = {
@@ -856,17 +1039,19 @@ TEST(parse_duplicate_arg_name) {
         TOKENS_LEN = ARR_LEN(kinds),
     };
 
-    static_assert(TOKENS_LEN == ARR_LEN(vals), "");
+    static_assert(TOKENS_LEN == ARR_LEN(val_indices), "");
     static_assert(TOKENS_LEN == ARR_LEN(locs), "");
-    TokenArr arr = {
+    PreprocTokenArr arr = {
         .len = TOKENS_LEN,
         .cap = TOKENS_LEN,
         .kinds = kinds,
-        .vals = vals,
+        .val_indices = val_indices,
         .locs = locs,
     };
+    PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
+
     // change c to a
-    vals[8].spelling = STR_BUF_NON_HEAP("a");
+    val_indices[8] = 2;
     {
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
@@ -878,8 +1063,10 @@ TEST(parse_duplicate_arg_name) {
         ASSERT_UINT(err.base.loc.file_loc.index, 25);
     }
 
-    vals[8].spelling = STR_BUF_NON_HEAP("c");
-    vals[6].spelling = STR_BUF_NON_HEAP("c");
+    // change a back to c
+    val_indices[8] = 4;
+    // change b to c
+    val_indices[6] = 4;
     {
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
@@ -890,7 +1077,8 @@ TEST(parse_duplicate_arg_name) {
         ASSERT_UINT(err.base.loc.file_loc.line, 1);
         ASSERT_UINT(err.base.loc.file_loc.index, 25);
     }
-    vals[6].spelling = STR_BUF_NON_HEAP("a");
+    // change c to a
+    val_indices[6] = 2;
     {
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
@@ -920,19 +1108,35 @@ TEST(parse_obj_like_starting_with_bracket) {
         TOKEN_RBRACKET,
     };
 
-    TokenVal vals[] = {
-        {.spelling = StrBuf_null()},
-        {.spelling = STR_BUF_NON_HEAP("define")},
-        {.spelling = StrBuf_null()},
-        {.spelling = StrBuf_null()},
-        {.spelling = StrBuf_null()},
-        {.spelling = StrBuf_null()},
-        {.spelling = StrBuf_null()},
-        {.spelling = StrBuf_null()},
-        {.spelling = StrBuf_null()},
-        {.spelling = STR_BUF_NON_HEAP("0")},
-        {.spelling = StrBuf_null()},
+    const Str identifiers[] = {
+        STR_LIT("define"),
     };
+
+    const Str int_consts[] = {
+        STR_LIT("0"),
+    };
+
+    const PreprocInitialStrings initial_strs = {
+        .identifiers = identifiers,
+        .identifiers_len = ARR_LEN(identifiers),
+        .int_consts = int_consts,
+        .int_consts_len = ARR_LEN(int_consts),
+    };
+
+    uint32_t val_indices[] = {
+        UINT32_MAX,
+        0, // define
+        UINT32_MAX,
+        UINT32_MAX,
+        UINT32_MAX,
+        UINT32_MAX,
+        UINT32_MAX,
+        UINT32_MAX,
+        UINT32_MAX,
+        0, // 0
+        UINT32_MAX,
+    };
+
 
     SourceLoc locs[] = {
         {0, {1, 1}},
@@ -952,23 +1156,24 @@ TEST(parse_obj_like_starting_with_bracket) {
         TOKENS_LEN = ARR_LEN(kinds),
         EXPANSION_LEN = TOKENS_LEN - 3,
     };
-    static_assert(TOKENS_LEN == ARR_LEN(vals), "");
+    static_assert(TOKENS_LEN == ARR_LEN(val_indices), "");
     static_assert(TOKENS_LEN == ARR_LEN(locs), "");
 
     uint8_t ex_kinds[EXPANSION_LEN];
     TokenValOrArg ex_vals[EXPANSION_LEN];
     for (uint32_t i = 0; i < EXPANSION_LEN; ++i) {
         ex_kinds[i] = kinds[i + 3];
-        ex_vals[i].val = vals[i + 3].spelling;
+        ex_vals[i].val_idx = val_indices[i + 3];
     }
 
-    TokenArr arr = {
+    PreprocTokenArr arr = {
         .len = TOKENS_LEN,
         .cap = arr.len,
         .kinds = kinds,
-        .vals = vals,
+        .val_indices = val_indices,
         .locs = locs,
     };
+    PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
     
     PreprocErr err = PreprocErr_create();
     PreprocMacro got = parse_preproc_macro(&arr, 4, &err);
@@ -983,7 +1188,7 @@ TEST(parse_obj_like_starting_with_bracket) {
         .vals = ex_vals,
     };
 
-    compare_preproc_macros(&got, &ex);
+    compare_preproc_macros(&got, &ex, &arr);
     mycc_free(got.kinds);
     mycc_free(got.vals);
 }

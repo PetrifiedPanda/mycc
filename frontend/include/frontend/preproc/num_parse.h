@@ -23,7 +23,7 @@ typedef struct FloatConstErr {
 
 typedef struct ParseFloatConstRes{
     FloatConstErr err;
-    Value res;
+    FloatVal res;
 } ParseFloatConstRes;
 
 ParseFloatConstRes parse_float_const(Str spell);
@@ -48,7 +48,7 @@ typedef struct IntConstErr {
 
 typedef struct ParseIntConstRes {
     IntConstErr err;
-    Value res;
+    IntVal res;
 } ParseIntConstRes;
 
 ParseIntConstRes parse_int_const(Str spell, const ArchTypeInfo* type_info);
@@ -75,7 +75,7 @@ typedef struct CharConstErr {
 
 typedef struct ParseCharConstRes {
     CharConstErr err;
-    Value res;
+    IntVal res;
 } ParseCharConstRes;
 
 ParseCharConstRes parse_char_const(Str spell, const ArchTypeInfo* type_info);

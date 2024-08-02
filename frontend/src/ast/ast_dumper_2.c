@@ -86,15 +86,18 @@ static ASTNodeCategory get_ast_node_category(ASTNodeKind k);
 
 static Str get_node_kind_str(ASTNodeKind k);
 
-static void dump_value(ASTDumper* d, const Value* val) {
-    ASTDumper_println(d, "value: {Str}", ValueKind_str(val->kind));
-    if (ValueKind_is_sint(val->kind)) {
+static void dump_int_val(ASTDumper* d, const IntVal* val) {
+    ASTDumper_println(d, "int_val: {Str}", IntValKind_str(val->kind));
+    if (IntValKind_is_sint(val->kind)) {
         ASTDumper_println(d, "sint_val: {i64}", val->sint_val);
-    } else if (ValueKind_is_uint(val->kind)) {
-        ASTDumper_println(d, "uint_val: {u64}", val->uint_val);
     } else {
-        ASTDumper_println(d, "float_val: {floatg}", val->float_val);
+        ASTDumper_println(d, "uint_val: {u64}", val->uint_val);
     }
+}
+
+static void dump_float_val(ASTDumper* d, const FloatVal* val) {
+    ASTDumper_println(d, "float_val: {Str}", FloatValKind_str(val->kind));
+    ASTDumper_println(d, "val: {floatg}", val->val);
 }
 
 static void dump_str_lit(ASTDumper* d, const StrLit* lit) {
@@ -110,20 +113,25 @@ static void dump_balanced_token(ASTDumper* d,
         ASTDumper_println(d, "token: {Str}", spelling);
         return;
     }
+    const uint32_t val_idx = ast->toks.val_indices[main_token];
     switch (kind) {
         case TOKEN_IDENTIFIER: {
-            const StrBuf* buf = &ast->toks.vals[main_token].spelling;
+            const StrBuf* buf = &ast->toks.identifiers[val_idx];
             ASTDumper_println(d, "identifier: {Str}", StrBuf_as_str(buf));
             break;
         }
-        case TOKEN_F_CONSTANT:
+        case TOKEN_F_CONSTANT: {
+            const FloatVal* val = &ast->toks.float_consts[val_idx];
+            dump_float_val(d, val);
+            break;
+        }
         case TOKEN_I_CONSTANT: {
-            const Value* val = &ast->toks.vals[main_token].val;
-            dump_value(d, val);
+            const IntVal* val = &ast->toks.int_consts[val_idx];
+            dump_int_val(d, val);
             break;
         }
         case TOKEN_STRING_LITERAL: {
-            const StrLit* lit = &ast->toks.vals[main_token].str_lit;
+            const StrLit* lit = &ast->toks.str_lits[val_idx];
             dump_str_lit(d, lit);
             break;
         }
@@ -185,7 +193,7 @@ static uint32_t dump_ast_rec(const AST* ast,
     const ASTNodeCategory category = get_ast_node_category(kind);
 
     const ASTNodeData data = ast->datas[node_idx];
-    uint32_t res;
+    uint32_t res = UINT32_MAX;
     switch (category) {
         case AST_NODE_CATEGORY_DEFAULT: {
             const uint32_t lhs_idx = node_idx + 1;
@@ -261,7 +269,8 @@ static uint32_t dump_ast_rec(const AST* ast,
                 Str str = TokenKind_get_spelling(token_kind);
                 if (str.data == NULL) {
                     assert(token_kind == TOKEN_IDENTIFIER);
-                    str = StrBuf_as_str(&ast->toks.vals[i].spelling);
+                    const uint32_t val_idx = ast->toks.val_indices[i];
+                    str = StrBuf_as_str(&ast->toks.identifiers[val_idx]);
                 }
                 ASTDumper_println(d, "token: {Str}", str);
             }
@@ -270,23 +279,31 @@ static uint32_t dump_ast_rec(const AST* ast,
         }
         case AST_NODE_CATEGORY_IDENTIFIER: {
             const uint32_t token_idx = data.main_token;
-            const Str spell = StrBuf_as_str(
-                &ast->toks.vals[token_idx].spelling);
+            const uint32_t val_idx = ast->toks.val_indices[token_idx];
+            const Str spell = StrBuf_as_str(&ast->toks.identifiers[val_idx]);
             ASTDumper_println(d, "spelling: {Str}", spell);
             res = node_idx + 1;
             break;
         }
         case AST_NODE_CATEGORY_STRING_LITERAL: {
             const uint32_t token_idx = data.main_token;
-            const StrLit* lit = &ast->toks.vals[token_idx].str_lit;
+            const uint32_t val_idx = ast->toks.val_indices[token_idx];
+            const StrLit* lit = &ast->toks.str_lits[val_idx];
             dump_str_lit(d, lit);
             res = node_idx + 1;
             break;
         }
         case AST_NODE_CATEGORY_CONSTANT: {
             const uint32_t token_idx = data.main_token;
-            const Value val = ast->toks.vals[token_idx].val;
-            dump_value(d, &val);
+            const uint32_t val_idx = ast->toks.val_indices[token_idx];
+            if (ast->toks.kinds[token_idx] == TOKEN_I_CONSTANT) {
+                const IntVal* val = &ast->toks.int_consts[val_idx];
+                dump_int_val(d, val);
+            } else {
+                assert(ast->toks.kinds[token_idx] == TOKEN_F_CONSTANT);
+                const FloatVal* val = &ast->toks.float_consts[val_idx];
+                dump_float_val(d, val);
+            }
             res = node_idx + 1;
             break;
         }

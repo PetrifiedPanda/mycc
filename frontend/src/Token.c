@@ -1,7 +1,5 @@
 #include "frontend/Token.h"
 
-#include <assert.h>
-
 #include "util/mem.h"
 #include "util/macro_util.h"
 
@@ -10,22 +8,24 @@ TokenArr TokenArr_create_empty(void) {
         .len = 0,
         .cap = 0,
         .kinds = NULL,
-        .vals = NULL,
         .locs = NULL,
     };
 }
 
-void TokenArr_free(TokenArr* arr) {
-    for (uint32_t i = 0; i < arr->len; ++i) {
-        if (arr->kinds[i] == TOKEN_STRING_LITERAL) {
-            StrLit_free(&arr->vals[i].str_lit); 
-        } else if (arr->kinds[i] == TOKEN_IDENTIFIER) {
-            StrBuf_free(&arr->vals[i].spelling);
-        }
-    }
+void TokenArr_free(const TokenArr* arr) {
     mycc_free(arr->kinds);
-    mycc_free(arr->vals);
+    mycc_free(arr->val_indices);
     mycc_free(arr->locs);
+    for (uint32_t i = 0; i < arr->identifiers_len; ++i) {
+        StrBuf_free(&arr->identifiers[i]);
+    }
+    mycc_free(arr->identifiers);
+    mycc_free(arr->int_consts);
+    mycc_free(arr->float_consts);
+    for (uint32_t i = 0; i < arr->str_lits_len; ++i) {
+        StrLit_free(&arr->str_lits[i]);
+    }
+    mycc_free(arr->str_lits);
 }
 
 #ifdef _WIN32

@@ -77,7 +77,7 @@ PreprocState PreprocState_create(CStr start_file,
         return res;
     }
     return (PreprocState){
-        .res = TokenArr_create_empty(),
+        .res = PreprocTokenArr_create_empty(),
         .line_info =
             {
                 .line = StrBuf_create_empty(),
@@ -110,7 +110,7 @@ PreprocState PreprocState_create_string(Str code,
                                         PreprocErr* err) {
     StrBuf filename_str = StrBuf_create(filename);
     return (PreprocState){
-        .res = TokenArr_create_empty(),
+        .res = PreprocTokenArr_create_empty(),
         .line_info =
             {
                 .line = StrBuf_create_empty(),
@@ -425,17 +425,8 @@ static void FileManager_free(FileManager* fm) {
     mycc_free(fm->prefixes);
 }
 
-void TokenArr_free_preproc(TokenArr* arr) {
-    for (uint32_t i = 0; i < arr->len; ++i) {
-        StrBuf_free(&arr->vals[i].spelling);
-    }
-    mycc_free(arr->kinds);
-    mycc_free(arr->vals);
-    mycc_free(arr->locs);
-}
-
 void PreprocState_free(PreprocState* state) {
-    TokenArr_free_preproc(&state->res);
+    PreprocTokenArr_free(&state->res);
     LineInfo_free(&state->line_info);
     FileManager_free(&state->file_manager);
     mycc_free(state->conds);

@@ -1,6 +1,5 @@
 #include "testing/asserts.h"
 
-#include "frontend/preproc/preproc.h"
 #include "frontend/parser/parser.h"
 #include "frontend/ast/ast_dumper.h"
 #include "frontend/ast/ast_deserializer.h"
@@ -12,15 +11,18 @@
 
 #include "../test_helpers.h"
 
-static void compare_values(const Value* got, const Value* ex) {
-    ASSERT_VALUE_KIND(got->kind, ex->kind);
-    if (ValueKind_is_sint(got->kind)) {
-        ASSERT_INT(got->sint_val, ex->sint_val);
-    } else if (ValueKind_is_uint(got->kind)) {
-        ASSERT_UINT(got->uint_val, ex->uint_val);
+static void compare_int_vals(const IntVal* got, const IntVal* ex) {
+    ASSERT(got->kind == ex->kind);
+    if (IntValKind_is_sint(got->kind)) {
+        ASSERT_INT(got->sint_val, ex->sint_val);   
     } else {
-        ASSERT_DOUBLE(got->float_val, ex->float_val, 0.);
+        ASSERT_UINT(got->uint_val, ex->uint_val);
     }
+}
+
+static void compare_float_vals(const FloatVal* got, const FloatVal* ex) {
+    ASSERT(got->kind == ex->kind);
+    ASSERT_DOUBLE(got->val, ex->val, 0.);
 }
 
 static void compare_str_lits(const StrLit* got, const StrLit* ex) {
@@ -33,23 +35,28 @@ static void compare_tokens(const TokenArr* got, const TokenArr* ex) {
     ASSERT(memcmp(got->kinds, ex->kinds, sizeof *got->kinds * got->len)
         == 0);
 
+    // TODO: compare better (compare indices then arrays)
     for (uint32_t i = 0; i < got->len; ++i) {
+        const uint32_t got_val_idx = got->val_indices[i];
+        const uint32_t ex_val_idx = ex->val_indices[i];
         switch (got->kinds[i]) {
             case TOKEN_IDENTIFIER:
-                ASSERT_STR(StrBuf_as_str(&got->vals[i].spelling),
-                           StrBuf_as_str(&ex->vals[i].spelling));
+                ASSERT_STR(StrBuf_as_str(&got->identifiers[got_val_idx]),
+                           StrBuf_as_str(&ex->identifiers[ex_val_idx]));
                 break;
             case TOKEN_I_CONSTANT:
+                compare_int_vals(&got->int_consts[got_val_idx],
+                                 &ex->int_consts[ex_val_idx]);
+                break;
             case TOKEN_F_CONSTANT:
-                compare_values(&got->vals[i].val, &ex->vals[i].val);
+                compare_float_vals(&got->float_consts[got_val_idx],
+                                   &ex->float_consts[ex_val_idx]);
                 break;
             case TOKEN_STRING_LITERAL:
-                compare_str_lits(&got->vals[i].str_lit,
-                                      &ex->vals[i].str_lit);
+                compare_str_lits(&got->str_lits[got_val_idx],
+                                 &ex->str_lits[ex_val_idx]);
                 break;
             default:
-                assert(!StrBuf_valid(&got->vals[i].spelling));
-                assert(!StrBuf_valid(&ex->vals[i].spelling));
                 break;
         }
     }
@@ -84,7 +91,7 @@ static void compare_with_ex_file_2(const AST* ast,
 
 TEST(no_preproc_2) {
     const CStr file = CSTR_LIT("../frontend/test/files/no_preproc.c");
-    PreprocRes res = tokenize(file);
+    TestPreprocRes res = tokenize(file);
 
     ParserErr err = ParserErr_create();
     AST ast = parse_ast(&res.toks, &err);
@@ -94,13 +101,13 @@ TEST(no_preproc_2) {
         &ast,
         &res.file_info,
         CSTR_LIT("../frontend/test/files/no_preproc.c.binast_2"));
-    PreprocRes_free(&res);
+    TestPreprocRes_free(&res);
     AST_free(&ast);
 }
 
 TEST(parser_testfile_2) {
     const CStr file = CSTR_LIT("../frontend/test/files/parser_testfile.c");
-    PreprocRes res = tokenize(file);
+    TestPreprocRes res = tokenize(file);
 
     ParserErr err = ParserErr_create();
     AST ast = parse_ast(&res.toks, &err);
@@ -110,13 +117,13 @@ TEST(parser_testfile_2) {
         &ast,
         &res.file_info,
         CSTR_LIT("../frontend/test/files/parser_testfile.c.binast_2"));
-    PreprocRes_free(&res);
+    TestPreprocRes_free(&res);
     AST_free(&ast);
 }
 
 TEST(large_testfile_2) {
     const CStr file = CSTR_LIT("../frontend/test/files/large_testfile.c");
-    PreprocRes res = tokenize(file);
+    TestPreprocRes res = tokenize(file);
 
     ParserErr err = ParserErr_create();
     AST ast = parse_ast(&res.toks, &err);
@@ -126,7 +133,7 @@ TEST(large_testfile_2) {
         &ast,
         &res.file_info,
         CSTR_LIT("../frontend/test/files/large_testfile.c.binast_2"));
-    PreprocRes_free(&res);
+    TestPreprocRes_free(&res);
     AST_free(&ast);
 }
 
@@ -147,7 +154,7 @@ static void compare_with_ex_file(const TranslationUnit* got,
 
 TEST(no_preproc) {
     CStr file = CSTR_LIT("../frontend/test/files/no_preproc.c");
-    PreprocRes res = tokenize(file);
+    TestPreprocRes res = tokenize(file);
 
     ParserErr err = ParserErr_create();
     TranslationUnit tl = parse_tokens(&res.toks, &err);
@@ -159,12 +166,12 @@ TEST(no_preproc) {
                          STR_LIT("../frontend/test/files/no_preproc.c.binast"));
 
     TranslationUnit_free(&tl);
-    PreprocRes_free(&res);
+    TestPreprocRes_free(&res);
 }
 
 TEST(parser_testfile) {
     CStr file = CSTR_LIT("../frontend/test/files/parser_testfile.c");
-    PreprocRes res = tokenize(file);
+    TestPreprocRes res = tokenize(file);
 
     ParserErr err = ParserErr_create();
     TranslationUnit tl = parse_tokens(&res.toks, &err);
@@ -188,12 +195,12 @@ TEST(parser_testfile) {
         Str_c_str(STR_LIT("../frontend/test/files/parser_testfile.c.ast")));
 
     TranslationUnit_free(&tl);
-    PreprocRes_free(&res);
+    TestPreprocRes_free(&res);
 }
 
 TEST(large_testfile) {
     CStr file = CSTR_LIT("../frontend/test/files/large_testfile.c");
-    PreprocRes res = tokenize(file);
+    TestPreprocRes res = tokenize(file);
 
     ParserErr err = ParserErr_create();
     TranslationUnit tl = parse_tokens(&res.toks, &err);
@@ -206,7 +213,7 @@ TEST(large_testfile) {
         STR_LIT("../frontend/test/files/large_testfile.c.binast"));
 
     TranslationUnit_free(&tl);
-    PreprocRes_free(&res);
+    TestPreprocRes_free(&res);
 }
 
 TEST_SUITE_BEGIN(parser_file){

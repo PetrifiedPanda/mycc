@@ -1,10 +1,6 @@
 #include "frontend/parser/parser_util.h"
 
-#include <string.h>
 #include <assert.h>
-
-#include "util/mem.h"
-#include "util/macro_util.h"
 
 #include "frontend/parser/ParserErr.h"
 

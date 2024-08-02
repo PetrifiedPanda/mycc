@@ -2,9 +2,6 @@
 
 #include <ctype.h>
 
-#include "util/macro_util.h"
-#include "util/mem.h"
-
 #include "frontend/preproc/PreprocMacro.h"
 #include "frontend/preproc/preproc_const_expr.h"
 
@@ -23,7 +20,7 @@ static bool is_preproc_directive(Str line) {
 }
 
 static bool preproc_statement(PreprocState* state,
-                              TokenArr* arr,
+                              PreprocTokenArr* arr,
                               const ArchTypeInfo* info);
 
 bool read_and_tokenize_line(PreprocState* state, const ArchTypeInfo* info) {
@@ -39,16 +36,17 @@ bool read_and_tokenize_line(PreprocState* state, const ArchTypeInfo* info) {
         }
 
         if (is_preproc_directive(state->line_info.next)) {
-            TokenArr arr = TokenArr_create_empty();
+            // TODO: needs val arrays?
+            PreprocTokenArr arr = PreprocTokenArr_create_empty();
 
             const bool res = tokenize_line(&arr, state->err, &state->line_info);
             if (!res) {
-                TokenArr_free_preproc(&arr);
+                PreprocTokenArr_free(&arr);
                 return false;
             }
 
             const bool stat_res = preproc_statement(state, &arr, info);
-            TokenArr_free_preproc(&arr);
+            PreprocTokenArr_free(&arr);
             if (!stat_res) {
                 return false;
             }
@@ -135,7 +133,7 @@ static bool skip_until_next_cond(PreprocState* state,
                 return false;
             }
         } else if (is_cond_directive(state->line_info.next)) {
-            TokenArr arr = TokenArr_create_empty();
+            PreprocTokenArr arr = PreprocTokenArr_create_empty();
             const bool tokenize_res = tokenize_line(&arr,
                                                     state->err,
                                                     &state->line_info);
@@ -144,7 +142,7 @@ static bool skip_until_next_cond(PreprocState* state,
             }
 
             const bool stat_res = preproc_statement(state, &arr, info);
-            TokenArr_free_preproc(&arr);
+            PreprocTokenArr_free(&arr);
             return stat_res;
         }
     }
@@ -171,16 +169,17 @@ static bool handle_preproc_if(PreprocState* state,
 }
 
 static bool handle_ifdef_ifndef(PreprocState* state,
-                                TokenArr* arr,
+                                PreprocTokenArr* arr,
                                 bool is_ifndef,
                                 const ArchTypeInfo* info) {
     assert(arr);
     assert(arr->kinds[0] == TOKEN_PP_STRINGIFY);
+    assert(arr->kinds[1] == TOKEN_IDENTIFIER);
     assert(
         (!is_ifndef
-         && Str_eq(StrBuf_as_str(&arr->vals[1].spelling), STR_LIT("ifdef")))
+         && Str_eq(StrBuf_as_str(&arr->identifiers[arr->val_indices[1]]), STR_LIT("ifdef")))
         || (is_ifndef
-            && Str_eq(StrBuf_as_str(&arr->vals[1].spelling),
+            && Str_eq(StrBuf_as_str(&arr->identifiers[arr->val_indices[1]]),
                       STR_LIT("ifndef"))));
     const SourceLoc loc = arr->locs[1];
 
@@ -207,7 +206,7 @@ static bool handle_ifdef_ifndef(PreprocState* state,
         return false;
     }
 
-    const StrBuf* macro_spell = &arr->vals[2].spelling;
+    const StrBuf* macro_spell = &arr->identifiers[arr->val_indices[2]];
     assert(macro_spell);
     assert(StrBuf_valid(macro_spell));
     const PreprocMacro* macro = find_preproc_macro(state, macro_spell);
@@ -217,7 +216,7 @@ static bool handle_ifdef_ifndef(PreprocState* state,
 }
 
 static bool handle_else_elif(PreprocState* state,
-                             TokenArr* arr,
+                             PreprocTokenArr* arr,
                              bool is_else,
                              const ArchTypeInfo* info) {
     assert(arr->len > 1);
@@ -258,7 +257,7 @@ static bool handle_else_elif(PreprocState* state,
 }
 
 static bool handle_include(PreprocState* state,
-                           TokenArr* arr,
+                           PreprocTokenArr* arr,
                            const ArchTypeInfo* info) {
     assert(arr->len >= 2);
     if (arr->len == 2 || arr->len > 3) {
@@ -276,7 +275,7 @@ static bool handle_include(PreprocState* state,
 
     // TODO: "<" ">" string literals
     if (arr->kinds[2] == TOKEN_STRING_LITERAL) {
-        StrLit filename = convert_to_str_lit(&arr->vals[2].spelling);
+        StrLit filename = convert_to_str_lit(&arr->str_lits[arr->val_indices[2]]);
         if (filename.kind != STR_LIT_DEFAULT) {
             PreprocErr_set(state->err,
                            PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL,
@@ -298,11 +297,10 @@ static bool handle_include(PreprocState* state,
 }
 
 static bool preproc_statement(PreprocState* state,
-                              TokenArr* arr,
+                              PreprocTokenArr* arr,
                               const ArchTypeInfo* info) {
     assert(arr);
     assert(arr->kinds);
-    assert(arr->vals);
     assert(arr->locs);
     assert(arr->kinds[0] == TOKEN_PP_STRINGIFY);
     if (arr->len == 1) {
@@ -314,7 +312,7 @@ static bool preproc_statement(PreprocState* state,
         return false;
     }
 
-    const Str directive = StrBuf_as_str(&arr->vals[1].spelling);
+    const Str directive = StrBuf_as_str(&arr->identifiers[arr->val_indices[1]]);
     assert(Str_valid(directive));
 
     if (Str_eq(directive, STR_LIT("if"))) {
@@ -331,7 +329,8 @@ static bool preproc_statement(PreprocState* state,
     } else if (Str_eq(directive, STR_LIT("ifndef"))) {
         return handle_ifdef_ifndef(state, arr, true, info);
     } else if (Str_eq(directive, STR_LIT("define"))) {
-        const StrBuf spell = StrBuf_take(&arr->vals[2].spelling);
+        // TODO: if token after define is not identifier
+        const StrBuf spell = StrBuf_take(&arr->identifiers[arr->val_indices[2]]);
         PreprocMacro macro = parse_preproc_macro(arr, StrBuf_len(&spell), state->err);
         if (state->err->kind != PREPROC_ERR_NONE) {
             return false;
@@ -361,7 +360,7 @@ static bool preproc_statement(PreprocState* state,
             return false;
         }
 
-        PreprocState_remove_macro(state, &arr->vals[2].spelling);
+        PreprocState_remove_macro(state, &arr->identifiers[arr->val_indices[2]]);
     } else if (Str_eq(directive, STR_LIT("include"))) {
         return handle_include(state, arr, info);
     } else if (Str_eq(directive, STR_LIT("pragma"))) {

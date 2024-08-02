@@ -206,23 +206,32 @@ static void dump_identifier(AstDumper* d, Identifier* i) {
     dumper_print_node_head(d, "identifier", &i->info);
 
     add_indent(d);
-    dumper_println(d, "spelling: {Str}", StrBuf_as_str(&d->tokens.vals[i->info.token_idx].spelling));
+    const uint32_t val_idx = d->tokens.val_indices[i->info.token_idx];
+    dumper_println(d, "spelling: {Str}", StrBuf_as_str(&d->tokens.identifiers[val_idx]));
     remove_indent(d);
 }
 
-static void dump_value(AstDumper* d, const Value* val) {
+static void dump_int_val(AstDumper* d, const IntVal* val) {
+    dumper_print_str(d, "int_val:");
+
+    add_indent(d);
+
+    dumper_println(d, "type: {Str}", IntValKind_str(val->kind));
+    if (IntValKind_is_sint(val->kind)) {
+        dumper_println(d, "sint_val: {i64}", val->sint_val);
+    } else {
+        dumper_println(d, "uint_val: {u64}", val->uint_val);
+    }
+    remove_indent(d);
+}
+
+static void dump_float_val(AstDumper* d, const FloatVal* val) {
     dumper_print_str(d, "value:");
 
     add_indent(d);
 
-    dumper_println(d, "type: {Str}", ValueKind_str(val->kind));
-    if (ValueKind_is_sint(val->kind)) {
-        dumper_println(d, "sint_val: {i64}", val->sint_val);
-    } else if (ValueKind_is_uint(val->kind)) {
-        dumper_println(d, "uint_val: {u64}", val->uint_val);
-    } else {
-        dumper_println(d, "float_val: {floatg}", val->float_val);
-    }
+    dumper_println(d, "type: {Str}", FloatValKind_str(val->kind));
+    dumper_println(d, "val: {floatg}", val->val);
 
     remove_indent(d);
 }
@@ -233,16 +242,23 @@ static void dump_constant(AstDumper* d, const Constant* c) {
     dumper_print_node_head(d, "constant", &c->info);
 
     add_indent(d);
-    
-    const TokenVal* val = &d->tokens.vals[c->info.token_idx];
+
+    const uint32_t val_idx = d->tokens.val_indices[c->info.token_idx];
     switch (c->kind) {
         case CONSTANT_ENUM: {
-            const Str spell = StrBuf_as_str(&val->spelling);
+            assert(d->tokens.kinds[c->info.token_idx] == TOKEN_IDENTIFIER);
+            const Str spell = StrBuf_as_str(&d->tokens.identifiers[val_idx]);
             dumper_println(d, "enum: {Str}", spell);
             break;
         }
         case CONSTANT_VAL: {
-            dump_value(d, &val->val);
+            bool is_int_val = d->tokens.kinds[c->info.token_idx] == TOKEN_I_CONSTANT;
+            if (is_int_val) {
+                dump_int_val(d, &d->tokens.int_consts[val_idx]);
+            } else {
+                assert(d->tokens.kinds[c->info.token_idx] == TOKEN_F_CONSTANT);
+                dump_float_val(d, &d->tokens.float_consts[val_idx]);
+            }
             break;
         }
     }
@@ -265,7 +281,8 @@ static void dump_string_literal(AstDumper* d, const StringLiteralNode* l) {
     dumper_print_node_head(d, "string_literal", &l->info);
 
     add_indent(d);
-    const StrLit* lit = &d->tokens.vals[l->info.token_idx].str_lit;
+    const uint32_t val_idx = d->tokens.val_indices[l->info.token_idx];
+    const StrLit* lit = &d->tokens.str_lits[val_idx];
     dump_str_lit(d, lit);
     remove_indent(d);
 }

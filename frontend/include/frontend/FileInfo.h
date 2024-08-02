@@ -16,7 +16,7 @@ void FileInfo_add(FileInfo* i, const StrBuf* path);
 
 Str FileInfo_get(const FileInfo* i, uint32_t file_idx);
 
-void FileInfo_free(FileInfo* i);
+void FileInfo_free(const FileInfo* i);
 
 #endif
 

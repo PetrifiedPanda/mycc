@@ -2,7 +2,6 @@
 #define MYCC_FRONTEND_TOKEN_H
 
 #include <stdbool.h>
-#include <stddef.h>
 
 #include "util/StrBuf.h"
 
@@ -28,22 +27,24 @@ typedef struct SourceLoc {
     FileLoc file_loc;
 } SourceLoc;
 
-typedef union TokenVal {
-    StrBuf spelling;
-    Value val;
-    StrLit str_lit;
-} TokenVal;
-
 typedef struct TokenArr {
     uint32_t len, cap;
     uint8_t* kinds;
-    TokenVal* vals;
+    uint32_t* val_indices;
     SourceLoc* locs;
+    StrBuf* identifiers;
+    IntVal* int_consts;
+    FloatVal* float_consts;
+    StrLit* str_lits;
+    uint32_t identifiers_len;
+    uint32_t int_consts_len;
+    uint32_t float_consts_len;
+    uint32_t str_lits_len;
 } TokenArr;
 
 TokenArr TokenArr_create_empty(void);
 
-void TokenArr_free(TokenArr* arr);
+void TokenArr_free(const TokenArr* arr);
 
 /**
  * @brief Gets a spelling for the given token_kind

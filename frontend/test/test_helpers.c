@@ -1,32 +1,44 @@
 #include "test_helpers.h"
 
-#include "util/mem.h"
-
 #include "testing/asserts.h"
 
 #include "frontend/preproc/preproc.h"
 
-PreprocRes tokenize(CStr file) {
+TestPreprocRes tokenize(CStr file) {
     PreprocErr err = PreprocErr_create();
     const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
     PreprocRes res = preproc(file, 0, NULL, &info, &err);
     ASSERT(res.toks.len != 0);
     ASSERT_NOT_NULL(res.file_info.paths);
     ASSERT(err.kind == PREPROC_ERR_NONE);
-    ASSERT(convert_preproc_tokens(&res.toks, &info, &err));
+    TokenArr toks = convert_preproc_tokens(&res.toks, &info, &err);
+    ASSERT(toks.len != 0);
     ASSERT(err.kind == PREPROC_ERR_NONE);
-    return res;
+    return (TestPreprocRes){
+        .toks = toks,
+        .file_info = res.file_info,
+    };
 }
 
-PreprocRes tokenize_string(Str str, Str file) {
+TestPreprocRes tokenize_string(Str str, Str file) {
     PreprocErr err = PreprocErr_create();
     const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
-    PreprocRes res = preproc_string(str, file, 0, NULL, &info, &err);
+    PreprocRes res = preproc_string(str, file,
+                                    &(PreprocInitialStrings){0},
+                                    0, NULL, &info, &err);
     ASSERT(res.toks.len != 0);
     ASSERT(err.kind == PREPROC_ERR_NONE);
-    ASSERT(convert_preproc_tokens(&res.toks, &info, &err));
+    TokenArr toks = convert_preproc_tokens(&res.toks, &info, &err);
+    ASSERT(toks.len != 0);
     ASSERT(err.kind == PREPROC_ERR_NONE);
-    return res;
+    return (TestPreprocRes){
+        .toks = toks,
+        .file_info = res.file_info,
+    };
+}
+void TestPreprocRes_free(const TestPreprocRes* res) {
+    TokenArr_free(&res->toks);
+    FileInfo_free(&res->file_info);
 }
 
 void test_compare_files(CStr got_file, CStr ex_file) {

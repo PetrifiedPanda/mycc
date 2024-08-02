@@ -9,6 +9,7 @@ TEST(unterminated_literal) {
         PreprocErr err = PreprocErr_create();
         PreprocRes res = preproc_string(STR_LIT("\"this is a string literal"),
                                         STR_LIT("file.c"),
+                                        &(PreprocInitialStrings){0},
                                         0,
                                         NULL,
                                         &info,
@@ -30,6 +31,7 @@ TEST(unterminated_literal) {
         PreprocRes res = preproc_string(
             STR_LIT("int n = 10;\nchar c = \'char literal that cannot exist"),
             STR_LIT("file.c"),
+            &(PreprocInitialStrings){0},
             0,
             NULL,
             &info,
@@ -54,6 +56,7 @@ TEST(invalid_identifier) {
     const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
     PreprocRes res = preproc_string(STR_LIT("int in$valid = 10;"),
                                     STR_LIT("file.c"),
+                                    &(PreprocInitialStrings){0},
                                     0,
                                     NULL,
                                     &info,
@@ -77,6 +80,7 @@ TEST(invalid_number) {
     const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
     PreprocRes res = preproc_string(STR_LIT("int 10in$valid = 10;"),
                                     STR_LIT("file.c"),
+                                    &(PreprocInitialStrings){0},
                                     0,
                                     NULL,
                                     &info,
@@ -100,12 +104,14 @@ TEST(preproc_token) {
     const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
     PreprocRes res = preproc_string(STR_LIT("int an_int = a ## b;"),
                                     STR_LIT("file.c"),
+                                    &(PreprocInitialStrings){0},
                                     0,
                                     NULL,
                                     &info,
                                     &err);
     ASSERT(res.toks.len != 0);
-    ASSERT(!convert_preproc_tokens(&res.toks, &info, &err));
+    TokenArr tokens = convert_preproc_tokens(&res.toks, &info, &err);
+    ASSERT(tokens.len == 0);
 
     ASSERT(err.kind == PREPROC_ERR_MISPLACED_PREPROC_TOKEN);
 

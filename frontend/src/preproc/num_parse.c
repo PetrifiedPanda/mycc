@@ -20,13 +20,13 @@ ParseFloatConstRes parse_float_const(Str spell) {
             .err.kind = FLOAT_CONST_ERR_TOO_LARGE,
         };
     }
-    ValueKind t = VALUE_DOUBLE;
+    FloatValKind t = FLOAT_VAL_DOUBLE;
     assert(spell.data <= suffix);
     if (suffix != end) {
         if (*suffix == 'f' || *suffix == 'F') {
-            t = VALUE_FLOAT;
+            t = FLOAT_VAL_FLOAT;
         } else if (*suffix == 'l' || *suffix == 'L') {
-            t = VALUE_LDOUBLE;
+            t = FLOAT_VAL_LDOUBLE;
         } else {
             return (ParseFloatConstRes){
                 .err =
@@ -46,7 +46,7 @@ ParseFloatConstRes parse_float_const(Str spell) {
 
     return (ParseFloatConstRes){
         .err.kind = FLOAT_CONST_ERR_NONE,
-        .res = Value_create_float(t, val),
+        .res = FloatVal_create(t, val),
     };
 }
 
@@ -81,15 +81,15 @@ typedef struct {
 
 static IntTypeAttrs get_int_attrs(Str suffix, IntConstErr* err);
 
-static ValueKind get_value_type_dec(IntTypeAttrs attrs,
-                                    uintmax_t val,
-                                    const ArchTypeInfo* type_info,
-                                    IntConstErr* err);
+static IntValKind get_value_type_dec(IntTypeAttrs attrs,
+                                     uintmax_t val,
+                                     const ArchTypeInfo* type_info,
+                                     IntConstErr* err);
 
-static ValueKind get_value_type_other(IntTypeAttrs attrs,
-                                      uintmax_t val,
-                                      const ArchTypeInfo* type_info,
-                                      IntConstErr* err);
+static IntValKind get_value_type_other(IntTypeAttrs attrs,
+                                       uintmax_t val,
+                                       const ArchTypeInfo* type_info,
+                                       IntConstErr* err);
 
 ParseIntConstRes parse_int_const(Str spell, const ArchTypeInfo* type_info) {
     const enum {
@@ -127,7 +127,7 @@ ParseIntConstRes parse_int_const(Str spell, const ArchTypeInfo* type_info) {
             .err = err,
         };
     }
-    const ValueKind kind = base == DEC
+    const IntValKind kind = base == DEC
                                ? get_value_type_dec(attrs, val, type_info, &err)
                                : get_value_type_other(attrs,
                                                       val,
@@ -140,8 +140,8 @@ ParseIntConstRes parse_int_const(Str spell, const ArchTypeInfo* type_info) {
     }
     return (ParseIntConstRes){
         .err.kind = INT_CONST_ERR_NONE,
-        .res = ValueKind_is_sint(kind) ? Value_create_sint(kind, (int64_t)val)
-                                       : Value_create_uint(kind, val),
+        .res = IntValKind_is_sint(kind) ? IntVal_create_sint(kind, (int64_t)val)
+                                       : IntVal_create_uint(kind, val),
     };
 }
 
@@ -271,24 +271,24 @@ static uintmax_t max_int(uintmax_t num_bits) {
     return int_pow2(num_bits - 1) - 1;
 }
 
-static uintmax_t get_max_int(const ArchTypeInfo* type_info, ValueKind kind) {
-    assert(kind == VALUE_UINT || kind == VALUE_ULINT || kind == VALUE_ULLINT
-           || kind == VALUE_INT || kind == VALUE_LINT || kind == VALUE_LLINT);
+static uintmax_t get_max_int(const ArchTypeInfo* type_info, IntValKind kind) {
+    assert(kind == INT_VAL_UINT || kind == INT_VAL_ULINT || kind == INT_VAL_ULLINT
+           || kind == INT_VAL_INT || kind == INT_VAL_LINT || kind == INT_VAL_LLINT);
 
     const ArchIntInfo* info = &type_info->int_info;
     const uint8_t bits_in_char = type_info->bits_in_char;
     switch (kind) {
-        case VALUE_INT:
+        case INT_VAL_INT:
             return max_int(bits_in_char * info->int_size);
-        case VALUE_UINT:
+        case INT_VAL_UINT:
             return max_uint(bits_in_char * info->int_size);
-        case VALUE_LINT:
+        case INT_VAL_LINT:
             return max_int(bits_in_char * info->lint_size);
-        case VALUE_ULINT:
+        case INT_VAL_ULINT:
             return max_uint(bits_in_char * info->lint_size);
-        case VALUE_LLINT:
+        case INT_VAL_LLINT:
             return max_int(bits_in_char * info->llint_size);
-        case VALUE_ULLINT:
+        case INT_VAL_ULLINT:
             return max_uint(bits_in_char * info->llint_size);
 
         default:
@@ -296,26 +296,26 @@ static uintmax_t get_max_int(const ArchTypeInfo* type_info, ValueKind kind) {
     }
 }
 
-static ValueKind get_value_type_unsigned(IntTypeAttrs attrs,
-                                         uintmax_t val,
-                                         const ArchTypeInfo* type_info) {
+static IntValKind get_value_type_unsigned(IntTypeAttrs attrs,
+                                          uintmax_t val,
+                                          const ArchTypeInfo* type_info) {
     assert(attrs.is_unsigned);
     assert(attrs.num_long <= 2);
 
     switch (attrs.num_long) {
         case 0:
-            if (val <= get_max_int(type_info, VALUE_UINT)) {
-                return VALUE_UINT;
+            if (val <= get_max_int(type_info, INT_VAL_UINT)) {
+                return INT_VAL_UINT;
             }
             FALLTHROUGH();
         case 1:
-            if (val <= get_max_int(type_info, VALUE_ULINT)) {
-                return VALUE_ULINT;
+            if (val <= get_max_int(type_info, INT_VAL_ULINT)) {
+                return INT_VAL_ULINT;
             }
             FALLTHROUGH();
         case 2:
-            if (val <= get_max_int(type_info, VALUE_ULLINT)) {
-                return VALUE_ULLINT;
+            if (val <= get_max_int(type_info, INT_VAL_ULLINT)) {
+                return INT_VAL_ULLINT;
             } else {
                 // unsigned will throw error in strotull
                 UNREACHABLE();
@@ -325,31 +325,31 @@ static ValueKind get_value_type_unsigned(IntTypeAttrs attrs,
     }
 }
 
-static ValueKind get_value_type_dec(IntTypeAttrs attrs,
-                                    uintmax_t val,
-                                    const ArchTypeInfo* type_info,
-                                    IntConstErr* err) {
+static IntValKind get_value_type_dec(IntTypeAttrs attrs,
+                                     uintmax_t val,
+                                     const ArchTypeInfo* type_info,
+                                     IntConstErr* err) {
     assert(attrs.num_long <= 2);
     if (attrs.is_unsigned) {
         return get_value_type_unsigned(attrs, val, type_info);
     } else {
         switch (attrs.num_long) {
             case 0:
-                if (val <= get_max_int(type_info, VALUE_INT)) {
-                    return VALUE_INT;
+                if (val <= get_max_int(type_info, INT_VAL_INT)) {
+                    return INT_VAL_INT;
                 }
                 FALLTHROUGH();
             case 1:
-                if (val <= get_max_int(type_info, VALUE_LINT)) {
-                    return VALUE_LINT;
+                if (val <= get_max_int(type_info, INT_VAL_LINT)) {
+                    return INT_VAL_LINT;
                 }
                 FALLTHROUGH();
             case 2:
-                if (val <= get_max_int(type_info, VALUE_LLINT)) {
-                    return VALUE_LLINT;
+                if (val <= get_max_int(type_info, INT_VAL_LLINT)) {
+                    return INT_VAL_LLINT;
                 } else {
                     err->kind = INT_CONST_ERR_TOO_LARGE;
-                    return VALUE_UINT;
+                    return INT_VAL_UINT;
                 }
             default:
                 UNREACHABLE();
@@ -357,10 +357,10 @@ static ValueKind get_value_type_dec(IntTypeAttrs attrs,
     }
 }
 
-static ValueKind get_value_type_other(IntTypeAttrs attrs,
-                                      uintmax_t val,
-                                      const ArchTypeInfo* type_info,
-                                      IntConstErr* err) {
+static IntValKind get_value_type_other(IntTypeAttrs attrs,
+                                       uintmax_t val,
+                                       const ArchTypeInfo* type_info,
+                                       IntConstErr* err) {
     assert(attrs.num_long <= 2);
 
     if (attrs.is_unsigned) {
@@ -368,27 +368,27 @@ static ValueKind get_value_type_other(IntTypeAttrs attrs,
     } else {
         switch (attrs.num_long) {
             case 0:
-                if (val <= get_max_int(type_info, VALUE_INT)) {
-                    return VALUE_INT;
-                } else if (val <= get_max_int(type_info, VALUE_UINT)) {
-                    return VALUE_UINT;
+                if (val <= get_max_int(type_info, INT_VAL_INT)) {
+                    return INT_VAL_INT;
+                } else if (val <= get_max_int(type_info, INT_VAL_UINT)) {
+                    return INT_VAL_UINT;
                 }
                 FALLTHROUGH();
             case 1:
-                if (val <= get_max_int(type_info, VALUE_LINT)) {
-                    return VALUE_LINT;
-                } else if (val <= get_max_int(type_info, VALUE_ULINT)) {
-                    return VALUE_ULINT;
+                if (val <= get_max_int(type_info, INT_VAL_LINT)) {
+                    return INT_VAL_LINT;
+                } else if (val <= get_max_int(type_info, INT_VAL_ULINT)) {
+                    return INT_VAL_ULINT;
                 }
                 FALLTHROUGH();
             case 2:
-                if (val <= get_max_int(type_info, VALUE_LLINT)) {
-                    return VALUE_LLINT;
-                } else if (val <= get_max_int(type_info, VALUE_ULLINT)) {
-                    return VALUE_ULLINT;
+                if (val <= get_max_int(type_info, INT_VAL_LLINT)) {
+                    return INT_VAL_LLINT;
+                } else if (val <= get_max_int(type_info, INT_VAL_ULLINT)) {
+                    return INT_VAL_ULLINT;
                 } else {
                     err->kind = INT_CONST_ERR_TOO_LARGE;
-                    return VALUE_INT;
+                    return INT_VAL_INT;
                 }
             default:
                 UNREACHABLE();
@@ -396,8 +396,8 @@ static ValueKind get_value_type_other(IntTypeAttrs attrs,
     }
 }
 
-static ValueKind get_uint_leastn_t_type(uint32_t n,
-                                        const ArchTypeInfo* type_info);
+static IntValKind get_uint_leastn_t_type(uint32_t n,
+                                         const ArchTypeInfo* type_info);
 
 ParseCharConstRes parse_char_const(Str spell, const ArchTypeInfo* type_info) {
     assert(spell.data);
@@ -405,15 +405,15 @@ ParseCharConstRes parse_char_const(Str spell, const ArchTypeInfo* type_info) {
 
     Str spell_it = spell;
 
-    ValueKind kind;
+    IntValKind kind;
     switch (Str_at(spell_it, 0)) {
         case '\'':
-            kind = VALUE_INT;
+            kind = INT_VAL_INT;
             spell_it = Str_incr(spell_it);
             break;
         case 'u':
             if (Str_at(spell_it, 1) == '8') {
-                kind = VALUE_UCHAR;
+                kind = INT_VAL_UCHAR;
             } else if (Str_at(spell_it, 1) == '\'') {
                 kind = get_uint_leastn_t_type(16, type_info);
             } else {
@@ -473,7 +473,7 @@ ParseCharConstRes parse_char_const(Str spell, const ArchTypeInfo* type_info) {
             };
     }
 
-    if (ValueKind_is_uint(kind)) {
+    if (IntValKind_is_uint(kind)) {
         uintmax_t val;
         switch (Str_at(spell_it, 0)) {
             case '\\':
@@ -541,10 +541,10 @@ ParseCharConstRes parse_char_const(Str spell, const ArchTypeInfo* type_info) {
 
         return (ParseCharConstRes){
             .err.kind = CHAR_CONST_ERR_NONE,
-            .res = Value_create_uint(kind, val),
+            .res = IntVal_create_uint(kind, val),
         };
     } else {
-        assert(ValueKind_is_sint(kind));
+        assert(IntValKind_is_sint(kind));
         intmax_t val;
         switch (Str_at(spell_it, 0)) {
             case '\\':
@@ -612,7 +612,7 @@ ParseCharConstRes parse_char_const(Str spell, const ArchTypeInfo* type_info) {
 
         return (ParseCharConstRes){
             .err.kind = CHAR_CONST_ERR_NONE,
-            .res = Value_create_sint(kind, val),
+            .res = IntVal_create_sint(kind, val),
         };
     }
 }
@@ -642,22 +642,22 @@ void CharConstErr_print(File out, const CharConstErr* err) {
     File_putc('\n', out);
 }
 
-static ValueKind get_uint_leastn_t_type(uint32_t n,
-                                        const ArchTypeInfo* type_info) {
+static IntValKind get_uint_leastn_t_type(uint32_t n,
+                                         const ArchTypeInfo* type_info) {
     assert(n == 8 || n == 16 || n == 32 || n == 64);
 
     const ArchIntInfo* info = &type_info->int_info;
     const uint8_t bits_in_char = type_info->bits_in_char;
     if (bits_in_char >= n) {
-        return VALUE_UCHAR;
+        return INT_VAL_UCHAR;
     } else if ((uint32_t)bits_in_char * info->sint_size >= n) {
-        return VALUE_USHORT;
+        return INT_VAL_USHORT;
     } else if ((uint32_t)bits_in_char * info->int_size >= n) {
-        return VALUE_UINT;
+        return INT_VAL_UINT;
     } else if ((uint32_t)bits_in_char * info->lint_size >= n) {
-        return VALUE_ULINT;
+        return INT_VAL_ULINT;
     } else if ((uint32_t)bits_in_char * info->llint_size >= n) {
-        return VALUE_ULLINT;
+        return INT_VAL_ULLINT;
     }
     UNREACHABLE();
 }

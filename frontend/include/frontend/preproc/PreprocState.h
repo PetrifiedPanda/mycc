@@ -8,6 +8,7 @@
 
 #include "frontend/FileInfo.h"
 
+#include "PreprocTokenArr.h"
 #include "PreprocErr.h"
 
 typedef struct LineInfo {
@@ -36,7 +37,7 @@ typedef struct FileManager {
 } FileManager;
 
 typedef struct PreprocState {
-    TokenArr res;
+    PreprocTokenArr res;
 
     LineInfo line_info;
 

@@ -41,8 +41,15 @@
         }                                                                      \
     } while (0)
 
-PreprocRes tokenize(CStr file);
-PreprocRes tokenize_string(Str str, Str file);
+typedef struct TestPreprocRes {
+    TokenArr toks;
+    FileInfo file_info;
+} TestPreprocRes;
+
+TestPreprocRes tokenize(CStr file);
+TestPreprocRes tokenize_string(Str str, Str file);
+
+void TestPreprocRes_free(const TestPreprocRes* res);
 
 void test_compare_files(CStr got_file, CStr ex_file);
 

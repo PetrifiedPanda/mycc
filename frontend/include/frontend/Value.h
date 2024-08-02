@@ -9,41 +9,48 @@
 #include "util/Str.h"
 
 typedef enum {
-    VALUE_CHAR,
-    VALUE_SHORT,
-    VALUE_INT,
-    VALUE_LINT,
-    VALUE_LLINT,
-    VALUE_UCHAR,
-    VALUE_USHORT,
-    VALUE_UINT,
-    VALUE_ULINT,
-    VALUE_ULLINT,
-    VALUE_FLOAT,
-    VALUE_DOUBLE,
-    VALUE_LDOUBLE,
-} ValueKind;
+    INT_VAL_CHAR,
+    INT_VAL_SHORT,
+    INT_VAL_INT,
+    INT_VAL_LINT,
+    INT_VAL_LLINT,
+    INT_VAL_UCHAR,
+    INT_VAL_USHORT,
+    INT_VAL_UINT,
+    INT_VAL_ULINT,
+    INT_VAL_ULLINT,
+} IntValKind;
 
-typedef struct Value {
-    ValueKind kind;
+typedef struct IntVal {
+    IntValKind kind;
     union {
         int64_t sint_val;
-        uint64_t uint_val;
-        double float_val;
+        uint64_t uint_val;  
     };
-} Value;
+} IntVal;
+
+typedef enum {
+    FLOAT_VAL_FLOAT,
+    FLOAT_VAL_DOUBLE,
+    FLOAT_VAL_LDOUBLE,
+} FloatValKind;
+
+typedef struct FloatVal {
+    FloatValKind kind;
+    double val;
+} FloatVal;
 
 static_assert(sizeof(double) * CHAR_BIT == 64, "Double is not 64 bits");
 
-Value Value_create_sint(ValueKind k, int64_t val);
-Value Value_create_uint(ValueKind k, uint64_t val);
-Value Value_create_float(ValueKind k, double val);
+IntVal IntVal_create_sint(IntValKind k, int64_t val);
+IntVal IntVal_create_uint(IntValKind k, uint64_t val);
+FloatVal FloatVal_create(FloatValKind k, double val);
 
-bool ValueKind_is_sint(ValueKind k);
-bool ValueKind_is_uint(ValueKind k);
-bool ValueKind_is_float(ValueKind k);
+bool IntValKind_is_sint(IntValKind k);
+bool IntValKind_is_uint(IntValKind k);
 
-Str ValueKind_str(ValueKind k);
+Str IntValKind_str(IntValKind k);
+Str FloatValKind_str(FloatValKind k);
 
 #endif
 

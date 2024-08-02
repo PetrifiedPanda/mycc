@@ -23,7 +23,9 @@ void ParserState_free(ParserState* s);
 bool ParserState_accept(ParserState* s, TokenKind expected);
 void ParserState_accept_it(ParserState* s);
 
-Value ParserState_curr_val(const ParserState* s);
+IntVal ParserState_curr_int_val(const ParserState* s);
+FloatVal ParserState_curr_float_val(const ParserState* s);
+
 Str ParserState_curr_spell(const ParserState* s);
 const StrBuf* ParserState_curr_spell_buf(const ParserState* s);
 TokenKind ParserState_curr_kind(const ParserState* s);

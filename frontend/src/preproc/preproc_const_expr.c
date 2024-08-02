@@ -68,12 +68,13 @@ static PreprocConstExprVal evaluate_preproc_primary_expr(uint32_t* it,
         case TOKEN_I_CONSTANT: {
             PreprocConstExprVal res;
             res.valid = true;
-            if (ValueKind_is_sint(arr->vals[*it].val.kind)) {
+            const uint32_t val_idx = arr->val_indices[*it];
+            if (IntValKind_is_sint(arr->int_consts[val_idx].kind)) {
                 res.is_signed = true;
-                res.sint_val = arr->vals[*it].val.sint_val;
+                res.sint_val = arr->int_consts[val_idx].sint_val;
             } else {
                 res.is_signed = false;
-                res.uint_val = arr->vals[*it].val.uint_val;
+                res.uint_val = arr->int_consts[val_idx].uint_val;
             }
             ++*it;
             return res;
@@ -469,22 +470,22 @@ static PreprocConstExprVal evaluate_preproc_cond_expr(uint32_t* it,
     return curr_res;
 }
 
-static void remove_non_preproc_tokens(TokenArr* arr, uint32_t limit) {
-    for (uint32_t i = 2; i < limit; ++i) {
-        if (arr->kinds[i] == TOKEN_IDENTIFIER) {
-            StrBuf_free(&arr->vals[i].spelling);
-        }
-    }
-    arr->len = 2;
-}
+//static void remove_non_preproc_tokens(TokenArr* arr, uint32_t limit) {
+//    for (uint32_t i = 2; i < limit; ++i) {
+//        if (arr->kinds[i] == TOKEN_IDENTIFIER) {
+//            StrBuf_free(&arr->vals[i].spelling);
+//        }
+//    }
+//    arr->len = 2;
+//}
 
 PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
-                                                TokenArr* arr,
+                                                PreprocTokenArr* arr,
                                                 const ArchTypeInfo* info,
                                                 PreprocErr* err) {
     for (uint32_t i = 2; i < arr->len; ++i) {
         if (arr->kinds[i] == TOKEN_IDENTIFIER
-            && Str_eq(StrBuf_as_str(&arr->vals[i].spelling), STR_LIT("defined"))) {
+            && Str_eq(StrBuf_as_str(&arr->identifiers[arr->val_indices[i]]), STR_LIT("defined"))) {
             if (i == arr->len - 1) {
                 // TODO: error
                 return (PreprocConstExprRes){
@@ -512,7 +513,7 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
             }
 
             const bool has_macro = find_preproc_macro(state,
-                                                      &arr->vals[it].spelling)
+                                                      &arr->identifiers[arr->val_indices[it]])
                                    != NULL;
             ++it;
 
@@ -530,18 +531,17 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
             ++it;
             const SourceLoc loc = arr->locs[i];
             // TODO: is this correct
-            for (uint32_t j = i; j < it; ++j) {
-                StrBuf_free(&arr->vals[j].spelling);
-            }
-            StrBuf spell = StrBuf_create(has_macro ? STR_LIT("1")
-                                                   : STR_LIT("0"));
+            //for (uint32_t j = i; j < it; ++j) {
+            //    StrBuf_free(&arr->vals[j].spelling);
+            //}
+            Str spell = has_macro ? STR_LIT("1") : STR_LIT("0");
             arr->kinds[i] = TOKEN_I_CONSTANT;
-            arr->vals[i].spelling = spell;
+            arr->val_indices[i] = PreprocTokenArr_add_int_const(arr, spell);
             arr->locs[i] = loc;
             
             const uint32_t len = arr->len - it;
             memmove(arr->kinds + i + 1, arr->kinds + it, sizeof *arr->kinds * len);
-            memmove(arr->vals + i + 1, arr->vals + it, sizeof *arr->vals * len);
+            memmove(arr->val_indices + i + 1, arr->val_indices + it, sizeof *arr->val_indices * len);
             memmove(arr->locs + i + 1, arr->locs + it, sizeof *arr->locs * len);
             arr->len -= it - i - 1;
         }
@@ -552,66 +552,61 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
             .valid = false,
         };
     }
-
-    for (uint32_t i = 2; i < arr->len; ++i) {
-        switch (arr->kinds[i]) {
-            case TOKEN_I_CONSTANT:
-                if (StrBuf_at(&arr->vals[i].spelling, 0) == '\'') {
-                    ParseCharConstRes res = parse_char_const(
-                        StrBuf_as_str(&arr->vals[i].spelling),
-                        info);
-                    if (res.err.kind != CHAR_CONST_ERR_NONE) {
-                        remove_non_preproc_tokens(arr, i);
-                        PreprocErr_set(err, PREPROC_ERR_CHAR_CONST, arr->locs[i]);
-                        err->char_const_err = res.err;
-                        // TODO: do we need to take this
-                        err->constant_spell = arr->vals[i].spelling;
-                        return (PreprocConstExprRes){
-                            .valid = false,
-                        };
-                    }
-                    StrBuf_free(&arr->vals[i].spelling);
-                    arr->vals[i].val = res.res;
-                } else {
-                    ParseIntConstRes res = parse_int_const(
-                        StrBuf_as_str(&arr->vals[i].spelling),
-                        info);
-                    if (res.err.kind != INT_CONST_ERR_NONE) {
-                        remove_non_preproc_tokens(arr, i);
-                        PreprocErr_set(err, PREPROC_ERR_INT_CONST, arr->locs[i]);
-                        err->int_const_err = res.err;
-                        // TODO: do we need to take this
-                        err->constant_spell = arr->vals[i].spelling;
-                        return (PreprocConstExprRes){
-                            .valid = false,
-                        };
-                    }
-                    StrBuf_free(&arr->vals[i].spelling);
-                    arr->vals[i].val = res.res;
-                }
-                break;
-            case TOKEN_F_CONSTANT:
-            case TOKEN_IDENTIFIER:
-                remove_non_preproc_tokens(arr, i);
-                // TODO: error
+    TokenArr tokens = {
+        .len = arr->len,
+        .cap = arr->cap,
+        .kinds = arr->kinds,
+        .val_indices = arr->val_indices,
+        .locs = arr->locs,
+        .identifiers = arr->identifiers,
+        .int_consts = mycc_alloc(sizeof *tokens.int_consts * arr->int_consts_len),
+        .int_consts_len = arr->int_consts_len,
+    };
+    for (uint32_t i = 0; i < arr->int_consts_len; ++i) {
+        if (StrBuf_at(&arr->int_consts[i], 0) == '\'') {
+            ParseCharConstRes res = parse_char_const(
+                StrBuf_as_str(&arr->int_consts[i]),
+                info);
+            if (res.err.kind != CHAR_CONST_ERR_NONE) {
+                //remove_non_preproc_tokens(arr, i);
+                PreprocErr_set(err, PREPROC_ERR_CHAR_CONST, arr->locs[i]);
+                err->char_const_err = res.err;
+                // TODO: do we need to take this
+                err->constant_spell = arr->int_consts[i];
                 return (PreprocConstExprRes){
                     .valid = false,
                 };
-            default:
-                break;
+            }
+            tokens.int_consts[i] = res.res;
+        } else {
+            ParseIntConstRes res = parse_int_const(
+                StrBuf_as_str(&arr->int_consts[i]),
+                info);
+            if (res.err.kind != INT_CONST_ERR_NONE) {
+                //remove_non_preproc_tokens(arr, i);
+                PreprocErr_set(err, PREPROC_ERR_INT_CONST, arr->locs[i]);
+                err->int_const_err = res.err;
+                // TODO: do we need to take this
+                err->constant_spell = arr->int_consts[i];
+                return (PreprocConstExprRes){
+                    .valid = false,
+                };
+            }
+            tokens.int_consts[i] = res.res;
         }
     }
+    // TODO: need to check check for F_CONSTANT and IDENTIFIERs
 
     uint32_t i = 2;
-    PreprocConstExprVal val = evaluate_preproc_cond_expr(&i, arr, err);
+    PreprocConstExprVal val = evaluate_preproc_cond_expr(&i, &tokens, err);
     if (!val.valid) {
-        remove_non_preproc_tokens(arr, arr->len);
+        //remove_non_preproc_tokens(arr, arr->len);
         return (PreprocConstExprRes){
             .valid = false,
         };
     }
     assert(i == arr->len);
-    remove_non_preproc_tokens(arr, arr->len);
+    //remove_non_preproc_tokens(arr, arr->len);
     return (PreprocConstExprRes){
         .valid = true,
         .res = PreprocConstExprVal_is_nonzero(&val),

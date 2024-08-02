@@ -11,7 +11,7 @@ typedef struct PreprocConstExprRes {
 } PreprocConstExprRes;
 
 PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
-                                                TokenArr* arr,
+                                                PreprocTokenArr* arr,
                                                 const ArchTypeInfo* info,
                                                 PreprocErr* err);
 

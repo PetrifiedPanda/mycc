@@ -40,11 +40,12 @@ void ParserErr_print(File out,
             const Str path = FileInfo_get(file_info, loc.file_idx);
             Str type_str = err->was_typedef_name ? STR_LIT("typedef name")
                                                  : STR_LIT("enum constant");
+            const uint32_t val_idx = tokens->val_indices[err->err_token_idx];
             File_printf(
                 out,
                 "Redefined symbol {Str} that was already defined as {Str} in "
                 "{Str}({u32}, {u32})",
-                StrBuf_as_str(&tokens->vals[err->err_token_idx].spelling),
+                StrBuf_as_str(&tokens->identifiers[val_idx]),
                 type_str,
                 path,
                 loc.file_loc.line,
@@ -90,13 +91,16 @@ void ParserErr_print(File out,
                         "Cannot add qualifiers to type {Str}",
                         TokenKind_str(err->incompatible_type));
             break;
-        case PARSER_ERR_EXPECTED_TYPEDEF_NAME:
+        case PARSER_ERR_EXPECTED_TYPEDEF_NAME: {
+            assert(tokens->kinds[err->err_token_idx] == TOKEN_IDENTIFIER);
+            const uint32_t val_idx = tokens->val_indices[err->err_token_idx];
             File_printf(
                 out,
                 "Expected a typedef name but got identifier with "
                 "spelling {Str}",
-                StrBuf_as_str(&tokens->vals[err->err_token_idx].spelling));
+                StrBuf_as_str(&tokens->identifiers[val_idx]));
             break;
+        }
         case PARSER_ERR_EMPTY_DIRECT_ABS_DECL:
             File_put_str("Empty abstract declarator", out);
             break;

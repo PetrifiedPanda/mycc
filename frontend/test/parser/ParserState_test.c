@@ -8,18 +8,23 @@ TEST(ParserState) {
     uint8_t kinds[] = {
         TOKEN_IDENTIFIER,
     };
-    TokenVal vals[] = {
-        {.spelling = STR_BUF_NON_HEAP("Test")},
+    uint32_t val_indices[] = {
+        0,
     };
     SourceLoc locs[] = {
         {0, {0, 0}},
+    };
+    StrBuf identifiers[] = {
+        STR_BUF_NON_HEAP("Test"),
     };
     TokenArr dummy_arr = {
         .len = 1,
         .cap = 1,
         .kinds = kinds,
-        .vals = vals,
+        .val_indices = val_indices,
         .locs = locs,
+        .identifiers_len = 1,
+        .identifiers = identifiers,
     };
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(&dummy_arr, &err);

@@ -26,7 +26,7 @@ Str FileInfo_get(const FileInfo* i, uint32_t file_idx) {
     return StrBuf_as_str(&i->paths[file_idx]);
 }
 
-void FileInfo_free(FileInfo* info) {
+void FileInfo_free(const FileInfo* info) {
     for (uint32_t i = 0; i < info->len; ++i) {
         StrBuf_free(&info->paths[i]);
     }

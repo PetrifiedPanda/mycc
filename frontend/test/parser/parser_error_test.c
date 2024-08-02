@@ -7,7 +7,7 @@
 #include "../test_helpers.h"
 
 TEST(redefine_typedef_error_2) {
-    PreprocRes preproc_res = tokenize_string(STR_LIT("typedef int MyInt;\n"
+    TestPreprocRes preproc_res = tokenize_string(STR_LIT("typedef int MyInt;\n"
                                                      "typedef char MyInt;\n"),
                                              STR_LIT("a file"));
 
@@ -17,16 +17,17 @@ TEST(redefine_typedef_error_2) {
     ASSERT_UINT(ast.len, 0);
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT(err.was_typedef_name);
+    const uint32_t val_idx = ast.toks.val_indices[err.err_token_idx];
     const Str got_spell = StrBuf_as_str(
-        &ast.toks.vals[err.err_token_idx].spelling);
+        &ast.toks.identifiers[val_idx]);
     ASSERT_STR(got_spell, STR_LIT("MyInt"));
 
     AST_free(&ast);
-    PreprocRes_free(&preproc_res);
+    TestPreprocRes_free(&preproc_res);
 }
 
 TEST(redefine_typedef_error) {
-    PreprocRes preproc_res = tokenize_string(STR_LIT("typedef int MyInt;"),
+    TestPreprocRes preproc_res = tokenize_string(STR_LIT("typedef int MyInt;"),
                                              STR_LIT("a file"));
 
     ParserErr err = ParserErr_create();
@@ -40,13 +41,14 @@ TEST(redefine_typedef_error) {
     ASSERT(!parse_declaration_specs(&s, &res, &found_typedef));
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT(err.was_typedef_name);
+    const uint32_t val_idx = s._arr.val_indices[err.err_token_idx];
     const Str got_spell = StrBuf_as_str(
-        &s._arr.vals[err.err_token_idx].spelling);
+        &s._arr.identifiers[val_idx]);
     ASSERT_STR(got_spell, STR_LIT("MyInt"));
 
     ParserState_free(&s);
     TokenArr_free(&s._arr);
-    PreprocRes_free(&preproc_res);
+    TestPreprocRes_free(&preproc_res);
 }
 
 typedef struct {
@@ -55,7 +57,7 @@ typedef struct {
 } ParserErrAndToks;
 
 static ParserErrAndToks parse_type_specs_until_fail(Str code) {
-    PreprocRes preproc_res = tokenize_string(code, STR_LIT("file.c"));
+    TestPreprocRes preproc_res = tokenize_string(code, STR_LIT("file.c"));
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(&preproc_res.toks, &err);
@@ -66,7 +68,7 @@ static ParserErrAndToks parse_type_specs_until_fail(Str code) {
         ;
 
     ParserState_free(&s);
-    PreprocRes_free(&preproc_res);
+    TestPreprocRes_free(&preproc_res);
     TypeSpecs_free_children(&specs);
     return (ParserErrAndToks){err, s._arr};
 }
@@ -123,7 +125,7 @@ TEST(type_spec_error) {
 }
 
 static void check_expected_semicolon_jump_statement(Str spell) {
-    PreprocRes preproc_res = tokenize_string(spell, STR_LIT("file.c"));
+    TestPreprocRes preproc_res = tokenize_string(spell, STR_LIT("file.c"));
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(&preproc_res.toks, &err);
@@ -137,7 +139,7 @@ static void check_expected_semicolon_jump_statement(Str spell) {
     ASSERT_TOKEN_KIND(ex_tokens_err->expected[0], TOKEN_SEMICOLON);
     ASSERT_TOKEN_KIND(ex_tokens_err->got, TOKEN_INVALID);
 
-    PreprocRes_free(&preproc_res);
+    TestPreprocRes_free(&preproc_res);
     ParserState_free(&s);
     TokenArr_free(&s._arr);
 }
@@ -152,7 +154,7 @@ TEST(jump_statement_error) {
 static void check_expected_semicolon(Str spell,
                                      TokenKind got,
                                      FileLoc err_loc) {
-    PreprocRes preproc_res = tokenize_string(spell, STR_LIT("file.c"));
+    TestPreprocRes preproc_res = tokenize_string(spell, STR_LIT("file.c"));
 
     ParserErr err = ParserErr_create();
     AST ast = parse_ast(&preproc_res.toks, &err);
@@ -167,7 +169,7 @@ static void check_expected_semicolon(Str spell,
     ASSERT_TOKEN_KIND(ex_tokens->expected[0], TOKEN_SEMICOLON);
     ASSERT_TOKEN_KIND(ex_tokens->got, got);
 
-    PreprocRes_free(&preproc_res);
+    TestPreprocRes_free(&preproc_res);
     AST_free(&ast);
 }
 

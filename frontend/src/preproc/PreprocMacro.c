@@ -10,7 +10,7 @@
 
 // TODO: make this also collect macro args?
 static uint32_t find_macro_end(PreprocState* state,
-                               const TokenArr* res,
+                               const PreprocTokenArr* res,
                                uint32_t macro_start,
                                const ArchTypeInfo* info) {
     uint32_t i = macro_start;
@@ -101,7 +101,7 @@ typedef struct {
 } ExpansionInfo;
 
 static ExpansionInfo expand_func_macro(PreprocState* state,
-                                       TokenArr* res,
+                                       PreprocTokenArr* res,
                                        const PreprocMacro* macro,
                                        uint32_t macro_idx,
                                        uint32_t macro_end,
@@ -109,22 +109,22 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
                                        const ArchTypeInfo* info);
 
 static ExpansionInfo expand_obj_macro(PreprocState* state,
-                                      TokenArr* res,
+                                      PreprocTokenArr* res,
                                       const PreprocMacro* macro,
                                       uint32_t macro_idx,
                                       ExpandedMacroStack* expanded,
                                       const ArchTypeInfo* info);
 
 static ExpansionInfo find_and_expand_macro(PreprocState* state,
-                                           TokenArr* res,
+                                           PreprocTokenArr* res,
                                            uint32_t i,
                                            ExpandedMacroStack* expanded,
                                            const ArchTypeInfo* info) {
     const TokenKind kind = res->kinds[i];
-    const StrBuf* spell = &res->vals[i].spelling;
     if (kind != TOKEN_IDENTIFIER) {
         return (ExpansionInfo){0, i + 1};
     }
+    const StrBuf* spell = &res->identifiers[res->val_indices[i]];
     const PreprocMacro* macro = find_preproc_macro(state, spell);
     if (macro == NULL || ExpandedMacroStack_contains(expanded, macro)) {
         return (ExpansionInfo){0, i + 1};
@@ -155,7 +155,7 @@ static ExpansionInfo find_and_expand_macro(PreprocState* state,
 }
 
 static ExpansionInfo expand_all_macros_in_range(PreprocState* state,
-                                                TokenArr* res,
+                                                PreprocTokenArr* res,
                                                 uint32_t start,
                                                 uint32_t end,
                                                 ExpandedMacroStack* expanded,
@@ -182,7 +182,7 @@ static ExpansionInfo expand_all_macros_in_range(PreprocState* state,
 }
 
 bool expand_all_macros(PreprocState* state,
-                       TokenArr* res,
+                       PreprocTokenArr* res,
                        uint32_t start,
                        const ArchTypeInfo* info) {
     ExpandedMacroStack expanded = ExpandedMacroStack_create();
@@ -221,7 +221,7 @@ static bool is_duplicate_arg(StrBuf* spell,
     return false;
 }
 
-static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
+static PreprocMacro parse_func_like_macro(PreprocTokenArr* arr, PreprocErr* err) {
     PreprocMacro res = {
         .is_func_macro = true,
     };
@@ -250,9 +250,15 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
                             &arg_spells_cap,
                             sizeof *arg_spells);
         }
-        arg_spells[res.num_args] = StrBuf_as_str(&arr->vals[it].spelling);
+        // TODO: spelling becomes invalid
+        const uint32_t spelling_val_idx = arr->val_indices[it];
+        mycc_printf("spelling_val_idx: {u32}, kind: {Str}, identifiers_len: {u32}\n", spelling_val_idx, TokenKind_str(arr->kinds[it]), arr->identifiers_len);
+        StrBuf* spelling = &arr->identifiers[spelling_val_idx];
+        arg_spells[res.num_args] = StrBuf_as_str(spelling);
+        mycc_printf("val_idx: {u32}\n", arr->val_indices[it]);
+        mycc_printf("arg_spell: {Str}\n", arg_spells[res.num_args]);
         assert(Str_valid(arg_spells[res.num_args]));
-        if (is_duplicate_arg(&arr->vals[it].spelling,
+        if (is_duplicate_arg(spelling,
                              &arr->locs[it],
                              arg_spells,
                              res.num_args,
@@ -313,11 +319,12 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
     for (uint32_t i = it + 1; i < arr->len; ++i) {
         const uint32_t res_idx = i - it - 1;
 
-        StrBuf* curr_spell = &arr->vals[i].spelling;
+        const uint32_t val_idx = arr->val_indices[i];
         const TokenKind kind = arr->kinds[i];
         uint8_t* res_kind = &res.kinds[res_idx];
         TokenValOrArg* res_val = &res.vals[res_idx];
         if (kind == TOKEN_IDENTIFIER) {
+            const StrBuf* curr_spell = &arr->identifiers[val_idx];
             if (res.is_variadic
                 && Str_eq(StrBuf_as_str(curr_spell), STR_LIT("__VA_ARGS__"))) {
                 *res_kind = TOKEN_INVALID;
@@ -334,11 +341,11 @@ static PreprocMacro parse_func_like_macro(TokenArr* arr, PreprocErr* err) {
                 res_val->arg_num = idx;
                 continue;
             }
+            //*curr_spell = StrBuf_null();
         }
 
         *res_kind = kind;
-        res_val->val = *curr_spell;
-        *curr_spell = StrBuf_null();
+        res_val->val_idx = val_idx;
     }
 
     // cast to make msvc happy (though it shouldn't be like this)
@@ -349,7 +356,7 @@ fail:
     return (PreprocMacro){0};
 }
 
-static PreprocMacro parse_object_like_macro(TokenArr* arr) {
+static PreprocMacro parse_object_like_macro(PreprocTokenArr* arr) {
     const uint32_t ex_len = arr->len - 3;
     PreprocMacro res = {
         .is_func_macro = false,
@@ -363,13 +370,12 @@ static PreprocMacro parse_object_like_macro(TokenArr* arr) {
     for (uint32_t i = 3; i < arr->len; ++i) {
         const uint32_t res_idx = i - 3;
         res.kinds[res_idx] = arr->kinds[i];
-        res.vals[res_idx].val = arr->vals[i].spelling;
-        arr->vals[i].spelling = StrBuf_null();
+        res.vals[res_idx].val_idx = arr->val_indices[i];
     }
     return res;
 }
 
-static bool is_func_like_macro(const TokenArr* arr, uint32_t name_len) {
+static bool is_func_like_macro(const PreprocTokenArr* arr, uint32_t name_len) {
     assert(arr->kinds[2] == TOKEN_IDENTIFIER);
     if (arr->len <= 3 || arr->kinds[3] != TOKEN_LBRACKET) {
         return false;
@@ -382,14 +388,14 @@ static bool is_func_like_macro(const TokenArr* arr, uint32_t name_len) {
     return bracket_idx == macro_name_idx + name_len;
 }
 
-PreprocMacro parse_preproc_macro(TokenArr* arr,
+PreprocMacro parse_preproc_macro(PreprocTokenArr* arr,
                                  uint32_t name_len,
                                  PreprocErr* err) {
     assert(arr);
     assert(arr->len >= 2);
     assert(arr->kinds[0] == TOKEN_PP_STRINGIFY);
     assert(arr->kinds[1] == TOKEN_IDENTIFIER);
-    assert(Str_eq(StrBuf_as_str(&arr->vals[1].spelling), STR_LIT("define")));
+    assert(Str_eq(StrBuf_as_str(&arr->identifiers[arr->val_indices[1]]), STR_LIT("define")));
 
     if (arr->len < 3) {
         assert(arr->len > 0);
@@ -409,31 +415,35 @@ PreprocMacro parse_preproc_macro(TokenArr* arr,
 }
 
 void PreprocMacro_free(PreprocMacro* m) {
-    for (uint32_t i = 0; i < m->expansion_len; ++i) {
-        if (m->kinds[i] != TOKEN_INVALID) {
-            StrBuf_free(&m->vals[i].val);
-        }
-    }
     mycc_free(m->kinds);
     mycc_free(m->vals);
 }
 
-static TokenArr collect_until(TokenArr* arr, uint32_t start, uint32_t end) {
+static PreprocTokenArr collect_until(PreprocTokenArr* arr, uint32_t start, uint32_t end) {
     const uint32_t len = end - start;
-    TokenArr res = len == 0 ? TokenArr_create_empty()
-                            : (TokenArr){
-                                .len = len,
-                                .cap = len,
-                                .kinds = mycc_alloc(sizeof *res.kinds * len),
-                                .vals = mycc_alloc(sizeof *res.vals * len),
-                                .locs = mycc_alloc(sizeof *res.locs * len),
-                            };
+    PreprocTokenArr res = {
+        .identifiers = arr->identifiers,
+        .int_consts = arr->int_consts,
+        .float_consts = arr->float_consts,
+        .str_lits = arr->str_lits,
+        .identifiers_len = arr->identifiers_len,
+        .int_consts_len = arr->int_consts_len,
+        .float_consts_len = arr->float_consts_len,
+        .str_lits_len = arr->str_lits_len,
+    };
+
+    if (len != 0) {
+        res.len = len;
+        res.cap = len;
+        res.kinds = mycc_alloc(sizeof *res.kinds * len);
+        res.val_indices = mycc_alloc(sizeof *res.val_indices * len);
+        res.locs = mycc_alloc(sizeof *res.locs * len);
+    }
 
     for (uint32_t i = 0; i < len; ++i) {
         const uint32_t arr_it = start + i;
         res.kinds[i] = arr->kinds[arr_it];
-        res.vals[i].spelling = arr->vals[arr_it].spelling;
-        arr->vals[arr_it].spelling = StrBuf_null();
+        res.val_indices[i] = arr->val_indices[arr_it];
         res.locs[i] = arr->locs[arr_it];
     }
     return res;
@@ -446,7 +456,7 @@ static TokenArr collect_until(TokenArr* arr, uint32_t start, uint32_t end) {
  *
  * @return The macro argument given at the start of this pointer
  */
-static TokenArr collect_macro_arg(TokenArr* arr, uint32_t it, uint32_t end) {
+static PreprocTokenArr collect_macro_arg(PreprocTokenArr* arr, uint32_t it, uint32_t end) {
     uint32_t num_open_brackets = 0;
     uint32_t arg_start = it;
     while (it != end
@@ -465,12 +475,18 @@ static TokenArr collect_macro_arg(TokenArr* arr, uint32_t it, uint32_t end) {
 
 typedef struct {
     uint32_t len;
-    TokenArr* arrs;
+    PreprocTokenArr* arrs;
 } MacroArgs;
+
+static void PreprocTokenArr_free_only_tokens(const PreprocTokenArr* arr) {
+    mycc_free(arr->kinds);
+    mycc_free(arr->val_indices);
+    mycc_free(arr->locs);
+}
 
 static void MacroArgs_free(MacroArgs* args) {
     for (uint32_t i = 0; i < args->len; ++i) {
-        TokenArr_free_preproc(&args->arrs[i]);
+        PreprocTokenArr_free_only_tokens(&args->arrs[i]);
     }
     mycc_free(args->arrs);
 }
@@ -487,7 +503,7 @@ static void MacroArgs_free(MacroArgs* args) {
  * @return Pointer to #expected_args token_arrs representing the arguments of
  *         this macro call
  */
-static MacroArgs collect_macro_args(TokenArr* arr,
+static MacroArgs collect_macro_args(PreprocTokenArr* arr,
                                     uint32_t args_start,
                                     uint32_t end,
                                     uint32_t expected_args,
@@ -514,7 +530,7 @@ static MacroArgs collect_macro_args(TokenArr* arr,
                 || (is_variadic && res.len == expected_args)) {
                 break;
             } else {
-                StrBuf_free(&arr->vals[it].spelling);
+                //StrBuf_free(&arr->vals[it].spelling);
                 ++it;
             }
         }
@@ -522,7 +538,7 @@ static MacroArgs collect_macro_args(TokenArr* arr,
 
     if (arr->kinds[it] == TOKEN_COMMA
         && ((it + 1 == end && res.len < expected_args) || is_variadic)) {
-        StrBuf_free(&arr->vals[it].spelling);
+        //StrBuf_free(&arr->vals[it].spelling);
         ++it;
         res.arrs[res.len] = collect_until(arr, it, end);
         it += res.arrs[res.len].len;
@@ -573,7 +589,7 @@ static uint32_t get_expansion_len(const PreprocMacro* macro,
     return len;
 }
 
-static void shift_back(TokenArr* arr,
+static void shift_back(PreprocTokenArr* arr,
                        uint32_t num,
                        uint32_t from,
                        uint32_t to) {
@@ -581,11 +597,11 @@ static void shift_back(TokenArr* arr,
     memmove(arr->kinds + from + num,
             arr->kinds + from,
             sizeof *arr->kinds * len);
-    memmove(arr->vals + from + num, arr->vals + from, sizeof *arr->vals * len);
+    memmove(arr->val_indices + from + num, arr->val_indices + from, sizeof *arr->val_indices * len);
     memmove(arr->locs + from + num, arr->locs + from, sizeof *arr->locs * len);
 }
 
-static void shift_forward(TokenArr* arr,
+static void shift_forward(PreprocTokenArr* arr,
                           uint32_t num,
                           uint32_t from,
                           uint32_t to) {
@@ -593,18 +609,18 @@ static void shift_forward(TokenArr* arr,
     memmove(arr->kinds + from,
             arr->kinds + from + num,
             sizeof *arr->kinds * len);
-    memmove(arr->vals + from, arr->vals + from + num, sizeof *arr->vals * len);
+    memmove(arr->val_indices + from, arr->val_indices + from + num, sizeof *arr->val_indices * len);
     memmove(arr->locs + from, arr->locs + from + num, sizeof *arr->locs * len);
 }
 
-static void copy_into_tokens(TokenArr* res,
+static void copy_into_tokens(PreprocTokenArr* res,
                              uint32_t* token_idx,
-                             const TokenArr* arr,
+                             const PreprocTokenArr* arr,
                              SourceLoc loc) {
     assert(arr);
     for (uint32_t i = 0; i < arr->len; ++i) {
         res->kinds[*token_idx] = arr->kinds[i];
-        res->vals[*token_idx].spelling = StrBuf_copy(&arr->vals[i].spelling);
+        res->val_indices[*token_idx] = arr->val_indices[i];
         res->locs[*token_idx] = loc;
         ++*token_idx;
     }
@@ -612,7 +628,7 @@ static void copy_into_tokens(TokenArr* res,
 
 // TODO: stringification and concatenation
 static ExpansionInfo expand_func_macro(PreprocState* state,
-                                       TokenArr* res,
+                                       PreprocTokenArr* res,
                                        const PreprocMacro* macro,
                                        uint32_t macro_idx,
                                        uint32_t macro_end,
@@ -634,17 +650,21 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
     }
 
     for (uint32_t i = 0; i < args.len; ++i) {
+        PreprocTokenArr* arg = &args.arrs[i];
         const ExpansionInfo success = expand_all_macros_in_range(
             state,
-            &args.arrs[i],
-            0,
-            args.arrs[i].len,
+            arg,
+            0, arg->len,
             expanded,
             info);
         if (success.next == UINT32_MAX) {
             MacroArgs_free(&args);
             return success;
         }
+        assert(arg->identifiers_len == res->identifiers_len);
+        assert(arg->int_consts_len == res->int_consts_len);
+        assert(arg->float_consts_len == res->float_consts_len);
+        assert(arg->str_lits_len == res->str_lits_len);
     }
 
     assert((macro->is_variadic && args.len == (uint32_t)macro->num_args + 1)
@@ -659,10 +679,10 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
 
     const uint32_t old_len = res->len;
 
-    StrBuf_free(&res->vals[macro_idx].spelling);     // identifier
-    StrBuf_free(&res->vals[macro_idx + 1].spelling); // opening bracket
-    StrBuf_free(
-        &res->vals[macro_idx + macro_call_len - 1].spelling); // closing bracket
+    //StrBuf_free(&res->vals[macro_idx].spelling);     // identifier
+    //StrBuf_free(&res->vals[macro_idx + 1].spelling); // opening bracket
+    //StrBuf_free(
+    //    &res->vals[macro_idx + macro_call_len - 1].spelling); // closing bracket
 
     int32_t alloc_change = 0;
     if (alloc_grows) {
@@ -670,7 +690,7 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
         res->len += alloc_change_abs;
         res->cap += alloc_change_abs;
         res->kinds = mycc_realloc(res->kinds, sizeof *res->kinds * res->cap);
-        res->vals = mycc_realloc(res->vals, sizeof *res->vals * res->cap);
+        res->val_indices = mycc_realloc(res->val_indices, sizeof *res->val_indices * res->cap);
         res->locs = mycc_realloc(res->locs, sizeof *res->locs * res->cap);
 
         shift_back(res, alloc_change_abs, macro_idx + macro_call_len, old_len);
@@ -689,7 +709,7 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
             copy_into_tokens(res, &token_idx, &args.arrs[curr->arg_num], loc);
         } else {
             res->kinds[token_idx] = kind;
-            res->vals[token_idx].spelling = StrBuf_copy(&curr->val);
+            res->val_indices[token_idx] = curr->val_idx;
             res->locs[token_idx] = loc;
             ++token_idx;
         }
@@ -711,7 +731,7 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
 }
 
 static ExpansionInfo expand_obj_macro(PreprocState* state,
-                                      TokenArr* res,
+                                      PreprocTokenArr* res,
                                       const PreprocMacro* macro,
                                       uint32_t macro_idx,
                                       ExpandedMacroStack* expanded,
@@ -723,7 +743,7 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
     const uint32_t exp_len = macro->expansion_len;
     const uint32_t old_len = res->len;
 
-    StrBuf_free(&res->vals[macro_idx].spelling);
+    //StrBuf_free(&res->vals[macro_idx].spelling);
 
     int32_t alloc_change;
     if (exp_len > 0) {
@@ -731,7 +751,7 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
         res->cap += exp_len - 1;
         res->len += exp_len - 1;
         res->kinds = mycc_realloc(res->kinds, sizeof *res->kinds * res->cap);
-        res->vals = mycc_realloc(res->vals, sizeof *res->vals * res->cap);
+        res->val_indices = mycc_realloc(res->val_indices, sizeof *res->val_indices * res->cap);
         res->locs = mycc_realloc(res->locs, sizeof *res->locs * res->cap);
 
         shift_back(res, exp_len - 1, macro_idx, old_len);
@@ -746,8 +766,7 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
         assert(macro->kinds[i] != TOKEN_INVALID);
 
         res->kinds[macro_idx + i] = macro->kinds[i];
-        res->vals[macro_idx + i].spelling = StrBuf_copy(
-            &macro->vals[i].val);
+        res->val_indices[macro_idx + i] = macro->vals[i].val_idx;
         res->locs[macro_idx + i] = loc;
     }
 

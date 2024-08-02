@@ -1036,15 +1036,19 @@ static bool compare_external_declarations(const ExternalDeclaration* d1,
     return true;
 }
 
-static bool compare_values(const Value* v1, const Value* v2) {
+static bool compare_int_vals(const IntVal* v1, const IntVal* v2) {
     ASSERT(v1->kind == v2->kind);
-    if (ValueKind_is_sint(v1->kind)) {
+    if (IntValKind_is_sint(v1->kind)) {
         ASSERT_I64(v1->sint_val, v2->sint_val);
-    } else if (ValueKind_is_uint(v1->kind)) {
-        ASSERT_U64(v1->uint_val, v2->uint_val);
     } else {
-        ASSERT_DOUBLE(v1->float_val, v2->float_val);
+        ASSERT_U64(v1->uint_val, v2->uint_val);
     }
+    return true;
+}
+
+static bool compare_float_vals(const FloatVal* v1, const FloatVal* v2) {
+    ASSERT(v1->kind == v2->kind);
+    ASSERT_DOUBLE(v1->val, v2->val);
     return true;
 }
 
@@ -1060,29 +1064,25 @@ static bool compare_tokens(const TokenArr* toks1, const TokenArr* toks2) {
         != 0) {
         return false;
     }
-
-    for (uint32_t i = 0; i < toks1->len; ++i) {
-        switch (toks1->kinds[i]) {
-            case TOKEN_IDENTIFIER:
-                ASSERT_STR_BUF(&toks1->vals[i].spelling,
-                               &toks2->vals[i].spelling);
-                break;
-            case TOKEN_I_CONSTANT:
-            case TOKEN_F_CONSTANT:
-                if (!compare_values(&toks1->vals[i].val, &toks2->vals[i].val)) {
-                    return false;
-                }
-                break;
-            case TOKEN_STRING_LITERAL:
-                if (!compare_str_lits(&toks1->vals[i].str_lit,
-                                      &toks2->vals[i].str_lit)) {
-                    return false;
-                }
-                break;
-            default:
-                assert(!StrBuf_valid(&toks1->vals[i].spelling));
-                assert(!StrBuf_valid(&toks2->vals[i].spelling));
-                break;
+    if (memcmp(toks1->val_indices, toks2->val_indices, sizeof *toks1->val_indices * toks1->len) != 0) {
+        return false;
+    }
+    for (uint32_t i = 0; i < toks1->identifiers_len; ++i) {
+        ASSERT_STR_BUF(&toks1->identifiers[i], &toks2->identifiers[i]);
+    }
+    for (uint32_t i = 0; i < toks1->int_consts_len; ++i) {
+        if (!compare_int_vals(&toks1->int_consts[i], &toks2->int_consts[i])) {
+            return false;
+        }
+    }
+    for (uint32_t i = 0; i < toks1->float_consts_len; ++i) {
+        if (!compare_float_vals(&toks1->float_consts[i], &toks2->float_consts[i])) {
+            return false;
+        }
+    }
+    for (uint32_t i = 0; i < toks1->str_lits_len; ++i) {
+        if (!compare_str_lits(&toks1->str_lits[i], &toks2->str_lits[i])) {
+            return false;
         }
     }
 
