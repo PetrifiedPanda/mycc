@@ -21,6 +21,7 @@
         }                                                                      \
     } while (0)
 
+/*
 #define ASSERT_VALUE_KIND(got, expected)                                       \
     do {                                                                       \
         ValueKind got_kind = (got), expected_kind = (expected);                \
@@ -28,6 +29,26 @@
             PRINT_ASSERT_ERR("Expected {Str} but got {Str}",                   \
                              ValueKind_str(expected_kind),                     \
                              ValueKind_str(got_kind));                         \
+        }                                                                      \
+    } while (0)
+*/
+#define ASSERT_INT_VAL_KIND(got, expected)                                     \
+    do {                                                                       \
+        IntValKind got_kind = (got), expected_kind = (expected);               \
+        if (got_kind != expected_kind) {                                       \
+            PRINT_ASSERT_ERR("Expected {Str} but got {Str}",                   \
+                             IntValKind_str(expected_kind),                    \
+                             IntValKind_str(got_kind));                        \
+        }                                                                      \
+    } while (0)
+
+#define ASSERT_FLOAT_VAL_KIND(got, expected)                                   \
+    do {                                                                       \
+        FloatValKind got_kind = (got), expected_kind = (expected);             \
+        if (got_kind != expected_kind) {                                       \
+            PRINT_ASSERT_ERR("Expected {Str} but got {Str}",                   \
+                             FloatValKind_str(expected_kind),                  \
+                             FloatValKind_str(got_kind));                      \
         }                                                                      \
     } while (0)
 
