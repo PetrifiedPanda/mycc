@@ -1,10 +1,6 @@
-#include <string.h>
-
 #include "util/mem.h"
 
 #include "testing/asserts.h"
-
-#include "frontend/preproc/preproc.h"
 
 #include "../test_helpers.h"
 
@@ -584,6 +580,7 @@ static void check_token(const TokenArr* got, const TokenArr* ex, uint32_t i) {
             break;
         }
         default:
+            // TODO: fix this
             //ASSERT_INT(got_val_idx, ex_val_idx);
             //ASSERT_INT(got_val_idx, UINT32_MAX);
             break;
