@@ -222,6 +222,7 @@ TEST(include) {
 #undef TOKEN_MACRO
 #undef TOKEN_MACRO_IDENTIFIER
     };
+    expected.val_indices = val_indices;
     /*
     TokenVal vals[] = {
 #define TOKEN_MACRO(kind, str_buf, line, idx, file) {.spelling = str_buf}
@@ -237,6 +238,7 @@ TEST(include) {
 #undef TOKEN_MACRO
 #undef TOKEN_MACRO_IDENTIFIER
     };
+    expected.locs = locs;
 
     enum {
         EX_LEN = ARR_LEN(kinds),
