@@ -69,14 +69,9 @@ static void test_preproc_macro(const PreprocMacro* macro,
                            StrBuf_as_str(&expected.toks.float_consts[ex_val_idx]));
                 break;
         }
-        //StrBuf_free(&state.res.vals[i].spelling);
     }
-    mycc_free(state.res.kinds);
-    mycc_free(state.res.val_indices);
-    mycc_free(state.res.locs);
     FileInfo_free(&res.file_info);
     PreprocRes_free_preproc_tokens(&expected);
-    state.res = (PreprocTokenArr){0};
     PreprocState_free(&state);
 }
 
