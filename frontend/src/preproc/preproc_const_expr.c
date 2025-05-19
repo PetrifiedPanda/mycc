@@ -470,15 +470,6 @@ static PreprocConstExprVal evaluate_preproc_cond_expr(uint32_t* it,
     return curr_res;
 }
 
-//static void remove_non_preproc_tokens(TokenArr* arr, uint32_t limit) {
-//    for (uint32_t i = 2; i < limit; ++i) {
-//        if (arr->kinds[i] == TOKEN_IDENTIFIER) {
-//            StrBuf_free(&arr->vals[i].spelling);
-//        }
-//    }
-//    arr->len = 2;
-//}
-
 PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
                                                 PreprocTokenArr* arr,
                                                 const ArchTypeInfo* info,
@@ -568,7 +559,6 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
                 StrBuf_as_str(&arr->int_consts[i]),
                 info);
             if (res.err.kind != CHAR_CONST_ERR_NONE) {
-                //remove_non_preproc_tokens(arr, i);
                 PreprocErr_set(err, PREPROC_ERR_CHAR_CONST, arr->locs[i]);
                 err->char_const_err = res.err;
                 // TODO: do we need to take this
@@ -583,7 +573,6 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
                 StrBuf_as_str(&arr->int_consts[i]),
                 info);
             if (res.err.kind != INT_CONST_ERR_NONE) {
-                //remove_non_preproc_tokens(arr, i);
                 PreprocErr_set(err, PREPROC_ERR_INT_CONST, arr->locs[i]);
                 err->int_const_err = res.err;
                 // TODO: do we need to take this
@@ -600,13 +589,12 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
     uint32_t i = 2;
     PreprocConstExprVal val = evaluate_preproc_cond_expr(&i, &tokens, err);
     if (!val.valid) {
-        //remove_non_preproc_tokens(arr, arr->len);
         return (PreprocConstExprRes){
             .valid = false,
         };
     }
     assert(i == arr->len);
-    //remove_non_preproc_tokens(arr, arr->len);
+    mycc_free(tokens.int_consts);
     return (PreprocConstExprRes){
         .valid = true,
         .res = PreprocConstExprVal_is_nonzero(&val),
