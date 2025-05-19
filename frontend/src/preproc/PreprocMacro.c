@@ -185,6 +185,8 @@ bool expand_all_macros(PreprocState* state,
                        PreprocTokenArr* res,
                        uint32_t start,
                        const ArchTypeInfo* info) {
+    // TODO: Keeping this persistent would improve performance instead of
+    // reallocating all the time
     ExpandedMacroStack expanded = ExpandedMacroStack_create();
     const ExpansionInfo success = expand_all_macros_in_range(state,
                                                              res,
