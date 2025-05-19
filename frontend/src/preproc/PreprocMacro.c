@@ -252,13 +252,9 @@ static PreprocMacro parse_func_like_macro(PreprocTokenArr* arr, PreprocErr* err)
                             &arg_spells_cap,
                             sizeof *arg_spells);
         }
-        // TODO: spelling becomes invalid
         const uint32_t spelling_val_idx = arr->val_indices[it];
-        mycc_printf("spelling_val_idx: {u32}, kind: {Str}, identifiers_len: {u32}\n", spelling_val_idx, TokenKind_str(arr->kinds[it]), arr->identifiers_len);
         StrBuf* spelling = &arr->identifiers[spelling_val_idx];
         arg_spells[res.num_args] = StrBuf_as_str(spelling);
-        mycc_printf("val_idx: {u32}\n", arr->val_indices[it]);
-        mycc_printf("arg_spell: {Str}\n", arg_spells[res.num_args]);
         assert(Str_valid(arg_spells[res.num_args]));
         if (is_duplicate_arg(spelling,
                              &arr->locs[it],
