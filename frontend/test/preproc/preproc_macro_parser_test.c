@@ -1215,6 +1215,8 @@ TEST(parse_obj_like_starting_with_bracket) {
     compare_preproc_macros(&got, &ex, &arr);
     mycc_free(got.kinds);
     mycc_free(got.vals);
+
+    PreprocTokenArr_free_identifiers_only(&arr);
 }
 
 TEST_SUITE_BEGIN(preproc_macro_parser){
