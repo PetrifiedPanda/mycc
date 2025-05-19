@@ -411,6 +411,8 @@ TEST(parse_func_like) {
         compare_preproc_macros(&got, &ex, &arr);
         mycc_free(got.kinds);
         mycc_free(got.vals);
+
+        PreprocTokenArr_free_identifiers_only(&arr);
     }
     {
         // #define NO_PARAMS() 1 + 2 + 3
@@ -512,6 +514,8 @@ TEST(parse_func_like) {
         compare_preproc_macros(&got, &ex, &arr);
         mycc_free(got.kinds);
         mycc_free(got.vals);
+
+        PreprocTokenArr_free_identifiers_only(&arr);
     }
     {
         // #define NO_PARAMS_EMPTY()
@@ -581,6 +585,8 @@ TEST(parse_func_like) {
         compare_preproc_macros(&got, &ex, &arr);
         mycc_free(got.kinds);
         mycc_free(got.vals);
+
+        PreprocTokenArr_free_identifiers_only(&arr);
     }
 }
 
@@ -747,6 +753,8 @@ TEST(parse_variadic) {
         compare_preproc_macros(&got, &ex, &arr);
         mycc_free(got.kinds);
         mycc_free(got.vals);
+
+        PreprocTokenArr_free_identifiers_only(&arr);
     }
     {
         // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name(__VA_ARGS__)
@@ -927,6 +935,8 @@ TEST(parse_variadic) {
         compare_preproc_macros(&got, &ex, &arr);
         mycc_free(got.kinds);
         mycc_free(got.vals);
+
+        PreprocTokenArr_free_identifiers_only(&arr);
     }
 }
 
