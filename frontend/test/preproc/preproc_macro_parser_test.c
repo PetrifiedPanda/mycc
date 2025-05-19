@@ -1082,6 +1082,8 @@ TEST(parse_duplicate_arg_name) {
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(StrBuf_as_str(&err.duplicate_arg_name), STR_LIT("a"));
+        // Restore string to its original location (for later tests)
+        arr.identifiers[2] = err.duplicate_arg_name;
         ASSERT_UINT(err.base.loc.file_idx, 0);
         ASSERT_UINT(err.base.loc.file_loc.line, 1);
         ASSERT_UINT(err.base.loc.file_loc.index, 25);
@@ -1097,6 +1099,8 @@ TEST(parse_duplicate_arg_name) {
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(StrBuf_as_str(&err.duplicate_arg_name), STR_LIT("c"));
+        // Restore string to its original location (for later tests)
+        arr.identifiers[4] = err.duplicate_arg_name;
         ASSERT_UINT(err.base.loc.file_idx, 0);
         ASSERT_UINT(err.base.loc.file_loc.line, 1);
         ASSERT_UINT(err.base.loc.file_loc.index, 25);
@@ -1113,6 +1117,7 @@ TEST(parse_duplicate_arg_name) {
         ASSERT_UINT(err.base.loc.file_loc.line, 1);
         ASSERT_UINT(err.base.loc.file_loc.index, 22);
     }
+    PreprocTokenArr_free_identifiers_only(&arr);
 }
 
 TEST(parse_obj_like_starting_with_bracket) {
