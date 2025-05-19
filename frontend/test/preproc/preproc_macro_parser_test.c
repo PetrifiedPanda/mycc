@@ -62,6 +62,16 @@ static void compare_preproc_macros(const PreprocMacro* got,
     }
 }
 
+// Frees only identifiers and int and float constants, as the others are
+// provided by static arrays in this test
+static void PreprocTokenArr_free_identifiers_only(const PreprocTokenArr* arr) {
+    PreprocTokenArr copy = *arr;
+    copy.kinds = NULL;
+    copy.val_indices = NULL;
+    copy.locs = NULL;
+    PreprocTokenArr_free(&copy);
+}
+
 TEST(parse_obj_like) {
     {
         // #define TEST_MACRO
@@ -122,6 +132,8 @@ TEST(parse_obj_like) {
         compare_preproc_macros(&got, &ex, &arr);
         mycc_free(got.kinds);
         mycc_free(got.vals);
+
+        PreprocTokenArr_free_identifiers_only(&arr);
     }
     {
         // #define ANOTHER_MACRO 1 + 2 * 3 - func(a, b)
@@ -238,6 +250,8 @@ TEST(parse_obj_like) {
         compare_preproc_macros(&got, &ex, &arr);
         mycc_free(got.kinds);
         mycc_free(got.vals);
+
+        PreprocTokenArr_free_identifiers_only(&arr);
     }
 }
 
