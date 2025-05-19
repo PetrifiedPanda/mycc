@@ -618,6 +618,13 @@ static void compare_tokens(const TokenArr* got, const TokenArr* expected) {
     }
 }
 
+static void TokenArr_free_identifiers_only(const TokenArr* arr) {
+    mycc_free(arr->identifiers);
+    mycc_free(arr->int_consts);
+    mycc_free(arr->float_consts);
+    mycc_free(arr->str_lits);
+}
+
 static void check_token_arr_helper(CStr file_or_code,
                                    const TokenArr* expected,
                                    TestPreprocRes (*func)(CStr)) {
@@ -628,6 +635,7 @@ static void check_token_arr_helper(CStr file_or_code,
     compare_tokens(&preproc_res.toks, expected);
 
     TestPreprocRes_free(&preproc_res);
+    TokenArr_free_identifiers_only(expected);
 }
 
 static void check_token_arr_file(CStr filename, const TokenArr* expected) {
