@@ -21,9 +21,12 @@ typedef struct PreprocMacro {
     TokenValOrArg* vals;
 } PreprocMacro;
 
-bool expand_all_macros(PreprocState* state, PreprocTokenArr* res, uint32_t start, const ArchTypeInfo* info);
+bool expand_all_macros(PreprocState* state, PreprocTokenArr* res,
+                       uint32_t start, const ArchTypeInfo* info);
 
-PreprocMacro parse_preproc_macro(PreprocTokenArr* arr, uint32_t name_len, PreprocErr* err);
+PreprocMacro parse_preproc_macro(PreprocTokenArr* arr,
+                                 const PreprocTokenValList* vals,
+                                 uint32_t name_len, PreprocErr* err);
 
 void PreprocMacro_free(PreprocMacro* m);
 

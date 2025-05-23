@@ -109,6 +109,9 @@ static bool is_type_spec_helper(const ParserState* s,
 }
 
 bool next_is_type_spec(const ParserState* s) {
+    const SourceLoc loc = s->_arr.locs[s->it + 1];
+    const uint32_t val_idx = s->_arr.val_indices[s->it + 1];
+    mycc_printf("Got loc {u32}:{u32}, idx: {u32}, token idx: {u32}\n", loc.file_loc.line, loc.file_loc.index, val_idx, s->it + 1);
     return is_type_spec_helper(s,
                                ParserState_next_token_kind,
                                ParserState_next_token_spell);

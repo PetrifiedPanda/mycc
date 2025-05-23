@@ -2,8 +2,6 @@
 #include "frontend/preproc/preproc.h"
 #include "frontend/preproc/PreprocMacro.h"
 
-#include "util/mem.h"
-
 #include "testing/asserts.h"
 
 #include "../test_helpers.h"
@@ -14,6 +12,7 @@ static void test_preproc_macro(const PreprocMacro* macro,
                                Str input,
                                Str output) {
     const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
+    // Preprocess without macros to get the tokens
     PreprocErr input_err = PreprocErr_create();
     PreprocRes res = preproc_string(input,
                                     STR_LIT("source_file.c"),
@@ -30,13 +29,14 @@ static void test_preproc_macro(const PreprocMacro* macro,
                                                     0,
                                                     NULL,
                                                     &err);
-    state.res = res.toks;
+    state.toks = res.toks;
+    state.vals = res.vals;
     // Do not free stack allocated macros
     state._macro_map._item_free = NULL;
     StrBuf macro_str = StrBuf_create(spell);
     PreprocState_register_macro(&state, &macro_str, macro);
 
-    ASSERT(expand_all_macros(&state, &state.res, 0, &info));
+    ASSERT(expand_all_macros(&state, &state.toks, 0, &info));
     ASSERT(err.kind == PREPROC_ERR_NONE);
 
     PreprocErr output_err = PreprocErr_create();
@@ -49,24 +49,24 @@ static void test_preproc_macro(const PreprocMacro* macro,
                                          &output_err);
     ASSERT(output_err.kind == PREPROC_ERR_NONE);
 
-    ASSERT_UINT(state.res.len, expected.toks.len);
+    ASSERT_UINT(state.toks.len, expected.toks.len);
 
-    for (uint32_t i = 0; i < state.res.len; ++i) {
-        ASSERT_TOKEN_KIND(state.res.kinds[i], expected.toks.kinds[i]);
-        const uint32_t val_idx = state.res.val_indices[i];
+    for (uint32_t i = 0; i < state.toks.len; ++i) {
+        ASSERT_TOKEN_KIND(state.toks.kinds[i], expected.toks.kinds[i]);
+        const uint32_t val_idx = state.toks.val_indices[i];
         const uint32_t ex_val_idx = expected.toks.val_indices[i];
-        switch (state.res.kinds[i]) {
+        switch (state.toks.kinds[i]) {
             case TOKEN_IDENTIFIER:
-                ASSERT_STR(StrBuf_as_str(&state.res.identifiers[val_idx]),
-                           StrBuf_as_str(&expected.toks.identifiers[ex_val_idx]));
+                ASSERT_STR(StrBuf_as_str(&state.vals.identifiers[val_idx]),
+                           StrBuf_as_str(&expected.vals.identifiers[ex_val_idx]));
                 break;
             case TOKEN_I_CONSTANT:
-                ASSERT_STR(StrBuf_as_str(&state.res.int_consts[val_idx]),
-                           StrBuf_as_str(&expected.toks.int_consts[ex_val_idx]));
+                ASSERT_STR(StrBuf_as_str(&state.vals.int_consts[val_idx]),
+                           StrBuf_as_str(&expected.vals.int_consts[ex_val_idx]));
                 break;
             case TOKEN_F_CONSTANT:
-                ASSERT_STR(StrBuf_as_str(&state.res.float_consts[val_idx]),
-                           StrBuf_as_str(&expected.toks.float_consts[ex_val_idx]));
+                ASSERT_STR(StrBuf_as_str(&state.vals.float_consts[val_idx]),
+                           StrBuf_as_str(&expected.vals.float_consts[ex_val_idx]));
                 break;
         }
     }

@@ -37,7 +37,8 @@ typedef struct FileManager {
 } FileManager;
 
 typedef struct PreprocState {
-    PreprocTokenArr res;
+    PreprocTokenArr toks;
+    PreprocTokenValList vals;
 
     LineInfo line_info;
 

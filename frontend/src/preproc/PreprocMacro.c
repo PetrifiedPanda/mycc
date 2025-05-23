@@ -19,7 +19,7 @@ static uint32_t find_macro_end(PreprocState* state,
     assert(res->kinds[i] == TOKEN_LBRACKET);
     ++i;
 
-    const bool can_read_new_toks = res == &state->res;
+    const bool can_read_new_toks = res == &state->toks;
     uint32_t open_bracket_count = 1;
     while (i != res->len || (can_read_new_toks && !PreprocState_over(state))) {
         if (can_read_new_toks) {
@@ -124,7 +124,7 @@ static ExpansionInfo find_and_expand_macro(PreprocState* state,
     if (kind != TOKEN_IDENTIFIER) {
         return (ExpansionInfo){0, i + 1};
     }
-    const StrBuf* spell = &res->identifiers[res->val_indices[i]];
+    const StrBuf* spell = &state->vals.identifiers[res->val_indices[i]];
     const PreprocMacro* macro = find_preproc_macro(state, spell);
     if (macro == NULL || ExpandedMacroStack_contains(expanded, macro)) {
         return (ExpansionInfo){0, i + 1};
@@ -223,7 +223,9 @@ static bool is_duplicate_arg(StrBuf* spell,
     return false;
 }
 
-static PreprocMacro parse_func_like_macro(PreprocTokenArr* arr, PreprocErr* err) {
+static PreprocMacro parse_func_like_macro(PreprocTokenArr* arr,
+                                          const PreprocTokenValList* vals,
+                                          PreprocErr* err) {
     PreprocMacro res = {
         .is_func_macro = true,
     };
@@ -253,7 +255,7 @@ static PreprocMacro parse_func_like_macro(PreprocTokenArr* arr, PreprocErr* err)
                             sizeof *arg_spells);
         }
         const uint32_t spelling_val_idx = arr->val_indices[it];
-        StrBuf* spelling = &arr->identifiers[spelling_val_idx];
+        StrBuf* spelling = &vals->identifiers[spelling_val_idx];
         arg_spells[res.num_args] = StrBuf_as_str(spelling);
         assert(Str_valid(arg_spells[res.num_args]));
         if (is_duplicate_arg(spelling,
@@ -322,7 +324,7 @@ static PreprocMacro parse_func_like_macro(PreprocTokenArr* arr, PreprocErr* err)
         uint8_t* res_kind = &res.kinds[res_idx];
         TokenValOrArg* res_val = &res.vals[res_idx];
         if (kind == TOKEN_IDENTIFIER) {
-            const StrBuf* curr_spell = &arr->identifiers[val_idx];
+            const StrBuf* curr_spell = &vals->identifiers[val_idx];
             if (res.is_variadic
                 && Str_eq(StrBuf_as_str(curr_spell), STR_LIT("__VA_ARGS__"))) {
                 *res_kind = TOKEN_INVALID;
@@ -339,7 +341,6 @@ static PreprocMacro parse_func_like_macro(PreprocTokenArr* arr, PreprocErr* err)
                 res_val->arg_num = idx;
                 continue;
             }
-            //*curr_spell = StrBuf_null();
         }
 
         *res_kind = kind;
@@ -387,13 +388,13 @@ static bool is_func_like_macro(const PreprocTokenArr* arr, uint32_t name_len) {
 }
 
 PreprocMacro parse_preproc_macro(PreprocTokenArr* arr,
-                                 uint32_t name_len,
-                                 PreprocErr* err) {
+                                 const PreprocTokenValList* vals,
+                                 uint32_t name_len, PreprocErr* err) {
     assert(arr);
     assert(arr->len >= 2);
     assert(arr->kinds[0] == TOKEN_PP_STRINGIFY);
     assert(arr->kinds[1] == TOKEN_IDENTIFIER);
-    assert(Str_eq(StrBuf_as_str(&arr->identifiers[arr->val_indices[1]]), STR_LIT("define")));
+    assert(Str_eq(StrBuf_as_str(&vals->identifiers[arr->val_indices[1]]), STR_LIT("define")));
 
     if (arr->len < 3) {
         assert(arr->len > 0);
@@ -406,7 +407,7 @@ PreprocMacro parse_preproc_macro(PreprocTokenArr* arr,
     }
 
     if (is_func_like_macro(arr, name_len)) {
-        return parse_func_like_macro(arr, err);
+        return parse_func_like_macro(arr, vals, err);
     } else {
         return parse_object_like_macro(arr);
     }
@@ -419,16 +420,7 @@ void PreprocMacro_free(PreprocMacro* m) {
 
 static PreprocTokenArr collect_until(PreprocTokenArr* arr, uint32_t start, uint32_t end) {
     const uint32_t len = end - start;
-    PreprocTokenArr res = {
-        .identifiers = arr->identifiers,
-        .int_consts = arr->int_consts,
-        .float_consts = arr->float_consts,
-        .str_lits = arr->str_lits,
-        .identifiers_len = arr->identifiers_len,
-        .int_consts_len = arr->int_consts_len,
-        .float_consts_len = arr->float_consts_len,
-        .str_lits_len = arr->str_lits_len,
-    };
+    PreprocTokenArr res = {0};
 
     if (len != 0) {
         res.len = len;
@@ -528,7 +520,6 @@ static MacroArgs collect_macro_args(PreprocTokenArr* arr,
                 || (is_variadic && res.len == expected_args)) {
                 break;
             } else {
-                //StrBuf_free(&arr->vals[it].spelling);
                 ++it;
             }
         }
@@ -536,7 +527,6 @@ static MacroArgs collect_macro_args(PreprocTokenArr* arr,
 
     if (arr->kinds[it] == TOKEN_COMMA
         && ((it + 1 == end && res.len < expected_args) || is_variadic)) {
-        //StrBuf_free(&arr->vals[it].spelling);
         ++it;
         res.arrs[res.len] = collect_until(arr, it, end);
         it += res.arrs[res.len].len;
@@ -659,10 +649,6 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
             MacroArgs_free(&args);
             return success;
         }
-        assert(arg->identifiers_len == res->identifiers_len);
-        assert(arg->int_consts_len == res->int_consts_len);
-        assert(arg->float_consts_len == res->float_consts_len);
-        assert(arg->str_lits_len == res->str_lits_len);
     }
 
     assert((macro->is_variadic && args.len == (uint32_t)macro->num_args + 1)
@@ -676,11 +662,6 @@ static ExpansionInfo expand_func_macro(PreprocState* state,
                                                   : macro_call_len - exp_len;
 
     const uint32_t old_len = res->len;
-
-    //StrBuf_free(&res->vals[macro_idx].spelling);     // identifier
-    //StrBuf_free(&res->vals[macro_idx + 1].spelling); // opening bracket
-    //StrBuf_free(
-    //    &res->vals[macro_idx + macro_call_len - 1].spelling); // closing bracket
 
     int32_t alloc_change = 0;
     if (alloc_grows) {
@@ -740,8 +721,6 @@ static ExpansionInfo expand_obj_macro(PreprocState* state,
 
     const uint32_t exp_len = macro->expansion_len;
     const uint32_t old_len = res->len;
-
-    //StrBuf_free(&res->vals[macro_idx].spelling);
 
     int32_t alloc_change;
     if (exp_len > 0) {

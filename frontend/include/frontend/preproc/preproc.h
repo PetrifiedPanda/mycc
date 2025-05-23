@@ -9,6 +9,7 @@
 
 typedef struct PreprocRes {
     PreprocTokenArr toks;
+    PreprocTokenValList vals;
     FileInfo file_info;
 } PreprocRes;
 
@@ -47,6 +48,7 @@ PreprocRes preproc_string(Str str,
  * Converts the given preprocessor tokens to parser tokens
  */
 TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
+                                PreprocTokenValList* vals,
                                 const ArchTypeInfo* info,
                                 PreprocErr* err);
 

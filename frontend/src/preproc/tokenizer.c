@@ -31,12 +31,14 @@ static void handle_ongoing_comment(TokenizerState* s,
 
 static bool handle_character_literal(TokenizerState* s,
                                      PreprocTokenArr* arr,
+                                     PreprocTokenValList* vals,
                                      uint32_t res_idx,
                                      LineInfo* info,
                                      PreprocErr* err);
 
 static bool handle_other(TokenizerState* s,
                          PreprocTokenArr* arr,
+                         PreprocTokenValList* vals,
                          uint32_t res_idx,
                          LineInfo* info,
                          PreprocErr* err);
@@ -47,6 +49,7 @@ static void write_line_info(const TokenizerState* s, LineInfo* info) {
 }
 
 static bool tokenize_next_token(PreprocTokenArr* arr,
+                                PreprocTokenValList* vals,
                                 uint32_t idx,
                                 PreprocErr* err,
                                 LineInfo* info) {
@@ -91,12 +94,12 @@ static bool tokenize_next_token(PreprocTokenArr* arr,
         }
         advance_newline(&s);
         write_line_info(&s, info);
-        return tokenize_next_token(arr, idx, err, info);
+        return tokenize_next_token(arr, vals, idx, err, info);
     }
     if (info->is_in_comment) {
         handle_ongoing_comment(&s, &info->is_in_comment);
         write_line_info(&s, info);
-        return tokenize_next_token(arr, idx, err, info);
+        return tokenize_next_token(arr, vals, idx, err, info);
     }
 
     TokenKind kind = singlec_token_kind(Str_at(s.it, 0));
@@ -106,7 +109,7 @@ static bool tokenize_next_token(PreprocTokenArr* arr,
                 && (Str_at(s.it, 1) == '/' || Str_at(s.it, 1) == '*'))) {
             handle_comments(&s, &info->is_in_comment);
             write_line_info(&s, info);
-            return tokenize_next_token(arr, idx, err, info);
+            return tokenize_next_token(arr, vals, idx, err, info);
         }
         if (s.it.len != 1) {
             kind = check_next(kind, Str_incr(s.it));
@@ -126,13 +129,14 @@ static bool tokenize_next_token(PreprocTokenArr* arr,
                    && (s.it.len > 1
                        && (Str_at(s.it, 1) == '\"'
                            || Str_at(s.it, 1) == '\'')))) {
-        return handle_character_literal(&s, arr, idx, info, err);
+        return handle_character_literal(&s, arr, vals, idx, info, err);
     } else {
-        return handle_other(&s, arr, idx, info, err);
+        return handle_other(&s, arr, vals, idx, info, err);
     }
 }
 
-bool tokenize_line(PreprocTokenArr* res, PreprocErr* err, LineInfo* info) {
+bool tokenize_line(PreprocTokenArr* res, PreprocTokenValList* vals,
+                   PreprocErr* err, LineInfo* info) {
     assert(res);
     assert(info->next.data);
     assert(info->curr_loc.file_idx != UINT32_MAX);
@@ -144,7 +148,7 @@ bool tokenize_line(PreprocTokenArr* res, PreprocErr* err, LineInfo* info) {
             res->locs = mycc_realloc(res->locs, res->cap * sizeof *res->locs);
         }
         do {
-            if (!tokenize_next_token(res, res->len, err, info)) {
+            if (!tokenize_next_token(res, vals, res->len, err, info)) {
                 return false;
             }
         // TODO: not sure about res->len
@@ -435,6 +439,7 @@ static void unterminated_literal_err(PreprocErr* err,
 
 static bool handle_character_literal(TokenizerState* s,
                                      PreprocTokenArr* arr,
+                                     PreprocTokenValList* vals,
                                      uint32_t res_idx,
                                      LineInfo* info,
                                      PreprocErr* err) {
@@ -480,9 +485,9 @@ static bool handle_character_literal(TokenizerState* s,
                                                  terminator);
         assert(kind != TOKEN_INVALID);
         if (kind == TOKEN_I_CONSTANT) {
-            arr->val_indices[res_idx] = PreprocTokenArr_add_int_const(arr, spell_view);
+            arr->val_indices[res_idx] = PreprocTokenValList_add_int_const(vals, spell_view);
         } else {
-            arr->val_indices[res_idx] = PreprocTokenArr_add_str_lit(arr, spell_view);
+            arr->val_indices[res_idx] = PreprocTokenValList_add_str_lit(vals, spell_view);
         }
         arr->kinds[res_idx] = kind;
         arr->locs[res_idx] = (SourceLoc){s->current_file_idx, start_loc};
@@ -518,6 +523,7 @@ static bool token_is_over(const TokenizerState* s, bool is_num) {
 
 static bool handle_other(TokenizerState* s,
                          PreprocTokenArr* arr,
+                         PreprocTokenValList* vals,
                          uint32_t res_idx,
                          LineInfo* info,
                          PreprocErr* err) {
@@ -537,10 +543,10 @@ static bool handle_other(TokenizerState* s,
     if (is_num) {
         if (is_int_const(spell_view)) {
             kind = TOKEN_I_CONSTANT;
-            arr->val_indices[res_idx] = PreprocTokenArr_add_int_const(arr, spell_view);
+            arr->val_indices[res_idx] = PreprocTokenValList_add_int_const(vals, spell_view);
         } else if (is_float_const(spell_view)) {
             kind = TOKEN_F_CONSTANT;
-            arr->val_indices[res_idx] = PreprocTokenArr_add_float_const(arr, spell_view);
+            arr->val_indices[res_idx] = PreprocTokenValList_add_float_const(vals, spell_view);
         } else {
             const SourceLoc loc = {
                 .file_idx = s->current_file_idx,
@@ -551,7 +557,7 @@ static bool handle_other(TokenizerState* s,
             return false;
         }
     } else if (is_valid_identifier(spell_view)) {
-        arr->val_indices[res_idx] = PreprocTokenArr_add_identifier(arr, spell_view);
+        arr->val_indices[res_idx] = PreprocTokenValList_add_identifier(vals, spell_view);
         kind = TOKEN_IDENTIFIER;
     } else {
         const SourceLoc loc = {

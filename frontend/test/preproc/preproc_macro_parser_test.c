@@ -8,7 +8,7 @@
 #include "../test_helpers.h"
 
 static void compare_macro_item(const PreprocMacro* got, const PreprocMacro* ex,
-                               const PreprocTokenArr* arr, uint32_t i) {
+                               const PreprocTokenValList* vals, uint32_t i) {
     const TokenValOrArg* got_item = &got->vals[i];
     const TokenValOrArg* ex_item = &ex->vals[i];
     ASSERT_TOKEN_KIND(got->kinds[i], ex->kinds[i]);
@@ -19,26 +19,26 @@ static void compare_macro_item(const PreprocMacro* got, const PreprocMacro* ex,
         const uint32_t ex_val_idx = ex_item->val_idx;
         switch (got->kinds[i]) {
             case TOKEN_IDENTIFIER: {
-                const Str got_str = StrBuf_as_str(&arr->identifiers[got_val_idx]);
-                const Str ex_str = StrBuf_as_str(&arr->identifiers[ex_val_idx]);
+                const Str got_str = StrBuf_as_str(&vals->identifiers[got_val_idx]);
+                const Str ex_str = StrBuf_as_str(&vals->identifiers[ex_val_idx]);
                 ASSERT_STR(got_str, ex_str);
                 break;
             }
             case TOKEN_I_CONSTANT: {
-                const Str got_str = StrBuf_as_str(&arr->int_consts[got_val_idx]);
-                const Str ex_str = StrBuf_as_str(&arr->int_consts[ex_val_idx]);
+                const Str got_str = StrBuf_as_str(&vals->int_consts[got_val_idx]);
+                const Str ex_str = StrBuf_as_str(&vals->int_consts[ex_val_idx]);
                 ASSERT_STR(got_str, ex_str);
                 break;
             }
             case TOKEN_F_CONSTANT: {
-                const Str got_str = StrBuf_as_str(&arr->float_consts[got_val_idx]);
-                const Str ex_str = StrBuf_as_str(&arr->float_consts[ex_val_idx]);
+                const Str got_str = StrBuf_as_str(&vals->float_consts[got_val_idx]);
+                const Str ex_str = StrBuf_as_str(&vals->float_consts[ex_val_idx]);
                 ASSERT_STR(got_str, ex_str);
                 break;
             }
             case TOKEN_STRING_LITERAL: {
-                const Str got_str = StrBuf_as_str(&arr->str_lits[got_val_idx]);
-                const Str ex_str = StrBuf_as_str(&arr->str_lits[ex_val_idx]);
+                const Str got_str = StrBuf_as_str(&vals->str_lits[got_val_idx]);
+                const Str ex_str = StrBuf_as_str(&vals->str_lits[ex_val_idx]);
                 ASSERT_STR(got_str, ex_str);
                 break;
             }
@@ -50,7 +50,7 @@ static void compare_macro_item(const PreprocMacro* got, const PreprocMacro* ex,
 
 static void compare_preproc_macros(const PreprocMacro* got,
                                    const PreprocMacro* ex,
-                                   const PreprocTokenArr* arr) {
+                                   const PreprocTokenValList* vals) {
     ASSERT_BOOL(got->is_func_macro, ex->is_func_macro);
     ASSERT_UINT(got->num_args, ex->num_args);
     ASSERT_BOOL(got->is_variadic, ex->is_variadic);
@@ -58,18 +58,8 @@ static void compare_preproc_macros(const PreprocMacro* got,
     ASSERT_UINT(got->expansion_len, ex->expansion_len);
 
     for (uint32_t i = 0; i < got->expansion_len; ++i) {
-        compare_macro_item(got, ex, arr, i);
+        compare_macro_item(got, ex, vals, i);
     }
-}
-
-// Frees only identifiers and int and float constants, as the others are
-// provided by static arrays in this test
-static void PreprocTokenArr_free_identifiers_only(const PreprocTokenArr* arr) {
-    PreprocTokenArr copy = *arr;
-    copy.kinds = NULL;
-    copy.val_indices = NULL;
-    copy.locs = NULL;
-    PreprocTokenArr_free(&copy);
 }
 
 TEST(parse_obj_like) {
@@ -113,10 +103,11 @@ TEST(parse_obj_like) {
             .val_indices = val_indices,
             .locs = locs,
         };
-        PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
+        PreprocTokenValList vals = PreprocTokenValList_create_empty();
+        PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, 10, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, &vals, 10, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
         PreprocMacro ex = {
@@ -129,11 +120,11 @@ TEST(parse_obj_like) {
             .vals = NULL,
         };
 
-        compare_preproc_macros(&got, &ex, &arr);
+        compare_preproc_macros(&got, &ex, &vals);
         mycc_free(got.kinds);
         mycc_free(got.vals);
 
-        PreprocTokenArr_free_identifiers_only(&arr);
+        PreprocTokenValList_free(&vals);
     }
     {
         // #define ANOTHER_MACRO 1 + 2 * 3 - func(a, b)
@@ -232,10 +223,11 @@ TEST(parse_obj_like) {
             .val_indices = val_indices,
             .locs = locs,
         };
-        PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
+        PreprocTokenValList vals = PreprocTokenValList_create_empty();
+        PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, 13, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, &vals, 13, &err);
 
         PreprocMacro ex = {
             .is_func_macro = false,
@@ -247,11 +239,11 @@ TEST(parse_obj_like) {
             .vals = ex_vals,
         };
 
-        compare_preproc_macros(&got, &ex, &arr);
+        compare_preproc_macros(&got, &ex, &vals);
         mycc_free(got.kinds);
         mycc_free(got.vals);
 
-        PreprocTokenArr_free_identifiers_only(&arr);
+        PreprocTokenValList_free(&vals);
     }
 }
 
@@ -402,17 +394,18 @@ TEST(parse_func_like) {
             .val_indices = val_indices,
             .locs = locs,
         };
-        PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
+        PreprocTokenValList vals = PreprocTokenValList_create_empty();
+        PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
-        compare_preproc_macros(&got, &ex, &arr);
+        compare_preproc_macros(&got, &ex, &vals);
         mycc_free(got.kinds);
         mycc_free(got.vals);
 
-        PreprocTokenArr_free_identifiers_only(&arr);
+        PreprocTokenValList_free(&vals);
     }
     {
         // #define NO_PARAMS() 1 + 2 + 3
@@ -505,17 +498,18 @@ TEST(parse_func_like) {
             .val_indices = val_indices,
             .locs = locs,
         };
-        PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
+        PreprocTokenValList vals = PreprocTokenValList_create_empty();
+        PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
-        compare_preproc_macros(&got, &ex, &arr);
+        compare_preproc_macros(&got, &ex, &vals);
         mycc_free(got.kinds);
         mycc_free(got.vals);
 
-        PreprocTokenArr_free_identifiers_only(&arr);
+        PreprocTokenValList_free(&vals);
     }
     {
         // #define NO_PARAMS_EMPTY()
@@ -576,17 +570,18 @@ TEST(parse_func_like) {
             .val_indices = val_indices,
             .locs = locs,
         };
-        PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
+        PreprocTokenValList vals = PreprocTokenValList_create_empty();
+        PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, 15, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, &vals, 15, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
-        compare_preproc_macros(&got, &ex, &arr);
+        compare_preproc_macros(&got, &ex, &vals);
         mycc_free(got.kinds);
         mycc_free(got.vals);
 
-        PreprocTokenArr_free_identifiers_only(&arr);
+        PreprocTokenValList_free(&vals);
     }
 }
 
@@ -744,17 +739,18 @@ TEST(parse_variadic) {
             .val_indices = val_indices,
             .locs = locs,
         };
-        PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
+        PreprocTokenValList vals = PreprocTokenValList_create_empty();
+        PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
-        compare_preproc_macros(&got, &ex, &arr);
+        compare_preproc_macros(&got, &ex, &vals);
         mycc_free(got.kinds);
         mycc_free(got.vals);
 
-        PreprocTokenArr_free_identifiers_only(&arr);
+        PreprocTokenValList_free(&vals);
     }
     {
         // #define FUNC_LIKE(a, b, c, ...) a != 38 ? b * other_name(__VA_ARGS__)
@@ -926,17 +922,18 @@ TEST(parse_variadic) {
             .val_indices = val_indices,
             .locs = locs,
         };
-        PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
+        PreprocTokenValList vals = PreprocTokenValList_create_empty();
+        PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
-        compare_preproc_macros(&got, &ex, &arr);
+        compare_preproc_macros(&got, &ex, &vals);
         mycc_free(got.kinds);
         mycc_free(got.vals);
 
-        PreprocTokenArr_free_identifiers_only(&arr);
+        PreprocTokenValList_free(&vals);
     }
 }
 
@@ -1072,18 +1069,19 @@ TEST(parse_duplicate_arg_name) {
         .val_indices = val_indices,
         .locs = locs,
     };
-    PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
+    PreprocTokenValList vals = PreprocTokenValList_create_empty();
+    PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
     // change c to a
     val_indices[8] = 2;
     {
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(StrBuf_as_str(&err.duplicate_arg_name), STR_LIT("a"));
         // Restore string to its original location (for later tests)
-        arr.identifiers[2] = err.duplicate_arg_name;
+        vals.identifiers[2] = err.duplicate_arg_name;
         ASSERT_UINT(err.base.loc.file_idx, 0);
         ASSERT_UINT(err.base.loc.file_loc.line, 1);
         ASSERT_UINT(err.base.loc.file_loc.index, 25);
@@ -1095,12 +1093,12 @@ TEST(parse_duplicate_arg_name) {
     val_indices[6] = 4;
     {
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(StrBuf_as_str(&err.duplicate_arg_name), STR_LIT("c"));
         // Restore string to its original location (for later tests)
-        arr.identifiers[4] = err.duplicate_arg_name;
+        vals.identifiers[4] = err.duplicate_arg_name;
         ASSERT_UINT(err.base.loc.file_idx, 0);
         ASSERT_UINT(err.base.loc.file_loc.line, 1);
         ASSERT_UINT(err.base.loc.file_loc.index, 25);
@@ -1109,7 +1107,7 @@ TEST(parse_duplicate_arg_name) {
     val_indices[6] = 2;
     {
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
         ASSERT_STR(StrBuf_as_str(&err.duplicate_arg_name), STR_LIT("a"));
@@ -1117,7 +1115,7 @@ TEST(parse_duplicate_arg_name) {
         ASSERT_UINT(err.base.loc.file_loc.line, 1);
         ASSERT_UINT(err.base.loc.file_loc.index, 22);
     }
-    PreprocTokenArr_free_identifiers_only(&arr);
+    PreprocTokenValList_free(&vals);
 }
 
 TEST(parse_obj_like_starting_with_bracket) {
@@ -1202,10 +1200,11 @@ TEST(parse_obj_like_starting_with_bracket) {
         .val_indices = val_indices,
         .locs = locs,
     };
-    PreprocTokenArr_insert_initial_strings(&arr, &initial_strs);
+    PreprocTokenValList vals = PreprocTokenValList_create_empty();
+    PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
     
     PreprocErr err = PreprocErr_create();
-    PreprocMacro got = parse_preproc_macro(&arr, 4, &err);
+    PreprocMacro got = parse_preproc_macro(&arr, &vals, 4, &err);
 
     PreprocMacro ex = {
         .is_func_macro = false,
@@ -1217,11 +1216,11 @@ TEST(parse_obj_like_starting_with_bracket) {
         .vals = ex_vals,
     };
 
-    compare_preproc_macros(&got, &ex, &arr);
+    compare_preproc_macros(&got, &ex, &vals);
     mycc_free(got.kinds);
     mycc_free(got.vals);
 
-    PreprocTokenArr_free_identifiers_only(&arr);
+    PreprocTokenValList_free(&vals);
 }
 
 TEST_SUITE_BEGIN(preproc_macro_parser){

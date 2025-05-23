@@ -11,7 +11,7 @@ TestPreprocRes tokenize(CStr file) {
     ASSERT(res.toks.len != 0);
     ASSERT_NOT_NULL(res.file_info.paths);
     ASSERT(err.kind == PREPROC_ERR_NONE);
-    TokenArr toks = convert_preproc_tokens(&res.toks, &info, &err);
+    TokenArr toks = convert_preproc_tokens(&res.toks, &res.vals, &info, &err);
     ASSERT(toks.len != 0);
     ASSERT(err.kind == PREPROC_ERR_NONE);
     return (TestPreprocRes){
@@ -28,7 +28,7 @@ TestPreprocRes tokenize_string(Str str, Str file) {
                                     0, NULL, &info, &err);
     ASSERT(res.toks.len != 0);
     ASSERT(err.kind == PREPROC_ERR_NONE);
-    TokenArr toks = convert_preproc_tokens(&res.toks, &info, &err);
+    TokenArr toks = convert_preproc_tokens(&res.toks, &res.vals, &info, &err);
     ASSERT(toks.len != 0);
     ASSERT(err.kind == PREPROC_ERR_NONE);
     return (TestPreprocRes){

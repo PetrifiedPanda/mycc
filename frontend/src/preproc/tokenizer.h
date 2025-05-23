@@ -14,6 +14,7 @@
  * @param comment_not_terminated A pointer to a boolean, that signifies whether
  *        a multi-line comment was started in a previous line
  */
-bool tokenize_line(PreprocTokenArr* res, PreprocErr* err, LineInfo* info);
+bool tokenize_line(PreprocTokenArr* res, PreprocTokenValList* vals,
+                   PreprocErr* err, LineInfo* info);
 
 #endif

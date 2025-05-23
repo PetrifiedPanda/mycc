@@ -110,7 +110,7 @@ TEST(preproc_token) {
                                     &info,
                                     &err);
     ASSERT(res.toks.len != 0);
-    TokenArr tokens = convert_preproc_tokens(&res.toks, &info, &err);
+    TokenArr tokens = convert_preproc_tokens(&res.toks, &res.vals, &info, &err);
     ASSERT(tokens.len == 0);
 
     ASSERT(err.kind == PREPROC_ERR_MISPLACED_PREPROC_TOKEN);

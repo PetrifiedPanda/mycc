@@ -18,7 +18,7 @@ typedef struct StrLit {
     StrBuf contents;
 } StrLit;
 
-StrLit convert_to_str_lit(StrBuf* spell);
+StrLit convert_to_str_lit(const StrBuf* spell);
 
 void StrLit_free(const StrLit* lit);
 
