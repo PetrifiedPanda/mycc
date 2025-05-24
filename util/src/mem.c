@@ -96,6 +96,8 @@ typedef struct {
     size_t num_frees;
     size_t num_reallocs;
     size_t num_reallocs_without_copy;
+    size_t current_memory_usage;
+    size_t max_memory_usage;
     size_t bytes_alloced;
     size_t bytes_freed;
 } AllocStats;
@@ -109,6 +111,8 @@ static AllocStats g_alloc_stats = {
     .num_frees = 0,
     .num_reallocs = 0,
     .num_reallocs_without_copy = 0,
+    .current_memory_usage = 0,
+    .max_memory_usage = 0,
     .bytes_alloced = 0,
     .bytes_freed = 0,
 };
@@ -231,6 +235,10 @@ static void memdebug_cleanup(void) {
     File_put_str(" realloc calls, ", mycc_stderr);
     pretty_print_size_t(mycc_stderr, g_alloc_stats.num_reallocs_without_copy);
     File_put_str(" resized an existing allocation\n", mycc_stderr);
+
+    File_put_str("Max memory usage: ", mycc_stderr);
+    pretty_print_size_t(mycc_stderr, g_alloc_stats.max_memory_usage);
+    File_put_str(" bytes\n", mycc_stderr);
     mycc_free(g_alloc_stats.data);
     if (leak_detected) {
         _Exit(EXIT_FAILURE);
@@ -261,6 +269,10 @@ static void insert_alloc(AllocStats* stats,
 
     stats->data[idx] = create_alloc_entry(alloc, bytes, func, file, line);
     stats->bytes_alloced += bytes;
+    stats->current_memory_usage += bytes;
+    if (stats->current_memory_usage > stats->max_memory_usage) {
+        stats->max_memory_usage = stats->current_memory_usage;
+    }
     stats->num_allocs += 1;
     if (!g_cleanup_func_set) {
         atexit(memdebug_cleanup);
@@ -280,6 +292,7 @@ static void set_freed(AllocStats* stats,
     curr->realloced = realloced;
     curr->freed_loc = (AllocLoc){func, file, line};
     stats->bytes_freed += curr->bytes;
+    stats->current_memory_usage -= curr->bytes;
     stats->num_frees += 1;
 }
 
@@ -290,9 +303,16 @@ static void set_alloc_bytes(AllocStats* stats,
     assert(!curr->freed);
     stats->num_reallocs_without_copy += 1;
     if (bytes > curr->bytes) {
-        stats->bytes_alloced += bytes - curr->bytes;
+        const size_t byte_difference = bytes - curr->bytes;
+        stats->bytes_alloced += byte_difference;
+        stats->current_memory_usage += byte_difference;
+        if (stats->current_memory_usage > stats->max_memory_usage) {
+            stats->max_memory_usage = stats->current_memory_usage;
+        }
     } else {
-        stats->bytes_freed += curr->bytes - bytes;
+        const size_t byte_difference = curr->bytes - bytes;
+        stats->bytes_freed += byte_difference;
+        stats->current_memory_usage -= byte_difference;
     }
     curr->bytes = bytes;
 }
