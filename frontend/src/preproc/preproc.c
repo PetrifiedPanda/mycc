@@ -185,27 +185,6 @@ TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
         .int_consts_len = vals->int_consts_len,
         .str_lits_len = vals->str_lits_len,
     };
-    // TODO: delete
-    //for (uint32_t i = 0; i < vals->identifiers_len; ++i) {
-    //    StrBuf* buf = &vals->identifiers[i];
-    //    Str str = StrBuf_valid(buf) ? StrBuf_as_str(buf) : STR_LIT("(null)");
-    //    mycc_printf("Identifier: {Str}\n", str);
-    //}
-    //for (uint32_t i = 0; i < vals->int_consts_len; ++i) {
-    //    StrBuf* buf = &vals->int_consts[i];
-    //    Str str = StrBuf_valid(buf) ? StrBuf_as_str(buf) : STR_LIT("(null)");
-    //    mycc_printf("Int const: {Str}\n", str);
-    //}
-    //for (uint32_t i = 0; i < vals->float_consts_len; ++i) {
-    //    StrBuf* buf = &vals->float_consts[i];
-    //    Str str = StrBuf_valid(buf) ? StrBuf_as_str(buf) : STR_LIT("(null)");
-    //    mycc_printf("Float const: {Str}\n", str);
-    //}
-    //for (uint32_t i = 0; i < vals->str_lits_len; ++i) {
-    //    StrBuf* buf = &vals->str_lits[i];
-    //    Str str = StrBuf_valid(buf) ? StrBuf_as_str(buf) : STR_LIT("(null)");
-    //    mycc_printf("Str lit: {Str}\n", str);
-    //}
     // TODO: if we have identifiers in a set, we should just insert all
     // keywords in the set first 
     // that way we can just check if the token is less than the number of
@@ -216,12 +195,6 @@ TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
             case TOKEN_IDENTIFIER: {
                 StrBuf* spelling = &vals->identifiers[tokens->val_indices[i]];
                 *kind = keyword_kind(StrBuf_as_str(spelling));
-                if (*kind != TOKEN_IDENTIFIER) {
-                    // TODO: these freeing somehow causes an error in parser
-                    // TODO: these will need to be freed later on anyways
-                    StrBuf_free(spelling);
-                    *spelling = StrBuf_null();
-                }
                 break;
             }
             case TOKEN_PP_STRINGIFY:
@@ -293,31 +266,6 @@ TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
     mycc_free(vals->str_lits);
     *tokens = (PreprocTokenArr){0};
     *vals = (PreprocTokenValList){0};
-    for (uint32_t i = 0; i < res.len; ++i) {
-        const TokenKind kind = res.kinds[i];
-        const SourceLoc loc = res.locs[i];
-        const uint32_t val_idx = res.val_indices[i];
-        if (kind == TOKEN_IDENTIFIER) {
-            mycc_printf("{Str}: {Str} val_idx: {u32}, loc: {u32}:{u32}\n", TokenKind_str(kind), StrBuf_as_str(&res.identifiers[val_idx]), val_idx, loc.file_loc.line, loc.file_loc.index);
-        } else {
-            mycc_printf("{Str} val_idx: {u32}, loc: {u32}:{u32}\n", TokenKind_str(kind), val_idx, loc.file_loc.line, loc.file_loc.index);
-        }
-    }
-    //for (uint32_t i = 0; i < vals->int_consts_len; ++i) {
-    //    StrBuf* buf = &vals->int_consts[i];
-    //    Str str = StrBuf_valid(buf) ? StrBuf_as_str(buf) : STR_LIT("(null)");
-    //    mycc_printf("Int const: {Str}\n", str);
-    //}
-    //for (uint32_t i = 0; i < vals->float_consts_len; ++i) {
-    //    StrBuf* buf = &vals->float_consts[i];
-    //    Str str = StrBuf_valid(buf) ? StrBuf_as_str(buf) : STR_LIT("(null)");
-    //    mycc_printf("Float const: {Str}\n", str);
-    //}
-    //for (uint32_t i = 0; i < vals->str_lits_len; ++i) {
-    //    StrBuf* buf = &vals->str_lits[i];
-    //    Str str = StrBuf_valid(buf) ? StrBuf_as_str(buf) : STR_LIT("(null)");
-    //    mycc_printf("Str lit: {Str}\n", str);
-    //}
     MYCC_TIMER_END("converting preproc tokens");
     return res;
 }
@@ -329,6 +277,7 @@ static inline bool is_spelling(Str spelling, TokenKind type) {
 }
 
 static TokenKind keyword_kind(Str spell) {
+    assert(spell.len != 0);
     for (TokenKind e = TOKEN_KEYWORDS_START; e < TOKEN_KEYWORDS_END; ++e) {
         if (is_spelling(spell, e)) {
             return e;
