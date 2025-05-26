@@ -2310,6 +2310,7 @@ static bool deserialize_token_arr(AstDeserializer* r, TokenArr* res) {
         return false;
     }
 
+    res->len = len;
     res->cap = len;
 
     res->kinds = mycc_alloc(sizeof *res->kinds * len);
