@@ -138,8 +138,8 @@ translation_unit:
                                         postfix_expr:
                                           primary_expr:
                                             constant: ../frontend/test/files/large_testfile.c:4,19
-                                              value:
-                                                type: VALUE_INT
+                                              int_val:
+                                                type: INT_VAL_INT
                                                 sint_val: 1
                                           len: 0
   external_declaration:
@@ -210,8 +210,8 @@ translation_unit:
                                         postfix_expr:
                                           primary_expr:
                                             constant: ../frontend/test/files/large_testfile.c:5,20
-                                              value:
-                                                type: VALUE_INT
+                                              int_val:
+                                                type: INT_VAL_INT
                                                 sint_val: 0
                                           len: 0
   external_declaration:
@@ -288,8 +288,8 @@ translation_unit:
                                         postfix_expr:
                                           primary_expr:
                                             constant: ../frontend/test/files/large_testfile.c:7,14
-                                              value:
-                                                type: VALUE_INT
+                                              int_val:
+                                                type: INT_VAL_INT
                                                 sint_val: 0
                                           len: 0
   external_declaration:
@@ -7302,8 +7302,8 @@ translation_unit:
                                                   postfix_expr:
                                                     primary_expr:
                                                       constant: ../frontend/test/files/large_testfile.c:340,30
-                                                        value:
-                                                          type: VALUE_INT
+                                                        int_val:
+                                                          type: INT_VAL_INT
                                                           sint_val: 1
                                                     len: 0
             init_declarator_list:
@@ -7431,8 +7431,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:343,17
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 0
                                                       len: 0
                     designation_init:
@@ -7474,8 +7474,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:344,22
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 0
                                                       len: 0
                     designation_init:
@@ -7571,8 +7571,8 @@ translation_unit:
                                                                                         postfix_expr:
                                                                                           primary_expr:
                                                                                             constant: ../frontend/test/files/large_testfile.c:345,48
-                                                                                              value:
-                                                                                                type: VALUE_INT
+                                                                                              int_val:
+                                                                                                type: INT_VAL_INT
                                                                                                 sint_val: 1
                                                                                           len: 0
                                                         designation_init:
@@ -7608,8 +7608,8 @@ translation_unit:
                                                                                         postfix_expr:
                                                                                           primary_expr:
                                                                                             constant: ../frontend/test/files/large_testfile.c:345,51
-                                                                                              value:
-                                                                                                type: VALUE_INT
+                                                                                              int_val:
+                                                                                                type: INT_VAL_INT
                                                                                                 sint_val: 1
                                                                                           len: 0
                                                       len: 0
@@ -7840,8 +7840,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:351,16
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 0
                                                       len: 0
                     designation_init:
@@ -7949,8 +7949,8 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/large_testfile.c:355,21
-                                                  value:
-                                                    type: VALUE_INT
+                                                  int_val:
+                                                    type: INT_VAL_INT
                                                     sint_val: 0
                                               len: 0
               statement:
@@ -8425,8 +8425,8 @@ translation_unit:
                                                                                                             postfix_expr:
                                                                                                               primary_expr:
                                                                                                                 constant: ../frontend/test/files/large_testfile.c:373,48
-                                                                                                                  value:
-                                                                                                                    type: VALUE_INT
+                                                                                                                  int_val:
+                                                                                                                    type: INT_VAL_INT
                                                                                                                     sint_val: 1
                                                                                                               len: 0
                             block_item:
@@ -9134,8 +9134,8 @@ translation_unit:
                                                                                                                 postfix_expr:
                                                                                                                   primary_expr:
                                                                                                                     constant: ../frontend/test/files/large_testfile.c:391,73
-                                                                                                                      value:
-                                                                                                                        type: VALUE_INT
+                                                                                                                      int_val:
+                                                                                                                        type: INT_VAL_INT
                                                                                                                         sint_val: 1
                                                                                                                   len: 0
                                                                                 len: 0
@@ -9437,8 +9437,8 @@ translation_unit:
                                                                                           postfix_expr:
                                                                                             primary_expr:
                                                                                               constant: ../frontend/test/files/large_testfile.c:396,34
-                                                                                                value:
-                                                                                                  type: VALUE_INT
+                                                                                                int_val:
+                                                                                                  type: INT_VAL_INT
                                                                                                   sint_val: 1
                                                                                             len: 0
                                                       designation_init:
@@ -9496,8 +9496,8 @@ translation_unit:
                                                                                           postfix_expr:
                                                                                             primary_expr:
                                                                                               constant: ../frontend/test/files/large_testfile.c:396,47
-                                                                                                value:
-                                                                                                  type: VALUE_INT
+                                                                                                int_val:
+                                                                                                  type: INT_VAL_INT
                                                                                                   sint_val: 1
                                                                                             len: 0
                                               len: 0
@@ -9619,8 +9619,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/large_testfile.c:402,21
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_val:
+                                                              type: INT_VAL_INT
                                                               sint_val: 0
                                                         len: 0
                   expr_statement: ../frontend/test/files/large_testfile.c:402,24
@@ -10642,8 +10642,8 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/large_testfile.c:417,52
-                                                  value:
-                                                    type: VALUE_INT
+                                                  int_val:
+                                                    type: INT_VAL_INT
                                                     sint_val: 0
                                               len: 0
   external_declaration:
@@ -12913,8 +12913,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:518,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 59
                                                       len: 0
                         statement:
@@ -12988,8 +12988,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:520,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 40
                                                       len: 0
                         statement:
@@ -13063,8 +13063,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:522,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 41
                                                       len: 0
                         statement:
@@ -13138,8 +13138,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:524,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 123
                                                       len: 0
                         statement:
@@ -13213,8 +13213,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:526,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 125
                                                       len: 0
                         statement:
@@ -13288,8 +13288,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:528,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 91
                                                       len: 0
                         statement:
@@ -13363,8 +13363,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:530,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 93
                                                       len: 0
                         statement:
@@ -13438,8 +13438,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:532,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 46
                                                       len: 0
                         statement:
@@ -13513,8 +13513,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:534,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 38
                                                       len: 0
                         statement:
@@ -13588,8 +13588,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:536,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 124
                                                       len: 0
                         statement:
@@ -13663,8 +13663,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:538,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 94
                                                       len: 0
                         statement:
@@ -13738,8 +13738,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:540,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 33
                                                       len: 0
                         statement:
@@ -13813,8 +13813,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:542,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 126
                                                       len: 0
                         statement:
@@ -13888,8 +13888,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:544,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 45
                                                       len: 0
                         statement:
@@ -13963,8 +13963,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:546,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 43
                                                       len: 0
                         statement:
@@ -14038,8 +14038,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:548,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 42
                                                       len: 0
                         statement:
@@ -14113,8 +14113,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:550,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 47
                                                       len: 0
                         statement:
@@ -14188,8 +14188,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:552,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 37
                                                       len: 0
                         statement:
@@ -14263,8 +14263,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:554,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 60
                                                       len: 0
                         statement:
@@ -14338,8 +14338,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:556,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 62
                                                       len: 0
                         statement:
@@ -14413,8 +14413,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:558,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 63
                                                       len: 0
                         statement:
@@ -14488,8 +14488,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:560,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 58
                                                       len: 0
                         statement:
@@ -14563,8 +14563,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:562,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 61
                                                       len: 0
                         statement:
@@ -14638,8 +14638,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:564,14
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 44
                                                       len: 0
                         statement:
@@ -15145,8 +15145,8 @@ translation_unit:
                                                                               postfix_expr:
                                                                                 primary_expr:
                                                                                   constant: ../frontend/test/files/large_testfile.c:574,19
-                                                                                    value:
-                                                                                      type: VALUE_INT
+                                                                                    int_val:
+                                                                                      type: INT_VAL_INT
                                                                                       sint_val: 0
                                                                                 len: 0
         block_item:
@@ -15237,8 +15237,8 @@ translation_unit:
                                                                               postfix_expr:
                                                                                 primary_expr:
                                                                                   constant: ../frontend/test/files/large_testfile.c:575,19
-                                                                                    value:
-                                                                                      type: VALUE_INT
+                                                                                    int_val:
+                                                                                      type: INT_VAL_INT
                                                                                       sint_val: 2
                                                                                 len: 0
         block_item:
@@ -15326,8 +15326,8 @@ translation_unit:
                                                                               postfix_expr:
                                                                                 primary_expr:
                                                                                   constant: ../frontend/test/files/large_testfile.c:576,31
-                                                                                    value:
-                                                                                      type: VALUE_INT
+                                                                                    int_val:
+                                                                                      type: INT_VAL_INT
                                                                                       sint_val: 1
                                                                                 len: 0
                                                   assign_expr:
@@ -15406,8 +15406,8 @@ translation_unit:
                                                                               postfix_expr:
                                                                                 primary_expr:
                                                                                   constant: ../frontend/test/files/large_testfile.c:576,52
-                                                                                    value:
-                                                                                      type: VALUE_INT
+                                                                                    int_val:
+                                                                                      type: INT_VAL_INT
                                                                                       sint_val: 1
                                                                                 len: 0
                                 eq_op: ==
@@ -15426,8 +15426,8 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/large_testfile.c:576,58
-                                                  value:
-                                                    type: VALUE_INT
+                                                  int_val:
+                                                    type: INT_VAL_INT
                                                     sint_val: 0
                                               len: 0
   external_declaration:
@@ -15656,8 +15656,8 @@ translation_unit:
                                                                                                                 postfix_expr:
                                                                                                                   primary_expr:
                                                                                                                     constant: ../frontend/test/files/large_testfile.c:580,17
-                                                                                                                      value:
-                                                                                                                        type: VALUE_INT
+                                                                                                                      int_val:
+                                                                                                                        type: INT_VAL_INT
                                                                                                                         sint_val: 0
                                                                                                                   len: 0
                                                                   eq_op: !=
@@ -15676,8 +15676,8 @@ translation_unit:
                                                                               postfix_expr:
                                                                                 primary_expr:
                                                                                   constant: ../frontend/test/files/large_testfile.c:580,23
-                                                                                    value:
-                                                                                      type: VALUE_INT
+                                                                                    int_val:
+                                                                                      type: INT_VAL_INT
                                                                                       sint_val: 0
                                                                                 len: 0
         block_item:
@@ -17792,8 +17792,8 @@ translation_unit:
                                                                               postfix_expr:
                                                                                 primary_expr:
                                                                                   constant: ../frontend/test/files/large_testfile.c:695,18
-                                                                                    value:
-                                                                                      type: VALUE_INT
+                                                                                    int_val:
+                                                                                      type: INT_VAL_INT
                                                                                       sint_val: 0
                                                                                 len: 0
         block_item:
@@ -18011,8 +18011,8 @@ translation_unit:
                                                                                             postfix_expr:
                                                                                               primary_expr:
                                                                                                 constant: ../frontend/test/files/large_testfile.c:700,29
-                                                                                                  value:
-                                                                                                    type: VALUE_INT
+                                                                                                  int_val:
+                                                                                                    type: INT_VAL_INT
                                                                                                     sint_val: 1
                                                                                               len: 0
                                                             len: 0
@@ -18118,8 +18118,8 @@ translation_unit:
                                                                                             postfix_expr:
                                                                                               primary_expr:
                                                                                                 constant: ../frontend/test/files/large_testfile.c:701,34
-                                                                                                  value:
-                                                                                                    type: VALUE_INT
+                                                                                                  int_val:
+                                                                                                    type: INT_VAL_INT
                                                                                                     sint_val: 2
                                                                                               len: 0
                                                             len: 0
@@ -18556,8 +18556,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/large_testfile.c:714,31
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_val:
+                                                              type: INT_VAL_INT
                                                               sint_val: 1
                                                         len: 0
                   block_item:
@@ -18613,8 +18613,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/large_testfile.c:715,31
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_val:
+                                                              type: INT_VAL_INT
                                                               sint_val: 1
                                                         len: 0
               statement:
@@ -20523,8 +20523,8 @@ translation_unit:
                                                                                         postfix_expr:
                                                                                           primary_expr:
                                                                                             constant: ../frontend/test/files/large_testfile.c:745,20
-                                                                                              value:
-                                                                                                type: VALUE_INT
+                                                                                              int_val:
+                                                                                                type: INT_VAL_INT
                                                                                                 sint_val: 2
                                                                                           len: 0
                   block_item:
@@ -20591,8 +20591,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/large_testfile.c:746,26
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_val:
+                                                              type: INT_VAL_INT
                                                               sint_val: 0
                                                         len: 0
                                   or_expr:
@@ -20645,8 +20645,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/large_testfile.c:746,44
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_val:
+                                                              type: INT_VAL_INT
                                                               sint_val: 42
                                                         len: 0
                                   or_expr:
@@ -20712,8 +20712,8 @@ translation_unit:
                                                                                         postfix_expr:
                                                                                           primary_expr:
                                                                                             constant: ../frontend/test/files/large_testfile.c:746,57
-                                                                                              value:
-                                                                                                type: VALUE_INT
+                                                                                              int_val:
+                                                                                                type: INT_VAL_INT
                                                                                                 sint_val: 1
                                                                                           len: 0
                                           eq_op: !=
@@ -20732,8 +20732,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/large_testfile.c:746,63
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_val:
+                                                              type: INT_VAL_INT
                                                               sint_val: 47
                                                         len: 0
                         statement:
@@ -21145,8 +21145,8 @@ translation_unit:
                                                                                                   postfix_expr:
                                                                                                     primary_expr:
                                                                                                       constant: ../frontend/test/files/large_testfile.c:754,30
-                                                                                                        value:
-                                                                                                          type: VALUE_INT
+                                                                                                        int_val:
+                                                                                                          type: INT_VAL_INT
                                                                                                           sint_val: 42
                                                                                                     len: 0
                             block_item:
@@ -21261,8 +21261,8 @@ translation_unit:
                                                                                                                                     postfix_expr:
                                                                                                                                       primary_expr:
                                                                                                                                         constant: ../frontend/test/files/large_testfile.c:755,26
-                                                                                                                                          value:
-                                                                                                                                            type: VALUE_INT
+                                                                                                                                          int_val:
+                                                                                                                                            type: INT_VAL_INT
                                                                                                                                             sint_val: 1
                                                                                                                                       len: 0
                                                                                       eq_op: ==
@@ -21281,8 +21281,8 @@ translation_unit:
                                                                                                   postfix_expr:
                                                                                                     primary_expr:
                                                                                                       constant: ../frontend/test/files/large_testfile.c:755,32
-                                                                                                        value:
-                                                                                                          type: VALUE_INT
+                                                                                                        int_val:
+                                                                                                          type: INT_VAL_INT
                                                                                                           sint_val: 47
                                                                                                     len: 0
                             block_item:
@@ -21390,8 +21390,8 @@ translation_unit:
                                                                                                   postfix_expr:
                                                                                                     primary_expr:
                                                                                                       constant: ../frontend/test/files/large_testfile.c:756,24
-                                                                                                        value:
-                                                                                                          type: VALUE_INT
+                                                                                                        int_val:
+                                                                                                          type: INT_VAL_INT
                                                                                                           sint_val: 2
                                                                                                     len: 0
                             block_item:
@@ -21503,8 +21503,8 @@ translation_unit:
                                                           postfix_expr:
                                                             primary_expr:
                                                               constant: ../frontend/test/files/large_testfile.c:760,26
-                                                                value:
-                                                                  type: VALUE_INT
+                                                                int_val:
+                                                                  type: INT_VAL_INT
                                                                   sint_val: 0
                                                             len: 0
                                       or_expr:
@@ -21557,8 +21557,8 @@ translation_unit:
                                                           postfix_expr:
                                                             primary_expr:
                                                               constant: ../frontend/test/files/large_testfile.c:760,44
-                                                                value:
-                                                                  type: VALUE_INT
+                                                                int_val:
+                                                                  type: INT_VAL_INT
                                                                   sint_val: 10
                                                             len: 0
                             statement:
@@ -22732,8 +22732,8 @@ translation_unit:
                                                                               postfix_expr:
                                                                                 primary_expr:
                                                                                   constant: ../frontend/test/files/large_testfile.c:790,22
-                                                                                    value:
-                                                                                      type: VALUE_INT
+                                                                                    int_val:
+                                                                                      type: INT_VAL_INT
                                                                                       sint_val: 39
                                                                                 len: 0
                                                         log_and_expr:
@@ -22788,8 +22788,8 @@ translation_unit:
                                                                               postfix_expr:
                                                                                 primary_expr:
                                                                                   constant: ../frontend/test/files/large_testfile.c:790,40
-                                                                                    value:
-                                                                                      type: VALUE_INT
+                                                                                    int_val:
+                                                                                      type: INT_VAL_INT
                                                                                       sint_val: 34
                                                                                 len: 0
                                                         log_and_expr:
@@ -22844,8 +22844,8 @@ translation_unit:
                                                                               postfix_expr:
                                                                                 primary_expr:
                                                                                   constant: ../frontend/test/files/large_testfile.c:790,58
-                                                                                    value:
-                                                                                      type: VALUE_INT
+                                                                                    int_val:
+                                                                                      type: INT_VAL_INT
                                                                                       sint_val: 76
                                                                                 len: 0
         block_item:
@@ -22911,8 +22911,8 @@ translation_unit:
                                                   postfix_expr:
                                                     primary_expr:
                                                       constant: ../frontend/test/files/large_testfile.c:791,24
-                                                        value:
-                                                          type: VALUE_INT
+                                                        int_val:
+                                                          type: INT_VAL_INT
                                                           sint_val: 512
                                                     len: 0
             init_declarator_list:
@@ -23004,8 +23004,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:792,33
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 1
                                                       len: 0
                 initializer: ../frontend/test/files/large_testfile.c:792,38
@@ -23044,8 +23044,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:792,39
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 0
                                                       len: 0
         block_item:
@@ -23116,8 +23116,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/large_testfile.c:793,22
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_val:
+                                                      type: INT_VAL_INT
                                                       sint_val: 0
                                                 len: 0
         block_item:
@@ -23544,8 +23544,8 @@ translation_unit:
                                                                                         postfix_expr:
                                                                                           primary_expr:
                                                                                             constant: ../frontend/test/files/large_testfile.c:802,26
-                                                                                              value:
-                                                                                                type: VALUE_INT
+                                                                                              int_val:
+                                                                                                type: INT_VAL_INT
                                                                                                 sint_val: 34
                                                                                           len: 0
                                                                   log_and_expr:
@@ -23600,8 +23600,8 @@ translation_unit:
                                                                                         postfix_expr:
                                                                                           primary_expr:
                                                                                             constant: ../frontend/test/files/large_testfile.c:802,44
-                                                                                              value:
-                                                                                                type: VALUE_INT
+                                                                                              int_val:
+                                                                                                type: INT_VAL_INT
                                                                                                 sint_val: 39
                                                                                           len: 0
         block_item:
@@ -23929,8 +23929,8 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/large_testfile.c:810,22
-                                                  value:
-                                                    type: VALUE_INT
+                                                  int_val:
+                                                    type: INT_VAL_INT
                                                     sint_val: 0
                                               len: 0
                         or_expr:
@@ -24010,8 +24010,8 @@ translation_unit:
                                                                               postfix_expr:
                                                                                 primary_expr:
                                                                                   constant: ../frontend/test/files/large_testfile.c:810,42
-                                                                                    value:
-                                                                                      type: VALUE_INT
+                                                                                    int_val:
+                                                                                      type: INT_VAL_INT
                                                                                       sint_val: 92
                                                                                 len: 0
                                                         log_and_expr:
@@ -24493,8 +24493,8 @@ translation_unit:
                                                         postfix_expr:
                                                           primary_expr:
                                                             constant: ../frontend/test/files/large_testfile.c:819,52
-                                                              value:
-                                                                type: VALUE_INT
+                                                              int_val:
+                                                                type: INT_VAL_INT
                                                                 sint_val: 2
                                                           len: 0
                   block_item:
@@ -24773,8 +24773,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/large_testfile.c:823,26
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_val:
+                                                              type: INT_VAL_INT
                                                               sint_val: 0
                                                         len: 0
                                   or_expr:
@@ -25393,8 +25393,8 @@ translation_unit:
                                                                                                                           postfix_expr:
                                                                                                                             primary_expr:
                                                                                                                               constant: ../frontend/test/files/large_testfile.c:834,48
-                                                                                                                                value:
-                                                                                                                                  type: VALUE_INT
+                                                                                                                                int_val:
+                                                                                                                                  type: INT_VAL_INT
                                                                                                                                   sint_val: 2
                                                                                                                             len: 0
                                                                                           len: 0
@@ -25942,8 +25942,8 @@ translation_unit:
                                                                             postfix_expr:
                                                                               primary_expr:
                                                                                 constant: ../frontend/test/files/large_testfile.c:847,31
-                                                                                  value:
-                                                                                    type: VALUE_INT
+                                                                                  int_val:
+                                                                                    type: INT_VAL_INT
                                                                                     sint_val: 1
                                                                               len: 0
                                         =
@@ -25976,8 +25976,8 @@ translation_unit:
                                                                 postfix_expr:
                                                                   primary_expr:
                                                                     constant: ../frontend/test/files/large_testfile.c:847,36
-                                                                      value:
-                                                                        type: VALUE_INT
+                                                                      int_val:
+                                                                        type: INT_VAL_INT
                                                                         sint_val: 0
                                                                   len: 0
                         statement:
@@ -27470,8 +27470,8 @@ translation_unit:
                                             postfix_expr:
                                               primary_expr:
                                                 constant: ../frontend/test/files/large_testfile.c:877,22
-                                                  value:
-                                                    type: VALUE_INT
+                                                  int_val:
+                                                    type: INT_VAL_INT
                                                     sint_val: 0
                                               len: 0
                       log_and_expr:
@@ -27950,8 +27950,8 @@ translation_unit:
                                                   postfix_expr:
                                                     primary_expr:
                                                       constant: ../frontend/test/files/large_testfile.c:881,24
-                                                        value:
-                                                          type: VALUE_INT
+                                                        int_val:
+                                                          type: INT_VAL_INT
                                                           sint_val: 512
                                                     len: 0
             init_declarator_list:
@@ -28043,8 +28043,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:882,33
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 1
                                                       len: 0
                 initializer: ../frontend/test/files/large_testfile.c:882,38
@@ -28083,8 +28083,8 @@ translation_unit:
                                                     postfix_expr:
                                                       primary_expr:
                                                         constant: ../frontend/test/files/large_testfile.c:882,39
-                                                          value:
-                                                            type: VALUE_INT
+                                                          int_val:
+                                                            type: INT_VAL_INT
                                                             sint_val: 0
                                                       len: 0
         block_item:
@@ -28155,8 +28155,8 @@ translation_unit:
                                               postfix_expr:
                                                 primary_expr:
                                                   constant: ../frontend/test/files/large_testfile.c:883,22
-                                                    value:
-                                                      type: VALUE_INT
+                                                    int_val:
+                                                      type: INT_VAL_INT
                                                       sint_val: 0
                                                 len: 0
         block_item:
@@ -28741,8 +28741,8 @@ translation_unit:
                                                         postfix_expr:
                                                           primary_expr:
                                                             constant: ../frontend/test/files/large_testfile.c:894,52
-                                                              value:
-                                                                type: VALUE_INT
+                                                              int_val:
+                                                                type: INT_VAL_INT
                                                                 sint_val: 2
                                                           len: 0
                   block_item:
@@ -29601,8 +29601,8 @@ translation_unit:
                                                                                                                           postfix_expr:
                                                                                                                             primary_expr:
                                                                                                                               constant: ../frontend/test/files/large_testfile.c:909,48
-                                                                                                                                value:
-                                                                                                                                  type: VALUE_INT
+                                                                                                                                int_val:
+                                                                                                                                  type: INT_VAL_INT
                                                                                                                                   sint_val: 1
                                                                                                                             len: 0
                                                                                           len: 0
@@ -29709,8 +29709,8 @@ translation_unit:
                                                       postfix_expr:
                                                         primary_expr:
                                                           constant: ../frontend/test/files/large_testfile.c:910,28
-                                                            value:
-                                                              type: VALUE_INT
+                                                            int_val:
+                                                              type: INT_VAL_INT
                                                               sint_val: 0
                                                         len: 0
         block_item:
