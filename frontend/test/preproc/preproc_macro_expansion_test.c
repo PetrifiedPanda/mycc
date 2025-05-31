@@ -30,11 +30,12 @@ static void test_preproc_macro(const PreprocMacro* macro,
                                                     NULL,
                                                     &err);
     state.toks = res.toks;
+    // Creation initializes with a size so we need to free this before replacing it
+    PreprocTokenValList_free(&state.vals);
     state.vals = res.vals;
     // Do not free stack allocated macros
     state._macro_map._item_free = NULL;
-    StrBuf macro_str = StrBuf_create(spell);
-    PreprocState_register_macro(&state, &macro_str, macro);
+    PreprocState_register_macro(&state, spell, macro);
 
     ASSERT(expand_all_macros(&state, &state.toks, 0, &info));
     ASSERT(err.kind == PREPROC_ERR_NONE);
@@ -57,16 +58,16 @@ static void test_preproc_macro(const PreprocMacro* macro,
         const uint32_t ex_val_idx = expected.toks.val_indices[i];
         switch (state.toks.kinds[i]) {
             case TOKEN_IDENTIFIER:
-                ASSERT_STR(StrBuf_as_str(&state.vals.identifiers[val_idx]),
-                           StrBuf_as_str(&expected.vals.identifiers[ex_val_idx]));
+                ASSERT_STR(IndexedStringSet_get(&state.vals.identifiers, val_idx),
+                           IndexedStringSet_get(&expected.vals.identifiers, ex_val_idx));
                 break;
             case TOKEN_I_CONSTANT:
-                ASSERT_STR(StrBuf_as_str(&state.vals.int_consts[val_idx]),
-                           StrBuf_as_str(&expected.vals.int_consts[ex_val_idx]));
+                ASSERT_STR(IndexedStringSet_get(&state.vals.int_consts, val_idx),
+                           IndexedStringSet_get(&expected.vals.int_consts, ex_val_idx));
                 break;
             case TOKEN_F_CONSTANT:
-                ASSERT_STR(StrBuf_as_str(&state.vals.float_consts[val_idx]),
-                           StrBuf_as_str(&expected.vals.float_consts[ex_val_idx]));
+                ASSERT_STR(IndexedStringSet_get(&state.vals.float_consts, val_idx),
+                           IndexedStringSet_get(&expected.vals.float_consts, ex_val_idx));
                 break;
         }
     }

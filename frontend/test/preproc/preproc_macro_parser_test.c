@@ -19,26 +19,26 @@ static void compare_macro_item(const PreprocMacro* got, const PreprocMacro* ex,
         const uint32_t ex_val_idx = ex_item->val_idx;
         switch (got->kinds[i]) {
             case TOKEN_IDENTIFIER: {
-                const Str got_str = StrBuf_as_str(&vals->identifiers[got_val_idx]);
-                const Str ex_str = StrBuf_as_str(&vals->identifiers[ex_val_idx]);
+                const Str got_str = IndexedStringSet_get(&vals->identifiers, got_val_idx);
+                const Str ex_str = IndexedStringSet_get(&vals->identifiers, ex_val_idx);
                 ASSERT_STR(got_str, ex_str);
                 break;
             }
             case TOKEN_I_CONSTANT: {
-                const Str got_str = StrBuf_as_str(&vals->int_consts[got_val_idx]);
-                const Str ex_str = StrBuf_as_str(&vals->int_consts[ex_val_idx]);
+                const Str got_str = IndexedStringSet_get(&vals->int_consts, got_val_idx);
+                const Str ex_str = IndexedStringSet_get(&vals->int_consts, ex_val_idx);
                 ASSERT_STR(got_str, ex_str);
                 break;
             }
             case TOKEN_F_CONSTANT: {
-                const Str got_str = StrBuf_as_str(&vals->float_consts[got_val_idx]);
-                const Str ex_str = StrBuf_as_str(&vals->float_consts[ex_val_idx]);
+                const Str got_str = IndexedStringSet_get(&vals->float_consts, got_val_idx);
+                const Str ex_str = IndexedStringSet_get(&vals->float_consts, ex_val_idx);
                 ASSERT_STR(got_str, ex_str);
                 break;
             }
             case TOKEN_STRING_LITERAL: {
-                const Str got_str = StrBuf_as_str(&vals->str_lits[got_val_idx]);
-                const Str ex_str = StrBuf_as_str(&vals->str_lits[ex_val_idx]);
+                const Str got_str = IndexedStringSet_get(&vals->str_lits, got_val_idx);
+                const Str ex_str = IndexedStringSet_get(&vals->str_lits, ex_val_idx);
                 ASSERT_STR(got_str, ex_str);
                 break;
             }
@@ -1079,9 +1079,7 @@ TEST(parse_duplicate_arg_name) {
         PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
-        ASSERT_STR(StrBuf_as_str(&err.duplicate_arg_name), STR_LIT("a"));
-        // Restore string to its original location (for later tests)
-        vals.identifiers[2] = err.duplicate_arg_name;
+        ASSERT_STR(err.duplicate_arg_name, STR_LIT("a"));
         ASSERT_UINT(err.base.loc.file_idx, 0);
         ASSERT_UINT(err.base.loc.file_loc.line, 1);
         ASSERT_UINT(err.base.loc.file_loc.index, 25);
@@ -1096,9 +1094,7 @@ TEST(parse_duplicate_arg_name) {
         PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
-        ASSERT_STR(StrBuf_as_str(&err.duplicate_arg_name), STR_LIT("c"));
-        // Restore string to its original location (for later tests)
-        vals.identifiers[4] = err.duplicate_arg_name;
+        ASSERT_STR(err.duplicate_arg_name, STR_LIT("c"));
         ASSERT_UINT(err.base.loc.file_idx, 0);
         ASSERT_UINT(err.base.loc.file_loc.line, 1);
         ASSERT_UINT(err.base.loc.file_loc.index, 25);
@@ -1110,7 +1106,7 @@ TEST(parse_duplicate_arg_name) {
         PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
-        ASSERT_STR(StrBuf_as_str(&err.duplicate_arg_name), STR_LIT("a"));
+        ASSERT_STR(err.duplicate_arg_name, STR_LIT("a"));
         ASSERT_UINT(err.base.loc.file_idx, 0);
         ASSERT_UINT(err.base.loc.file_loc.line, 1);
         ASSERT_UINT(err.base.loc.file_loc.index, 22);

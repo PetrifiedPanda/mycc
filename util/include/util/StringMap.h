@@ -55,6 +55,6 @@ bool StringMap_insert_overwrite(StringMap* map,
  */
 const void* StringMap_get(const StringMap* map, Str key);
 
-void StringMap_remove(StringMap* map, const StrBuf* key);
+void StringMap_remove(StringMap* map, const Str key);
 
 #endif

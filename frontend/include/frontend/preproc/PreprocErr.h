@@ -81,7 +81,7 @@ typedef struct PreprocErr {
         };
         TokenKind misplaced_preproc_tok;
         struct {
-            StrBuf constant_spell;
+            Str constant_spell;
             union {
                 IntConstErr int_const_err;
                 FloatConstErr float_const_err;
@@ -90,7 +90,7 @@ typedef struct PreprocErr {
         };
         TokenKind type_instead_of_identifier;
         ExpectedTokensErr expected_tokens_err;
-        StrBuf duplicate_arg_name;
+        Str duplicate_arg_name;
     };
 } PreprocErr;
 

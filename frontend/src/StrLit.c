@@ -2,8 +2,8 @@
 
 #include "util/macro_util.h"
 
-StrLit convert_to_str_lit(const StrBuf* spell) {
-    StrBuf cont = StrBuf_copy(spell);
+StrLit convert_to_str_lit(Str spell) {
+    StrBuf cont = StrBuf_create(spell);
     assert(StrBuf_at(&cont, StrBuf_len(&cont) - 1) == '"' || StrBuf_at(&cont, StrBuf_len(&cont) - 1) == '>');
     StrBuf_pop_back(&cont);
 

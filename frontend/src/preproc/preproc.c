@@ -171,20 +171,25 @@ TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
     assert(tokens);
     assert(info);
     MYCC_TIMER_BEGIN();
+    const uint32_t identifiers_len = IndexedStringSet_len(&vals->identifiers);
+    const uint32_t int_consts_len = IndexedStringSet_len(&vals->int_consts);
+    const uint32_t float_consts_len = IndexedStringSet_len(&vals->float_consts);
+    const uint32_t str_lits_len = IndexedStringSet_len(&vals->str_lits);
     TokenArr res = {
         .len = tokens->len,
         .cap = tokens->cap,
         .kinds = tokens->kinds,
         .val_indices = tokens->val_indices,
         .locs = tokens->locs,
-        .identifiers = vals->identifiers,
-        .int_consts = alloc_or_null(sizeof *res.int_consts * vals->int_consts_len),
-        .float_consts = alloc_or_null(sizeof *res.float_consts * vals->float_consts_len),
-        .str_lits = alloc_or_null(sizeof *res.str_lits * vals->str_lits_len),
-        .identifiers_len = vals->identifiers_len,
-        .int_consts_len = vals->int_consts_len,
-        .float_consts_len = vals->float_consts_len,
-        .str_lits_len = vals->str_lits_len,
+        // Gets initialized when done, so errors work properly
+        .identifiers = NULL,
+        .int_consts = alloc_or_null(sizeof *res.int_consts * int_consts_len),
+        .float_consts = alloc_or_null(sizeof *res.float_consts * float_consts_len),
+        .str_lits = alloc_or_null(sizeof *res.str_lits * str_lits_len),
+        .identifiers_len = identifiers_len,
+        .int_consts_len = int_consts_len,
+        .float_consts_len = float_consts_len,
+        .str_lits_len = str_lits_len,
     };
     // TODO: if we have identifiers in a set, we should just insert all
     // keywords in the set first 
@@ -194,8 +199,8 @@ TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
         uint8_t* kind = &tokens->kinds[i];
         switch (*kind) {
             case TOKEN_IDENTIFIER: {
-                StrBuf* spelling = &vals->identifiers[tokens->val_indices[i]];
-                *kind = keyword_kind(StrBuf_as_str(spelling));
+                Str spelling = IndexedStringSet_get(&vals->identifiers, tokens->val_indices[i]);
+                *kind = keyword_kind(spelling);
                 break;
             }
             case TOKEN_PP_STRINGIFY:
@@ -206,52 +211,49 @@ TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
                 return (TokenArr){0};
         }
     }
-    for (uint32_t i = 0; i < vals->int_consts_len; ++i) {
-        StrBuf* spelling = &vals->int_consts[i];
-        if (StrBuf_at(spelling, 0) == '\'') {
-            ParseCharConstRes char_const = parse_char_const(StrBuf_as_str(spelling), info);
+    for (uint32_t i = 0; i < int_consts_len; ++i) {
+        Str spelling = IndexedStringSet_get(&vals->int_consts, i);
+        if (Str_at(spelling, 0) == '\'') {
+            ParseCharConstRes char_const = parse_char_const(spelling, info);
             if (char_const.err.kind != CHAR_CONST_ERR_NONE) {
                 // TODO: find source loc
                 PreprocErr_set(err, PREPROC_ERR_CHAR_CONST, (SourceLoc){0});
                 err->char_const_err = char_const.err;
-                err->constant_spell = *spelling;
+                err->constant_spell = spelling;
                 // TODO: free
                 return (TokenArr){0};
             }
             res.int_consts[i] = char_const.res;
         } else {
             ParseIntConstRes int_const = parse_int_const(
-                StrBuf_as_str(spelling),
+                spelling,
                 info);
             if (int_const.err.kind != INT_CONST_ERR_NONE) {
                 // TODO: find source loc
                 PreprocErr_set(err, PREPROC_ERR_INT_CONST, (SourceLoc){0});
                 err->int_const_err = int_const.err;
-                err->constant_spell = *spelling;
+                err->constant_spell = spelling;
                 // TODO: free
                 return (TokenArr){0};
             }
             res.int_consts[i] = int_const.res;
         }
-        StrBuf_free(spelling);
     }
-    for (uint32_t i = 0; i < vals->float_consts_len; ++i) {
-        StrBuf* spelling = &vals->float_consts[i];        
-        ParseFloatConstRes float_const = parse_float_const(
-            StrBuf_as_str(spelling));
+    for (uint32_t i = 0; i < float_consts_len; ++i) {
+        Str spelling = IndexedStringSet_get(&vals->float_consts, i);
+        ParseFloatConstRes float_const = parse_float_const(spelling);
         if (float_const.err.kind != FLOAT_CONST_ERR_NONE) {
             // TODO: find source loc
             PreprocErr_set(err, PREPROC_ERR_FLOAT_CONST, (SourceLoc){0});
             err->float_const_err = float_const.err;
-            err->constant_spell = *spelling;
+            err->constant_spell = spelling;
             // TODO: free
             return (TokenArr){0};
         }
-        StrBuf_free(spelling);
         res.float_consts[i] = float_const.res; 
     }
-    for (uint32_t i = 0; i < vals->str_lits_len; ++i) {
-        StrBuf* spelling = &vals->str_lits[i];
+    for (uint32_t i = 0; i < str_lits_len; ++i) {
+        Str spelling = IndexedStringSet_get(&vals->str_lits, i);
         StrLit* str_lit = &res.str_lits[i];
         *str_lit = convert_to_str_lit(spelling);
         if (str_lit->kind == STR_LIT_INCLUDE) {
@@ -260,11 +262,11 @@ TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
             // TODO: free
             return (TokenArr){0};
         }
-        StrBuf_free(spelling);
     }
-    mycc_free(vals->float_consts);
-    mycc_free(vals->int_consts);
-    mycc_free(vals->str_lits);
+    res.identifiers = IndexedStringSet_take(&vals->identifiers);
+    IndexedStringSet_free(&vals->float_consts);
+    IndexedStringSet_free(&vals->int_consts);
+    IndexedStringSet_free(&vals->str_lits);
     *tokens = (PreprocTokenArr){0};
     *vals = (PreprocTokenValList){0};
     MYCC_TIMER_END("converting preproc tokens");

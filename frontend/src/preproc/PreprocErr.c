@@ -167,30 +167,30 @@ void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
                         TokenKind_get_spelling(err->misplaced_preproc_tok));
             break;
         case PREPROC_ERR_INT_CONST:
-            assert(StrBuf_valid(&err->constant_spell));
+            assert(Str_valid(err->constant_spell));
             ErrBase_print(out, file_info, &err->base);
             File_printf(
                 out,
                 "Integer constant {Str} is not a valid integer constant",
-                StrBuf_as_str(&err->constant_spell));
+                err->constant_spell);
             IntConstErr_print(out, &err->int_const_err);
             break;
         case PREPROC_ERR_FLOAT_CONST:
-            assert(StrBuf_valid(&err->constant_spell));
+            assert(Str_valid(err->constant_spell));
             ErrBase_print(out, file_info, &err->base);
             File_printf(
                 out,
                 "Floating constant {Str} is not a valid integer constant",
-                StrBuf_as_str(&err->constant_spell));
+                err->constant_spell);
             FloatConstErr_print(out, &err->float_const_err);
             break;
         case PREPROC_ERR_CHAR_CONST:
-            assert(StrBuf_valid(&err->constant_spell));
+            assert(Str_valid(err->constant_spell));
             ErrBase_print(out, file_info, &err->base);
             File_printf(
                 out,
                 "Character constant {Str} is not a valid character constant",
-                StrBuf_as_str(&err->constant_spell));
+                err->constant_spell);
             CharConstErr_print(out, &err->char_const_err);
             break;
         case PREPROC_ERR_EMPTY_DEFINE:
@@ -209,7 +209,7 @@ void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
             ErrBase_print(out, file_info, &err->base);
             File_printf(out,
                         "Duplicate macro argument name \"{Str}\"",
-                        StrBuf_as_str(&err->duplicate_arg_name));
+                        err->duplicate_arg_name);
             break;
         case PREPROC_ERR_INVALID_BACKSLASH:
             ErrBase_print(out, file_info, &err->base);
@@ -283,14 +283,6 @@ void PreprocErr_free(PreprocErr* err) {
         case PREPROC_ERR_INVALID_NUMBER:
             StrBuf_free(&err->invalid_num);
             break;
-        case PREPROC_ERR_INT_CONST:
-        case PREPROC_ERR_FLOAT_CONST:
-        case PREPROC_ERR_CHAR_CONST:
-            StrBuf_free(&err->constant_spell);
-            break;
-        case PREPROC_ERR_DUPLICATE_MACRO_PARAM:
-            StrBuf_free(&err->duplicate_arg_name);
-            break;
         case PREPROC_ERR_OPEN_FILE:
             StrBuf_free(&err->fail_filename);
             break;
@@ -312,6 +304,10 @@ void PreprocErr_free(PreprocErr* err) {
         case PREPROC_ERR_INCLUDE_NUM_ARGS:
         case PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL:
         case PREPROC_ERR_INCOMPLETE_EXPR:
+        case PREPROC_ERR_INT_CONST:
+        case PREPROC_ERR_FLOAT_CONST:
+        case PREPROC_ERR_CHAR_CONST:
+        case PREPROC_ERR_DUPLICATE_MACRO_PARAM:
             break;
     }
 }

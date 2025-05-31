@@ -179,9 +179,9 @@ static bool handle_ifdef_ifndef(PreprocState* state,
     assert(arr->kinds[1] == TOKEN_IDENTIFIER);
     assert(
         (!is_ifndef
-         && Str_eq(StrBuf_as_str(&state->vals.identifiers[arr->val_indices[1]]), STR_LIT("ifdef")))
+         && Str_eq(IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[1]), STR_LIT("ifdef")))
         || (is_ifndef
-            && Str_eq(StrBuf_as_str(&state->vals.identifiers[arr->val_indices[1]]),
+            && Str_eq(IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[1]),
                       STR_LIT("ifndef"))));
     const SourceLoc loc = arr->locs[1];
 
@@ -208,9 +208,8 @@ static bool handle_ifdef_ifndef(PreprocState* state,
         return false;
     }
 
-    const StrBuf* macro_spell = &state->vals.identifiers[arr->val_indices[2]];
-    assert(macro_spell);
-    assert(StrBuf_valid(macro_spell));
+    const Str macro_spell = IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[2]);
+    assert(Str_valid(macro_spell));
     const PreprocMacro* macro = find_preproc_macro(state, macro_spell);
 
     const bool cond = is_ifndef ? macro == NULL : macro != NULL;
@@ -278,7 +277,7 @@ static bool handle_include(PreprocState* state,
     // TODO: "<" ">" string literals
     if (arr->kinds[2] == TOKEN_STRING_LITERAL) {
         // TODO: this gets converted twice (because it will be again in convert_preproc_tokens)
-        StrLit filename = convert_to_str_lit(&state->vals.str_lits[arr->val_indices[2]]);
+        StrLit filename = convert_to_str_lit(IndexedStringSet_get(&state->vals.str_lits, arr->val_indices[2]));
         if (filename.kind != STR_LIT_DEFAULT) {
             PreprocErr_set(state->err,
                            PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL,
@@ -315,7 +314,7 @@ static bool preproc_statement(PreprocState* state,
         return false;
     }
 
-    const Str directive = StrBuf_as_str(&state->vals.identifiers[arr->val_indices[1]]);
+    const Str directive = IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[1]);
     assert(Str_valid(directive));
 
     if (Str_eq(directive, STR_LIT("if"))) {
@@ -332,14 +331,13 @@ static bool preproc_statement(PreprocState* state,
     } else if (Str_eq(directive, STR_LIT("ifndef"))) {
         return handle_ifdef_ifndef(state, arr, true, info);
     } else if (Str_eq(directive, STR_LIT("define"))) {
-        // TODO: if token after define is not identifier
-        // TODO: maybe avoid copying here?
-        const StrBuf spell = StrBuf_copy(&state->vals.identifiers[arr->val_indices[2]]);
-        PreprocMacro macro = parse_preproc_macro(arr, &state->vals, StrBuf_len(&spell), state->err);
+        // TODO: error if token after define is not identifier
+        const Str spell = IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[2]);
+        PreprocMacro macro = parse_preproc_macro(arr, &state->vals, spell.len, state->err);
         if (state->err->kind != PREPROC_ERR_NONE) {
             return false;
         }
-        PreprocState_register_macro(state, &spell, &macro);
+        PreprocState_register_macro(state, spell, &macro);
     } else if (Str_eq(directive, STR_LIT("undef"))) {
         if (arr->len < 3) {
             PreprocErr_set(state->err,
@@ -364,7 +362,7 @@ static bool preproc_statement(PreprocState* state,
             return false;
         }
 
-        PreprocState_remove_macro(state, &state->vals.identifiers[arr->val_indices[2]]);
+        PreprocState_remove_macro(state, IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[2]));
     } else if (Str_eq(directive, STR_LIT("include"))) {
         return handle_include(state, arr, info);
     } else if (Str_eq(directive, STR_LIT("pragma"))) {

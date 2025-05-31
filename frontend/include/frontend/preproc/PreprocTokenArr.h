@@ -2,6 +2,7 @@
 #define MYCC_FRONEND_PREPROC_PREPROC_TOKEN_ARR_H
 
 #include "util/StrBuf.h"
+#include "util/IndexedStringSet.h"
 
 #include "frontend/Token.h"
 
@@ -16,14 +17,10 @@ typedef struct PreprocTokenArr {
 } PreprocTokenArr;
 
 typedef struct PreprocTokenValList {
-    StrBuf* identifiers;
-    StrBuf* int_consts;
-    StrBuf* float_consts;
-    StrBuf* str_lits;
-    uint32_t identifiers_len;
-    uint32_t int_consts_len;
-    uint32_t float_consts_len;
-    uint32_t str_lits_len;
+    IndexedStringSet identifiers;
+    IndexedStringSet int_consts;
+    IndexedStringSet float_consts;
+    IndexedStringSet str_lits;
 } PreprocTokenValList;
 
 PreprocTokenValList PreprocTokenValList_create_empty(void);

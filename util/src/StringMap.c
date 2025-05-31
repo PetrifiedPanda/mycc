@@ -174,8 +174,8 @@ const void* StringMap_get(const StringMap* map, Str key) {
     return (char*)map->_items + idx * map->_item_size;
 }
 
-void StringMap_remove(StringMap* map, const StrBuf* key) {
-    const uint32_t idx = find_item_index(map, StrBuf_as_str(key));
+void StringMap_remove(StringMap* map, Str key) {
+    const uint32_t idx = find_item_index(map, key);
 
     StrBuf* key_to_remove = &map->_keys[idx].str;
     if (key_to_remove == NULL) {

@@ -476,7 +476,7 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
                                                 PreprocErr* err) {
     for (uint32_t i = 2; i < arr->len; ++i) {
         if (arr->kinds[i] == TOKEN_IDENTIFIER
-            && Str_eq(StrBuf_as_str(&state->vals.identifiers[arr->val_indices[i]]), STR_LIT("defined"))) {
+            && Str_eq(IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[i]), STR_LIT("defined"))) {
             if (i == arr->len - 1) {
                 // TODO: error
                 return (PreprocConstExprRes){
@@ -504,7 +504,7 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
             }
 
             const bool has_macro = find_preproc_macro(state,
-                                                      &state->vals.identifiers[arr->val_indices[it]])
+                                                      IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[it]))
                                    != NULL;
             ++it;
 
@@ -543,40 +543,38 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
             .valid = false,
         };
     }
+    const uint32_t int_consts_len = IndexedStringSet_len(&state->vals.int_consts);
     TokenArr tokens = {
         .len = arr->len,
         .cap = arr->cap,
         .kinds = arr->kinds,
         .val_indices = arr->val_indices,
         .locs = arr->locs,
-        .identifiers = state->vals.identifiers,
-        .int_consts = mycc_alloc(sizeof *tokens.int_consts * state->vals.int_consts_len),
-        .int_consts_len = state->vals.int_consts_len,
+        .identifiers = state->vals.identifiers._data,
+        .int_consts = mycc_alloc(sizeof *tokens.int_consts * int_consts_len),
+        .int_consts_len = int_consts_len,
     };
-    for (uint32_t i = 0; i < state->vals.int_consts_len; ++i) {
-        if (StrBuf_at(&state->vals.int_consts[i], 0) == '\'') {
-            ParseCharConstRes res = parse_char_const(
-                StrBuf_as_str(&state->vals.int_consts[i]),
-                info);
+    for (uint32_t i = 0; i < int_consts_len; ++i) {
+        const Str spell = IndexedStringSet_get(&state->vals.int_consts, i);
+        if (Str_at(spell, 0) == '\'') {
+            ParseCharConstRes res = parse_char_const(spell, info);
             if (res.err.kind != CHAR_CONST_ERR_NONE) {
                 PreprocErr_set(err, PREPROC_ERR_CHAR_CONST, arr->locs[i]);
                 err->char_const_err = res.err;
                 // TODO: do we need to take this
-                err->constant_spell = state->vals.int_consts[i];
+                err->constant_spell = spell;
                 return (PreprocConstExprRes){
                     .valid = false,
                 };
             }
             tokens.int_consts[i] = res.res;
         } else {
-            ParseIntConstRes res = parse_int_const(
-                StrBuf_as_str(&state->vals.int_consts[i]),
-                info);
+            ParseIntConstRes res = parse_int_const(spell, info);
             if (res.err.kind != INT_CONST_ERR_NONE) {
                 PreprocErr_set(err, PREPROC_ERR_INT_CONST, arr->locs[i]);
                 err->int_const_err = res.err;
                 // TODO: do we need to take this
-                err->constant_spell = state->vals.int_consts[i];
+                err->constant_spell = spell;
                 return (PreprocConstExprRes){
                     .valid = false,
                 };
@@ -584,7 +582,7 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
             tokens.int_consts[i] = res.res;
         }
     }
-    // TODO: need to check check for F_CONSTANT and IDENTIFIERs
+    // TODO: need to check for F_CONSTANT and IDENTIFIERs
 
     uint32_t i = 2;
     PreprocConstExprVal val = evaluate_preproc_cond_expr(&i, &tokens, err);

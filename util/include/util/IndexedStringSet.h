@@ -17,4 +17,8 @@ uint32_t IndexedStringSet_find_or_insert(IndexedStringSet* s, Str str);
 
 Str IndexedStringSet_get(const IndexedStringSet* s, uint32_t idx);
 
+StrBuf* IndexedStringSet_take(IndexedStringSet* s);
+
+uint32_t IndexedStringSet_len(const IndexedStringSet* s);
+
 #endif

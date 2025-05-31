@@ -367,20 +367,21 @@ static void preproc_state_close_file(PreprocState* s) {
 }
 
 const PreprocMacro* find_preproc_macro(const PreprocState* state,
-                                       const StrBuf* spelling) {
-    return StringMap_get(&state->_macro_map, StrBuf_as_str(spelling));
+                                       Str spelling) {
+    return StringMap_get(&state->_macro_map, spelling);
 }
 
 void PreprocState_register_macro(PreprocState* state,
-                                 const StrBuf* spelling,
+                                 Str spelling,
                                  const PreprocMacro* macro) {
+    StrBuf buf = StrBuf_create(spelling);
     bool overwritten = StringMap_insert_overwrite(&state->_macro_map,
-                                                  spelling,
+                                                  &buf,
                                                   macro);
     (void)overwritten; // TODO: warning if redefined
 }
 
-void PreprocState_remove_macro(PreprocState* state, const StrBuf* spelling) {
+void PreprocState_remove_macro(PreprocState* state, Str spelling) {
     StringMap_remove(&state->_macro_map, spelling);
 }
 

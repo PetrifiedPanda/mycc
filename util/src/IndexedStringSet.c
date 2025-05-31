@@ -96,3 +96,17 @@ Str IndexedStringSet_get(const IndexedStringSet* s, uint32_t idx) {
     return StrBuf_as_str(&s->_data[idx]);
 }
 
+StrBuf* IndexedStringSet_take(IndexedStringSet* s) {
+    StrBuf* data = s->_data;
+    s->_data = NULL;
+    s->_len = 0;
+    s->_cap = 0;
+    mycc_free(s->_indices);
+    s->_indices = NULL;
+    return data;
+}
+
+uint32_t IndexedStringSet_len(const IndexedStringSet* s) {
+    return s->_len;
+}
+

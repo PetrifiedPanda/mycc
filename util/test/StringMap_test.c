@@ -131,7 +131,7 @@ TEST(remove) {
 
     for (uint32_t i = 0; i < NUM_INSERTS; ++i) {
         const StrBuf key = str_from_generated(keys[i]);
-        StringMap_remove(&map, &key);
+        StringMap_remove(&map, StrBuf_as_str(&key));
         ASSERT_UINT(map._len, (uint32_t)NUM_INSERTS - 1);
 
         const void* item = StringMap_get(&map, StrBuf_as_str(&key));
@@ -160,7 +160,7 @@ TEST(remove) {
     for (uint32_t i = 0; i < NUM_INSERTS; ++i) {
         ASSERT_UINT(map._len, (uint32_t)NUM_INSERTS - i);
         const StrBuf to_remove = str_from_generated(keys[i]);
-        StringMap_remove(&map, &to_remove);
+        StringMap_remove(&map, StrBuf_as_str(&to_remove));
 
         const void* item = StringMap_get(&map, StrBuf_as_str(&to_remove));
         ASSERT_NULL(item);

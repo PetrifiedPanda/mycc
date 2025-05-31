@@ -8,26 +8,20 @@ PreprocTokenArr PreprocTokenArr_create_empty(void) {
 }
 
 PreprocTokenValList PreprocTokenValList_create_empty(void) {
-    return (PreprocTokenValList){0};
+    enum {INIT_CAP = 200};
+    return (PreprocTokenValList){
+        .identifiers = IndexedStringSet_create(INIT_CAP),
+        .int_consts = IndexedStringSet_create(INIT_CAP),
+        .float_consts = IndexedStringSet_create(INIT_CAP),
+        .str_lits = IndexedStringSet_create(INIT_CAP),
+    };
 }
 
 void PreprocTokenValList_free(const PreprocTokenValList* vals) {
-    for (uint32_t i = 0; i < vals->identifiers_len; ++i) {
-        StrBuf_free(&vals->identifiers[i]);
-    }
-    mycc_free(vals->identifiers);
-    for (uint32_t i = 0; i < vals->int_consts_len; ++i) {
-        StrBuf_free(&vals->int_consts[i]);
-    }
-    mycc_free(vals->int_consts);
-    for (uint32_t i = 0; i < vals->float_consts_len; ++i) {
-        StrBuf_free(&vals->float_consts[i]);
-    }
-    mycc_free(vals->float_consts);
-    for (uint32_t i = 0; i < vals->str_lits_len; ++i) {
-        StrBuf_free(&vals->str_lits[i]);
-    }
-    mycc_free(vals->str_lits);
+    IndexedStringSet_free(&vals->identifiers);
+    IndexedStringSet_free(&vals->int_consts);
+    IndexedStringSet_free(&vals->float_consts);
+    IndexedStringSet_free(&vals->str_lits);
 }
 
 void PreprocTokenArr_free(const PreprocTokenArr* arr) {
@@ -36,28 +30,20 @@ void PreprocTokenArr_free(const PreprocTokenArr* arr) {
     mycc_free(arr->locs);
 }
 
-static uint32_t add_to_str_buf_array(uint32_t* len, StrBuf** data, Str str) {
-    const uint32_t idx = *len;
-    ++*len;
-    *data = mycc_realloc(*data, *len * sizeof **data);
-    (*data)[idx] = StrBuf_create(str);
-    return idx;
-}
-
 uint32_t PreprocTokenValList_add_identifier(PreprocTokenValList* vals, Str str) {
-    return add_to_str_buf_array(&vals->identifiers_len, &vals->identifiers, str);
+    return IndexedStringSet_find_or_insert(&vals->identifiers, str);
 }
 
 uint32_t PreprocTokenValList_add_int_const(PreprocTokenValList* vals, Str str) {
-    return add_to_str_buf_array(&vals->int_consts_len, &vals->int_consts, str);
+    return IndexedStringSet_find_or_insert(&vals->int_consts, str);
 }
 
 uint32_t PreprocTokenValList_add_float_const(PreprocTokenValList* vals, Str str) {
-    return add_to_str_buf_array(&vals->float_consts_len, &vals->float_consts, str);
+    return IndexedStringSet_find_or_insert(&vals->float_consts, str);
 }
 
 uint32_t PreprocTokenValList_add_str_lit(PreprocTokenValList* vals, Str str) {
-    return add_to_str_buf_array(&vals->str_lits_len, &vals->str_lits, str);
+    return IndexedStringSet_find_or_insert(&vals->str_lits, str);
 }
 
 #ifdef MYCC_TEST_FUNCTIONALITY
