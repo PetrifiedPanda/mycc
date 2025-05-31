@@ -163,31 +163,18 @@ static bool deserialize_int_val(ASTDeserializer* r, IntVal* res) {
 
     res->kind = kind;
     assert((uint64_t)res->kind == kind);
-    switch (res->kind) {
-        case INT_VAL_CHAR:
-        case INT_VAL_SHORT:
-        case INT_VAL_INT:
-        case INT_VAL_LINT:
-        case INT_VAL_LLINT: {
-            int64_t val;
-            if (!deserialize_i64(r, &val)) {
-                return false;
-            }
-            res->sint_val = val;
-            break;
+    if (IntValKind_is_sint(res->kind)) {
+        int64_t val;
+        if (!deserialize_i64(r, &val)) {
+            return false;
         }
-        case INT_VAL_UCHAR:
-        case INT_VAL_USHORT:
-        case INT_VAL_UINT:
-        case INT_VAL_ULINT:
-        case INT_VAL_ULLINT: {
-            uint64_t val;
-            if (!deserialize_u64(r, &val)) {
-                return false;
-            }
-            res->uint_val = val;
-            break;
+        res->sint_val = val;
+    } else {
+        uint64_t val;
+        if (!deserialize_u64(r, &val)) {
+            return false;
         }
+        res->uint_val = val;
     }
     return true;
 }
@@ -233,6 +220,7 @@ static bool deserialize_token_arr(ASTDeserializer* r, TokenArr* res) {
         return false;
     }
 
+    res->len = len;
     res->cap = len;
 
     res->kinds = mycc_alloc(sizeof *res->kinds * len);
@@ -401,7 +389,7 @@ static void serialize_tokens(ASTSerializer* d, const TokenArr* tokens) {
     serialize_u32(d, tokens->str_lits_len);
     for (uint32_t i = 0; i < tokens->str_lits_len; ++i) {
         serialize_str_lit(d, &tokens->str_lits[i]);
-    }    serialize_u32(d, tokens->len);
+    }
 }
 
 static void serialize_file_info(ASTSerializer* d, const FileInfo* info) {
