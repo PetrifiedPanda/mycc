@@ -183,6 +183,7 @@ TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
         .str_lits = alloc_or_null(sizeof *res.str_lits * vals->str_lits_len),
         .identifiers_len = vals->identifiers_len,
         .int_consts_len = vals->int_consts_len,
+        .float_consts_len = vals->float_consts_len,
         .str_lits_len = vals->str_lits_len,
     };
     // TODO: if we have identifiers in a set, we should just insert all
