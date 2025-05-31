@@ -116,14 +116,7 @@ PreprocRes preproc_string(Str str,
 
     if (!preproc_impl(&state, info)) {
         PreprocState_free(&state);
-        return (PreprocRes){
-            .toks = {0},
-            .vals = {0},
-            .file_info = {
-                .len = 0,
-                .paths = NULL,
-            },
-        };
+        return (PreprocRes){0};
     }
 
     PreprocRes res = {
