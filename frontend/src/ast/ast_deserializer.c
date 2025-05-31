@@ -2325,6 +2325,8 @@ static bool deserialize_token_arr(AstDeserializer* r, TokenArr* res) {
         // TODO:
         return false;
     }
+    // Having zero identifiers should not be possible
+    assert(res->identifiers_len > 0);
     res->identifiers = mycc_alloc(sizeof *res->identifiers * res->identifiers_len);
     for (uint32_t i = 0; i < res->identifiers_len; ++i) {
         res->identifiers[i] = deserialize_str_buf(r);
@@ -2337,7 +2339,8 @@ static bool deserialize_token_arr(AstDeserializer* r, TokenArr* res) {
         // TODO:
         return false;
     }
-    res->int_consts = mycc_alloc(sizeof *res->int_consts * res->int_consts_len);
+    // No int consts is possible
+    res->int_consts = alloc_or_null(sizeof *res->int_consts * res->int_consts_len);
     for (uint32_t i = 0; i < res->int_consts_len; ++i) {
         if (!deserialize_int_val(r, &res->int_consts[i])) {
             // TODO:
@@ -2348,7 +2351,8 @@ static bool deserialize_token_arr(AstDeserializer* r, TokenArr* res) {
         // TODO:
         return false;
     }
-    res->float_consts = mycc_alloc(sizeof *res->float_consts * res->float_consts_len);
+    // No float consts is possible
+    res->float_consts = alloc_or_null(sizeof *res->float_consts * res->float_consts_len);
     for (uint32_t i = 0; i < res->float_consts_len; ++i) {
         if (!deserialize_float_val(r, &res->float_consts[i])) {
             // TODO:
@@ -2359,7 +2363,8 @@ static bool deserialize_token_arr(AstDeserializer* r, TokenArr* res) {
         // TODO:
         return false;
     }
-    res->str_lits = mycc_alloc(sizeof *res->str_lits * res->str_lits_len);
+    // No str lits is also possible
+    res->str_lits = alloc_or_null(sizeof *res->str_lits * res->str_lits_len);
     for (uint32_t i = 0; i < res->str_lits_len; ++i) {
         if (!deserialize_str_lit(r, &res->str_lits[i])) {
             // TODO:
