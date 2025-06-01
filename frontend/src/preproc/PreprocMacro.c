@@ -124,8 +124,7 @@ static ExpansionInfo find_and_expand_macro(PreprocState* state,
     if (kind != TOKEN_IDENTIFIER) {
         return (ExpansionInfo){0, i + 1};
     }
-    const Str spell = IndexedStringSet_get(&state->vals.identifiers, res->val_indices[i]);
-    const PreprocMacro* macro = find_preproc_macro(state, spell);
+    const PreprocMacro* macro = find_preproc_macro(state, res->val_indices[i]);
     if (macro == NULL || ExpandedMacroStack_contains(expanded, macro)) {
         return (ExpansionInfo){0, i + 1};
     }
@@ -412,7 +411,7 @@ PreprocMacro parse_preproc_macro(PreprocTokenArr* arr,
     }
 }
 
-void PreprocMacro_free(PreprocMacro* m) {
+void PreprocMacro_free(const PreprocMacro* m) {
     mycc_free(m->kinds);
     mycc_free(m->vals);
 }

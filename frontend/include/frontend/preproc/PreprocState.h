@@ -3,7 +3,6 @@
 
 #include <stddef.h>
 
-#include "util/StringMap.h"
 #include "util/File.h"
 
 #include "frontend/FileInfo.h"
@@ -36,6 +35,13 @@ typedef struct FileManager {
     StrBuf* prefixes;
 } FileManager;
 
+typedef struct PreprocMacro PreprocMacro;
+
+typedef struct PreprocMacroMap {
+    uint32_t _cap;
+    PreprocMacro* _macros;
+} PreprocMacroMap;
+
 typedef struct PreprocState {
     PreprocTokenArr toks;
     PreprocTokenValList vals;
@@ -47,7 +53,7 @@ typedef struct PreprocState {
     uint32_t conds_len, conds_cap;
     PreprocCond* conds;
 
-    StringMap _macro_map;
+    PreprocMacroMap _macro_map;
     FileInfo file_info;
     uint32_t num_include_dirs;
     const Str* include_dirs;
@@ -71,17 +77,17 @@ bool PreprocState_over(const PreprocState* state);
 typedef struct PreprocMacro PreprocMacro;
 
 const PreprocMacro* find_preproc_macro(const PreprocState* state,
-                                       Str spelling);
+                                       uint32_t identifier_idx);
 
 bool PreprocState_open_file(PreprocState* s,
                             const StrBuf* filename_str,
                             const SourceLoc* include_loc);
 
 void PreprocState_register_macro(PreprocState* state,
-                                 Str spelling,
+                                 uint32_t identifier_idx,
                                  const PreprocMacro* macro);
 
-void PreprocState_remove_macro(PreprocState* state, Str spelling);
+void PreprocState_remove_macro(PreprocState* state, uint32_t identifier_idx);
 
 void PreprocState_push_cond(PreprocState* state, SourceLoc loc, bool was_true);
 

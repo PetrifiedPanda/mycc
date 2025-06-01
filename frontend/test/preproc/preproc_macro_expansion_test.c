@@ -8,7 +8,7 @@
 
 static void test_preproc_macro(const PreprocMacro* macro,
                                const PreprocInitialStrings* strings,
-                               Str spell,
+                               uint32_t macro_id_idx,
                                Str input,
                                Str output) {
     const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
@@ -33,9 +33,7 @@ static void test_preproc_macro(const PreprocMacro* macro,
     // Creation initializes with a size so we need to free this before replacing it
     PreprocTokenValList_free(&state.vals);
     state.vals = res.vals;
-    // Do not free stack allocated macros
-    state._macro_map._item_free = NULL;
-    PreprocState_register_macro(&state, spell, macro);
+    PreprocState_register_macro(&state, macro_id_idx, macro);
 
     ASSERT(expand_all_macros(&state, &state.toks, 0, &info));
     ASSERT(err.kind == PREPROC_ERR_NONE);
@@ -73,6 +71,9 @@ static void test_preproc_macro(const PreprocMacro* macro,
     }
     FileInfo_free(&res.file_info);
     PreprocRes_free_preproc_tokens(&expected);
+    // Zero macros so the stack allocated macros are not freed
+    memset(state._macro_map._macros, 0,
+           sizeof *state._macro_map._macros * state._macro_map._cap);
     PreprocState_free(&state);
 }
 
@@ -108,25 +109,32 @@ TEST(expand_obj_like) {
         .vals = vals,
     };
 
+    enum {MACRO_IDX = 0};
+    const Str identifiers[] = {
+        [MACRO_IDX] = STR_LIT("MACRO"),
+    };
+
     const PreprocInitialStrings strings = {
+        .identifiers = identifiers,
         .int_consts = int_consts,
+        .identifiers_len = ARR_LEN(identifiers),
         .int_consts_len = ARR_LEN(int_consts),
     };
 
     test_preproc_macro(&macro,
                        &strings,
-                       STR_LIT("MACRO"),
+                       MACRO_IDX,
                        STR_LIT("int var = MACRO;\nfunc();"),
                        STR_LIT("int var = 1 + 2;\nfunc();"));
     test_preproc_macro(
         &macro,
         &strings,
-        STR_LIT("MACRO"),
+        MACRO_IDX,
         STR_LIT("MACRO; for (uint32_t i = 0; i < 42; ++i) continue;"),
         STR_LIT("1 + 2; for (uint32_t i = 0; i < 42; ++i) continue;"));
     test_preproc_macro(&macro,
                        &strings,
-                       STR_LIT("MACRO"),
+                       MACRO_IDX,
                        STR_LIT("int x = 1000; MACRO"),
                        STR_LIT("int x = 1000; 1 + 2"));
 }
@@ -142,19 +150,28 @@ TEST(expand_obj_like_empty) {
         .vals = NULL,
     };
 
+    enum {MACRO_IDX = 0};
+    const Str identifiers[] = {
+        [MACRO_IDX] = STR_LIT("EMPTY_MACRO"),
+    };
+    const PreprocInitialStrings strings = {
+        .identifiers = identifiers,
+        .identifiers_len = ARR_LEN(identifiers),
+    };
+
     test_preproc_macro(&macro,
-                       &(PreprocInitialStrings){0},
-                       STR_LIT("EMPTY_MACRO"),
+                       &strings,
+                       MACRO_IDX,
                        STR_LIT("function EMPTY_MACRO (var, 2);"),
                        STR_LIT("function (var, 2);"));
     test_preproc_macro(&macro,
-                       &(PreprocInitialStrings){0},
-                       STR_LIT("EMPTY_MACRO"),
+                       &strings,
+                       MACRO_IDX,
                        STR_LIT("EMPTY_MACRO int n = 1000;"),
                        STR_LIT("int n = 1000;"));
     test_preproc_macro(&macro,
-                       &(PreprocInitialStrings){0},
-                       STR_LIT("EMPTY_MACRO"),
+                       &strings,
+                       MACRO_IDX,
                        STR_LIT("while (true) x *= 2 * 2;\nEMPTY_MACRO;"),
                        STR_LIT("while (true) x *= 2 * 2;\n;"));
 }
@@ -165,8 +182,9 @@ TEST(expand_recursive) {
         TOKEN_IDENTIFIER,
     };
 
+    enum {MACRO_IDX = 0};
     const Str identifiers[] = {
-        STR_LIT("REC_MACRO"),
+        [MACRO_IDX] = STR_LIT("REC_MACRO"),
     };
 
     TokenValOrArg rec_obj_vals[] = {
@@ -190,17 +208,17 @@ TEST(expand_recursive) {
 
     test_preproc_macro(&rec_obj,
                        &strings,
-                       STR_LIT("REC_MACRO"),
+                       MACRO_IDX,
                        STR_LIT("int x = REC_MACRO - 10;"),
                        STR_LIT("int x = REC_MACRO - 10;"));
     test_preproc_macro(&rec_obj,
                        &strings,
-                       STR_LIT("REC_MACRO"),
+                       MACRO_IDX,
                        STR_LIT("REC_MACRO = REC_MACRO - 10;"),
                        STR_LIT("REC_MACRO = REC_MACRO - 10;"));
     test_preproc_macro(&rec_obj,
                        &strings,
-                       STR_LIT("REC_MACRO"),
+                       MACRO_IDX,
                        STR_LIT("x = REC_MACRO - 10;REC_MACRO"),
                        STR_LIT("x = REC_MACRO - 10;REC_MACRO"));
 
@@ -212,7 +230,7 @@ TEST(expand_recursive) {
     };
 
     const Str identifiers2[] = {
-        STR_LIT("REC_FUNC_MACRO"),
+        [MACRO_IDX] = STR_LIT("REC_FUNC_MACRO"),
     };
 
     TokenValOrArg rec_func_vals[] = {
@@ -238,17 +256,17 @@ TEST(expand_recursive) {
 
     test_preproc_macro(&rec_func,
                        &strings2,
-                       STR_LIT("REC_FUNC_MACRO"),
+                       MACRO_IDX,
                        STR_LIT("int x = REC_FUNC_MACRO() - 10;"),
                        STR_LIT("int x = REC_FUNC_MACRO() - 10;"));
     test_preproc_macro(&rec_func,
                        &strings2,
-                       STR_LIT("REC_FUNC_MACRO"),
+                       MACRO_IDX,
                        STR_LIT("REC_FUNC_MACRO() = REC_FUNC_MACRO() - 10;"),
                        STR_LIT("REC_FUNC_MACRO() = REC_FUNC_MACRO() - 10;"));
     test_preproc_macro(&rec_func,
                        &strings2,
-                       STR_LIT("REC_FUNC_MACRO"),
+                       MACRO_IDX,
                        STR_LIT("x = REC_FUNC_MACRO() - 10;REC_FUNC_MACRO()"),
                        STR_LIT("x = REC_FUNC_MACRO() - 10;REC_FUNC_MACRO()"));
 }
@@ -291,36 +309,43 @@ TEST(expand_func_like) {
         .vals = vals1,
     };
 
+    enum {MACRO_IDX = 0};
+    const Str identifiers[] = {
+        [MACRO_IDX] = STR_LIT("FUNC_LIKE_MACRO"),
+    };
+
     const PreprocInitialStrings strings = {
+        .identifiers = identifiers,
         .int_consts = int_consts,
+        .identifiers_len = ARR_LEN(identifiers),
         .int_consts_len = ARR_LEN(int_consts),
     };
 
     test_preproc_macro(
         &macro1,
         &strings,
-        STR_LIT("FUNC_LIKE_MACRO"),
+        MACRO_IDX,
         STR_LIT("int n = FUNC_LIKE_MACRO(2 * 2, x - 5 + 2) + 1;"),
         STR_LIT("int n = 2 * 2 + x - 5 + 2 * 3 - x - 5 + 2 + 1;"));
     test_preproc_macro(
         &macro1,
         &strings,
-        STR_LIT("FUNC_LIKE_MACRO"),
+        MACRO_IDX,
         STR_LIT("int\n n = FUNC_LIKE_MACRO(\n2 * 2,\n x - 5 + 2) + 1;"),
         STR_LIT("int\n n = 2 * 2 + x - 5 + 2 * 3 - x - 5 + 2 + 1;"));
     test_preproc_macro(&macro1,
                        &strings,
-                       STR_LIT("FUNC_LIKE_MACRO"),
+                       MACRO_IDX,
                        STR_LIT("char c = FUNC_LIKE_MACRO(, 10);"),
                        STR_LIT("char c = + 10 * 3 - 10;"));
     test_preproc_macro(&macro1,
                        &strings,
-                       STR_LIT("FUNC_LIKE_MACRO"),
+                       MACRO_IDX,
                        STR_LIT("f = FUNC_LIKE_MACRO(f,);"),
                        STR_LIT("f = f + * 3 -;"));
     test_preproc_macro(&macro1,
                        &strings,
-                       STR_LIT("FUNC_LIKE_MACRO"),
+                       MACRO_IDX,
                        STR_LIT("f = FUNC_LIKE_MACRO(f,\n);"),
                        STR_LIT("f = f + * 3 -;"));
 
@@ -342,21 +367,30 @@ TEST(expand_func_like) {
         .vals = vals2,
     };
 
+    const Str identifiers2[] = {
+        [MACRO_IDX] = STR_LIT("OTHER_FUNC_LIKE"),
+    };
+
+    const PreprocInitialStrings strings2 = {
+        .identifiers = identifiers2,
+        .identifiers_len = ARR_LEN(identifiers2),
+    };
+
     test_preproc_macro(&macro2,
-                       &(PreprocInitialStrings){0},
-                       STR_LIT("OTHER_FUNC_LIKE"),
+                       &strings2,
+                       MACRO_IDX,
                        STR_LIT("OTHER_FUNC_LIKE(var, 1, 2, 3, 4, 5) = 69;"),
                        STR_LIT("var = 69;"));
     test_preproc_macro(
         &macro2,
-        &(PreprocInitialStrings){0},
-        STR_LIT("OTHER_FUNC_LIKE"),
+        &strings2,
+        MACRO_IDX,
         STR_LIT("OTHER_FUNC_LIKE(var,\n 1, 2,\n 3, 4\n, 5) = 69;"),
         STR_LIT("var = 69;"));
     test_preproc_macro(
         &macro2,
-        &(PreprocInitialStrings){0},
-        STR_LIT("OTHER_FUNC_LIKE"),
+        &strings2,
+        MACRO_IDX,
         STR_LIT("int n = OTHER_FUNC_LIKE(OTHER_FUNC_LIKE(1, a, b, c, d, "
                 "e), x, y, z, 1, 2);"),
         STR_LIT("int n = 1;"));
@@ -368,7 +402,7 @@ TEST(expand_func_like) {
         TOKEN_I_CONSTANT,
     };
 
-    const Str int_consts2[] = {
+    const Str int_consts3[] = {
         STR_LIT("1"),
     };
 
@@ -388,20 +422,25 @@ TEST(expand_func_like) {
         .vals = vals3,
     };
 
-    const PreprocInitialStrings strings2 = {
-        .int_consts = int_consts2,
-        .int_consts_len = ARR_LEN(int_consts2),
+    const Str identifiers3[] = {
+        [MACRO_IDX] = STR_LIT("YET_ANOTHER_FUNC_LIKE"),
+    };
+    const PreprocInitialStrings strings3 = {
+        .identifiers = identifiers3,
+        .int_consts = int_consts3,
+        .identifiers_len = ARR_LEN(identifiers3),
+        .int_consts_len = ARR_LEN(int_consts3),
     };
 
     test_preproc_macro(&macro3,
-                       &strings2,
-                       STR_LIT("YET_ANOTHER_FUNC_LIKE"),
+                       &strings3,
+                       MACRO_IDX,
                        STR_LIT("const float stuff = YET_ANOTHER_FUNC_LIKE();"),
                        STR_LIT("const float stuff = 1 + 1;"));
     test_preproc_macro(
         &macro3,
-        &strings2,
-        STR_LIT("YET_ANOTHER_FUNC_LIKE"),
+        &strings3,
+        MACRO_IDX,
         STR_LIT("const float stuff = YET_ANOTHER_FUNC_LIKE\n(\n);"),
         STR_LIT("const float stuff = 1 + 1;"));
 
@@ -416,14 +455,23 @@ TEST(expand_func_like) {
         .vals = NULL,
     };
 
+    const Str identifiers4[] = {
+        [MACRO_IDX] = STR_LIT("TEST_MACRON"),
+    };
+
+    const PreprocInitialStrings strings4 = {
+        .identifiers = identifiers4,
+        .identifiers_len = ARR_LEN(identifiers4),
+    };
+
     test_preproc_macro(&macro4,
-                       &(PreprocInitialStrings){0},
-                       STR_LIT("TEST_MACRON"),
+                       &strings4,
+                       MACRO_IDX,
                        STR_LIT("TEST_MACRON() + 10"),
                        STR_LIT("+ 10"));
     test_preproc_macro(&macro4,
-                       &(PreprocInitialStrings){0},
-                       STR_LIT("TEST_MACRON"),
+                       &strings4,
+                       MACRO_IDX,
                        STR_LIT("TEST_MACRON\n(\n)\n + 10"),
                        STR_LIT("+ 10"));
 }
@@ -453,15 +501,25 @@ TEST(expand_func_like_variadic) {
         .vals = vals1,
     };
 
+    enum {MACRO_IDX = 0};
+    const Str identifiers1[] = {
+        [MACRO_IDX] = STR_LIT("CALL_FUNC"),
+    };
+
+    const PreprocInitialStrings strings1 = {
+        .identifiers = identifiers1,
+        .identifiers_len = ARR_LEN(identifiers1),
+    };
+
     test_preproc_macro(
         &macro1,
-        &(PreprocInitialStrings){0},
-        STR_LIT("CALL_FUNC"),
+        &strings1,
+        MACRO_IDX,
         STR_LIT("res = CALL_FUNC(printf, \"Hello World %d\", 89);"),
         STR_LIT("res = printf(\"Hello World %d\", 89);"));
     test_preproc_macro(&macro1,
-                       &(PreprocInitialStrings){0},
-                       STR_LIT("CALL_FUNC"),
+                       &strings1,
+                       MACRO_IDX,
                        STR_LIT("CALL_FUNC(function);"),
                        STR_LIT("function();"));
 
@@ -497,19 +555,25 @@ TEST(expand_func_like_variadic) {
         .vals = vals2,
     };
 
-    const PreprocInitialStrings strings = {
+    const Str identifiers2[] = {
+        [MACRO_IDX] = STR_LIT("ONLY_VARARGS"),
+    };
+
+    const PreprocInitialStrings strings2 = {
+        .identifiers = identifiers2,
         .int_consts = int_consts,
+        .identifiers_len = ARR_LEN(identifiers2),
         .int_consts_len = ARR_LEN(int_consts),
     };
 
     test_preproc_macro(&macro2,
-                       &strings,
-                       STR_LIT("ONLY_VARARGS"),
+                       &strings2,
+                       MACRO_IDX,
                        STR_LIT("int n = ONLY_VARARGS();"),
                        STR_LIT("int n = 1, 2,;"));
     test_preproc_macro(&macro2,
-                       &strings,
-                       STR_LIT("ONLY_VARARGS"),
+                       &strings2,
+                       MACRO_IDX,
                        STR_LIT("m = ONLY_VARARGS(3, 4);"),
                        STR_LIT("m = 1, 2, 3, 4;"));
 }

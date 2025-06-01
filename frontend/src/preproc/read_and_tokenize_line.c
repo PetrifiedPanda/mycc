@@ -208,9 +208,7 @@ static bool handle_ifdef_ifndef(PreprocState* state,
         return false;
     }
 
-    const Str macro_spell = IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[2]);
-    assert(Str_valid(macro_spell));
-    const PreprocMacro* macro = find_preproc_macro(state, macro_spell);
+    const PreprocMacro* macro = find_preproc_macro(state, arr->val_indices[2]);
 
     const bool cond = is_ifndef ? macro == NULL : macro != NULL;
     return handle_preproc_if(state, cond, loc, info);
@@ -331,13 +329,19 @@ static bool preproc_statement(PreprocState* state,
     } else if (Str_eq(directive, STR_LIT("ifndef"))) {
         return handle_ifdef_ifndef(state, arr, true, info);
     } else if (Str_eq(directive, STR_LIT("define"))) {
-        // TODO: error if token after define is not identifier
-        const Str spell = IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[2]);
+        const TokenKind macro_name_kind = arr->kinds[2];
+        if (macro_name_kind != TOKEN_IDENTIFIER) {
+            PreprocErr_set(state->err, PREPROC_ERR_EXPECTED_TOKENS, arr->locs[2]);
+            state->err->expected_tokens_err = ExpectedTokensErr_create_single_token(macro_name_kind, TOKEN_IDENTIFIER);
+            return false;
+        }
+        const uint32_t identifier_idx = arr->val_indices[2];
+        const Str spell = IndexedStringSet_get(&state->vals.identifiers, identifier_idx);
         PreprocMacro macro = parse_preproc_macro(arr, &state->vals, spell.len, state->err);
         if (state->err->kind != PREPROC_ERR_NONE) {
             return false;
         }
-        PreprocState_register_macro(state, spell, &macro);
+        PreprocState_register_macro(state, identifier_idx, &macro);
     } else if (Str_eq(directive, STR_LIT("undef"))) {
         if (arr->len < 3) {
             PreprocErr_set(state->err,
@@ -362,7 +366,7 @@ static bool preproc_statement(PreprocState* state,
             return false;
         }
 
-        PreprocState_remove_macro(state, IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[2]));
+        PreprocState_remove_macro(state, arr->val_indices[2]);
     } else if (Str_eq(directive, STR_LIT("include"))) {
         return handle_include(state, arr, info);
     } else if (Str_eq(directive, STR_LIT("pragma"))) {

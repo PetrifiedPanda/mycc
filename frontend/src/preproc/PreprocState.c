@@ -66,6 +66,10 @@ static FileData create_file_data(CStr start_file, PreprocErr* err) {
     };
 }
 
+static PreprocMacroMap PreprocMacroMap_create(void) {
+    return (PreprocMacroMap){0};
+}
+
 PreprocState PreprocState_create(CStr start_file,
                                  uint32_t num_include_dirs,
                                  const Str* include_dirs,
@@ -94,10 +98,7 @@ PreprocState PreprocState_create(CStr start_file,
         .conds_cap = 0,
         .conds = NULL,
         .err = err,
-        ._macro_map = StringMap_create(sizeof(struct PreprocMacro),
-                                       100,
-                                       true,
-                                       (void (*)(void*))PreprocMacro_free),
+        ._macro_map = PreprocMacroMap_create(),
         .num_include_dirs = num_include_dirs,
         .include_dirs = include_dirs,
         .file_info = fd.fi,
@@ -135,10 +136,7 @@ PreprocState PreprocState_create_string(Str code,
         .conds_cap = 0,
         .conds = NULL,
         .err = err,
-        ._macro_map = StringMap_create(sizeof(struct PreprocMacro),
-                                       100,
-                                       true,
-                                       (void (*)(void*))PreprocMacro_free),
+        ._macro_map = PreprocMacroMap_create(),
         .num_include_dirs = num_include_dirs,
         .include_dirs = include_dirs,
         .file_info = FileInfo_create(&filename_str),
@@ -366,23 +364,84 @@ static void preproc_state_close_file(PreprocState* s) {
     s->line_info.curr_loc = info->loc;
 }
 
+static bool PreprocMacro_is_valid(const PreprocMacro* macro) {
+    // A non-function macro cannot be variadic, so use this as invalid state
+    return !(!macro->is_func_macro && macro->is_variadic);
+}
+
+static const PreprocMacro* PreprocMacroMap_find(const PreprocMacroMap* map,
+                                                uint32_t idx) {
+    if (idx < map->_cap) {
+        const PreprocMacro* macro = &map->_macros[idx];
+        if (PreprocMacro_is_valid(macro)) {
+            return macro;
+        } else {
+            return NULL;
+        }
+    } else {
+        return NULL;
+    }
+}
+
 const PreprocMacro* find_preproc_macro(const PreprocState* state,
-                                       Str spelling) {
-    return StringMap_get(&state->_macro_map, spelling);
+                                       uint32_t identifier_idx) {
+    return PreprocMacroMap_find(&state->_macro_map, identifier_idx);
+}
+
+static PreprocMacro PreprocMacro_create_invalid(void) {
+    return (PreprocMacro){
+        .is_func_macro = false,
+        .is_variadic = true,
+        .num_args = 0,
+        .expansion_len = 0,
+        .kinds = NULL,
+        .vals = NULL,
+    };
+}
+
+static bool PreprocMacroMap_register(PreprocMacroMap* map,
+                              uint32_t idx,
+                              const PreprocMacro* macro) {
+    assert(PreprocMacro_is_valid(macro));
+    if (idx >= map->_cap) {
+        const uint32_t new_cap = idx + 1;
+        map->_macros = mycc_realloc(map->_macros, sizeof *map->_macros * new_cap);
+        for (uint32_t i = map->_cap; i < new_cap; ++i) {
+            map->_macros[i] = PreprocMacro_create_invalid();
+        }
+        map->_cap = new_cap;
+    }
+    // If this overwrites a macro, free the old one
+    PreprocMacro* old = &map->_macros[idx];
+    bool overwritten = false;
+    if (PreprocMacro_is_valid(old)) {
+        PreprocMacro_free(old);
+        overwritten = true;
+    }
+    *old = *macro;
+    return overwritten;
 }
 
 void PreprocState_register_macro(PreprocState* state,
-                                 Str spelling,
+                                 uint32_t identifier_idx,
                                  const PreprocMacro* macro) {
-    StrBuf buf = StrBuf_create(spelling);
-    bool overwritten = StringMap_insert_overwrite(&state->_macro_map,
-                                                  &buf,
-                                                  macro);
+    bool overwritten = PreprocMacroMap_register(&state->_macro_map,
+                                                identifier_idx,
+                                                macro);
     (void)overwritten; // TODO: warning if redefined
 }
 
-void PreprocState_remove_macro(PreprocState* state, Str spelling) {
-    StringMap_remove(&state->_macro_map, spelling);
+// TODO: it is possible to undef macros that do not exist
+static void PreprocMacroMap_remove(PreprocMacroMap* map, uint32_t idx) {
+    assert(idx < map->_cap);
+    PreprocMacro* macro = &map->_macros[idx];
+    assert(PreprocMacro_is_valid(macro));
+    PreprocMacro_free(macro);
+    *macro = PreprocMacro_create_invalid();
+}
+
+void PreprocState_remove_macro(PreprocState* state, uint32_t identifier_idx) {
+    PreprocMacroMap_remove(&state->_macro_map, identifier_idx);
 }
 
 void PreprocState_push_cond(PreprocState* state, SourceLoc loc, bool was_true) {
@@ -428,6 +487,13 @@ static void FileManager_free(FileManager* fm) {
     mycc_free(fm->prefixes);
 }
 
+static void PreprocMacroMap_free(const PreprocMacroMap* map) {
+    for (uint32_t i = 0; i < map->_cap; ++i) {
+        PreprocMacro_free(&map->_macros[i]);
+    }
+    mycc_free(map->_macros);
+}
+
 void PreprocState_free(PreprocState* state) {
     PreprocTokenArr_free(&state->toks);
     PreprocTokenValList_free(&state->vals);
@@ -435,7 +501,7 @@ void PreprocState_free(PreprocState* state) {
     LineInfo_free(&state->line_info);
     FileManager_free(&state->file_manager);
     mycc_free(state->conds);
-    StringMap_free(&state->_macro_map);
+    PreprocMacroMap_free(&state->_macro_map);
     FileInfo_free(&state->file_info);
 }
 

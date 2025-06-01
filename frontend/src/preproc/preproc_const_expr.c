@@ -504,7 +504,7 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
             }
 
             const bool has_macro = find_preproc_macro(state,
-                                                      IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[it]))
+                                                      arr->val_indices[it])
                                    != NULL;
             ++it;
 
