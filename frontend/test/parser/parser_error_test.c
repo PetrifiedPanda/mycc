@@ -9,7 +9,7 @@
 TEST(redefine_typedef_error_2) {
     TestPreprocRes preproc_res = tokenize_string(STR_LIT("typedef int MyInt;\n"
                                                      "typedef char MyInt;\n"),
-                                             STR_LIT("a file"));
+                                             STR_LIT("a file"), &(PreprocInitialStrings){0});
 
     ParserErr err = ParserErr_create();
 
@@ -27,14 +27,21 @@ TEST(redefine_typedef_error_2) {
 }
 
 TEST(redefine_typedef_error) {
+    enum {TYPEDEF_IDX = 0};
+    const Str identifiers[] = {
+        [TYPEDEF_IDX] = STR_LIT("MyInt"),
+    };
+    const PreprocInitialStrings strings = {
+        .identifiers = identifiers,
+        .identifiers_len = ARR_LEN(identifiers),
+    };
     TestPreprocRes preproc_res = tokenize_string(STR_LIT("typedef int MyInt;"),
-                                             STR_LIT("a file"));
+                                             STR_LIT("a file"), &strings);
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(&preproc_res.toks, &err);
 
-    const StrBuf spell = STR_BUF_NON_HEAP("MyInt");
-    ParserState_register_typedef(&s, &spell, UINT32_MAX);
+    ParserState_register_typedef(&s, TYPEDEF_IDX, UINT32_MAX);
 
     bool found_typedef = false;
     DeclarationSpecs res;
@@ -57,7 +64,7 @@ typedef struct {
 } ParserErrAndToks;
 
 static ParserErrAndToks parse_type_specs_until_fail(Str code) {
-    TestPreprocRes preproc_res = tokenize_string(code, STR_LIT("file.c"));
+    TestPreprocRes preproc_res = tokenize_string(code, STR_LIT("file.c"), &(PreprocInitialStrings){0});
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(&preproc_res.toks, &err);
@@ -125,7 +132,8 @@ TEST(type_spec_error) {
 }
 
 static void check_expected_semicolon_jump_statement(Str spell) {
-    TestPreprocRes preproc_res = tokenize_string(spell, STR_LIT("file.c"));
+    TestPreprocRes preproc_res = tokenize_string(spell, STR_LIT("file.c"),
+                                                 &(PreprocInitialStrings){0});
 
     ParserErr err = ParserErr_create();
     ParserState s = ParserState_create(&preproc_res.toks, &err);
@@ -154,7 +162,8 @@ TEST(jump_statement_error) {
 static void check_expected_semicolon(Str spell,
                                      TokenKind got,
                                      FileLoc err_loc) {
-    TestPreprocRes preproc_res = tokenize_string(spell, STR_LIT("file.c"));
+    TestPreprocRes preproc_res = tokenize_string(spell, STR_LIT("file.c"),
+                                                 &(PreprocInitialStrings){0});
 
     ParserErr err = ParserErr_create();
     AST ast = parse_ast(&preproc_res.toks, &err);

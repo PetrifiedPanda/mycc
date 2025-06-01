@@ -52,9 +52,9 @@ TEST(ParserState) {
         StrBuf* item = &dummy_strings[i];
         *item = to_insert;
         if (i % 2 == 0) {
-            ASSERT(ParserState_register_enum_constant(&s, &to_insert, UINT32_MAX));
+            ASSERT(ParserState_register_enum_constant(&s, i, UINT32_MAX));
         } else {
-            ASSERT(ParserState_register_typedef(&s, &to_insert, UINT32_MAX));
+            ASSERT(ParserState_register_typedef(&s, i, UINT32_MAX));
         }
         ASSERT(err.kind == PARSER_ERR_NONE);
     }
@@ -63,18 +63,13 @@ TEST(ParserState) {
     for (uint32_t i = 0; i < NUM_STRINGS; ++i) {
         test_string[i] = 'a';
 
-        const StrBuf test_string_str = StrBuf_non_heap(i + 1, test_string);
         if (i % 2 == 0) {
             ASSERT(
-                ParserState_is_enum_constant(&s,
-                                             StrBuf_as_str(&test_string_str)));
-            ASSERT(
-                !ParserState_is_typedef(&s, StrBuf_as_str(&test_string_str)));
+                ParserState_is_enum_constant(&s, i));
+            ASSERT(!ParserState_is_typedef(&s, i)); 
         } else {
-            ASSERT(ParserState_is_typedef(&s, StrBuf_as_str(&test_string_str)));
-            ASSERT(
-                !ParserState_is_enum_constant(&s,
-                                              StrBuf_as_str(&test_string_str)));
+            ASSERT(ParserState_is_typedef(&s, i));
+            ASSERT(!ParserState_is_enum_constant(&s, i));
         }
         ASSERT(err.kind == PARSER_ERR_NONE);
     }
@@ -85,20 +80,13 @@ TEST(ParserState) {
         uint32_t j;
         for (j = 0; j < NUM_STRINGS - i * SCOPE_INTERVAL; ++j) {
             pop_test_string[j] = 'a';
-            const StrBuf pop_test_str = StrBuf_non_heap(j + 1, pop_test_string);
 
             if (j % 2 == 0) {
-                ASSERT(
-                    ParserState_is_enum_constant(&s,
-                                                 StrBuf_as_str(&pop_test_str)));
-                ASSERT(
-                    !ParserState_is_typedef(&s, StrBuf_as_str(&pop_test_str)));
+                ASSERT(ParserState_is_enum_constant(&s, j));
+                ASSERT(!ParserState_is_typedef(&s, j));
             } else {
-                ASSERT(
-                    ParserState_is_typedef(&s, StrBuf_as_str(&pop_test_str)));
-                ASSERT(!ParserState_is_enum_constant(
-                    &s,
-                    StrBuf_as_str(&pop_test_str)));
+                ASSERT(ParserState_is_typedef(&s, j));
+                ASSERT(!ParserState_is_enum_constant(&s, j));
             }
             ASSERT(err.kind == PARSER_ERR_NONE);
         }
@@ -106,11 +94,9 @@ TEST(ParserState) {
         // test if values from popped scopes are not present anymore
         for (; j < NUM_STRINGS; ++j) {
             pop_test_string[j] = 'a';
-            const StrBuf pop_test_str = StrBuf_non_heap(j + 1, pop_test_string);
 
-            ASSERT(!ParserState_is_enum_constant(&s,
-                                                 StrBuf_as_str(&pop_test_str)));
-            ASSERT(!ParserState_is_typedef(&s, StrBuf_as_str(&pop_test_str)));
+            ASSERT(!ParserState_is_enum_constant(&s, j));
+            ASSERT(!ParserState_is_typedef(&s, j));
 
             ASSERT(err.kind == PARSER_ERR_NONE);
         }
@@ -124,10 +110,9 @@ TEST(ParserState) {
     ASSERT(s._len == 1);
     ASSERT(err.kind == PARSER_ERR_NONE);
 
-    const StrBuf insert_test_spell = STR_BUF_NON_HEAP("Test");
     const uint32_t idx = 1;
-    ASSERT(ParserState_register_enum_constant(&s, &insert_test_spell, idx));
-    ASSERT(!ParserState_register_typedef(&s, &insert_test_spell, idx));
+    ASSERT(ParserState_register_enum_constant(&s, NUM_STRINGS, idx));
+    ASSERT(!ParserState_register_typedef(&s, NUM_STRINGS, idx));
 
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT_UINT(err.err_token_idx, idx);
@@ -135,7 +120,7 @@ TEST(ParserState) {
 
     err = ParserErr_create();
 
-    ASSERT(!ParserState_register_enum_constant(&s, &insert_test_spell, idx));
+    ASSERT(!ParserState_register_enum_constant(&s, NUM_STRINGS, idx));
 
     ASSERT(err.kind == PARSER_ERR_REDEFINED_SYMBOL);
     ASSERT_UINT(err.err_token_idx, idx);

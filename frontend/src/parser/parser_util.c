@@ -53,7 +53,7 @@ bool is_func_spec(TokenKind k) {
     return k == TOKEN_INLINE || k == TOKEN_NORETURN;
 }
 
-bool is_type_spec_token(const ParserState* s, TokenKind kind, Str spell) {
+bool is_type_spec_token(const ParserState* s, TokenKind kind, uint32_t identifier_idx) {
     switch (kind) {
         case TOKEN_VOID:
         case TOKEN_CHAR:
@@ -73,7 +73,7 @@ bool is_type_spec_token(const ParserState* s, TokenKind kind, Str spell) {
         case TOKEN_ENUM:
             return true;
         case TOKEN_IDENTIFIER:
-            return ParserState_is_typedef(s, spell);
+            return ParserState_is_typedef(s, identifier_idx);
         default:
             return false;
     }
@@ -81,7 +81,7 @@ bool is_type_spec_token(const ParserState* s, TokenKind kind, Str spell) {
 
 static bool is_type_spec_helper(const ParserState* s,
                                 TokenKind (*get_kind)(const ParserState*),
-                                Str (*get_spell)(const ParserState*)) {
+                                uint32_t (*get_id_idx)(const ParserState*)) {
     TokenKind kind = get_kind(s);
     switch (kind) {
         case TOKEN_VOID:
@@ -102,7 +102,7 @@ static bool is_type_spec_helper(const ParserState* s,
         case TOKEN_ENUM:
             return true;
         case TOKEN_IDENTIFIER:
-            return ParserState_is_typedef(s, get_spell(s));
+            return ParserState_is_typedef(s, get_id_idx(s));
         default:
             return false;
     }
@@ -111,7 +111,7 @@ static bool is_type_spec_helper(const ParserState* s,
 bool next_is_type_spec(const ParserState* s) {
     return is_type_spec_helper(s,
                                ParserState_next_token_kind,
-                               ParserState_next_token_spell);
+                               ParserState_next_token_id_idx);
 }
 
 bool next_is_type_name(const ParserState* s) {
@@ -123,7 +123,7 @@ bool next_is_type_name(const ParserState* s) {
 bool is_type_spec(const ParserState* s) {
     return is_type_spec_helper(s,
                                ParserState_curr_kind,
-                               ParserState_curr_spell);
+                               ParserState_curr_id_idx);
 }
 
 bool is_declaration_spec(const ParserState* s) {

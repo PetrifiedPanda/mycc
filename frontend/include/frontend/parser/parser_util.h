@@ -38,7 +38,7 @@ bool next_is_type_spec(const ParserState* s);
  */
 bool is_type_spec_token(const ParserState* s,
                         TokenKind kind,
-                        Str spelling);
+                        uint32_t identifier_idx);
 
 bool is_type_spec(const ParserState* s);
 

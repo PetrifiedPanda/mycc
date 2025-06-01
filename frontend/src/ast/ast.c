@@ -496,7 +496,7 @@ static uint32_t parse_block_item(ParserState* s, AST* ast) {
 
     switch (ParserState_curr_kind(s)) {
         case TOKEN_IDENTIFIER:
-            if (ParserState_is_typedef(s, ParserState_curr_spell(s))) {
+            if (ParserState_is_typedef(s, ParserState_curr_id_idx(s))) {
                 ast->kinds[res] = AST_DECLARATION;
                 CHECK_ERR(parse_declaration_after_attr_2(s, ast, res));
             } else if (ParserState_next_token_kind(s) == TOKEN_COLON) {
@@ -735,12 +735,11 @@ static uint32_t parse_external_declaration_2(ParserState* s, AST* ast) {
             // to see if it was an identifier
             const uint32_t last_idx = s->it - 2;
             if (s->_arr.kinds[last_idx] == TOKEN_IDENTIFIER) {
-                const StrBuf* buf = &s->_arr.identifiers[s->_arr.val_indices[last_idx]];
-                const Str spell = StrBuf_as_str(buf);
-                assert(ParserState_is_typedef(s, spell));
+                const uint32_t id_idx = s->_arr.val_indices[last_idx];
+                assert(ParserState_is_typedef(s, id_idx));
                 ParserState_set_redefinition_err(
                     s,
-                    ParserState_get_prev_definition(s, spell),
+                    id_idx,
                     last_idx);
             } else {
                 ParserErr_set(s->err,
@@ -1213,7 +1212,7 @@ static uint32_t parse_func_suffix_2(ParserState* s, AST* ast) {
         ParserState_accept_it(s);
         return add_node(ast, AST_FUNC_SUFFIX, idx);
     } else if (curr_kind == TOKEN_IDENTIFIER
-               && !ParserState_is_typedef(s, ParserState_curr_spell(s))) {
+               && !ParserState_is_typedef(s, ParserState_curr_id_idx(s))) {
         const uint32_t res = add_node(ast, AST_FUNC_SUFFIX_OLD, idx);
         CHECK_ERR(parse_identifier_list_2(s, ast));
         CHECK_ERR(ParserState_accept(s, TOKEN_RBRACKET));
@@ -1276,7 +1275,7 @@ static uint32_t parse_direct_declarator_2(ParserState* s,
         if (is_typedef) {
             CHECK_ERR(
                 ParserState_register_typedef(s,
-                                             ParserState_curr_spell_buf(s),
+                                             ParserState_curr_id_idx(s),
                                              s->it));
         }
         CHECK_ERR(parse_id_attribute_2(s, ast));
@@ -1451,10 +1450,11 @@ static uint32_t parse_attribute_id_2(ParserState* s, AST* ast, bool* has_id) {
 static uint32_t parse_enum_constant_and_attribute_2(ParserState* s, AST* ast) {
     const uint32_t res = add_node(ast, AST_ENUM_CONSTANT_AND_ATTRIBUTE, s->it);
     const uint32_t const_idx = s->it;
-    const StrBuf* spell = ParserState_curr_spell_buf(s);
+    // TODO: this might error if current token is not identifier
+    const uint32_t identifier_idx = ParserState_curr_id_idx(s);
     CHECK_ERR(ParserState_accept(s, TOKEN_IDENTIFIER));
     add_node_with_type(ast, AST_ENUM_CONSTANT, const_idx);
-    CHECK_ERR(ParserState_register_enum_constant(s, spell, const_idx));
+    CHECK_ERR(ParserState_register_enum_constant(s, identifier_idx, const_idx));
     if (ParserState_curr_kind(s) == TOKEN_LINDEX) {
         const uint32_t rhs = parse_attribute_spec_sequence_2(s, ast);
         CHECK_ERR(rhs);
@@ -1588,7 +1588,7 @@ static uint32_t parse_type_spec_2(ParserState* s, AST* ast) {
         case TOKEN_IDENTIFIER:
             // TODO: this error might not be necessary
             if (UNLIKELY(
-                    !ParserState_is_typedef(s, ParserState_curr_spell(s)))) {
+                    !ParserState_is_typedef(s, ParserState_curr_id_idx(s)))) {
                 ParserErr_set(s->err,
                               PARSER_ERR_EXPECTED_TYPEDEF_NAME,
                               start_idx);
@@ -2120,7 +2120,7 @@ static uint32_t parse_primary_expr_2(ParserState* s, AST* ast) {
     switch (ParserState_curr_kind(s)) {
         case TOKEN_IDENTIFIER:
             // TODO: it should be fine to consider enum constants identifiers
-            if (ParserState_is_enum_constant(s, ParserState_curr_spell(s))) {
+            if (ParserState_is_enum_constant(s, ParserState_curr_id_idx(s))) {
                 add_node_with_type(ast, AST_ENUM_CONSTANT, s->it);
             } else {
                 add_node_with_type(ast, AST_IDENTIFIER, s->it);

@@ -76,14 +76,12 @@ static ParseDeclarationSpecRes parse_declaration_spec(
     } else if (is_type_spec(s)) {
         if (res->storage_class.is_typedef
             && ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
-            const ParserIDData* prev_def = ParserState_get_prev_definition(
-                s,
-                ParserState_curr_spell(s));
+            const uint32_t identifier_idx = ParserState_curr_id_idx(s);
             const TokenKind kind = ParserState_next_token_kind(s);
-            if (prev_def != NULL && !is_storage_class_spec(kind)
+            if (ParserState_is_defined_in_current_scope(s, identifier_idx) && !is_storage_class_spec(kind)
                 && !is_type_qual(kind) && !next_is_type_spec(s)
                 && !is_func_spec(kind) && kind != TOKEN_ALIGNAS) {
-                ParserState_set_redefinition_err(s, prev_def, s->it);
+                ParserState_set_redefinition_err(s, identifier_idx, s->it);
                 return DECL_SPEC_ERROR;
             }
         }

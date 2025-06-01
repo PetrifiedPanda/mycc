@@ -101,7 +101,7 @@ static bool parse_func_suffix(ParserState* s, ArrOrFuncSuffix* res) {
 
     ParserState_accept_it(s);
     if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER
-        && !ParserState_is_typedef(s, ParserState_curr_spell(s))) {
+        && !ParserState_is_typedef(s, ParserState_curr_id_idx(s))) {
         res->kind = ARR_OR_FUNC_FUN_OLD_PARAMS;
         if (!parse_identifier_list(s, &res->fun_params)) {
             return false;
@@ -174,7 +174,7 @@ bool parse_arr_or_func_suffixes(ParserState* s, DirectDeclarator* res) {
 static DirectDeclarator* parse_direct_declarator_base(
     ParserState* s,
     Declarator* (*parse_func)(ParserState*),
-    bool (*identifier_handler)(ParserState*, const StrBuf*, uint32_t)) {
+    bool (*identifier_handler)(ParserState*, uint32_t, uint32_t)) {
     DirectDeclarator* res = mycc_alloc(sizeof *res);
     res->info = AstNodeInfo_create(s->it);
     if (ParserState_curr_kind(s) == TOKEN_LBRACKET) {
@@ -193,7 +193,7 @@ static DirectDeclarator* parse_direct_declarator_base(
         }
     } else if (ParserState_curr_kind(s) == TOKEN_IDENTIFIER) {
         res->is_id = true;
-        if (!identifier_handler(s, ParserState_curr_spell_buf(s), s->it)) {
+        if (!identifier_handler(s, ParserState_curr_id_idx(s), s->it)) {
             mycc_free(res);
             return NULL;
         }
@@ -218,11 +218,11 @@ static DirectDeclarator* parse_direct_declarator_base(
 }
 
 static bool empty_id_handler(ParserState* s,
-                             const StrBuf* spell,
-                             uint32_t idx) {
+                             uint32_t identifier_idx,
+                             uint32_t token_idx) {
     UNUSED(s);
-    UNUSED(spell);
-    UNUSED(idx);
+    UNUSED(identifier_idx);
+    UNUSED(token_idx);
     return true;
 }
 

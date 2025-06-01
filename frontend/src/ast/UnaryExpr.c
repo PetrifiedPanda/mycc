@@ -71,10 +71,10 @@ static StringConstant StringConstant_create_func_name(uint32_t idx) {
 static bool parse_primary_expr_inplace(ParserState* s, PrimaryExpr* res) {
     switch (ParserState_curr_kind(s)) {
         case TOKEN_IDENTIFIER: {
-            const Str spelling = ParserState_curr_spell(s);
+            const uint32_t identifier_idx = ParserState_curr_id_idx(s);
             const uint32_t idx = s->it;
             ParserState_accept_it(s);
-            if (ParserState_is_enum_constant(s, spelling)) {
+            if (ParserState_is_enum_constant(s, identifier_idx)) {
                 res->kind = PRIMARY_EXPR_CONSTANT;
                 res->constant = Constant_create_enum(idx);
                 return true;

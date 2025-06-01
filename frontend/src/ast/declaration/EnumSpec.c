@@ -18,11 +18,11 @@ static bool parse_enumerator_inplace(ParserState* s, Enumerator* res) {
         return false;
     }
 
-    const StrBuf* spell = ParserState_curr_spell_buf(s);
+    const uint32_t identifier_idx = ParserState_curr_id_idx(s);
     const uint32_t idx = s->it;
     ParserState_accept_it(s);
 
-    if (!ParserState_register_enum_constant(s, spell, idx)) {
+    if (!ParserState_register_enum_constant(s, identifier_idx, idx)) {
         return false;
     }
 

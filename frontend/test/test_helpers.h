@@ -68,7 +68,8 @@ typedef struct TestPreprocRes {
 } TestPreprocRes;
 
 TestPreprocRes tokenize(CStr file);
-TestPreprocRes tokenize_string(Str str, Str file);
+TestPreprocRes tokenize_string(Str str, Str file,
+                               const PreprocInitialStrings* strings);
 
 void TestPreprocRes_free(const TestPreprocRes* res);
 

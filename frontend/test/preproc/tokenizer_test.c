@@ -643,7 +643,8 @@ static void check_token_arr_file(CStr filename, const TokenArr* expected) {
 }
 
 static TestPreprocRes tokenize_string_wrapper(CStr code) {
-    return tokenize_string(CStr_as_str(code), STR_LIT("code.c"));
+    return tokenize_string(CStr_as_str(code), STR_LIT("code.c"),
+                           &(PreprocInitialStrings){0});
 }
 
 static void check_token_arr_str(CStr code, const TokenArr* expected) {

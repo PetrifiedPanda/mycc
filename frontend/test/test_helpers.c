@@ -20,11 +20,12 @@ TestPreprocRes tokenize(CStr file) {
     };
 }
 
-TestPreprocRes tokenize_string(Str str, Str file) {
+TestPreprocRes tokenize_string(Str str, Str file,
+                               const PreprocInitialStrings* initial_strings) {
     PreprocErr err = PreprocErr_create();
     const ArchTypeInfo info = get_arch_type_info(ARCH_X86_64, false);
     PreprocRes res = preproc_string(str, file,
-                                    &(PreprocInitialStrings){0},
+                                    initial_strings,
                                     0, NULL, &info, &err);
     ASSERT(res.toks.len != 0);
     ASSERT(err.kind == PREPROC_ERR_NONE);

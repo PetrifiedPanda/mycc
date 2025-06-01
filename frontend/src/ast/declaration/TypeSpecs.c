@@ -2,7 +2,6 @@
 
 #include <assert.h>
 
-#include "util/mem.h"
 #include "util/macro_util.h"
 
 #include "frontend/parser/parser_util.h"
@@ -172,7 +171,7 @@ static bool update_non_standalone_type_spec(ParserState* s, TypeSpecs* res) {
             break;
         }
         case TOKEN_IDENTIFIER: {
-            if (ParserState_is_typedef(s, ParserState_curr_spell(s))) {
+            if (ParserState_is_typedef(s, ParserState_curr_id_idx(s))) {
                 res->kind = TYPE_SPEC_TYPENAME;
                 res->typedef_name = Identifier_create(s->it);
                 ParserState_accept_it(s);
