@@ -22,13 +22,6 @@ enum {
     SCOPE_MAP_INIT_CAP = 100
 };
 
-static bool register_identifier(ParserState* s,
-                                const StrBuf* spell,
-                                uint32_t idx,
-                                IDKind kind);
-
-static IDKind get_item(const ParserState* s, Str spell);
-
 ParserState ParserState_create(TokenArr* tokens, ParserErr* err) {
     assert(tokens);
 
@@ -127,6 +120,11 @@ void ParserState_pop_scope(ParserState* s) {
     StringMap_clear(&s->_scope_maps[s->_len]);
 }
 
+static bool register_identifier(ParserState* s,
+                                const StrBuf* spell,
+                                uint32_t idx,
+                                IDKind kind);
+
 bool ParserState_register_enum_constant(ParserState* s,
                                         const StrBuf* spell,
                                         uint32_t idx) {
@@ -138,6 +136,8 @@ bool ParserState_register_typedef(ParserState* s,
                                   uint32_t idx) {
     return register_identifier(s, spell, idx, ID_KIND_TYPEDEF_NAME);
 }
+
+static IDKind get_item(const ParserState* s, Str spell);
 
 bool ParserState_is_enum_constant(const ParserState* s, Str spell) {
     return get_item(s, spell) == ID_KIND_ENUM_CONSTANT;
