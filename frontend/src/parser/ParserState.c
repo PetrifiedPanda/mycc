@@ -18,8 +18,10 @@ typedef struct ParserIDData {
     IDKind kind;
 } ParserIDData;
 
+// This maps all indices directly to their kinds, wasting a lot of memory
 typedef struct ParserIdentifierMap {
     uint32_t _cap;
+    // TODO: we actually only need 3 bits per kind in this case
     uint8_t* _kinds;
     uint32_t* _token_indices;
 } ParserIdentifierMap;
