@@ -119,12 +119,6 @@ void ParserState_push_scope(ParserState* s) {
         s->_scope_maps[s->_len] = StringMap_create(sizeof(ParserIDData), SCOPE_MAP_INIT_CAP, false, NULL);
     }
     ++s->_len;
-    /*
-    s->_scope_maps[s->_len - 1] = StringMap_create(sizeof(ParserIDData),
-                                                   SCOPE_MAP_INIT_CAP,
-                                                   false,
-                                                   NULL);
-    */
 }
 
 void ParserState_pop_scope(ParserState* s) {
