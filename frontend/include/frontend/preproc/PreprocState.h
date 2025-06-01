@@ -37,6 +37,8 @@ typedef struct FileManager {
 
 typedef struct PreprocMacro PreprocMacro;
 
+// This is just an array, which we can use because of the identifier indices
+// This may waste too much memory
 typedef struct PreprocMacroMap {
     uint32_t _cap;
     PreprocMacro* _macros;
