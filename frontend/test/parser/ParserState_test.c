@@ -39,18 +39,11 @@ TEST(ParserState) {
         "Number of test strings must be divisible by the scope interval");
 
     StrBuf dummy_strings[NUM_STRINGS] = {0};
-    char insert_string[STRLEN] = {0};
     for (uint32_t i = 0; i < NUM_STRINGS; ++i) {
-
         if (i % SCOPE_INTERVAL == 0) {
             ParserState_push_scope(&s);
         }
 
-        insert_string[i] = 'a';
-        const StrBuf to_insert = StrBuf_create((Str){i + 1, insert_string});
-
-        StrBuf* item = &dummy_strings[i];
-        *item = to_insert;
         if (i % 2 == 0) {
             ASSERT(ParserState_register_enum_constant(&s, i, UINT32_MAX));
         } else {
@@ -59,10 +52,7 @@ TEST(ParserState) {
         ASSERT(err.kind == PARSER_ERR_NONE);
     }
 
-    char test_string[STRLEN] = {0};
     for (uint32_t i = 0; i < NUM_STRINGS; ++i) {
-        test_string[i] = 'a';
-
         if (i % 2 == 0) {
             ASSERT(
                 ParserState_is_enum_constant(&s, i));
@@ -76,11 +66,8 @@ TEST(ParserState) {
 
     const uint32_t num_steps = NUM_STRINGS / SCOPE_INTERVAL + 1;
     for (uint32_t i = 0; i < num_steps; ++i) {
-        char pop_test_string[STRLEN] = {0};
         uint32_t j;
         for (j = 0; j < NUM_STRINGS - i * SCOPE_INTERVAL; ++j) {
-            pop_test_string[j] = 'a';
-
             if (j % 2 == 0) {
                 ASSERT(ParserState_is_enum_constant(&s, j));
                 ASSERT(!ParserState_is_typedef(&s, j));
@@ -93,8 +80,6 @@ TEST(ParserState) {
 
         // test if values from popped scopes are not present anymore
         for (; j < NUM_STRINGS; ++j) {
-            pop_test_string[j] = 'a';
-
             ASSERT(!ParserState_is_enum_constant(&s, j));
             ASSERT(!ParserState_is_typedef(&s, j));
 
