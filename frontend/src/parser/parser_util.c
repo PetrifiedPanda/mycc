@@ -53,10 +53,11 @@ bool is_func_spec(TokenKind k) {
     return k == TOKEN_INLINE || k == TOKEN_NORETURN;
 }
 
+// This passes a poninter to get_id_idx, as we do not need to read id_idx in a
+// lot of cases. Thus, not reading it may give a small performance benefit
 static bool is_type_spec_helper(const ParserState* s,
-                                TokenKind (*get_kind)(const ParserState*),
+                                TokenKind kind, 
                                 uint32_t (*get_id_idx)(const ParserState*)) {
-    TokenKind kind = get_kind(s);
     switch (kind) {
         case TOKEN_VOID:
         case TOKEN_CHAR:
@@ -84,7 +85,7 @@ static bool is_type_spec_helper(const ParserState* s,
 
 static bool next_is_type_spec(const ParserState* s) {
     return is_type_spec_helper(s,
-                               ParserState_next_token_kind,
+                               ParserState_next_token_kind(s),
                                ParserState_next_token_id_idx);
 }
 
@@ -96,7 +97,7 @@ bool next_is_type_name(const ParserState* s) {
 
 bool is_type_spec(const ParserState* s) {
     return is_type_spec_helper(s,
-                               ParserState_curr_kind,
+                               ParserState_curr_kind(s),
                                ParserState_curr_id_idx);
 }
 
