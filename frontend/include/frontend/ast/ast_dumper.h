@@ -1,13 +1,9 @@
-#ifndef MYCC_FRONTEND_AST_AST_DUMPER_H
-#define MYCC_FRONTEND_AST_AST_DUMPER_H
+#ifndef MYCC_FRONTEND_AST_AST_DUMPER_2_H
+#define MYCC_FRONTEND_AST_AST_DUMPER_2_H
 
-#include "util/File.h"
+#include "ast.h"
 
-#include "frontend/FileInfo.h"
-
-#include "TranslationUnit.h"
-
-bool dump_ast(const TranslationUnit* tl, const FileInfo* file_info, File f);
+bool dump_ast(const AST* ast, const FileInfo* file_info, File f);
 
 #endif
 

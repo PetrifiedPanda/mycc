@@ -183,12 +183,6 @@ static IDKind get_item(const ParserState* s, uint32_t identifier_idx) {
     return ID_KIND_NONE;
 }
 
-bool ParserState_is_defined_in_current_scope(const ParserState* s, uint32_t identifier_idx) {
-    const IDKind kind = ParserIdentifierMap_get_kind(&s->_scope_maps[s->_len - 1],
-                                                     identifier_idx);
-    return kind != ID_KIND_NONE;
-}
-
 bool ParserState_is_enum_constant(const ParserState* s, uint32_t identifier_idx) {
     return get_item(s, identifier_idx) == ID_KIND_ENUM_CONSTANT;
 }

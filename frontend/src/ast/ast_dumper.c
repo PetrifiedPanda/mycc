@@ -1,1766 +1,817 @@
 #include "frontend/ast/ast_dumper.h"
 
-#include <stdarg.h>
-#include <setjmp.h>
-#include <assert.h>
-
 #include "util/macro_util.h"
-#include "util/log.h"
-
-#include "frontend/ast/ast.h"
 
 typedef struct {
-    jmp_buf err_buf;
-    File file;
+    File f;
+    StrBuf indents;
     const FileInfo* file_info;
-    TokenArr tokens;
-    StrBuf indent_buf;
-} AstDumper;
+} ASTDumper;
 
-static void add_indent(AstDumper* d) {
-    StrBuf_append(&d->indent_buf, STR_LIT("  "));
+static void ASTDumper_free(ASTDumper* d) {
+    StrBuf_free(&d->indents);
 }
 
-static void remove_indent(AstDumper* d) {
-    StrBuf_remove_back(&d->indent_buf, 2);
+static const char INDENTATION[] = "  ";
+
+void add_indent(ASTDumper* d) {
+    StrBuf_append(&d->indents, STR_LIT(INDENTATION));
 }
 
-static void print_indents(AstDumper* d) {
-    File_put_str_val(StrBuf_as_str(&d->indent_buf), d->file);
+void remove_indent(ASTDumper* d) {
+    StrBuf_remove_back(&d->indents, STR_LIT(INDENTATION).len);
 }
 
-static void dumper_println_impl(AstDumper* d, Str format, ...) {
-    print_indents(d);
-
+void ASTDumper_println_val(ASTDumper* d, Str format, ...) {
+    File_put_str_val(StrBuf_as_str(&d->indents), d->f);
     va_list args;
     va_start(args, format);
-    File_printf_varargs_impl(d->file, format, args);
+    File_printf_varargs_impl(d->f, format, args);
     va_end(args);
-
-    if (!File_putc('\n', d->file)) {
-        longjmp(d->err_buf, 0);
-    }
+    File_putc('\n', d->f);
 }
 
-#define dumper_println(d, format, ...)                                         \
-    dumper_println_impl(d, STR_LIT(format), __VA_ARGS__)
+#define ASTDumper_println(dumper, str_lit, ...)                                \
+    ASTDumper_println_val(dumper, STR_LIT(str_lit), __VA_ARGS__)
 
-static void dumper_print_str_val(AstDumper* d, Str str) {
-    print_indents(d);
-
-    if (!File_put_str_val(str, d->file)) {
-        longjmp(d->err_buf, 0);
-    }
-
-    if (!File_putc('\n', d->file)) {
-        longjmp(d->err_buf, 0);
-    }
+void ASTDumper_put_strln_val(Str str, ASTDumper* d) {
+    File_put_str_val(StrBuf_as_str(&d->indents), d->f);
+    File_put_str_val(str, d->f);
 }
 
-#define dumper_print_str(d, str) dumper_print_str_val(d, STR_LIT(str))
+#define ASTDumper_put_strln(str_lit, f)                                        \
+    ASTDumper_put_strln_val(STR_LIT(str_lit), f)
 
-static void dumper_print_node_head_impl(AstDumper* d,
-                                        Str name,
-                                        const AstNodeInfo* node) {
-    const SourceLoc loc = d->tokens.locs[node->token_idx];
-    Str file_path = FileInfo_get(d->file_info, loc.file_idx);
-    dumper_println(d,
-                   "{Str}: {Str}:{u32},{u32}",
-                   name,
-                   file_path,
-                   loc.file_loc.line,
-                   loc.file_loc.index);
-}
+// returns the next node index
+static uint32_t dump_ast_rec(const AST* ast,
+                             uint32_t node_idx,
+                             Str prefix,
+                             ASTDumper* d,
+                             SourceLoc last_loc);
 
-#define dumper_print_node_head(d, name, node)                                  \
-    dumper_print_node_head_impl(d, STR_LIT(name), node)
-
-static void dump_translation_unit(AstDumper* d, const TranslationUnit* tl);
-
-bool dump_ast(const TranslationUnit* tl, const FileInfo* file_info, File f) {
-    MYCC_TIMER_BEGIN();
-    AstDumper d = {
-        .file = f,
+bool dump_ast(const AST* ast, const FileInfo* file_info, File f) {
+    (void)file_info;
+    ASTDumper d = {
+        .f = f,
+        .indents = StrBuf_create_empty(),
         .file_info = file_info,
-        .tokens = tl->tokens,
-        .indent_buf = StrBuf_create_empty(),
     };
-
-    bool res = true;
-    if (setjmp(d.err_buf) == 0) {
-        dump_translation_unit(&d, tl);
-    } else {
-        res = false;
-    }
-    StrBuf_free(&d.indent_buf);
-    MYCC_TIMER_END("ast dumper");
+    const bool res = dump_ast_rec(ast,
+                                  0,
+                                  STR_LIT(""),
+                                  &d,
+                                  (SourceLoc){UINT32_MAX, {0, 0}})
+                     == ast->len;
+    ASTDumper_free(&d);
     return res;
 }
 
-static void dump_func_specs(AstDumper* d, const FuncSpecs* s) {
-    assert(s);
+typedef enum {
+    // Has lhs and optional rhs
+    AST_NODE_CATEGORY_DEFAULT,
+    AST_NODE_CATEGORY_SUBRANGE,
+    AST_NODE_CATEGORY_RHS_ONLY,
+    AST_NODE_CATEGORY_NO_CHILDREN,
+    AST_NODE_CATEGORY_OPTIONAL_LHS_RHS,
+    AST_NODE_CATEGORY_TOKEN_RANGE,
+    // All tokens where the relevant data is the spelling of an identifier
+    AST_NODE_CATEGORY_IDENTIFIER,
+    AST_NODE_CATEGORY_STRING_LITERAL,
+    AST_NODE_CATEGORY_CONSTANT,
+    AST_NODE_CATEGORY_BALANCED_TOKEN,
+    AST_NODE_CATEGORY_DECLARATION_SPECS,
+} ASTNodeCategory;
 
-    dumper_print_str(d, "func_specs:");
+static ASTNodeCategory get_ast_node_category(ASTNodeKind k);
 
-    add_indent(d);
+static Str get_node_kind_str(ASTNodeKind k);
 
-    dumper_println(d, "is_inline: {bool}", s->is_inline);
-    dumper_println(d, "is_noreturn: {bool}", s->is_noreturn);
-
-    remove_indent(d);
-}
-
-static void dump_storage_class(AstDumper* d, const StorageClass* c) {
-    assert(c);
-
-    dumper_print_str(d, "storage_class:");
-
-    add_indent(d);
-
-    dumper_println(d, "is_typedef: {bool}", c->is_typedef);
-    dumper_println(d, "is_extern: {bool}", c->is_extern);
-    dumper_println(d, "is_static: {bool}", c->is_static);
-    dumper_println(d, "is_thread_local: {bool}", c->is_thread_local);
-    dumper_println(d, "is_auto: {bool}", c->is_auto);
-    dumper_println(d, "is_register: {bool}", c->is_register);
-
-    remove_indent(d);
-}
-
-static void dump_type_quals(AstDumper* d, const TypeQuals* q) {
-    assert(q);
-
-    dumper_print_str(d, "type_quals:");
-
-    add_indent(d);
-
-    dumper_println(d, "is_const: {bool}", q->is_const);
-    dumper_println(d, "is_restrict: {bool}", q->is_restrict);
-    dumper_println(d, "is_volatile: {bool}", q->is_volatile);
-    dumper_println(d, "is_atomic: {bool}", q->is_atomic);
-
-    remove_indent(d);
-}
-
-static void dump_type_name(AstDumper* d, const TypeName* n);
-static void dump_const_expr(AstDumper* d, const ConstExpr* e);
-
-static void dump_align_spec(AstDumper* d, const AlignSpec* s) {
-    assert(s);
-
-    dumper_print_node_head(d, "align_spec", &s->info);
-
-    add_indent(d);
-
-    if (s->is_type_name) {
-        dump_type_name(d, s->type_name);
-    } else {
-        dump_const_expr(d, s->const_expr);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_type_specs(AstDumper* d, const TypeSpecs* s);
-
-static void dump_declaration_specs(AstDumper* d, const DeclarationSpecs* s) {
-    assert(s);
-
-    dumper_print_node_head(d, "declaration_specs", &s->info);
-
-    add_indent(d);
-
-    dump_func_specs(d, &s->func_specs);
-    dump_storage_class(d, &s->storage_class);
-
-    dump_type_quals(d, &s->type_quals);
-
-    dumper_println(d, "num_align_specs: {u32}", s->num_align_specs);
-    for (uint32_t i = 0; i < s->num_align_specs; ++i) {
-        dump_align_spec(d, &s->align_specs[i]);
-    }
-
-    dump_type_specs(d, &s->type_specs);
-
-    remove_indent(d);
-}
-
-static void dump_pointer(AstDumper* d, const Pointer* p) {
-    assert(p);
-
-    dumper_print_node_head(d, "pointer", &p->info);
-
-    add_indent(d);
-
-    dumper_println(d, "num_indirs: {u32}", p->num_indirs);
-    for (uint32_t i = 0; i < p->num_indirs; ++i) {
-        dump_type_quals(d, &p->quals_after_ptr[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_identifier(AstDumper* d, Identifier* i) {
-    assert(i);
-
-    dumper_print_node_head(d, "identifier", &i->info);
-
-    add_indent(d);
-    const uint32_t val_idx = d->tokens.val_indices[i->info.token_idx];
-    dumper_println(d, "spelling: {Str}", StrBuf_as_str(&d->tokens.identifiers[val_idx]));
-    remove_indent(d);
-}
-
-static void dump_int_val(AstDumper* d, const IntVal* val) {
-    dumper_print_str(d, "int_val:");
-
-    add_indent(d);
-
-    dumper_println(d, "type: {Str}", IntValKind_str(val->kind));
+static void dump_int_val(ASTDumper* d, const IntVal* val) {
+    ASTDumper_println(d, "int_val: {Str}", IntValKind_str(val->kind));
     if (IntValKind_is_sint(val->kind)) {
-        dumper_println(d, "sint_val: {i64}", val->sint_val);
+        ASTDumper_println(d, "sint_val: {i64}", val->sint_val);
     } else {
-        dumper_println(d, "uint_val: {u64}", val->uint_val);
+        ASTDumper_println(d, "uint_val: {u64}", val->uint_val);
     }
-    remove_indent(d);
 }
 
-static void dump_float_val(AstDumper* d, const FloatVal* val) {
-    dumper_print_str(d, "value:");
-
-    add_indent(d);
-
-    dumper_println(d, "type: {Str}", FloatValKind_str(val->kind));
-    dumper_println(d, "val: {floatg}", val->val);
-
-    remove_indent(d);
+static void dump_float_val(ASTDumper* d, const FloatVal* val) {
+    ASTDumper_println(d, "float_val: {Str}", FloatValKind_str(val->kind));
+    ASTDumper_println(d, "val: {floatg}", val->val);
 }
 
-static void dump_constant(AstDumper* d, const Constant* c) {
-    assert(c);
+static void dump_str_lit(ASTDumper* d, const StrLit* lit) {
+    ASTDumper_println(d, "str_lit: {Str}", StrBuf_as_str(&lit->contents));
+}
 
-    dumper_print_node_head(d, "constant", &c->info);
-
-    add_indent(d);
-
-    const uint32_t val_idx = d->tokens.val_indices[c->info.token_idx];
-    switch (c->kind) {
-        case CONSTANT_ENUM: {
-            assert(d->tokens.kinds[c->info.token_idx] == TOKEN_IDENTIFIER);
-            const Str spell = StrBuf_as_str(&d->tokens.identifiers[val_idx]);
-            dumper_println(d, "enum: {Str}", spell);
+static void dump_balanced_token(ASTDumper* d,
+                                const AST* ast,
+                                uint32_t main_token) {
+    const TokenKind kind = ast->toks.kinds[main_token];
+    const Str spelling = TokenKind_get_spelling(kind);
+    if (spelling.data != NULL) {
+        ASTDumper_println(d, "token: {Str}", spelling);
+        return;
+    }
+    const uint32_t val_idx = ast->toks.val_indices[main_token];
+    switch (kind) {
+        case TOKEN_IDENTIFIER: {
+            const StrBuf* buf = &ast->toks.identifiers[val_idx];
+            ASTDumper_println(d, "identifier: {Str}", StrBuf_as_str(buf));
             break;
         }
-        case CONSTANT_VAL: {
-            bool is_int_val = d->tokens.kinds[c->info.token_idx] == TOKEN_I_CONSTANT;
-            if (is_int_val) {
-                dump_int_val(d, &d->tokens.int_consts[val_idx]);
+        case TOKEN_F_CONSTANT: {
+            const FloatVal* val = &ast->toks.float_consts[val_idx];
+            dump_float_val(d, val);
+            break;
+        }
+        case TOKEN_I_CONSTANT: {
+            const IntVal* val = &ast->toks.int_consts[val_idx];
+            dump_int_val(d, val);
+            break;
+        }
+        case TOKEN_STRING_LITERAL: {
+            const StrLit* lit = &ast->toks.str_lits[val_idx];
+            dump_str_lit(d, lit);
+            break;
+        }
+        default:
+            UNREACHABLE();
+    }
+}
+
+static ASTNodeKind get_lhs_kind(ASTNodeKind kind);
+
+static bool SourceLoc_eq(SourceLoc l1, SourceLoc l2) {
+    return l1.file_idx == l2.file_idx && l1.file_loc.line == l2.file_loc.line
+           && l1.file_loc.index == l2.file_loc.index;
+}
+
+static uint32_t dump_subrange(const AST* ast,
+                              ASTDumper* d,
+                              ASTNodeData data,
+                              SourceLoc loc,
+                              uint32_t node_idx) {
+    uint32_t node_it = node_idx + 1;
+    // TODO: should not be less than
+    while (node_it < data.rhs) {
+        node_it = dump_ast_rec(ast, node_it, STR_LIT(""), d, loc);
+        if (node_it == 0) {
+            return 0;
+        }
+    }
+    return data.rhs;
+}
+
+static uint32_t dump_ast_rec(const AST* ast,
+                             uint32_t node_idx,
+                             Str prefix,
+                             ASTDumper* d,
+                             SourceLoc last_loc) {
+    if (node_idx == ast->len) {
+        return node_idx;
+    }
+    const ASTNodeKind kind = ast->kinds[node_idx];
+    const Str node_kind_str = get_node_kind_str(kind);
+    const uint32_t main_token = ast->datas[node_idx].main_token;
+    const SourceLoc loc = ast->toks.locs[main_token];
+    // Only print source location if it is different from parent in order to not
+    // clutter the output
+    if (SourceLoc_eq(loc, last_loc)) {
+        ASTDumper_println(d, "{Str}{Str}:", prefix, node_kind_str);
+    } else {
+        const Str path = FileInfo_get(d->file_info, loc.file_idx);
+        ASTDumper_println(d,
+                          "{Str}{Str}: {Str}:{u32},{u32}",
+                          prefix,
+                          node_kind_str,
+                          path,
+                          loc.file_loc.line,
+                          loc.file_loc.index);
+    }
+    add_indent(d);
+    const ASTNodeCategory category = get_ast_node_category(kind);
+
+    const ASTNodeData data = ast->datas[node_idx];
+    uint32_t res = UINT32_MAX;
+    switch (category) {
+        case AST_NODE_CATEGORY_DEFAULT: {
+            const uint32_t lhs_idx = node_idx + 1;
+            uint32_t lhs_next = 0;
+            if (lhs_idx != data.rhs) {
+                lhs_next = dump_ast_rec(ast, lhs_idx, STR_LIT("lhs "), d, loc);
+                if (lhs_next == 0) {
+                    return 0;
+                }
+                assert(data.rhs == 0 || data.rhs == lhs_next);
+            }
+
+            if (data.rhs != 0) {
+                res = dump_ast_rec(ast, data.rhs, STR_LIT("rhs "), d, loc);
             } else {
-                assert(d->tokens.kinds[c->info.token_idx] == TOKEN_F_CONSTANT);
-                dump_float_val(d, &d->tokens.float_consts[val_idx]);
+                res = lhs_next;
             }
             break;
         }
-    }
-
-    remove_indent(d);
-}
-
-static void dump_str_lit(AstDumper* d, const StrLit* l) {
-    assert(l);
-    dumper_print_str(d, "str_lit:");
-
-    add_indent(d);
-    dumper_println(d, "kind: {Str}", StrLitKind_str(l->kind));
-    dumper_println(d, "contents: {Str}", StrBuf_as_str(&l->contents));
-    remove_indent(d);
-}
-
-static void dump_string_literal(AstDumper* d, const StringLiteralNode* l) {
-    assert(l);
-    dumper_print_node_head(d, "string_literal", &l->info);
-
-    add_indent(d);
-    const uint32_t val_idx = d->tokens.val_indices[l->info.token_idx];
-    const StrLit* lit = &d->tokens.str_lits[val_idx];
-    dump_str_lit(d, lit);
-    remove_indent(d);
-}
-
-static void dump_string_constant(AstDumper* d, const StringConstant* c) {
-    assert(c);
-
-    add_indent(d);
-
-    if (c->is_func) {
-        dumper_print_node_head(d, "string_constant", &c->info);
-        dumper_print_str_val(d, TokenKind_get_spelling(TOKEN_FUNC_NAME));
-    } else {
-        dumper_print_str(d, "string_constant:");
-        dump_string_literal(d, &c->lit);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_assign_expr(AstDumper* d, const AssignExpr* e);
-
-static void dump_generic_assoc(AstDumper* d, const GenericAssoc* a) {
-    assert(a);
-
-    dumper_print_node_head(d, "generic_assoc", &a->info);
-
-    add_indent(d);
-
-    if (a->type_name) {
-        dump_type_name(d, a->type_name);
-    } else {
-        dumper_print_str(d, "default");
-    }
-
-    dump_assign_expr(d, a->assign);
-
-    remove_indent(d);
-}
-
-static void dump_generic_assoc_list(AstDumper* d, const GenericAssocList* l) {
-    assert(l);
-
-    dumper_print_node_head(d, "generic_assoc_list", &l->info);
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", l->len);
-
-    for (uint32_t i = 0; i < l->len; ++i) {
-        dump_generic_assoc(d, &l->assocs[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_generic_sel(AstDumper* d, const GenericSel* s) {
-    assert(d);
-
-    dumper_print_node_head(d, "generic_sel", &s->info);
-
-    add_indent(d);
-
-    dump_assign_expr(d, s->assign);
-
-    dump_generic_assoc_list(d, &s->assocs);
-
-    remove_indent(d);
-}
-
-static void dump_expr(AstDumper* d, const Expr* e);
-
-static void dump_primary_expr(AstDumper* d, const PrimaryExpr* e) {
-    assert(e);
-
-    switch (e->kind) {
-        case PRIMARY_EXPR_IDENTIFIER:
-            dumper_print_str(d, "primary_expr:");
-            add_indent(d);
-
-            dump_identifier(d, e->identifier);
-
-            remove_indent(d);
-            break;
-        case PRIMARY_EXPR_CONSTANT:
-            dumper_print_str(d, "primary_expr:");
-            add_indent(d);
-
-            dump_constant(d, &e->constant);
-
-            remove_indent(d);
-            break;
-        case PRIMARY_EXPR_STRING_LITERAL:
-            dumper_print_str(d, "primary_expr:");
-            add_indent(d);
-
-            dump_string_constant(d, &e->string);
-
-            remove_indent(d);
-            break;
-        case PRIMARY_EXPR_BRACKET:
-            dumper_print_node_head(d, "primary_expr", &e->info);
-
-            add_indent(d);
-
-            dump_expr(d, &e->bracket_expr);
-
-            remove_indent(d);
-            break;
-        case PRIMARY_EXPR_GENERIC:
-            dumper_print_str(d, "primary_expr:");
-            add_indent(d);
-
-            dump_generic_sel(d, &e->generic);
-
-            remove_indent(d);
-            break;
-    }
-}
-
-static void dump_type_modifiers(AstDumper* d, const TypeModifiers* m) {
-    assert(m);
-
-    dumper_print_str(d, "type_modifiers:");
-
-    add_indent(d);
-
-    dumper_println(d, "is_unsigned: {bool}", m->is_unsigned);
-    dumper_println(d, "is_signed: {bool}", m->is_signed);
-    dumper_println(d, "is_short: {bool}", m->is_short);
-    dumper_println(d, "num_long: {uint}", m->num_long);
-    dumper_println(d, "is_complex: {bool}", m->is_complex);
-    dumper_println(d, "is_imaginary: {bool}", m->is_imaginary);
-
-    remove_indent(d);
-}
-
-static void dump_atomic_type_spec(AstDumper* d, const AtomicTypeSpec* s) {
-    assert(s);
-
-    dumper_print_node_head(d, "atomic_type_spec", &s->info);
-
-    add_indent(d);
-
-    dump_type_name(d, s->type_name);
-
-    remove_indent(d);
-}
-
-static void dump_declarator(AstDumper* d, const Declarator* decl);
-
-static void dump_struct_declarator(AstDumper* d, StructDeclarator* decl) {
-    assert(decl);
-
-    dumper_print_str(d, "struct_declarator:");
-
-    add_indent(d);
-
-    if (decl->decl) {
-        dump_declarator(d, decl->decl);
-    }
-    if (decl->bit_field) {
-        dump_const_expr(d, decl->bit_field);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_struct_declarator_list(AstDumper* d,
-                                        const StructDeclaratorList* l) {
-    assert(l);
-
-    dumper_print_str(d, "struct_declarator_list:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", l->len);
-
-    for (uint32_t i = 0; i < l->len; ++i) {
-        dump_struct_declarator(d, &l->decls[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_static_assert_declaration(AstDumper* d,
-                                           const StaticAssertDeclaration* decl);
-
-static void dump_struct_declaration(AstDumper* d,
-                                    const StructDeclaration* decl) {
-    assert(decl);
-
-    dumper_print_str(d, "struct_declaration");
-
-    add_indent(d);
-
-    if (decl->is_static_assert) {
-        dump_static_assert_declaration(d, decl->assert);
-    } else {
-        dump_declaration_specs(d, &decl->decl_specs);
-        dump_struct_declarator_list(d, &decl->decls);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_struct_declaration_list(AstDumper* d,
-                                         const StructDeclarationList* l) {
-    assert(l);
-
-    dumper_print_str(d, "struct_declaration_list:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", l->len);
-    for (uint32_t i = 0; i < l->len; ++i) {
-        dump_struct_declaration(d, &l->decls[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_struct_union_spec(AstDumper* d, const StructUnionSpec* s) {
-    assert(d);
-
-    dumper_print_node_head(d, "struct_union_spec", &s->info);
-
-    add_indent(d);
-
-    if (s->is_struct) {
-        dumper_print_str(d, "struct");
-    } else {
-        dumper_print_str(d, "union");
-    }
-
-    if (s->identifier) {
-        dump_identifier(d, s->identifier);
-    }
-
-    dump_struct_declaration_list(d, &s->decl_list);
-
-    remove_indent(d);
-}
-
-static void dump_enumerator(AstDumper* d, const Enumerator* e) {
-    assert(e);
-
-    dumper_print_str(d, "enumerator:");
-
-    add_indent(d);
-
-    dump_identifier(d, e->identifier);
-    if (e->enum_val) {
-        dump_const_expr(d, e->enum_val);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_enum_list(AstDumper* d, const EnumList* l) {
-    assert(l);
-
-    dumper_print_str(d, "enum_list:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", l->len);
-    for (uint32_t i = 0; i < l->len; ++i) {
-        dump_enumerator(d, &l->enums[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_enum_spec(AstDumper* d, const EnumSpec* s) {
-    assert(s);
-
-    dumper_print_node_head(d, "enum_spec", &s->info);
-
-    add_indent(d);
-
-    if (s->identifier) {
-        dump_identifier(d, s->identifier);
-    }
-
-    dump_enum_list(d, &s->enum_list);
-
-    remove_indent(d);
-}
-
-static Str type_spec_kind_str(TypeSpecKind k) {
-    switch (k) {
-        case TYPE_SPEC_NONE:
-            return STR_LIT("NO_TYPE_SPEC");
-        case TYPE_SPEC_VOID:
-            return TokenKind_get_spelling(TOKEN_VOID);
-        case TYPE_SPEC_CHAR:
-            return TokenKind_get_spelling(TOKEN_CHAR);
-        case TYPE_SPEC_INT:
-            return TokenKind_get_spelling(TOKEN_INT);
-        case TYPE_SPEC_FLOAT:
-            return TokenKind_get_spelling(TOKEN_FLOAT);
-        case TYPE_SPEC_DOUBLE:
-            return TokenKind_get_spelling(TOKEN_DOUBLE);
-        case TYPE_SPEC_BOOL:
-            return TokenKind_get_spelling(TOKEN_BOOL);
-        default:
-            UNREACHABLE();
-    }
-}
-
-static void dump_type_specs(AstDumper* d, const TypeSpecs* s) {
-    assert(s);
-
-    dumper_print_str(d, "type_specs:");
-
-    add_indent(d);
-
-    dump_type_modifiers(d, &s->mods);
-
-    switch (s->kind) {
-        case TYPE_SPEC_NONE:
-        case TYPE_SPEC_VOID:
-        case TYPE_SPEC_CHAR:
-        case TYPE_SPEC_INT:
-        case TYPE_SPEC_FLOAT:
-        case TYPE_SPEC_DOUBLE:
-        case TYPE_SPEC_BOOL:
-            dumper_print_str_val(d, type_spec_kind_str(s->kind));
-            break;
-        case TYPE_SPEC_ATOMIC:
-            dump_atomic_type_spec(d, s->atomic_spec);
-            break;
-        case TYPE_SPEC_STRUCT:
-            dump_struct_union_spec(d, s->struct_union_spec);
-            break;
-        case TYPE_SPEC_ENUM:
-            dump_enum_spec(d, s->enum_spec);
-            break;
-        case TYPE_SPEC_TYPENAME:
-            dump_identifier(d, s->typedef_name);
-            break;
-    }
-
-    remove_indent(d);
-}
-
-static void dump_spec_qual_list(AstDumper* d, const SpecQualList* l) {
-    assert(l);
-
-    dumper_print_node_head(d, "spec_qual_list", &l->info);
-
-    add_indent(d);
-
-    dump_type_quals(d, &l->quals);
-    dump_type_specs(d, &l->specs);
-
-    remove_indent(d);
-}
-
-static void dump_abs_declarator(AstDumper* d, const AbsDeclarator* decl);
-
-static void dump_type_name(AstDumper* d, const TypeName* n) {
-    assert(n);
-
-    dumper_print_str(d, "type_name:");
-
-    add_indent(d);
-
-    dump_spec_qual_list(d, n->spec_qual_list);
-    if (n->abstract_decl) {
-        dump_abs_declarator(d, n->abstract_decl);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_arg_expr_list(AstDumper* d, const ArgExprList* l) {
-    assert(l);
-
-    dumper_print_str(d, "arg_expr_list:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", l->len);
-    for (uint32_t i = 0; i < l->len; ++i) {
-        dump_assign_expr(d, &l->assign_exprs[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_postfix_suffix(AstDumper* d, const PostfixSuffix* s) {
-    assert(s);
-
-    dumper_print_str(d, "postfix_suffix:");
-
-    add_indent(d);
-
-    switch (s->kind) {
-        case POSTFIX_INDEX:
-            dump_expr(d, &s->index_expr);
-            break;
-        case POSTFIX_BRACKET:
-            dump_arg_expr_list(d, &s->bracket_list);
-            break;
-        case POSTFIX_ACCESS:
-            dumper_print_str(d, "access");
-            dump_identifier(d, s->identifier);
-            break;
-        case POSTFIX_PTR_ACCESS:
-            dumper_print_str(d, "pointer_access");
-            dump_identifier(d, s->identifier);
-            break;
-        case POSTFIX_INC:
-        case POSTFIX_DEC:
-            dumper_print_str_val(d,
-                                 s->kind == POSTFIX_INC ? STR_LIT("++")
-                                                        : STR_LIT("--"));
-            break;
-    }
-
-    remove_indent(d);
-}
-
-static void dump_init_list(AstDumper* d, const InitList* l);
-
-static void dump_postfix_expr(AstDumper* d, const PostfixExpr* e) {
-    assert(e);
-
-    if (e->is_primary) {
-        dumper_print_str(d, "postfix_expr:");
-    } else {
-        dumper_print_node_head(d, "postfix_expr", &e->info);
-    }
-
-    add_indent(d);
-
-    if (e->is_primary) {
-        dump_primary_expr(d, &e->primary);
-    } else {
-        dump_type_name(d, e->type_name);
-        dump_init_list(d, &e->init_list);
-    }
-
-    dumper_println(d, "len: {u32}", e->num_suffixes);
-    for (uint32_t i = 0; i < e->num_suffixes; ++i) {
-        dump_postfix_suffix(d, &e->suffixes[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_unary_expr(AstDumper* d, const UnaryExpr* e);
-
-static void dump_cast_expr(AstDumper* d, const CastExpr* e) {
-    assert(e);
-
-    dumper_print_node_head(d, "cast_expr", &e->info);
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        dump_type_name(d, &e->type_names[i]);
-    }
-
-    dump_unary_expr(d, &e->rhs);
-
-    remove_indent(d);
-}
-
-static Str unary_expr_kind_str(UnaryExprKind k) {
-    assert(k != UNARY_POSTFIX && k != UNARY_SIZEOF_TYPE && k != UNARY_ALIGNOF);
-    switch (k) {
-        case UNARY_ADDRESSOF:
-            return TokenKind_get_spelling(TOKEN_AND);
-        case UNARY_DEREF:
-            return TokenKind_get_spelling(TOKEN_ASTERISK);
-        case UNARY_PLUS:
-            return TokenKind_get_spelling(TOKEN_ADD);
-        case UNARY_MINUS:
-            return TokenKind_get_spelling(TOKEN_SUB);
-        case UNARY_BNOT:
-            return TokenKind_get_spelling(TOKEN_BNOT);
-        case UNARY_NOT:
-            return TokenKind_get_spelling(TOKEN_NOT);
-
-        default:
-            UNREACHABLE();
-    }
-}
-
-static Str unary_expr_op_str(UnaryExprOp o) {
-    switch (o) {
-        case UNARY_OP_INC:
-            return TokenKind_get_spelling(TOKEN_INC);
-        case UNARY_OP_DEC:
-            return TokenKind_get_spelling(TOKEN_DEC);
-        case UNARY_OP_SIZEOF:
-            return TokenKind_get_spelling(TOKEN_SIZEOF);
-    }
-    UNREACHABLE();
-}
-
-static void dump_unary_expr(AstDumper* d, const UnaryExpr* e) {
-    assert(e);
-
-    dumper_print_node_head(d, "unary_expr", &e->info);
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        dumper_print_str_val(d, unary_expr_op_str(e->ops_before[i]));
-    }
-
-    switch (e->kind) {
-        case UNARY_POSTFIX:
-            dump_postfix_expr(d, &e->postfix);
-            break;
-        case UNARY_ADDRESSOF:
-        case UNARY_DEREF:
-        case UNARY_PLUS:
-        case UNARY_MINUS:
-        case UNARY_BNOT:
-        case UNARY_NOT:
-            dumper_print_str_val(d, unary_expr_kind_str(e->kind));
-            dump_cast_expr(d, e->cast_expr);
-            break;
-        case UNARY_SIZEOF_TYPE:
-            dumper_print_str(d, "sizeof");
-            dump_type_name(d, e->type_name);
-            break;
-        case UNARY_ALIGNOF:
-            dumper_print_str(d, "_Alignof");
-            dump_type_name(d, e->type_name);
-            break;
-    }
-
-    remove_indent(d);
-}
-
-static Str assign_expr_op_str(AssignExprOp o) {
-    switch (o) {
-        case ASSIGN_EXPR_ASSIGN:
-            return TokenKind_get_spelling(TOKEN_ASSIGN);
-        case ASSIGN_EXPR_MUL:
-            return TokenKind_get_spelling(TOKEN_MUL_ASSIGN);
-        case ASSIGN_EXPR_DIV:
-            return TokenKind_get_spelling(TOKEN_DIV_ASSIGN);
-        case ASSIGN_EXPR_MOD:
-            return TokenKind_get_spelling(TOKEN_MOD_ASSIGN);
-        case ASSIGN_EXPR_ADD:
-            return TokenKind_get_spelling(TOKEN_ADD_ASSIGN);
-        case ASSIGN_EXPR_SUB:
-            return TokenKind_get_spelling(TOKEN_SUB_ASSIGN);
-        case ASSIGN_EXPR_LSHIFT:
-            return TokenKind_get_spelling(TOKEN_LSHIFT_ASSIGN);
-        case ASSIGN_EXPR_RSHIFT:
-            return TokenKind_get_spelling(TOKEN_RSHIFT_ASSIGN);
-        case ASSIGN_EXPR_AND:
-            return TokenKind_get_spelling(TOKEN_AND_ASSIGN);
-        case ASSIGN_EXPR_XOR:
-            return TokenKind_get_spelling(TOKEN_XOR_ASSIGN);
-        case ASSIGN_EXPR_OR:
-            return TokenKind_get_spelling(TOKEN_OR_ASSIGN);
-    };
-
-    UNREACHABLE();
-}
-
-static void dump_cond_expr(AstDumper* d, const CondExpr* e);
-
-static void dump_assign_expr(AstDumper* d, const AssignExpr* e) {
-    assert(e);
-
-    dumper_print_str(d, "assign_expr:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        dumper_print_str(d, "unary_and_op:");
-        add_indent(d);
-
-        UnaryAndOp* item = &e->assign_chain[i];
-
-        dump_unary_expr(d, &item->unary);
-
-        dumper_print_str_val(d, assign_expr_op_str(item->op));
-
-        remove_indent(d);
-    }
-    dump_cond_expr(d, &e->value);
-
-    remove_indent(d);
-}
-static void dump_param_type_list(AstDumper* d, const ParamTypeList* l);
-
-static void dump_abs_arr_or_func_suffix(AstDumper* d,
-                                        const AbsArrOrFuncSuffix* s) {
-    assert(s);
-
-    dumper_print_node_head(d, "abs_arr_or_func_suffix", &s->info);
-
-    add_indent(d);
-
-    switch (s->kind) {
-        case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
-            dumper_println(d, "has_asterisk: {bool}", s->has_asterisk);
-            break;
-        case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN:
-            dumper_println(d, "is_static: {bool}", s->is_static);
-            dump_type_quals(d, &s->type_quals);
-            if (s->assign) {
-                dump_assign_expr(d, s->assign);
+        case AST_NODE_CATEGORY_SUBRANGE: {
+            res = dump_subrange(ast, d, data, loc, node_idx);
+            if (res == 0) {
+                return 0;
             }
             break;
-        case ABS_ARR_OR_FUNC_SUFFIX_FUNC:
-            dump_param_type_list(d, &s->func_types);
-            break;
-    }
-
-    remove_indent(d);
-}
-
-static void dump_direct_abs_declarator(AstDumper* d,
-                                       const DirectAbsDeclarator* decl) {
-    assert(decl);
-
-    dumper_print_node_head(d, "direct_abs_declarator", &decl->info);
-
-    add_indent(d);
-
-    if (decl->bracket_decl) {
-        dump_abs_declarator(d, decl->bracket_decl);
-    }
-    for (uint32_t i = 0; i < decl->num_suffixes; ++i) {
-        dump_abs_arr_or_func_suffix(d, &decl->following_suffixes[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_abs_declarator(AstDumper* d, const AbsDeclarator* decl) {
-    assert(decl);
-
-    dumper_print_str(d, "abs_declarator:");
-
-    add_indent(d);
-    if (decl->ptr) {
-        dump_pointer(d, decl->ptr);
-    }
-    if (decl->direct_abs_decl) {
-        dump_direct_abs_declarator(d, decl->direct_abs_decl);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_declarator(AstDumper* d, const Declarator* decl);
-
-static void dump_param_declaration(AstDumper* d, const ParamDeclaration* decl) {
-    assert(decl);
-
-    dumper_print_str(d, "param_declaration:");
-
-    add_indent(d);
-
-    dump_declaration_specs(d, &decl->decl_specs);
-    switch (decl->kind) {
-        case PARAM_DECL_DECL:
-            dump_declarator(d, decl->decl);
-            break;
-        case PARAM_DECL_ABSTRACT_DECL:
-            dump_abs_declarator(d, decl->abstract_decl);
-            break;
-        case PARAM_DECL_NONE:
-            dumper_print_str(d, "no_decl");
-            break;
-    }
-
-    remove_indent(d);
-}
-
-static void dump_param_list(AstDumper* d, const ParamList* l) {
-    assert(l);
-
-    dumper_print_str(d, "param_type_list:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", l->len);
-    for (uint32_t i = 0; i < l->len; ++i) {
-        dump_param_declaration(d, &l->decls[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_param_type_list(AstDumper* d, const ParamTypeList* l) {
-    assert(l);
-
-    dumper_print_str(d, "param_type_list:");
-
-    add_indent(d);
-
-    dumper_println(d, "is_variadic: {bool}", l->is_variadic);
-    dump_param_list(d, &l->param_list);
-
-    remove_indent(d);
-}
-
-static void dump_identifier_list(AstDumper* d, const IdentifierList* l) {
-    assert(l);
-    dumper_print_str(d, "identifier_list:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", l->len);
-    for (uint32_t i = 0; i < l->len; ++i) {
-        dump_identifier(d, &l->identifiers[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_arr_suffix(AstDumper* d, const ArrSuffix* s) {
-    assert(s);
-
-    dumper_print_str(d, "arr_suffix:");
-
-    add_indent(d);
-
-    dumper_println(d, "is_static: {bool}", s->is_static);
-    dump_type_quals(d, &s->type_quals);
-    dumper_println(d, "is_asterisk: {bool}", s->is_asterisk);
-    if (s->arr_len) {
-        dump_assign_expr(d, s->arr_len);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_arr_or_func_suffix(AstDumper* d, const ArrOrFuncSuffix* s) {
-    dumper_print_node_head(d, "arr_or_func_suffix", &s->info);
-
-    add_indent(d);
-
-    switch (s->kind) {
-        case ARR_OR_FUNC_ARRAY:
-            dump_arr_suffix(d, &s->arr_suffix);
-            break;
-        case ARR_OR_FUNC_FUN_PARAMS:
-            dump_param_type_list(d, &s->fun_types);
-            break;
-        case ARR_OR_FUNC_FUN_OLD_PARAMS:
-            dump_identifier_list(d, &s->fun_params);
-            break;
-        case ARR_OR_FUNC_FUN_EMPTY:
-            dumper_print_str(d, "empty_func_suffix");
-            break;
-    }
-
-    remove_indent(d);
-}
-
-static void dump_direct_declarator(AstDumper* d, DirectDeclarator* decl) {
-    assert(decl);
-
-    dumper_print_node_head(d, "direct_declarator", &decl->info);
-
-    add_indent(d);
-
-    if (decl->is_id) {
-        dump_identifier(d, decl->id);
-    } else {
-        dump_declarator(d, decl->bracket_decl);
-    }
-
-    for (uint32_t i = 0; i < decl->len; ++i) {
-        ArrOrFuncSuffix* item = &decl->suffixes[i];
-        dump_arr_or_func_suffix(d, item);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_declarator(AstDumper* d, const Declarator* decl) {
-    assert(decl);
-
-    dumper_print_str(d, "declarator:");
-
-    add_indent(d);
-
-    if (decl->ptr) {
-        dump_pointer(d, decl->ptr);
-    }
-    dump_direct_declarator(d, decl->direct_decl);
-
-    remove_indent(d);
-}
-
-static void dump_declaration(AstDumper* d, const Declaration* decl);
-
-static void dump_declaration_list(AstDumper* d, const DeclarationList* l) {
-    assert(l);
-
-    dumper_print_str(d, "declaration_list:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", l->len);
-    for (uint32_t i = 0; i < l->len; ++i) {
-        dump_declaration(d, &l->decls[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_statement(AstDumper* d, const Statement* s);
-
-static void dump_labeled_statement(AstDumper* d,
-                                   const struct LabeledStatement* s) {
-    assert(s);
-
-    dumper_print_node_head(d, "labeled_statement", &s->info);
-
-    add_indent(d);
-
-    switch (s->kind) {
-        case LABELED_STATEMENT_CASE:
-            dump_const_expr(d, &s->case_expr);
-            break;
-        case LABELED_STATEMENT_LABEL:
-            dump_identifier(d, s->label);
-            break;
-        case LABELED_STATEMENT_DEFAULT:
-            dumper_print_str(d, "default");
-            break;
-        default:
-            UNREACHABLE();
-    }
-
-    dump_statement(d, s->stat);
-
-    remove_indent(d);
-}
-
-static void dump_expr(AstDumper* d, const Expr* e) {
-    assert(e);
-
-    dumper_print_str(d, "expr:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        dump_assign_expr(d, &e->assign_exprs[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_compound_statement(AstDumper* d, const CompoundStatement* s);
-
-static void dump_expr_statement(AstDumper* d, const ExprStatement* s) {
-    assert(s);
-    dumper_print_node_head(d, "expr_statement", &s->info);
-
-    add_indent(d);
-
-    if (s->expr.len != 0) {
-        dump_expr(d, &s->expr);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_selection_statement(AstDumper* d,
-                                     const SelectionStatement* s) {
-    assert(s);
-
-    dumper_print_node_head(d, "selection_statement", &s->info);
-
-    add_indent(d);
-
-    dumper_println(d, "is_if: {bool}", s->is_if);
-
-    dump_statement(d, s->sel_stat);
-
-    if (s->else_stat) {
-        assert(s->is_if);
-        dump_statement(d, s->else_stat);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_iteration_statement(AstDumper* d,
-                                     const IterationStatement* s) {
-    assert(s);
-
-    dumper_print_node_head(d, "iteration_statement", &s->info);
-
-    add_indent(d);
-
-    switch (s->kind) {
-        case ITERATION_STATEMENT_WHILE:
-            dumper_print_str(d, "type: while");
-            dump_expr(d, &s->while_cond);
-            dump_statement(d, s->loop_body);
-            break;
-        case ITERATION_STATEMENT_DO:
-            dumper_print_str(d, "type: do");
-            dump_statement(d, s->loop_body);
-            dump_expr(d, &s->while_cond);
-            break;
-        case ITERATION_STATEMENT_FOR:
-            dumper_print_str(d, "type: for");
-            if (s->for_loop.is_decl) {
-                dump_declaration(d, &s->for_loop.init_decl);
+        }
+        case AST_NODE_CATEGORY_RHS_ONLY: {
+            const uint32_t rhs = ast->datas[node_idx].rhs;
+            if (rhs != 0) {
+                res = dump_ast_rec(ast, rhs, STR_LIT("rhs "), d, loc);
+                if (res == 0) {
+                    return 0;
+                }
             } else {
-                dump_expr_statement(d, s->for_loop.init_expr);
+                res = node_idx + 1;
             }
-            dump_expr_statement(d, s->for_loop.cond);
-            dump_expr(d, &s->for_loop.incr_expr);
-            dump_statement(d, s->loop_body);
             break;
+        }
+        case AST_NODE_CATEGORY_NO_CHILDREN:
+            res = node_idx + 1;
+            break;
+        case AST_NODE_CATEGORY_OPTIONAL_LHS_RHS: {
+            const uint32_t lhs_idx = node_idx + 1;
+            if (data.rhs == 0) {
+                if (ast->kinds[lhs_idx] == get_lhs_kind(kind)) {
+                    res = dump_ast_rec(ast, lhs_idx, STR_LIT("lhs "), d, loc);
+                } else {
+                    // No lhs and rhs
+                    res = lhs_idx;
+                }
+            } else if (data.rhs == lhs_idx) {
+                res = dump_ast_rec(ast, data.rhs, STR_LIT("rhs "), d, loc);
+            } else {
+                // both lhs and rhs present
+                const uint32_t lhs_next = dump_ast_rec(ast,
+                                                       lhs_idx,
+                                                       STR_LIT("lhs "),
+                                                       d,
+                                                       loc);
+                if (lhs_next == 0) {
+                    return 0;
+                }
+                assert(lhs_next == data.rhs);
+                res = dump_ast_rec(ast, data.rhs, STR_LIT("rhs "), d, loc);
+            }
+            break;
+        }
+        case AST_NODE_CATEGORY_TOKEN_RANGE: {
+            const uint32_t token_idx = data.main_token;
+            const uint32_t end = token_idx + data.rhs;
+            for (uint32_t i = token_idx; i < end; ++i) {
+                const TokenKind token_kind = ast->toks.kinds[i];
+                Str str = TokenKind_get_spelling(token_kind);
+                if (str.data == NULL) {
+                    assert(token_kind == TOKEN_IDENTIFIER);
+                    const uint32_t val_idx = ast->toks.val_indices[i];
+                    str = StrBuf_as_str(&ast->toks.identifiers[val_idx]);
+                }
+                ASTDumper_println(d, "token: {Str}", str);
+            }
+            res = node_idx + 1;
+            break;
+        }
+        case AST_NODE_CATEGORY_IDENTIFIER: {
+            const uint32_t token_idx = data.main_token;
+            const uint32_t val_idx = ast->toks.val_indices[token_idx];
+            const Str spell = StrBuf_as_str(&ast->toks.identifiers[val_idx]);
+            ASTDumper_println(d, "spelling: {Str}", spell);
+            res = node_idx + 1;
+            break;
+        }
+        case AST_NODE_CATEGORY_STRING_LITERAL: {
+            const uint32_t token_idx = data.main_token;
+            const uint32_t val_idx = ast->toks.val_indices[token_idx];
+            const StrLit* lit = &ast->toks.str_lits[val_idx];
+            dump_str_lit(d, lit);
+            res = node_idx + 1;
+            break;
+        }
+        case AST_NODE_CATEGORY_CONSTANT: {
+            const uint32_t token_idx = data.main_token;
+            const uint32_t val_idx = ast->toks.val_indices[token_idx];
+            if (ast->toks.kinds[token_idx] == TOKEN_I_CONSTANT) {
+                const IntVal* val = &ast->toks.int_consts[val_idx];
+                dump_int_val(d, val);
+            } else {
+                assert(ast->toks.kinds[token_idx] == TOKEN_F_CONSTANT);
+                const FloatVal* val = &ast->toks.float_consts[val_idx];
+                dump_float_val(d, val);
+            }
+            res = node_idx + 1;
+            break;
+        }
+        case AST_NODE_CATEGORY_BALANCED_TOKEN: {
+            dump_balanced_token(d, ast, data.main_token);
+            res = node_idx + 1;
+            break;
+        }
+        case AST_NODE_CATEGORY_DECLARATION_SPECS: {
+            res = dump_subrange(ast, d, data, loc, node_idx);
+            if (res == 0) {
+                return 0;
+            }
+            if (ast->kinds[res] == AST_ATTRIBUTE_SPEC_SEQUENCE) {
+                res = dump_ast_rec(ast, node_idx, STR_LIT("rhs "), d, loc);
+                if (res == 0) {
+                    return 0;
+                }
+            }
+        }
+    }
+    remove_indent(d);
+    return res;
+}
+
+static ASTNodeKind get_lhs_kind(ASTNodeKind kind) {
+    assert(get_ast_node_category(kind) == AST_NODE_CATEGORY_OPTIONAL_LHS_RHS);
+    switch (kind) {
+        case AST_UNLABELED_STATEMENT:
+            return AST_ATTRIBUTE_SPEC_SEQUENCE;
+        case AST_ENUM_SPEC:
+            return AST_ATTRIBUTE_ID;
+        case AST_ATTRIBUTE_ID:
+            return AST_ATTRIBUTE_SPEC_SEQUENCE;
+        case AST_ENUM_BODY:
+            return AST_SPEC_QUAL_LIST;
+        case AST_STRUCT_UNION_BODY: // TODO: needs either or
+            return AST_IDENTIFIER;
+        case AST_MEMBER_DECLARATOR:
+            return AST_DECLARATOR;
+        case AST_ARR_SUFFIX:
+            return AST_TYPE_QUAL_LIST;
+        case AST_POINTER:
+            return AST_POINTER_ATTRS_AND_QUALS;
+        case AST_POINTER_ATTRS_AND_QUALS:
+            return AST_ATTRIBUTE_SPEC_SEQUENCE;
+        case AST_ABS_DECLARATOR:
+            return AST_POINTER;
+        case AST_ABS_ARR_SUFFIX:
+            return AST_TYPE_QUAL_LIST;
         default:
             UNREACHABLE();
     }
-
-    remove_indent(d);
 }
 
-static void dump_jump_statement(AstDumper* d, const JumpStatement* s) {
-    assert(s);
-    dumper_print_node_head(d, "jump_statement", &s->info);
-
-    add_indent(d);
-
-    switch (s->kind) {
-        case JUMP_STATEMENT_GOTO:
-            dumper_print_str(d, "type: goto");
-            dump_identifier(d, s->goto_label);
-            break;
-        case JUMP_STATEMENT_CONTINUE:
-            dumper_print_str(d, "type: continue");
-            break;
-        case JUMP_STATEMENT_BREAK:
-            dumper_print_str(d, "type: break");
-            break;
-        case JUMP_STATEMENT_RETURN:
-            dumper_print_str(d, "type: return");
-            dump_expr(d, &s->ret_val);
-            break;
+static ASTNodeCategory get_ast_node_category(ASTNodeKind k) {
+    // TODO: balanced token
+    switch (k) {
+        case AST_TRANSLATION_UNIT:
+        case AST_DECLARATION_LIST:
+        case AST_COMPOUND_STATEMENT:
+        case AST_ENUM_LIST:
+        case AST_MEMBER_DECLARATION_LIST:
+        case AST_MEMBER_DECLARATOR_LIST:
+        case AST_INIT_DECLARATOR_LIST:
+        case AST_ATTRIBUTE_SPEC_SEQUENCE:
+        case AST_ATTRIBUTE_LIST:
+        case AST_BALANCED_TOKEN_SEQUENCE:
+        case AST_ARR_OR_FUNC_SUFFIX_LIST:
+        case AST_IDENTIFIER_LIST:
+        case AST_PARAM_TYPE_LIST:
+        case AST_PARAM_TYPE_LIST_VARIADIC:
+        case AST_ABS_ARR_OR_FUNC_SUFFIX_LIST:
+        case AST_INIT_LIST:
+        case AST_DESIGNATOR_LIST:
+        case AST_SPEC_QUAL_LIST:
+        case AST_ARG_EXPR_LIST:
+        case AST_GENERIC_ASSOC_LIST:
+            return AST_NODE_CATEGORY_SUBRANGE;
+        case AST_FUNC_SUFFIX:
+        case AST_ARR_SUFFIX_ASTERISK:
+        case AST_RETURN_STATEMENT:
+            return AST_NODE_CATEGORY_RHS_ONLY;
+        case AST_DECLARATION_SPECS:
+             return AST_NODE_CATEGORY_DECLARATION_SPECS;
+        case AST_POSTFIX_OP_INC:
+        case AST_POSTFIX_OP_DEC:
+        case AST_TYPE_QUAL_CONST:
+        case AST_TYPE_QUAL_RESTRICT:
+        case AST_TYPE_QUAL_VOLATILE:
+        case AST_TYPE_QUAL_ATOMIC:
+        case AST_ABS_ARR_SUFFIX_ASTERISK:
+        case AST_TYPE_SPEC_VOID:
+        case AST_TYPE_SPEC_CHAR:
+        case AST_TYPE_SPEC_SHORT:
+        case AST_TYPE_SPEC_INT:
+        case AST_TYPE_SPEC_LONG:
+        case AST_TYPE_SPEC_FLOAT:
+        case AST_TYPE_SPEC_DOUBLE:
+        case AST_TYPE_SPEC_SIGNED:
+        case AST_TYPE_SPEC_UNSIGNED:
+        case AST_TYPE_SPEC_BOOL:
+        case AST_TYPE_SPEC_COMPLEX:
+        case AST_TYPE_SPEC_IMAGINARY:
+        case AST_BREAK_STATEMENT:
+        case AST_CONTINUE_STATEMENT:
+        case AST_FUNC_SPEC_INLINE:
+        case AST_FUNC_SPEC_NORETURN:
+        case AST_FUNC:
+        case AST_STORAGE_CLASS_SPEC_TYPEDEF:
+        case AST_STORAGE_CLASS_SPEC_EXTERN:
+        case AST_STORAGE_CLASS_SPEC_STATIC:
+        case AST_STORAGE_CLASS_SPEC_THREAD_LOCAL:
+        case AST_STORAGE_CLASS_SPEC_AUTO:
+        case AST_STORAGE_CLASS_SPEC_REGISTER:
+            return AST_NODE_CATEGORY_NO_CHILDREN;
+        case AST_UNLABELED_STATEMENT:
+        case AST_ENUM_SPEC:
+        case AST_ATTRIBUTE_ID:
+        case AST_ENUM_BODY:
+        case AST_STRUCT_UNION_BODY: // TODO: needs either or
+        case AST_MEMBER_DECLARATOR:
+        case AST_POINTER:
+        case AST_POINTER_ATTRS_AND_QUALS:
+        case AST_ABS_DECLARATOR:
+        case AST_ABS_ARR_SUFFIX:
+        case AST_ARR_SUFFIX:
+            return AST_NODE_CATEGORY_OPTIONAL_LHS_RHS;
+        case AST_TYPE_QUAL_LIST:
+        case AST_STORAGE_CLASS_SPECS:
+            return AST_NODE_CATEGORY_TOKEN_RANGE;
+        case AST_IDENTIFIER:
+        case AST_TYPE_SPEC_TYPEDEF_NAME:
+        case AST_ENUM_CONSTANT:
+            return AST_NODE_CATEGORY_IDENTIFIER;
+        case AST_STRING_LITERAL:
+            return AST_NODE_CATEGORY_STRING_LITERAL;
+        case AST_CONSTANT:
+            return AST_NODE_CATEGORY_CONSTANT;
+        case AST_BALANCED_TOKEN:
+            return AST_NODE_CATEGORY_BALANCED_TOKEN;
         default:
-            UNREACHABLE();
+            return AST_NODE_CATEGORY_DEFAULT;
     }
-
-    remove_indent(d);
 }
 
-static void dump_statement(AstDumper* d, const Statement* s) {
-    assert(s);
-
-    dumper_print_str(d, "statement:");
-
-    add_indent(d);
-
-    switch (s->kind) {
-        case STATEMENT_LABELED:
-            dump_labeled_statement(d, s->labeled);
-            break;
-        case STATEMENT_COMPOUND:
-            dump_compound_statement(d, s->comp);
-            break;
-        case STATEMENT_EXPRESSION:
-            dump_expr_statement(d, s->expr);
-            break;
-        case STATEMENT_SELECTION:
-            dump_selection_statement(d, s->sel);
-            break;
-        case STATEMENT_ITERATION:
-            dump_iteration_statement(d, s->it);
-            break;
-        case STATEMENT_JUMP:
-            dump_jump_statement(d, s->jmp);
-            break;
-    }
-
-    remove_indent(d);
-}
-
-static void dump_declaration(AstDumper* s, const Declaration* decl);
-
-static void dump_block_item(AstDumper* d, const BlockItem* i) {
-    assert(i);
-
-    dumper_print_str(d, "block_item:");
-
-    add_indent(d);
-
-    if (i->is_decl) {
-        dump_declaration(d, &i->decl);
-    } else {
-        dump_statement(d, &i->stat);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_compound_statement(AstDumper* d,
-                                    const struct CompoundStatement* s) {
-    assert(s);
-
-    dumper_print_node_head(d, "compound_statement", &s->info);
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", s->len);
-    for (uint32_t i = 0; i < s->len; ++i) {
-        dump_block_item(d, &s->items[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_func_def(AstDumper* d, const FuncDef* f) {
-    assert(f);
-
-    dumper_print_str(d, "func_def:");
-
-    add_indent(d);
-
-    dump_declaration_specs(d, &f->specs);
-    dump_declarator(d, f->decl);
-    dump_declaration_list(d, &f->decl_list);
-    dump_compound_statement(d, &f->comp);
-
-    remove_indent(d);
-}
-
-static void dump_designator(AstDumper* d, const struct Designator* des) {
-    assert(des);
-    dumper_print_node_head(d, "designator", &des->info);
-
-    add_indent(d);
-
-    if (des->is_index) {
-        dump_const_expr(d, des->arr_index);
-    } else {
-        dump_identifier(d, des->identifier);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_designator_list(AstDumper* d, const DesignatorList* l) {
-    assert(l);
-
-    dumper_print_str(d, "designator_list:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", l->len);
-    for (uint32_t i = 0; i < l->len; ++i) {
-        dump_designator(d, &l->designators[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_designation(AstDumper* d, const Designation* des) {
-    assert(des);
-
-    dumper_print_str(d, "designation:");
-
-    add_indent(d);
-
-    dump_designator_list(d, &des->designators);
-
-    remove_indent(d);
-}
-
-static void dump_initializer(AstDumper* d, const Initializer* i);
-
-static void dump_designation_init(AstDumper* d, const DesignationInit* i) {
-    assert(i);
-
-    dumper_print_str(d, "designation_init:");
-
-    add_indent(d);
-
-    if (Designation_is_valid(&i->designation)) {
-        dump_designation(d, &i->designation);
-    }
-    dump_initializer(d, &i->init);
-
-    remove_indent(d);
-}
-
-static void dump_init_list(AstDumper* d, const InitList* l) {
-    assert(l);
-
-    dumper_print_str(d, "init_list:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", l->len);
-    for (uint32_t i = 0; i < l->len; ++i) {
-        dump_designation_init(d, &l->inits[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_initializer(AstDumper* d, const struct Initializer* i) {
-    assert(i);
-
-    dumper_print_node_head(d, "initializer", &i->info);
-
-    add_indent(d);
-
-    if (i->is_assign) {
-        dump_assign_expr(d, i->assign);
-    } else {
-        dump_init_list(d, &i->init_list);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_init_declarator(AstDumper* d, const InitDeclarator* decl) {
-    assert(decl);
-
-    dumper_print_str(d, "init_declarator:");
-
-    add_indent(d);
-
-    dump_declarator(d, decl->decl);
-    if (decl->init) {
-        dump_initializer(d, decl->init);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_init_declarator_list(AstDumper* d,
-                                      const InitDeclaratorList* l) {
-    assert(l);
-
-    dumper_print_str(d, "init_declarator_list:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", l->len);
-    for (uint32_t i = 0; i < l->len; ++i) {
-        dump_init_declarator(d, &l->decls[i]);
-    }
-
-    remove_indent(d);
-}
-
-static Str mul_expr_op_str(MulExprOp o) {
-    switch (o) {
-        case MUL_EXPR_MUL:
-            return TokenKind_get_spelling(TOKEN_ASTERISK);
-        case MUL_EXPR_DIV:
-            return TokenKind_get_spelling(TOKEN_DIV);
-        case MUL_EXPR_MOD:
-            return TokenKind_get_spelling(TOKEN_MOD);
+static Str get_node_kind_str(ASTNodeKind k) {
+    switch (k) {
+        case AST_TRANSLATION_UNIT:
+            return STR_LIT("translation unit");
+        case AST_FUNC_DEF:
+            return STR_LIT("function definition");
+        case AST_FUNC_DEF_IMPL:
+            return STR_LIT("function definition implementation");
+        case AST_FUNC_DEF_SUB_IMPL:
+            return STR_LIT("function definition sub implementation");
+        case AST_FUNC_DECLARATOR_AND_DECL_LIST:
+            return STR_LIT("function declarator and declaration list");
+        case AST_DECLARATION:
+            return STR_LIT("declaration");
+        case AST_DECLARATION_LIST:
+            return STR_LIT("declaration list");
+        case AST_DECLARATION_SPECS_AND_INIT_DECLARATOR_LIST:
+            return STR_LIT("declaration list and initializer declarator list");
+        case AST_ATTRIBUTE_DECLARATION:
+            return STR_LIT("attribute declaration");
+        case AST_STATIC_ASSERT_DECLARATION:
+            return STR_LIT("static assert declaration");
+        case AST_COMPOUND_STATEMENT:
+            return STR_LIT("compound statement");
+        case AST_LABEL:
+            return STR_LIT("label");
+        case AST_UNLABELED_STATEMENT:
+            return STR_LIT("unlabeled statement");
+        case AST_LABELED_STATEMENT:
+            return STR_LIT("labeled statement");
+        case AST_LABELED_STATEMENT_LABEL:
+            return STR_LIT("labeled statement label");
+        case AST_LABELED_STATEMENT_CASE:
+            return STR_LIT("labeled statement case");
+        case AST_SWITCH_STATEMENT:
+            return STR_LIT("switch statement");
+        case AST_SIMPLE_IF:
+            return STR_LIT("simple if statement");
+        case AST_IF_ELSE:
+            return STR_LIT("if else statement");
+        case AST_WHILE:
+            return STR_LIT("while statement");
+        case AST_DO_WHILE:
+            return STR_LIT("do while statement");
+        case AST_FOR:
+            return STR_LIT("for statement");
+        case AST_FOR_CLAUSE:
+            return STR_LIT("for clause");
+        case AST_FOR_LOOP_ACTIONS:
+            return STR_LIT("for loop actions");
+        case AST_GOTO_STATEMENT:
+            return STR_LIT("goto statement");
+        case AST_CONTINUE_STATEMENT:
+            return STR_LIT("continue statement");
+        case AST_BREAK_STATEMENT:
+            return STR_LIT("break statement");
+        case AST_RETURN_STATEMENT:
+            return STR_LIT("return statement");
+        case AST_DECLARATION_SPECS:
+            return STR_LIT("declaration specifiers");
+        case AST_STORAGE_CLASS_SPEC_TYPEDEF:
+            return STR_LIT("typedef storage class specifier");
+        case AST_STORAGE_CLASS_SPEC_EXTERN:
+            return STR_LIT("extern storage class specifier");
+        case AST_STORAGE_CLASS_SPEC_STATIC:
+            return STR_LIT("static storage class specifier");
+        case AST_STORAGE_CLASS_SPEC_THREAD_LOCAL:
+            return STR_LIT("_Thread_local storage class specifier");
+        case AST_STORAGE_CLASS_SPEC_AUTO:
+            return STR_LIT("auto storage class specifier");
+        case AST_STORAGE_CLASS_SPEC_REGISTER:
+            return STR_LIT("register storage class specifier");
+        case AST_TYPE_SPEC_VOID:
+            return STR_LIT("void type specifier");
+        case AST_TYPE_SPEC_CHAR:
+            return STR_LIT("char type specifier");
+        case AST_TYPE_SPEC_SHORT:
+            return STR_LIT("short type specifier");
+        case AST_TYPE_SPEC_INT:
+            return STR_LIT("int type specifier");
+        case AST_TYPE_SPEC_LONG:
+            return STR_LIT("long type specifier");
+        case AST_TYPE_SPEC_FLOAT:
+            return STR_LIT("float type specifier");
+        case AST_TYPE_SPEC_DOUBLE:
+            return STR_LIT("double type specifier");
+        case AST_TYPE_SPEC_SIGNED:
+            return STR_LIT("signed type specifier");
+        case AST_TYPE_SPEC_UNSIGNED:
+            return STR_LIT("unsigned type specifier");
+        case AST_TYPE_SPEC_BOOL:
+            return STR_LIT("_Bool type specifier");
+        case AST_TYPE_SPEC_COMPLEX:
+            return STR_LIT("_Complex type specifier");
+        case AST_TYPE_SPEC_IMAGINARY:
+            return STR_LIT("_Imaginary type specifier");
+        case AST_TYPE_SPEC_TYPEDEF_NAME:
+            return STR_LIT("typedef name type specifier");
+        case AST_ENUM_SPEC:
+            return STR_LIT("enum specifier");
+        case AST_ATTRIBUTE_ID:
+            return STR_LIT("attribute identifier");
+        case AST_ENUM_BODY:
+            return STR_LIT("enum body");
+        case AST_ENUM_LIST:
+            return STR_LIT("enumerator list");
+        case AST_ENUMERATOR:
+            return STR_LIT("enumerator");
+        case AST_ENUM_CONSTANT_AND_ATTRIBUTE:
+            return STR_LIT("enum constant and attribute");
+        case AST_STRUCT_SPEC:
+            return STR_LIT("struct specifier");
+        case AST_UNION_SPEC:
+            return STR_LIT("union specifier");
+        case AST_STRUCT_UNION_BODY:
+            return STR_LIT("struct union body");
+        case AST_MEMBER_DECLARATION_LIST:
+            return STR_LIT("member declaration list");
+        case AST_MEMBER_DECLARATION:
+            return STR_LIT("member declaration");
+        case AST_MEMBER_DECLARATION_BODY:
+            return STR_LIT("member declaration body");
+        case AST_MEMBER_DECLARATOR_LIST:
+            return STR_LIT("member declarator list");
+        case AST_MEMBER_DECLARATOR:
+            return STR_LIT("member declarator");
+        case AST_ATOMIC_TYPE_SPEC:
+            return STR_LIT("atomic type specifier");
+        case AST_FUNC_SPEC_INLINE:
+            return STR_LIT("inline function specifier");
+        case AST_FUNC_SPEC_NORETURN:
+            return STR_LIT("noreturn function specifier");
+        case AST_ALIGN_SPEC:
+            return STR_LIT("alignment specifier");
+        case AST_INIT_DECLARATOR_LIST:
+            return STR_LIT("initializer declarator list");
+        case AST_INIT_DECLARATOR:
+            return STR_LIT("initializer declarator");
+        case AST_DECLARATOR:
+            return STR_LIT("declarator");
+        case AST_POINTER:
+            return STR_LIT("pointer");
+        case AST_POINTER_ATTRS_AND_QUALS:
+            return STR_LIT("pointer attributes and qualifiers");
+        case AST_ATTRIBUTE_SPEC_SEQUENCE:
+            return STR_LIT("attribute specifier sequence");
+        case AST_ATTRIBUTE_SPEC:
+            return STR_LIT("attribute specifier");
+        case AST_ATTRIBUTE_LIST:
+            return STR_LIT("attribute list");
+        case AST_ATTRIBUTE:
+            return STR_LIT("attribute");
+        case AST_ATTRIBUTE_PREFIXED_TOKEN:
+            return STR_LIT("attribute prefixed token");
+        case AST_ATTRIBUTE_ARGUMENT_CLAUSE:
+            return STR_LIT("attribute argument clause");
+        case AST_BALANCED_TOKEN_SEQUENCE:
+            return STR_LIT("balanced token sequence");
+        case AST_BALANCED_TOKEN_BRACKET:
+            return STR_LIT("balanced token bracket");
+        case AST_BALANCED_TOKEN:
+            return STR_LIT("balanced token");
+        case AST_TYPE_QUAL_LIST:
+            return STR_LIT("type qualifier list");
+        case AST_DIRECT_DECLARATOR:
+            return STR_LIT("direct declarator");
+        case AST_ID_ATTRIBUTE:
+            return STR_LIT("identifier attribute");
+        case AST_ARR_OR_FUNC_SUFFIX_LIST:
+            return STR_LIT("array or function suffix list");
+        case AST_ARR_OR_FUNC_SUFFIX:
+            return STR_LIT("array or function suffix");
+        case AST_ARR_SUFFIX:
+            return STR_LIT("array suffix");
+        case AST_ARR_SUFFIX_STATIC:
+            return STR_LIT("array suffix static");
+        case AST_ARR_SUFFIX_ASTERISK:
+            return STR_LIT("array suffix asterisk");
+        case AST_FUNC_SUFFIX:
+            return STR_LIT("function suffix");
+        case AST_FUNC_SUFFIX_OLD:
+            return STR_LIT("function suffix old");
+        case AST_IDENTIFIER_LIST:
+            return STR_LIT("identifier list");
+        case AST_PARAM_TYPE_LIST:
+            return STR_LIT("parameter type list");
+        case AST_PARAM_TYPE_LIST_VARIADIC:
+            return STR_LIT("parameter type list variadic");
+        case AST_PARAM_DECLARATION:
+            return STR_LIT("parameter declaration");
+        case AST_ATTRS_AND_DECLARATION_SPECS:
+            return STR_LIT("attributes and declaration specs");
+        case AST_ABS_DECLARATOR:
+            return STR_LIT("abstract declarator");
+        case AST_DIRECT_ABS_DECLARATOR:
+            return STR_LIT("direct abstract declarator");
+        case AST_ABS_ARR_OR_FUNC_SUFFIX_LIST:
+            return STR_LIT("abstract array or function suffix list");
+        case AST_ABS_ARR_OR_FUNC_SUFFIX:
+            return STR_LIT("abstract array or function suffix");
+        case AST_ABS_ARR_SUFFIX:
+            return STR_LIT("abstract array suffix");
+        case AST_ABS_ARR_SUFFIX_STATIC:
+            return STR_LIT("abstract array suffix static");
+        case AST_ABS_ARR_SUFFIX_ASTERISK:
+            return STR_LIT("abstract array suffix asterisk");
+        case AST_ABS_FUNC_SUFFIX:
+            return STR_LIT("abstract function suffix");
+        case AST_INITIALIZER:
+            return STR_LIT("initializer");
+        case AST_INIT_LIST:
+            return STR_LIT("initializer list");
+        case AST_DESIGNATION_INIT:
+            return STR_LIT("designation initializer");
+        case AST_DESIGNATOR_LIST:
+            return STR_LIT("designator list");
+        case AST_DESIGNATOR:
+            return STR_LIT("designator");
+        case AST_CONST_EXPR:
+            return STR_LIT("constant expression");
+        case AST_EXPR:
+            return STR_LIT("expression");
+        case AST_ASSIGN:
+            return STR_LIT("assign expression");
+        case AST_ASSIGN_MUL:
+            return STR_LIT("multiply assign expression");
+        case AST_ASSIGN_DIV:
+            return STR_LIT("divide assign expression");
+        case AST_ASSIGN_MOD:
+            return STR_LIT("modulo assign expression");
+        case AST_ASSIGN_ADD:
+            return STR_LIT("add assign expression");
+        case AST_ASSIGN_SUB:
+            return STR_LIT("subtract assign expression");
+        case AST_ASSIGN_SHL:
+            return STR_LIT("left shift assign expression");
+        case AST_ASSIGN_SHR:
+            return STR_LIT("right shift assign expression");
+        case AST_ASSIGN_AND:
+            return STR_LIT("and assign expression");
+        case AST_ASSIGN_XOR:
+            return STR_LIT("xor assign expression");
+        case AST_ASSIGN_OR:
+            return STR_LIT("or assign expression");
+        case AST_COND_EXPR:
+            return STR_LIT("conditional expression");
+        case AST_COND_ITEMS:
+            return STR_LIT("conditional expression items");
+        case AST_LOG_OR_EXPR:
+            return STR_LIT("logical or expression");
+        case AST_LOG_AND_EXPR:
+            return STR_LIT("logical and expression");
+        case AST_OR_EXPR:
+            return STR_LIT("or expression");
+        case AST_XOR_EXPR:
+            return STR_LIT("xor expression");
+        case AST_AND_EXPR:
+            return STR_LIT("and expression");
+        case AST_EQ_EXPR:
+            return STR_LIT("equals expression");
+        case AST_NE_EXPR:
+            return STR_LIT("not equals expression");
+        case AST_REL_EXPR_LT:
+            return STR_LIT("less than relational expression");
+        case AST_REL_EXPR_GT:
+            return STR_LIT("greater than relational expression");
+        case AST_REL_EXPR_LE:
+            return STR_LIT("less than or equal relational expression");
+        case AST_REL_EXPR_GE:
+            return STR_LIT("greater than or equal relational expression");
+        case AST_LSHIFT_EXPR:
+            return STR_LIT("left shift expression");
+        case AST_RSHIFT_EXPR:
+            return STR_LIT("right shift expression");
+        case AST_ADD_EXPR:
+            return STR_LIT("add expression");
+        case AST_SUB_EXPR:
+            return STR_LIT("subtract expression");
+        case AST_MUL_EXPR:
+            return STR_LIT("multiply expression");
+        case AST_DIV_EXPR:
+            return STR_LIT("divide expression");
+        case AST_MOD_EXPR:
+            return STR_LIT("modulo expression");
+        case AST_CAST_EXPR:
+            return STR_LIT("cast expression");
+        case AST_TYPE_NAME:
+            return STR_LIT("type name");
+        case AST_SPEC_QUAL_LIST_ATTR:
+            return STR_LIT("specifier qualifier list attribute");
+        case AST_SPEC_QUAL_LIST:
+            return STR_LIT("specifier qualifier list");
+        case AST_TYPE_QUAL_CONST:
+            return STR_LIT("const type qualifier");
+        case AST_TYPE_QUAL_RESTRICT:
+            return STR_LIT("restrict type qualifier");
+        case AST_TYPE_QUAL_VOLATILE:
+            return STR_LIT("volatile type qualifier");
+        case AST_TYPE_QUAL_ATOMIC:
+            return STR_LIT("atomic type qualifier");
+        case AST_UNARY_EXPR_INC:
+            return STR_LIT("increment unary expression");
+        case AST_UNARY_EXPR_DEC:
+            return STR_LIT("decrement unary expression");
+        case AST_UNARY_EXPR_SIZEOF:
+            return STR_LIT("sizeof unary expression");
+        case AST_UNARY_EXPR_ALIGNOF:
+            return STR_LIT("alignof unary expression");
+        case AST_UNARY_EXPR_ADDRESSOF:
+            return STR_LIT("addressof unary expression");
+        case AST_UNARY_EXPR_DEREF:
+            return STR_LIT("dereference unary expression");
+        case AST_UNARY_EXPR_PLUS:
+            return STR_LIT("plus unary expression");
+        case AST_UNARY_EXPR_MINUS:
+            return STR_LIT("minus unary expression");
+        case AST_UNARY_EXPR_BNOT:
+            return STR_LIT("binary not unary expression");
+        case AST_UNARY_EXPR_NOT:
+            return STR_LIT("not unary expression");
+        case AST_POSTFIX_EXPR:
+            return STR_LIT("postfix expression");
+        case AST_POSTFIX_OP_INDEX:
+            return STR_LIT("postfix operation index");
+        case AST_POSTFIX_OP_CALL:
+            return STR_LIT("postfix operation call");
+        case AST_POSTFIX_OP_ACCESS:
+            return STR_LIT("postfix operation access");
+        case AST_POSTFIX_OP_PTR_ACCESS:
+            return STR_LIT("postfix operation pointer access");
+        case AST_POSTFIX_OP_INC:
+            return STR_LIT("postfix operation increment");
+        case AST_POSTFIX_OP_DEC:
+            return STR_LIT("postfix operation decrement");
+        case AST_ARG_EXPR_LIST:
+            return STR_LIT("argument expression list");
+        case AST_PRIMARY_EXPR:
+            return STR_LIT("primary expression");
+        case AST_GENERIC_SEL:
+            return STR_LIT("generic selection");
+        case AST_GENERIC_ASSOC_LIST:
+            return STR_LIT("generic association list");
+        case AST_GENERIC_ASSOC:
+            return STR_LIT("generic association");
+        case AST_CONSTANT:
+            return STR_LIT("constant");
+        case AST_ENUM_CONSTANT:
+            return STR_LIT("enum constant");
+        case AST_STRING_LITERAL:
+            return STR_LIT("string literal");
+        case AST_FUNC:
+            return STR_LIT("function constant");
+        case AST_COMPOUND_LITERAL:
+            return STR_LIT("compound literal");
+        case AST_BRACED_INITIALIZER:
+            return STR_LIT("braced initializer");
+        case AST_COMPOUND_LITERAL_TYPE:
+            return STR_LIT("compound literal type");
+        case AST_STORAGE_CLASS_SPECS:
+            return STR_LIT("storage class specifier");
+        case AST_IDENTIFIER:
+            return STR_LIT("identifier");
     }
     UNREACHABLE();
 }
-
-static void dump_mul_expr(AstDumper* d, const MulExpr* e) {
-    assert(e);
-
-    dumper_print_str(d, "mul_expr:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    dump_cast_expr(d, &e->lhs);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        CastExprAndOp* item = &e->mul_chain[i];
-        dumper_println(d, "mul_op: {Str}", mul_expr_op_str(item->op));
-        dump_cast_expr(d, &item->rhs);
-    }
-
-    remove_indent(d);
-}
-
-static Str add_expr_op_str(AddExprOp op) {
-    switch (op) {
-        case ADD_EXPR_ADD:
-            return TokenKind_get_spelling(TOKEN_ADD);
-        case ADD_EXPR_SUB:
-            return TokenKind_get_spelling(TOKEN_SUB);
-    }
-    UNREACHABLE();
-}
-
-static void dump_add_expr(AstDumper* d, const AddExpr* e) {
-    assert(e);
-
-    dumper_print_str(d, "add_expr:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    dump_mul_expr(d, &e->lhs);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        MulExprAndOp* item = &e->add_chain[i];
-        dumper_println(d, "add_op: {Str}", add_expr_op_str(item->op));
-        dump_mul_expr(d, &item->rhs);
-    }
-
-    remove_indent(d);
-}
-
-static Str shift_expr_op_str(ShiftExprOp o) {
-    switch (o) {
-        case SHIFT_EXPR_LEFT:
-            return TokenKind_get_spelling(TOKEN_LSHIFT);
-        case SHIFT_EXPR_RIGHT:
-            return TokenKind_get_spelling(TOKEN_RSHIFT);
-    }
-    UNREACHABLE();
-}
-
-static void dump_shift_expr(AstDumper* d, const ShiftExpr* e) {
-    assert(e);
-
-    dumper_print_str(d, "shift_expr:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    dump_add_expr(d, &e->lhs);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        AddExprAndOp* item = &e->shift_chain[i];
-        dumper_println(d, "shift_op: {Str}", shift_expr_op_str(item->op));
-        dump_add_expr(d, &item->rhs);
-    }
-
-    remove_indent(d);
-}
-
-static Str rel_expr_op_str(RelExprOp o) {
-    switch (o) {
-        case REL_EXPR_LT:
-            return TokenKind_get_spelling(TOKEN_LT);
-        case REL_EXPR_GT:
-            return TokenKind_get_spelling(TOKEN_GT);
-        case REL_EXPR_LE:
-            return TokenKind_get_spelling(TOKEN_LE);
-        case REL_EXPR_GE:
-            return TokenKind_get_spelling(TOKEN_GE);
-    }
-    UNREACHABLE();
-}
-
-static void dump_rel_expr(AstDumper* d, const RelExpr* e) {
-    assert(e);
-
-    dumper_print_str(d, "rel_expr:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    dump_shift_expr(d, &e->lhs);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        ShiftExprAndOp* item = &e->rel_chain[i];
-        dumper_println(d, "rel_op: {Str}", rel_expr_op_str(item->op));
-        dump_shift_expr(d, &item->rhs);
-    }
-
-    remove_indent(d);
-}
-
-static Str eq_expr_op_str(EqExprOp o) {
-    switch (o) {
-        case EQ_EXPR_EQ:
-            return TokenKind_get_spelling(TOKEN_EQ);
-        case EQ_EXPR_NE:
-            return TokenKind_get_spelling(TOKEN_NE);
-    }
-    UNREACHABLE();
-}
-
-static void dump_eq_expr(AstDumper* d, const EqExpr* e) {
-    assert(e);
-
-    dumper_print_str(d, "eq_expr:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    dump_rel_expr(d, &e->lhs);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        RelExprAndOp* item = &e->eq_chain[i];
-        dumper_println(d, "eq_op: {Str}", eq_expr_op_str(item->op));
-        dump_rel_expr(d, &item->rhs);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_and_expr(AstDumper* d, const AndExpr* e) {
-    assert(e);
-
-    dumper_print_str(d, "and_expr:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        dump_eq_expr(d, &e->eq_exprs[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_xor_expr(AstDumper* d, const XorExpr* e) {
-    assert(e);
-
-    dumper_print_str(d, "xor_expr:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        dump_and_expr(d, &e->and_exprs[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_or_expr(AstDumper* d, const OrExpr* e) {
-    assert(e);
-
-    dumper_print_str(d, "or_expr:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        dump_xor_expr(d, &e->xor_exprs[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_log_and_expr(AstDumper* d, const LogAndExpr* e) {
-    assert(e);
-
-    dumper_print_str(d, "log_and_expr:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        dump_or_expr(d, &e->or_exprs[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_log_or_expr(AstDumper* d, const LogOrExpr* e) {
-    assert(e);
-
-    dumper_print_str(d, "log_or_expr:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        dump_log_and_expr(d, &e->log_ands[i]);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_cond_expr(AstDumper* d, const CondExpr* e) {
-    assert(e);
-
-    dumper_print_str(d, "cond_expr:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", e->len);
-    for (uint32_t i = 0; i < e->len; ++i) {
-        LogOrAndExpr* item = &e->conditionals[i];
-        dump_log_or_expr(d, &item->log_or);
-        dump_expr(d, &item->expr);
-    }
-    dump_log_or_expr(d, &e->last_else);
-
-    remove_indent(d);
-}
-
-static void dump_const_expr(AstDumper* d, const ConstExpr* e) {
-    assert(e);
-
-    dumper_print_str(d, "const_expr:");
-
-    add_indent(d);
-
-    dump_cond_expr(d, &e->expr);
-
-    remove_indent(d);
-}
-
-static void dump_static_assert_declaration(
-    AstDumper* d,
-    const StaticAssertDeclaration* decl) {
-    assert(decl);
-
-    dumper_print_str(d, "static_assert_declaration:");
-
-    add_indent(d);
-
-    dump_const_expr(d, decl->const_expr);
-    dump_string_literal(d, &decl->err_msg);
-
-    remove_indent(d);
-}
-
-static void dump_declaration(AstDumper* d, const Declaration* decl) {
-    assert(decl);
-
-    dumper_print_str(d, "declaration:");
-
-    add_indent(d);
-
-    if (decl->is_normal_decl) {
-        dump_declaration_specs(d, &decl->decl_specs);
-        dump_init_declarator_list(d, &decl->init_decls);
-    } else {
-        dump_static_assert_declaration(d, decl->static_assert_decl);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_external_declaration(AstDumper* d,
-                                      const ExternalDeclaration* decl) {
-    assert(decl);
-
-    dumper_print_str(d, "external_declaration:");
-
-    add_indent(d);
-
-    if (decl->is_func_def) {
-        dump_func_def(d, &decl->func_def);
-    } else {
-        dump_declaration(d, &decl->decl);
-    }
-
-    remove_indent(d);
-}
-
-static void dump_translation_unit(AstDumper* d, const TranslationUnit* tl) {
-    assert(tl);
-    dumper_print_str(d, "translation_unit:");
-
-    add_indent(d);
-
-    dumper_println(d, "len: {u32}", tl->len);
-
-    for (uint32_t i = 0; i < tl->len; ++i) {
-        dump_external_declaration(d, &tl->external_decls[i]);
-    }
-
-    remove_indent(d);
-}
-

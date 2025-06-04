@@ -1,11 +1,6 @@
 #include "testing/asserts.h"
 
-#include "frontend/parser/parser.h"
-#include "frontend/ast/ast_dumper.h"
-#include "frontend/ast/ast_deserializer.h"
-#include "frontend/ast/compare_asts.h"
-
-#include "frontend/ast/ast_serializer_2.h"
+#include "frontend/ast/ast_serializer.h"
 
 #include "util/StrBuf.h"
 
@@ -64,11 +59,11 @@ static void compare_tokens(const TokenArr* got, const TokenArr* ex) {
     ASSERT(memcmp(got->locs, ex->locs, sizeof *got->locs * got->len)
            == 0);
 }
-static void compare_with_ex_file_2(const AST* ast,
+static void compare_with_ex_file(const AST* ast,
                                    const FileInfo* file_info,
                                    CStr path) {
     File f = File_open(path, FILE_READ | FILE_BINARY);
-    DeserializeASTRes_2 res = deserialize_ast_2(f);
+    DeserializeASTRes res = deserialize_ast(f);
 
     ASSERT_UINT(res.file_info.len, file_info->len);
     for (uint32_t i = 0; i < file_info->len; ++i) {
@@ -89,7 +84,7 @@ static void compare_with_ex_file_2(const AST* ast,
     AST_free(&res.ast);
 }
 
-TEST(no_preproc_2) {
+TEST(no_preproc) {
     const CStr file = CSTR_LIT("../frontend/test/files/no_preproc.c");
     TestPreprocRes res = tokenize(file);
 
@@ -97,15 +92,15 @@ TEST(no_preproc_2) {
     AST ast = parse_ast(&res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
 
-    compare_with_ex_file_2(
+    compare_with_ex_file(
         &ast,
         &res.file_info,
-        CSTR_LIT("../frontend/test/files/no_preproc.c.binast_2"));
+        CSTR_LIT("../frontend/test/files/no_preproc.c.binast"));
     TestPreprocRes_free(&res);
     AST_free(&ast);
 }
 
-TEST(parser_testfile_2) {
+TEST(parser_testfile) {
     const CStr file = CSTR_LIT("../frontend/test/files/parser_testfile.c");
     TestPreprocRes res = tokenize(file);
 
@@ -113,15 +108,15 @@ TEST(parser_testfile_2) {
     AST ast = parse_ast(&res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
 
-    compare_with_ex_file_2(
+    compare_with_ex_file(
         &ast,
         &res.file_info,
-        CSTR_LIT("../frontend/test/files/parser_testfile.c.binast_2"));
+        CSTR_LIT("../frontend/test/files/parser_testfile.c.binast"));
     TestPreprocRes_free(&res);
     AST_free(&ast);
 }
 
-TEST(large_testfile_2) {
+TEST(large_testfile) {
     const CStr file = CSTR_LIT("../frontend/test/files/large_testfile.c");
     TestPreprocRes res = tokenize(file);
 
@@ -129,97 +124,15 @@ TEST(large_testfile_2) {
     AST ast = parse_ast(&res.toks, &err);
     ASSERT(err.kind == PARSER_ERR_NONE);
 
-    compare_with_ex_file_2(
+    compare_with_ex_file(
         &ast,
         &res.file_info,
-        CSTR_LIT("../frontend/test/files/large_testfile.c.binast_2"));
+        CSTR_LIT("../frontend/test/files/large_testfile.c.binast"));
     TestPreprocRes_free(&res);
     AST_free(&ast);
 }
 
-static void compare_with_ex_file(const TranslationUnit* got,
-                                 const FileInfo* file_info,
-                                 Str ex_filename) {
-    FILE* ex_file = fopen(ex_filename.data, "rb");
-    ASSERT(ex_file);
-    DeserializeAstRes expected = deserialize_ast((File){ex_file});
-    ASSERT(expected.is_valid);
-    ASSERT(fclose(ex_file) == 0);
-
-    ASSERT(expected.file_info.len == file_info->len);
-    ASSERT(compare_asts(got, file_info, &expected.tl, &expected.file_info));
-    TranslationUnit_free(&expected.tl);
-    FileInfo_free(&expected.file_info);
-}
-
-TEST(no_preproc) {
-    CStr file = CSTR_LIT("../frontend/test/files/no_preproc.c");
-    TestPreprocRes res = tokenize(file);
-
-    ParserErr err = ParserErr_create();
-    TranslationUnit tl = parse_tokens(&res.toks, &err);
-    ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
-
-    compare_with_ex_file(&tl,
-                         &res.file_info,
-                         STR_LIT("../frontend/test/files/no_preproc.c.binast"));
-
-    TranslationUnit_free(&tl);
-    TestPreprocRes_free(&res);
-}
-
-TEST(parser_testfile) {
-    CStr file = CSTR_LIT("../frontend/test/files/parser_testfile.c");
-    TestPreprocRes res = tokenize(file);
-
-    ParserErr err = ParserErr_create();
-    TranslationUnit tl = parse_tokens(&res.toks, &err);
-    ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
-
-    compare_with_ex_file(
-        &tl,
-        &res.file_info,
-        STR_LIT("../frontend/test/files/parser_testfile.c.binast"));
-
-    Str tmp_filename = STR_LIT("tmp.ast");
-    FILE* tmp_file = fopen(tmp_filename.data, "w");
-    ASSERT_NOT_NULL(tmp_file);
-    dump_ast(&tl, &res.file_info, (File){tmp_file});
-
-    ASSERT_INT(fclose(tmp_file), 0);
-
-    test_compare_files(
-        Str_c_str(tmp_filename),
-        Str_c_str(STR_LIT("../frontend/test/files/parser_testfile.c.ast")));
-
-    TranslationUnit_free(&tl);
-    TestPreprocRes_free(&res);
-}
-
-TEST(large_testfile) {
-    CStr file = CSTR_LIT("../frontend/test/files/large_testfile.c");
-    TestPreprocRes res = tokenize(file);
-
-    ParserErr err = ParserErr_create();
-    TranslationUnit tl = parse_tokens(&res.toks, &err);
-    ASSERT(err.kind == PARSER_ERR_NONE);
-    ASSERT(compare_asts(&tl, &res.file_info, &tl, &res.file_info));
-
-    compare_with_ex_file(
-        &tl,
-        &res.file_info,
-        STR_LIT("../frontend/test/files/large_testfile.c.binast"));
-
-    TranslationUnit_free(&tl);
-    TestPreprocRes_free(&res);
-}
-
 TEST_SUITE_BEGIN(parser_file){
-    REGISTER_TEST(no_preproc_2),
-    REGISTER_TEST(parser_testfile_2),
-    REGISTER_TEST(large_testfile_2),
     REGISTER_TEST(no_preproc),
     REGISTER_TEST(parser_testfile),
     REGISTER_TEST(large_testfile),

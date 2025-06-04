@@ -1,18 +1,303 @@
 #include "frontend/ast/ast_serializer.h"
 
 #include <setjmp.h>
-#include <string.h>
 
+#include "util/mem.h"
 #include "util/log.h"
 
-#include "frontend/ast/ast.h"
+typedef struct {
+    File file;
+} ASTDeserializer;
+
+static FileInfo deserialize_file_info(ASTDeserializer* r);
+
+static bool deserializer_read(ASTDeserializer* r,
+                              void* res,
+                              size_t size,
+                              size_t count);
+
+static bool deserialize_u32(ASTDeserializer* r, uint32_t* res);
+static bool deserialize_token_arr(ASTDeserializer* r, TokenArr* res);
+
+static bool deserialize_bool(ASTDeserializer* r, bool* res);
+
+DeserializeASTRes deserialize_ast(File f) {
+    MYCC_TIMER_BEGIN();
+    ASTDeserializer r = {
+        .file = f,
+    };
+
+    DeserializeASTRes res = {0};
+    res.file_info = deserialize_file_info(&r);
+    if (!deserialize_u32(&r, &res.ast.len)) {
+        goto fail_after_file_info;
+    }
+    res.ast.cap = res.ast.len;
+
+    res.ast.kinds = mycc_alloc(sizeof *res.ast.kinds * res.ast.len);
+    res.ast.datas = mycc_alloc(sizeof *res.ast.datas * res.ast.len);
+
+    if (!deserializer_read(&r,
+                           res.ast.kinds,
+                           sizeof *res.ast.kinds,
+                           res.ast.len)) {
+        goto fail_after_node_data;
+    }
+    if (!deserializer_read(&r,
+                           res.ast.datas,
+                           sizeof *res.ast.datas,
+                           res.ast.len)) {
+        goto fail_after_node_data;
+    }
+
+    if (!deserialize_u32(&r, &res.ast.type_data_len)) {
+        goto fail_after_node_data;
+    }
+
+    bool has_type_data;
+    if (!deserialize_bool(&r, &has_type_data)) {
+        goto fail_after_node_data;
+    }
+
+    if (has_type_data) {
+        // TODO: deserialize type data 
+    }
+
+    if (!deserialize_token_arr(&r, &res.ast.toks)) {
+        goto fail_after_type_data;
+    }
+
+    MYCC_TIMER_END("ast deserializer");
+    return res;
+fail_after_type_data:
+    mycc_free(res.ast.type_data);
+fail_after_node_data:
+    mycc_free(res.ast.kinds);
+    mycc_free(res.ast.datas);
+fail_after_file_info:
+    FileInfo_free(&res.file_info);
+    res.ast.len = 0;
+    return res;
+}
+
+static bool deserializer_read(ASTDeserializer* r,
+                              void* res,
+                              size_t size,
+                              size_t count) {
+    return File_read(res, size, count, r->file) == count;
+}
+
+static bool deserialize_bool(ASTDeserializer* r, bool* res) {
+    return deserializer_read(r, res, sizeof *res, 1);
+}
+
+static bool deserialize_u64(ASTDeserializer* r, uint64_t* res) {
+    return deserializer_read(r, res, sizeof *res, 1);
+}
+
+static bool deserialize_u32(ASTDeserializer* r, uint32_t* res) {
+    return deserializer_read(r, res, sizeof *res, 1);
+}
+
+static bool deserialize_i64(ASTDeserializer* r, int64_t* res) {
+    return deserializer_read(r, res, sizeof *res, 1);
+}
+
+static bool deserialize_float(ASTDeserializer* r, double* res) {
+    return deserializer_read(r, res, sizeof *res, 1);
+}
+
+static StrBuf deserialize_str_buf(ASTDeserializer* r) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
+        return StrBuf_null();
+    }
+
+    StrBuf res = StrBuf_create_empty_with_cap(len);
+    for (uint32_t i = 0; i < len; ++i) {
+        FileGetcRes getc_res = File_getc(r->file);
+        if (!getc_res.valid) {
+            StrBuf_free(&res);
+            return StrBuf_null();
+        }
+        StrBuf_push_back(&res, getc_res.res);
+    }
+
+    return res;
+}
+
+static FileInfo deserialize_file_info(ASTDeserializer* r) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
+        return (FileInfo){
+            .len = 0,
+            .paths = NULL,
+        };
+    }
+
+    FileInfo res = {
+        .len = len,
+        .paths = mycc_alloc(sizeof *res.paths * len),
+    };
+    for (uint32_t i = 0; i < len; ++i) {
+        res.paths[i] = deserialize_str_buf(r);
+        if (!StrBuf_valid(&res.paths[i])) {
+            for (uint32_t j = 0; j < i; ++j) {
+                StrBuf_free(&res.paths[j]);
+            }
+            mycc_free(res.paths);
+            return (FileInfo){
+                .len = 0,
+                .paths = NULL,
+            };
+        }
+    }
+    return res;
+}
+
+static bool deserialize_int_val(ASTDeserializer* r, IntVal* res) {
+    uint64_t kind;
+    if (!deserialize_u64(r, &kind)) {
+        return false;
+    }
+
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
+    if (IntValKind_is_sint(res->kind)) {
+        int64_t val;
+        if (!deserialize_i64(r, &val)) {
+            return false;
+        }
+        res->sint_val = val;
+    } else {
+        uint64_t val;
+        if (!deserialize_u64(r, &val)) {
+            return false;
+        }
+        res->uint_val = val;
+    }
+    return true;
+}
+
+static bool deserialize_float_val(ASTDeserializer* r, FloatVal* res) {
+    uint64_t kind;
+    if (!deserialize_u64(r, &kind)) {
+        return false;
+    }
+
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
+    switch (res->kind) {
+        case FLOAT_VAL_FLOAT:
+        case FLOAT_VAL_DOUBLE:
+        case FLOAT_VAL_LDOUBLE: {
+            double val;
+            if (!deserialize_float(r, &val)) {
+                return false;
+            }
+            res->val = val;
+            break;
+        }
+    }
+    return true;
+}
+
+static bool deserialize_str_lit(ASTDeserializer* r, StrLit* res) {
+    uint64_t kind;
+    if (!deserialize_u64(r, &kind)) {
+        return false;
+    }
+
+    res->kind = kind;
+    assert((uint64_t)res->kind == kind);
+    res->contents = deserialize_str_buf(r);
+    return StrBuf_valid(&res->contents);
+}
+
+static void* alloc_or_null(size_t bytes) {
+    if (bytes == 0) {
+        return NULL;
+    } else {
+        return mycc_alloc(bytes);
+    }
+}
+
+static bool deserialize_token_arr(ASTDeserializer* r, TokenArr* res) {
+    uint32_t len;
+    if (!deserialize_u32(r, &len)) {
+        return false;
+    }
+
+    res->len = len;
+    res->cap = len;
+
+    res->kinds = mycc_alloc(sizeof *res->kinds * len);
+    res->val_indices = mycc_alloc(sizeof *res->val_indices * len);
+    res->locs = mycc_alloc(sizeof *res->locs * len);
+
+    deserializer_read(r, res->kinds, sizeof *res->kinds, len);
+    deserializer_read(r, res->val_indices, sizeof *res->val_indices, len);
+    deserializer_read(r, res->locs, sizeof *res->locs, len);
+
+    if (!deserialize_u32(r, &res->identifiers_len)) {
+        // TODO:
+        return false;
+    }
+    // It should not be possible to have a program without identifiers
+    assert(res->identifiers_len > 0);
+    res->identifiers = mycc_alloc(sizeof *res->identifiers * res->identifiers_len);
+    for (uint32_t i = 0; i < res->identifiers_len; ++i) {
+        res->identifiers[i] = deserialize_str_buf(r);
+        if (!StrBuf_valid(&res->identifiers[i])) {
+            // TODO: free stuff
+            return false;
+        }
+    }
+    if (!deserialize_u32(r, &res->int_consts_len)) {
+        // TODO:
+        return false;
+    }
+    // Programs without int consts are possible
+    res->int_consts = alloc_or_null(sizeof *res->int_consts * res->int_consts_len);
+    for (uint32_t i = 0; i < res->int_consts_len; ++i) {
+        if (!deserialize_int_val(r, &res->int_consts[i])) {
+            // TODO:
+            return false;
+        }
+    }
+    if (!deserialize_u32(r, &res->float_consts_len)) {
+        // TODO:
+        return false;
+    }
+    // Programs without floats are definitely possible
+    res->float_consts = alloc_or_null(sizeof *res->float_consts * res->float_consts_len);
+    for (uint32_t i = 0; i < res->float_consts_len; ++i) {
+        if (!deserialize_float_val(r, &res->float_consts[i])) {
+            // TODO:
+            return false;
+        }
+    }
+    if (!deserialize_u32(r, &res->str_lits_len)) {
+        // TODO:
+        return false;
+    }
+    // Programs without string literals are possible as well
+    res->str_lits = alloc_or_null(sizeof *res->str_lits * res->str_lits_len);
+    for (uint32_t i = 0; i < res->str_lits_len; ++i) {
+        if (!deserialize_str_lit(r, &res->str_lits[i])) {
+            // TODO:
+            return false;
+        }
+    }
+    return true;
+}
 
 typedef struct {
     jmp_buf err_buf;
     File file;
-} AstSerializer;
+} ASTSerializer;
 
-static void serializer_write(AstSerializer* d,
+static void serializer_write(ASTSerializer* d,
                              const void* buffer,
                              uint32_t size,
                              uint32_t count) {
@@ -21,20 +306,47 @@ static void serializer_write(AstSerializer* d,
     }
 }
 
-static void serialize_file_info(AstSerializer* d,
-                                const FileInfo* info);
+static void serialize_file_info(ASTSerializer* d, const FileInfo* info);
 
-static void serialize_translation_unit(AstSerializer* d, const TranslationUnit* tl);
+static void serialize_u64(ASTSerializer* d, uint64_t i) {
+    serializer_write(d, &i, sizeof i, 1);
+}
 
-bool serialize_ast(const TranslationUnit* tl, const FileInfo* file_info, File f) {
+static void serialize_i64(ASTSerializer* d, int64_t i) {
+    serializer_write(d, &i, sizeof i, 1);
+}
+
+static void serialize_u32(ASTSerializer* d, uint32_t i) {
+    serializer_write(d, &i, sizeof i, 1);
+}
+
+static void serialize_float(ASTSerializer* d, double f) {
+    serializer_write(d, &f, sizeof f, 1);
+}
+
+static void serialize_bool(ASTSerializer* d, bool b) {
+    serializer_write(d, &b, sizeof b, 1);
+}
+static void serialize_tokens(ASTSerializer* d, const TokenArr* tokens);
+
+bool serialize_ast(const AST* ast, const FileInfo* file_info, File f) {
     MYCC_TIMER_BEGIN();
-    AstSerializer d = {
+    ASTSerializer d = {
         .file = f,
     };
 
     if (setjmp(d.err_buf) == 0) {
         serialize_file_info(&d, file_info);
-        serialize_translation_unit(&d, tl);
+        serialize_u32(&d, ast->len);
+        serializer_write(&d, ast->kinds, sizeof *ast->kinds, ast->len);
+        serializer_write(&d, ast->datas, sizeof *ast->datas, ast->len);
+        serialize_u32(&d, ast->type_data_len);
+        const bool has_type_data = ast->type_data != NULL;
+        serialize_bool(&d, has_type_data);
+        if (has_type_data) {
+            // TODO: serialize_type_data
+        }
+        serialize_tokens(&d, &ast->toks);
     } else {
         return false;
     }
@@ -42,63 +354,20 @@ bool serialize_ast(const TranslationUnit* tl, const FileInfo* file_info, File f)
     return true;
 }
 
-static void serialize_bool(AstSerializer* d, bool b) {
-    serializer_write(d, &b, sizeof b, 1);
-}
-
-static void serialize_u64(AstSerializer* d, uint64_t i) {
-    serializer_write(d, &i, sizeof i, 1);
-}
-
-static void serialize_u32(AstSerializer* d, uint32_t i) {
-    serializer_write(d, &i, sizeof i, 1);
-}
-
-static void serialize_i64(AstSerializer* d, int64_t i) {
-    serializer_write(d, &i, sizeof i, 1);
-}
-
-static void serialize_float(AstSerializer* d, double f) {
-    serializer_write(d, &f, sizeof f, 1);
-}
-
-static void serialize_str_buf(AstSerializer* d, const StrBuf* str) {
+static void serialize_str_buf(ASTSerializer* d, const StrBuf* str) {
     const Str data = StrBuf_as_str(str);
     serialize_u32(d, data.len);
     serializer_write(d, data.data, sizeof *data.data, data.len);
 }
 
-static void serialize_file_info(AstSerializer* d,
-                                const FileInfo* info) {
-    serialize_u32(d, info->len);
-    for (uint32_t i = 0; i < info->len; ++i) {
-        serialize_str_buf(d, &info->paths[i]);
-    }
+static void serialize_str_lit(ASTSerializer* d, const StrLit* lit) {
+    const uint64_t kind = lit->kind;
+    assert((StrLitKind)kind == lit->kind);
+    serialize_u64(d, kind);
+    serialize_str_buf(d, &lit->contents);
 }
 
-static void serialize_ast_node_info(AstSerializer* d, const AstNodeInfo* info) {
-    serialize_u32(d, info->token_idx);
-}
-
-static void serialize_type_quals(AstSerializer* d, const TypeQuals* quals) {
-    serialize_bool(d, quals->is_const);
-    serialize_bool(d, quals->is_restrict);
-    serialize_bool(d, quals->is_volatile);
-    serialize_bool(d, quals->is_atomic);
-}
-
-static void serialize_type_name(AstSerializer* d, const TypeName* name);
-
-static void serialize_atomic_type_spec(AstSerializer* d, const AtomicTypeSpec* spec) {
-    serialize_ast_node_info(d, &spec->info);
-    serialize_type_name(d, spec->type_name);
-}
-
-static void serialize_identifier(AstSerializer* d, const Identifier* id) {
-    serialize_ast_node_info(d, &id->info);
-}
-
-static void serialize_int_val(AstSerializer* d, const IntVal* val) {
+static void serialize_int_val(ASTSerializer* d, const IntVal* val) {
     serialize_u64(d, val->kind);
     if (IntValKind_is_sint(val->kind)) {
         serialize_i64(d, val->sint_val);
@@ -107,876 +376,12 @@ static void serialize_int_val(AstSerializer* d, const IntVal* val) {
     }
 }
 
-static void serialize_float_val(AstSerializer* d, const FloatVal* val) {
+static void serialize_float_val(ASTSerializer* d, const FloatVal* val) {
     serialize_u64(d, val->kind);
     serialize_float(d, val->val);
 }
 
-static void serialize_constant(AstSerializer* d, const Constant* constant) {
-    serialize_ast_node_info(d, &constant->info);
-    const uint64_t kind = constant->kind;
-    assert((ConstantKind)kind == constant->kind);
-    serialize_u64(d, kind);
-}
-
-static void serialize_str_lit(AstSerializer* d,
-                              const StrLit* lit) {
-    const uint64_t kind = lit->kind;
-    assert((StrLitKind)kind == lit->kind);
-    serialize_u64(d, kind);
-    serialize_str_buf(d, &lit->contents);
-}
-
-static void serialize_string_literal_node(
-    AstSerializer* d,
-    const StringLiteralNode* lit) {
-    serialize_ast_node_info(d, &lit->info);
-}
-
-static void serialize_string_constant(AstSerializer* d, const StringConstant* constant) {
-    serialize_bool(d, constant->is_func);
-    if (constant->is_func) {
-        serialize_ast_node_info(d, &constant->info);
-    } else {
-        serialize_string_literal_node(d, &constant->lit);
-    }
-}
-
-static void serialize_unary_expr(AstSerializer* d, const UnaryExpr* expr);
-
-static void serialize_cond_expr(AstSerializer* d,
-                                const CondExpr* expr);
-
-static void serialize_assign_expr(AstSerializer* d, const AssignExpr* expr) {
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        const UnaryAndOp* item = &expr->assign_chain[i];
-        serialize_unary_expr(d, &item->unary);
-        const uint64_t op = item->op;
-        assert((AssignExprOp)op == item->op);
-        serialize_u64(d, op);
-    }
-    serialize_cond_expr(d, &expr->value);
-}
-
-static void serialize_expr(AstSerializer* d, const Expr* expr) {
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        serialize_assign_expr(d, &expr->assign_exprs[i]);
-    }
-}
-
-static void serialize_generic_assoc(AstSerializer* d, const GenericAssoc* assoc) {
-    serialize_ast_node_info(d, &assoc->info);
-    const bool has_type_name = assoc->type_name != NULL;
-    serialize_bool(d, has_type_name);
-    if (has_type_name) {
-        serialize_type_name(d, assoc->type_name);
-    }
-    serialize_assign_expr(d, assoc->assign);
-}
-
-static void serialize_generic_assoc_list(AstSerializer* d, const GenericAssocList* lst) {
-    serialize_ast_node_info(d, &lst->info);
-    serialize_u32(d, lst->len);
-    for (uint32_t i = 0; i < lst->len; ++i) {
-        serialize_generic_assoc(d, &lst->assocs[i]);
-    }
-}
-
-static void serialize_generic_sel(AstSerializer* d, const GenericSel* sel) {
-    serialize_ast_node_info(d, &sel->info);
-    serialize_assign_expr(d, sel->assign);
-    serialize_generic_assoc_list(d, &sel->assocs);
-}
-
-static void serialize_primary_expr(AstSerializer* d, const PrimaryExpr* expr) {
-    const uint64_t kind = expr->kind;
-    serialize_u64(d, kind);
-    assert((PrimaryExprKind)kind == expr->kind);
-    switch (expr->kind) {
-        case PRIMARY_EXPR_IDENTIFIER:
-            serialize_identifier(d, expr->identifier);
-            break;
-        case PRIMARY_EXPR_CONSTANT:
-            serialize_constant(d, &expr->constant);
-            break;
-        case PRIMARY_EXPR_STRING_LITERAL:
-            serialize_string_constant(d, &expr->string);
-            break;
-        case PRIMARY_EXPR_BRACKET:
-            serialize_ast_node_info(d, &expr->info);
-            serialize_expr(d, &expr->bracket_expr);
-            break;
-        case PRIMARY_EXPR_GENERIC:
-            serialize_generic_sel(d, &expr->generic);
-            break;
-    }
-}
-
-static void serialize_const_expr(AstSerializer* d, const ConstExpr* expr);
-
-static void serialize_designator(AstSerializer* d,
-                                 const struct Designator* des) {
-    serialize_ast_node_info(d, &des->info);
-    serialize_bool(d, des->is_index);
-    if (des->is_index) {
-        serialize_const_expr(d, des->arr_index);
-    } else {
-        serialize_identifier(d, des->identifier);
-    }
-}
-
-static void serialize_designator_list(AstSerializer* d,
-                                      const DesignatorList* des) {
-    serialize_u32(d, des->len);
-    for (uint32_t i = 0; i < des->len; ++i) {
-        serialize_designator(d, &des->designators[i]);
-    }
-}
-
-static void serialize_designation(AstSerializer* d,
-                                  const Designation* des) {
-    serialize_designator_list(d, &des->designators);
-}
-
-static void serialize_init_list(AstSerializer* d,
-                                const InitList* lst);
-
-static void serialize_initializer(AstSerializer* d,
-                                  const Initializer* init) {
-    serialize_ast_node_info(d, &init->info);
-    serialize_bool(d, init->is_assign);
-    if (init->is_assign) {
-        serialize_assign_expr(d, init->assign);
-    } else {
-        serialize_init_list(d, &init->init_list);
-    }
-}
-
-static void serialize_designation_init(AstSerializer* d,
-                                       const DesignationInit* init) {
-    const bool has_designation = Designation_is_valid(&init->designation);
-    serialize_bool(d, has_designation);
-    if (has_designation) {
-        serialize_designation(d, &init->designation);
-    }
-    serialize_initializer(d, &init->init);
-}
-
-static void serialize_init_list(AstSerializer* d,
-                                const InitList* lst) {
-    serialize_u32(d, lst->len);
-    for (uint32_t i = 0; i < lst->len; ++i) {
-        serialize_designation_init(d, &lst->inits[i]);
-    }
-}
-
-static void serialize_arg_expr_list(AstSerializer* d, const ArgExprList* lst) {
-    serialize_u32(d, lst->len);
-    for (uint32_t i = 0; i < lst->len; ++i) {
-        serialize_assign_expr(d, &lst->assign_exprs[i]);
-    }
-}
-
-static void serialize_postfix_suffix(AstSerializer* d, const PostfixSuffix* suffix) {
-    const uint64_t kind = suffix->kind;
-    serialize_u64(d, kind);
-    assert((PostfixSuffixKind)kind == suffix->kind);
-
-    switch (suffix->kind) {
-        case POSTFIX_INDEX:
-            serialize_expr(d, &suffix->index_expr);
-            break;
-        case POSTFIX_BRACKET:
-            serialize_arg_expr_list(d, &suffix->bracket_list);
-            break;
-        case POSTFIX_ACCESS:
-        case POSTFIX_PTR_ACCESS:
-            serialize_identifier(d, suffix->identifier);
-            break;
-        case POSTFIX_INC:
-        case POSTFIX_DEC:
-            break;
-    }
-}
-
-static void serialize_postfix_expr(AstSerializer* d, const PostfixExpr* expr) {
-    serialize_bool(d, expr->is_primary);
-    if (expr->is_primary) {
-        serialize_primary_expr(d, &expr->primary);
-    } else {
-        serialize_ast_node_info(d, &expr->info);
-        serialize_type_name(d, expr->type_name);
-        serialize_init_list(d, &expr->init_list);
-    }
-    serialize_u32(d, expr->num_suffixes);
-    for (uint32_t i = 0; i < expr->num_suffixes; ++i) {
-        serialize_postfix_suffix(d, &expr->suffixes[i]);
-    }
-}
-
-static void serialize_cast_expr(AstSerializer* d, const CastExpr* expr);
-
-static void serialize_unary_expr(AstSerializer* d, const UnaryExpr* expr) {
-    serialize_ast_node_info(d, &expr->info);
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        const uint64_t unary_op = expr->ops_before[i];
-        assert((UnaryExprOp)unary_op == expr->ops_before[i]);
-        serialize_u64(d, unary_op);
-    }
-    const uint64_t kind = expr->kind;
-    serialize_u64(d, kind);
-    assert((UnaryExprKind)kind == expr->kind);
-    switch (expr->kind) {
-        case UNARY_POSTFIX:
-            serialize_postfix_expr(d, &expr->postfix);
-            break;
-        case UNARY_ADDRESSOF:
-        case UNARY_DEREF:
-        case UNARY_PLUS:
-        case UNARY_MINUS:
-        case UNARY_BNOT:
-        case UNARY_NOT:
-            serialize_cast_expr(d, expr->cast_expr);
-            break;
-        case UNARY_SIZEOF_TYPE:
-        case UNARY_ALIGNOF:
-            serialize_type_name(d, expr->type_name);
-            break;
-    }
-}
-
-static void serialize_cast_expr(AstSerializer* d, const CastExpr* expr) {
-    serialize_ast_node_info(d, &expr->info);
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        serialize_type_name(d, &expr->type_names[i]);
-    }
-    serialize_unary_expr(d, &expr->rhs);
-}
-
-static void serialize_mul_expr(AstSerializer* d, const MulExpr* expr) {
-    serialize_cast_expr(d, &expr->lhs);
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        const CastExprAndOp* item = &expr->mul_chain[i];
-        const uint64_t mul_op = item->op;
-        assert((MulExprOp)mul_op == item->op);
-        serialize_u64(d, mul_op);
-        serialize_cast_expr(d, &item->rhs);
-    }
-}
-
-static void serialize_add_expr(AstSerializer* d, const AddExpr* expr) {
-    serialize_mul_expr(d, &expr->lhs);
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        const MulExprAndOp* item = &expr->add_chain[i];
-        const uint64_t add_op = item->op;
-        assert((AddExprOp)add_op == item->op);
-        serialize_u64(d, add_op);
-        serialize_mul_expr(d, &item->rhs);
-    }
-}
-
-static void serialize_shift_expr(AstSerializer* d, const ShiftExpr* expr) {
-    serialize_add_expr(d, &expr->lhs);
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        const AddExprAndOp* item = &expr->shift_chain[i];
-        const uint64_t shift_op = item->op;
-        assert((ShiftExprOp)shift_op == item->op);
-        serialize_u64(d, shift_op);
-        serialize_add_expr(d, &item->rhs);
-    }
-}
-
-static void serialize_rel_expr(AstSerializer* d, const RelExpr* expr) {
-    serialize_shift_expr(d, &expr->lhs);
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        const ShiftExprAndOp* item = &expr->rel_chain[i];
-        const uint64_t rel_op = item->op;
-        assert((RelExprOp)rel_op == item->op);
-        serialize_u64(d, rel_op);
-        serialize_shift_expr(d, &item->rhs);
-    }
-}
-
-static void serialize_eq_expr(AstSerializer* d, const EqExpr* expr) {
-    serialize_rel_expr(d, &expr->lhs);
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        const RelExprAndOp* item = &expr->eq_chain[i];
-        const uint64_t eq_op = item->op;
-        assert((EqExprOp)eq_op == item->op);
-        serialize_u64(d, eq_op);
-        serialize_rel_expr(d, &item->rhs);
-    }
-}
-
-static void serialize_and_expr(AstSerializer* d, const AndExpr* expr) {
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        serialize_eq_expr(d, &expr->eq_exprs[i]);
-    }
-}
-
-static void serialize_xor_expr(AstSerializer* d, const XorExpr* expr) {
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        serialize_and_expr(d, &expr->and_exprs[i]);
-    }
-}
-
-static void serialize_or_expr(AstSerializer* d, const OrExpr* expr) {
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        serialize_xor_expr(d, &expr->xor_exprs[i]);
-    }
-}
-
-static void serialize_log_and_expr(AstSerializer* d, const LogAndExpr* expr) {
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        serialize_or_expr(d, &expr->or_exprs[i]);
-    }
-}
-
-static void serialize_log_or_expr(AstSerializer* d, const LogOrExpr* expr) {
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        serialize_log_and_expr(d, &expr->log_ands[i]);
-    }
-}
-
-static void serialize_cond_expr(AstSerializer* d,
-                                const CondExpr* expr) {
-    serialize_u32(d, expr->len);
-    for (uint32_t i = 0; i < expr->len; ++i) {
-        const LogOrAndExpr* item = &expr->conditionals[i];
-        serialize_log_or_expr(d, &item->log_or);
-        serialize_expr(d, &item->expr);
-    }
-    serialize_log_or_expr(d, &expr->last_else);
-}
-
-static void serialize_const_expr(AstSerializer* d, const ConstExpr* expr) {
-    serialize_cond_expr(d, &expr->expr);
-}
-
-static void serialize_static_assert_declaration(AstSerializer* d, const StaticAssertDeclaration* decl) {
-    serialize_const_expr(d, decl->const_expr);
-    serialize_string_literal_node(d, &decl->err_msg);
-}
-
-static void serialize_pointer(AstSerializer* d, const Pointer* ptr) {
-    serialize_ast_node_info(d, &ptr->info);
-    serialize_u32(d, ptr->num_indirs);
-    for (uint32_t i = 0; i < ptr->num_indirs; ++i) {
-        serialize_type_quals(d, &ptr->quals_after_ptr[i]);
-    }
-}
-
-static void serialize_param_type_list(AstSerializer* d, const ParamTypeList* lst);
-
-static void serialize_abs_arr_or_func_suffix(AstSerializer* d, const AbsArrOrFuncSuffix* suffix) {
-    serialize_ast_node_info(d, &suffix->info);
-    const uint64_t kind = suffix->kind;
-    assert((AbsArrOrFuncSuffixKind)kind == suffix->kind);
-    serialize_u64(d, kind);
-    switch (suffix->kind) {
-        case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_EMPTY:
-            serialize_bool(d, suffix->has_asterisk);
-            break;
-        case ABS_ARR_OR_FUNC_SUFFIX_ARRAY_DYN:
-            serialize_bool(d, suffix->is_static);
-            serialize_type_quals(d, &suffix->type_quals);
-            const bool has_assign = suffix->assign != NULL;
-            serialize_bool(d, has_assign);
-            if (has_assign) {
-                serialize_assign_expr(d, suffix->assign);
-            }
-            break;
-        case ABS_ARR_OR_FUNC_SUFFIX_FUNC:
-            serialize_param_type_list(d, &suffix->func_types);
-            break;
-    }
-}
-
-static void serialize_abs_declarator(AstSerializer* d, const AbsDeclarator* decl);
-
-static void serialize_direct_abs_declarator(AstSerializer* d, const DirectAbsDeclarator* decl) {
-    serialize_ast_node_info(d, &decl->info);
-    const bool has_bracket_decl = decl->bracket_decl != NULL;
-    serialize_bool(d, has_bracket_decl);
-    if (has_bracket_decl) {
-        serialize_abs_declarator(d, decl->bracket_decl);
-    }
-    serialize_u32(d, decl->num_suffixes);
-    for (uint32_t i = 0; i < decl->num_suffixes; ++i) {
-        serialize_abs_arr_or_func_suffix(d, &decl->following_suffixes[i]);
-    }
-}
-
-static void serialize_abs_declarator(AstSerializer* d, const AbsDeclarator* decl) {
-    const bool has_ptr = decl->ptr != NULL;
-    serialize_bool(d, has_ptr);
-    if (has_ptr) {
-        serialize_pointer(d, decl->ptr);
-    }
-    const bool has_direct_abs_decl = decl->direct_abs_decl != NULL;
-    serialize_bool(d, has_direct_abs_decl);
-    if (has_direct_abs_decl) {
-        serialize_direct_abs_declarator(d, decl->direct_abs_decl);
-    }
-}
-
-static void serialize_declaration_specs(AstSerializer* d,
-                                        const DeclarationSpecs* specs);
-
-static void serialize_declarator(AstSerializer* d, const Declarator* decl);
-
-static void serialize_param_declaration(AstSerializer* d, const ParamDeclaration* decl) {
-    serialize_declaration_specs(d, &decl->decl_specs);
-    const uint64_t kind = decl->kind;
-    assert((ParamDeclKind)kind == decl->kind);
-    serialize_u64(d, kind);
-    switch (decl->kind) {
-        case PARAM_DECL_DECL:
-            serialize_declarator(d, decl->decl);
-            break;
-        case PARAM_DECL_ABSTRACT_DECL:
-            serialize_abs_declarator(d, decl->abstract_decl);
-            break;
-        case PARAM_DECL_NONE:
-            break;
-    }
-}
-
-static void serialize_param_list(AstSerializer* d,
-                                 const ParamList* lst) {
-    serialize_u32(d, lst->len);
-    for (uint32_t i = 0; i < lst->len; ++i) {
-        serialize_param_declaration(d, &lst->decls[i]);
-    }
-}
-
-static void serialize_param_type_list(AstSerializer* d, const ParamTypeList* lst) {
-    serialize_bool(d, lst->is_variadic);
-    serialize_param_list(d, &lst->param_list);
-}
-
-static void serialize_identifier_list(AstSerializer* d, const IdentifierList* lst) {
-    serialize_u32(d, lst->len);
-    for (uint32_t i = 0; i < lst->len; ++i) {
-        serialize_identifier(d, &lst->identifiers[i]);
-    }
-}
-
-static void serialize_arr_suffix(AstSerializer* d, const ArrSuffix* suffix) {
-    serialize_bool(d, suffix->is_static);
-    serialize_type_quals(d, &suffix->type_quals);
-    serialize_bool(d, suffix->is_asterisk);
-    const bool has_assign_expr = suffix->arr_len != NULL;
-    serialize_bool(d, has_assign_expr);
-    if (has_assign_expr) {
-        serialize_assign_expr(d, suffix->arr_len);
-    }
-}
-
-static void serialize_arr_or_func_suffix(AstSerializer* d, const ArrOrFuncSuffix* suffix) {
-    serialize_ast_node_info(d, &suffix->info);
-    const uint64_t kind = suffix->kind;
-    assert((ArrOrFuncSuffixKind)kind == suffix->kind);
-    serialize_u64(d, kind);
-    switch (suffix->kind) {
-        case ARR_OR_FUNC_ARRAY:
-            serialize_arr_suffix(d, &suffix->arr_suffix);
-            break;
-        case ARR_OR_FUNC_FUN_PARAMS:
-            serialize_param_type_list(d, &suffix->fun_types);
-            break;
-        case ARR_OR_FUNC_FUN_OLD_PARAMS:
-            serialize_identifier_list(d, &suffix->fun_params);
-            break;
-        case ARR_OR_FUNC_FUN_EMPTY:
-            break;
-    }
-}
-
-static void serialize_direct_declarator(AstSerializer* d, const DirectDeclarator* decl) {
-    serialize_ast_node_info(d, &decl->info);
-    serialize_bool(d, decl->is_id);
-    if (decl->is_id) {
-        serialize_identifier(d, decl->id);
-    } else {
-        serialize_declarator(d, decl->bracket_decl);
-    }
-    serialize_u32(d, decl->len);
-    for (uint32_t i = 0; i < decl->len; ++i) {
-        serialize_arr_or_func_suffix(d, &decl->suffixes[i]);
-    }
-}
-
-static void serialize_declarator(AstSerializer* d, const Declarator* decl) {
-    const bool has_ptr = decl->ptr != NULL;
-    serialize_bool(d, has_ptr);
-    if (has_ptr) {
-        serialize_pointer(d, decl->ptr);
-    }
-    serialize_direct_declarator(d, decl->direct_decl);
-}
-
-static void serialize_struct_declarator(AstSerializer* d, const StructDeclarator* decl) {
-    const bool has_decl = decl->decl != NULL;
-    serialize_bool(d, has_decl);
-    if (has_decl) {
-        serialize_declarator(d, decl->decl);
-    }
-    const bool has_bit_field = decl->bit_field != NULL;
-    serialize_bool(d, has_bit_field);
-    if (has_bit_field) {
-        serialize_const_expr(d, decl->bit_field);
-    }
-}
-
-static void serialize_struct_declarator_list(AstSerializer* d, const StructDeclaratorList* decls) {
-    serialize_u32(d, decls->len);
-    for (uint32_t i = 0; i < decls->len; ++i) {
-        serialize_struct_declarator(d, &decls->decls[i]);
-    }
-}
-
-static void serialize_struct_declaration(AstSerializer* d, const StructDeclaration* decl) {
-    serialize_bool(d, decl->is_static_assert);
-    if (decl->is_static_assert) {
-        serialize_static_assert_declaration(d, decl->assert);
-    } else {
-        serialize_declaration_specs(d, &decl->decl_specs);
-        serialize_struct_declarator_list(d, &decl->decls);
-    }
-}
-
-static void serialize_struct_declaration_list(AstSerializer* d, const StructDeclarationList* lst) {
-    serialize_u32(d, lst->len);
-    for (uint32_t i = 0; i < lst->len; ++i) {
-        serialize_struct_declaration(d, &lst->decls[i]);
-    }
-}
-
-static void serialize_struct_union_spec(AstSerializer* d, const StructUnionSpec* spec) {
-    serialize_ast_node_info(d, &spec->info);
-    serialize_bool(d, spec->is_struct);
-    const bool has_identifier = spec->identifier != NULL;
-    serialize_bool(d, has_identifier);
-    if (has_identifier) {
-        serialize_identifier(d, spec->identifier);
-    }
-    serialize_struct_declaration_list(d, &spec->decl_list);
-}
-
-static void serialize_enumerator(AstSerializer* d, const Enumerator* enumerator) {
-    serialize_identifier(d, enumerator->identifier);
-    const bool has_enum_val = enumerator->enum_val != NULL;
-    serialize_bool(d, has_enum_val);
-    if (has_enum_val) {
-        serialize_const_expr(d, enumerator->enum_val);
-    }
-}
-
-static void serialize_enum_list(AstSerializer* d, const EnumList* lst) {
-    serialize_u32(d, lst->len);
-    for (uint32_t i = 0; i < lst->len; ++i) {
-        serialize_enumerator(d, &lst->enums[i]);
-    }
-}
-
-static void serialize_enum_spec(AstSerializer* d, const EnumSpec* spec) {
-    serialize_ast_node_info(d, &spec->info);
-    const bool has_identifier = spec->identifier != NULL;
-    serialize_bool(d, has_identifier);
-    if (has_identifier) {
-        serialize_identifier(d, spec->identifier);
-    }
-    serialize_enum_list(d, &spec->enum_list);
-}
-
-static void serialize_type_modifiers(AstSerializer* d, const TypeModifiers* mods) {
-    serialize_bool(d, mods->is_unsigned);
-    serialize_bool(d, mods->is_signed);
-    serialize_bool(d, mods->is_short);
-    serialize_u64(d, mods->num_long);
-    serialize_bool(d, mods->is_complex);
-    serialize_bool(d, mods->is_imaginary);
-}
-
-static void serialize_type_specs(AstSerializer* d, const TypeSpecs* specs) {
-    serialize_type_modifiers(d, &specs->mods);
-    const uint64_t kind = specs->kind;
-    assert((TypeSpecKind)kind == specs->kind);
-    serialize_u64(d, kind);
-    switch (specs->kind) {
-        case TYPE_SPEC_NONE:
-        case TYPE_SPEC_VOID:
-        case TYPE_SPEC_CHAR:
-        case TYPE_SPEC_INT:
-        case TYPE_SPEC_FLOAT:
-        case TYPE_SPEC_DOUBLE:
-        case TYPE_SPEC_BOOL:
-            break;
-        case TYPE_SPEC_ATOMIC:
-            serialize_atomic_type_spec(d, specs->atomic_spec);
-            break;
-        case TYPE_SPEC_STRUCT:
-            serialize_struct_union_spec(d, specs->struct_union_spec);
-            break;
-        case TYPE_SPEC_ENUM:
-            serialize_enum_spec(d, specs->enum_spec);
-            break;
-        case TYPE_SPEC_TYPENAME:
-            serialize_identifier(d, specs->typedef_name);
-            break;
-    }
-}
-
-static void serialize_spec_qual_list(AstSerializer* d, const SpecQualList* lst) {
-    serialize_ast_node_info(d, &lst->info);
-    serialize_type_quals(d, &lst->quals);
-    serialize_type_specs(d, &lst->specs);
-}
-
-static void serialize_type_name(AstSerializer* d, const TypeName* name) {
-    serialize_spec_qual_list(d, name->spec_qual_list);
-    const bool has_abs_decl = name->abstract_decl != NULL;
-    serialize_bool(d, has_abs_decl);
-    if (has_abs_decl) {
-        serialize_abs_declarator(d, name->abstract_decl);
-    }
-}
-
-static void serialize_align_spec(AstSerializer* d, const AlignSpec* spec) {
-    serialize_ast_node_info(d, &spec->info);
-    serialize_bool(d, spec->is_type_name);
-    if (spec->is_type_name) {
-        serialize_type_name(d, spec->type_name);
-    } else {
-        serialize_const_expr(d, spec->const_expr);
-    }
-}
-
-static void serialize_func_specs(AstSerializer* d, const FuncSpecs* specs) {
-    serialize_bool(d, specs->is_inline);
-    serialize_bool(d, specs->is_noreturn);
-}
-
-static void serialize_storage_class(AstSerializer* d, const StorageClass* class) {
-    serialize_bool(d, class->is_typedef);
-    serialize_bool(d, class->is_extern);
-    serialize_bool(d, class->is_static);
-    serialize_bool(d, class->is_thread_local);
-    serialize_bool(d, class->is_auto);
-    serialize_bool(d, class->is_register);
-}
-
-static void serialize_declaration_specs(AstSerializer* d, const DeclarationSpecs* specs) {
-    serialize_ast_node_info(d, &specs->info);
-    serialize_func_specs(d, &specs->func_specs);
-    serialize_storage_class(d, &specs->storage_class);
-    serialize_type_quals(d, &specs->type_quals);
-    serialize_u32(d, specs->num_align_specs);
-    for (uint32_t i = 0; i < specs->num_align_specs; ++i) {
-        serialize_align_spec(d, &specs->align_specs[i]);
-    }
-
-    serialize_type_specs(d, &specs->type_specs);
-}
-
-static void serialize_declaration(AstSerializer* d, const Declaration* decl);
-
-static void serialize_declaration_list(AstSerializer* d, const DeclarationList* decls) {
-    serialize_u32(d, decls->len);
-    for (uint32_t i = 0; i < decls->len; ++i) {
-        serialize_declaration(d, &decls->decls[i]);
-    }
-}
-
-static void serialize_statement(AstSerializer* d, const Statement* stat);
-
-static void serialize_labeled_statement(AstSerializer* d, const LabeledStatement* stat) {
-    serialize_ast_node_info(d, &stat->info);
-    const uint64_t kind = stat->kind;
-    assert((LabeledStatementKind)kind == stat->kind);
-    serialize_u64(d, kind);
-    switch (stat->kind) {
-        case LABELED_STATEMENT_CASE:
-            serialize_const_expr(d, &stat->case_expr);
-            break;
-        case LABELED_STATEMENT_LABEL:
-            serialize_identifier(d, stat->label);
-            break;
-        case LABELED_STATEMENT_DEFAULT:
-            break;
-    }
-    serialize_statement(d, stat->stat);
-}
-
-static void serialize_expr_statement(AstSerializer* d, const ExprStatement* stat) {
-    serialize_ast_node_info(d, &stat->info);
-    serialize_expr(d, &stat->expr);
-}
-
-static void serialize_selection_statement(AstSerializer* d, const SelectionStatement* stat) {
-    serialize_ast_node_info(d, &stat->info);
-    serialize_bool(d, stat->is_if);
-    serialize_expr(d, &stat->sel_expr);
-    serialize_statement(d, stat->sel_stat);
-    const bool has_else = stat->else_stat != NULL;
-    serialize_bool(d, has_else);
-    if (has_else) {
-        serialize_statement(d, stat->else_stat);
-    }
-}
-
-static void serialize_for_loop(AstSerializer* d, const ForLoop* loop) {
-    serialize_bool(d, loop->is_decl);
-    if (loop->is_decl) {
-        serialize_declaration(d, &loop->init_decl);
-    } else {
-        serialize_expr_statement(d, loop->init_expr);
-    }
-    serialize_expr_statement(d, loop->cond);
-    serialize_expr(d, &loop->incr_expr);
-}
-
-static void serialize_iteration_statement(
-    AstSerializer* d,
-    const struct IterationStatement* stat) {
-    serialize_ast_node_info(d, &stat->info);
-    const uint64_t kind = stat->kind;
-    assert((IterationStatementKind)kind == stat->kind);
-    serialize_u64(d, kind);
-    serialize_statement(d, stat->loop_body);
-    switch (stat->kind) {
-        case ITERATION_STATEMENT_WHILE:
-        case ITERATION_STATEMENT_DO:
-            serialize_expr(d, &stat->while_cond);
-            break;
-        case ITERATION_STATEMENT_FOR:
-            serialize_for_loop(d, &stat->for_loop);
-            break;
-    }
-}
-
-static void serialize_jump_statement(AstSerializer* d, const JumpStatement* stat) {
-    serialize_ast_node_info(d, &stat->info);
-    const uint64_t kind = stat->kind;
-    assert((JumpStatementKind)kind == stat->kind);
-    serialize_u64(d, kind);
-    switch (stat->kind) {
-        case JUMP_STATEMENT_GOTO:
-            serialize_identifier(d, stat->goto_label);
-            break;
-        case JUMP_STATEMENT_CONTINUE:
-        case JUMP_STATEMENT_BREAK:
-            break;
-        case JUMP_STATEMENT_RETURN: {
-            serialize_expr(d, &stat->ret_val);
-            break;
-        }
-    }
-}
-
-static void serialize_compound_statement(AstSerializer* d, const CompoundStatement* stat);
-
-static void serialize_statement(AstSerializer* d, const Statement* stat) {
-    const uint64_t kind = stat->kind;
-    assert((StatementKind)kind == stat->kind);
-    serialize_u64(d, kind);
-    switch (stat->kind) {
-        case STATEMENT_LABELED:
-            serialize_labeled_statement(d, stat->labeled);
-            break;
-        case STATEMENT_COMPOUND:
-            serialize_compound_statement(d, stat->comp);
-            break;
-        case STATEMENT_EXPRESSION:
-            serialize_expr_statement(d, stat->expr);
-            break;
-        case STATEMENT_SELECTION:
-            serialize_selection_statement(d, stat->sel);
-            break;
-        case STATEMENT_ITERATION:
-            serialize_iteration_statement(d, stat->it);
-            break;
-        case STATEMENT_JUMP:
-            serialize_jump_statement(d, stat->jmp);
-            break;
-    }
-}
-
-static void serialize_block_item(AstSerializer* d, const BlockItem* item) {
-    serialize_bool(d, item->is_decl);
-    if (item->is_decl) {
-        serialize_declaration(d, &item->decl);
-    } else {
-        serialize_statement(d, &item->stat);
-    }
-}
-
-static void serialize_compound_statement(AstSerializer* d, const CompoundStatement* stat) {
-    serialize_ast_node_info(d, &stat->info);
-    serialize_u32(d, stat->len);
-    for (uint32_t i = 0; i < stat->len; ++i) {
-        serialize_block_item(d, &stat->items[i]);
-    }
-}
-
-static void serialize_func_def(AstSerializer* d, const FuncDef* def) {
-    serialize_declaration_specs(d, &def->specs);
-    serialize_declarator(d, def->decl);
-    serialize_declaration_list(d, &def->decl_list);
-    serialize_compound_statement(d, &def->comp);
-}
-
-static void serialize_init_declarator(AstSerializer* d, const InitDeclarator* decl) {
-    serialize_declarator(d, decl->decl);
-    const bool has_init = decl->init != NULL;
-    serialize_bool(d, has_init);
-    if (has_init) {
-        serialize_initializer(d, decl->init);
-    }
-}
-
-static void serialize_init_declarator_list(AstSerializer* d, const InitDeclaratorList* decls) {
-    serialize_u32(d, decls->len);
-    for (uint32_t i = 0; i < decls->len; ++i) {
-        serialize_init_declarator(d, &decls->decls[i]);
-    }
-}
-
-static void serialize_declaration(AstSerializer* d, const Declaration* decl) {
-    serialize_bool(d, decl->is_normal_decl);
-    if (decl->is_normal_decl) {
-        serialize_declaration_specs(d, &decl->decl_specs);
-        serialize_init_declarator_list(d, &decl->init_decls);
-    } else {
-        serialize_static_assert_declaration(d, decl->static_assert_decl);
-    }
-}
-
-static void serialize_external_declaration(AstSerializer* d, const ExternalDeclaration* decl) {
-    serialize_bool(d, decl->is_func_def);
-    if (decl->is_func_def) {
-        serialize_func_def(d, &decl->func_def);
-    } else {
-        serialize_declaration(d, &decl->decl);
-    }
-}
-
-static void serialize_tokens(AstSerializer* d, const TokenArr* tokens) {
+static void serialize_tokens(ASTSerializer* d, const TokenArr* tokens) {
     serialize_u32(d, tokens->len);
     serializer_write(d, tokens->kinds, sizeof *tokens->kinds, tokens->len);
     serializer_write(d, tokens->val_indices, sizeof *tokens->val_indices, tokens->len);
@@ -1000,10 +405,10 @@ static void serialize_tokens(AstSerializer* d, const TokenArr* tokens) {
     }
 }
 
-static void serialize_translation_unit(AstSerializer* d, const TranslationUnit* tl) {
-    serialize_tokens(d, &tl->tokens);
-    serialize_u32(d, tl->len);
-    for (uint32_t i = 0; i < tl->len; ++i) {
-        serialize_external_declaration(d, &tl->external_decls[i]);
+static void serialize_file_info(ASTSerializer* d, const FileInfo* info) {
+    serialize_u32(d, info->len);
+    for (uint32_t i = 0; i < info->len; ++i) {
+        serialize_str_buf(d, &info->paths[i]);
     }
 }
+

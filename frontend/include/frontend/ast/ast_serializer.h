@@ -1,13 +1,15 @@
-#ifndef MYCC_FRONTEND_AST_AST_SERIALIZER_H
-#define MYCC_FRONTEND_AST_AST_SERIALIZER_H
+#ifndef FRONTEND_AST_AST_SERIALIZER_2_H
+#define FRONTEND_AST_AST_SERIALIZER_2_H
 
-#include "util/File.h"
+#include "ast.h"
 
-#include "frontend/FileInfo.h"
+typedef struct {
+    AST ast;
+    FileInfo file_info;
+} DeserializeASTRes;
 
-#include "TranslationUnit.h"
+DeserializeASTRes deserialize_ast(File f);
 
-bool serialize_ast(const TranslationUnit* tl, const FileInfo* file_info, File f);
+bool serialize_ast(const AST* ast, const FileInfo* file_info, File f);
 
 #endif
-

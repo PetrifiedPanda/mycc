@@ -53,32 +53,6 @@ bool is_func_spec(TokenKind k) {
     return k == TOKEN_INLINE || k == TOKEN_NORETURN;
 }
 
-bool is_type_spec_token(const ParserState* s, TokenKind kind, uint32_t identifier_idx) {
-    switch (kind) {
-        case TOKEN_VOID:
-        case TOKEN_CHAR:
-        case TOKEN_SHORT:
-        case TOKEN_INT:
-        case TOKEN_LONG:
-        case TOKEN_FLOAT:
-        case TOKEN_DOUBLE:
-        case TOKEN_SIGNED:
-        case TOKEN_UNSIGNED:
-        case TOKEN_BOOL:
-        case TOKEN_COMPLEX:
-        case TOKEN_IMAGINARY:
-        case TOKEN_ATOMIC:
-        case TOKEN_STRUCT:
-        case TOKEN_UNION:
-        case TOKEN_ENUM:
-            return true;
-        case TOKEN_IDENTIFIER:
-            return ParserState_is_typedef(s, identifier_idx);
-        default:
-            return false;
-    }
-}
-
 static bool is_type_spec_helper(const ParserState* s,
                                 TokenKind (*get_kind)(const ParserState*),
                                 uint32_t (*get_id_idx)(const ParserState*)) {
@@ -108,7 +82,7 @@ static bool is_type_spec_helper(const ParserState* s,
     }
 }
 
-bool next_is_type_spec(const ParserState* s) {
+static bool next_is_type_spec(const ParserState* s) {
     return is_type_spec_helper(s,
                                ParserState_next_token_kind,
                                ParserState_next_token_id_idx);

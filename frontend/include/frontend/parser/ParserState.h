@@ -39,7 +39,6 @@ bool ParserState_register_typedef(ParserState* s,
                                   uint32_t identifier_idx,
                                   uint32_t token_idx);
 
-bool ParserState_is_defined_in_current_scope(const ParserState* s, uint32_t identifier_idx);
 bool ParserState_is_enum_constant(const ParserState* s, uint32_t identifier_idx);
 bool ParserState_is_typedef(const ParserState* s, uint32_t identifier_idx);
 

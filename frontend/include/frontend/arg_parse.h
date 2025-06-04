@@ -18,7 +18,6 @@ typedef struct CmdArgs {
     Str* include_dirs;
     CStr output_file;
     ArgAction action;
-    bool enable_new_parser;
 } CmdArgs;
 
 CmdArgs parse_cmd_args(int argc, char** argv);

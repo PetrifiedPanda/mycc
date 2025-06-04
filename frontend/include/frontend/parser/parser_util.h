@@ -24,22 +24,6 @@ bool is_func_spec(TokenKind k);
  */
 bool next_is_type_name(const ParserState* s);
 
-/**
-* @param s current state
-* @return bool whether the next token is a type specifier
-*/
-bool next_is_type_spec(const ParserState* s);
-
-/**
- *
- * @param s current state
- * @param token token to check
- * @return whether token is a type specifier
- */
-bool is_type_spec_token(const ParserState* s,
-                        TokenKind kind,
-                        uint32_t identifier_idx);
-
 bool is_type_spec(const ParserState* s);
 
 bool is_declaration_spec(const ParserState* s);
