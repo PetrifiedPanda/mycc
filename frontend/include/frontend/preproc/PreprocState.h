@@ -3,8 +3,6 @@
 
 #include <stddef.h>
 
-#include "util/File.h"
-
 #include "frontend/FileInfo.h"
 
 #include "PreprocTokenArr.h"
@@ -26,9 +24,6 @@ typedef struct PreprocCond {
 typedef struct OpenedFileInfo OpenedFileInfo;
 
 typedef struct FileManager {
-    File files[FOPEN_MAX];
-    uint32_t opened_info_indices[FOPEN_MAX];
-    uint32_t current_file_idx;
     uint32_t opened_info_len, opened_info_cap;
     OpenedFileInfo* opened_info;
     uint32_t prefixes_len, prefixes_cap;

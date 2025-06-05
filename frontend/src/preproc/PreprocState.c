@@ -5,12 +5,12 @@
 
 #include "util/mem.h"
 #include "util/paths.h"
-#include "util/macro_util.h"
 
 #include "frontend/preproc/PreprocMacro.h"
 
 typedef struct OpenedFileInfo {
-    long pos;
+    size_t pos;
+    char* data;
     uint32_t prefix_idx;
     SourceLoc loc;
 } OpenedFileInfo;
@@ -30,6 +30,26 @@ static StrBuf get_path_prefix(Str path) {
     }
 }
 
+static char* read_entire_file(File f) {
+    assert(File_valid(f));
+    if (!File_seek(f, 0, FILE_SEEK_END)) {
+        return NULL;
+    }
+    const long size = File_tell(f);
+    if (!File_seek(f, 0, FILE_SEEK_START)) {
+        return NULL;
+    }
+
+    char* data = mycc_alloc(size + 1);
+    const size_t read = File_read(data, 1, size, f);
+    if (read != (size_t)size) {
+        return NULL;
+    }
+    data[size] = '\0';
+    File_close(f);
+    return data;
+}
+
 static FileData create_file_data(CStr start_file, PreprocErr* err) {
     StrBuf file_name = StrBuf_create(CStr_as_str(start_file));
 
@@ -41,9 +61,6 @@ static FileData create_file_data(CStr start_file, PreprocErr* err) {
         return (FileData){0};
     }
     FileManager fm = {
-        .files = {[0] = file},
-        .opened_info_indices = {[0] = 0},
-        .current_file_idx = 0,
         .opened_info_len = 1,
         .opened_info_cap = 1,
         .opened_info = mycc_alloc(sizeof *fm.opened_info),
@@ -51,8 +68,19 @@ static FileData create_file_data(CStr start_file, PreprocErr* err) {
         .prefixes_cap = 1,
         .prefixes = mycc_alloc(sizeof *fm.prefixes),
     };
+    File f = File_open(start_file, FILE_READ | FILE_BINARY);
+    if (!File_valid(f)) {
+        // TODO: error
+        return (FileData){0};
+    }
+    char* data = read_entire_file(f);
+    if (!data) {
+        // TODO: error
+        return (FileData){0};
+    }
     fm.opened_info[0] = (OpenedFileInfo){
-        .pos = -1,
+        .pos = 0,
+        .data = data,
         .prefix_idx = 0,
         .loc = {0, {0, 0}},
     };
@@ -126,8 +154,6 @@ PreprocState PreprocState_create_string(Str code,
             },
         .file_manager =
             {
-                .files = {{0}},
-                .current_file_idx = 0,
                 .opened_info = NULL,
                 .opened_info_len = 0,
                 .opened_info_cap = 0,
@@ -155,33 +181,34 @@ static bool is_escaped_newline(Str line) {
     return Str_at(line, i) == '\\';
 }
 
-static File get_current_file(const PreprocState* state) {
-    const FileManager* fm = &state->file_manager;
-    return fm->files[fm->current_file_idx];
-}
-
 static bool current_file_over(const PreprocState* state) {
-    File file = get_current_file(state);
-    bool file_is_over;
-    if (File_valid(file)) {
-        // TODO: there might be a better way to do this
-        FileGetcRes next_char = File_getc(file);
-        if (!next_char.valid) {
-            file_is_over = true;
-        } else {
-            file_is_over = false;
-            File_ungetc(next_char.res, file);
-        }
-    } else {
-        file_is_over = true;
-    }
-    return (state->line_info.next.data == NULL
-            || *state->line_info.next.data == '\0')
-           && file_is_over;
+    const OpenedFileInfo* curr = &state->file_manager.opened_info[state->file_manager.opened_info_len - 1];
+    return (state->line_info.next.data == NULL || *state->line_info.next.data == '\0') && (state->file_manager.opened_info == NULL || curr->data[curr->pos] == '\0');
 }
 
 static bool is_start_file(const PreprocState* state) {
     return state->file_manager.opened_info_len <= 1;
+}
+
+static Str read_next_line(OpenedFileInfo* info, StrBuf* line) {
+    const char* data = info->data + info->pos;
+    while (*data != '\n' && *data != '\r' && *data != '\0') {
+        StrBuf_push_back(line, *data);
+        ++data;
+    }
+    if (*data == '\n') {
+        ++data;
+    }
+    if (*data == '\r') {
+        ++data;
+        // Handle windows line ending
+        if (*data == '\n') {
+            ++data;
+        }
+    }
+    const size_t offset = data - info->data;
+    info->pos = offset;
+    return StrBuf_as_str(line);
 }
 
 static void preproc_state_close_file(PreprocState* s);
@@ -193,11 +220,11 @@ void PreprocState_read_line(PreprocState* state) {
         preproc_state_close_file(state);
     }
     StrBuf* line = &state->line_info.line;
-    File file = get_current_file(state);
-    state->line_info.next = File_read_line(file, line);
+    OpenedFileInfo* opened_info = &state->file_manager.opened_info[state->file_manager.opened_info_len - 1];
+    state->line_info.next = read_next_line(opened_info, line);
     while (is_escaped_newline(state->line_info.next)) {
         StrBuf_push_back(line, '\n');
-        state->line_info.next = File_read_line(file, line);
+        state->line_info.next = read_next_line(opened_info, line);
     }
     state->line_info.curr_loc.file_loc.line += 1;
     state->line_info.curr_loc.file_loc.index = 1;
@@ -297,17 +324,6 @@ bool PreprocState_open_file(PreprocState* s,
                             const StrBuf* filename,
                             const SourceLoc* include_loc) {
     FileManager* fm = &s->file_manager;
-    if (fm->current_file_idx == FOPEN_MAX - 1) {
-        long pos = File_tell(fm->files[0]);
-        File_close(fm->files[0]);
-        fm->opened_info[fm->opened_info_indices[0]].pos = pos;
-        memmove(fm->files, fm->files + 1, sizeof fm->files - sizeof(File));
-        memmove(fm->opened_info_indices,
-                fm->opened_info_indices + 1,
-                sizeof fm->opened_info_indices
-                    - sizeof *fm->opened_info_indices);
-        --fm->current_file_idx;
-    }
 
     FileOpenRes fp = resolve_path_and_open(s, filename, include_loc);
     if (!File_valid(fp.file)) {
@@ -315,7 +331,6 @@ bool PreprocState_open_file(PreprocState* s,
     }
     FileInfo_add(&s->file_info, &fp.path);
     const uint32_t idx = s->file_info.len - 1;
-    ++fm->current_file_idx;
     if (fm->opened_info_len == fm->opened_info_cap) {
         mycc_grow_alloc((void**)&fm->opened_info,
                         &fm->opened_info_cap,
@@ -332,34 +347,28 @@ bool PreprocState_open_file(PreprocState* s,
     };
 
     s->line_info.curr_loc = new_loc;
+    char* data = read_entire_file(fp.file);
+    if (!data) {
+        // TODO: error
+        return false;
+    }
     fm->opened_info[fm->opened_info_len] = (OpenedFileInfo){
-        .pos = -1,
+        .pos = 0,
+        .data = data,
         .prefix_idx = fp.prefix_idx,
         .loc = new_loc,
     };
     ++fm->opened_info_len;
 
-    fm->files[fm->current_file_idx] = fp.file;
-    fm->opened_info_indices[fm->current_file_idx] = fm->opened_info_len - 1;
     return true;
 }
 
 static void preproc_state_close_file(PreprocState* s) {
     FileManager* fm = &s->file_manager;
-    File_close(fm->files[fm->current_file_idx]);
+    const OpenedFileInfo* last_file = &fm->opened_info[fm->opened_info_len - 1];
+    mycc_free(last_file->data);
     --fm->opened_info_len;
     const OpenedFileInfo* info = &fm->opened_info[fm->opened_info_len - 1];
-    if (fm->current_file_idx == 0) {
-        CStr filename = StrBuf_c_str(&s->file_info.paths[info->loc.file_idx]);
-        File file = File_open(filename, FILE_READ);
-        bool res = File_seek(file, info->pos, SEEK_SET);
-        assert(res);
-        UNUSED(res);
-
-        fm->files[fm->current_file_idx] = file;
-    } else {
-        --fm->current_file_idx;
-    }
     s->line_info.next = Str_null();
     s->line_info.curr_loc = info->loc;
 }
@@ -477,10 +486,10 @@ static void FileManager_free(FileManager* fm) {
     if (fm->opened_info == NULL) {
         return;
     }
-    mycc_free(fm->opened_info);
-    for (uint32_t i = 0; i <= fm->current_file_idx; ++i) {
-        File_close(fm->files[i]);
+    for (uint32_t i = 0; i < fm->opened_info_len; ++i) {
+        mycc_free(fm->opened_info[i].data);
     }
+    mycc_free(fm->opened_info);
     for (uint32_t i = 0; i < fm->prefixes_len; ++i) {
         StrBuf_free(&fm->prefixes[i]);
     }
