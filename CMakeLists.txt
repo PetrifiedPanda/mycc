@@ -36,7 +36,6 @@ if (MYCC_ENABLE_TESTS)
 endif()
 add_subdirectory(util)
 add_subdirectory(frontend)
-add_subdirectory(backend)
 
 add_executable(mycc main.c)
 target_link_libraries(mycc mycc-frontend)
