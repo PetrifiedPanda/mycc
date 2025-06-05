@@ -53,7 +53,7 @@ static char* read_entire_file(File f) {
 static FileData create_file_data(CStr start_file, PreprocErr* err) {
     StrBuf file_name = StrBuf_create(CStr_as_str(start_file));
 
-    File file = File_open(start_file, FILE_READ);
+    File file = File_open(start_file, FILE_READ | FILE_BINARY);
     if (!File_valid(file)) {
         PreprocErr_set_file_err(err,
                                 &file_name,
@@ -268,7 +268,7 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
 
     const Str prefix_str = StrBuf_as_str(prefix);
     StrBuf full_path = StrBuf_concat(prefix_str, filename_str);
-    File file = File_open(StrBuf_c_str(&full_path), FILE_READ);
+    File file = File_open(StrBuf_c_str(&full_path), FILE_READ | FILE_BINARY);
     if (!File_valid(file)) {
         StrBuf_clear(&full_path);
         for (uint32_t i = 0; i < s->num_include_dirs; ++i) {
@@ -286,7 +286,7 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
             }
             StrBuf_append(&full_path, filename_str);
 
-            file = File_open(StrBuf_c_str(&full_path), FILE_READ);
+            file = File_open(StrBuf_c_str(&full_path), FILE_READ | FILE_BINARY);
             if (File_valid(file)) {
                 StrBuf_shrink_to_fit(&full_path);
                 break;
