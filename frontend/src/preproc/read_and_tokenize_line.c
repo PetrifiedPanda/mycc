@@ -36,7 +36,6 @@ bool read_and_tokenize_line(PreprocState* state, const ArchTypeInfo* info) {
         }
 
         if (is_preproc_directive(state->line_info.next)) {
-            // TODO: needs val arrays?
             PreprocTokenArr arr = PreprocTokenArr_create_empty();
 
             const bool res = tokenize_line(&arr, &state->vals, state->err, &state->line_info);
