@@ -83,17 +83,6 @@ TEST(simple) {
 #undef TOKEN_MACRO_INT_VAL
     };
     expected.val_indices = val_indices;
-    /*
-    TokenVal vals[] = {
-#define TOKEN_MACRO(kind, str_buf, line, idx) {.spelling = str_buf}
-#define TOKEN_MACRO_STR_LIT(kind, str_buf, line, idx) {.str_lit = {kind, str_buf}}
-#define TOKEN_MACRO_VAL(val_arg, line, idx) {.val = val_arg}
-#include "simple_expected.inc"
-#undef TOKEN_MACRO
-#undef TOKEN_MACRO_STR_LIT
-#undef TOKEN_MACRO_VAL
-    };
-    */
 
     SourceLoc locs[] = {
 #define TOKEN_MACRO(kind, str_buf, line, idx) {0, {line, idx}}
@@ -113,15 +102,6 @@ TEST(simple) {
     static_assert(EX_LEN == ARR_LEN(val_indices), "");
     static_assert(EX_LEN == ARR_LEN(locs), "");
     expected.len = expected.cap = EX_LEN;
-    /*
-    const TokenArr expected = {
-        .len = EX_LEN,
-        .cap = EX_LEN,
-        .kinds = kinds,
-        .vals = vals,
-        .locs = locs,
-    };
-    */
     check_token_arr_str(code, &expected);
 }
 
@@ -158,17 +138,7 @@ TEST(file) {
 #undef TOKEN_MACRO_FLOAT_VAL
     };
     expected.val_indices = val_indices;
-/*
-    TokenVal vals[] = {
-#define TOKEN_MACRO(kind, str_buf, line, idx) {.spelling = str_buf}
-#define TOKEN_MACRO_STR_LIT(kind, str_buf, line, idx) {.str_lit = {kind, str_buf}}
-#define TOKEN_MACRO_VAL(val_arg, line, idx) {.val = val_arg}
-#include "file_expected.inc"
-#undef TOKEN_MACRO
-#undef TOKEN_MACRO_STR_LIT
-#undef TOKEN_MACRO_VAL
-    };
-*/
+
     SourceLoc locs[] = {
 #define TOKEN_MACRO(kind, str_buf, line, idx) {0, {line, idx}}
 #define TOKEN_MACRO_IDENTIFIER(str_buf, line, idx) {0, {line, idx}}
@@ -190,15 +160,6 @@ TEST(file) {
     static_assert(EX_LEN == ARR_LEN(val_indices), "");
     static_assert(EX_LEN == ARR_LEN(locs), "");
     expected.len = expected.cap = EX_LEN;
-    /*
-    const TokenArr expected = {
-        .len = EX_LEN,
-        .cap = EX_LEN,
-        .kinds = kinds,
-        .vals = vals,
-        .locs = locs,
-    };
-    */
     check_token_arr_file(filename, &expected);
 }
 
@@ -223,13 +184,6 @@ TEST(include) {
 #undef TOKEN_MACRO_IDENTIFIER
     };
     expected.val_indices = val_indices;
-    /*
-    TokenVal vals[] = {
-#define TOKEN_MACRO(kind, str_buf, line, idx, file) {.spelling = str_buf}
-#include "include_expected.inc"
-#undef TOKEN_MACRO
-    };
-    */
 
     SourceLoc locs[] = {
 #define TOKEN_MACRO(kind, str_buf, line, idx, file) {file, {line, idx}}
@@ -246,15 +200,6 @@ TEST(include) {
     static_assert(EX_LEN == ARR_LEN(val_indices), "");
     static_assert(EX_LEN == ARR_LEN(locs), "");
     expected.len = expected.cap = EX_LEN;
-    /*
-    const TokenArr expected = {
-        .len = EX_LEN,
-        .cap = EX_LEN,
-        .kinds = kinds,
-        .vals = vals,
-        .locs = locs,
-    };
-    */
 
     check_token_arr_file(filename, &expected);
 }
@@ -288,17 +233,6 @@ TEST(preproc_if) {
 #undef TOKEN_MACRO_INT_VAL
     };
     expected.val_indices = val_indices;
-    /*
-    TokenVal vals[] = {
-#define TOKEN_MACRO(kind, str_buf, line, idx) {.spelling = str_buf}
-#define TOKEN_MACRO_STR_LIT(kind, str_buf, line, idx) {.str_lit = {kind, str_buf}}
-#define TOKEN_MACRO_VAL(val_arg, line, idx) {.val = val_arg}
-#include "preproc_if_expected.inc"
-#undef TOKEN_MACRO
-#undef TOKEN_MACRO_STR_LIT
-#undef TOKEN_MACRO_VAL
-    };
-    */
 
     SourceLoc locs[] = {
 #define TOKEN_MACRO(kind, str_buf, line, idx) {0, {line, idx}}
@@ -319,15 +253,6 @@ TEST(preproc_if) {
     static_assert(EX_LEN == ARR_LEN(val_indices), "");
     static_assert(EX_LEN == ARR_LEN(locs), "");
     expected.len = expected.cap = EX_LEN;
-    /*
-    const TokenArr expected = {
-        .len = EX_LEN,
-        .cap = EX_LEN,
-        .kinds = kinds,
-        .vals = vals,
-        .locs = locs,
-    };
-    */
     check_token_arr_file(filename, &expected);
 }
 
@@ -349,13 +274,6 @@ TEST(hex_literal_or_var) {
             TokenArr_add_int_const(&expected, IntVal_create_sint(INT_VAL_INT, 10)),
         };
         expected.val_indices = val_indices;
-        /*
-        TokenVal vals[] = {
-            {.spelling = STR_BUF_NON_HEAP("vare")},
-            {.spelling = StrBuf_null()},
-            {.val = Value_create_sint(VALUE_INT, 10)},
-        };
-        */
         SourceLoc locs[] = {
             {0, {1, 1}},
             {0, {1, 5}},
@@ -369,15 +287,6 @@ TEST(hex_literal_or_var) {
         static_assert(EX_LEN == ARR_LEN(val_indices), "");
         static_assert(EX_LEN == ARR_LEN(locs), "");
         expected.len = expected.cap = EX_LEN;
-        /*
-        const TokenArr expected = {
-            .len = EX_LEN,
-            .cap = EX_LEN,
-            .kinds = kinds,
-            .vals = vals,
-            .locs = locs,
-        };
-        */
         check_token_arr_str(code, &expected);
     }
     {
@@ -397,13 +306,6 @@ TEST(hex_literal_or_var) {
             TokenArr_add_int_const(&expected, IntVal_create_sint(INT_VAL_INT, 10)),
         };
         expected.val_indices = val_indices;
-        /*
-        TokenVal vals[] = {
-            {.spelling = STR_BUF_NON_HEAP("var2e")},
-            {.spelling = StrBuf_null()},
-            {.val = Value_create_sint(VALUE_INT, 10)},
-        };
-        */
 
         SourceLoc locs[] = {
             {0, {1, 1}},
@@ -417,15 +319,6 @@ TEST(hex_literal_or_var) {
         static_assert(EX_LEN == ARR_LEN(val_indices), "");
         static_assert(EX_LEN == ARR_LEN(locs), "");
         expected.len = expected.cap = EX_LEN;
-        /*
-        const TokenArr expected = {
-            .len = EX_LEN,
-            .cap = EX_LEN,
-            .kinds = kinds,
-            .vals = vals,
-            .locs = locs,
-        };
-        */
         check_token_arr_str(code, &expected);
     }
     {
@@ -445,13 +338,6 @@ TEST(hex_literal_or_var) {
             TokenArr_add_int_const(&expected, IntVal_create_sint(INT_VAL_INT, 10)),
         };
         expected.val_indices = val_indices;
-        /*
-        TokenVal vals[] = {
-            {.spelling = STR_BUF_NON_HEAP("var2p")},
-            {.spelling = StrBuf_null()},
-            {.val = Value_create_sint(VALUE_INT, 10)},
-        };
-        */
 
         SourceLoc locs[] = {
             {0, {1, 1}},
@@ -465,15 +351,6 @@ TEST(hex_literal_or_var) {
         static_assert(EX_LEN == ARR_LEN(val_indices), "");
         static_assert(EX_LEN == ARR_LEN(locs), "");
         expected.len = expected.cap = EX_LEN;
-        /*
-        const TokenArr expected = {
-            .len = EX_LEN,
-            .cap = EX_LEN,
-            .kinds = kinds,
-            .vals = vals,
-            .locs = locs,
-        };
-        */
         check_token_arr_str(code, &expected);
     }
 }
@@ -498,14 +375,6 @@ TEST(dot_float_literal_or_op) {
             TokenArr_add_float_const(&expected, FloatVal_create(FLOAT_VAL_DOUBLE, .001)),
         };
         expected.val_indices = val_indices;
-        /*
-        TokenVal vals[] = {
-            {.spelling = StrBuf_null()},
-            {.spelling = STR_BUF_NON_HEAP("n")},
-            {.spelling = StrBuf_null()},
-            {.val = Value_create_float(VALUE_DOUBLE, .001)},
-        };
-        */
 
         SourceLoc locs[] = {
             {0, {1, 1}},
@@ -521,15 +390,6 @@ TEST(dot_float_literal_or_op) {
         static_assert(EX_LEN == ARR_LEN(val_indices), "");
         static_assert(EX_LEN == ARR_LEN(locs), "");
         expected.len = expected.cap = EX_LEN;
-        /*
-        const TokenArr expected = {
-            .len = EX_LEN,
-            .cap = EX_LEN,
-            .kinds = kinds,
-            .vals = vals,
-            .locs = locs,
-        };
-        */
         check_token_arr_str(code, &expected);
     }
 }
