@@ -71,7 +71,6 @@ static bool tokenize_next_token(PreprocTokenArr* arr,
     }
     if (*s.it.data == '\0') {
         arr->kinds[idx] = TOKEN_INVALID;
-        // TODO:
         arr->val_indices[idx] = UINT32_MAX;
         arr->locs[idx] = (SourceLoc){
             .file_idx = UINT32_MAX,
