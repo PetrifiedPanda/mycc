@@ -26,7 +26,8 @@ void PreprocErr_set(PreprocErr* err, PreprocErrKind kind, SourceLoc loc) {
 static Str get_single_macro_op_str(SingleMacroOpKind type);
 static Str get_else_op_str(ElseOpKind type);
 
-void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
+void PreprocErr_print(File out, const FileInfo* file_info,
+                      const PreprocTokenValList* vals, PreprocErr* err) {
     assert(err->kind != PREPROC_ERR_NONE);
 
     switch (err->kind) {
@@ -205,12 +206,14 @@ void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err) {
             ErrBase_print(out, file_info, &err->base);
             ExpectedTokensErr_print(out, &err->expected_tokens_err);
             break;
-        case PREPROC_ERR_DUPLICATE_MACRO_PARAM:
+        case PREPROC_ERR_DUPLICATE_MACRO_PARAM: {
             ErrBase_print(out, file_info, &err->base);
+            const Str spelling = IndexedStringSet_get(&vals->identifiers, err->duplicate_macro_arg_id_idx);
             File_printf(out,
                         "Duplicate macro argument name \"{Str}\"",
-                        err->duplicate_arg_name);
+                        spelling);
             break;
+        }
         case PREPROC_ERR_INVALID_BACKSLASH:
             ErrBase_print(out, file_info, &err->base);
             File_put_str("Backslash \'\\\' only allowed at the end of a line",

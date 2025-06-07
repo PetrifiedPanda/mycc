@@ -124,13 +124,13 @@ static bool output_ast(const CmdArgs* args,
                                      type_info,
                                      &preproc_err);
     if (preproc_err.kind != PREPROC_ERR_NONE) {
-        PreprocErr_print(mycc_stderr, &preproc_res.file_info, &preproc_err);
+        PreprocErr_print(mycc_stderr, &preproc_res.file_info, &preproc_res.vals, &preproc_err);
         PreprocErr_free(&preproc_err);
         goto fail_preproc;
     }
     TokenArr tokens = convert_preproc_tokens(&preproc_res.toks, &preproc_res.vals, type_info, &preproc_err);
     if (tokens.len == 0) {
-        PreprocErr_print(mycc_stderr, &preproc_res.file_info, &preproc_err);
+        PreprocErr_print(mycc_stderr, &preproc_res.file_info, &preproc_res.vals, &preproc_err);
         PreprocErr_free(&preproc_err);
         goto fail_preproc;
     }

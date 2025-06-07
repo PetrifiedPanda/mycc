@@ -335,7 +335,7 @@ static bool preproc_statement(PreprocState* state,
         }
         const uint32_t identifier_idx = arr->val_indices[2];
         const Str spell = IndexedStringSet_get(&state->vals.identifiers, identifier_idx);
-        PreprocMacro macro = parse_preproc_macro(arr, &state->vals, spell.len, state->err);
+        PreprocMacro macro = parse_preproc_macro(arr, spell.len, state->err);
         if (state->err->kind != PREPROC_ERR_NONE) {
             return false;
         }

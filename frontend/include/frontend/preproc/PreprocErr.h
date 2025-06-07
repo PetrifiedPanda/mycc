@@ -7,6 +7,7 @@
 #include "frontend/ErrBase.h"
 #include "frontend/ExpectedTokensErr.h"
 
+#include "PreprocTokenArr.h"
 #include "num_parse.h"
 
 typedef enum {
@@ -90,7 +91,7 @@ typedef struct PreprocErr {
         };
         TokenKind type_instead_of_identifier;
         ExpectedTokensErr expected_tokens_err;
-        Str duplicate_arg_name;
+        uint32_t duplicate_macro_arg_id_idx;
     };
 } PreprocErr;
 
@@ -98,7 +99,8 @@ PreprocErr PreprocErr_create(void);
 
 void PreprocErr_set(PreprocErr* err, PreprocErrKind kind, SourceLoc loc);
 
-void PreprocErr_print(File out, const FileInfo* file_info, PreprocErr* err);
+void PreprocErr_print(File out, const FileInfo* file_info,
+                      const PreprocTokenValList* vals, PreprocErr* err);
 
 void PreprocErr_set_file_err(PreprocErr* err, const StrBuf* fail_filename, SourceLoc include_loc);
 

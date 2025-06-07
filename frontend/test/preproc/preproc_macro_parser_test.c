@@ -109,7 +109,7 @@ TEST(parse_obj_like) {
         PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, &vals, 10, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, 10, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
         PreprocMacro ex = {
@@ -228,7 +228,7 @@ TEST(parse_obj_like) {
         PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, &vals, 13, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, 13, &err);
 
         PreprocMacro ex = {
             .is_func_macro = false,
@@ -398,7 +398,7 @@ TEST(parse_func_like) {
         PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex, &vals);
@@ -501,7 +501,7 @@ TEST(parse_func_like) {
         PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex, &vals);
@@ -572,7 +572,7 @@ TEST(parse_func_like) {
         PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, &vals, 15, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, 15, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex, &vals);
@@ -740,7 +740,7 @@ TEST(parse_variadic) {
         PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex, &vals);
@@ -921,7 +921,7 @@ TEST(parse_variadic) {
         PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
         ASSERT(err.kind == PREPROC_ERR_NONE);
 
         compare_preproc_macros(&got, &ex, &vals);
@@ -1069,10 +1069,11 @@ TEST(parse_duplicate_arg_name) {
     val_indices[8] = ID_IDX(1);
     {
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
-        ASSERT_STR(err.duplicate_arg_name, STR_LIT("a"));
+        const Str duplicate = IndexedStringSet_get(&vals.identifiers, err.duplicate_macro_arg_id_idx);
+        ASSERT_STR(duplicate, STR_LIT("a"));
         ASSERT_UINT(err.base.loc.file_idx, 0);
         ASSERT_UINT(err.base.loc.file_loc.line, 1);
         ASSERT_UINT(err.base.loc.file_loc.index, 25);
@@ -1084,10 +1085,11 @@ TEST(parse_duplicate_arg_name) {
     val_indices[6] = ID_IDX(3);
     {
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
-        ASSERT_STR(err.duplicate_arg_name, STR_LIT("c"));
+        const Str duplicate = IndexedStringSet_get(&vals.identifiers, err.duplicate_macro_arg_id_idx);
+        ASSERT_STR(duplicate, STR_LIT("c"));
         ASSERT_UINT(err.base.loc.file_idx, 0);
         ASSERT_UINT(err.base.loc.file_loc.line, 1);
         ASSERT_UINT(err.base.loc.file_loc.index, 25);
@@ -1096,10 +1098,11 @@ TEST(parse_duplicate_arg_name) {
     val_indices[6] = ID_IDX(1);
     {
         PreprocErr err = PreprocErr_create();
-        PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
+        PreprocMacro got = parse_preproc_macro(&arr, 9, &err);
         is_zeroed_macro(&got);
         ASSERT(err.kind == PREPROC_ERR_DUPLICATE_MACRO_PARAM);
-        ASSERT_STR(err.duplicate_arg_name, STR_LIT("a"));
+        const Str duplicate = IndexedStringSet_get(&vals.identifiers, err.duplicate_macro_arg_id_idx);
+        ASSERT_STR(duplicate, STR_LIT("a"));
         ASSERT_UINT(err.base.loc.file_idx, 0);
         ASSERT_UINT(err.base.loc.file_loc.line, 1);
         ASSERT_UINT(err.base.loc.file_loc.index, 22);
@@ -1189,7 +1192,7 @@ TEST(parse_obj_like_starting_with_bracket) {
     PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
     
     PreprocErr err = PreprocErr_create();
-    PreprocMacro got = parse_preproc_macro(&arr, &vals, 4, &err);
+    PreprocMacro got = parse_preproc_macro(&arr, 4, &err);
 
     PreprocMacro ex = {
         .is_func_macro = false,

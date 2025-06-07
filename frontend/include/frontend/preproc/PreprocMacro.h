@@ -26,7 +26,6 @@ bool expand_all_macros(PreprocState* state, PreprocTokenArr* res,
 
 // TODO: change to accept the val idx instead of the name len
 PreprocMacro parse_preproc_macro(PreprocTokenArr* arr,
-                                 const PreprocTokenValList* vals,
                                  uint32_t name_len, PreprocErr* err);
 
 void PreprocMacro_free(const PreprocMacro* m);

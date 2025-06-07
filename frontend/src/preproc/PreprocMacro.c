@@ -197,24 +197,24 @@ bool expand_all_macros(PreprocState* state,
     return success.next != UINT32_MAX;
 }
 
-static uint32_t get_str_idx(Str* strs, uint32_t len, Str to_find) {
+static uint32_t get_str_idx(const uint32_t* ids, uint32_t len, uint32_t to_find) {
     for (uint32_t i = 0; i < len; ++i) {
-        if (Str_eq(strs[i], to_find)) {
+        if (ids[i] == to_find) {
             return i;
         }
     }
     return UINT32_MAX;
 }
 
-static bool is_duplicate_arg(Str spell,
+static bool is_duplicate_arg(uint32_t id_idx,
                              const SourceLoc* loc,
-                             Str* arg_spells,
+                             const uint32_t* arg_ids,
                              uint32_t num_args,
                              PreprocErr* err) {
     for (uint32_t i = 0; i < num_args; ++i) {
-        if (Str_eq(arg_spells[i], spell)) {
+        if (arg_ids[i] == id_idx) {
             PreprocErr_set(err, PREPROC_ERR_DUPLICATE_MACRO_PARAM, *loc);
-            err->duplicate_arg_name = spell;
+            err->duplicate_macro_arg_id_idx = id_idx;
             return true;
         }
     }
@@ -222,7 +222,6 @@ static bool is_duplicate_arg(Str spell,
 }
 
 static PreprocMacro parse_func_like_macro(PreprocTokenArr* arr,
-                                          const PreprocTokenValList* vals,
                                           PreprocErr* err) {
     PreprocMacro res = {
         .is_func_macro = true,
@@ -231,7 +230,7 @@ static PreprocMacro parse_func_like_macro(PreprocTokenArr* arr,
     uint32_t it = 4;
     res.num_args = 0;
 
-    Str* arg_spells = NULL;
+    uint32_t* arg_spells = NULL;
     uint32_t arg_spells_cap = 0;
     while (it < arr->len && arr->kinds[it] != TOKEN_RBRACKET
            && arr->kinds[it] != TOKEN_ELLIPSIS) {
@@ -253,10 +252,8 @@ static PreprocMacro parse_func_like_macro(PreprocTokenArr* arr,
                             sizeof *arg_spells);
         }
         const uint32_t spelling_val_idx = arr->val_indices[it];
-        Str spelling = IndexedStringSet_get(&vals->identifiers, spelling_val_idx);
-        arg_spells[res.num_args] = spelling;
-        assert(Str_valid(arg_spells[res.num_args]));
-        if (is_duplicate_arg(spelling,
+        arg_spells[res.num_args] = spelling_val_idx;
+        if (is_duplicate_arg(spelling_val_idx,
                              &arr->locs[it],
                              arg_spells,
                              res.num_args,
@@ -322,7 +319,6 @@ static PreprocMacro parse_func_like_macro(PreprocTokenArr* arr,
         uint8_t* res_kind = &res.kinds[res_idx];
         TokenValOrArg* res_val = &res.vals[res_idx];
         if (kind == TOKEN_IDENTIFIER) {
-            const Str curr_spell = IndexedStringSet_get(&vals->identifiers, val_idx);
             if (res.is_variadic
                 && val_idx == PREPROC_VA_ARGS_ID_IDX) {
                 *res_kind = TOKEN_INVALID;
@@ -332,7 +328,7 @@ static PreprocMacro parse_func_like_macro(PreprocTokenArr* arr,
 
             const uint32_t idx = get_str_idx(arg_spells,
                                              res.num_args,
-                                             curr_spell);
+                                             val_idx);
 
             if (idx != UINT32_MAX) {
                 *res_kind = TOKEN_INVALID;
@@ -386,7 +382,6 @@ static bool is_func_like_macro(const PreprocTokenArr* arr, uint32_t name_len) {
 }
 
 PreprocMacro parse_preproc_macro(PreprocTokenArr* arr,
-                                 const PreprocTokenValList* vals,
                                  uint32_t name_len, PreprocErr* err) {
     assert(arr);
     assert(arr->len >= 2);
@@ -405,7 +400,7 @@ PreprocMacro parse_preproc_macro(PreprocTokenArr* arr,
     }
 
     if (is_func_like_macro(arr, name_len)) {
-        return parse_func_like_macro(arr, vals, err);
+        return parse_func_like_macro(arr, err);
     } else {
         return parse_object_like_macro(arr);
     }
