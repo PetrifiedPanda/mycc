@@ -20,6 +20,7 @@ enum {
     PREPROC_ELIF_ID_IDX = TOKEN_NUM_KEYWORDS + 6,
     PREPROC_ENDIF_ID_IDX = TOKEN_NUM_KEYWORDS + 7,
     PREPROC_VA_ARGS_ID_IDX = TOKEN_NUM_KEYWORDS + 8,
+    PREPROC_DEFINED_ID_IDX = TOKEN_NUM_KEYWORDS + 9,
 };
 
 // Because the indices are defined relative to what will be inserted before the
@@ -37,6 +38,7 @@ static const Str preproc_identifiers[] = {
     PLACE_OFFSET(PREPROC_ELIF_ID_IDX, "elif"),
     PLACE_OFFSET(PREPROC_ENDIF_ID_IDX, "endif"),
     PLACE_OFFSET(PREPROC_VA_ARGS_ID_IDX, "__VA_ARGS__"),
+    PLACE_OFFSET(PREPROC_DEFINED_ID_IDX, "defined"),
 };
 
 #undef PLACE_OFFSET

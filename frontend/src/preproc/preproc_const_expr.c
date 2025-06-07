@@ -476,7 +476,7 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
                                                 PreprocErr* err) {
     for (uint32_t i = 2; i < arr->len; ++i) {
         if (arr->kinds[i] == TOKEN_IDENTIFIER
-            && Str_eq(IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[i]), STR_LIT("defined"))) {
+            && arr->val_indices[i] == PREPROC_DEFINED_ID_IDX) {
             if (i == arr->len - 1) {
                 // TODO: error
                 return (PreprocConstExprRes){
