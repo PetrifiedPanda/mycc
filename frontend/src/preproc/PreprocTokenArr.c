@@ -7,8 +7,6 @@ PreprocTokenArr PreprocTokenArr_create_empty(void) {
     return (PreprocTokenArr){0};
 }
 
-#include "util/File.h"
-
 PreprocTokenValList PreprocTokenValList_create(void) {
     enum {INIT_CAP = 200};
     PreprocTokenValList res = {
