@@ -12,8 +12,6 @@
 
 #include "read_and_tokenize_line.h"
 
-static TokenKind keyword_kind(Str spelling);
-
 static bool preproc_impl(PreprocState* state, const ArchTypeInfo* info);
 
 PreprocRes preproc(CStr path,
@@ -55,7 +53,7 @@ PreprocRes preproc(CStr path,
         .file_info = state.file_info,
     };
     state.toks = PreprocTokenArr_create_empty();
-    state.vals = PreprocTokenValList_create_empty();
+    state.vals = PreprocTokenValList_create();
     state.file_info = (FileInfo){
         .len = 0,
         .paths = NULL,
@@ -125,7 +123,7 @@ PreprocRes preproc_string(Str str,
         .file_info = state.file_info,
     };
     state.toks = PreprocTokenArr_create_empty();
-    state.vals = PreprocTokenValList_create_empty();
+    state.vals = PreprocTokenValList_create();
     state.file_info = (FileInfo){
         .len = 0,
         .paths = NULL,
@@ -156,6 +154,8 @@ static void* alloc_or_null(size_t bytes) {
         return mycc_alloc(bytes);
     }
 }
+
+static TokenKind keyword_kind(uint32_t id_idx);
 
 TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
                                 PreprocTokenValList* vals,
@@ -192,8 +192,7 @@ TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
         uint8_t* kind = &tokens->kinds[i];
         switch (*kind) {
             case TOKEN_IDENTIFIER: {
-                Str spelling = IndexedStringSet_get(&vals->identifiers, tokens->val_indices[i]);
-                *kind = keyword_kind(spelling);
+                *kind = keyword_kind(tokens->val_indices[i]);
                 break;
             }
             case TOKEN_PP_STRINGIFY:
@@ -266,20 +265,10 @@ TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
     return res;
 }
 
-static inline bool is_spelling(Str spelling, TokenKind type) {
-    Str expected_spell = TokenKind_get_spelling(type);
-    assert(expected_spell.data != NULL);
-    return Str_eq(spelling, expected_spell);
-}
-
-static TokenKind keyword_kind(Str spell) {
-    assert(spell.len != 0);
-    for (TokenKind e = TOKEN_KEYWORDS_START; e < TOKEN_KEYWORDS_END; ++e) {
-        if (is_spelling(spell, e)) {
-            return e;
-        }
+static TokenKind keyword_kind(uint32_t id_idx) {
+    if (id_idx < TOKEN_NUM_KEYWORDS) {
+        return TOKEN_KEYWORDS_START + id_idx;
     }
-
     return TOKEN_IDENTIFIER;
 }
 

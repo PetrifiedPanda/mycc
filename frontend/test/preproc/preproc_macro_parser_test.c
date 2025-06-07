@@ -62,6 +62,9 @@ static void compare_preproc_macros(const PreprocMacro* got,
     }
 }
 
+// Offsets the index by the identifiers already inserted
+#define ID_IDX(i) (PREPROC_TOKEN_ARR_INITIAL_ID_COUNT + i)
+
 TEST(parse_obj_like) {
     {
         // #define TEST_MACRO
@@ -83,8 +86,8 @@ TEST(parse_obj_like) {
 
         uint32_t val_indices[] = {
             UINT32_MAX,
-            0,
-            1,
+            ID_IDX(0),
+            ID_IDX(1),
         };
 
         SourceLoc locs[] = {
@@ -103,7 +106,7 @@ TEST(parse_obj_like) {
             .val_indices = val_indices,
             .locs = locs,
         };
-        PreprocTokenValList vals = PreprocTokenValList_create_empty();
+        PreprocTokenValList vals = PreprocTokenValList_create();
         PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
@@ -169,15 +172,15 @@ TEST(parse_obj_like) {
 
         uint32_t val_indices[] = {
             UINT32_MAX, // #
-            0, // define
-            1, // ANOTHER_MACRO
+            ID_IDX(0), // define
+            ID_IDX(1), // ANOTHER_MACRO
             0, // 1
             UINT32_MAX,
             1, // 2
             UINT32_MAX,
             2, // 3
             UINT32_MAX,
-            2, // func
+            ID_IDX(2), // func
             UINT32_MAX,
             3, // a
             UINT32_MAX,
@@ -223,7 +226,7 @@ TEST(parse_obj_like) {
             .val_indices = val_indices,
             .locs = locs,
         };
-        PreprocTokenValList vals = PreprocTokenValList_create_empty();
+        PreprocTokenValList vals = PreprocTokenValList_create();
         PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
@@ -296,26 +299,26 @@ TEST(parse_func_like) {
 
         uint32_t val_indices[] = {
             UINT32_MAX,
-            0, // define
-            1, // FUNC_LIKE
+            ID_IDX(0), // define
+            ID_IDX(1), // FUNC_LIKE
             UINT32_MAX,
-            2, // a
+            ID_IDX(2), // a
             UINT32_MAX,
-            3, // b
+            ID_IDX(3), // b
             UINT32_MAX,
-            4, // c
+            ID_IDX(4), // c
             UINT32_MAX,
-            2, // a
+            ID_IDX(2), // a
             UINT32_MAX,
             0, // 38
             UINT32_MAX,
-            3, // b
+            ID_IDX(3), // b
             UINT32_MAX,
-            5, // other_name
+            ID_IDX(5), // other_name
             UINT32_MAX,
-            4, // c
+            ID_IDX(4), // c
             UINT32_MAX,
-            2,
+            ID_IDX(2),
         };
 
         SourceLoc locs[] = {
@@ -394,7 +397,7 @@ TEST(parse_func_like) {
             .val_indices = val_indices,
             .locs = locs,
         };
-        PreprocTokenValList vals = PreprocTokenValList_create_empty();
+        PreprocTokenValList vals = PreprocTokenValList_create();
         PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
@@ -442,8 +445,8 @@ TEST(parse_func_like) {
 
         uint32_t val_indices[] = {
             UINT32_MAX,
-            0, // define
-            1, // NO_PARAMS
+            ID_IDX(0), // define
+            ID_IDX(1), // NO_PARAMS
             UINT32_MAX,
             UINT32_MAX,
             0, // 1
@@ -498,7 +501,7 @@ TEST(parse_func_like) {
             .val_indices = val_indices,
             .locs = locs,
         };
-        PreprocTokenValList vals = PreprocTokenValList_create_empty();
+        PreprocTokenValList vals = PreprocTokenValList_create();
         PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
@@ -533,8 +536,8 @@ TEST(parse_func_like) {
 
         uint32_t val_indices[] = {
             UINT32_MAX,
-            0, // define
-            1, // NO_PARAMS_EMPTY
+            ID_IDX(0), // define
+            ID_IDX(1), // NO_PARAMS_EMPTY
             UINT32_MAX,
             UINT32_MAX,
         };
@@ -570,7 +573,7 @@ TEST(parse_func_like) {
             .val_indices = val_indices,
             .locs = locs,
         };
-        PreprocTokenValList vals = PreprocTokenValList_create_empty();
+        PreprocTokenValList vals = PreprocTokenValList_create();
         PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
@@ -636,28 +639,28 @@ TEST(parse_variadic) {
 
         uint32_t val_indices[] = {
             UINT32_MAX,
-            0, // define
-            1, // FUNC_LIKE
+            ID_IDX(0), // define
+            ID_IDX(1), // FUNC_LIKE
             UINT32_MAX,
-            2, // a,
+            ID_IDX(2), // a,
             UINT32_MAX,
-            3, // b
+            ID_IDX(3), // b
             UINT32_MAX,
-            4, // c
+            ID_IDX(4), // c
             UINT32_MAX,
             UINT32_MAX,
             UINT32_MAX,
-            2, // a
+            ID_IDX(2), // a
             UINT32_MAX,
             0, // 38
             UINT32_MAX,
-            3, // b
+            ID_IDX(3), // b
             UINT32_MAX,
-            5, // other_name
+            ID_IDX(5), // other_name
             UINT32_MAX,
-            4, // c
+            ID_IDX(4), // c
             UINT32_MAX,
-            2, // a
+            ID_IDX(2), // a
         };
 
 
@@ -739,7 +742,7 @@ TEST(parse_variadic) {
             .val_indices = val_indices,
             .locs = locs,
         };
-        PreprocTokenValList vals = PreprocTokenValList_create_empty();
+        PreprocTokenValList vals = PreprocTokenValList_create();
         PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
@@ -808,31 +811,31 @@ TEST(parse_variadic) {
 
         uint32_t val_indices[] = {
             UINT32_MAX,
-            0, // define
-            1, // FUNC_LIKE
+            ID_IDX(0), // define
+            ID_IDX(1), // FUNC_LIKE
             UINT32_MAX,
-            2, // a
+            ID_IDX(2), // a
             UINT32_MAX,
-            3, // b
+            ID_IDX(3), // b
             UINT32_MAX,
-            4, // c
+            ID_IDX(4), // c
             UINT32_MAX,
             UINT32_MAX,
             UINT32_MAX,
-            2, // a
+            ID_IDX(2), // a
             UINT32_MAX,
             0, // 38
             UINT32_MAX,
-            3, // b
+            ID_IDX(3), // b
             UINT32_MAX,
-            5, // other_name
+            ID_IDX(5), // other_name
             UINT32_MAX,
-            6, // __VA_ARGS__
+            ID_IDX(6), // __VA_ARGS__
             UINT32_MAX,
             UINT32_MAX,
-            4, // c
+            ID_IDX(4), // c
             UINT32_MAX,
-            2, // a
+            ID_IDX(2), // a
         };
 
         SourceLoc locs[] = {
@@ -922,7 +925,7 @@ TEST(parse_variadic) {
             .val_indices = val_indices,
             .locs = locs,
         };
-        PreprocTokenValList vals = PreprocTokenValList_create_empty();
+        PreprocTokenValList vals = PreprocTokenValList_create();
         PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
         PreprocErr err = PreprocErr_create();
@@ -1001,31 +1004,31 @@ TEST(parse_duplicate_arg_name) {
 
     uint32_t val_indices[] = {
         UINT32_MAX,
-        0, // define
-        1, // FUNC_LIKE
+        ID_IDX(0), // define
+        ID_IDX(1), // FUNC_LIKE
         UINT32_MAX,
-        2, // a
+        ID_IDX(2), // a
         UINT32_MAX,
-        3, // b
+        ID_IDX(3), // b
         UINT32_MAX,
-        4, // c
+        ID_IDX(4), // c
         UINT32_MAX,
         UINT32_MAX,
         UINT32_MAX,
-        2, // a
+        ID_IDX(2), // a
         UINT32_MAX,
         0, // 38
         UINT32_MAX,
-        3, // b
+        ID_IDX(3), // b
         UINT32_MAX,
-        5, // other_name
+        ID_IDX(5), // other_name
         UINT32_MAX,
-        6, // __VA_ARGS__
+        ID_IDX(6), // __VA_ARGS__
         UINT32_MAX,
         UINT32_MAX,
-        4, // c
+        ID_IDX(4), // c
         UINT32_MAX,
-        2, // a
+        ID_IDX(2), // a
     };
 
     SourceLoc locs[] = {
@@ -1069,11 +1072,11 @@ TEST(parse_duplicate_arg_name) {
         .val_indices = val_indices,
         .locs = locs,
     };
-    PreprocTokenValList vals = PreprocTokenValList_create_empty();
+    PreprocTokenValList vals = PreprocTokenValList_create();
     PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
     // change c to a
-    val_indices[8] = 2;
+    val_indices[8] = ID_IDX(2);
     {
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
@@ -1086,9 +1089,9 @@ TEST(parse_duplicate_arg_name) {
     }
 
     // change a back to c
-    val_indices[8] = 4;
+    val_indices[8] = ID_IDX(4);
     // change b to c
-    val_indices[6] = 4;
+    val_indices[6] = ID_IDX(4);
     {
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
@@ -1100,7 +1103,7 @@ TEST(parse_duplicate_arg_name) {
         ASSERT_UINT(err.base.loc.file_loc.index, 25);
     }
     // change c to a
-    val_indices[6] = 2;
+    val_indices[6] = ID_IDX(2);
     {
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
@@ -1148,7 +1151,7 @@ TEST(parse_obj_like_starting_with_bracket) {
 
     uint32_t val_indices[] = {
         UINT32_MAX,
-        0, // define
+        ID_IDX(0), // define
         UINT32_MAX,
         UINT32_MAX,
         UINT32_MAX,
@@ -1196,7 +1199,7 @@ TEST(parse_obj_like_starting_with_bracket) {
         .val_indices = val_indices,
         .locs = locs,
     };
-    PreprocTokenValList vals = PreprocTokenValList_create_empty();
+    PreprocTokenValList vals = PreprocTokenValList_create();
     PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
     
     PreprocErr err = PreprocErr_create();

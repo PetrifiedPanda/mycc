@@ -6,6 +6,8 @@
 
 #include "frontend/Token.h"
 
+enum {PREPROC_TOKEN_ARR_INITIAL_ID_COUNT = TOKEN_NUM_KEYWORDS};
+
 // val_indices is an index into the corresponding list in PreprocTokenValList
 // This is separated, as we can have multiple PreprocTokenArrs (when handling
 // preprocessor directives) but only ever one PreprocTokenValList
@@ -23,7 +25,7 @@ typedef struct PreprocTokenValList {
     IndexedStringSet str_lits;
 } PreprocTokenValList;
 
-PreprocTokenValList PreprocTokenValList_create_empty(void);
+PreprocTokenValList PreprocTokenValList_create(void);
 
 void PreprocTokenValList_free(const PreprocTokenValList* vals);
 

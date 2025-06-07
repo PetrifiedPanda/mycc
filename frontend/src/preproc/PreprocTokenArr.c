@@ -7,14 +7,18 @@ PreprocTokenArr PreprocTokenArr_create_empty(void) {
     return (PreprocTokenArr){0};
 }
 
-PreprocTokenValList PreprocTokenValList_create_empty(void) {
+PreprocTokenValList PreprocTokenValList_create(void) {
     enum {INIT_CAP = 200};
-    return (PreprocTokenValList){
+    PreprocTokenValList res = {
         .identifiers = IndexedStringSet_create(INIT_CAP),
         .int_consts = IndexedStringSet_create(INIT_CAP),
         .float_consts = IndexedStringSet_create(INIT_CAP),
         .str_lits = IndexedStringSet_create(INIT_CAP),
     };
+    for (TokenKind k = TOKEN_KEYWORDS_START; k < TOKEN_KEYWORDS_END; ++k) {
+        PreprocTokenValList_add_identifier(&res, TokenKind_get_spelling(k));
+    }
+    return res;
 }
 
 void PreprocTokenValList_free(const PreprocTokenValList* vals) {
@@ -54,7 +58,7 @@ uint32_t PreprocTokenValList_add_str_lit(PreprocTokenValList* vals, Str str) {
     for (uint32_t i = 0; i < len; ++i) {
         const uint32_t idx = add_func(res, strings[i]);
         UNUSED(idx);
-        assert(idx == i);
+        //assert(idx == i);
     }
 }
 

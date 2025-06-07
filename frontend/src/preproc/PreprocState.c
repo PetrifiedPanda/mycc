@@ -110,7 +110,7 @@ PreprocState PreprocState_create(CStr start_file,
     }
     return (PreprocState){
         .toks = PreprocTokenArr_create_empty(),
-        .vals = PreprocTokenValList_create_empty(),
+        .vals = PreprocTokenValList_create(),
         .line_info =
             {
                 .line = StrBuf_create_empty(),
@@ -141,7 +141,7 @@ PreprocState PreprocState_create_string(Str code,
     StrBuf filename_str = StrBuf_create(filename);
     return (PreprocState){
         .toks = PreprocTokenArr_create_empty(),
-        .vals = PreprocTokenValList_create_empty(),
+        .vals = PreprocTokenValList_create(),
         .line_info =
             {
                 .line = StrBuf_create_empty(),

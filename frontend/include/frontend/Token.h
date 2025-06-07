@@ -16,6 +16,8 @@ typedef enum {
 #undef META_TOKEN_MACRO
 } TokenKind;
 
+enum {TOKEN_NUM_KEYWORDS = TOKEN_KEYWORDS_END - TOKEN_KEYWORDS_START};
+
 _Static_assert(TOKEN_INVALID < 255, "TokenKind does not fit into 8-bit integer");
 
 typedef struct FileLoc {
