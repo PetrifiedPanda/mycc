@@ -75,7 +75,6 @@ TEST(parse_obj_like) {
         };
 
         const Str identifiers[] = {
-            STR_LIT("define"),
             STR_LIT("TEST_MACRO"),
         };
 
@@ -86,8 +85,8 @@ TEST(parse_obj_like) {
 
         uint32_t val_indices[] = {
             UINT32_MAX,
+            PREPROC_DEFINE_ID_IDX,
             ID_IDX(0),
-            ID_IDX(1),
         };
 
         SourceLoc locs[] = {
@@ -150,7 +149,6 @@ TEST(parse_obj_like) {
         };
 
         const Str identifiers[] = {
-            STR_LIT("define"),
             STR_LIT("ANOTHER_MACRO"),
             STR_LIT("func"),
             STR_LIT("a"),
@@ -172,19 +170,19 @@ TEST(parse_obj_like) {
 
         uint32_t val_indices[] = {
             UINT32_MAX, // #
-            ID_IDX(0), // define
-            ID_IDX(1), // ANOTHER_MACRO
+            PREPROC_DEFINE_ID_IDX, // define
+            ID_IDX(0), // ANOTHER_MACRO
             0, // 1
             UINT32_MAX,
             1, // 2
             UINT32_MAX,
             2, // 3
             UINT32_MAX,
-            ID_IDX(2), // func
+            ID_IDX(1), // func
             UINT32_MAX,
-            3, // a
+            ID_IDX(2), // a
             UINT32_MAX,
-            4, // b
+            ID_IDX(3), // b
             UINT32_MAX,
         };
 
@@ -278,7 +276,6 @@ TEST(parse_func_like) {
         };
 
         const Str identifiers[] = {
-            STR_LIT("define"),
             STR_LIT("FUNC_LIKE"),
             STR_LIT("a"),
             STR_LIT("b"),
@@ -299,26 +296,26 @@ TEST(parse_func_like) {
 
         uint32_t val_indices[] = {
             UINT32_MAX,
-            ID_IDX(0), // define
-            ID_IDX(1), // FUNC_LIKE
+            PREPROC_DEFINE_ID_IDX, // define
+            ID_IDX(0), // FUNC_LIKE
             UINT32_MAX,
-            ID_IDX(2), // a
+            ID_IDX(1), // a
             UINT32_MAX,
-            ID_IDX(3), // b
+            ID_IDX(2), // b
             UINT32_MAX,
-            ID_IDX(4), // c
+            ID_IDX(3), // c
             UINT32_MAX,
-            ID_IDX(2), // a
+            ID_IDX(1), // a
             UINT32_MAX,
             0, // 38
             UINT32_MAX,
-            ID_IDX(3), // b
+            ID_IDX(2), // b
             UINT32_MAX,
-            ID_IDX(5), // other_name
+            ID_IDX(4), // other_name
             UINT32_MAX,
-            ID_IDX(4), // c
+            ID_IDX(3), // c
             UINT32_MAX,
-            ID_IDX(2),
+            ID_IDX(1),
         };
 
         SourceLoc locs[] = {
@@ -426,7 +423,6 @@ TEST(parse_func_like) {
         };
 
         const Str identifiers[] = {
-            STR_LIT("define"),
             STR_LIT("NO_PARAMS"),
         };
 
@@ -445,8 +441,8 @@ TEST(parse_func_like) {
 
         uint32_t val_indices[] = {
             UINT32_MAX,
-            ID_IDX(0), // define
-            ID_IDX(1), // NO_PARAMS
+            PREPROC_DEFINE_ID_IDX, // define
+            ID_IDX(0), // NO_PARAMS
             UINT32_MAX,
             UINT32_MAX,
             0, // 1
@@ -525,7 +521,6 @@ TEST(parse_func_like) {
         };
 
         const Str identifiers[] = {
-            STR_LIT("define"),
             STR_LIT("NO_PARAMS_EMPTY"),
         };
 
@@ -536,8 +531,8 @@ TEST(parse_func_like) {
 
         uint32_t val_indices[] = {
             UINT32_MAX,
-            ID_IDX(0), // define
-            ID_IDX(1), // NO_PARAMS_EMPTY
+            PREPROC_DEFINE_ID_IDX, // define
+            ID_IDX(0), // NO_PARAMS_EMPTY
             UINT32_MAX,
             UINT32_MAX,
         };
@@ -618,7 +613,6 @@ TEST(parse_variadic) {
         };
 
         const Str identifiers[] = {
-            STR_LIT("define"),
             STR_LIT("FUNC_LIKE"),
             STR_LIT("a"),
             STR_LIT("b"),
@@ -639,28 +633,28 @@ TEST(parse_variadic) {
 
         uint32_t val_indices[] = {
             UINT32_MAX,
-            ID_IDX(0), // define
-            ID_IDX(1), // FUNC_LIKE
+            PREPROC_DEFINE_ID_IDX, // define
+            ID_IDX(0), // FUNC_LIKE
             UINT32_MAX,
-            ID_IDX(2), // a,
+            ID_IDX(1), // a,
             UINT32_MAX,
-            ID_IDX(3), // b
+            ID_IDX(2), // b
             UINT32_MAX,
-            ID_IDX(4), // c
+            ID_IDX(3), // c
             UINT32_MAX,
             UINT32_MAX,
             UINT32_MAX,
-            ID_IDX(2), // a
+            ID_IDX(1), // a
             UINT32_MAX,
             0, // 38
             UINT32_MAX,
-            ID_IDX(3), // b
+            ID_IDX(2), // b
             UINT32_MAX,
-            ID_IDX(5), // other_name
+            ID_IDX(4), // other_name
             UINT32_MAX,
-            ID_IDX(4), // c
+            ID_IDX(3), // c
             UINT32_MAX,
-            ID_IDX(2), // a
+            ID_IDX(1), // a
         };
 
 
@@ -789,13 +783,11 @@ TEST(parse_variadic) {
         };
 
         const Str identifiers[] = {
-            STR_LIT("define"),
             STR_LIT("FUNC_LIKE"),
             STR_LIT("a"),
             STR_LIT("b"),
             STR_LIT("c"),
             STR_LIT("other_name"),
-            STR_LIT("__VA_ARGS__"),
         };
 
         const Str int_consts[] = {
@@ -811,31 +803,31 @@ TEST(parse_variadic) {
 
         uint32_t val_indices[] = {
             UINT32_MAX,
-            ID_IDX(0), // define
-            ID_IDX(1), // FUNC_LIKE
+            PREPROC_DEFINE_ID_IDX, // define
+            ID_IDX(0), // FUNC_LIKE
             UINT32_MAX,
-            ID_IDX(2), // a
+            ID_IDX(1), // a
             UINT32_MAX,
-            ID_IDX(3), // b
+            ID_IDX(2), // b
             UINT32_MAX,
-            ID_IDX(4), // c
+            ID_IDX(3), // c
             UINT32_MAX,
             UINT32_MAX,
             UINT32_MAX,
-            ID_IDX(2), // a
+            ID_IDX(1), // a
             UINT32_MAX,
             0, // 38
             UINT32_MAX,
-            ID_IDX(3), // b
+            ID_IDX(2), // b
             UINT32_MAX,
-            ID_IDX(5), // other_name
+            ID_IDX(4), // other_name
             UINT32_MAX,
-            ID_IDX(6), // __VA_ARGS__
+            PREPROC_VA_ARGS_ID_IDX, // __VA_ARGS__
             UINT32_MAX,
             UINT32_MAX,
-            ID_IDX(4), // c
+            ID_IDX(3), // c
             UINT32_MAX,
-            ID_IDX(2), // a
+            ID_IDX(1), // a
         };
 
         SourceLoc locs[] = {
@@ -982,13 +974,11 @@ TEST(parse_duplicate_arg_name) {
     };
 
     const Str identifiers[] = {
-        STR_LIT("define"),
         STR_LIT("FUNC_LIKE"),
         STR_LIT("a"),
         STR_LIT("b"),
         STR_LIT("c"),
         STR_LIT("other_name"),
-        STR_LIT("__VA_ARGS__"),
     };
 
     const Str int_consts[] = {
@@ -1004,31 +994,31 @@ TEST(parse_duplicate_arg_name) {
 
     uint32_t val_indices[] = {
         UINT32_MAX,
-        ID_IDX(0), // define
-        ID_IDX(1), // FUNC_LIKE
+        PREPROC_DEFINE_ID_IDX, // define
+        ID_IDX(0), // FUNC_LIKE
         UINT32_MAX,
-        ID_IDX(2), // a
+        ID_IDX(1), // a
         UINT32_MAX,
-        ID_IDX(3), // b
+        ID_IDX(2), // b
         UINT32_MAX,
-        ID_IDX(4), // c
+        ID_IDX(3), // c
         UINT32_MAX,
         UINT32_MAX,
         UINT32_MAX,
-        ID_IDX(2), // a
+        ID_IDX(1), // a
         UINT32_MAX,
         0, // 38
         UINT32_MAX,
-        ID_IDX(3), // b
+        ID_IDX(2), // b
         UINT32_MAX,
-        ID_IDX(5), // other_name
+        ID_IDX(4), // other_name
         UINT32_MAX,
-        ID_IDX(6), // __VA_ARGS__
+        PREPROC_VA_ARGS_ID_IDX, // __VA_ARGS__
         UINT32_MAX,
         UINT32_MAX,
-        ID_IDX(4), // c
+        ID_IDX(3), // c
         UINT32_MAX,
-        ID_IDX(2), // a
+        ID_IDX(1), // a
     };
 
     SourceLoc locs[] = {
@@ -1076,7 +1066,7 @@ TEST(parse_duplicate_arg_name) {
     PreprocTokenValList_insert_initial_strings(&vals, &initial_strs);
 
     // change c to a
-    val_indices[8] = ID_IDX(2);
+    val_indices[8] = ID_IDX(1);
     {
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
@@ -1089,9 +1079,9 @@ TEST(parse_duplicate_arg_name) {
     }
 
     // change a back to c
-    val_indices[8] = ID_IDX(4);
+    val_indices[8] = ID_IDX(3);
     // change b to c
-    val_indices[6] = ID_IDX(4);
+    val_indices[6] = ID_IDX(3);
     {
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
@@ -1103,7 +1093,7 @@ TEST(parse_duplicate_arg_name) {
         ASSERT_UINT(err.base.loc.file_loc.index, 25);
     }
     // change c to a
-    val_indices[6] = ID_IDX(2);
+    val_indices[6] = ID_IDX(1);
     {
         PreprocErr err = PreprocErr_create();
         PreprocMacro got = parse_preproc_macro(&arr, &vals, 9, &err);
@@ -1134,24 +1124,20 @@ TEST(parse_obj_like_starting_with_bracket) {
         TOKEN_RBRACKET,
     };
 
-    const Str identifiers[] = {
-        STR_LIT("define"),
-    };
-
     const Str int_consts[] = {
         STR_LIT("0"),
     };
 
     const PreprocInitialStrings initial_strs = {
-        .identifiers = identifiers,
-        .identifiers_len = ARR_LEN(identifiers),
+        .identifiers = NULL,
+        .identifiers_len = 0,
         .int_consts = int_consts,
         .int_consts_len = ARR_LEN(int_consts),
     };
 
     uint32_t val_indices[] = {
         UINT32_MAX,
-        ID_IDX(0), // define
+        PREPROC_DEFINE_ID_IDX, // define
         UINT32_MAX,
         UINT32_MAX,
         UINT32_MAX,

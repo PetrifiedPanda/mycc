@@ -7,6 +7,8 @@ PreprocTokenArr PreprocTokenArr_create_empty(void) {
     return (PreprocTokenArr){0};
 }
 
+#include "util/File.h"
+
 PreprocTokenValList PreprocTokenValList_create(void) {
     enum {INIT_CAP = 200};
     PreprocTokenValList res = {
@@ -16,7 +18,14 @@ PreprocTokenValList PreprocTokenValList_create(void) {
         .str_lits = IndexedStringSet_create(INIT_CAP),
     };
     for (TokenKind k = TOKEN_KEYWORDS_START; k < TOKEN_KEYWORDS_END; ++k) {
-        PreprocTokenValList_add_identifier(&res, TokenKind_get_spelling(k));
+        uint32_t idx = PreprocTokenValList_add_identifier(&res, TokenKind_get_spelling(k));
+        UNUSED(idx);
+        assert(idx == IndexedStringSet_len(&res.identifiers) - 1);
+    }
+    for (uint32_t i = 0; i < ARR_LEN(preproc_identifiers); ++i) {
+        uint32_t idx = PreprocTokenValList_add_identifier(&res, preproc_identifiers[i]);
+        UNUSED(idx);
+        assert(idx == IndexedStringSet_len(&res.identifiers) - 1);
     }
     return res;
 }
@@ -52,30 +61,26 @@ uint32_t PreprocTokenValList_add_str_lit(PreprocTokenValList* vals, Str str) {
 
 #ifdef MYCC_TEST_FUNCTIONALITY
 
-    static void insert_strings(PreprocTokenValList* res,
-                           uint32_t len, const Str* strings,
-                           uint32_t(*add_func)(PreprocTokenValList*, Str str)) {
+static void insert_strings(IndexedStringSet* res,
+                           uint32_t len, const Str* strings) {
     for (uint32_t i = 0; i < len; ++i) {
-        const uint32_t idx = add_func(res, strings[i]);
+        const uint32_t idx = IndexedStringSet_find_or_insert(res, strings[i]);
         UNUSED(idx);
-        //assert(idx == i);
+        // Make sure this identifier was not already added
+        assert(idx == IndexedStringSet_len(res) - 1);
     }
 }
 
 void PreprocTokenValList_insert_initial_strings(PreprocTokenValList* res,
                                                 const PreprocInitialStrings* initial_strs) {
-    insert_strings(res,
-                   initial_strs->identifiers_len, initial_strs->identifiers,
-                   PreprocTokenValList_add_identifier);
-    insert_strings(res,
-                   initial_strs->int_consts_len, initial_strs->int_consts,
-                   PreprocTokenValList_add_int_const);
-    insert_strings(res,
-                   initial_strs->float_consts_len, initial_strs->float_consts,
-                   PreprocTokenValList_add_float_const);
-    insert_strings(res,
-                   initial_strs->str_lits_len, initial_strs->str_lits,
-                   PreprocTokenValList_add_str_lit);    
+    insert_strings(&res->identifiers,
+                   initial_strs->identifiers_len, initial_strs->identifiers);
+    insert_strings(&res->int_consts,
+                   initial_strs->int_consts_len, initial_strs->int_consts);
+    insert_strings(&res->float_consts,
+                   initial_strs->float_consts_len, initial_strs->float_consts);
+    insert_strings(&res->str_lits,
+                   initial_strs->str_lits_len, initial_strs->str_lits);    
 }
 
 #endif

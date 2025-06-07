@@ -324,7 +324,7 @@ static PreprocMacro parse_func_like_macro(PreprocTokenArr* arr,
         if (kind == TOKEN_IDENTIFIER) {
             const Str curr_spell = IndexedStringSet_get(&vals->identifiers, val_idx);
             if (res.is_variadic
-                && Str_eq(curr_spell, STR_LIT("__VA_ARGS__"))) {
+                && val_idx == PREPROC_VA_ARGS_ID_IDX) {
                 *res_kind = TOKEN_INVALID;
                 res_val->arg_num = res.num_args;
                 continue;
@@ -392,7 +392,7 @@ PreprocMacro parse_preproc_macro(PreprocTokenArr* arr,
     assert(arr->len >= 2);
     assert(arr->kinds[0] == TOKEN_PP_STRINGIFY);
     assert(arr->kinds[1] == TOKEN_IDENTIFIER);
-    assert(Str_eq(IndexedStringSet_get(&vals->identifiers, arr->val_indices[1]), STR_LIT("define")));
+    assert(arr->val_indices[1] == PREPROC_DEFINE_ID_IDX);
 
     if (arr->len < 3) {
         assert(arr->len > 0);

@@ -3,6 +3,7 @@
 #include <ctype.h>
 
 #include "frontend/preproc/PreprocMacro.h"
+#include "frontend/preproc/PreprocTokenArr.h"
 #include "frontend/preproc/preproc_const_expr.h"
 
 #include "tokenizer.h"
@@ -178,10 +179,9 @@ static bool handle_ifdef_ifndef(PreprocState* state,
     assert(arr->kinds[1] == TOKEN_IDENTIFIER);
     assert(
         (!is_ifndef
-         && Str_eq(IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[1]), STR_LIT("ifdef")))
+         && arr->val_indices[1] == PREPROC_IFDEF_ID_IDX)
         || (is_ifndef
-            && Str_eq(IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[1]),
-                      STR_LIT("ifndef"))));
+            && arr->val_indices[1] == PREPROC_IFNDEF_ID_IDX));
     const SourceLoc loc = arr->locs[1];
 
     if (arr->len < 3) {
@@ -311,10 +311,9 @@ static bool preproc_statement(PreprocState* state,
         return false;
     }
 
-    const Str directive = IndexedStringSet_get(&state->vals.identifiers, arr->val_indices[1]);
-    assert(Str_valid(directive));
+    const uint32_t directive_id_idx = arr->val_indices[1];
 
-    if (Str_eq(directive, STR_LIT("if"))) {
+    if (directive_id_idx == PREPROC_IF_ID_IDX) {
         PreprocConstExprRes res = evaluate_preproc_const_expr(state,
                                                               arr,
                                                               info,
@@ -323,11 +322,11 @@ static bool preproc_statement(PreprocState* state,
             return false;
         }
         return handle_preproc_if(state, res.res, arr->locs[1], info);
-    } else if (Str_eq(directive, STR_LIT("ifdef"))) {
+    } else if (directive_id_idx == PREPROC_IFDEF_ID_IDX) {
         return handle_ifdef_ifndef(state, arr, false, info);
-    } else if (Str_eq(directive, STR_LIT("ifndef"))) {
+    } else if (directive_id_idx == PREPROC_IFNDEF_ID_IDX) {
         return handle_ifdef_ifndef(state, arr, true, info);
-    } else if (Str_eq(directive, STR_LIT("define"))) {
+    } else if (directive_id_idx == PREPROC_DEFINE_ID_IDX) {
         const TokenKind macro_name_kind = arr->kinds[2];
         if (macro_name_kind != TOKEN_IDENTIFIER) {
             PreprocErr_set(state->err, PREPROC_ERR_EXPECTED_TOKENS, arr->locs[2]);
@@ -341,7 +340,7 @@ static bool preproc_statement(PreprocState* state,
             return false;
         }
         PreprocState_register_macro(state, identifier_idx, &macro);
-    } else if (Str_eq(directive, STR_LIT("undef"))) {
+    } else if (directive_id_idx == PREPROC_UNDEF_ID_IDX) {
         if (arr->len < 3) {
             PreprocErr_set(state->err,
                            PREPROC_ERR_ARG_COUNT,
@@ -366,15 +365,15 @@ static bool preproc_statement(PreprocState* state,
         }
 
         PreprocState_remove_macro(state, arr->val_indices[2]);
-    } else if (Str_eq(directive, STR_LIT("include"))) {
+    } else if (directive_id_idx == PREPROC_INCLUDE_ID_IDX) {
         return handle_include(state, arr, info);
-    } else if (Str_eq(directive, STR_LIT("pragma"))) {
+    } else if (directive_id_idx == PREPROC_PRAGMA_ID_IDX) {
         // TODO:
-    } else if (Str_eq(directive, STR_LIT("elif"))) {
+    } else if (directive_id_idx == PREPROC_ELIF_ID_IDX) {
         return handle_else_elif(state, arr, false, info);
-    } else if (Str_eq(directive, STR_LIT("else"))) {
+    } else if (directive_id_idx == PREPROC_ELSE_ID_IDX) {
         return handle_else_elif(state, arr, true, info);
-    } else if (Str_eq(directive, STR_LIT("endif"))) {
+    } else if (directive_id_idx == PREPROC_ENDIF_ID_IDX) {
         if (state->conds_len == 0) {
             PreprocErr_set(state->err,
                            PREPROC_ERR_MISSING_IF,
