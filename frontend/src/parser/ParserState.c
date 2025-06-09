@@ -5,8 +5,6 @@
 
 #include "util/mem.h"
 
-#include "frontend/parser/parser_util.h"
-
 typedef enum {
     ID_KIND_NONE,
     ID_KIND_TYPEDEF_NAME,
@@ -58,42 +56,22 @@ void ParserState_free(ParserState* s) {
     mycc_free(s->_scope_maps);
 }
 
-bool ParserState_accept(ParserState* s, TokenKind expected) {
-    if (ParserState_curr_kind(s) != expected) {
-        expected_token_error(s, expected);
-        return false;
-    } else {
-        ++s->it;
-        return true;
-    }
+void expected_token_error(ParserState* s, TokenKind expected) {
+    ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it);
+    s->err->expected_tokens_err = ExpectedTokensErr_create_single_token(
+        ParserState_curr_kind(s),
+        expected);
 }
 
-void ParserState_accept_it(ParserState* s) {
-    assert(s->it != s->_arr.len);
-    ++s->it;
-}
-
-uint32_t ParserState_curr_id_idx(const ParserState* s) {
-    assert(s->_arr.kinds[s->it] == TOKEN_IDENTIFIER);
-    return s->_arr.val_indices[s->it];
-}
-
-TokenKind ParserState_curr_kind(const ParserState* s) {
-    if (s->it == s->_arr.len) {
-        return TOKEN_INVALID;
-    }
-    return s->_arr.kinds[s->it];
-}
-
-TokenKind ParserState_next_token_kind(const ParserState* s) {
-    assert(s->it < s->_arr.len - 1);
-    return s->_arr.kinds[s->it + 1];
-}
-
-uint32_t ParserState_next_token_id_idx(const ParserState* s) {
-    assert(s->it < s->_arr.len - 1);
-    assert(s->_arr.kinds[s->it + 1] == TOKEN_IDENTIFIER);
-    return s->_arr.val_indices[s->it + 1];
+void expected_tokens_error(ParserState* s,
+                           const TokenKind* expected,
+                           uint32_t num_expected) {
+    assert(expected);
+    ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it);
+    s->err->expected_tokens_err = ExpectedTokensErr_create(
+        ParserState_curr_kind(s),
+        expected,
+        num_expected);
 }
 
 void ParserState_push_scope(ParserState* s) {

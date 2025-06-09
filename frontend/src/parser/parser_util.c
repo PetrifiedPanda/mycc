@@ -2,26 +2,6 @@
 
 #include <assert.h>
 
-#include "frontend/parser/ParserErr.h"
-
-void expected_token_error(ParserState* s, TokenKind expected) {
-    ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it);
-    s->err->expected_tokens_err = ExpectedTokensErr_create_single_token(
-        ParserState_curr_kind(s),
-        expected);
-}
-
-void expected_tokens_error(ParserState* s,
-                           const TokenKind* expected,
-                           uint32_t num_expected) {
-    assert(expected);
-    ParserErr_set(s->err, PARSER_ERR_EXPECTED_TOKENS, s->it);
-    s->err->expected_tokens_err = ExpectedTokensErr_create(
-        ParserState_curr_kind(s),
-        expected,
-        num_expected);
-}
-
 bool is_storage_class_spec(TokenKind k) {
     switch (k) {
         case TOKEN_TYPEDEF:
