@@ -1,6 +1,7 @@
 #include "frontend/ast/ast_dumper.h"
 
 #include "util/macro_util.h"
+#include "util/log.h"
 
 typedef struct {
     File f;
@@ -14,15 +15,15 @@ static void ASTDumper_free(ASTDumper* d) {
 
 static const char INDENTATION[] = "  ";
 
-void add_indent(ASTDumper* d) {
+static void add_indent(ASTDumper* d) {
     StrBuf_append(&d->indents, STR_LIT(INDENTATION));
 }
 
-void remove_indent(ASTDumper* d) {
+static void remove_indent(ASTDumper* d) {
     StrBuf_remove_back(&d->indents, STR_LIT(INDENTATION).len);
 }
 
-void ASTDumper_println_val(ASTDumper* d, Str format, ...) {
+static void ASTDumper_println_val(ASTDumper* d, Str format, ...) {
     File_put_str_val(StrBuf_as_str(&d->indents), d->f);
     va_list args;
     va_start(args, format);
@@ -34,14 +35,6 @@ void ASTDumper_println_val(ASTDumper* d, Str format, ...) {
 #define ASTDumper_println(dumper, str_lit, ...)                                \
     ASTDumper_println_val(dumper, STR_LIT(str_lit), __VA_ARGS__)
 
-void ASTDumper_put_strln_val(Str str, ASTDumper* d) {
-    File_put_str_val(StrBuf_as_str(&d->indents), d->f);
-    File_put_str_val(str, d->f);
-}
-
-#define ASTDumper_put_strln(str_lit, f)                                        \
-    ASTDumper_put_strln_val(STR_LIT(str_lit), f)
-
 // returns the next node index
 static uint32_t dump_ast_rec(const AST* ast,
                              uint32_t node_idx,
@@ -50,7 +43,7 @@ static uint32_t dump_ast_rec(const AST* ast,
                              SourceLoc last_loc);
 
 bool dump_ast(const AST* ast, const FileInfo* file_info, File f) {
-    (void)file_info;
+    MYCC_TIMER_BEGIN();
     ASTDumper d = {
         .f = f,
         .indents = StrBuf_create_empty(),
@@ -63,6 +56,7 @@ bool dump_ast(const AST* ast, const FileInfo* file_info, File f) {
                                   (SourceLoc){UINT32_MAX, {0, 0}})
                      == ast->len;
     ASTDumper_free(&d);
+    MYCC_TIMER_END("ast dumper");
     return res;
 }
 
