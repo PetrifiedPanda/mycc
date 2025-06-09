@@ -87,8 +87,3 @@ bool is_declaration_spec(const ParserState* s) {
            || is_func_spec(kind) || kind == TOKEN_ALIGNAS;
 }
 
-bool is_declaration(const ParserState* s) {
-    return is_declaration_spec(s)
-           || ParserState_curr_kind(s) == TOKEN_STATIC_ASSERT;
-}
-

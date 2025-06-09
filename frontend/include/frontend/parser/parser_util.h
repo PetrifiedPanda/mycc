@@ -22,12 +22,5 @@ bool is_type_spec(const ParserState* s);
 
 bool is_declaration_spec(const ParserState* s);
 
-/**
- *
- * @param s The current parser_state
- * @return Whether the current token is the start of a declaration
- */
-bool is_declaration(const ParserState* s);
-
 #endif
 

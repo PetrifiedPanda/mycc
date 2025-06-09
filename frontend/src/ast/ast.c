@@ -274,6 +274,11 @@ static uint32_t parse_for_loop_actions(ParserState* s, AST* ast) {
     return res;
 }
 
+static bool is_declaration(const ParserState* s) {
+    return is_declaration_spec(s)
+           || ParserState_curr_kind(s) == TOKEN_STATIC_ASSERT;
+}
+
 static uint32_t parse_declaration(ParserState* s, AST* ast);
 
 static uint32_t parse_for_clause(ParserState* s, AST* ast) {
