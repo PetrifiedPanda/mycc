@@ -68,12 +68,7 @@ static FileData create_file_data(CStr start_file, PreprocErr* err) {
         .prefixes_cap = 1,
         .prefixes = mycc_alloc(sizeof *fm.prefixes),
     };
-    File f = File_open(start_file, FILE_READ | FILE_BINARY);
-    if (!File_valid(f)) {
-        // TODO: error
-        return (FileData){0};
-    }
-    char* data = read_entire_file(f);
+    char* data = read_entire_file(file);
     if (!data) {
         // TODO: error
         return (FileData){0};
