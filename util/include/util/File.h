@@ -47,8 +47,6 @@ bool File_put_str_val(Str str, File f);
 #define File_put_str(str, f) File_put_str_val(STR_LIT(str), f)
 #define mycc_put_str(str) File_put_str_val(STR_LIT(str), mycc_stdout)
 
-bool File_ungetc(char c, File f);
-
 // TODO: errors
 void File_printf_impl(File f, Str format, ...);
 void File_printf_varargs_impl(File f, Str format, va_list args);
