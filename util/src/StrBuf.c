@@ -1,6 +1,5 @@
 #include "util/StrBuf.h"
 
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
@@ -25,15 +24,15 @@ StrBuf StrBuf_create_empty(void) {
 }
 
 enum {
-    STATIC_BUF_LEN = sizeof(StrBuf){{{0}}}._static_buf
-                     / sizeof *(StrBuf){{{0}}}._static_buf
+    STR_BUF_STATIC_LEN = sizeof(StrBuf){{{0}}}._static_buf
+                         / sizeof *(StrBuf){{{0}}}._static_buf
 };
 
-StrBuf StrBuf_create_with_cap(Str str, uint32_t cap) {
+static StrBuf StrBuf_create_with_cap(Str str, uint32_t cap) {
     assert(cap >= str.len);
     assert(str.len == 0 || str.data);
     StrBuf res;
-    if (cap < STATIC_BUF_LEN) {
+    if (cap < STR_BUF_STATIC_LEN) {
         res._is_static_buf = true;
         res._small_len = (uint8_t)str.len;
         memcpy(res._static_buf, str.data, sizeof *res._static_buf * str.len);
@@ -56,7 +55,7 @@ StrBuf StrBuf_create(Str str) {
 
 StrBuf StrBuf_create_empty_with_cap(uint32_t cap) {
     StrBuf res;
-    if (cap < STATIC_BUF_LEN) {
+    if (cap < STR_BUF_STATIC_LEN) {
         res._is_static_buf = true;
         res._small_len = 0;
         res._static_buf[0] = '\0';
@@ -87,7 +86,7 @@ uint32_t StrBuf_len(const StrBuf* str) {
 uint32_t StrBuf_cap(const StrBuf* str) {
     assert(StrBuf_valid(str));
     if (str->_is_static_buf) {
-        return STATIC_BUF_LEN - 1;
+        return STR_BUF_STATIC_LEN - 1;
     } else {
         return str->_cap - 1;
     }
@@ -123,15 +122,6 @@ CStr StrBuf_c_str(StrBuf* str) {
     return Str_c_str(StrBuf_as_str(str));
 }
 
-static const char* StrBuf_data(const StrBuf* str) {
-    assert(str);
-    if (str->_is_static_buf) {
-        return str->_static_buf;
-    } else {
-        return str->_data;
-    }
-}
-
 char StrBuf_at(const StrBuf* str, uint32_t i) {
     assert(str);
     assert(StrBuf_valid(str));
@@ -161,8 +151,8 @@ void StrBuf_push_back(StrBuf* str, char c) {
     assert(str);
     assert(StrBuf_valid(str));
     if (str->_is_static_buf) {
-        if (str->_small_len == STATIC_BUF_LEN - 1) {
-            StrBuf_move_to_dyn_buf(str, STATIC_BUF_LEN);
+        if (str->_small_len == STR_BUF_STATIC_LEN - 1) {
+            StrBuf_move_to_dyn_buf(str, STR_BUF_STATIC_LEN);
             str->_data[str->_len] = c;
             ++str->_len;
             str->_data[str->_len] = '\0';
@@ -185,7 +175,7 @@ void StrBuf_push_back(StrBuf* str, char c) {
 
 static void StrBuf_set_len(StrBuf* str, uint32_t len) {
     if (str->_is_static_buf) {
-        assert(len < STATIC_BUF_LEN);
+        assert(len < STR_BUF_STATIC_LEN);
         str->_small_len = (uint8_t)len;
     } else {
         str->_len = len;
@@ -208,7 +198,7 @@ void StrBuf_shrink_to_fit(StrBuf* str) {
     // The cast in this if is so gcc does not give a warning about signedness
     // (even though both _len and _cap should be unsigned)
     if (!str->_is_static_buf && (uint32_t)str->_len + 1 != str->_cap) {
-        if (str->_len < STATIC_BUF_LEN) {
+        if (str->_len < STR_BUF_STATIC_LEN) {
             char* data = str->_data;
             const uint32_t len = str->_len;
             str->_is_static_buf = true;
@@ -225,7 +215,7 @@ void StrBuf_shrink_to_fit(StrBuf* str) {
 
 void StrBuf_reserve(StrBuf* str, uint32_t new_cap) {
     if (str->_is_static_buf) {
-        if (new_cap >= STATIC_BUF_LEN) {
+        if (new_cap >= STR_BUF_STATIC_LEN) {
             StrBuf_move_to_dyn_buf(str, new_cap);
         }
     } else if (str->_cap < new_cap) {
@@ -272,30 +262,6 @@ StrBuf StrBuf_concat(Str s1, Str s2) {
     return res;
 }
 
-StrBuf StrBuf_take(StrBuf* str) {
-    assert(str);
-    assert(StrBuf_valid(str));
-    StrBuf res = *str;
-    str->_is_static_buf = false;
-    str->_len = 0;
-    str->_cap = 0;
-    str->_data = NULL;
-    return res;
-}
-
-StrBuf StrBuf_copy(const StrBuf* str) {
-    assert(str);
-    if (str->_is_static_buf) {
-        return *str;
-    } else {
-        if (StrBuf_valid(str)) {
-            return StrBuf_create_with_cap(StrBuf_as_str(str), str->_cap - 1);
-        } else {
-            return StrBuf_null();
-        }
-    }
-}
-
 void StrBuf_clear(StrBuf* str) {
     if (str->_is_static_buf) {
         str->_small_len = 0;
@@ -304,20 +270,6 @@ void StrBuf_clear(StrBuf* str) {
         str->_len = 0;
         str->_data[0] = '\0';
     }
-}
-
-bool StrBuf_eq(const StrBuf* s1, const StrBuf* s2) {
-    assert(s1);
-    assert(s2);
-    assert(StrBuf_valid(s1));
-    assert(StrBuf_valid(s2));
-
-    const uint32_t l1 = StrBuf_len(s1);
-    if (l1 != StrBuf_len(s2)) {
-        return false;
-    }
-    const char* d1 = StrBuf_data(s1);
-    return memcmp(d1, StrBuf_data(s2), sizeof *d1 * l1) == 0;
 }
 
 void StrBuf_free(const StrBuf* str) {

@@ -31,7 +31,6 @@ static_assert(sizeof(StrBuf) == sizeof(uint32_t) * 2 + sizeof(char*),
 
 StrBuf StrBuf_null(void);
 StrBuf StrBuf_create_empty(void);
-StrBuf StrBuf_create_with_cap(Str str, uint32_t cap);
 StrBuf StrBuf_create(Str str);
 StrBuf StrBuf_create_empty_with_cap(uint32_t cap);
 
@@ -55,12 +54,7 @@ void StrBuf_append(StrBuf* str, Str app);
 
 StrBuf StrBuf_concat(Str s1, Str s2);
 
-StrBuf StrBuf_take(StrBuf* str);
-StrBuf StrBuf_copy(const StrBuf* str);
-
 void StrBuf_clear(StrBuf* str);
-
-bool StrBuf_eq(const StrBuf* s1, const StrBuf* s2);
 
 void StrBuf_free(const StrBuf* str);
 

@@ -86,45 +86,6 @@ TEST(push_back_to_nonempty) {
     PUSH_BACK_TEST_HELPER("");
 }
 
-static void copy_test_helper(Str str) {
-    StrBuf original = StrBuf_create(str);
-    Str orig_str = StrBuf_as_str(&original);
-    ASSERT_STR(orig_str, str);
-    StrBuf copy = StrBuf_copy(&original);
-    ASSERT_STR(orig_str, str);
-    Str copy_str = StrBuf_as_str(&copy);
-    ASSERT_STR(copy_str, str);
-    ASSERT_STR(copy_str, orig_str);
-    StrBuf_free(&original);
-    StrBuf_free(&copy);
-}
-
-static void take_test_helper(Str str) {
-    StrBuf original = StrBuf_create(str);
-    Str orig_str = StrBuf_as_str(&original);
-    ASSERT_STR(orig_str, str);
-    StrBuf taken = StrBuf_take(&original);
-    ASSERT(!StrBuf_valid(&original));
-    Str taken_str = StrBuf_as_str(&taken);
-    ASSERT_STR(taken_str, str);
-    StrBuf_free(&original);
-    StrBuf_free(&taken);
-}
-
-TEST(copy_take) {
-    const char small_str[] = "Small string";
-    const char long_str[] = "Not so small string, that is very long";
-    copy_test_helper(STR_LIT(small_str));
-    copy_test_helper(STR_LIT(long_str));
-    take_test_helper(STR_LIT(small_str));
-    take_test_helper(STR_LIT(long_str));
-
-    StrBuf null_str = StrBuf_null();
-    ASSERT(!StrBuf_valid(&null_str));
-    StrBuf copy = StrBuf_copy(&null_str);
-    ASSERT(!StrBuf_valid(&copy));
-}
-
 TEST(append) {
     StrBuf str = StrBuf_create_empty();
 #define SHORT_STR "test"
@@ -380,7 +341,6 @@ TEST_SUITE_BEGIN(StrBuf){
     REGISTER_TEST(push_back_to_empty),
     REGISTER_TEST(push_back_to_empty_with_cap),
     REGISTER_TEST(push_back_to_nonempty),
-    REGISTER_TEST(copy_take),
     REGISTER_TEST(append),
     REGISTER_TEST(reserve),
     REGISTER_TEST(concat),
