@@ -17,23 +17,29 @@ typedef struct CStr {
 #define STR_LIT(lit) (const Str){.len = (sizeof lit) - 1, .data = (lit)}
 #define CSTR_LIT(lit) (const CStr){.len = (sizeof lit) - 1, .data = (lit)}
 
-Str Str_null(void);
-CStr Str_c_str(Str s);
+inline Str Str_null(void);
+inline CStr Str_c_str(Str s);
 
-Str CStr_as_str(CStr);
+inline Str CStr_as_str(CStr);
 
-bool Str_valid(Str);
+inline bool Str_valid(Str);
 
-Str Str_advance(Str s, uint32_t offset);
-Str Str_incr(Str s);
+inline Str Str_advance(Str s, uint32_t offset);
+inline Str Str_incr(Str s);
 
-Str Str_substr(Str s, uint32_t begin, uint32_t end);
+inline Str Str_substr(Str s, uint32_t begin, uint32_t end);
 
-char Str_at(Str s, uint32_t i);
+inline char Str_at(Str s, uint32_t i);
 
-bool Str_starts_with(Str s1, Str s2);
+inline bool Str_starts_with(Str s1, Str s2);
 
-bool Str_eq(Str s1, Str s2);
+inline bool Str_eq(Str s1, Str s2);
+
+#ifndef MYCC_STR_INLINE
+#define MYCC_STR_INLINE inline
+#endif
+
+#include "Str.inc"
 
 #endif
 
