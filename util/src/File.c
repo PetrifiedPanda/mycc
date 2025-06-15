@@ -91,12 +91,6 @@ bool File_put_str_val(Str str, File f) {
     return fwrite(str.data, 1, str.len, f._file) == str.len;
 }
 
-bool File_ungetc(char c, File f) {
-    const int input = c;
-    const int res = ungetc(input, f._file);
-    return res != EOF;
-}
-
 Str get_format_str(Str bracket_start) {
     assert(Str_at(bracket_start, 0) == '{');
     assert(bracket_start.len > 1);
