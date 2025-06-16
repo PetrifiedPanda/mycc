@@ -290,6 +290,7 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
         }
 
         if (!File_valid(file)) {
+            StrBuf_free(&full_path);
             // TODO: check system dirs?
             PreprocErr_set_file_err(s->err, filename, *include_loc);
             return (FileOpenRes){0};
