@@ -95,31 +95,6 @@ static bool is_dec_const(Str str) {
     }
 }
 
-bool is_char_const(Str str) {
-    uint32_t last = str.len - 1;
-    uint32_t i = 0;
-    if (Str_at(str, i) == 'L') {
-        ++i;
-    }
-
-    if (Str_at(str, i) != '\'' || Str_at(str, last) != '\'') {
-        return false;
-    }
-
-    ++i;
-
-    char prev = Str_at(str, i - 1);
-    for (; i != last; ++i) {
-        if (Str_at(str, i) == '\'' && prev != '\\') {
-            return false;
-        }
-
-        prev = Str_at(str, i);
-    }
-
-    return true;
-}
-
 static bool is_dec_float_const(Str str);
 static bool is_hex_float_const(Str str);
 
@@ -213,28 +188,6 @@ static bool is_hex_float_const(Str str) {
     } else {
         return true;
     }
-}
-
-bool is_string_literal(Str str) {
-    uint32_t last = str.len - 1;
-    uint32_t i = 0;
-    if (Str_at(str, i) == 'L') {
-        ++i;
-    }
-
-    if (Str_at(str, i) != '\"' || Str_at(str, last) != '\"') {
-        return false;
-    }
-    ++i;
-    char prev = Str_at(str, i - 1);
-    for (; i != last; ++i) {
-        if ((Str_at(str, i) == '\"' || Str_at(str, i) == '\n') && prev != '\\') {
-            return false;
-        }
-        prev = Str_at(str, i);
-    }
-
-    return true;
 }
 
 static bool is_id_char(char c) {
