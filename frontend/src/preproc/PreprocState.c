@@ -436,13 +436,16 @@ void PreprocState_register_macro(PreprocState* state,
     (void)overwritten; // TODO: warning if redefined
 }
 
-// TODO: it is possible to undef macros that do not exist
 static void PreprocMacroMap_remove(PreprocMacroMap* map, uint32_t idx) {
-    assert(idx < map->_cap);
+    // It is possible to undef macros that are not defined
+    if (idx >= map->_cap) {
+        return;
+    }
     PreprocMacro* macro = &map->_macros[idx];
-    assert(PreprocMacro_is_valid(macro));
-    PreprocMacro_free(macro);
-    *macro = PreprocMacro_create_invalid();
+    if (PreprocMacro_is_valid(macro)) {
+        PreprocMacro_free(macro);
+        *macro = PreprocMacro_create_invalid();
+    }
 }
 
 void PreprocState_remove_macro(PreprocState* state, uint32_t identifier_idx) {
