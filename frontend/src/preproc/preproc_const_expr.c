@@ -589,6 +589,7 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
     uint32_t i = 2;
     PreprocConstExprVal val = evaluate_preproc_cond_expr(&i, &tokens, err);
     if (!val.valid) {
+        mycc_free(tokens.int_consts);
         return (PreprocConstExprRes){
             .valid = false,
         };
