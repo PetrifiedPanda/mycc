@@ -1,4 +1,7 @@
+// For non-inlned definition of functions
+#define PARSER_STATE_INLINE extern inline
 #include "frontend/parser/ParserState.h"
+#undef PARSER_STATE_INLINE
 
 #include <string.h>
 #include <assert.h>

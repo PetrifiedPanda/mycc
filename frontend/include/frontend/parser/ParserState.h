@@ -26,43 +26,14 @@ void expected_tokens_error(ParserState* s,
                            const TokenKind* expected,
                            uint32_t num_expected);
 
-inline uint32_t ParserState_curr_id_idx(const ParserState* s) {
-    assert(s->_arr.kinds[s->it] == TOKEN_IDENTIFIER);
-    return s->_arr.val_indices[s->it];
-}
+inline uint32_t ParserState_curr_id_idx(const ParserState* s);
+inline TokenKind ParserState_curr_kind(const ParserState* s);
 
-inline TokenKind ParserState_curr_kind(const ParserState* s) {
-    if (s->it == s->_arr.len) {
-        return TOKEN_INVALID;
-    }
-    return s->_arr.kinds[s->it];
-}
+inline TokenKind ParserState_next_token_kind(const ParserState* s);
+inline uint32_t ParserState_next_token_id_idx(const ParserState* s);
 
-inline TokenKind ParserState_next_token_kind(const ParserState* s) {
-    assert(s->it < s->_arr.len - 1);
-    return s->_arr.kinds[s->it + 1];
-}
-
-inline uint32_t ParserState_next_token_id_idx(const ParserState* s) {
-    assert(s->it < s->_arr.len - 1);
-    assert(s->_arr.kinds[s->it + 1] == TOKEN_IDENTIFIER);
-    return s->_arr.val_indices[s->it + 1];
-}
-
-inline bool ParserState_accept(ParserState* s, TokenKind expected) {
-    if (ParserState_curr_kind(s) != expected) {
-        expected_token_error(s, expected);
-        return false;
-    } else {
-        ++s->it;
-        return true;
-    }
-}
-
-inline void ParserState_accept_it(ParserState* s) {
-    assert(s->it != s->_arr.len);
-    ++s->it;
-}
+inline bool ParserState_accept(ParserState* s, TokenKind expected);
+inline void ParserState_accept_it(ParserState* s);
 
 void ParserState_push_scope(ParserState* s);
 void ParserState_pop_scope(ParserState* s);
@@ -80,6 +51,14 @@ bool ParserState_is_typedef(const ParserState* s, uint32_t identifier_idx);
 void ParserState_set_redefinition_err(ParserState* s,
                                       uint32_t identifier_idx,
                                       uint32_t redef_token_idx);
+
+#ifndef PARSER_STATE_INLINE
+#define PARSER_STATE_INLINE inline
+#endif
+
+#include "ParserState.inc"
+
+#undef PARSER_STATE_INLINE
 
 #endif
 
