@@ -41,5 +41,7 @@ inline bool Str_eq(Str s1, Str s2);
 
 #include "Str.inc"
 
+#undef MYCC_STR_INLINE
+
 #endif
 
