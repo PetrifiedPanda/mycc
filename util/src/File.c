@@ -200,6 +200,12 @@ bool File_seek(File f, long offset, FileSeekOrigin origin) {
 
 #ifndef _WIN32
 
+static bool File_ungetc(char c, File f) {
+    const int input = c;
+    const int res = ungetc(input, f._file);
+    return res != EOF;
+}
+
 static void handle_win_line_ending(char newline_char, File file) {
     if (newline_char == '\r') {
         FileGetcRes next = File_getc(file);
