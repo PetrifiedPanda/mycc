@@ -265,6 +265,7 @@ static FileOpenRes resolve_path_and_open(PreprocState* s,
     StrBuf full_path = StrBuf_concat(prefix_str, filename_str);
     File file = File_open(StrBuf_c_str(&full_path), FILE_READ | FILE_BINARY);
     if (!File_valid(file)) {
+        errno = 0;
         StrBuf_clear(&full_path);
         for (uint32_t i = 0; i < s->num_include_dirs; ++i) {
             const Str dir = s->include_dirs[i];
