@@ -24,7 +24,7 @@ const char* not_d_var = "not d";
 
 int we_are_in_grave_danger = 2034243;
 
-#elif defined(A_VAR) ? B_VAR == 10 : 0
+#elif defined A_VAR ? B_VAR == 10 : 0
 
 int the_world_is_in_order = 60;
 

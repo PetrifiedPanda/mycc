@@ -519,7 +519,9 @@ PreprocConstExprRes evaluate_preproc_const_expr(PreprocState* state,
                     .valid = false,
                 };
             }
-            ++it;
+            if (has_bracket) {
+                ++it;
+            }
             const SourceLoc loc = arr->locs[i];
             // TODO: is this correct
             //for (uint32_t j = i; j < it; ++j) {
