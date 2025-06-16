@@ -271,11 +271,10 @@ static bool handle_include(PreprocState* state,
         }
     }
 
-    // TODO: "<" ">" string literals
     if (arr->kinds[2] == TOKEN_STRING_LITERAL) {
         // TODO: this gets converted twice (because it will be again in convert_preproc_tokens)
         StrLit filename = convert_to_str_lit(IndexedStringSet_get(&state->vals.str_lits, arr->val_indices[2]));
-        if (filename.kind != STR_LIT_DEFAULT) {
+        if (filename.kind != STR_LIT_DEFAULT && filename.kind != STR_LIT_INCLUDE) {
             PreprocErr_set(state->err,
                            PREPROC_ERR_INCLUDE_NOT_STRING_LITERAL,
                            arr->locs[2]);
