@@ -48,6 +48,12 @@ static void write_line_info(const TokenizerState* s, LineInfo* info) {
     info->curr_loc.file_loc = s->file_loc;
 }
 
+static bool prev_token_is_include(const PreprocTokenArr* arr) {
+    const uint32_t last_idx = arr->len - 1;
+    return arr->kinds[last_idx] == TOKEN_IDENTIFIER
+        && arr->val_indices[last_idx] == PREPROC_INCLUDE_ID_IDX;
+}
+
 static bool tokenize_next_token(PreprocTokenArr* arr,
                                 PreprocTokenValList* vals,
                                 uint32_t idx,
@@ -109,6 +115,14 @@ static bool tokenize_next_token(PreprocTokenArr* arr,
             handle_comments(&s, &info->is_in_comment);
             write_line_info(&s, info);
             return tokenize_next_token(arr, vals, idx, err, info);
+        }
+        if (kind == TOKEN_LT) {
+            // Assume this is a '<' '>' include
+            if (prev_token_is_include(arr)) {
+                return handle_character_literal(&s, arr, vals, idx, info, err);
+            }
+            // TODO: can use include being the last token as a shortcut, but
+            // because of computed includes, we can't rely on it
         }
         if (s.it.len != 1) {
             kind = check_next(kind, Str_incr(s.it));
@@ -411,16 +425,6 @@ static void handle_ongoing_comment(TokenizerState* s,
     }
 }
 
-static TokenKind get_char_lit_kind(Str spell, char terminator) {
-    if (terminator == '\"' && is_string_literal(spell)) {
-        return TOKEN_STRING_LITERAL;
-    } else if (terminator == '\'' && is_char_const(spell)) {
-        return TOKEN_I_CONSTANT;
-    } else {
-        return TOKEN_INVALID;
-    }
-}
-
 static void unterminated_literal_err(PreprocErr* err,
                                      char terminator,
                                      FileLoc start_loc,
@@ -442,7 +446,7 @@ static bool handle_character_literal(TokenizerState* s,
                                      uint32_t res_idx,
                                      LineInfo* info,
                                      PreprocErr* err) {
-    assert(*s->it.data == '\'' || *s->it.data == '\"' || *s->it.data == 'L');
+    assert(*s->it.data == '\'' || *s->it.data == '\"' || *s->it.data == 'L' || *s->it.data == '<');
     Str spell_view = {
         .len = 0,
         .data = s->it.data,
@@ -457,7 +461,7 @@ static bool handle_character_literal(TokenizerState* s,
         assert(*s->it.data == '\"' || *s->it.data == '\'');
     }
 
-    terminator = *s->it.data;
+    terminator = *s->it.data == '<' ? '>' : *s->it.data;
     ++spell_view.len;
 
     advance_one(s);
@@ -480,8 +484,7 @@ static bool handle_character_literal(TokenizerState* s,
 
         advance_one(s);
 
-        const TokenKind kind = get_char_lit_kind(spell_view,
-                                                 terminator);
+        const TokenKind kind = terminator == '\'' ? TOKEN_I_CONSTANT : TOKEN_STRING_LITERAL;
         assert(kind != TOKEN_INVALID);
         if (kind == TOKEN_I_CONSTANT) {
             arr->val_indices[res_idx] = PreprocTokenValList_add_int_const(vals, spell_view);
