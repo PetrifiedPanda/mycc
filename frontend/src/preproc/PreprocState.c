@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include "util/mem.h"
 #include "util/paths.h"
