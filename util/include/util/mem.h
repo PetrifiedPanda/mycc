@@ -13,6 +13,11 @@
 void* mycc_alloc(size_t bytes);
 
 /**
+ * @brief returns NULL when zero bytes are requested
+ */
+void* mycc_alloc_or_null(size_t bytes);
+
+/**
  * @brief calls calloc(), exiting when calloc() fails
  *
  * @param len Number of elements to allocate

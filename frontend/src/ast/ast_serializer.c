@@ -214,14 +214,6 @@ static bool deserialize_str_lit(ASTDeserializer* r, StrLit* res) {
     return StrBuf_valid(&res->contents);
 }
 
-static void* alloc_or_null(size_t bytes) {
-    if (bytes == 0) {
-        return NULL;
-    } else {
-        return mycc_alloc(bytes);
-    }
-}
-
 static bool deserialize_token_arr(ASTDeserializer* r, TokenArr* res) {
     uint32_t len;
     if (!deserialize_u32(r, &len)) {
@@ -258,7 +250,7 @@ static bool deserialize_token_arr(ASTDeserializer* r, TokenArr* res) {
         return false;
     }
     // Programs without int consts are possible
-    res->int_consts = alloc_or_null(sizeof *res->int_consts * res->int_consts_len);
+    res->int_consts = mycc_alloc_or_null(sizeof *res->int_consts * res->int_consts_len);
     for (uint32_t i = 0; i < res->int_consts_len; ++i) {
         if (!deserialize_int_val(r, &res->int_consts[i])) {
             // TODO:
@@ -270,7 +262,7 @@ static bool deserialize_token_arr(ASTDeserializer* r, TokenArr* res) {
         return false;
     }
     // Programs without floats are definitely possible
-    res->float_consts = alloc_or_null(sizeof *res->float_consts * res->float_consts_len);
+    res->float_consts = mycc_alloc_or_null(sizeof *res->float_consts * res->float_consts_len);
     for (uint32_t i = 0; i < res->float_consts_len; ++i) {
         if (!deserialize_float_val(r, &res->float_consts[i])) {
             // TODO:
@@ -282,7 +274,7 @@ static bool deserialize_token_arr(ASTDeserializer* r, TokenArr* res) {
         return false;
     }
     // Programs without string literals are possible as well
-    res->str_lits = alloc_or_null(sizeof *res->str_lits * res->str_lits_len);
+    res->str_lits = mycc_alloc_or_null(sizeof *res->str_lits * res->str_lits_len);
     for (uint32_t i = 0; i < res->str_lits_len; ++i) {
         if (!deserialize_str_lit(r, &res->str_lits[i])) {
             // TODO:

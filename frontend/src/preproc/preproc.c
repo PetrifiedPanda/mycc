@@ -146,15 +146,6 @@ void PreprocRes_free(PreprocRes* res) {
     FileInfo_free(&res->file_info);
 }
 
-// TODO: maybe put in lib (other uses in deserializer I think)
-static void* alloc_or_null(size_t bytes) {
-    if (bytes == 0) {
-        return NULL;
-    } else {
-        return mycc_alloc(bytes);
-    }
-}
-
 static TokenKind keyword_kind(uint32_t id_idx);
 
 TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
@@ -176,9 +167,9 @@ TokenArr convert_preproc_tokens(PreprocTokenArr* tokens,
         .locs = tokens->locs,
         // Gets initialized when done, so errors work properly
         .identifiers = NULL,
-        .int_consts = alloc_or_null(sizeof *res.int_consts * int_consts_len),
-        .float_consts = alloc_or_null(sizeof *res.float_consts * float_consts_len),
-        .str_lits = alloc_or_null(sizeof *res.str_lits * str_lits_len),
+        .int_consts = mycc_alloc_or_null(sizeof *res.int_consts * int_consts_len),
+        .float_consts = mycc_alloc_or_null(sizeof *res.float_consts * float_consts_len),
+        .str_lits = mycc_alloc_or_null(sizeof *res.str_lits * str_lits_len),
         .identifiers_len = identifiers_len,
         .int_consts_len = int_consts_len,
         .float_consts_len = float_consts_len,

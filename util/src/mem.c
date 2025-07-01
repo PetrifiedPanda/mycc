@@ -28,6 +28,13 @@ void* mycc_alloc(size_t bytes) {
     return res;
 }
 
+void* mycc_alloc_or_null(size_t bytes) {
+    if (bytes == 0) {
+        return NULL;
+    }
+    return mycc_alloc(bytes);
+}
+
 void* mycc_alloc_zeroed(size_t len, size_t elem_size) {
     assert(len != 0);
     assert(elem_size != 0);
