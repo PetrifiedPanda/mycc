@@ -71,16 +71,10 @@ void* mycc_realloc(void* alloc, size_t bytes) {
 }
 
 void mycc_grow_alloc(void** alloc, uint32_t* alloc_len, size_t elem_size) {
-    uint32_t new_num = *alloc_len + *alloc_len / 2 + 1;
-    // Call realloc, not mycc_realloc, because we want to track the allocations made by grow_alloc separately
-    void* new_alloc = realloc(*alloc, elem_size * new_num);
-    if (new_alloc == NULL) {
-        File_printf(mycc_stderr,
-                    "mycc_grow_alloc():\n\tFailed to realloc {size_t} bytes\n",
-                    elem_size * new_num);
-        exit(EXIT_FAILURE);
-    }
-    *alloc = new_alloc;
+    const uint32_t new_num = *alloc_len + *alloc_len / 2 + 1;
+    // It's fine to call mycc_realloc here without tracking allocations twice,
+    // because the macros are undef'd
+    *alloc = mycc_realloc(*alloc, elem_size * new_num);
     *alloc_len = new_num;
 }
 
