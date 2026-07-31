@@ -571,10 +571,9 @@ static bool handle_other(TokenizerState* s,
         err->invalid_id = StrBuf_create(spell_view);
         return false;
     }
-    
+
     arr->kinds[res_idx] = kind;
     arr->locs[res_idx] = (SourceLoc){s->current_file_idx, start_loc};
     write_line_info(s, info);
     return true;
 }
-
