@@ -8,7 +8,16 @@ TokenArr TokenArr_create_empty(void) {
         .len = 0,
         .cap = 0,
         .kinds = NULL,
+        .val_indices = NULL,
         .locs = NULL,
+        .identifiers = NULL,
+        .int_consts = NULL,
+        .float_consts = NULL,
+        .str_lits = NULL,
+        .identifiers_len = 0,
+        .int_consts_len = 0,
+        .float_consts_len = 0,
+        .str_lits_len = 0,
     };
 }
 
