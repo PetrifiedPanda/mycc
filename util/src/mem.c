@@ -462,10 +462,9 @@ void* mycc_memdebug_realloc_wrapper(void* alloc,
         check_if_freed(&g_alloc_stats, alloc_idx);
         void* new_alloc = mycc_realloc(alloc, bytes);
         if (new_alloc == alloc) {
-            print_if_alloc_tracked(new_alloc, "was resized by alloc");
+            print_if_alloc_tracked(new_alloc, "was resized by realloc");
             set_alloc_bytes(&g_alloc_stats, alloc_idx, bytes);
         } else {
-            set_freed(&g_alloc_stats, alloc_idx, FREE_FUNC_REALLOC, func, file, line);
             // TODO: not sure about this
             void** old_tracked_alloc_ptr = get_tracked_alloc_ptr(alloc);
             if (old_tracked_alloc_ptr) {
@@ -513,6 +512,7 @@ void mycc_memdebug_grow_alloc_wrapper(void** alloc,
     g_alloc_stats.num_reallocs += 1;
     if (*alloc == NULL) {
         mycc_grow_alloc(alloc, alloc_len, elem_size);
+        print_if_alloc_tracked(alloc, "was allocated again. This is bad");
         insert_alloc(&g_alloc_stats,
                      *alloc,
                      *alloc_len * elem_size,
@@ -527,9 +527,16 @@ void mycc_memdebug_grow_alloc_wrapper(void** alloc,
         mycc_grow_alloc(alloc, alloc_len, elem_size);
         const size_t bytes = *alloc_len * elem_size;
         if (old_alloc == *alloc) {
+            print_if_alloc_tracked(*alloc, "was resized by grow_alloc");
             set_alloc_bytes(&g_alloc_stats, alloc_idx, bytes);
         } else {
             set_freed(&g_alloc_stats, alloc_idx, FREE_FUNC_GROW_ALLOC, func, file, line);
+            void** old_tracked_alloc_pointer = get_tracked_alloc_ptr(old_alloc);
+            if (old_tracked_alloc_pointer) {
+                *old_tracked_alloc_pointer = *alloc;
+            } else {
+                print_if_alloc_tracked(*alloc, "was returned by grow_alloc as a new pointer. This is bad");
+            }
             insert_alloc(&g_alloc_stats, *alloc, bytes, func, file, line);
         }
     }
