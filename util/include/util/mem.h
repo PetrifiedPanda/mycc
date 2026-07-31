@@ -55,6 +55,11 @@ void mycc_grow_alloc(void** alloc, uint32_t* alloc_len, size_t elem_size);
 
 #ifdef MYCC_ENABLE_MEMDEBUG
 
+// TODO: allocation names?
+// - If we do this do this using format strings
+void mycc_memdebug_track_allocation(void* ptr);
+void mycc_memdebug_untrack_allocation(void* ptr);
+
 #include "util/Str.h"
 
 void* mycc_memdebug_alloc_wrapper(size_t bytes,

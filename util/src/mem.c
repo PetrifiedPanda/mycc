@@ -134,6 +134,62 @@ static AllocStats g_alloc_stats = {
     .bytes_freed = 0,
 };
 
+static size_t g_num_tracked_allocs = 0;
+static void** g_tracked_allocs = NULL;
+
+static void** get_tracked_alloc_ptr(void* ptr) {
+    for (size_t i = 0; i < g_num_tracked_allocs; ++i) {
+        if (g_tracked_allocs[i] == ptr) {
+            return &g_tracked_allocs[i];
+        }
+    }
+    return NULL;
+}
+
+void mycc_memdebug_track_allocation(void* ptr) {
+    assert(ptr != NULL);
+    if (get_tracked_alloc_ptr(ptr)) {
+        return;
+    }
+    if (g_num_tracked_allocs == 0) {
+        g_tracked_allocs = mycc_alloc(sizeof(void*));
+    } else {
+        g_tracked_allocs = mycc_realloc(g_tracked_allocs,
+                                        sizeof(void*) * (g_num_tracked_allocs + 1));
+    }
+    g_tracked_allocs[g_num_tracked_allocs] = ptr;
+    g_num_tracked_allocs += 1;
+}
+
+void mycc_memdebug_untrack_allocation(void* ptr) {
+    assert(ptr != NULL);
+    for (size_t i = 0; i < g_num_tracked_allocs; ++i) {
+        if (g_tracked_allocs[i] == ptr) {
+            g_tracked_allocs[i] = g_tracked_allocs[g_num_tracked_allocs - 1];
+            g_num_tracked_allocs -= 1;
+            if (g_num_tracked_allocs == 0) {
+                mycc_free(g_tracked_allocs);
+                g_tracked_allocs = NULL;
+            } else {
+                g_tracked_allocs = mycc_realloc(g_tracked_allocs,
+                                                sizeof(void*) * g_num_tracked_allocs);
+            }
+            return;
+        }
+    }
+    File_put_str("Attempted to untrack an allocation that was not tracked\n",
+                 mycc_stderr);
+    exit(EXIT_FAILURE);
+}
+
+static void print_if_alloc_tracked_impl(void* ptr, Str str) {
+    if (get_tracked_alloc_ptr(ptr) != NULL) {
+        File_put_str("Tracked Allocation Activity:\n", mycc_stderr);
+        File_printf(mycc_stderr, "\tTracked alloc {ptr} {Str}\n", ptr, str);
+    }
+}
+#define print_if_alloc_tracked(ptr, str_lit) print_if_alloc_tracked_impl(ptr, STR_LIT(str_lit))
+
 static uint32_t find_alloc_idx(const AllocStats* stats, void* alloc) {
     assert(alloc != NULL);
     uint32_t left = 0;
@@ -371,6 +427,7 @@ void* mycc_memdebug_alloc_wrapper(size_t bytes,
                                   Str file,
                                   uint32_t line) {
     void* alloc = mycc_alloc(bytes);
+    print_if_alloc_tracked(alloc, "was allocated again. This is bad");
     insert_alloc(&g_alloc_stats, alloc, bytes, func, file, line);
     return alloc;
 }
@@ -381,6 +438,7 @@ void* mycc_memdebug_alloc_zeroed_wrapper(size_t len,
                                          Str file,
                                          uint32_t line) {
     void* alloc = mycc_alloc_zeroed(len, elem_size);
+    print_if_alloc_tracked(alloc, "was allocated again. This is bad");
     insert_alloc(&g_alloc_stats, alloc, len * elem_size, func, file, line);
     return alloc;
 }
@@ -393,6 +451,7 @@ void* mycc_memdebug_realloc_wrapper(void* alloc,
     g_alloc_stats.num_reallocs += 1;
     if (alloc == NULL) {
         void* new_alloc = mycc_realloc(alloc, bytes);
+        print_if_alloc_tracked(alloc, "was allocated again. This is bad");
         if (new_alloc != NULL) {
             insert_alloc(&g_alloc_stats, new_alloc, bytes, func, file, line);
         }
@@ -403,8 +462,17 @@ void* mycc_memdebug_realloc_wrapper(void* alloc,
         check_if_freed(&g_alloc_stats, alloc_idx);
         void* new_alloc = mycc_realloc(alloc, bytes);
         if (new_alloc == alloc) {
+            print_if_alloc_tracked(new_alloc, "was resized by alloc");
             set_alloc_bytes(&g_alloc_stats, alloc_idx, bytes);
         } else {
+            set_freed(&g_alloc_stats, alloc_idx, FREE_FUNC_REALLOC, func, file, line);
+            // TODO: not sure about this
+            void** old_tracked_alloc_ptr = get_tracked_alloc_ptr(alloc);
+            if (old_tracked_alloc_ptr) {
+                *old_tracked_alloc_ptr = new_alloc;
+            } else {
+                print_if_alloc_tracked(new_alloc, "was returned by realloc as a new pointer. This is bad");
+            }
             set_freed(&g_alloc_stats, alloc_idx, FREE_FUNC_REALLOC, func, file, line);
             if (new_alloc != NULL) {
                 insert_alloc(&g_alloc_stats,
@@ -424,6 +492,7 @@ void mycc_memdebug_free_wrapper(void* alloc,
                                 Str file,
                                 uint32_t line) {
     if (alloc != NULL) {
+        print_if_alloc_tracked(alloc, "was freed");
         const uint32_t alloc_idx = find_alloc_idx(&g_alloc_stats, alloc);
         assert(g_alloc_stats.data[alloc_idx].alloc == alloc
                && "Tried to free untracked allocation");
