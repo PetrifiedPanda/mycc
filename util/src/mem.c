@@ -10,6 +10,7 @@
 
 #ifdef MYCC_ENABLE_MEMDEBUG
 #undef mycc_alloc
+#undef mycc_alloc_or_null
 #undef mycc_alloc_zeroed
 #undef mycc_realloc
 #undef mycc_free
@@ -429,6 +430,15 @@ void* mycc_memdebug_alloc_wrapper(size_t bytes,
     void* alloc = mycc_alloc(bytes);
     print_if_alloc_tracked(alloc, "was allocated again. This is bad");
     insert_alloc(&g_alloc_stats, alloc, bytes, func, file, line);
+    return alloc;
+}
+
+void* mycc_memdebug_alloc_or_null_wrapper(size_t bytes, Str func, Str file, uint32_t line) {
+    void* alloc = mycc_alloc_or_null(bytes);
+    if (alloc != NULL) {
+        print_if_alloc_tracked(alloc, "was allocated again. This is bad");
+        insert_alloc(&g_alloc_stats, alloc, bytes, func, file, line);
+    }
     return alloc;
 }
 

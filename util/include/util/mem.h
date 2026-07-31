@@ -66,6 +66,12 @@ void* mycc_memdebug_alloc_wrapper(size_t bytes,
                                   Str func,
                                   Str file,
                                   uint32_t line);
+
+void* mycc_memdebug_alloc_or_null_wrapper(size_t bytes,
+                                          Str func,
+                                          Str file,
+                                          uint32_t line);
+
 void* mycc_memdebug_alloc_zeroed_wrapper(size_t len,
                                          size_t elem_size,
                                          Str func,
@@ -91,6 +97,13 @@ void mycc_memdebug_grow_alloc_wrapper(void** alloc,
                                 STR_LIT(__func__),                             \
                                 STR_LIT(__FILE__),                             \
                                 __LINE__)
+
+#define mycc_alloc_or_null(bytes)                                              \
+    mycc_memdebug_alloc_or_null_wrapper(bytes,                                 \
+                                        STR_LIT(__func__),                     \
+                                        STR_LIT(__FILE__),                     \
+                                        __LINE__)
+
 #define mycc_alloc_zeroed(len, elem_size)                                      \
     mycc_memdebug_alloc_zeroed_wrapper(len,                                    \
                                        elem_size,                              \
