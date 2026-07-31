@@ -228,7 +228,7 @@ static uint32_t find_alloc_idx(const AllocStats* stats, void* alloc) {
     return left;
 }
 
-static void print_if_alloced_again_impl(void* ptr, Str func, Str file, uint32_t line, Str alloc_source) {
+static void print_if_tracked_alloc_alloced_again_impl(void* ptr, Str func, Str file, uint32_t line, Str alloc_source) {
     if (get_tracked_alloc_ptr(ptr) != NULL) {
         const uint32_t alloc_idx = find_alloc_idx(&g_alloc_stats, ptr);
         if (g_alloc_stats.data[alloc_idx].freed) {
@@ -240,7 +240,7 @@ static void print_if_alloced_again_impl(void* ptr, Str func, Str file, uint32_t 
         }
     }
 }
-#define print_if_alloced_again(ptr, func, file, line, alloc_source_str_lit) print_if_alloced_again_impl(ptr, func, file, line, STR_LIT(alloc_source_str_lit))
+#define print_if_tracked_alloc_alloced_again(ptr, func, file, line, alloc_source_str_lit) print_if_tracked_alloc_alloced_again_impl(ptr, func, file, line, STR_LIT(alloc_source_str_lit))
 
 static AllocEntry create_alloc_entry(void* alloc,
                                      size_t bytes,
@@ -465,7 +465,7 @@ void* mycc_memdebug_alloc_wrapper(size_t bytes,
                                   Str file,
                                   uint32_t line) {
     void* alloc = mycc_alloc(bytes);
-    print_if_alloced_again(alloc, func, file, line, "mycc_alloc");
+    print_if_tracked_alloc_alloced_again(alloc, func, file, line, "mycc_alloc");
     insert_alloc(&g_alloc_stats, alloc, bytes, func, file, line);
     return alloc;
 }
@@ -473,7 +473,7 @@ void* mycc_memdebug_alloc_wrapper(size_t bytes,
 void* mycc_memdebug_alloc_or_null_wrapper(size_t bytes, Str func, Str file, uint32_t line) {
     void* alloc = mycc_alloc_or_null(bytes);
     if (alloc != NULL) {
-        print_if_alloced_again(alloc, func, file, line, "mycc_alloc_or_null");
+        print_if_tracked_alloc_alloced_again(alloc, func, file, line, "mycc_alloc_or_null");
         insert_alloc(&g_alloc_stats, alloc, bytes, func, file, line);
     }
     return alloc;
@@ -485,7 +485,7 @@ void* mycc_memdebug_alloc_zeroed_wrapper(size_t len,
                                          Str file,
                                          uint32_t line) {
     void* alloc = mycc_alloc_zeroed(len, elem_size);
-    print_if_alloced_again(alloc, func, file, line, "mycc_alloc_zeroed");
+    print_if_tracked_alloc_alloced_again(alloc, func, file, line, "mycc_alloc_zeroed");
     insert_alloc(&g_alloc_stats, alloc, len * elem_size, func, file, line);
     return alloc;
 }
@@ -498,7 +498,7 @@ void* mycc_memdebug_realloc_wrapper(void* alloc,
     g_alloc_stats.num_reallocs += 1;
     if (alloc == NULL) {
         void* new_alloc = mycc_realloc(alloc, bytes);
-        print_if_alloced_again(alloc, func, file, line, "mycc_realloc");
+        print_if_tracked_alloc_alloced_again(alloc, func, file, line, "mycc_realloc");
         if (new_alloc != NULL) {
             insert_alloc(&g_alloc_stats, new_alloc, bytes, func, file, line);
         }
@@ -518,7 +518,7 @@ void* mycc_memdebug_realloc_wrapper(void* alloc,
                 // TODO: never executed?!
                 print_if_alloc_tracked(alloc, func, file, line, "was changed to a different allocation");
             } else {
-                print_if_alloced_again(new_alloc, func, file, line, "mycc_realloc");
+                print_if_tracked_alloc_alloced_again(new_alloc, func, file, line, "mycc_realloc");
             }
             set_freed(&g_alloc_stats, alloc_idx, FREE_FUNC_REALLOC, func, file, line);
             if (new_alloc != NULL) {
@@ -560,7 +560,7 @@ void mycc_memdebug_grow_alloc_wrapper(void** alloc,
     g_alloc_stats.num_reallocs += 1;
     if (*alloc == NULL) {
         mycc_grow_alloc(alloc, alloc_len, elem_size);
-        print_if_alloced_again(alloc, func, file, line, "mycc_grow_alloc");
+        print_if_tracked_alloc_alloced_again(alloc, func, file, line, "mycc_grow_alloc");
         insert_alloc(&g_alloc_stats,
                      *alloc,
                      *alloc_len * elem_size,
@@ -585,7 +585,7 @@ void mycc_memdebug_grow_alloc_wrapper(void** alloc,
                 // TODO: never executed?!
                 print_if_alloc_tracked(alloc, func, file, line, "was changed to a different allocation by mycc_grow_alloc");
             } else {
-                print_if_alloced_again(*alloc, func, file, line, "mycc_grow_alloc");
+                print_if_tracked_alloc_alloced_again(*alloc, func, file, line, "mycc_grow_alloc");
             }
             insert_alloc(&g_alloc_stats, *alloc, bytes, func, file, line);
         }
