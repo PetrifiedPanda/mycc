@@ -132,17 +132,24 @@ static AllocStats g_alloc_stats = {
     .bytes_freed = 0,
 };
 
-// TODO: Should tracked allocs be tracked after being freed?
-static size_t g_num_tracked_allocs = 0;
-static void **g_tracked_allocs = NULL;
+typedef struct {
+    uint32_t count;
+    void** allocs;
+} TrackedAllocs;
+
+static TrackedAllocs g_tracked_allocs = {0};
 
 static void **get_tracked_alloc_ptr(void *ptr) {
-    for (size_t i = 0; i < g_num_tracked_allocs; ++i) {
-        if (g_tracked_allocs[i] == ptr) {
-            return &g_tracked_allocs[i];
+    for (size_t i = 0; i < g_tracked_allocs.count; ++i) {
+        if (g_tracked_allocs.allocs[i] == ptr) {
+            return &g_tracked_allocs.allocs[i];
         }
     }
     return NULL;
+}
+
+static void TrackedAllocs_free(TrackedAllocs* allocs) {
+    mycc_free(allocs->allocs);
 }
 
 void mycc_memdebug_track_allocation(void *ptr) {
@@ -150,28 +157,28 @@ void mycc_memdebug_track_allocation(void *ptr) {
     if (get_tracked_alloc_ptr(ptr)) {
         return;
     }
-    if (g_num_tracked_allocs == 0) {
-        g_tracked_allocs = mycc_alloc(sizeof(void *));
+    if (g_tracked_allocs.count == 0) {
+        g_tracked_allocs.allocs = mycc_alloc(sizeof *g_tracked_allocs.allocs);
     } else {
-        g_tracked_allocs = mycc_realloc(
-            g_tracked_allocs, sizeof(void *) * (g_num_tracked_allocs + 1));
+        g_tracked_allocs.allocs = mycc_realloc(
+            g_tracked_allocs.allocs, sizeof *g_tracked_allocs.allocs * (g_tracked_allocs.count + 1));
     }
-    g_tracked_allocs[g_num_tracked_allocs] = ptr;
-    g_num_tracked_allocs += 1;
+    g_tracked_allocs.allocs[g_tracked_allocs.count] = ptr;
+    g_tracked_allocs.count += 1;
 }
 
 void mycc_memdebug_untrack_allocation(void *ptr) {
     assert(ptr != NULL);
-    for (size_t i = 0; i < g_num_tracked_allocs; ++i) {
-        if (g_tracked_allocs[i] == ptr) {
-            g_tracked_allocs[i] = g_tracked_allocs[g_num_tracked_allocs - 1];
-            g_num_tracked_allocs -= 1;
-            if (g_num_tracked_allocs == 0) {
-                mycc_free(g_tracked_allocs);
-                g_tracked_allocs = NULL;
+    for (size_t i = 0; i < g_tracked_allocs.count; ++i) {
+        if (g_tracked_allocs.allocs[i] == ptr) {
+            g_tracked_allocs.allocs[i] = g_tracked_allocs.allocs[g_tracked_allocs.count - 1];
+            g_tracked_allocs.count -= 1;
+            if (g_tracked_allocs.count == 0) {
+                mycc_free(g_tracked_allocs.allocs);
+                g_tracked_allocs.allocs = NULL;
             } else {
-                g_tracked_allocs = mycc_realloc(
-                    g_tracked_allocs, sizeof(void *) * g_num_tracked_allocs);
+                g_tracked_allocs.allocs = mycc_realloc(
+                    g_tracked_allocs.allocs, sizeof *g_tracked_allocs.allocs * g_tracked_allocs.count);
             }
             return;
         }
@@ -362,7 +369,7 @@ static void memdebug_cleanup(void) {
     pretty_print_size_t(mycc_stderr, g_alloc_stats.max_memory_usage);
     File_put_str(" bytes\n", mycc_stderr);
     mycc_free(g_alloc_stats.data);
-    mycc_free(g_tracked_allocs);
+    TrackedAllocs_free(&g_tracked_allocs);
     if (leak_detected) {
         _Exit(EXIT_FAILURE);
     }
