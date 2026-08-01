@@ -55,14 +55,14 @@ void mycc_grow_alloc(void** alloc, uint32_t* alloc_len, size_t elem_size);
 
 #ifdef MYCC_ENABLE_MEMDEBUG
 
+#include "util/Str.h"
+
 // TODO: allocation names?
 // - If we do this do this using format strings
 // - Also make tracking after free optional
 //    - may have some use for debugging, but most of the time does not matter
 void mycc_memdebug_track_allocation(void* ptr);
 void mycc_memdebug_untrack_allocation(void* ptr);
-
-#include "util/Str.h"
 
 void* mycc_memdebug_alloc_wrapper(size_t bytes,
                                   Str func,
