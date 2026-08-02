@@ -17,7 +17,7 @@
 #undef mycc_grow_alloc
 #endif
 
-void *mycc_alloc(size_t bytes) {
+void* mycc_alloc(size_t bytes) {
     assert(bytes != 0);
 
     void *res = malloc(bytes);
@@ -30,14 +30,14 @@ void *mycc_alloc(size_t bytes) {
     return res;
 }
 
-void *mycc_alloc_or_null(size_t bytes) {
+void* mycc_alloc_or_null(size_t bytes) {
     if (bytes == 0) {
         return NULL;
     }
     return mycc_alloc(bytes);
 }
 
-void *mycc_alloc_zeroed(size_t len, size_t elem_size) {
+void* mycc_alloc_zeroed(size_t len, size_t elem_size) {
     assert(len != 0);
     assert(elem_size != 0);
 
@@ -54,7 +54,7 @@ void *mycc_alloc_zeroed(size_t len, size_t elem_size) {
     return res;
 }
 
-void *mycc_realloc(void *alloc, size_t bytes) {
+void* mycc_realloc(void* alloc, size_t bytes) {
     if (bytes == 0) {
         free(alloc);
         return NULL;
@@ -70,7 +70,7 @@ void *mycc_realloc(void *alloc, size_t bytes) {
     return res;
 }
 
-void mycc_grow_alloc(void **alloc, uint32_t *alloc_len, size_t elem_size) {
+void mycc_grow_alloc(void** alloc, uint32_t* alloc_len, size_t elem_size) {
     const uint32_t new_num = *alloc_len + *alloc_len / 2 + 1;
     // It's fine to call mycc_realloc here without tracking allocations twice,
     // because the macros are undef'd
@@ -78,7 +78,9 @@ void mycc_grow_alloc(void **alloc, uint32_t *alloc_len, size_t elem_size) {
     *alloc_len = new_num;
 }
 
-void mycc_free(void *alloc) { free(alloc); }
+void mycc_free(void* alloc) {
+    free(alloc);
+}
 
 #ifdef MYCC_ENABLE_MEMDEBUG
 
@@ -95,7 +97,7 @@ typedef enum {
 } FreeFunc;
 
 typedef struct {
-    void *alloc;
+    void* alloc;
     size_t bytes;
     bool freed;
     // if freed, which function was used to free it
@@ -106,7 +108,7 @@ typedef struct {
 
 typedef struct {
     uint32_t len, cap;
-    AllocEntry *data;
+    AllocEntry* data;
     size_t num_allocs;
     size_t num_frees;
     size_t num_reallocs;
@@ -139,7 +141,7 @@ typedef struct {
 
 static TrackedAllocs g_tracked_allocs = {0};
 
-static void **get_tracked_alloc_ptr(void *ptr) {
+static void** get_tracked_alloc_ptr(void* ptr) {
     for (size_t i = 0; i < g_tracked_allocs.count; ++i) {
         if (g_tracked_allocs.allocs[i] == ptr) {
             return &g_tracked_allocs.allocs[i];
@@ -178,7 +180,7 @@ static void print_tracked_alloc_activity_header(TrackedAllocSeverity severity,
         severity_str, func, file, line);
 }
 
-void mycc_memdebug_track_allocation_impl(void *ptr, Str func, Str file, uint32_t line) {
+void mycc_memdebug_track_allocation_impl(void* ptr, Str func, Str file, uint32_t line) {
     assert(ptr != NULL);
     if (get_tracked_alloc_ptr(ptr)) {
         return;
@@ -195,7 +197,7 @@ void mycc_memdebug_track_allocation_impl(void *ptr, Str func, Str file, uint32_t
     g_tracked_allocs.count += 1;
 }
 
-void mycc_memdebug_untrack_allocation_impl(void *ptr, Str func, Str file, uint32_t line) {
+void mycc_memdebug_untrack_allocation_impl(void* ptr, Str func, Str file, uint32_t line) {
     assert(ptr != NULL);
     for (size_t i = 0; i < g_tracked_allocs.count; ++i) {
         if (g_tracked_allocs.allocs[i] == ptr) {
@@ -231,7 +233,7 @@ static void tracked_alloc_print_impl(void* ptr, Str func, Str file, uint32_t lin
 
 // TODO: allow format strings here
 // TODO: make this maybe always print alloc state
-static void print_if_alloc_tracked_impl(void *ptr, Str func, Str file,
+static void print_if_alloc_tracked_impl(void* ptr, Str func, Str file,
                                         uint32_t line, Str str) {
     if (get_tracked_alloc_ptr(ptr) != NULL) {
         tracked_alloc_print_impl(ptr, func, file, line, str);
@@ -240,7 +242,7 @@ static void print_if_alloc_tracked_impl(void *ptr, Str func, Str file,
 #define print_if_alloc_tracked(ptr, func, file, line, str_lit)                 \
     print_if_alloc_tracked_impl(ptr, func, file, line, STR_LIT(str_lit))
 
-static uint32_t find_alloc_idx(const AllocStats *stats, void *alloc) {
+static uint32_t find_alloc_idx(const AllocStats* stats, void* alloc) {
     assert(alloc != NULL);
     uint32_t left = 0;
     uint32_t right = stats->len;
@@ -255,7 +257,7 @@ static uint32_t find_alloc_idx(const AllocStats *stats, void *alloc) {
     return left;
 }
 
-static void print_if_tracked_alloc_alloced_again_impl(void *ptr, Str func,
+static void print_if_tracked_alloc_alloced_again_impl(void* ptr, Str func,
                                                       Str file, uint32_t line,
                                                       Str alloc_source) {
     if (get_tracked_alloc_ptr(ptr) != NULL) {
@@ -282,7 +284,7 @@ static void print_if_tracked_alloc_alloced_again_impl(void *ptr, Str func,
     print_if_tracked_alloc_alloced_again_impl(ptr, func, file, line,           \
                                               STR_LIT(alloc_source_str_lit))
 
-static AllocEntry create_alloc_entry(void *alloc, size_t bytes, Str func,
+static AllocEntry create_alloc_entry(void* alloc, size_t bytes, Str func,
                                      Str file, uint32_t line) {
     assert(alloc != NULL);
     return (AllocEntry){
@@ -388,7 +390,7 @@ static void memdebug_cleanup(void) {
     }
 }
 
-static void insert_alloc(AllocStats *stats, void *alloc, size_t bytes, Str func,
+static void insert_alloc(AllocStats* stats, void* alloc, size_t bytes, Str func,
                          Str file, uint32_t line) {
     assert(alloc != NULL);
     const uint32_t idx = find_alloc_idx(stats, alloc);
@@ -418,7 +420,7 @@ static void insert_alloc(AllocStats *stats, void *alloc, size_t bytes, Str func,
     }
 }
 
-static void set_freed(AllocStats *stats, uint32_t alloc_idx,
+static void set_freed(AllocStats* stats, uint32_t alloc_idx,
                       FreeFunc freeing_func, Str func, Str file,
                       uint32_t line) {
     AllocEntry *curr = &stats->data[alloc_idx];
@@ -431,7 +433,7 @@ static void set_freed(AllocStats *stats, uint32_t alloc_idx,
     stats->num_frees += 1;
 }
 
-static void set_alloc_bytes(AllocStats *stats, uint32_t alloc_idx,
+static void set_alloc_bytes(AllocStats* stats, uint32_t alloc_idx,
                             size_t bytes) {
     AllocEntry *curr = &stats->data[alloc_idx];
     assert(!curr->freed);
@@ -451,7 +453,7 @@ static void set_alloc_bytes(AllocStats *stats, uint32_t alloc_idx,
     curr->bytes = bytes;
 }
 
-static void check_if_freed(const AllocStats *stats, uint32_t alloc_idx) {
+static void check_if_freed(const AllocStats* stats, uint32_t alloc_idx) {
     const AllocEntry *entry = &stats->data[alloc_idx];
     if (entry->freed) {
         File_put_str("Double free detected, exiting...\n", mycc_stderr);
@@ -481,7 +483,7 @@ static void check_if_freed(const AllocStats *stats, uint32_t alloc_idx) {
     }
 }
 
-void *mycc_memdebug_alloc_wrapper(size_t bytes, Str func, Str file,
+void* mycc_memdebug_alloc_wrapper(size_t bytes, Str func, Str file,
                                   uint32_t line) {
     void *alloc = mycc_alloc(bytes);
     print_if_tracked_alloc_alloced_again(alloc, func, file, line, "mycc_alloc");
@@ -489,7 +491,7 @@ void *mycc_memdebug_alloc_wrapper(size_t bytes, Str func, Str file,
     return alloc;
 }
 
-void *mycc_memdebug_alloc_or_null_wrapper(size_t bytes, Str func, Str file,
+void* mycc_memdebug_alloc_or_null_wrapper(size_t bytes, Str func, Str file,
                                           uint32_t line) {
     void *alloc = mycc_alloc_or_null(bytes);
     if (alloc != NULL) {
@@ -500,7 +502,7 @@ void *mycc_memdebug_alloc_or_null_wrapper(size_t bytes, Str func, Str file,
     return alloc;
 }
 
-void *mycc_memdebug_alloc_zeroed_wrapper(size_t len, size_t elem_size, Str func,
+void* mycc_memdebug_alloc_zeroed_wrapper(size_t len, size_t elem_size, Str func,
                                          Str file, uint32_t line) {
     void *alloc = mycc_alloc_zeroed(len, elem_size);
     print_if_tracked_alloc_alloced_again(alloc, func, file, line,
@@ -509,7 +511,7 @@ void *mycc_memdebug_alloc_zeroed_wrapper(size_t len, size_t elem_size, Str func,
     return alloc;
 }
 
-void *mycc_memdebug_realloc_wrapper(void *alloc, size_t bytes, Str func,
+void* mycc_memdebug_realloc_wrapper(void* alloc, size_t bytes, Str func,
                                     Str file, uint32_t line) {
     g_alloc_stats.num_reallocs += 1;
     if (alloc == NULL) {
@@ -551,7 +553,7 @@ void *mycc_memdebug_realloc_wrapper(void *alloc, size_t bytes, Str func,
     }
 }
 
-void mycc_memdebug_free_wrapper(void *alloc, Str func, Str file,
+void mycc_memdebug_free_wrapper(void* alloc, Str func, Str file,
                                 uint32_t line) {
     if (alloc != NULL) {
         print_if_alloc_tracked(alloc, func, file, line, "was freed");
@@ -566,7 +568,7 @@ void mycc_memdebug_free_wrapper(void *alloc, Str func, Str file,
     }
 }
 
-void mycc_memdebug_grow_alloc_wrapper(void **alloc, uint32_t *alloc_len,
+void mycc_memdebug_grow_alloc_wrapper(void** alloc, uint32_t* alloc_len,
                                       size_t elem_size, Str func, Str file,
                                       uint32_t line) {
     g_alloc_stats.num_reallocs += 1;
