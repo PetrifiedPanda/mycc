@@ -61,8 +61,11 @@ void mycc_grow_alloc(void** alloc, uint32_t* alloc_len, size_t elem_size);
 // - If we do this do this using format strings
 // - Also make tracking after free optional
 //    - may have some use for debugging, but most of the time does not matter
-void mycc_memdebug_track_allocation(void* ptr);
-void mycc_memdebug_untrack_allocation(void* ptr);
+void mycc_memdebug_track_allocation_impl(void* ptr, Str func, Str file, uint32_t line);
+void mycc_memdebug_untrack_allocation_impl(void* ptr, Str func, Str file, uint32_t line);
+
+#define mycc_memdebug_track_allocation(ptr) mycc_memdebug_track_allocation_impl(ptr, STR_LIT(__func__), STR_LIT(__FILE__), __LINE__)
+#define mycc_memdebug_untrack_allocation(ptr) mycc_memdebug_untrack_allocation_impl(ptr, STR_LIT(__func__), STR_LIT(__FILE__), __LINE__)
 
 void* mycc_memdebug_alloc_wrapper(size_t bytes,
                                   Str func,

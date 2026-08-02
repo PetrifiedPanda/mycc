@@ -152,42 +152,6 @@ static void TrackedAllocs_free(TrackedAllocs* allocs) {
     mycc_free(allocs->allocs);
 }
 
-void mycc_memdebug_track_allocation(void *ptr) {
-    assert(ptr != NULL);
-    if (get_tracked_alloc_ptr(ptr)) {
-        return;
-    }
-    if (g_tracked_allocs.count == 0) {
-        g_tracked_allocs.allocs = mycc_alloc(sizeof *g_tracked_allocs.allocs);
-    } else {
-        g_tracked_allocs.allocs = mycc_realloc(
-            g_tracked_allocs.allocs, sizeof *g_tracked_allocs.allocs * (g_tracked_allocs.count + 1));
-    }
-    g_tracked_allocs.allocs[g_tracked_allocs.count] = ptr;
-    g_tracked_allocs.count += 1;
-}
-
-void mycc_memdebug_untrack_allocation(void *ptr) {
-    assert(ptr != NULL);
-    for (size_t i = 0; i < g_tracked_allocs.count; ++i) {
-        if (g_tracked_allocs.allocs[i] == ptr) {
-            g_tracked_allocs.allocs[i] = g_tracked_allocs.allocs[g_tracked_allocs.count - 1];
-            g_tracked_allocs.count -= 1;
-            if (g_tracked_allocs.count == 0) {
-                mycc_free(g_tracked_allocs.allocs);
-                g_tracked_allocs.allocs = NULL;
-            } else {
-                g_tracked_allocs.allocs = mycc_realloc(
-                    g_tracked_allocs.allocs, sizeof *g_tracked_allocs.allocs * g_tracked_allocs.count);
-            }
-            return;
-        }
-    }
-    File_put_str("Attempted to untrack an allocation that was not tracked\n",
-                 mycc_stderr);
-    exit(EXIT_FAILURE);
-}
-
 typedef enum {
     TRACKED_ALLOC_SEVERITY_INFO,
     TRACKED_ALLOC_SEVERITY_ERROR,
@@ -214,14 +178,63 @@ static void print_tracked_alloc_activity_header(TrackedAllocSeverity severity,
         severity_str, func, file, line);
 }
 
+void mycc_memdebug_track_allocation_impl(void *ptr, Str func, Str file, uint32_t line) {
+    assert(ptr != NULL);
+    if (get_tracked_alloc_ptr(ptr)) {
+        return;
+    }
+    print_tracked_alloc_activity_header(TRACKED_ALLOC_SEVERITY_INFO, func, file, line);
+    File_printf(mycc_stderr, "\tTracking allocation: {ptr}\n", ptr);
+    if (g_tracked_allocs.count == 0) {
+        g_tracked_allocs.allocs = mycc_alloc(sizeof *g_tracked_allocs.allocs);
+    } else {
+        g_tracked_allocs.allocs = mycc_realloc(
+            g_tracked_allocs.allocs, sizeof *g_tracked_allocs.allocs * (g_tracked_allocs.count + 1));
+    }
+    g_tracked_allocs.allocs[g_tracked_allocs.count] = ptr;
+    g_tracked_allocs.count += 1;
+}
+
+void mycc_memdebug_untrack_allocation_impl(void *ptr, Str func, Str file, uint32_t line) {
+    assert(ptr != NULL);
+    for (size_t i = 0; i < g_tracked_allocs.count; ++i) {
+        if (g_tracked_allocs.allocs[i] == ptr) {
+            g_tracked_allocs.allocs[i] = g_tracked_allocs.allocs[g_tracked_allocs.count - 1];
+            g_tracked_allocs.count -= 1;
+            if (g_tracked_allocs.count == 0) {
+                mycc_free(g_tracked_allocs.allocs);
+                g_tracked_allocs.allocs = NULL;
+            } else {
+                g_tracked_allocs.allocs = mycc_realloc(
+                    g_tracked_allocs.allocs, sizeof *g_tracked_allocs.allocs * g_tracked_allocs.count);
+            }
+            print_tracked_alloc_activity_header(TRACKED_ALLOC_SEVERITY_INFO, func, file, line);
+            File_printf(mycc_stderr, "\tUntracking allocation {ptr}\n", ptr);
+            return;
+        }
+    }
+    File_put_str("Attempted to untrack an allocation that was not tracked\n",
+                 mycc_stderr);
+    exit(EXIT_FAILURE);
+}
+
+static void tracked_alloc_print_impl(void* ptr, Str func, Str file, uint32_t line, Str format, ...) {
+    va_list list;
+    va_start(list, format);
+    print_tracked_alloc_activity_header(TRACKED_ALLOC_SEVERITY_INFO, func, file, line);
+    File_printf(mycc_stderr, "\tTracked alloc {ptr} ", ptr);
+    File_printf_varargs_impl(mycc_stderr, format, list);
+    File_putc('\n', mycc_stderr);
+    va_end(list);
+}
+#define tracked_alloc_print(ptr, func, file, line, format_lit, ...) tracked_alloc_print_impl(ptr, func, file, line, STR_LIT(format_lit), __VA_ARGS__)
+
 // TODO: allow format strings here
 // TODO: make this maybe always print alloc state
 static void print_if_alloc_tracked_impl(void *ptr, Str func, Str file,
                                         uint32_t line, Str str) {
     if (get_tracked_alloc_ptr(ptr) != NULL) {
-        print_tracked_alloc_activity_header(TRACKED_ALLOC_SEVERITY_INFO, func,
-                                            file, line);
-        File_printf(mycc_stderr, "\tTracked alloc {ptr} {Str}\n", ptr, str);
+        tracked_alloc_print_impl(ptr, func, file, line, str);
     }
 }
 #define print_if_alloc_tracked(ptr, func, file, line, str_lit)                 \
@@ -512,17 +525,17 @@ void *mycc_memdebug_realloc_wrapper(void *alloc, size_t bytes, Str func,
         assert(g_alloc_stats.data[alloc_idx].alloc == alloc);
         check_if_freed(&g_alloc_stats, alloc_idx);
         void *new_alloc = mycc_realloc(alloc, bytes);
+        void **old_tracked_alloc_ptr = get_tracked_alloc_ptr(alloc);
         if (new_alloc == alloc) {
-            print_if_alloc_tracked(new_alloc, func, file, line,
-                                   "was resized by mycc_realloc");
+            if (old_tracked_alloc_ptr) {
+                tracked_alloc_print(alloc, func, file, line,
+                                       "was resized by mycc_realloc to {size_t} bytes", bytes);
+            }
             set_alloc_bytes(&g_alloc_stats, alloc_idx, bytes);
         } else {
-            void **old_tracked_alloc_ptr = get_tracked_alloc_ptr(alloc);
             if (old_tracked_alloc_ptr) {
                 *old_tracked_alloc_ptr = new_alloc;
-                // TODO: never executed?!
-                print_if_alloc_tracked(alloc, func, file, line,
-                                       "was changed to a different allocation");
+                tracked_alloc_print(alloc, func, file, line, "was reallocated to {ptr} with {size_t} bytes by mycc_realloc", new_alloc, bytes);
             } else {
                 print_if_tracked_alloc_alloced_again(new_alloc, func, file,
                                                      line, "mycc_realloc");
@@ -570,20 +583,20 @@ void mycc_memdebug_grow_alloc_wrapper(void **alloc, uint32_t *alloc_len,
         void *old_alloc = *alloc;
         mycc_grow_alloc(alloc, alloc_len, elem_size);
         const size_t bytes = *alloc_len * elem_size;
+        void **old_tracked_alloc_pointer = get_tracked_alloc_ptr(old_alloc);
         if (old_alloc == *alloc) {
-            print_if_alloc_tracked(*alloc, func, file, line,
-                                   "was resized by mycc_grow_alloc");
+            if (old_tracked_alloc_pointer) {
+                tracked_alloc_print(old_alloc, func, file, line, "was resized by mycc_grow_alloc to {size_t} bytes", *alloc_len);
+            }
             set_alloc_bytes(&g_alloc_stats, alloc_idx, bytes);
         } else {
             set_freed(&g_alloc_stats, alloc_idx, FREE_FUNC_GROW_ALLOC, func,
                       file, line);
-            void **old_tracked_alloc_pointer = get_tracked_alloc_ptr(old_alloc);
             if (old_tracked_alloc_pointer) {
                 *old_tracked_alloc_pointer = *alloc;
-                // TODO: never executed?!
-                print_if_alloc_tracked(
-                    alloc, func, file, line,
-                    "was changed to a different allocation by mycc_grow_alloc");
+                tracked_alloc_print(
+                    old_alloc, func, file, line,
+                    "was reallocated to {ptr} with {size_t} bytes by mycc_grow_alloc", *alloc, *alloc_len);
             } else {
                 print_if_tracked_alloc_alloced_again(*alloc, func, file, line,
                                                      "mycc_grow_alloc");
